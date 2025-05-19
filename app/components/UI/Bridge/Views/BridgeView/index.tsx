@@ -345,6 +345,7 @@ const BridgeView = () => {
             description={strings('bridge.error_banner_description')}
             onClose={() => {
               setIsErrorBannerVisible(false);
+              setIsInputFocused(true);
             }}
           />
         </Box>
