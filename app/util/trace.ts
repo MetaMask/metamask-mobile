@@ -64,6 +64,9 @@ export enum TraceName {
   OnboardingSocialLoginAttempt = 'Onboarding - Social Login Attempt',
   OnboardingPasswordSetupAttempt = 'Onboarding - Password Setup Attempt',
   OnboardingPasswordLoginAttempt = 'Onboarding - Password Login Attempt',
+  OnboardingResetPassword = 'Onboarding - Reset Password',
+  OnboardingAddSrp = 'Onboarding - Add SRP',
+  OnboardingFetchSrps = 'Onboarding - Fetch SRPs',
 }
 
 export enum TraceOperation {
@@ -84,6 +87,9 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
   OnboardingUserJourney = 'onboarding.user_journey',
+  OnboardingResetPasswordOp = 'onboarding.reset_password',
+  OnboardingAddSrpOp = 'onboarding.add_srp',
+  OnboardingFetchSrpsOp = 'onboarding.fetch_srps',
 }
 
 const ID_DEFAULT = 'default';
@@ -100,6 +106,7 @@ export interface PendingTrace {
   request: TraceRequest;
   startTime: number;
   timeoutId: NodeJS.Timeout;
+  span?: Span;
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
@@ -168,6 +175,12 @@ export interface EndTraceRequest {
    * Override the end time of the trace.
    */
   timestamp?: number;
+
+  /**
+   * Custom data to associate with the trace when ending it.
+   * These will be set as attributes on the span.
+   */
+  data?: Record<string, number | string | boolean>;
 }
 
 interface PreConsentCallBuffer<T = TraceRequest | EndTraceRequest> {
@@ -260,6 +273,13 @@ export function endTrace(request: EndTraceRequest): void {
   if (!pendingTrace) {
     log('No pending trace found', name, id);
     return;
+  }
+
+  if (request.data && pendingTrace.span) {
+    const span = pendingTrace.span as Span;
+    for (const [attrKey, attrValue] of Object.entries(request.data)) {
+      span.setAttribute(attrKey, attrValue);
+    }
   }
 
   pendingTrace.end(timestamp);
@@ -371,7 +391,7 @@ function startTrace(request: TraceRequest): TraceContext {
       tracesByKey.delete(getTraceKey(request));
     }, TRACES_CLEANUP_INTERVAL);
 
-    const pendingTrace = { end, request, startTime, timeoutId };
+    const pendingTrace = { end, request, startTime, timeoutId, span };
     const key = getTraceKey(request);
     tracesByKey.set(key, pendingTrace);
 

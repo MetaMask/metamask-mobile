@@ -106,7 +106,20 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
-    await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    let traceSucceeded = false;
+    try {
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingAddSrpOp,
+      });
+      await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+      traceSucceeded = true;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: traceSucceeded },
+      });
+    }
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
       Engine.context.KeyringController.state.keyringsMetadata[0].id;
@@ -561,9 +574,23 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
-        password,
-      );
+      let result: Uint8Array[] | null = null;
+      let traceSucceeded = false;
+      try {
+        trace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingFetchSrpsOp,
+        });
+        result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+          password,
+        );
+        traceSucceeded = true;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: traceSucceeded, count: result?.length || 0 },
+        });
+      }
 
       if (result.length > 0) {
         const { KeyringController } = Engine.context;

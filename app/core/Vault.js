@@ -2,6 +2,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
+import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import ReduxService from './redux';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
@@ -113,7 +114,14 @@ export const recreateVaultWithNewPassword = async (
     ReduxService.store.getState().engine.backgroundState
       .SeedlessOnboardingController.authConnection
   ) {
-    await SeedlessOnboardingController.changePassword(newPassword, password);
+    let specificTraceSucceeded = false;
+    try {
+      trace({ name: TraceName.OnboardingResetPassword, op: TraceOperation.OnboardingResetPasswordOp });
+      await SeedlessOnboardingController.changePassword(newPassword, password);
+      specificTraceSucceeded = true;
+    } finally {
+      endTrace({ name: TraceName.OnboardingResetPassword, data: { success: specificTraceSucceeded } });
+    }
   }
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
