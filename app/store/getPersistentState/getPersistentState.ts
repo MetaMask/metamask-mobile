@@ -52,13 +52,10 @@ function deriveStateFromMetadata<ControllerState extends StateConstraint>(
       }
       return derivedState;
     } catch (error) {
-      // Throw error after timeout so that it is captured as a console error
-      // (and by Sentry) without interrupting state-related operations
-      setTimeout(() => {
-        // This is what change from the original base controller implementation
-        // This is a temporary solution to capture the error for extraneous data that we did not detect
-        captureException(error as unknown as Error);
-      });
+      // This is what change from the original base controller implementation
+      // This is a temporary solution to capture the error for extraneous data that we did not detect
+      captureException(error as unknown as Error);
+
       return derivedState;
     }
   }, {} as never);
