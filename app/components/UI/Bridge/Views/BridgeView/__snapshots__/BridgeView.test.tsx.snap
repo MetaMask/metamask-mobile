@@ -409,6 +409,12 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          selection={
+                                            {
+                                              "end": 0,
+                                              "start": 0,
+                                            }
+                                          }
                                           showSoftInputOnFocus={false}
                                           style={
                                             {
@@ -792,6 +798,12 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          selection={
+                                            {
+                                              "end": 0,
+                                              "start": 0,
+                                            }
+                                          }
                                           showSoftInputOnFocus={false}
                                           style={
                                             {
@@ -910,6 +922,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
@@ -1356,6 +1369,12 @@ exports[`BridgeView renders 1`] = `
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          selection={
+                                            {
+                                              "end": 0,
+                                              "start": 0,
+                                            }
+                                          }
                                           showSoftInputOnFocus={false}
                                           style={
                                             {
@@ -1739,6 +1758,12 @@ exports[`BridgeView renders 1`] = `
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="0"
+                                          selection={
+                                            {
+                                              "end": 0,
+                                              "start": 0,
+                                            }
+                                          }
                                           showSoftInputOnFocus={false}
                                           style={
                                             {
@@ -1857,6 +1882,7 @@ exports[`BridgeView renders 1`] = `
                                     "justifyContent": "center",
                                     "paddingBottom": 24,
                                     "paddingHorizontal": 16,
+                                    "paddingTop": 12,
                                     "width": "100%",
                                   },
                                 ]
