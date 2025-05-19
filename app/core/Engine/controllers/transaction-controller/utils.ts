@@ -14,6 +14,7 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import Logger from '../../../../util/Logger';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -77,6 +78,7 @@ const getConfirmationMetricProperties = (
   return (state.confirmationMetrics.metricsById?.[transactionId] ||
     {}) as unknown as TransactionMetrics;
 };
+Logger.log('getConfirmationMetricProperties:', getConfirmationMetricProperties);
 
 interface TransactionMetricsProperties {
   chain_id: string;
