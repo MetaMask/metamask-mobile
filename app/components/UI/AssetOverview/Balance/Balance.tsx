@@ -110,7 +110,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   const isDisabled = useMemo(
     () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
-    [asset.chainId, asset.isETH, asset.isNative],
+    [asset.chainId, asset.isNative],
   );
 
   const handlePress = useCallback(
@@ -120,7 +120,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         chainId: asset.chainId,
         address: asset.address,
       }),
-    [asset.address, asset.chainId, asset.isETH, asset.isNative, navigation],
+    [asset.address, asset.chainId, asset.isNative, navigation],
   );
 
   return (
