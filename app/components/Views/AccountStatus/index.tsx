@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -100,7 +100,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   };
 
   return (
-    <View style={styles.root}>
+    <ScrollView contentContainerStyle={styles.root}>
       <View style={styles.content}>
         <Text variant={TextVariant.DisplayMD}>
           {type === 'found'
@@ -152,7 +152,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         label={strings('account_status.use_different_login_method')}
         style={styles.secondaryButton}
       />
-    </View>
+    </ScrollView>
   );
 };
 
