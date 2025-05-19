@@ -91,9 +91,16 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
   >
     <View
       style={
-        {
-          "flex": 1,
-        }
+        [
+          {
+            "flex": 1,
+          },
+          {
+            "flex": 1,
+            "flexDirection": "column",
+            "height": "100%",
+          },
+        ]
       }
     >
       <RCTScrollView
@@ -135,6 +142,11 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               "flex": 1,
             },
             undefined,
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "height": "100%",
+            },
           ]
         }
         update={[Function]}
@@ -142,279 +154,298 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
       >
         <View>
           <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessible={true}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-          >
-            <View
-              style={
-                {
-                  "padding": 20,
-                }
-              }
-            >
-              <Text
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
-                    "paddingBottom": 3,
-                  }
-                }
-              >
-                Address
-              </Text>
-              <TextInput
-                keyboardAppearance="light"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onSubmitEditing={[Function]}
-                placeholder="0x..."
-                placeholderTextColor="#9ca1af"
-                style={
-                  [
-                    {
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 4,
-                      "borderWidth": 1,
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontWeight": "400",
-                      "padding": 16,
-                    },
-                    {},
-                  ]
-                }
-                testID="input-collectible-address"
-                value=""
-              />
-              <Text
-                style={
-                  {
-                    "color": "#ca3542",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
-                    "marginTop": 15,
-                  }
-                }
-                testID="collectible-address-warning"
-              />
-            </View>
-            <View
-              style={
-                {
-                  "padding": 20,
-                }
-              }
-            >
-              <Text
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
-                    "paddingBottom": 3,
-                  }
-                }
-              >
-                ID
-              </Text>
-              <TextInput
-                keyboardAppearance="light"
-                keyboardType="numeric"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onSubmitEditing={[Function]}
-                placeholder="Enter the collectible ID"
-                placeholderTextColor="#9ca1af"
-                returnKeyType="done"
-                style={
-                  [
-                    {
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 4,
-                      "borderWidth": 1,
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontWeight": "400",
-                      "padding": 16,
-                    },
-                    {},
-                  ]
-                }
-                testID="input-collectible-identifier"
-                value=""
-              />
-              <Text
-                style={
-                  {
-                    "color": "#ca3542",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
-                    "marginTop": 15,
-                  }
-                }
-                testID="collectible-identifier-warning"
-              />
-            </View>
-          </View>
-          <View
             style={
               {
-                "flex": 0,
-                "flexDirection": "row",
-                "paddingHorizontal": 24,
-                "paddingVertical": 16,
+                "flex": 1,
+                "flexDirection": "column",
+                "justifyContent": "space-between",
               }
             }
           >
-            <TouchableOpacity
-              accessibilityRole="button"
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
               accessible={true}
-              activeOpacity={0.2}
-              disabled={false}
-              onPress={[Function]}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "padding": 20,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontWeight": "400",
+                      "paddingBottom": 3,
+                    }
+                  }
+                >
+                  Address
+                </Text>
+                <TextInput
+                  keyboardAppearance="light"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onSubmitEditing={[Function]}
+                  placeholder="0x..."
+                  placeholderTextColor="#9ca1af"
+                  style={
+                    [
+                      {
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 4,
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontWeight": "400",
+                        "padding": 16,
+                      },
+                      {},
+                    ]
+                  }
+                  testID="input-collectible-address"
+                  value=""
+                />
+                <Text
+                  style={
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontWeight": "400",
+                      "marginTop": 15,
+                    }
+                  }
+                  testID="collectible-address-warning"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "padding": 20,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontWeight": "400",
+                      "paddingBottom": 3,
+                    }
+                  }
+                >
+                  ID
+                </Text>
+                <TextInput
+                  keyboardAppearance="light"
+                  keyboardType="numeric"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onSubmitEditing={[Function]}
+                  placeholder="Enter the collectible ID"
+                  placeholderTextColor="#9ca1af"
+                  returnKeyType="done"
+                  style={
+                    [
+                      {
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 4,
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontWeight": "400",
+                        "padding": 16,
+                      },
+                      {},
+                    ]
+                  }
+                  testID="input-collectible-identifier"
+                  value=""
+                />
+                <Text
+                  style={
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontWeight": "400",
+                      "marginTop": 15,
+                    }
+                  }
+                  testID="collectible-identifier-warning"
+                />
+              </View>
+            </View>
+            <View
               style={
                 [
-                  [
-                    {
-                      "borderRadius": 100,
-                      "justifyContent": "center",
-                      "padding": 15,
-                    },
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#686e7d",
-                      "borderWidth": 1,
-                    },
-                    [
-                      {
-                        "flex": 1,
-                      },
-                      {
-                        "marginRight": 8,
-                      },
-                    ],
-                  ],
-                  null,
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "flex-end",
+                    "marginBottom": 16,
+                    "paddingHorizontal": 16,
+                    "width": "100%",
+                  },
+                  undefined,
                 ]
               }
-              testID=""
             >
-              <Text
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={0.2}
+                disabled={false}
+                onPress={[Function]}
                 style={
                   [
-                    {
-                      "color": "#007aff",
-                      "fontSize": 17,
-                      "fontWeight": "500",
-                      "textAlign": "center",
-                    },
-                    null,
                     [
                       {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontSize": 14,
-                        "fontWeight": "600",
-                        "textAlign": "center",
+                        "borderRadius": 100,
+                        "justifyContent": "center",
+                        "padding": 15,
                       },
                       {
-                        "color": "#686e7d",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#686e7d",
+                        "borderWidth": 1,
                       },
-                      undefined,
+                      [
+                        {
+                          "flex": 1,
+                          "flexDirection": "column",
+                          "justifyContent": "flex-end",
+                        },
+                        {
+                          "marginRight": 8,
+                        },
+                      ],
                     ],
                     null,
                   ]
                 }
+                testID=""
               >
-                CANCEL
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              disabled={true}
-              style={
-                [
-                  [
-                    {
-                      "borderRadius": 100,
-                      "justifyContent": "center",
-                      "padding": 15,
-                    },
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#4459ff",
-                      "borderWidth": 1,
-                    },
+                <Text
+                  style={
                     [
                       {
-                        "flex": 1,
-                      },
-                      {
-                        "marginLeft": 8,
-                      },
-                      {},
-                      {},
-                    ],
-                  ],
-                  {
-                    "opacity": 0.6,
-                  },
-                ]
-              }
-              testID=""
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#007aff",
-                      "fontSize": 17,
-                      "fontWeight": "500",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#dcdcdc",
-                    },
-                    [
-                      {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontSize": 14,
-                        "fontWeight": "600",
+                        "color": "#007aff",
+                        "fontSize": 17,
+                        "fontWeight": "500",
                         "textAlign": "center",
                       },
+                      null,
+                      [
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                      ],
+                      null,
+                    ]
+                  }
+                >
+                  CANCEL
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={true}
+                style={
+                  [
+                    [
                       {
-                        "color": "#4459ff",
+                        "borderRadius": 100,
+                        "justifyContent": "center",
+                        "padding": 15,
                       },
-                      undefined,
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#4459ff",
+                        "borderWidth": 1,
+                      },
+                      [
+                        {
+                          "flex": 1,
+                          "flexDirection": "column",
+                          "justifyContent": "flex-end",
+                        },
+                        {
+                          "marginLeft": 8,
+                          "marginTop": "auto",
+                        },
+                        {},
+                        {},
+                      ],
                     ],
                     {
                       "opacity": 0.6,
                     },
                   ]
                 }
+                testID=""
               >
-                IMPORT
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#007aff",
+                        "fontSize": 17,
+                        "fontWeight": "500",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#dcdcdc",
+                      },
+                      [
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#4459ff",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "opacity": 0.6,
+                      },
+                    ]
+                  }
+                >
+                  IMPORT
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </RCTScrollView>
