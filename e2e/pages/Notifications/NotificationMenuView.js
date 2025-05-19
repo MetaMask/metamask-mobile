@@ -28,7 +28,9 @@ class EnableNotificationsModal {
     /** @type {string} */
     id,
   ) {
-    return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id));
+    return /** @type {Promise<Detox.IndexableNativeElement>} */ (
+      Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id))
+    );
   }
 
   async tapOnWalletTab() {
@@ -41,8 +43,18 @@ class EnableNotificationsModal {
     /** @type {string} */
     id,
   ) {
-    // await Gestures.scrollToElement(this.selectNotificationItem(id));
     await Gestures.waitAndTap(this.selectNotificationItem(id));
+  }
+  async scrollToNotificationItem(
+    /** @type {string} */
+    id,
+  ) {
+    await Gestures.scrollToElement(
+      this.selectNotificationItem(id),
+      Matchers.getIdentifier(
+        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+      ),
+    );
   }
 }
 

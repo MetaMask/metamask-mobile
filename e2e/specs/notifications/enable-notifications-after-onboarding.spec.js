@@ -5,7 +5,7 @@ import EnableNotificationsModal from '../../pages/Notifications/EnableNotificati
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeNotifications } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import {
@@ -31,7 +31,7 @@ const launchAppSettings = (port) => ({
   launchArgs: { mockServerPort: port },
 });
 
-describe(SmokeNotifications('Notification Onboarding'), () => {
+describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   /** @type {import('mockttp').Mockttp} */
   let mockServer;
 
@@ -90,6 +90,7 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
       await NotificationMenuView.tapOnNotificationItem(walletNotificationId);
       await Assertions.checkIfVisible(NotificationDetailsView.title);
       await NotificationDetailsView.tapOnBackButton();
+      await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
     }
   });
 });

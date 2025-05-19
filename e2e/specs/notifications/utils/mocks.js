@@ -66,10 +66,8 @@ const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
 mockFeatureAnnouncementResponse.url =
   mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
 if (mockFeatureAnnouncementResponse.response.items?.[0]) {
-  const date = new Date();
-  date.setMonth(date.getMonth() - 1);
   mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
-    date.toString();
+    new Date().toString();
 }
 
 export function getMockWalletNotificationItemIds() {
