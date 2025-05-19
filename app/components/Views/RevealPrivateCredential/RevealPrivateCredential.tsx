@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
+  KeyboardAvoidingView,
   Linking,
   Platform,
   Text,
@@ -69,6 +70,8 @@ import Banner, {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
+import { baseStyles } from '../../../styles/common';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -638,10 +641,15 @@ const RevealPrivateCredential = ({
   );
 
   return (
-    <View
+    <KeyboardAvoidingView
       style={[styles.wrapper]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
+      {/* <KeyboardAwareScrollView
+        style={[baseStyles.flexGrow, styles.wrapper]}
+        enableOnAndroid
+      > */}
       <ActionView
         cancelText={
           unlocked
@@ -691,7 +699,8 @@ const RevealPrivateCredential = ({
         isSRP={credentialSlug !== PRIVATE_KEY}
         hasNavigation={hasNavigation}
       />
-    </View>
+      {/* </KeyboardAwareScrollView> */}
+    </KeyboardAvoidingView>
   );
 };
 
