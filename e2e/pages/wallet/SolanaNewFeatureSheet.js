@@ -56,4 +56,4 @@ class SolanaNewFeatureSheet {
   }
 }
 
-export default new SolanaNewFeatureSheet();
+export default new SolanaNewFeatureSheet(); 

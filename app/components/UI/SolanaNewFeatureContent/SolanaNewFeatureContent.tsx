@@ -111,7 +111,6 @@ const SolanaNewFeatureContent = () => {
       ref={sheetRef}
       onClose={handleSheetClose}
       shouldNavigateBack={false}
-      testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET}
     >
       <View style={styles.wrapper}>
         <SolanaLogo name="solana-logo" height={65} />

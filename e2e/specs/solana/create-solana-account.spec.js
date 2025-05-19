@@ -42,13 +42,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await loadFixture(fixtureServer, {
       fixture: new FixtureBuilder()
       .withSolanaFixture()
-      .withAsyncState({
-        '@MetaMask:existingUser': 'true',
-        '@MetaMask:onboardingWizard': 'explored',
-        '@MetaMask:UserTermsAcceptedv1.0': 'true',
-        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-        '@MetaMask:solanaFeatureModalShown': 'false' // Ensure modal is NOT suppressed
-      })
+      .withSolanaFeatureSheetShown()
       .build(),
     });
     await TestHelpers.launchApp({
@@ -153,5 +147,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   //TODO: Waiting for removal feature to be implemented PLACEHOLDER
-  it.skip('should remove a solana account after creation', async () => {});
+  it.skip('should remove a solana account after creation', async () => {
+    // Test to be implemented when removal feature is available
+  });
 });
