@@ -109,7 +109,45 @@ export function createMockInternalAccount(
 export function createMockSnapInternalAccount(
   address: string,
   nickname: string,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
+  entropySource: string = '',
 ): InternalAccount {
+  let methods: string[] = [];
+  switch (accountType) {
+    case EthAccountType.Eoa:
+      methods = [
+        EthMethod.PersonalSign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ];
+      break;
+    case BtcAccountType.P2wpkh:
+      methods = [BtcMethod.SendBitcoin];
+      break;
+    case SolAccountType.DataAccount:
+      methods = [SolMethod.SendAndConfirmTransaction];
+      break;
+    default:
+      throw new Error(`Unsupported account type: ${accountType}`);
+  }
+
+  let type: KeyringAccountType;
+  switch (accountType) {
+    case EthAccountType.Eoa:
+      type = EthAccountType.Eoa;
+      break;
+    case BtcAccountType.P2wpkh:
+      type = BtcAccountType.P2wpkh;
+      break;
+    case SolAccountType.DataAccount:
+      type = SolAccountType.DataAccount;
+      break;
+    default:
+      throw new Error(`Unsupported account type: ${accountType}`);
+  }
+
   return {
     address,
     id: createMockUuidFromAddress(address),
@@ -125,16 +163,12 @@ export function createMockSnapInternalAccount(
         enabled: true,
       },
     },
-    options: {},
-    methods: [
-      EthMethod.PersonalSign,
-      EthMethod.SignTransaction,
-      EthMethod.SignTypedDataV1,
-      EthMethod.SignTypedDataV3,
-      EthMethod.SignTypedDataV4,
-    ],
-    type: EthAccountType.Eoa,
-    scopes: [EthScope.Eoa],
+    options: {
+      entropySource,
+    },
+    methods,
+    type,
+    scopes: getAccountTypeScopes(accountType),
   };
 }
 
