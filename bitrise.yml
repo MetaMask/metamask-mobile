@@ -1183,7 +1183,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
-                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ios/build/Build/Products/Release-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
       - save-cache@1:
