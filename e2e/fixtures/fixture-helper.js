@@ -35,8 +35,7 @@ export const DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS = {
   dapp: true,
   multichainDapp: true,
   localNodeOptions: [
-    { type: 'anvil', options: {} },
-    { type: 'anvil', options: { port: 8546, chainId: 1338 } }
+    { type: 'ganache', options: {} }
   ]
 };
 
