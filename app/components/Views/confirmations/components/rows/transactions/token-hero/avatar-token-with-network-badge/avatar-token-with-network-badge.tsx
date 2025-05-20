@@ -52,11 +52,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
   );
 };
 
-export const AvatarTokenWithNetworkBadge = ({
-  canShowBadge = true,
-}: {
-  canShowBadge?: boolean;
-}) => {
+export const AvatarTokenWithNetworkBadge = () => {
   const { chainId } =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
   const { asset } = useTokenAsset();
@@ -67,7 +63,7 @@ export const AvatarTokenWithNetworkBadge = ({
   const isEthOnMainnet =
     chainId === NETWORKS_CHAIN_ID.MAINNET &&
     symbol === CHAINLIST_CURRENCY_SYMBOLS_MAP.MAINNET;
-  const showBadge = canShowBadge && networkImage && !isEthOnMainnet;
+  const showBadge = networkImage && !isEthOnMainnet;
 
   return showBadge ? (
     <BadgeWrapper

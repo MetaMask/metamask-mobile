@@ -62,13 +62,7 @@ const AssetFiatConversion = ({
   );
 };
 
-const TokenHero = ({
-  amountWei,
-  showNetworkBadge = true,
-}: {
-  amountWei?: string;
-  showNetworkBadge?: boolean;
-}) => {
+const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const { isTransactionValueUpdating } = useConfirmationContext();
@@ -78,8 +72,7 @@ const TokenHero = ({
     isFlatConfirmation,
   });
 
-  const { amountPrecise, amount, fiat } =
-    useTokenAmount({ amountWei });
+  const { amountPrecise, amount, fiat } = useTokenAmount({ amountWei });
   const {
     asset: { symbol, ticker },
   } = useTokenAsset();
@@ -93,7 +86,7 @@ const TokenHero = ({
     >
       <View style={styles.container}>
         <View style={styles.containerAvatarTokenNetworkWithBadge}>
-          <AvatarTokenWithNetworkBadge canShowBadge={showNetworkBadge} />
+          <AvatarTokenWithNetworkBadge />
         </View>
         <AssetAmount
           amount={amount}
