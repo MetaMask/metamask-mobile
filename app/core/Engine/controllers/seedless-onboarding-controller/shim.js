@@ -1,4 +1,5 @@
-import Crypto from 'react-native-crypto';
+// eslint-disable-next-line import/no-nodejs-modules
+import Crypto from 'crypto';
 
 global.crypto = {
   ...Crypto,

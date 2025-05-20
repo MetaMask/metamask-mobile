@@ -19,6 +19,7 @@ import Icon, {
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { AppThemeKey } from '../../../util/theme/models';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -109,6 +110,9 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
     }
   };
 
+  const { themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.bottomSheetContainer}>
@@ -150,7 +154,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             label={
               <View style={styles.buttonLabel}>
                 <Icon
-                  name={IconName.Apple}
+                  name={isDark ? IconName.AppleWhite : IconName.Apple}
                   size={IconSize.Lg}
                   color={TextColor.Default}
                 />

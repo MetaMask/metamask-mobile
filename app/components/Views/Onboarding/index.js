@@ -190,7 +190,7 @@ const createStyles = (colors) =>
     },
     existingWalletButton: {
       borderRadius: 12,
-      color: colors.text.default,
+      color: importedColors.btnBlack,
       backgroundColor: colors.transparent,
       borderWidth: 1,
       borderColor: importedColors.btnBlack,
@@ -290,6 +290,7 @@ class Onboarding extends PureComponent {
             colors,
             true,
             importedColors.gettingStartedPageBackgroundColor,
+            true,
           )
         : getTransparentBackOnboardingNavbarOptions(
             colors,
@@ -355,7 +356,9 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -368,7 +371,9 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     this.setState({ bottomSheetVisible: false });
+    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     OAuthLoginService.resetOauthState();
+    ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -388,7 +393,7 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
           });
         } else {
-          this.props.navigation.push('ChoosePassword', {
+          this.props.navigation.navigate('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
@@ -396,7 +401,7 @@ class Onboarding extends PureComponent {
         }
       } else if (!createWallet) {
         if (result.existingUser) {
-          this.props.navigation.push('Login', {
+          this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
@@ -565,7 +570,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={colors.text.default}
+                color={importedColors.btnBlack}
               >
                 {strings('onboarding.have_existing_wallet')}
               </Text>

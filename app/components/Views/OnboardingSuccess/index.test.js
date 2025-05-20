@@ -24,6 +24,9 @@ jest.mock('@react-navigation/native', () => {
         pop: jest.fn(),
       }),
     }),
+    useRoute: () => ({
+      params: { showPasswordHint: true },
+    }),
   };
 });
 

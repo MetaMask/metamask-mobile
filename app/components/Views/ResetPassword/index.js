@@ -758,16 +758,25 @@ class ResetPassword extends PureComponent {
                       <Icon
                         name={
                           this.state.showPasswordIndex.includes(0)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
+                            ? IconName.Eye
+                            : IconName.EyeSlash
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.default}
+                        color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(0)}
                       />
                     }
                   />
-                  {password !== '' && (
+                  {!password ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('reset_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  ) : (
                     <Text variant={TextVariant.BodySM}>
                       {strings('reset_password.password_strength')}
                       <Text
@@ -811,34 +820,22 @@ class ResetPassword extends PureComponent {
                       <Icon
                         name={
                           this.state.showPasswordIndex.includes(1)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
+                            ? IconName.Eye
+                            : IconName.EyeSlash
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.default}
+                        color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(1)}
                       />
                     }
+                    isDisabled={!password}
                   />
-                  {!this.isError() ? (
-                    password === '' || password !== confirmPassword ? (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
-                      </Text>
-                    ) : null
-                  ) : (
+                  {this.isError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                       {strings('choose_password.password_error')}
                     </Text>
                   )}
                 </View>
-
-                {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
               {this.renderSwitch()}

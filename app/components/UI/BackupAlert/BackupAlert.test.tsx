@@ -47,7 +47,10 @@ describe('BackupAlert', () => {
     const rightButton = getByTestId('protect-your-wallet-button');
     fireEvent.press(rightButton);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('SetPasswordFlow', {
-      screen: 'AccountBackupStep1',
+      screen: 'ManualBackupStep1',
+      params: {
+        backupFlow: true,
+      },
     });
   });
 });
