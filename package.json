@@ -154,7 +154,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
-    "@consensys/native-ramps-sdk": "https://github.com/consensys-vertical-apps/va-mmcx-native-ramps-sdk",
+    "@consensys/native-ramps-sdk": "^0.1.2",
     "@consensys/on-ramp-sdk": "2.1.8",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
@@ -599,7 +599,6 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "@consensys/native-ramps-sdk": true,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
