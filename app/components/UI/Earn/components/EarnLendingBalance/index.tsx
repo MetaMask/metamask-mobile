@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -20,7 +20,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -34,6 +33,8 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
   RECEIPT_TOKEN_LABEL: 'receipt-token-label',
+  WITHDRAW_BUTTON: 'withdraw-button',
+  DEPOSIT_BUTTON: 'deposit-button',
 };
 
 export interface EarnLendingBalanceProps {
@@ -60,29 +61,6 @@ const EarnLendingBalance = ({
   const navigation = useNavigation();
 
   const { receiptToken } = useLendingTokenPair(asset);
-
-  const renderNetworkAvatar = useCallback(() => {
-    if (asset.isNative) {
-      return (
-        <NetworkAssetLogo
-          chainId={asset.chainId as Hex}
-          style={styles.ethLogo}
-          ticker={asset.ticker ?? asset.symbol}
-          big={false}
-          biggest={false}
-          testID={asset.name}
-        />
-      );
-    }
-
-    return (
-      <AvatarToken
-        name={asset.symbol}
-        imageSource={{ uri: asset.image }}
-        size={AvatarSize.Md}
-      />
-    );
-  }, [asset, styles.ethLogo]);
 
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
@@ -123,7 +101,14 @@ const EarnLendingBalance = ({
               />
             }
           >
-            {renderNetworkAvatar()}
+            <AvatarToken
+              name={asset.symbol}
+              imageSource={{ uri: asset.image }}
+              size={AvatarSize.Md}
+              testID={
+                EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO
+              }
+            />
           </BadgeWrapper>
           <Text
             style={styles.balances}
@@ -142,6 +127,7 @@ const EarnLendingBalance = ({
             size={ButtonSize.Lg}
             label={strings('earn.withdraw')}
             onPress={handleNavigateToWithdrawalInputScreen}
+            testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -149,6 +135,7 @@ const EarnLendingBalance = ({
             size={ButtonSize.Lg}
             label={strings('earn.deposit_more')}
             onPress={handleNavigateToDepositInputScreen}
+            testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
           />
         </View>
       )}
