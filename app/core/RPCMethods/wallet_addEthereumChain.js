@@ -286,19 +286,3 @@ export const wallet_addEthereumChain = async ({
 
   res.result = null;
 };
-
-export const addEthereumChainHandler = {
-  methodNames: [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN],
-  implementation: wallet_addEthereumChain,
-  hookNames: {
-    addNetwork: true,
-    updateNetwork: true,
-    getNetworkConfigurationByChainId: true,
-    setActiveNetwork: true,
-    requestUserApproval: true,
-    getCurrentChainIdForDomain: true,
-    getCaveat: true,
-    requestPermittedChainsPermissionIncrementalForOrigin: true,
-    rejectApprovalRequestsForOrigin: true,
-  },
-};

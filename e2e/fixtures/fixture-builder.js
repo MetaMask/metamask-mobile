@@ -771,7 +771,7 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(additionalPermissions),
     );
-    
+
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
   }

@@ -261,7 +261,7 @@ class SmartTransactionHook {
         `${LOG_PREFIX}: A list of transactions are required for batch submissions`,
       );
     }
-  }
+  };
 
   async submitBatch() {
     this.#validateSubmitBatch();
