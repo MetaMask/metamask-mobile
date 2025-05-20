@@ -31,23 +31,29 @@ const AssetAmount = ({
 
   return (
     <View style={styles.assetAmountContainer}>
-    {setIsModalVisible ? (
-      <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+      {setIsModalVisible ? (
+        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+          <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+            {amount}{' '}
+            <Text
+              style={isUnknownToken && styles.assetTextUnknown}
+              variant={TextVariant.HeadingLG}
+            >
+              {displayName}
+            </Text>
+          </Text>
+        </TouchableOpacity>
+      ) : (
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
           {amount}{' '}
-          <Text style={isUnknownToken && styles.assetTextUnknown} variant={TextVariant.HeadingLG}>
+          <Text
+            style={isUnknownToken && styles.assetTextUnknown}
+            variant={TextVariant.HeadingLG}
+          >
             {displayName}
           </Text>
         </Text>
-      </TouchableOpacity>
-    ) : (
-      <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-        {amount}{' '}
-          <Text style={isUnknownToken && styles.assetTextUnknown} variant={TextVariant.HeadingLG}>
-            {displayName}
-          </Text>
-      </Text>
-    )}
+      )}
     </View>
   );
 };
