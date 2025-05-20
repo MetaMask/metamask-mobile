@@ -10,5 +10,9 @@ export const styleSheet = (params: {
       backgroundColor: theme.colors.background.default,
       borderRadius: 99,
     },
+    base: {
+      justifyContent: 'center',
+      flexDirection: 'row',
+    },
   });
 };

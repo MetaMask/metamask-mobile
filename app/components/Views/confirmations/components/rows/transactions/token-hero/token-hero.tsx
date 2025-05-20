@@ -83,9 +83,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
       preventPulse={!maxValueMode}
     >
       <View style={styles.container}>
-        <View style={styles.containerAvatarTokenNetworkWithBadge}>
-          <AvatarTokenWithNetworkBadge />
-        </View>
+        <AvatarTokenWithNetworkBadge />
         <AssetAmount
           amount={amount}
           tokenSymbol={displayName}

@@ -23,11 +23,6 @@ const styleSheet = (params: {
       paddingBottom: 16,
       paddingTop: isFlatConfirmation ? 16 : 0,
     },
-    containerAvatarTokenNetworkWithBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
   });
 };
 
