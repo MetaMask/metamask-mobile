@@ -4,6 +4,7 @@ import React, {
   useContext,
   useMemo,
   useState,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -29,38 +30,38 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+  const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
 
-  const contextValue = useMemo((): DepositSDK => {
-    let sdk;
-
+  useEffect(() => {
     try {
       if (!providerApiKey || !providerFrontendAuth) {
         throw new Error('Deposit SDK requires valid API key and frontend auth');
       }
 
-      sdk = new NativeRampsSdk({
+      const sdkInstance = new NativeRampsSdk({
         partnerApiKey: providerApiKey,
         frontendAuth: providerFrontendAuth,
       });
+
+      setSdk(sdkInstance);
     } catch (error) {
       setSdkError(error as Error);
     }
-
-    return {
-      sdk,
-      providerApiKey,
-      providerFrontendAuth,
-    };
   }, [providerApiKey, providerFrontendAuth]);
 
-  const finalContextValue = {
-    ...contextValue,
-    sdkError,
-  };
+  const contextValue = useMemo(
+    (): DepositSDK => ({
+      sdk,
+      sdkError,
+      providerApiKey,
+      providerFrontendAuth,
+    }),
+    [sdk, sdkError, providerApiKey, providerFrontendAuth],
+  );
 
   return (
-    <DepositSDKContext.Provider value={value ?? finalContextValue} {...props} />
+    <DepositSDKContext.Provider value={value ?? contextValue} {...props} />
   );
 };
 

@@ -152,7 +152,7 @@ describe('Deposit SDK Context', () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
         return (
-          <Text testID="sdk-test" onPress={() => sdk.getQuote()}>
+          <Text testID="sdk-test" onPress={() => sdk?.getQuote()}>
             Test SDK
           </Text>
         );
