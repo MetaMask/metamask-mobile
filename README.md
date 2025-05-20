@@ -20,6 +20,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
 - [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
+- [Performance](./docs/readme/performance.md)
 - [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
