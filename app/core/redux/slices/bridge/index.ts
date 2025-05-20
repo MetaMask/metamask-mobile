@@ -21,6 +21,26 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import compareVersions from 'compare-versions';
+import { getVersion } from 'react-native-device-info';
+
+interface BridgeConfig {
+  minimumVersion?: string;
+  maxRefreshCount?: number;
+  refreshRate?: number;
+  support?: boolean;
+  chains?: Record<string, {
+    isActiveSrc?: boolean;
+    isActiveDest?: boolean;
+    topAssets?: string[];
+  }>;
+}
+
+const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined) => {
+  if (!minRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
+};
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -172,12 +192,33 @@ export const selectAllBridgeableNetworks = createSelector(
 
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    selectBridgeFeatureFlagsBase({
+  (remoteFeatureFlags) => {
+    const bridgeConfig = remoteFeatureFlags.bridgeConfig as BridgeConfig;
+
+    // Config when bridge is disabled
+    const disabledConfig = {
       remoteFeatureFlags: {
-        bridgeConfig: remoteFeatureFlags.bridgeConfig,
+        bridgeConfig: {
+          chains: {},
+          maxRefreshCount: 1,
+          refreshRate: 3000000,
+          support: false,
+        },
       },
-    }),
+    };
+
+    // Return disabled config if minimum version is not met
+    if (!hasMinimumRequiredVersion(bridgeConfig?.minimumVersion)) {
+      return selectBridgeFeatureFlagsBase({ ...disabledConfig });
+    }
+
+    // Otherwise, pass through the original config
+    return selectBridgeFeatureFlagsBase({
+      remoteFeatureFlags: {
+        bridgeConfig,
+      },
+    });
+  },
 );
 
 export const selectIsBridgeEnabledSource = createSelector(
