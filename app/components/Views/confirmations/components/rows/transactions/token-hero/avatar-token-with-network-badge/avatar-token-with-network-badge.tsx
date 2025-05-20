@@ -34,12 +34,11 @@ const AvatarTokenOrNetworkAssetLogo = ({
 
   return isNative ? (
     <NetworkAssetLogo
-      chainId={chainId}
-      ticker={ticker ?? symbol}
       big
-      biggest={false}
+      biggest
+      chainId={chainId}
       style={styles.avatarToken}
-      testID={`avatar-with-badge-network-asset-logo-${ticker ?? symbol}`}
+      ticker={ticker ?? symbol}
     />
   ) : (
     <AvatarToken
@@ -71,8 +70,8 @@ export const AvatarTokenWithNetworkBadge = () => {
       badgeElement={
         <Badge
           imageSource={networkImage}
-          variant={BadgeVariant.Network}
           name={networkName}
+          variant={BadgeVariant.Network}
         />
       }
     >

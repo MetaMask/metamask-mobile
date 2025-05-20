@@ -19,14 +19,14 @@ import styleSheet from './token-hero.styles';
 
 const AssetAmount = ({
   amount,
-  tokenSymbol,
-  styles,
   setIsModalVisible,
+  styles,
+  tokenSymbol,
 }: {
   amount?: string;
-  tokenSymbol?: string;
-  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   setIsModalVisible: ((isModalVisible: boolean) => void) | null;
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  tokenSymbol?: string;
 }) => (
   <View style={styles.assetAmountContainer}>
     {setIsModalVisible ? (
