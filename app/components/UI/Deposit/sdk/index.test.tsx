@@ -122,11 +122,11 @@ describe('Deposit SDK Context', () => {
 
     it('provides access to the NativeRampsSdk instance', () => {
       const TestComponent = () => {
-        const { nativeRampsSdk } = useDepositSDK();
+        const { sdk } = useDepositSDK();
 
         React.useEffect(() => {
-          nativeRampsSdk.getProviders();
-        }, [nativeRampsSdk]);
+          sdk.getProviders();
+        }, [sdk]);
         return <Text>Test Component</Text>;
       };
 
@@ -148,9 +148,9 @@ describe('Deposit SDK Context', () => {
   describe('NativeRampsSdk integration', () => {
     it('allows calling SDK methods through the context', async () => {
       const TestComponent = () => {
-        const { nativeRampsSdk } = useDepositSDK();
+        const { sdk } = useDepositSDK();
         return (
-          <Text testID="sdk-test" onPress={() => nativeRampsSdk.getQuote()}>
+          <Text testID="sdk-test" onPress={() => sdk.getQuote()}>
             Test SDK
           </Text>
         );
