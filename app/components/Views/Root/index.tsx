@@ -24,12 +24,13 @@ import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewri
  * Top level of the component hierarchy
  * App component is wrapped by the provider from react-redux
  */
+
+export const segmentClient = createClient({
+  writeKey: 'DUMMY_KEY'
+});
+
 const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
-
-  const segmentClient = createClient({
-    writeKey: 'DUMMY_KEY'
-  });
 
   /**
    * Wait for store to be initialized in Detox tests

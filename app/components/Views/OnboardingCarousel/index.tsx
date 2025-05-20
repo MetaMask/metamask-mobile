@@ -34,7 +34,8 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
-import { useAnalytics } from '../../../core/Analytics/typewriter/segment';
+import { segmentClient } from '../Root';
+import { Role } from '../../../core/Analytics/typewriter/segment';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -166,8 +167,6 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     [saveOnboardingEvent],
   );
 
-  const { sendButtonClickedTEST } = useAnalytics();
-
   const onPressGetStarted = () => {
     navigation.navigate('Onboarding');
     track(
@@ -206,16 +205,15 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
       ).build(),
     );
 
-    sendButtonClickedTEST({
-      properties: {
-        account_name: 'test',
-        device_id: 'test',
-      },
+    segmentClient.sendButtonClickedTEST({
+      account_name: 'test',
+      device_id: 'test',
+      role: Role.Admin,
     });
 
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
-  }, [updateNavBar, track, sendButtonClickedTEST]);
+  }, [updateNavBar, track]);
 
   useEffect(() => {
     initialize();

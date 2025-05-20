@@ -144,4 +144,4 @@ github-tools/
 api-monitor-logs/
 
 # Analytics
-app/core/Analytics/typewriter/
+app/core/Analytics/typewriter/segment.tsx
