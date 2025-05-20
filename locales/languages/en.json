@@ -1209,7 +1209,13 @@
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
           "snap_dialog": "Display custom dialogs",
-          "snap_manageAccounts": "Add and control Ethereum accounts"
+          "snap_manageAccounts": "Add and control Ethereum accounts",
+          "endowment:signature-insight": "Display signature insights modal",
+          "endowment:protocol": "Provide protocol data for one or more chains",
+          "snap_getPreferences": "See information like your preferred language and fiat currency",
+          "endowment:lifecycle-hooks": "Use lifecycle hooks",
+          "endowment:name-lookup": "Provide domain and address lookups",
+          "endowment:page-home": "Display a custom screen"
         }
       }
     },
