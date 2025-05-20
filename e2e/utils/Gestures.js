@@ -77,7 +77,7 @@ static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
 static async waitAndTap(elementID, options = {}) {
   const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
   const element = await elementID;
-  
+
   if (!skipVisibilityCheck) {
     await waitFor(element).toBeVisible().withTimeout(timeout);
   }
