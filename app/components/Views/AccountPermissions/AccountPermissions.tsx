@@ -111,7 +111,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccountsList,
     hostname,
   );
-  const permittedAccounts = uniq(
+  const permittedCaipAccountIds = uniq(
     nonRemappedPermittedAccounts.map((caipAccountId) => {
       const {
         address,
@@ -125,7 +125,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }),
   );
 
-  const permittedChainIds = getPermittedCaipChainIdsByHostname(
+  const permittedCaipChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
     hostname,
   );
@@ -161,7 +161,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }));
 
   const networkAvatars: ({ name: string; imageSource: string } | null)[] =
-    permittedChainIds.map((selectedId) => {
+    permittedCaipChainIds.map((selectedId) => {
       const network = networks.find(({ caipChainId }) => caipChainId === selectedId);
       if (network) {
         return {
@@ -185,7 +185,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     if (
       previousPermittedAccounts.current === undefined &&
-      permittedAccounts.length === 0
+      permittedCaipAccountIds.length === 0
     ) {
       hideSheet();
 
@@ -204,10 +204,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       toastRef?.current?.showToast(networkToastProps);
 
-      previousPermittedAccounts.current = permittedAccounts;
+      previousPermittedAccounts.current = permittedCaipAccountIds;
     }
   }, [
-    permittedAccounts,
+    permittedCaipAccountIds,
     hideSheet,
     toastRef,
     hostname,
@@ -225,7 +225,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     };
 
     accounts.forEach((account) => {
-      if (isCaipAccountIdInPermittedAccountIds(account.caipAccountId, permittedAccounts)){
+      if (isCaipAccountIdInPermittedAccountIds(account.caipAccountId, permittedCaipAccountIds)){
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
@@ -233,7 +233,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     });
 
     return accountsByPermittedStatus;
-  }, [accounts, permittedAccounts]);
+  }, [accounts, permittedCaipAccountIds]);
 
   const onRevokeAllHandler = useCallback(async () => {
     await Engine.context.PermissionController.revokeAllPermissions(hostname);
@@ -298,7 +298,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Check if current network was originally permitted and is now being removed
       const wasCurrentNetworkOriginallyPermitted =
-        permittedChainIds.includes(currentEvmCaipChainId);
+        permittedCaipChainIds.includes(currentEvmCaipChainId);
       const isCurrentNetworkStillPermitted =
         chainIds.includes(currentEvmCaipChainId);
 
@@ -334,7 +334,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     currentEvmChainId,
     hostname,
     networkConfigurations,
-    permittedChainIds,
+    permittedCaipChainIds,
     toggleRevokeAllPermissionsModal
   ]);
 
@@ -349,11 +349,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       let accountsToRemove: CaipAccountId[] = [];
       let accountsToAdd: CaipAccountId[] = [];
-      let newPermittedAccounts:  CaipAccountId[] = [...permittedAccounts];
+      let newPermittedAccounts:  CaipAccountId[] = [...permittedCaipAccountIds];
 
       // Identify accounts to be added
       accountsToAdd = selectedAccounts.filter(account =>
-        !isCaipAccountIdInPermittedAccountIds(account, permittedAccounts)
+        !isCaipAccountIdInPermittedAccountIds(account, permittedCaipAccountIds)
       );
 
       if (accountsToAdd.length > 0) {
@@ -361,7 +361,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
       }
 
-      accountsToRemove = permittedAccounts
+      accountsToRemove = permittedCaipAccountIds
       .filter((account) => !isCaipAccountIdInPermittedAccountIds(account, selectedAccounts));
 
       if (accountsToRemove.length > 0) {
@@ -377,7 +377,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Calculate the number of connected accounts after changes
       const connectedAccountLength =
-        permittedAccounts.length +
+        permittedCaipAccountIds.length +
         accountsToAdd.length -
         accountsToRemove.length;
 
@@ -412,7 +412,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(false);
     }
   }, [
-    permittedAccounts,
+    permittedCaipAccountIds,
     setIsLoading,
     hostname,
     toastRef,
@@ -542,7 +542,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={permittedAccounts}
+        selectedAddresses={permittedCaipAccountIds}
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
@@ -561,7 +561,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       urlWithProtocol,
       secureIcon,
       accountAvatarType,
-      permittedAccounts,
+      permittedCaipAccountIds,
     ],
   );
 
@@ -584,7 +584,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccounts,
+      accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
     };
@@ -593,7 +593,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [
     isRenderedAsBottomSheet,
     navigate,
-    permittedAccounts,
+    permittedCaipAccountIds,
     networkAvatars,
     accounts,
     faviconSource,
@@ -605,7 +605,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
-        defaultSelectedAddresses={permittedAccounts}
+        defaultSelectedAddresses={permittedCaipAccountIds}
         onSubmit={handleSelectAccountAddressesFromEditView}
         isLoading={isLoading}
         hostname={hostname}
@@ -619,7 +619,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       ensByAccountAddress,
-      permittedAccounts,
+      permittedCaipAccountIds,
       isLoading,
       hostname,
       isRenderedAsBottomSheet,
@@ -633,7 +633,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
-        defaultSelectedAddresses={permittedAccounts}
+        defaultSelectedAddresses={permittedCaipAccountIds}
         onSubmit={handleSelectAccountAddressesFromConnectMoreView}
         isLoading={isLoading}
         hostname={hostname}
@@ -648,7 +648,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isLoading,
       accountsFilteredByPermissions,
       hostname,
-      permittedAccounts,
+      permittedCaipAccountIds,
       handleSelectAccountAddressesFromConnectMoreView,
     ],
   );
@@ -667,7 +667,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
-        defaultSelectedChainIds={permittedChainIds}
+        defaultSelectedChainIds={permittedCaipChainIds}
       />
     ),
     [
@@ -676,7 +676,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isRenderedAsBottomSheet,
       isNonDappNetworkSwitch,
       handleSelectChainIds,
-      permittedChainIds
+      permittedCaipChainIds
     ],
   );
 
@@ -761,7 +761,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccounts,
+      accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
       isNetworkSwitch: true,
@@ -782,7 +782,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     urlWithProtocol,
     isRenderedAsBottomSheet,
     navigate,
-    permittedAccounts,
+    permittedCaipAccountIds,
     networkAvatars,
     accounts,
     currentEvmChainId,
