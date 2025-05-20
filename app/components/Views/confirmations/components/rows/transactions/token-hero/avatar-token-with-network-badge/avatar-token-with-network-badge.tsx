@@ -22,6 +22,7 @@ import { useTokenAsset } from '../../../../../hooks/useTokenAsset';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 import { View } from 'react-native';
+import { strings } from '../../../../../../../../../locales/i18n';
 
 const AvatarTokenOrNetworkAssetLogo = ({
   asset,
@@ -34,6 +35,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative } = asset;
+  const isUnknownToken = displayName === strings('token.unknown');
 
   return isNative ? (
     <NetworkAssetLogo
@@ -46,7 +48,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
   ) : (
     <AvatarToken
       imageSource={image ? { uri: image } : undefined}
-      name={displayName}
+      name={isUnknownToken ? undefined : displayName}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
       testID={`avatar-with-badge-avatar-token-${displayName}`}
