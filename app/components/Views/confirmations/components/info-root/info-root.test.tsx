@@ -38,6 +38,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     AccountsController: {
       state: {
