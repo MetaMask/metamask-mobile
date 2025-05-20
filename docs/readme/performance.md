@@ -11,10 +11,18 @@ By understanding these areas and applying the recommended practices, you can cre
 
 ## Re-renders and component optimization
 
-> **Note on Over-Optimization**: While memoization is powerful, it's important to use it in moderation. Not every function or computed value needs to be memoized. Consider memoization when:
+> **Note on Over-Optimization**: While memoization is powerful, it's important to use it in moderation. Not every function or computed value needs to be memoized.
+>
+> Consider memoization when:
 >
 > - The computation is expensive (e.g., complex calculations, large array transformations)
 > - The value is used in dependency arrays of other hooks
+>
+> No need to optimize when:
+>
+> - The calculation is cheap
+> - You're just returning a primitive or constant
+> - It's not causing unnecessary re-renders or performance issues
 >
 > Avoid premature optimization. Start without memoization and add it only when you observe performance issues.
 
