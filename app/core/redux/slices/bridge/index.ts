@@ -182,7 +182,7 @@ export const selectAllBridgeableNetworks = createSelector(
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const bridgeConfig = remoteFeatureFlags.bridgeConfig;
+    const bridgeConfig = remoteFeatureFlags.bridgeConfigV2;
 
     // Config when bridge is disabled
     const disabledConfig = {
