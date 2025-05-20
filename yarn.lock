@@ -4629,7 +4629,7 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/foundryup@^0.0.0-preview-c1fef6e5":
+"@metamask-previews/foundryup@0.0.0-preview-c1fef6e5":
   version "0.0.0-preview-c1fef6e5"
   resolved "https://registry.yarnpkg.com/@metamask-previews/foundryup/-/foundryup-0.0.0-preview-c1fef6e5.tgz#6c8849cf8718cc1413da424392e2618c62e14bcb"
   integrity sha512-uItWNSYiWt+xT0rltnvjdTaeJqKyney3VMN94qQxaE8bRn+1Y3VjZPj9psfjznSFmWqzGCy1F8O8RgA1w8plVA==
