@@ -14,8 +14,8 @@ const styleSheet = (colors: Colors) =>
       flex: 1,
     },
     collectibleIcon: {
-      width: ITEM_WIDTH,
-      height: ITEM_WIDTH,
+      width: ITEM_WIDTH - 8,
+      height: ITEM_WIDTH - 8,
       borderRadius: 8,
     },
     collectibleCard: {
@@ -31,7 +31,7 @@ const styleSheet = (colors: Colors) =>
       height: ITEM_WIDTH,
       marginBottom: 8,
       borderRadius: 8,
-      overflow: 'hidden',
+      padding: 4,
     },
     collectibleText: {
       width: '100%',

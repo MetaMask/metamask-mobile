@@ -104,6 +104,7 @@ const RemoteImageExpoStyles = (params: { theme: Theme }) =>
     },
     badgeWrapper: {
       flex: 1,
+      padding: 4,
     },
     imageStyle: {
       width: '100%',
@@ -112,7 +113,6 @@ const RemoteImageExpoStyles = (params: { theme: Theme }) =>
     },
     imageContainerStyle: {
       borderRadius: 8,
-      overflow: 'hidden',
     },
     defaultPlaceholderStyle: {
       backgroundColor: params.theme.colors.background.alternative,
@@ -120,8 +120,8 @@ const RemoteImageExpoStyles = (params: { theme: Theme }) =>
   });
 
 const DEFAULT_BADGE_POSITION = {
-  top: -4,
-  right: -4,
+  top: 0,
+  right: 0,
 };
 
 function useIPFSUrl(uri?: string) {
