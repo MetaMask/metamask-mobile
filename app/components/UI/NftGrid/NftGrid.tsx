@@ -234,12 +234,20 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         bufferProgress > PREFETCH_THRESHOLD &&
         !isLoadingMore &&
         !isPrefetching &&
-        hasMoreNfts
+        hasMoreNfts &&
+        visibleNftRange.end < allNfts.length // Only trigger if we haven't reached the end
       ) {
         setIsPrefetching(true);
       }
     },
-    [visibleNfts.length, isLoadingMore, isPrefetching, hasMoreNfts],
+    [
+      visibleNfts.length,
+      isLoadingMore,
+      isPrefetching,
+      hasMoreNfts,
+      visibleNftRange.end,
+      allNfts.length,
+    ],
   );
 
   // Load more NFTs when prefetching is triggered
@@ -249,9 +257,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     const loadMore = async () => {
       setIsLoadingMore(true);
       try {
+        const newEnd = Math.min(
+          visibleNftRange.end + LAZY_LOAD_COUNT,
+          allNfts.length,
+        );
         setVisibleNftRange((prev) => ({
-          start: prev.start, // Keep the start index the same
-          end: Math.min(prev.end + LAZY_LOAD_COUNT, allNfts.length), // Only increment the end
+          start: prev.start,
+          end: newEnd,
         }));
       } finally {
         setIsLoadingMore(false);
@@ -260,7 +272,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     };
 
     loadMore();
-  }, [isPrefetching, isLoadingMore, hasMoreNfts, allNfts.length]);
+  }, [
+    isPrefetching,
+    isLoadingMore,
+    hasMoreNfts,
+    allNfts.length,
+    visibleNftRange.end,
+  ]);
 
   const viewabilityConfig = useMemo(
     () => ({
@@ -467,16 +485,19 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           }
           ListFooterComponent={
             <>
-              {(isLoadingMore || isPrefetching) && (
-                <ActivityIndicator
-                  size="small"
-                  style={styles.spinner}
-                  color={colors.primary.default}
-                />
-              )}
-              {!isLoadingMore && !isPrefetching && !hasMoreNfts && (
-                <NftGridFooter navigation={navigation} />
-              )}
+              {(isLoadingMore || isPrefetching) &&
+                visibleNftRange.end < allNfts.length && (
+                  <ActivityIndicator
+                    size="small"
+                    style={styles.spinner}
+                    color={colors.primary.default}
+                  />
+                )}
+              {!isLoadingMore &&
+                !isPrefetching &&
+                visibleNftRange.end >= allNfts.length && (
+                  <NftGridFooter navigation={navigation} />
+                )}
             </>
           }
         />
