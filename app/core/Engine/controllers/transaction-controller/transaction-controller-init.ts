@@ -97,16 +97,18 @@ export const TransactionControllerInit: ControllerInitFunction<
               initMessenger,
               signedTransactionInHex,
             }),
-          publishBatch: async (_request: PublishBatchHookRequest) =>
-            await publishBatchSmartTransactionHook({
+          publishBatch: async (_request: PublishBatchHookRequest) => {
+            console.log("publishBatch entry point");
+            return await publishBatchSmartTransactionHook({
               transactionController,
               smartTransactionsController,
               initMessenger,
               getState,
               approvalController,
               transactions:
-                _request.transactions as PublishBatchHookTransaction[],
-            }),
+              _request.transactions as PublishBatchHookTransaction[],
+            });
+          },
         },
         incomingTransactions: {
           isEnabled: () =>
