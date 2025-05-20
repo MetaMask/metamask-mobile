@@ -57,6 +57,10 @@ const StakeScreenStack = () => (
         name={Routes.STANDALONE_CONFIRMATIONS.STAKE_CLAIM}
         component={Confirm}
       />
+      <Stack.Screen
+        name={Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT}
+        component={Confirm}
+      />
     </Stack.Navigator>
   </StakeSDKProvider>
 );

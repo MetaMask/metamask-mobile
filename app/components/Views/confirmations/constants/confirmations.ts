@@ -34,15 +34,11 @@ export const REDESIGNED_TRANSFER_TYPES = [
   TransactionType.tokenMethodTransferFrom,
 ];
 
-// Confirmation UI types
-export const FLAT_TRANSACTION_CONFIRMATIONS = [
+export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.stakingClaim,
-];
-
-export const STANDALONE_TRANSACTION_CONFIRMATIONS = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+  TransactionType.simpleSend,
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+]

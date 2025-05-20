@@ -221,6 +221,7 @@ const Routes = {
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
     TRANSFER: 'RedesignedTransfer',
+    STABLECOIN_LENDING_DEPOSIT: 'StablecoinLendingDeposit',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',

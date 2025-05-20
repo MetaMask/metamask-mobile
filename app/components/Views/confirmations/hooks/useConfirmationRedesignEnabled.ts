@@ -107,13 +107,8 @@ export const useConfirmationRedesignEnabled = () => {
         confirmationRedesignFlags,
         fromAddress,
         transactionMetadata,
-      }),
-    [
-      approvalRequestType,
-      confirmationRedesignFlags,
-      fromAddress,
-      transactionMetadata,
-    ],
+      }) || approvalRequest?.type === 'transaction_batch',
+    [approvalRequest?.type, approvalRequestType, confirmationRedesignFlags, fromAddress, transactionMetadata],
   );
 
   return { isRedesignedEnabled };
