@@ -13,6 +13,7 @@ import { RootState } from '../../../../reducers';
 import BN4 from 'bnjs4';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { EARN_EXPERIENCES } from '../constants/experiences';
 
 jest.mock('../../Stake/hooks/useBalance');
 jest.mock('../../Stake/hooks/useStakingGasFee');
@@ -42,6 +43,7 @@ describe('useEarnInputHandlers', () => {
     aggregators: ['uniswap', 'sushiswap'],
     image: 'https://example.com/eth-logo.png',
     balance: '1',
+    experience: EARN_EXPERIENCES.POOLED_STAKING,
   };
 
   const mockConversionRate = 2000; // 1 ETH = $2000
@@ -264,6 +266,7 @@ describe('useEarnInputHandlers', () => {
           balanceMinimalUnit: '1000000000', // 1000 USDC
           decimals: 6,
           ticker: 'USDC',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
         conversionRate: 1,
         exchangeRate: 1,
@@ -355,6 +358,7 @@ describe('useEarnInputHandlers', () => {
         balance: '1000',
         balanceFiat: '1000',
         balanceFormatted: '1000 USDC',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
       conversionRate: 1,
       exchangeRate: 1,

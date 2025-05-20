@@ -47,6 +47,7 @@ exports[`NotificationsList renders empty state 1`] = `
     contentContainerStyle={
       {
         "flexGrow": 1,
+        "paddingBottom": 100,
       }
     }
     data={[]}
@@ -76,6 +77,7 @@ exports[`NotificationsList renders empty state 1`] = `
     scrollEventThrottle={0.0001}
     stickyHeaderIndices={[]}
     tabLabel=""
+    testID="notification-menu-scroll-view"
     viewabilityConfigCallbackPairs={[]}
   >
     <RCTRefreshControl />
