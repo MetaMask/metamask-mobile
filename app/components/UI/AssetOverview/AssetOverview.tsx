@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  CaipAssetId,
+  CaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -127,7 +127,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
-    multichainAssetsRates?.[asset.address as CaipAssetId];
+    multichainAssetsRates?.[asset.address as CaipAssetType];
   ///: END:ONLY_INCLUDE_IF
 
   const currentAddress = asset.address as Hex;
@@ -307,12 +307,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isEthOrNative = asset.isETH || asset.isNative;
 
   if (isMultichainAsset) {
-    balance = formatWithThreshold(
+    balance = asset.balance ? formatWithThreshold(
       parseFloat(asset.balance),
       minimumDisplayThreshold,
       I18n.locale,
       { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-    );
+    ) : 0;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion

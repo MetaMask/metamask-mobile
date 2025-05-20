@@ -1,4 +1,4 @@
-import { CaipAssetId, Hex } from '@metamask/utils';
+import { CaipAssetId, CaipAssetType, Hex } from '@metamask/utils';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectLastSelectedSolanaAccount } from '../../selectors/accountsController';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
 
@@ -62,12 +63,17 @@ const useTokenHistoricalPrices = ({
     selectMultichainHistoricalPrices,
   );
   ///: END:ONLY_INCLUDE_IF
-  // const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
+  const lastSelectedNonEvmAccount = useSelector(
+    selectLastSelectedSolanaAccount,
+  );
+
+  // TODO; the asset.address received here is not a CaipAssetType asset when its coming from bridge flow; this is happening because of useTopTokens hook retuning the address for non evm as not a CaipAssetType asset;
+  // TODO; we need to fix this;
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -75,16 +81,23 @@ const useTokenHistoricalPrices = ({
       try {
         if (isNonEvmAsset) {
           const caip19Address = asset.address as CaipAssetId;
+          const isCaipAssetType = caip19Address.startsWith(`${asset.chainId}`);
+
+          // TODO; this is a temporary fix to ensure the address is a CaipAssetType asset;
+          const normalizedCaipAssetTypeAddress = isCaipAssetType
+            ? caip19Address
+            : (`${asset.chainId}/token:${asset.address}` as CaipAssetType);
           const standardizedTimeInterval = standardizeTimeInterval(timePeriod);
 
           await Engine.context.MultichainAssetsRatesController.fetchHistoricalPricesForAsset(
-            caip19Address,
+            normalizedCaipAssetTypeAddress,
+            lastSelectedNonEvmAccount,
           );
 
           const result =
-            multichainHistoricalPrices[caip19Address][vsCurrency].intervals[
-              standardizedTimeInterval
-            ];
+            multichainHistoricalPrices[normalizedCaipAssetTypeAddress][
+              vsCurrency
+            ].intervals[standardizedTimeInterval];
 
           // Transform to ensure first value is string and second is number with max precision
           const transformedResult = result.map(
@@ -131,6 +144,8 @@ const useTokenHistoricalPrices = ({
     isNonEvmAsset,
     asset.address,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    asset.chainId,
+    lastSelectedNonEvmAccount,
     multichainHistoricalPrices,
     ///: END:ONLY_INCLUDE_IF
   ]);
