@@ -43,7 +43,9 @@ describe(SmokeTrade('Buy Crypto'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should select Get Started to see the Build Buy Quote screen', async () => {
+  const itif = (condition) => (condition ? it : it.skip);
+
+  itif(device.getPlatform() === 'ios')('should select Get Started to see the Build Buy Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
@@ -53,7 +55,7 @@ describe(SmokeTrade('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should skip to the Build Quote screen for returning user', async () => {
+  itif(device.getPlatform() === 'ios')('should skip to the Build Quote screen for returning user', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);

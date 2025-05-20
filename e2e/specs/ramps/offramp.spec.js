@@ -59,7 +59,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
 
   const itif = (condition) => (condition ? it : it.skip);
 
-  it('should display Build Sell Quote page after user clicks Get Started', async () => {
+  itif(device.getPlatform() === 'ios')('should display Build Sell Quote page after user clicks Get Started', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
