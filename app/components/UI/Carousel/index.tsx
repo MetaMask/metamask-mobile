@@ -31,10 +31,19 @@ import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
+import {
+  fetchCarouselSlidesFromContentful,
+  isActive,
+} from './fetchCarouselSlidesFromContentful';
+import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
+  const [fetchedSlides, setFetchedSlides] = useState<CarouselSlide[]>([]);
+  const isContentfulCarouselEnabled = useSelector(
+    selectContentfulCarouselEnabledFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const { colors } = useTheme();
@@ -51,26 +60,43 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   const isZeroBalance = !hasBalance;
 
-  const slidesConfig = useMemo(
-    () =>
-      PREDEFINED_SLIDES.map((slide) => {
-        if (slide.id === 'fund' && isZeroBalance) {
-          return {
-            ...slide,
-            undismissable: true,
-          };
-        }
+  // Fetch slides from Contentful
+  useEffect(() => {
+    const loadContentfulSlides = async () => {
+      if (!isContentfulCarouselEnabled) return;
+      try {
+        const remoteSlides = await fetchCarouselSlidesFromContentful();
+        const activeSlides = remoteSlides.filter((slide) => isActive(slide));
+        setFetchedSlides(activeSlides);
+      } catch (err) {
+        console.warn('Failed to fetch Contentful slides:', err);
+      }
+    };
+    loadContentfulSlides();
+  }, [isContentfulCarouselEnabled]);
+
+  // Merge all slides (predefined + contentful),
+  const slidesConfig = useMemo(() => {
+    const baseSlides = [...PREDEFINED_SLIDES, ...fetchedSlides];
+    return baseSlides.map((slide) => {
+      if (slide.id === 'fund' && isZeroBalance) {
         return {
           ...slide,
-          undismissable: false,
+          undismissable: true,
         };
-      }),
-    [isZeroBalance],
-  );
+      }
+      return {
+        ...slide,
+        undismissable: false,
+      };
+    });
+  }, [isZeroBalance, fetchedSlides]);
 
   const visibleSlides = useMemo(
     () =>
-      slidesConfig.filter((slide) => {
+      slidesConfig.filter((slide: CarouselSlide) => {
+        const isCurrentlyActive = isActive(slide);
+
         ///: BEGIN:ONLY_INCLUDE_IF(solana)
         if (
           slide.id === 'solana' &&
@@ -83,7 +109,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         if (slide.id === 'fund' && isZeroBalance) {
           return true;
         }
-        return !dismissedBanners.includes(slide.id);
+
+        return isCurrentlyActive && !dismissedBanners.includes(slide.id);
       }),
     [
       slidesConfig,
@@ -94,6 +121,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       ///: END:ONLY_INCLUDE_IF
     ],
   );
+
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
@@ -177,7 +205,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         <View style={styles.slideContent}>
           <View style={styles.imageContainer}>
             <Image
-              source={BANNER_IMAGES[slide.id]}
+              source={
+                slide.id === 'contentful'
+                  ? { uri: slide.image }
+                  : BANNER_IMAGES[slide.id]
+              }
               style={styles.bannerImage}
               resizeMode="contain"
             />
@@ -219,7 +251,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   // Track banner display events when visible slides change
   useEffect(() => {
-    visibleSlides.forEach((slide) => {
+    visibleSlides.forEach((slide: CarouselSlide) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -237,7 +269,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
         style={styles.progressContainer}
       >
-        {visibleSlides.map((slide, index) => (
+        {visibleSlides.map((slide: CarouselSlide, index: number) => (
           <View
             key={slide.id}
             style={[
