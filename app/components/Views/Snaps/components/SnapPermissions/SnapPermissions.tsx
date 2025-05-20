@@ -5,7 +5,11 @@ import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
 import styleSheet from './SnapPermissions.styles';
+import lodash from 'lodash';
 import type { SupportedCurve } from '@metamask/key-tree';
+import { RequestedPermissions } from '@metamask/permission-controller';
+import { stripSnapPrefix } from '@metamask/snaps-utils';
+
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -15,10 +19,8 @@ import {
   SnapsDerivationPath,
   SnapsDerivationPathType,
 } from '../../../../../constants/snaps';
-import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
-import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
 import { EndowmentPermissions } from '../../../../../core/Snaps';
 import SNAP_PERMISSIONS from './SnapPermissions.contants';
@@ -189,6 +191,25 @@ const SnapPermissions = ({
     [getSnapDerivationPathName],
   );
 
+  const handleWalletSnapPermissionTitle = useCallback(
+    (
+      permissionsList: RequestedPermissions,
+      key: typeof RestrictedMethods.wallet_snap,
+    ) => {
+      const date = permissionsList[key].date;
+      const requestedSnaps = permissionsList[key].caveats?.[0].value;
+
+      return Object.keys(requestedSnaps).map((snapId) => {
+        const title = strings(
+          `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+          { otherSnapName: stripSnapPrefix(snapId) },
+        );
+        return { label: title, date };
+      });
+    },
+    [],
+  );
+
   /**
    * Derives human-readable titles for the provided permissions list.
    * The derived titles are based on the permission key and specific permission scenarios.
@@ -235,6 +256,12 @@ const SnapPermissions = ({
             );
             break;
           }
+          case RestrictedMethods.wallet_snap: {
+            permissionsData.push(
+              ...handleWalletSnapPermissionTitle(permissionsList, key),
+            );
+            break;
+          }
           default: {
             const title = strings(
               `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
@@ -250,6 +277,7 @@ const SnapPermissions = ({
       handleBip32PermissionTitles,
       handleBip44EntropyPermissionTitles,
       handleRPCPermissionTitles,
+      handleWalletSnapPermissionTitle,
     ],
   );
 
