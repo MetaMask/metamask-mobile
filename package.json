@@ -149,7 +149,8 @@
     "metro/image-size": "^1.2.1",
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
-    "@keystonehq/ur-decoder/**/base-x": "3.0.11"
+    "@keystonehq/ur-decoder/**/base-x": "3.0.11",
+    "@metamask/network-controller/@metamask/controller-utils": "11.7.1-backport"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -170,7 +171,7 @@
     "@metamask/bridge-status-controller": "^20.0.0",
     "@metamask/chain-agnostic-permission": "^0.3.0",
     "@metamask/composable-controller": "^11.0.0",
-    "@metamask/controller-utils": "^11.7.0",
+    "@metamask/controller-utils": "11.7.1-backport",
     "@metamask/design-tokens": "^7.0.0",
     "@metamask/earn-controller": "^0.13.0",
     "@metamask/eip1193-permission-middleware": "^0.1.0",
@@ -198,7 +199,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/multichain-network-controller": "^0.4.0",
     "@metamask/multichain-transactions-controller": "^0.10.0",
-    "@metamask/network-controller": "^23.2.0",
+    "@metamask/network-controller": "23.2.1-backport",
     "@metamask/notification-services-controller": "^7.0.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^12.4.1",
