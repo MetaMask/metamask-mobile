@@ -57,6 +57,8 @@ describe(SmokeTrade('Off-Ramp'), () => {
     jest.setTimeout(150000);
   });
 
+  const itif = (condition) => (condition ? it : it.skip);
+
   it('should display Build Sell Quote page after user clicks Get Started', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
