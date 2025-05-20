@@ -57,8 +57,6 @@ class EnableNotificationsModal {
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
-      'down',
-      100,
     );
   }
 }

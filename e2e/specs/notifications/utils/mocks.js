@@ -59,6 +59,7 @@ mockListNotificationsResponse.response = [
   const date = new Date();
   date.setDate(date.getDate() - i);
   n.created_at = date.toString();
+  n.unread = false;
   return n;
 });
 
