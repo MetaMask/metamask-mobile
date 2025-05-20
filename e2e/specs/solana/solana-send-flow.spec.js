@@ -74,7 +74,7 @@ describe(
       await SendActionBottomSheet.sendActionInputAmount(TRANSFER_AMOUNT);
 
       // Snap UI components prove tricky for testID's
-      await SendView.tapContinueButtonSolana();
+      await SendActionBottomSheet.tapContinueButton();
       await Assertions.checkIfTextIsDisplayed(
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       );
@@ -85,7 +85,7 @@ describe(
     });
 
     it('Should verify that transaction is sent successfully', async () => {
-      await SendView.tapCloseButtonSolana();
+      await SendActionBottomSheet.tapCloseButton();
       await WalletActionsBottomSheet.swipeDownActionsBottomSheet();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');

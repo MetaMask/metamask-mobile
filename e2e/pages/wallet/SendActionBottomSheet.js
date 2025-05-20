@@ -26,6 +26,18 @@ class SendActionBottomSheet {
       async tapSendSOLTransactionButton() {
         await Gestures.waitAndTap(this.sendSOLTransactionButton);
       }
+
+      async tapCancelButton() {
+        await Gestures.waitAndTapByTextPrefix('Cancel');
+      } 
+
+      async tapContinueButton() {
+        await Gestures.waitAndTapByTextPrefix('Continue');
+      }
+
+      async tapCloseButton() {
+        await Gestures.waitAndTapByTextPrefix('Close');
+      }
 }
 
 export default new SendActionBottomSheet;

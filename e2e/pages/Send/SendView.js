@@ -92,17 +92,5 @@ class SendView {
     const attributes = await (await this.sendAddressConfirmation).getAttributes();
     return await attributes.label.split(' ');
   }
-
-  async tapCancelButtonSolana() {
-    await Gestures.waitAndTapByTextPrefix('Cancel');
-  }
-
-  async tapContinueButtonSolana() {
-    await Gestures.waitAndTapByTextPrefix('Continue');
-  }
-
-  async tapCloseButtonSolana() {
-    await Gestures.waitAndTapByTextPrefix('Close');
-  }
 }
 export default new SendView();
