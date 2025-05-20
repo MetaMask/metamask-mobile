@@ -18,6 +18,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
@@ -161,6 +162,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
     simulationData,
     networkClientId,
   });
+  const { isBatched } = use7702TransactionType();
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({
@@ -223,7 +225,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
-        <BatchApprovalRow />
+        {isBatched && <BatchApprovalRow />}
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
           heading={strings('simulation_details.outgoing_heading')}

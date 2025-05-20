@@ -18,6 +18,10 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
+jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
+  use7702TransactionType: jest.fn().mockReturnValue({ isBatched: false }),
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
