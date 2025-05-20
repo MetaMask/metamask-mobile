@@ -26,7 +26,7 @@ import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
 import PLUME from './plume.png';
-
+import KATANA from './katana.svg';
 
 export default {
   PALM,
@@ -59,4 +59,5 @@ export default {
   FLOW,
   LENS,
   PLUME,
+  KATANA,
 };
