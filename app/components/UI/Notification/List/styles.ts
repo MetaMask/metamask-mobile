@@ -94,7 +94,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    list: { flexGrow: 1 },
+    list: { flexGrow: 1, paddingBottom: 100 },
     fox: {
       width: 20,
       height: 20,
