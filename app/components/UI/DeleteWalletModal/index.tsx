@@ -184,6 +184,7 @@ const DeleteWalletModal = () => {
               width={ButtonWidthTypes.Full}
               isDanger
               isDisabled={disableButton}
+              testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
             />
             <Button
               variant={ButtonVariants.Secondary}
@@ -191,6 +192,7 @@ const DeleteWalletModal = () => {
               onPress={triggerClose}
               label={strings('login.cancel')}
               width={ButtonWidthTypes.Full}
+              testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
             />
           </View>
         </View>

@@ -227,7 +227,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -243,7 +243,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -257,7 +257,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -564,7 +564,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -580,7 +580,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -594,7 +594,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -901,7 +901,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -917,7 +917,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -931,7 +931,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1238,7 +1238,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1254,7 +1254,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1268,7 +1268,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#121314",
+                    "backgroundColor": "#1C1E21",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,

@@ -568,7 +568,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           "paddingHorizontal": 0,
                                         }
                                       }
-                                      textAlignVertical="center"
+                                      textAlignVertical="top"
                                       value=""
                                     />
                                   </View>

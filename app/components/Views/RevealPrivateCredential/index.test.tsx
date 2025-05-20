@@ -112,7 +112,7 @@ describe('RevealPrivateCredential', () => {
         credentialName={SRP_CREDENTIAL}
       />,
     );
-    const passwordInput = getByPlaceholderText('Password');
+    const passwordInput = getByPlaceholderText('Make sure nobody is looking');
     fireEvent.changeText(passwordInput, 'wrong-password');
     fireEvent(passwordInput, 'submitEditing');
     await waitFor(() => {
@@ -138,7 +138,7 @@ describe('RevealPrivateCredential', () => {
         credentialName={SRP_CREDENTIAL}
       />,
     );
-    const passwordInput = getByPlaceholderText('Password');
+    const passwordInput = getByPlaceholderText('Make sure nobody is looking');
     fireEvent.changeText(passwordInput, 'correct-password');
     fireEvent(passwordInput, 'submitEditing');
     await waitFor(() => {
