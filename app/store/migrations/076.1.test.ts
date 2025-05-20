@@ -98,7 +98,7 @@ describe('Migration 76.1: Remove `KeyringController.keyringsMetadata`', () => {
           },
         },
       },
-      test: 'invalid networkConfigurationsByChainId state',
+      test: 'absent `KeyringController.keyringsMetadata`',
     },
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
