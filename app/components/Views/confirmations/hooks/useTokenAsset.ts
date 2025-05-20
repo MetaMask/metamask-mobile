@@ -34,15 +34,16 @@ export const useTokenAsset = () => {
   let asset = {} as TokenI;
 
   switch (transactionType) {
-    case TransactionType.contractInteraction:
+    case TransactionType.simpleSend:
     case TransactionType.stakingClaim:
     case TransactionType.stakingDeposit:
-    case TransactionType.stakingUnstake:
-    case TransactionType.simpleSend: {
+    case TransactionType.stakingUnstake: {
       // Native
       asset = nativeEvmAsset ?? {} as TokenI;
       break;
     }
+    case TransactionType.contractInteraction:
+    case TransactionType.tokenMethodTransfer:
     default: {
       // ERC20
       asset = evmAsset ?? {} as TokenI;

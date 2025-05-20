@@ -76,6 +76,15 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   let fiat;
 
   switch (transactionType) {
+    case TransactionType.simpleSend:
+    case TransactionType.stakingClaim:
+    case TransactionType.stakingDeposit:
+    case TransactionType.stakingUnstake: {
+      // Native
+      fiat = amount.times(nativeConversionRate);
+      break;
+    }
+    case TransactionType.contractInteraction:
     case TransactionType.tokenMethodTransfer: {
       // ERC20
       const contractExchangeRate = contractExchangeRates?.[tokenAddress]?.price ?? 1;
@@ -83,7 +92,6 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       break;
     }
     default: {
-      fiat = amount.times(nativeConversionRate);
       break;
     }
   }
@@ -91,6 +99,6 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   return {
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amount: formatAmount(I18n.locale, amount),
-    fiat: fiatFormatter(fiat),
+    fiat: fiat ? fiatFormatter(fiat) : undefined,
   };
 };
