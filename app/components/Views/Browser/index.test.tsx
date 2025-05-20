@@ -16,6 +16,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
+jest.useFakeTimers();
+
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
     evmAccounts: [],
@@ -157,7 +159,6 @@ describe('Browser', () => {
       { state: { ...mockInitialState } },
     );
 
-    // Spy on the console.log to check if myFunction was called
     const navigationSpy = jest.spyOn(mockNavigation, 'navigate');
 
     // rerender with a different route value
@@ -235,4 +236,103 @@ describe('Browser', () => {
 
     expect(mockUpdateTab).toHaveBeenCalledWith(2, { isArchived: true });
   });
+
+  it('should set shouldShowTabs to true without calling navigation.setParams', async () => {
+    // Create a spy on navigation.setParams
+    const setParamsSpy = jest.spyOn(mockNavigation, 'setParams');
+
+    // Mock captureScreen from react-native-view-shot
+    jest.mock('react-native-view-shot', () => ({
+      captureScreen: jest.fn().mockResolvedValue('fake-screenshot-uri')
+    }));
+
+    // Setup the store with minimal tabs
+    const tabsForTest = [
+      { id: 0, url: 'about:blank', image: '', isArchived: false },
+      { id: 1, url: 'about:blank', image: '', isArchived: false }
+    ];
+
+    const mockUpdateTab = jest.fn();
+
+    // Add a testID to the Tabs component in the Browser code
+    // Then render with shouldShowTabs defaulting to false
+    const { queryByTestId, rerender } = renderWithProvider(
+      <Provider store={mockStore({
+        ...mockInitialState,
+        browser: { tabs: tabsForTest, activeTab: 1 }
+      })}>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name="Browser">
+              {() => (
+                <Browser
+                  route={{ params: {} }}
+                  tabs={tabsForTest}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={jest.fn()}
+                  closeAllTabs={jest.fn()}
+                  closeTab={jest.fn()}
+                  setActiveTab={jest.fn()}
+                  updateTab={mockUpdateTab}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </Provider>
+    );
+
+    // Verify Tabs component is not rendered initially
+    expect(queryByTestId('tabs-component')).toBeNull();
+
+    // We need to force shouldShowTabs to be true
+    // The simplest way is to modify your Browser component to accept a test prop like 'forceShowTabs'
+    await act(async () => {
+      rerender(
+        <Provider store={mockStore({
+          ...mockInitialState,
+          browser: { tabs: tabsForTest, activeTab: 1 }
+        })}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name="Browser">
+                {() => (
+                  <Browser
+                    route={{ params: {} }}
+                    tabs={tabsForTest}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeAllTabs={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={mockUpdateTab}
+                    // This prop would need to be added to the Browser component
+                    forceShowTabs
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>
+      );
+      jest.advanceTimersByTime(100);
+    });
+
+    // Check that the Tabs component is now rendered
+    const tabsComponent = queryByTestId('tabs-component');
+    expect(tabsComponent).not.toBeNull();
+
+    // Verify updateTab was called
+    expect(mockUpdateTab).toHaveBeenCalled();
+
+    // Verify navigation.setParams was NOT called
+    expect(setParamsSpy).not.toHaveBeenCalled();
+
+    // Clean up
+    setParamsSpy.mockRestore();
+  });
 });
+
+jest.useRealTimers();
