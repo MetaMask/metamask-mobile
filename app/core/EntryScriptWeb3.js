@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import FileSystem from 'expo-file-system';
 
 const EntryScriptWeb3 = {
   entryScriptWeb3: null,
