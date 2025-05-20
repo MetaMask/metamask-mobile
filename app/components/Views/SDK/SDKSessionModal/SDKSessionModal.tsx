@@ -19,7 +19,7 @@ import { useAccounts } from '../../../hooks/useAccounts';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   getPermittedAccounts,
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
 } from '../../../../core/Permissions';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import BottomSheet, {
@@ -152,7 +152,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
               `Disconnect account: ${account}`,
               JSON.stringify(accounts, null, 2),
             );
-            const permittedAccountsByHostname = getPermittedAccountsByHostname(
+            const permittedAccountsByHostname = getPermittedCaipAccountIdsByHostname(
               permittedAccountsList,
               channelId ?? '',
             );

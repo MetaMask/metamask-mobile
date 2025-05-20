@@ -10,7 +10,7 @@ import React, {
 import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -120,7 +120,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={_onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}

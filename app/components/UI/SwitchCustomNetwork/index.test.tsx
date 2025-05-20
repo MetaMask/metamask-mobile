@@ -43,6 +43,7 @@ jest.mock('../../../components/hooks/useAccounts', () => {
             fiatBalance: '$0.00\n0 ETH',
           },
           balanceError: undefined,
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`
         },
       ],
       evmAccounts: [
@@ -56,6 +57,7 @@ jest.mock('../../../components/hooks/useAccounts', () => {
             fiatBalance: '$0.00\n0 ETH',
           },
           balanceError: undefined,
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`
         },
       ],
       ensByAccountAddress: {},

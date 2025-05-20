@@ -6,9 +6,9 @@ import { FlatListProps } from 'react-native';
 import { Account, UseAccounts } from '../../hooks/useAccounts';
 
 /**
- * AccountSelectorList props.
+ * EvmAccountSelectorList props.
  */
-export interface AccountSelectorListProps
+export interface EvmAccountSelectorListProps
   extends Partial<FlatListProps<Account>>,
     Omit<UseAccounts, 'evmAccounts'> {
   /**
