@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+// Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
+import { FlatList } from 'react-native-gesture-handler';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -20,16 +26,13 @@ import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { useAssetMetadata } from '../hooks/useAssetMetadata';
 import { CaipChainId, Hex } from '@metamask/utils';
+// We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
-    content: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
-    },
     headerTitle: {
       flex: 1,
       textAlign: 'center',
@@ -67,6 +70,11 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonItemRows: {
       flex: 1,
     },
+    // This section is so we can use ReusableModal styled like BottomSheet
+    content: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+    },
     screen: { justifyContent: 'flex-end' },
     sheet: {
       backgroundColor: theme.colors.background.default,
@@ -81,6 +89,7 @@ const createStyles = (params: { theme: Theme }) => {
       marginTop: 8,
       alignSelf: 'center',
     },
+    // End section
   });
 };
 
@@ -224,13 +233,7 @@ export const BridgeTokenSelectorBase: React.FC<
       ref={modalRef}
       style={[styles.screen, { marginTop: safeAreaInsets.top }]}
     >
-      <Box
-        style={[
-          styles.content,
-          styles.sheet,
-          { paddingBottom: safeAreaInsets.bottom },
-        ]}
-      >
+      <Box style={[styles.content,styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
         <Box style={styles.notch} />
         <Box gap={4}>
           <BottomSheetHeader>
@@ -278,6 +281,10 @@ export const BridgeTokenSelectorBase: React.FC<
               ? renderEmptyList
               : LoadingSkeleton
           }
+          showsVerticalScrollIndicator
+          showsHorizontalScrollIndicator={false}
+          bounces
+          scrollEnabled
         />
       </Box>
     </ReusableModal>
