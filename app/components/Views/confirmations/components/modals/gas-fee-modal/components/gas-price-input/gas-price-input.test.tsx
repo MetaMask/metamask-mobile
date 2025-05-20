@@ -4,7 +4,10 @@ import { noop } from 'lodash';
 
 import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
 import { transferTransactionStateMock } from '../../../../../mock-data/transfer-transaction-mock';
+import { validateGasPrice } from '../../../../../utils/gas-validations';
 import { GasPriceInput } from './gas-price-input';
+
+
 
 jest.mock('../../../../../../../../core/Engine', () => ({
   context: {
@@ -14,16 +17,20 @@ jest.mock('../../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../utils/gas-validations', () => ({
+  validateGasPrice: jest.fn(),
+}));
+
 describe('GasPriceInput', () => {
   it('renders the gas price title and input', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <GasPriceInput onChange={noop} />,
+      <GasPriceInput onChange={noop} onErrorChange={noop} />,
       {
         state: transferTransactionStateMock,
       },
     );
 
-    expect(getByText('Gas price (GWEI)')).toBeOnTheScreen();
+    expect(getByText('Gas price')).toBeOnTheScreen();
     expect(getByTestId('gas-price-input')).toBeOnTheScreen();
     expect(getByTestId('gas-price-input')).toHaveProp('value', '0');
   });
@@ -31,7 +38,7 @@ describe('GasPriceInput', () => {
   it('calls onChange when input value changes', () => {
     const mockOnChange = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <GasPriceInput onChange={mockOnChange} />,
+      <GasPriceInput onChange={mockOnChange} onErrorChange={noop} />,
       {
         state: transferTransactionStateMock,
       },
@@ -41,5 +48,6 @@ describe('GasPriceInput', () => {
     fireEvent.changeText(input, '30000');
 
     expect(mockOnChange).toHaveBeenCalledWith('0x1b48eb57e000');
+    expect(validateGasPrice).toHaveBeenCalledWith('30000');
   });
 });

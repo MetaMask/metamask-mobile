@@ -8,9 +8,6 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       marginBottom: 24,
     },
-    label: {
-      marginBottom: 6,
-    },
     infoContainer: {
       flexDirection: 'row',
       alignItems: 'center',

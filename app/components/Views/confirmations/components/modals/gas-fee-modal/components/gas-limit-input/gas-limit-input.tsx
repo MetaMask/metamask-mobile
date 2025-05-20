@@ -1,26 +1,24 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { add0x, Hex } from '@metamask/utils';
 
 import { useStyles } from '../../../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../../../component-library/components/Form/TextField';
 import {
   hexToDecimal,
   decimalToHex,
 } from '../../../../../../../../util/conversions';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
+import { validateGas } from '../../../../../utils/gas-validations';
+import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
 import styleSheet from './gas-limit-input.styles';
 
 export const GasLimitInput = ({
   onChange,
+  onErrorChange,
 }: {
   onChange: (value: Hex) => void;
+  onErrorChange: (error: string | boolean) => void;
 }) => {
   const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
@@ -28,27 +26,35 @@ export const GasLimitInput = ({
     transactionMeta?.txParams?.gas,
   ).toString();
   const [value, setValue] = useState(initialGasLimit);
+  const [error, setError] = useState<string | boolean>(false);
+
+  const validateGasCallback = useCallback((valueToBeValidated: string) => {
+    const validationError = validateGas(valueToBeValidated);
+    setError(validationError);
+  }, []);
 
   const handleChange = useCallback(
     (text: string) => {
+      validateGasCallback(text);
       setValue(text);
       const updatedGasLimitHex = add0x(decimalToHex(text) as Hex);
       onChange(updatedGasLimitHex);
     },
-    [onChange],
+    [onChange, validateGasCallback],
   );
+
+  useEffect(() => {
+    onErrorChange(error);
+  }, [error, onErrorChange]);
 
   return (
     <View style={styles.container}>
-      <Text variant={TextVariant.BodyMD} style={styles.label}>
-        {strings('transactions.gas_modal.gas_limit')}
-      </Text>
-      <TextField
-        autoCapitalize="none"
-        autoCorrect={false}
+      <TextInputEnhanced
+        error={error}
+        key="gas-limit"
         keyboardType="numeric"
+        label={strings('transactions.gas_modal.gas_limit')}
         onChangeText={handleChange}
-        size={TextFieldSize.Lg}
         testID="gas-limit-input"
         value={value}
       />

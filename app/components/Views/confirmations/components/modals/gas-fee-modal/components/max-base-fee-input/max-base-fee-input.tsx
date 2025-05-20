@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { add0x, Hex } from '@metamask/utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
@@ -7,9 +7,7 @@ import { useStyles } from '../../../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../../../component-library/components/Form/TextField';
+import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -19,6 +17,7 @@ import {
 import { limitToMaximumDecimalPlaces } from '../../../../../../../../util/number';
 import { useGasFeeEstimates } from '../../../../../hooks/gas/useGasFeeEstimates';
 import styleSheet from './max-base-fee-input.styles';
+import { validateMaxBaseFee } from '../../../../../utils/gas-validations';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -31,9 +30,13 @@ const InfoLabel = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const MaxBaseFeeInput = ({
+  maxPriorityFeePerGas,
   onChange,
+  onErrorChange,
 }: {
+  maxPriorityFeePerGas: Hex;
   onChange: (value: Hex) => void;
+  onErrorChange: (error: string | boolean) => void;
 }) => {
   const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
@@ -41,19 +44,43 @@ export const MaxBaseFeeInput = ({
     transactionMeta?.txParams?.maxFeePerGas,
   ).toString();
   const [value, setValue] = useState(initialMaxBaseFee);
+  const [error, setError] = useState<string | boolean>(false);
 
   const { gasFeeEstimates } = useGasFeeEstimates(
     transactionMeta?.networkClientId || '',
   );
 
+  const validateMaxBaseFeeCallback = useCallback(
+    (valueToBeValidated: string) => {
+      const maxPriorityFeeInDec =
+        hexWEIToDecGWEI(maxPriorityFeePerGas).toString();
+
+      const validationError = validateMaxBaseFee(
+        valueToBeValidated,
+        maxPriorityFeeInDec,
+      );
+      setError(validationError);
+    },
+    [maxPriorityFeePerGas],
+  );
+
   const handleChange = useCallback(
     (text: string) => {
+      validateMaxBaseFeeCallback(text);
       setValue(text);
       const updatedMaxBaseFee = add0x(decGWEIToHexWEI(text) as Hex);
       onChange(updatedMaxBaseFee);
     },
-    [onChange],
+    [onChange, validateMaxBaseFeeCallback],
   );
+
+  useEffect(() => {
+    validateMaxBaseFeeCallback(value);
+  }, [validateMaxBaseFeeCallback, value]);
+
+  useEffect(() => {
+    onErrorChange(error);
+  }, [error, onErrorChange]);
 
   const { estimatedBaseFee, historicalBaseFeeRange } =
     (gasFeeEstimates as GasFeeEstimates) || {};
@@ -62,15 +89,13 @@ export const MaxBaseFeeInput = ({
 
   return (
     <View style={styles.container}>
-      <Text variant={TextVariant.BodyMD} style={styles.label}>
-        {strings('transactions.gas_modal.max_base_fee')}
-      </Text>
-      <TextField
-        autoCapitalize="none"
-        autoCorrect={false}
+      <TextInputEnhanced
+        endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
+        error={error}
+        key="max-base-fee"
         keyboardType="numeric"
+        label={strings('transactions.gas_modal.max_base_fee')}
         onChangeText={handleChange}
-        size={TextFieldSize.Lg}
         testID="max-base-fee-input"
         value={value}
       />

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { add0x, Hex } from '@metamask/utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
@@ -7,9 +7,6 @@ import { useStyles } from '../../../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../../../hooks/gas/useGasFeeEstimates';
@@ -19,6 +16,8 @@ import {
 } from '../../../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../../../util/number';
 import styleSheet from './priority-fee-input.styles';
+import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
+import { validatePriorityFee } from '../../../../../utils/gas-validations';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -31,9 +30,13 @@ const InfoLabel = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const PriorityFeeInput = ({
+  maxFeePerGas,
   onChange,
+  onErrorChange,
 }: {
+  maxFeePerGas: Hex;
   onChange: (value: Hex) => void;
+  onErrorChange: (error: string | boolean) => void;
 }) => {
   const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
@@ -41,19 +44,41 @@ export const PriorityFeeInput = ({
     transactionMeta?.txParams?.maxPriorityFeePerGas,
   ).toString();
   const [value, setValue] = useState(initialPriorityFee);
+  const [error, setError] = useState<string | boolean>(false);
 
   const { gasFeeEstimates } = useGasFeeEstimates(
     transactionMeta?.networkClientId || '',
   );
 
+  const validatePriorityFeeCallback = useCallback(
+    (valueToBeValidated: string) => {
+      const maxFeePerGasInDec = hexWEIToDecGWEI(maxFeePerGas).toString();
+      const validationError = validatePriorityFee(
+        valueToBeValidated,
+        maxFeePerGasInDec,
+      );
+      setError(validationError);
+    },
+    [maxFeePerGas],
+  );
+
   const handleChange = useCallback(
     (text: string) => {
+      validatePriorityFeeCallback(text);
       setValue(text);
       const updatedPriorityFee = add0x(decGWEIToHexWEI(text) as Hex);
       onChange(updatedPriorityFee);
     },
-    [onChange],
+    [onChange, validatePriorityFeeCallback],
   );
+
+  useEffect(() => {
+    validatePriorityFeeCallback(value);
+  }, [validatePriorityFeeCallback, value]);
+
+  useEffect(() => {
+    onErrorChange(error);
+  }, [error, onErrorChange]);
 
   const { latestPriorityFeeRange, historicalPriorityFeeRange } =
     (gasFeeEstimates as GasFeeEstimates) || {};
@@ -62,15 +87,13 @@ export const PriorityFeeInput = ({
 
   return (
     <View style={styles.container}>
-      <Text variant={TextVariant.BodyMD} style={styles.label}>
-        {strings('transactions.gas_modal.priority_fee')}
-      </Text>
-      <TextField
-        autoCapitalize="none"
-        autoCorrect={false}
+      <TextInputEnhanced
+        endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
+        error={error}
+        key="priority-fee"
         keyboardType="numeric"
+        label={strings('transactions.gas_modal.priority_fee')}
         onChangeText={handleChange}
-        size={TextFieldSize.Lg}
         testID="priority-fee-input"
         value={value}
       />
