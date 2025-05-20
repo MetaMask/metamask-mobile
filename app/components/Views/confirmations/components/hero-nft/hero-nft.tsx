@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { Nft } from '@metamask/assets-controllers';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Badge, {
   BadgeVariant,
@@ -14,7 +14,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import { useNft } from '../../hooks/nft/useNft';
-import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import useNetworkInfo from '../../hooks/useNetworkInfo';
 import { Hero } from '../UI/hero';
 import styleSheet from './hero-nft.styles';
@@ -74,14 +74,14 @@ const NftImageAndNetworkBadge = ({
 };
 
 export const HeroNft = () => {
-  const { isFlatConfirmation } = useFlatConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { chainId, name, nft } = useNft();
   const { tokenId } = nft ?? {};
 
   return (
     <Hero
       componentAsset={<NftImageAndNetworkBadge chainId={chainId} nft={nft} />}
-      hasPaddingTop={isFlatConfirmation}
+      hasPaddingTop={isFullScreenConfirmation}
       title={name}
       subtitle={`#${tokenId}`}
     />

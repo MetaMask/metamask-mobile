@@ -1,9 +1,12 @@
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -20,15 +23,15 @@ import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectNetworkClientId } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
-import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
-import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
   EVENT_LOCATIONS,
@@ -36,21 +39,24 @@ import {
 } from '../../../Stake/constants/events';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
+import InputDisplay from '../../components/InputDisplay';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnInputHandlers from '../../hooks/useEarnInput';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { isSupportedLendingTokenByChainId } from '../../utils';
+import {
+  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
+  generateLendingAllowanceIncreaseTransaction,
+  generateLendingDepositTransaction,
+  getErc20SpendingLimit,
+} from '../../utils/tempLending';
 import styleSheet from './EarnInputView.styles';
 import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import useEarnInputHandlers from '../../hooks/useEarnInput';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import {
-  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
-  getErc20SpendingLimit,
-} from '../../utils/tempLending';
-import BigNumber from 'bignumber.js';
-import { isSupportedLendingTokenByChainId } from '../../utils';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -91,6 +97,7 @@ const EarnInputView = () => {
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const earnToken = getTokenWithBalanceAndApr(token);
+  const networkClientId = useSelector(selectNetworkClientId);
   const {
     isFiat,
     currentCurrency,
@@ -151,25 +158,84 @@ const EarnInputView = () => {
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
 
-    navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
-      params: {
-        token,
-        amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
-        amountFiat: amountFiatNumber,
-        // TODO: These values are inaccurate since useEarnInputHandlers doesn't support stablecoin lending yet.
-        // Make sure these values are accurate after updating useEarnInputHandlers to support stablecoin lending.
-        annualRewardsToken,
-        annualRewardsFiat,
-        annualRewardRate,
-        // TODO: Replace hardcoded protocol in future iteration.
-        lendingProtocol: 'AAVE v3',
-        lendingContractAddress: lendingPoolContractAddress,
-        action: needsAllowanceIncrease
-          ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
-          : EARN_INPUT_VIEW_ACTIONS.LEND,
-      },
-    });
+    const isRedesignedStablecoinLendingScreenEnabled = process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED;
+    if (isRedesignedStablecoinLendingScreenEnabled) {
+      const approveTxParams =
+        generateLendingAllowanceIncreaseTransaction(
+          amountTokenMinimalUnit.toString(),
+          activeAccount.address,
+          tokenContractAddress,
+          earnToken.chainId,
+        );
+
+      if (!approveTxParams) return;
+
+      const approveTx = {
+        params: {
+          to: approveTxParams.txParams.to ? toHex(approveTxParams.txParams.to) : undefined,
+          from: approveTxParams.txParams.from,
+          data: approveTxParams.txParams.data ? toHex(approveTxParams.txParams.data) : undefined,
+          value: approveTxParams.txParams.value ? toHex(approveTxParams.txParams.value) : undefined,
+        },
+        type: TransactionType.tokenMethodApprove,
+      };
+
+      const lendingDepositTxParams = generateLendingDepositTransaction(
+        amountTokenMinimalUnit.toString(),
+        activeAccount.address,
+        tokenContractAddress,
+        earnToken.chainId,
+      );
+
+      if (!lendingDepositTxParams) return;
+
+      const lendingDepositTx = {
+        params: {
+          to: lendingDepositTxParams.txParams.to ? toHex(lendingDepositTxParams.txParams.to) : undefined,
+          from: lendingDepositTxParams.txParams.from,
+          data: lendingDepositTxParams.txParams.data ? toHex(lendingDepositTxParams.txParams.data) : undefined,
+          value: lendingDepositTxParams.txParams.value ? toHex(lendingDepositTxParams.txParams.value) : undefined,
+        },
+        // TODO: Substitute by transaction type from transaction controller once
+        // it's added
+        type: 'lendingDeposit' as TransactionType,
+      };
+
+      addTransactionBatch({
+        from: activeAccount?.address as Hex || '0x',
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        transactions: [approveTx, lendingDepositTx],
+        disable7702: true,
+        disableHook: true,
+        disableSequential: false,
+        requireApproval: true,
+      });
+
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT
+      });
+    } else {
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+        params: {
+          token,
+          amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
+          amountFiat: amountFiatNumber,
+          // TODO: These values are inaccurate since useEarnInputHandlers doesn't support stablecoin lending yet.
+          // Make sure these values are accurate after updating useEarnInputHandlers to support stablecoin lending.
+          annualRewardsToken,
+          annualRewardsFiat,
+          annualRewardRate,
+          // TODO: Replace hardcoded protocol in future iteration.
+          lendingProtocol: 'AAVE v3',
+          lendingContractAddress: lendingPoolContractAddress,
+          action: needsAllowanceIncrease
+            ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
+            : EARN_INPUT_VIEW_ACTIONS.LEND,
+        },
+      });
+    }
   }, [
     activeAccount?.address,
     amountFiatNumber,
@@ -180,6 +246,7 @@ const EarnInputView = () => {
     earnToken?.address,
     earnToken?.chainId,
     navigation,
+    networkClientId,
     token,
   ]);
 

@@ -13,7 +13,6 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
-import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import {
   isPermitDaiRevoke,
@@ -21,10 +20,11 @@ import {
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
-import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import { MMM_ORIGIN, REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
@@ -121,6 +121,15 @@ const getTitleAndSubTitle = (
       }
       return {};
     }
+    case 'transaction_batch': {
+      const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;
+      if (!isWalletInitiated) {
+        return {
+          title: strings('confirm.title.contract_interaction'),
+        };
+      }
+      return {};
+    }
     default:
       return {};
   }
@@ -130,11 +139,11 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
 
-  if (isStandaloneConfirmation) {
+  if (isFullScreenConfirmation) {
     return null;
   }
 
