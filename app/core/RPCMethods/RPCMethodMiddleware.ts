@@ -198,7 +198,7 @@ export const checkActiveAccountAndChainId = async ({
     } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = isPerDappSelectedNetworkEnabled() ? providerConfig.chainId: providerConfigChainId;
+      activeChainId = providerConfigChainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {
