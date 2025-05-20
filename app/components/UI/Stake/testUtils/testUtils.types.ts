@@ -8,6 +8,7 @@ export interface CreateMockTokenOptions {
   ticker?: string;
   decimals?: number;
   isStaked?: boolean;
+  balance?: string;
   balanceFiat?: string;
 }
 
