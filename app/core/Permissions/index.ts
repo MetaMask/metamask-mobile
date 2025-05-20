@@ -327,18 +327,18 @@ export const removePermittedAccounts = (origin: string, addresses: string[]) => 
 
   const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[];
 
-  const existingAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
+  const existingCaipAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
     caip25Caveat.value,
   );
 
-  const remainingAccountIds = existingAccountIds.filter(
-    (existingAccountId) =>
+  const remainingAccountIds = existingCaipAccountIds.filter(
+    (existingCaipAccountId) =>
       !internalAccounts.some(internalAccount => isInternalAccountInPermittedAccountIds(internalAccount, [
-        existingAccountId
+        existingCaipAccountId
       ]))
   );
 
-  if (remainingAccountIds.length === existingAccountIds.length) {
+  if (remainingAccountIds.length === existingCaipAccountIds.length) {
     return;
   }
 
