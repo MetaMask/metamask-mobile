@@ -285,20 +285,20 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN) {
-    const networkClientId = Engine.controllerMessenger.call(
+  async getProviderNetworkState(origin = METAMASK_DOMAIN, networkClientId) {
+    const _networkClientId = networkClientId ?? Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
-      networkClientId,
+      _networkClientId,
     );
 
     const { chainId } = networkClient.configuration;
 
-    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    let networkVersion = this.deprecatedNetworkVersions[_networkClientId];
     if (!networkVersion) {
       const ethQuery = new EthQuery(networkClient.provider);
       networkVersion = await new Promise((resolve) => {
@@ -311,7 +311,7 @@ export class BackgroundBridge extends EventEmitter {
           }
         });
       });
-      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
+      this.deprecatedNetworkVersions[_networkClientId] = networkVersion;
     }
 
     return {
@@ -416,10 +416,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  async getProviderState(origin) {
+  async getProviderState(origin, networkClientId) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...(await this.getProviderNetworkState(origin)),
+      ...(await this.getProviderNetworkState(origin, networkClientId)),
     };
   }
 
@@ -885,7 +885,7 @@ export class BackgroundBridge extends EventEmitter {
       }
     });
     this.notifyCaipAuthorizationChange(changedAuthorization);
-  }
+  };
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
