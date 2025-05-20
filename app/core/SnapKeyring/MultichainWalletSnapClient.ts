@@ -38,10 +38,8 @@ export const WALLET_SNAP_MAP = {
 export interface MultichainWalletSnapOptions {
   scope: CaipChainId;
   synchronize?: boolean;
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 interface SnapKeyringOptions {
