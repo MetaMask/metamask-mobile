@@ -23,18 +23,7 @@ import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exc
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 import compareVersions from 'compare-versions';
 import { getVersion } from 'react-native-device-info';
-
-interface BridgeConfig {
-  minimumVersion?: string;
-  maxRefreshCount?: number;
-  refreshRate?: number;
-  support?: boolean;
-  chains?: Record<string, {
-    isActiveSrc?: boolean;
-    isActiveDest?: boolean;
-    topAssets?: string[];
-  }>;
-}
+import { DEFAULT_FEATURE_FLAG_CONFIG } from '@metamask/bridge-controller/dist/constants/bridge.cjs';
 
 const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined) => {
   if (!minRequiredVersion) return false;
@@ -193,23 +182,18 @@ export const selectAllBridgeableNetworks = createSelector(
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const bridgeConfig = remoteFeatureFlags.bridgeConfig as BridgeConfig;
+    const bridgeConfig = remoteFeatureFlags.bridgeConfig;
 
     // Config when bridge is disabled
     const disabledConfig = {
       remoteFeatureFlags: {
-        bridgeConfig: {
-          chains: {},
-          maxRefreshCount: 1,
-          refreshRate: 3000000,
-          support: false,
-        },
+        bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
     };
 
     // Return disabled config if minimum version is not met
     if (!hasMinimumRequiredVersion(bridgeConfig?.minimumVersion)) {
-      return selectBridgeFeatureFlagsBase({ ...disabledConfig });
+      return selectBridgeFeatureFlagsBase(disabledConfig);
     }
 
     // Otherwise, pass through the original config
