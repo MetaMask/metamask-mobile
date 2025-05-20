@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
-    "install:foundryup": "./scripts/install-foundryup.sh",
+    "install:foundryup": "./scripts/foundry-install.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",

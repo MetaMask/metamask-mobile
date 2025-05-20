@@ -25,8 +25,6 @@ else
     exit 1
 fi
 
-anvil --version
-
 # GitHub attestation (optional)
 if [ -n "$GITHUB_ACCESS_TOKEN" ]; then
     echo "Using GITHUB_ACCESS_TOKEN as GH_TOKEN for GitHub CLI authentication..."
