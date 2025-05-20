@@ -17,6 +17,9 @@ import {
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { Transaction } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import {
   KeyringController,
   KeyringControllerState,
@@ -1474,6 +1477,44 @@ export class Engine {
         store.dispatch(networkIdWillUpdate());
       },
     );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    this.controllerMessenger.subscribe(
+      'MultichainTransactionsController:transactionConfirmed',
+      (transaction: Transaction) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TRANSACTION_FINALIZED)
+            .addProperties({
+              id: transaction.id,
+              timestamp: transaction.timestamp,
+              chain_id_caip: transaction.chain,
+              status: transaction.status,
+              type: transaction.type,
+              fees: transaction.fees,
+            })
+            .build()
+        );
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'MultichainTransactionsController:transactionSubmitted',
+      (transaction: Transaction) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.TRANSACTION_SUBMITTED)
+            .addProperties({
+              id: transaction.id,
+              timestamp: transaction.timestamp,
+              chain_id_caip: transaction.chain,
+              status: transaction.status,
+              type: transaction.type,
+              fees: transaction.fees,
+            })
+            .build()
+        );
+      },
+    );
+    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.controllerMessenger.subscribe(
