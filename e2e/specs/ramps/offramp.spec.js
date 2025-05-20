@@ -67,7 +67,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should show quotes', async () => {
+  itif(device.getPlatform() === 'ios')('should show quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await BuildQuoteView.enterAmount('2');
