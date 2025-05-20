@@ -5654,9 +5654,9 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://github.com/Web3Auth/core/raw/ed1203793629afef06ae6ff1830fcfb7dafb53a3/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz":
+"@metamask/seedless-onboarding-controller@https://github.com/Web3Auth/core/raw/7b0ec56fc8ffa8ab92c15444240ec234ffd779a1/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz":
   version "0.0.0"
-  resolved "https://github.com/Web3Auth/core/raw/ed1203793629afef06ae6ff1830fcfb7dafb53a3/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz#1a8347fd5b5b6207f64f5b1e36fbbee17cc849fa"
+  resolved "https://github.com/Web3Auth/core/raw/7b0ec56fc8ffa8ab92c15444240ec234ffd779a1/packages/seedless-onboarding-controller/seedless-onboarding-controller.tgz#995e1551f8f0c4d883c568a648fa930afb1503f9"
   dependencies:
     "@metamask/auth-network-utils" "^0.1.0"
     "@metamask/base-controller" "^8.0.1"

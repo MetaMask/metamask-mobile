@@ -60,6 +60,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController } = Engine.context;
   const seedPhrase = await getSeedPhrase(password);
@@ -109,7 +110,7 @@ export const recreateVaultWithNewPassword = async (
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   const { SeedlessOnboardingController } = Engine.context;
   // TODO: Fix with latest controller isCompleted
-  if (
+  if (!skipSeedlessOnboardingPWChange &&
     ReduxService.store.getState().engine.backgroundState
       .SeedlessOnboardingController.vault
   ) {

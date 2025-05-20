@@ -144,6 +144,7 @@ export class OAuthService {
           { ...result, web3AuthNetwork },
           this.config.authServerUrl,
         );
+        Logger.log('handlegetAuthToken: data', data);
         const audience = 'metamask';
 
         if (!data.jwt_tokens[audience]) {

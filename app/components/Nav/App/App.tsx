@@ -142,6 +142,10 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
+import { strings } from '../../../../locales/i18n';
+import useInterval from '../../hooks/useInterval';
+import { Duration } from '@metamask/utils';
+import ReduxService from '../../../core/redux';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -787,12 +791,40 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  // periodically check seedless password outdated when app UI is open
+  useInterval(
+    async () => {
+      await Authentication.checkIsSeedlessPasswordOutdated();
+    },
+    {
+      delay: Duration.Minute * 30,
+    },
+  );
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+
   useEffect(() => {
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+          // check if the seedless password is outdated at app init
+          // if app is locked, check skip cache to ensure user need to input latest global password
+          try {
+            const isUserLoggedIn = await selectUserLoggedIn(
+              ReduxService.store.getState(),
+            );
+            const skipCache = !isUserLoggedIn;
+            await Authentication.checkIsSeedlessPasswordOutdated(skipCache);
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'App: Error in checkIsSeedlessPasswordOutdated',
+            );
+          }
+          ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
