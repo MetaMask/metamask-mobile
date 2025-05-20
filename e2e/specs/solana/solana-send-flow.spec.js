@@ -18,6 +18,8 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import SendActionBottomSheet from '../../pages/wallet/SendActionBottomSheet';
+import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 // Test constants
 const SOLANA_ACCOUNT_NAME = 'Solana Account 1';
@@ -55,28 +57,29 @@ describe(
     it('should validate recipient address format correctly', async () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
-      await SendView.inputSolanaAddress(INVALID_ADDRESS);
+      await SendActionBottomSheet.sendActionInputAddress(INVALID_ADDRESS);
+
       await Assertions.checkIfElementToHaveText(
-        SendView.invalidAddressError,
+        SendActionBottomSheet.invalidAddressError,
         INVALID_ADDRESS_ERROR,
       );
       // Snap UI components prove tricky for testID's
-      await SendView.tapCancelButtonSolana();
+      await SendActionBottomSheet.tapCancelButton();
 
     });
 
     it('should successfully transfer SOL to a valid recipient address', async () => {
       await WalletActionsBottomSheet.tapSendButton();
-      await SendView.inputSolanaAddress(RECIPIENT_ADDRESS);
-      await SendView.inputSolanaAmount(TRANSFER_AMOUNT);
+      await SendActionBottomSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
+      await SendActionBottomSheet.sendActionInputAmount(TRANSFER_AMOUNT);
 
       // Snap UI components prove tricky for testID's
       await SendView.tapContinueButtonSolana();
       await Assertions.checkIfTextIsDisplayed(
-        SendViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
+        SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       );
       // Snap UI components prove tricky for testID's require more time
-      await SendView.tapSendSOLTransactionButton();
+      await SendActionBottomSheet.tapSendSOLTransactionButton();
       // Assert transaction is sent
       await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
     });

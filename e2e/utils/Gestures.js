@@ -151,12 +151,15 @@ static async waitAndTap(elementID, options = {}) {
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
+   * @param {number} timeout - Timeout for waiting
+   * @param {number} index - Index of the element (default 0)
    */
-  static async replaceTextInField(elementID, text, timeout = 10000) {
+  static async replaceTextInField(elementID, text, index = 0, timeout = 10000) {
     const element = await elementID;
-    await waitFor(element).toBeVisible().withTimeout(timeout);
+    const targetElement = index > 0 ? element.atIndex(index) : element;
+    await waitFor(targetElement).toBeVisible().withTimeout(timeout);
 
-    await element.replaceText(text);
+    await targetElement.replaceText(text);
   }
 
   /**

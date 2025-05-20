@@ -71,7 +71,9 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should create Solana account directly from new feature announcement sheet', async () => {
+    await device.disableSynchronization();
     await SolanaNewFeatureSheet.tapCreateAccountButton();
+    await device.enableSynchronization();
     await AddNewHdAccountComponent.tapConfirm();
     await WalletView.tapIdenticon();
     // Check if the Solana account is created

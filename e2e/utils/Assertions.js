@@ -1,5 +1,4 @@
 import { waitFor, element, by } from 'detox';
-import Matchers from './Matchers';
 
 // Global timeout variable
 const TIMEOUT = 15000;
@@ -228,28 +227,6 @@ class Assertions {
       throw new Error('Value is not present (null, undefined, or empty string)');
     }
     return true;
-  }
-
-  /**
-   * Check if text ending with a specific suffix exists in the UI.
-   * @param {string} suffix - The suffix to look for at the end of text
-   * @param {number} [index=undefined] - Optional index if multiple elements match the pattern
-   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds
-   * @returns {Promise<Detox.Element>} - The matching element
-   */
-  static async checkIfTextWithSuffixExists(suffix, index = undefined, timeout = TIMEOUT) {
-    let textElement;
-    const regex = new RegExp(`.*${suffix}$`);
-
-    if (index !== undefined) {
-      textElement = element(by.text(regex)).atIndex(index);
-    } else {
-      textElement = element(by.text(regex));
-    }
-
-    return await waitFor(textElement)
-      .toExist()
-      .withTimeout(timeout);
   }
 
   static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
