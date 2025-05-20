@@ -30,20 +30,20 @@ const StakingClaim = ({
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
   const amountWei = route?.params?.amountWei;
-  const { amountDisplay } = useTokenAmount({ amountWei });
+  const { amount } = useTokenAmount({ amountWei });
 
   useEffect(() => {
-    if (amountDisplay === undefined) {
+    if (amount === undefined) {
       return;
     }
 
     setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        transaction_amount_eth: amountDisplay,
+        transaction_amount_eth: amount,
       },
     });
-  }, [amountDisplay, setConfirmationMetric]);
+  }, [amount, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 

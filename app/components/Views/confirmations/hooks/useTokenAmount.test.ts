@@ -23,9 +23,9 @@ describe('useTokenAmount', () => {
 
       await waitFor(async () => {
         expect(result.current).toEqual({
-          amountDisplay: '0.0001',
-          amountPreciseDisplay: '0.0001',
-          fiatDisplay: '$0.36',
+          amount: '0.0001',
+          amountPrecise: '0.0001',
+          fiat: '$0.36',
         });
       });
     });
@@ -37,9 +37,9 @@ describe('useTokenAmount', () => {
 
       await waitFor(async () => {
         expect(result.current).toEqual({
-          amountDisplay: '0.0001',
-          amountPreciseDisplay: '0.0001',
-          fiatDisplay: '$0.36',
+          amount: '0.0001',
+          amountPrecise: '0.0001',
+          fiat: '$0.36',
         });
       });
     });
@@ -51,9 +51,9 @@ describe('useTokenAmount', () => {
 
       await waitFor(() => {
         expect(result.current).toEqual({
-          amountDisplay: '0.001',
-          amountPreciseDisplay: '0.001',
-          fiatDisplay: '$3.60',
+          amount: '0.001',
+          amountPrecise: '0.001',
+          fiat: '$3.60',
         });
       });
     });

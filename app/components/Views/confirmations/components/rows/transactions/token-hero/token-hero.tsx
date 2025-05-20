@@ -18,12 +18,12 @@ import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
 import styleSheet from './token-hero.styles';
 
 const AssetAmount = ({
-  amountDisplay,
+  amount,
   tokenSymbol,
   styles,
   setIsModalVisible,
 }: {
-  amountDisplay?: string;
+  amount?: string;
   tokenSymbol?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   setIsModalVisible: ((isModalVisible: boolean) => void) | null;
@@ -32,32 +32,32 @@ const AssetAmount = ({
     {setIsModalVisible ? (
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-          {amountDisplay} {tokenSymbol}
+          {amount} {tokenSymbol}
         </Text>
       </TouchableOpacity>
     ) : (
       <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-        {amountDisplay} {tokenSymbol}
+        {amount} {tokenSymbol}
       </Text>
     )}
   </View>
 );
 
 const AssetFiatConversion = ({
-  fiatDisplay,
+  fiat,
   styles,
 }: {
-  fiatDisplay?: string;
+  fiat?: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => {
   const hideFiatForTestnet = useHideFiatForTestnet();
-  if (hideFiatForTestnet || !fiatDisplay) {
+  if (hideFiatForTestnet || !fiat) {
     return null;
   }
 
   return (
     <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
-      {fiatDisplay}
+      {fiat}
     </Text>
   );
 };
@@ -78,13 +78,13 @@ const TokenHero = ({
     isFlatConfirmation,
   });
 
-  const { amountPreciseDisplay, amountDisplay, fiatDisplay } =
+  const { amountPrecise, amount, fiat } =
     useTokenAmount({ amountWei });
   const {
     asset: { symbol, ticker },
   } = useTokenAsset();
 
-  const isRoundedAmount = amountPreciseDisplay !== amountDisplay;
+  const isRoundedAmount = amountPrecise !== amount;
 
   return (
     <AnimatedPulse
@@ -96,17 +96,17 @@ const TokenHero = ({
           <AvatarTokenWithNetworkBadge canShowBadge={showNetworkBadge} />
         </View>
         <AssetAmount
-          amountDisplay={amountDisplay}
+          amount={amount}
           tokenSymbol={ticker || symbol}
           styles={styles}
           setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
-        <AssetFiatConversion fiatDisplay={fiatDisplay} styles={styles} />
+        <AssetFiatConversion fiat={fiat} styles={styles} />
         {isRoundedAmount && (
           <TooltipModal
             open={isModalVisible}
             setOpen={setIsModalVisible}
-            content={amountPreciseDisplay}
+            content={amountPrecise}
             title={strings('send.amount')}
             tooltipTestId="token-hero-amount"
           />

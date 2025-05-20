@@ -27,9 +27,9 @@ interface TokenAmountProps {
 }
 
 interface TokenAmount {
-  amountPreciseDisplay: string | undefined;
-  amountDisplay: string | undefined;
-  fiatDisplay: string | undefined;
+  amountPrecise: string | undefined;
+  amount: string | undefined;
+  fiat: string | undefined;
 }
 
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
@@ -60,9 +60,9 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
 
   if (pending) {
     return {
-      amountPreciseDisplay: undefined,
-      amountDisplay: undefined,
-      fiatDisplay: undefined,
+      amountPrecise: undefined,
+      amount: undefined,
+      fiat: undefined,
     };
   }
 
@@ -89,8 +89,8 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   }
 
   return {
-    amountPreciseDisplay: formatAmountMaxPrecision(I18n.locale, amount),
-    amountDisplay: formatAmount(I18n.locale, amount),
-    fiatDisplay: fiatFormatter(fiat),
+    amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
+    amount: formatAmount(I18n.locale, amount),
+    fiat: fiatFormatter(fiat),
   };
 };

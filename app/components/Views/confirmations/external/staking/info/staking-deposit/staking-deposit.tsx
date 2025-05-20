@@ -20,19 +20,19 @@ const StakingDeposit = () => {
     trackPageViewedEvent,
     setConfirmationMetric,
   } = useConfirmationMetricEvents();
-  const { amountDisplay } = useTokenAmount();
+  const { amount } = useTokenAmount();
   useEffect(() => {
-    if (amountDisplay === undefined) {
+    if (amount === undefined) {
       return;
     }
 
     setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        transaction_amount_eth: amountDisplay,
+        transaction_amount_eth: amount,
       },
     });
-  }, [amountDisplay, setConfirmationMetric]);
+  }, [amount, setConfirmationMetric]);
 
   useEffect(() => {
     trackPageViewedEvent();
