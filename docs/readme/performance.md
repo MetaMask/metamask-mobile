@@ -143,12 +143,22 @@ useEffect(() => {
 
 ## Tools for identifying re-renders
 
-We recommend using [React Native Dev Tools](https://reactnative.dev/docs/react-native-devtools) to identify re-renders in your React Native app.
+> **Note on tool availability**: Since `React Native DevTools` is dependent on `Hermes` engine, it is not yet available for iOS since we're still using `JSC` engine. However, we are working on getting `Hermes` enabled on iOS. In the meantime, you can use `React DevTools` to achieve the same render profiling on iOS.
 
-In the following tutorial, we will reference [Callstack](https://www.callstack.com/)'s recently released 2025 [guide](https://www.callstack.com/ebooks/the-ultimate-guide-to-react-native-optimization) to React Native performance optimization. In the guide, Callstack walks through how to use React Native Dev Tools Profiler to identify re-renders in your React Native app.
+We recommend using [React Native DevTools](https://reactnative.dev/docs/react-native-devtools) on Android and [React DevTools](https://reactnative.dev/docs/0.76/react-native-devtools#react-profiler) on iOS to identify re-renders in your React Native app.
 
-![Callstack Profile Re-render P.14](../assets/callstack-rerender-profiling/profile-rerender-14.jpg)
-![Callstack Profile Re-render P.15](../assets/callstack-rerender-profiling/profile-rerender-15.jpg)
-![Callstack Profile Re-render P.16](../assets/callstack-rerender-profiling/profile-rerender-16.jpg)
-![Callstack Profile Re-render P.17](../assets/callstack-rerender-profiling/profile-rerender-17.jpg)
-![Callstack Profile Re-render P.18](../assets/callstack-rerender-profiling/profile-rerender-18.jpg)
+To open `React DevTools` on either platforms, press `shift+m` in the watcher window and select `React DevTools`.
+
+![React DevTools Selection](../assets/performance-render/react-devtools-selection.jpg)
+
+`React DevTools`'s profiling view is set up the same way as `React Native DevTools`'s profiling view.
+
+![React DevTools Selection](../assets/performance-render/react-devtools-profiling.jpg)
+
+To illustrate how the tool can be used, we'll be referencing [Callstack](https://www.callstack.com/)'s recently released 2025 [guide](https://www.callstack.com/ebooks/the-ultimate-guide-to-react-native-optimization) to React Native performance optimization. In this guide, Callstack walks through how to use `React Native DevTools Profiler` to identify re-renders in your React Native app. This tutorial's instructions also applies to `React DevTools`'s profiling feature.
+
+![Callstack Profile Re-render P.14](../assets/performance-render/callstack-p14.jpg)
+![Callstack Profile Re-render P.15](../assets/performance-render/callstack-p15.jpg)
+![Callstack Profile Re-render P.16](../assets/performance-render/callstack-p16.jpg)
+![Callstack Profile Re-render P.17](../assets/performance-render/callstack-p17.jpg)
+![Callstack Profile Re-render P.18](../assets/performance-render/callstack-p18.jpg)
