@@ -3,33 +3,27 @@ import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
-import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import ContractInteraction from '../info/contract-interaction';
-import PersonalSign from '../info/personal-sign';
-import QRInfo from '../qr-info';
+import StablecoinLendingDeposit from '../../external/staking/info/stablecoin-lending-deposit';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import ContractInteraction from '../info/contract-interaction';
+import PersonalSign from '../info/personal-sign';
 import SwitchAccountType from '../info/switch-account-type';
 import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
-import Text from '../../../../../component-library/components/Texts/Text';
+import QRInfo from '../qr-info';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
   transactionType?: TransactionType;
 }
 
-const TransactionBatchComponent = () => {
-  console.log('TransactionBatchComponent mounted');
-  return <Text>Hello World</Text>;
-};
-
 const ConfirmationInfoComponentMap = {
-  'transaction_batch': () => TransactionBatchComponent,
   [TransactionType.personalSign]: () => PersonalSign,
   [TransactionType.signTypedData]: ({
     signatureRequestVersion,
@@ -59,6 +53,7 @@ const ConfirmationInfoComponentMap = {
         return null;
     }
   },
+  'transaction_batch': () => StablecoinLendingDeposit,
 };
 
 interface InfoProps {
@@ -66,15 +61,10 @@ interface InfoProps {
 }
 
 const Info = ({ route }: InfoProps) => {
-  console.log('info >>>');
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
-
-  console.log('approvalRequest >>>>', approvalRequest );
-
-  console.log('transactionMetadata >>>>', transactionMetadata );
 
   if (!approvalRequest?.type) {
     return null;

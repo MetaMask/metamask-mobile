@@ -39,6 +39,7 @@ import { selectSelectedInternalAccount } from '../../../../selectors/accountsCon
 import { toHex } from 'viem';
 import { TransactionType, WalletDevice } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface BalanceProps {
   asset: TokenI;
@@ -90,7 +91,6 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   );
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
-  const chainId = useSelector(selectEvmChainId);
   const networkClientId = useSelector(selectNetworkClientId);
 
 
@@ -145,7 +145,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           maxFeePerGas: toHex(5),
           maxPriorityFeePerGas: toHex(1),
           to: activeAccount?.address as Hex,
-          value: toHex((3.14 * 10 ** 18)),
+          value: toHex(1),
         },
         type: TransactionType.contractInteraction
       },
@@ -156,14 +156,17 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           maxFeePerGas: toHex(5),
           maxPriorityFeePerGas: toHex(1),
           to: activeAccount?.address as Hex,
-          value: toHex((3.14 * 10 ** 18)),
+          value: toHex(1),
         },
         type: TransactionType.contractInteraction
       }],
       useHook: true,
       requireApproval: true,
     });
+
+    navigation.navigate(Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT);
   }, [activeAccount?.address, networkClientId]);
+
 
   return (
     <View style={styles.wrapper}>
@@ -197,7 +200,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       {asset?.isETH && <StakingBalance asset={asset} />}
       {!asset?.isETH && (
         <TouchableOpacity onPress={openStablecoinLendingConfirmation}>
-          <Text>Open lending stablecoin confirmationa</Text>
+          <Text>Open lending stablecoin confirmation</Text>
         </TouchableOpacity>
       )}
     </View>

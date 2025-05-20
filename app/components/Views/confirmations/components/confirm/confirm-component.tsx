@@ -56,13 +56,10 @@ interface ConfirmProps {
 }
 
 export const Confirm = ({ route }: ConfirmProps) => {
-  console.log('Confirm >>>');
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { onReject } = useConfirmActions();
-  console.log('approvalRequest >>>>', approvalRequest);
-
 
   const { styles } = useStyles(styleSheet, {});
 

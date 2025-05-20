@@ -14,9 +14,6 @@ const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
   const pendingApprovalList = Object.values(pendingApprovals ?? {});
 
-  console.log('pendingApprovalList >>>>>', pendingApprovalList, pendingApprovals);
-
-  console.log('pendingApprovals >>>>>', pendingApprovals);
   const firstPendingApproval = pendingApprovalList[0] as
     | ApprovalRequestType
     | undefined;
@@ -26,7 +23,6 @@ const useApprovalRequest = () => {
     [firstPendingApproval],
   );
 
-  console.log('firstPendingApproval >>>>', firstPendingApproval);
   const onConfirm = useCallback(
     async (
       opts?: Parameters<typeof Engine.acceptPendingApproval>[2],
