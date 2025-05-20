@@ -30,9 +30,7 @@ describe('useTokenAsset', () => {
       },
     });
 
-    expect(result.current.asset).toEqual({
-      symbol: strings('token.unknown'),
-    });
+    expect(result.current.displayName).toEqual(strings('token.unknown'));
   });
 
   it('returns asset', () => {
@@ -44,5 +42,6 @@ describe('useTokenAsset', () => {
       name: 'Ethereum',
       symbol: 'ETH',
     });
+    expect(result.current.displayName).toEqual('ETH');
   });
 });

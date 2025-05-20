@@ -25,12 +25,14 @@ import { styleSheet } from './avatar-token-with-network-badge.styles';
 const AvatarTokenOrNetworkAssetLogo = ({
   asset,
   chainId,
+  displayName,
 }: {
   asset: TokenI;
   chainId: Hex;
+  displayName: string;
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { image, isNative, name, symbol, ticker } = asset;
+  const { image, isNative } = asset;
 
   return isNative ? (
     <NetworkAssetLogo
@@ -38,15 +40,15 @@ const AvatarTokenOrNetworkAssetLogo = ({
       biggest
       chainId={chainId}
       style={styles.avatarToken}
-      ticker={ticker ?? symbol}
+      ticker={displayName}
     />
   ) : (
     <AvatarToken
       imageSource={image ? { uri: image } : undefined}
-      name={name ?? ''}
+      name={displayName}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
-      testID={`avatar-with-badge-avatar-token-${ticker ?? symbol}`}
+      testID={`avatar-with-badge-avatar-token-${displayName}`}
     />
   );
 };
@@ -54,7 +56,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
 export const AvatarTokenWithNetworkBadge = () => {
   const { chainId } =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
-  const { asset } = useTokenAsset();
+  const { asset, displayName } = useTokenAsset();
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
   const { symbol } = asset;
@@ -75,9 +77,17 @@ export const AvatarTokenWithNetworkBadge = () => {
         />
       }
     >
-      <AvatarTokenOrNetworkAssetLogo asset={asset} chainId={chainId} />
+      <AvatarTokenOrNetworkAssetLogo
+        asset={asset}
+        chainId={chainId}
+        displayName={displayName}
+      />
     </BadgeWrapper>
   ) : (
-    <AvatarTokenOrNetworkAssetLogo asset={asset} chainId={chainId} />
+    <AvatarTokenOrNetworkAssetLogo
+      asset={asset}
+      chainId={chainId}
+      displayName={displayName}
+    />
   );
 };
