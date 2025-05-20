@@ -223,8 +223,8 @@ exports[`QuoteInfoModal renders correctly 1`] = `
         <View
           style={
             {
-              "gap": 16,
               "paddingHorizontal": 16,
+              "paddingVertical": 16,
             }
           }
         >
