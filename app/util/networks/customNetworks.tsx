@@ -230,6 +230,7 @@ export const NETWORK_CHAIN_ID: {
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
+  readonly XRPLEVM: '0x15F900';
   readonly XRPLEVM_TESTNET: '0x161c28';
   readonly SEI_MAINNET: '0x531';
   readonly MATCHAIN_MAINNET: '0x2ba';
@@ -248,6 +249,7 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  XRPLEVM: '0x15F900',
   SEI_MAINNET: '0x531',
   MATCHAIN_MAINNET: '0x2ba',
   FLOW_MAINNET: '0x2eb',
@@ -268,6 +270,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
+  [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.SEI_MAINNET]: require('../../images/sei.png'),
   [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
