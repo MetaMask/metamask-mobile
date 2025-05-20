@@ -790,6 +790,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
+                            bounces={true}
+                            collapsable={false}
                             data={
                               [
                                 {
@@ -853,6 +855,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             getItemCount={[Function]}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -861,7 +865,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={true}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
                           >
