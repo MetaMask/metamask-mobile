@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Linking,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -70,8 +71,6 @@ import Banner, {
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
-import { baseStyles } from '../../../styles/common';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -647,10 +646,7 @@ const RevealPrivateCredential = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <KeyboardAwareScrollView
-        contentContainerStyle={baseStyles.flexGrow}
-        enableOnAndroid
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ActionView
           cancelText={
             unlocked
@@ -703,7 +699,7 @@ const RevealPrivateCredential = ({
           isSRP={credentialSlug !== PRIVATE_KEY}
           hasNavigation={hasNavigation}
         />
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };

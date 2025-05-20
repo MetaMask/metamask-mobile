@@ -138,4 +138,7 @@ export const createStyles = (theme: Theme) =>
     warning: {
       paddingHorizontal: 16,
     },
+    scrollContainer: {
+      flexGrow: 1,
+    },
   });
