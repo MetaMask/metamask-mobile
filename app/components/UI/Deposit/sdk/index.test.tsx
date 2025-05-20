@@ -95,14 +95,16 @@ describe('Deposit SDK Context', () => {
   });
 
   describe('useDepositSDK', () => {
-    it('returns the correct context values', () => {
+    it('provides access to the NativeRampsSdk instance', () => {
       const TestComponent = () => {
-        const { providerApiKey, providerFrontendAuth } = useDepositSDK();
-        return (
-          <Text>
-            {`API Key: ${providerApiKey}, Frontend Auth: ${providerFrontendAuth}`}
-          </Text>
-        );
+        const { sdk } = useDepositSDK();
+
+        React.useEffect(() => {
+          if (sdk) {
+            sdk.getProviders();
+          }
+        }, [sdk]);
+        return <Text>Test Component</Text>;
       };
 
       renderWithProvider(
@@ -120,14 +122,14 @@ describe('Deposit SDK Context', () => {
       expect(textElement).toBeOnTheScreen();
     });
 
-    it('provides access to the NativeRampsSdk instance', () => {
+    it('allows calling SDK methods through the context', async () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
-
-        React.useEffect(() => {
-          sdk.getProviders();
-        }, [sdk]);
-        return <Text>Test Component</Text>;
+        return (
+          <Text testID="sdk-test" onPress={() => sdk?.getQuote()}>
+            Test SDK
+          </Text>
+        );
       };
 
       renderWithProvider(

@@ -3,6 +3,7 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useState,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -12,9 +13,10 @@ import {
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 export interface DepositSDK {
-  sdk: NativeRampsSdk;
-  providerApiKey: string;
-  providerFrontendAuth: string;
+  sdk?: NativeRampsSdk;
+  sdkError?: Error;
+  providerApiKey: string | null;
+  providerFrontendAuth: string | null;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -27,16 +29,23 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+  const [sdkError, setSdkError] = useState<Error>();
 
   const contextValue = useMemo((): DepositSDK => {
-    if (!providerApiKey || !providerFrontendAuth) {
-      throw new Error('Deposit SDK requires valid API key and frontend auth');
-    }
+    let sdk;
 
-    const sdk = new NativeRampsSdk({
-      partnerApiKey: providerApiKey,
-      frontendAuth: providerFrontendAuth,
-    });
+    try {
+      if (!providerApiKey || !providerFrontendAuth) {
+        throw new Error('Deposit SDK requires valid API key and frontend auth');
+      }
+
+      sdk = new NativeRampsSdk({
+        partnerApiKey: providerApiKey,
+        frontendAuth: providerFrontendAuth,
+      });
+    } catch (error) {
+      setSdkError(error as Error);
+    }
 
     return {
       sdk,
@@ -45,8 +54,13 @@ export const DepositSDKProvider = ({
     };
   }, [providerApiKey, providerFrontendAuth]);
 
+  const finalContextValue = {
+    ...contextValue,
+    sdkError,
+  };
+
   return (
-    <DepositSDKContext.Provider value={value ?? contextValue} {...props} />
+    <DepositSDKContext.Provider value={value ?? finalContextValue} {...props} />
   );
 };
 
