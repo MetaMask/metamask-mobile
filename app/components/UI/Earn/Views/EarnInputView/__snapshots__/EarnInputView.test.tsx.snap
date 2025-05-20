@@ -440,6 +440,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -517,6 +518,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -716,6 +718,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -1566,7 +1569,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#4459ff",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -2046,6 +2049,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -2123,6 +2127,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -2322,6 +2327,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -3172,7 +3178,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#4459ff",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",

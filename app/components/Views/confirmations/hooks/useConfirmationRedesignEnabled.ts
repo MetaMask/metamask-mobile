@@ -5,19 +5,20 @@ import {
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
-import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import {
   REDESIGNED_SIGNATURE_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
   REDESIGNED_TRANSFER_TYPES,
 } from '../constants/confirmations';
+import useApprovalRequest from './useApprovalRequest';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -63,6 +64,13 @@ function isRedesignedTransaction({
 
   if (transactionMetadata?.type === TransactionType.contractInteraction) {
     return confirmationRedesignFlags?.contract_interaction;
+  }
+
+  if (
+    transactionMetadata?.type === TransactionType.revokeDelegation ||
+    transactionMetadata?.type === TransactionType.batch
+  ) {
+    return true;
   }
 
   if (
