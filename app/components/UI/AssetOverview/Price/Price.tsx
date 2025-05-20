@@ -36,7 +36,7 @@ interface PriceProps {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
   ///: END:ONLY_INCLUDE_IF
-  isEvmNetworkSelected: boolean;
+  isEvmAssetSelected: boolean;
 }
 
 const Price = ({
@@ -51,7 +51,7 @@ const Price = ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainAssetsRates,
   ///: END:ONLY_INCLUDE_IF
-  isEvmNetworkSelected,
+  isEvmAssetSelected,
 }: PriceProps) => {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multichainAssetRates =
@@ -81,9 +81,9 @@ const Price = ({
     '3y': strings('asset_overview.chart_time_period.3y'),
   };
 
-  const price: number = isEvmNetworkSelected
+  const price: number = isEvmAssetSelected
     ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
-    : Number(multichainAssetRates?.rate);
+    : Number(multichainAssetRates.rate);
 
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
     ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])

@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import { selectMultichainHistoricalPrices } from '../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { useSelector } from 'react-redux';
-import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import Engine from '../../core/Engine';
 import { TokenI } from '../UI/Tokens/types';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
 
@@ -62,7 +62,9 @@ const useTokenHistoricalPrices = ({
     selectMultichainHistoricalPrices,
   );
   ///: END:ONLY_INCLUDE_IF
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  // const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
+  const isNonEvmAsset = resultChainId === asset.chainId;
   const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
@@ -71,13 +73,14 @@ const useTokenHistoricalPrices = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        if (!isEvmSelected) {
+        if (isNonEvmAsset) {
           const caip19Address = asset.address as CaipAssetId;
           const standardizedTimeInterval = standardizeTimeInterval(timePeriod);
 
           await Engine.context.MultichainAssetsRatesController.fetchHistoricalPricesForAsset(
             caip19Address,
           );
+
           const result =
             multichainHistoricalPrices[caip19Address][vsCurrency].intervals[
               standardizedTimeInterval
@@ -88,6 +91,7 @@ const useTokenHistoricalPrices = ({
             ([timestamp, price]) =>
               [timestamp.toString(), Number(price)] as TokenPrice,
           );
+
           setPrices(transformedResult);
         } else {
           const baseUri = 'https://price.api.cx.metamask.io/v1';
@@ -124,7 +128,7 @@ const useTokenHistoricalPrices = ({
     from,
     to,
     vsCurrency,
-    isEvmSelected,
+    isNonEvmAsset,
     asset.address,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     multichainHistoricalPrices,
