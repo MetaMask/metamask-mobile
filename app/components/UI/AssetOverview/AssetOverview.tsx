@@ -327,7 +327,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ]?.[itemAddress as Hex];
     const tokenBalanceHex = multiChainTokenBalanceHex;
     if(!isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)) {
-      balance = asset.balance;
+      balance = asset.balance || 0;
     }else {
       balance =
       itemAddress && tokenBalanceHex
