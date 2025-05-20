@@ -1,7 +1,7 @@
 import React from 'react';
 import PoolStakingLearnMoreModal from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   MOCK_VAULT_APY_AVERAGES,
