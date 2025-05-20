@@ -1,6 +1,10 @@
 #!/bin/bash
 
-set -e
+# Check if Foundry is already installed
+if command -v anvil &> /dev/null; then
+    echo "Foundry is already installed. Skipping installation..."
+    exit 0
+fi
 
 echo "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
@@ -11,8 +15,6 @@ export PATH="$HOME/.foundry/bin:$PATH"
 echo "Running foundryup to install the latest version..."
 $HOME/.foundry/bin/foundryup
 
-# Save path to Bitrise environment for use in future steps
-envman add --key FOUNDRY_BIN_PATH --value "$HOME/.foundry/bin"
 
 # Verify installation
 if command -v forge &>/dev/null; then
