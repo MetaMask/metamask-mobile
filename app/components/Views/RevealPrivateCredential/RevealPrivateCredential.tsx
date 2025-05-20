@@ -2,8 +2,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
+  KeyboardAvoidingView,
   Linking,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -483,6 +485,7 @@ const RevealPrivateCredential = ({
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         size={TextFieldSize.Lg}
+        autoCapitalize="none"
       />
       <Text
         style={styles.warningText}
@@ -638,59 +641,66 @@ const RevealPrivateCredential = ({
   );
 
   return (
-    <View
+    <KeyboardAvoidingView
       style={[styles.wrapper]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <ActionView
-        cancelText={
-          unlocked
-            ? strings('reveal_credential.done')
-            : strings('reveal_credential.cancel')
-        }
-        confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? done : cancelReveal}
-        onConfirmPress={() => tryUnlock()}
-        showConfirmButton={!unlocked}
-        confirmDisabled={!passwordRequirementsMet(password)}
-        cancelTestID={
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
-        }
-        confirmTestID={
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
-        }
-        scrollViewTestID={
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
-        }
-        buttonContainerStyle={styles.ctaContainer}
-      >
-        <>
-          <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey ? (
-              <TextComp variant={TextVariant.BodySM} color={TextColor.Default}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </TextComp>
-            ) : (
-              renderSRPExplanation()
-            )}
-          </View>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ActionView
+          cancelText={
+            unlocked
+              ? strings('reveal_credential.done')
+              : strings('reveal_credential.cancel')
+          }
+          confirmText={strings('reveal_credential.confirm')}
+          onCancelPress={unlocked ? done : cancelReveal}
+          onConfirmPress={() => tryUnlock()}
+          showConfirmButton={!unlocked}
+          confirmDisabled={!passwordRequirementsMet(password)}
+          cancelTestID={
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
+          }
+          confirmTestID={
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+          }
+          scrollViewTestID={
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
+          }
+          contentContainerStyle={styles.stretch}
+          buttonContainerStyle={styles.ctaContainer}
+        >
+          <>
+            <View style={[styles.rowWrapper, styles.normalText]}>
+              {isPrivateKey ? (
+                <TextComp
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                >
+                  {strings(`reveal_credential.private_key_explanation`)}
+                </TextComp>
+              ) : (
+                renderSRPExplanation()
+              )}
+            </View>
 
-          {renderWarning(credentialSlug)}
+            {renderWarning(credentialSlug)}
 
-          <View style={[styles.rowWrapper, styles.stretch]}>
-            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
-          </View>
-        </>
-      </ActionView>
+            <View style={[styles.rowWrapper, styles.stretch]}>
+              {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
+            </View>
+          </>
+        </ActionView>
 
-      {renderModal(isPrivateKey)}
+        {renderModal(isPrivateKey)}
 
-      <ScreenshotDeterrent
-        enabled={unlocked}
-        isSRP={credentialSlug !== PRIVATE_KEY}
-        hasNavigation={hasNavigation}
-      />
-    </View>
+        <ScreenshotDeterrent
+          enabled={unlocked}
+          isSRP={credentialSlug !== PRIVATE_KEY}
+          hasNavigation={hasNavigation}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
