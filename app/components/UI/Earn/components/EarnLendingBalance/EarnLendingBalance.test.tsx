@@ -7,6 +7,7 @@ import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 import { createMockToken } from '../../../Stake/testUtils';
 import { EarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { TokenI } from '../../../Tokens/types';
+import { act, fireEvent } from '@testing-library/react-native';
 
 const mockNavigate = jest.fn();
 
@@ -167,5 +168,81 @@ describe('EarnLendingBalance', () => {
     );
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('navigates to deposit screen when deposit more is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet as TokenI} />,
+      { state: mockInitialState },
+    );
+
+    const depositButton = getByTestId(
+      EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(depositButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        token: {
+          address: '0x018008bfb33d285247A21d44E50697654f754e63',
+          aggregators: [],
+          balance: '76.04796 DAI',
+          balanceFiat: '$76.00',
+          balanceFormatted: '76.04796 DAI',
+          chainId: '0x1',
+          decimals: 0,
+          image: '',
+          isETH: false,
+          isNative: false,
+          isStaked: false,
+          logo: '',
+          name: 'Dai Stablecoin',
+          symbol: 'DAI',
+          ticker: '',
+        },
+      },
+      screen: 'Stake',
+    });
+  });
+
+  it('navigates to withdrawal screen when withdraw is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockDaiMainnet as TokenI} />,
+      { state: mockInitialState },
+    );
+
+    const withdrawButton = getByTestId(
+      EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(withdrawButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        token: {
+          address: '0x018008bfb33d285247A21d44E50697654f754e63',
+          aggregators: [],
+          balance: '32.05 ADAI',
+          balanceFiat: '$32.05',
+          balanceFormatted: '32.05 ADAI',
+          chainId: '0x1',
+          decimals: 0,
+          image: '',
+          isETH: false,
+          isNative: false,
+          isStaked: false,
+          logo: '',
+          name: 'Aave v3 DAI',
+          symbol: 'ADAI',
+          ticker: '',
+        },
+      },
+      screen: 'Unstake',
+    });
   });
 });
