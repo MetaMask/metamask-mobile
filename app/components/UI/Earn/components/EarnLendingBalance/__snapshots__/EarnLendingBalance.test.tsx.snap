@@ -3,6 +3,7 @@
 exports[`EarnLendingBalance renders balance and buttons by default 1`] = `
 <View>
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
