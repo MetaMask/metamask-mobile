@@ -145,7 +145,7 @@ class NotificationManager {
   _showNotification = async (data) => {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
-      const id = data?.transaction?.id || '';
+      const id = data?.transaction?.id;
       if (id) {
         this._transactionToView.push(id);
       }

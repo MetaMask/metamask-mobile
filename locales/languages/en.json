@@ -630,6 +630,19 @@
       "custom_security_tips": "Security Tips"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
+    "single_token": "{{symbol}} only",
+    "two_tokens": "{{symbol}} +1 other",
+    "multiple_tokens": "{{symbol}} +{{count}} others",
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
+  },
   "terms_and_conditions": {
     "title": "Terms and Conditions",
     "description": "By proceeding, you agree to these ",
@@ -4022,19 +4035,17 @@
   "snap_ui": {
     "asset_selector": {
       "title": "Select an asset"
-    }
-  },
-  "defi_positions": {
-    "loading_positions": "Loading DeFi positions...",
-    "no_positions": "No positions yet",
-    "error_cannot_load_page": "We could not load this page.",
-    "error_visit_again": "Try visiting again later.",
-    "single_token": "{{symbol}} only",
-    "two_tokens": "{{symbol}} +1 other",
-    "multiple_tokens": "{{symbol}} +{{count}} others",
-    "supply": "Supplied",
-    "stake": "Staked",
-    "borrow": "Borrowed",
-    "reward": "Rewards"
+    },
+    "hideSentitiveInfo": {
+        "message": "Hide sensitive information"
+      },
+    "doNotShare": {
+        "message": "Do not share this with anyone"
+    },
+    "revealSensitiveContent": {
+      "message": "Reveal sensitive content"
+    },
+    "show_more": "more",
+    "show_less": "less"
   }
 }
