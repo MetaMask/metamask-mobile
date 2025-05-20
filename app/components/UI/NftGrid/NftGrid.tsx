@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Platform,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -309,8 +315,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
-  console.log('isNftFetchingProgress', isNftFetchingProgress);
-
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
@@ -343,6 +347,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           keyExtractor={keyExtractor}
           testID={RefreshTestId}
           renderItem={renderItem}
+          decelerationRate="fast"
+          removeClippedSubviews={Platform.OS === 'android'}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
