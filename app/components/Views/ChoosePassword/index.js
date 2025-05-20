@@ -637,7 +637,7 @@ class ChoosePassword extends PureComponent {
                     </Label>
                     <TextField
                       placeholder={strings(
-                        'import_from_seed.use_at_least_8_characters',
+                        'import_from_seed.enter_strong_password',
                       )}
                       value={password}
                       onChangeText={this.onPasswordChange}
@@ -653,16 +653,25 @@ class ChoosePassword extends PureComponent {
                         <Icon
                           name={
                             this.state.showPasswordIndex.includes(0)
-                              ? IconName.EyeSolid
-                              : IconName.EyeSlashSolid
+                              ? IconName.Eye
+                              : IconName.EyeSlash
                           }
                           size={IconSize.Lg}
-                          color={colors.icon.default}
+                          color={colors.icon.alternative}
                           onPress={() => this.toggleShowPassword(0)}
                         />
                       }
                     />
-                    {password !== '' && (
+                    {password === '' ? (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('choose_password.must_be_at_least', {
+                          number: MIN_PASSWORD_LENGTH,
+                        })}
+                      </Text>
+                    ) : (
                       <Text variant={TextVariant.BodySM}>
                         {strings('choose_password.password_strength')}
                         <Text
@@ -709,27 +718,17 @@ class ChoosePassword extends PureComponent {
                         <Icon
                           name={
                             this.state.showPasswordIndex.includes(1)
-                              ? IconName.EyeSolid
-                              : IconName.EyeSlashSolid
+                              ? IconName.Eye
+                              : IconName.EyeSlash
                           }
                           size={IconSize.Lg}
-                          color={colors.icon.default}
+                          color={colors.icon.alternative}
                           onPress={() => this.toggleShowPassword(1)}
                         />
                       }
+                      isDisabled={password === ''}
                     />
-                    {!this.isError() ? (
-                      password === '' || password !== confirmPassword ? (
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Alternative}
-                        >
-                          {strings('choose_password.must_be_at_least', {
-                            number: MIN_PASSWORD_LENGTH,
-                          })}
-                        </Text>
-                      ) : null
-                    ) : (
+                    {this.isError() && (
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Error}
