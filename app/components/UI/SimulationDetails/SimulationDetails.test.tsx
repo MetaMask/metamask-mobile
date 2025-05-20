@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -8,7 +8,6 @@ import {
   SimulationTokenStandard,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import {
