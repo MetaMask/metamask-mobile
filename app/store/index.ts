@@ -48,7 +48,9 @@ const createStoreAndPersistor = async () => {
     preloadedState: initialState,
     devTools: false,
     enhancers: (getDefaultEnhancers) =>
-      getDefaultEnhancers.concat(devToolsEnhancer()),
+      process.env.METAMASK_ENVIRONMENT === 'local'
+        ? getDefaultEnhancers.concat(devToolsEnhancer())
+        : getDefaultEnhancers,
   });
   // Set the store in the Redux class
   ReduxService.store = store;
