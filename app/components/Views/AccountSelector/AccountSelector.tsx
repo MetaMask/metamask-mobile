@@ -7,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
@@ -117,22 +116,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     },
     [],
   );
-
-  const fetchAccountsWithActivity = useCallback(async () => {
-    try {
-      const multichainNetworkController = Engine.context
-        .MultichainNetworkController as MultichainNetworkController;
-      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
-    } catch (error) {
-      console.error('Error fetching accounts with activity', error);
-    }
-  }, [Engine]);
-
-  useEffect(() => {
-    if (accounts.length > 0) {
-      fetchAccountsWithActivity();
-    }
-  }, [fetchAccountsWithActivity, accounts]);
 
   const renderAccountSelector = useCallback(
     () => (
