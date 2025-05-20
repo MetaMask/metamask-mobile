@@ -27,9 +27,9 @@ interface TokenValuesProps {
 }
 
 interface TokenValues {
-  amountPreciseDisplay: string;
-  amountDisplay: string;
-  fiatDisplay: string;
+  amountPreciseDisplay: string | undefined;
+  amountDisplay: string | undefined;
+  fiatDisplay: string | undefined;
 }
 
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
@@ -37,7 +37,7 @@ const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) 
   [tokenAddress, networkClientId],
 );
 
-export const useTokenAmount = ({ amountWei }: TokenValuesProps = {}): TokenValues | Record<string, never> => {
+export const useTokenAmount = ({ amountWei }: TokenValuesProps = {}): TokenValues => {
   const fiatFormatter = useFiatFormatter();
   const {
     chainId,
@@ -59,7 +59,11 @@ export const useTokenAmount = ({ amountWei }: TokenValuesProps = {}): TokenValue
   const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
 
   if (pending) {
-    return {};
+    return {
+      amountPreciseDisplay: undefined,
+      amountDisplay: undefined,
+      fiatDisplay: undefined,
+    };
   }
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
