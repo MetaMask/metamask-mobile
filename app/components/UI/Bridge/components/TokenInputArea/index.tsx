@@ -184,7 +184,7 @@ export const TokenInputArea = forwardRef<
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>
               {isLoading ? (
-                <Skeleton width={100} height={40} style={styles.input} />
+                <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Input
                   ref={inputRef}
@@ -226,7 +226,7 @@ export const TokenInputArea = forwardRef<
           </Box>
           <Box style={styles.row}>
             {isLoading ? (
-              <Skeleton width={100} height={10} />
+              <Skeleton width={80} height={24} />
             ) : (
               <>
                 {token && currencyValue ? (
