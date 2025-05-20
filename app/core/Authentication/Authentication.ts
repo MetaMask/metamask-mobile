@@ -42,7 +42,7 @@ import {
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
-import { resetVaultBackup } from '../BackupVault/backupVault';
+import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { recreateVaultWithNewPassword } from '../Vault';
@@ -547,7 +547,7 @@ class AuthenticationService {
       await this.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      await resetVaultBackup();
+      await clearAllVaultBackups();
       throw error;
     }
 
@@ -655,7 +655,7 @@ class AuthenticationService {
         ),
         true,
       );
-      await Authentication.resetPassword();
+      await this.resetPassword();
 
       // check password outdated again skip cache to reset the cache after successful syncing
       await SeedlessOnboardingController.checkIsPasswordOutdated({

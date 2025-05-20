@@ -130,10 +130,9 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    const { navigation } = props;
     if (isSeedlessPasswordOutdated) {
       // show seedless password outdated modal and force user to lock app
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
           title: strings('login.seedless_password_outdated_modal_title'),
