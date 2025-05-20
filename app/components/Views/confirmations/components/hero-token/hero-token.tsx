@@ -8,7 +8,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectTransactionState } from '../../../../../reducers/transaction';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { Hero } from '../UI/hero';
@@ -41,9 +41,9 @@ const AssetAmount = ({
 
 export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   const { isTransactionValueUpdating } = useConfirmationContext();
-  const { isFlatConfirmation } = useFlatConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { styles } = useStyles(styleSheet, {
-    isFlatConfirmation,
+    isFullScreenConfirmation,
   });
 
   const { maxValueMode } = useSelector(selectTransactionState);
@@ -58,7 +58,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
     >
       <Hero
         componentAsset={<AvatarTokenWithNetworkBadge />}
-        hasPaddingTop={isFlatConfirmation}
+        hasPaddingTop={isFullScreenConfirmation}
         title={<AssetAmount amount={amount} styles={styles} />}
         subtitle={fiat}
         tooltipModalProps={{
