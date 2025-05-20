@@ -10,8 +10,9 @@ import {
   selectDepositProviderApiKey,
 } from '../../../../selectors/featureFlagController/deposit';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+
 export interface DepositSDK {
-  nativeRampsSdk: NativeRampsSdk;
+  sdk: NativeRampsSdk;
   providerApiKey: string;
   providerFrontendAuth: string;
 }
@@ -32,13 +33,13 @@ export const DepositSDKProvider = ({
       throw new Error('Deposit SDK requires valid API key and frontend auth');
     }
 
-    const nativeRampsSdk = new NativeRampsSdk({
+    const sdk = new NativeRampsSdk({
       partnerApiKey: providerApiKey,
       frontendAuth: providerFrontendAuth,
     });
 
     return {
-      nativeRampsSdk,
+      sdk,
       providerApiKey,
       providerFrontendAuth,
     };
