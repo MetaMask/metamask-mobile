@@ -15,6 +15,7 @@ import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import { SolScope } from '@metamask/keyring-api';
 
 export interface BridgeDestTokenSelectorRouteParams {
   bridgeViewMode: BridgeViewMode;
@@ -64,6 +65,10 @@ export const BridgeDestTokenSelector: React.FC = () => {
       const networkName = networkConfigurations?.[item.chainId as Hex]?.name
         ?? PopularList.find((network) => network.chainId === item.chainId)?.nickname
         ?? 'Unknown Network';
+      
+      const isSolanaSource = selectedSourceToken?.chainId === SolScope.Mainnet;
+      const isSolanaDest = item.chainId === SolScope.Mainnet;
+      const isSolanaSwap = isSolanaSource && isSolanaDest;
 
       return (
       <TokenSelectorItem
@@ -76,14 +81,17 @@ export const BridgeDestTokenSelector: React.FC = () => {
           selectedDestToken?.chainId === item.chainId
         }
       >
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSizes.Md}
-          onPress={handleInfoButtonPress}
-          iconColor={IconColor.Alternative}
-          style={styles.infoButton}
+        {/* Temporarily hide info button for Solana bridges */}
+        { (!isSolanaSource && !isSolanaDest) || isSolanaSwap && (
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSizes.Md}
+            onPress={handleInfoButtonPress}
+            iconColor={IconColor.Alternative}
+            style={styles.infoButton}
           testID="token-info-button"
-        />
+          />
+        )}
       </TokenSelectorItem>
     );},
     [handleTokenPress, networkConfigurations, selectedDestToken, navigation, styles.infoButton]
