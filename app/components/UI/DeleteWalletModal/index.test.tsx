@@ -1,11 +1,15 @@
 import React from 'react';
 import DeleteWalletModal from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { RootState } from '../../../reducers';
+
 const mockInitialState = {
   engine: { backgroundState },
   security: {
@@ -54,32 +58,27 @@ jest.mock('../../hooks/DeleteWallet', () => ({
   ],
 }));
 
+const Stack = createStackNavigator();
+
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="DeleteWalletModal" options={{}}>
+        {() => <DeleteWalletModal />}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
 describe('DeleteWalletModal', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
-      <SafeAreaProvider>
-        <DeleteWalletModal />
-      </SafeAreaProvider>,
-      {
-        state: mockInitialState,
-      },
-    );
+    const wrapper = renderComponent(mockInitialState);
 
     expect(wrapper).toMatchSnapshot();
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('signs the user out when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(
-      <SafeAreaProvider>
-        <DeleteWalletModal />
-      </SafeAreaProvider>,
-      {
-        state: mockInitialState,
-      },
-    );
-
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
+  it('signs the user out when deleting the wallet', async () => {
+    const { getByTestId } = renderComponent(mockInitialState);
     fireEvent.press(
       getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
     );
@@ -89,18 +88,9 @@ describe('DeleteWalletModal', () => {
     });
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('sets completedOnboarding to false when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(
-      <SafeAreaProvider>
-        <DeleteWalletModal />
-      </SafeAreaProvider>,
-      {
-        state: mockInitialState,
-      },
-    );
+  it('sets completedOnboarding to false when deleting the wallet', async () => {
+    const { getByTestId } = renderComponent(mockInitialState);
 
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
     fireEvent.press(
       getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
     );

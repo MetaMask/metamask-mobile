@@ -184,7 +184,7 @@ const DeleteWalletModal = () => {
               width={ButtonWidthTypes.Full}
               isDanger
               isDisabled={disableButton}
-              testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
+              testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
             />
             <Button
               variant={ButtonVariants.Secondary}
