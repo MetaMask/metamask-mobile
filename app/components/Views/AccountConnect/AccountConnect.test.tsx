@@ -206,7 +206,6 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -247,7 +246,6 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -288,7 +286,6 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
     expect(toJSON()).toMatchSnapshot();
   });
 
