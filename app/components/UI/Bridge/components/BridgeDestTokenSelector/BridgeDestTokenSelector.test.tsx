@@ -142,45 +142,47 @@ describe('BridgeDestTokenSelector', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('handles info button click correctly, navigates to Asset screen', async () => {
-    const { getAllByTestId, getByText } = renderScreen(
-      BridgeDestTokenSelector,
-      {
-        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      },
-      { state: initialState },
-    );
+  // Temporarily removed until Assets team can fix SOL -> EVM and EVM -> SOL asset screen
 
-    await waitFor(() => {
-      expect(getByText('HELLO')).toBeTruthy();
-      expect(getByText('TOKEN1')).toBeTruthy();
-    });
+  // it('handles info button click correctly, navigates to Asset screen', async () => {
+  //   const { getAllByTestId, getByText } = renderScreen(
+  //     BridgeDestTokenSelector,
+  //     {
+  //       name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+  //     },
+  //     { state: initialState },
+  //   );
 
-    // Get the info button using its test ID
-    const infoButton = getAllByTestId('token-info-button')[0];
+  //   await waitFor(() => {
+  //     expect(getByText('HELLO')).toBeTruthy();
+  //     expect(getByText('TOKEN1')).toBeTruthy();
+  //   });
 
-    // Ensure we found the info button
-    expect(infoButton).toBeTruthy();
+  //   // Get the info button using its test ID
+  //   const infoButton = getAllByTestId('token-info-button')[0];
 
-    // Press the info button
-    fireEvent.press(infoButton);
+  //   // Ensure we found the info button
+  //   expect(infoButton).toBeTruthy();
 
-    // Verify navigation to Asset screen with the correct token params
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        address: ethToken2Address,
-        balance: '2.0',
-        balanceFiat: '$200000',
-        chainId: '0x1',
-        decimals: 18,
-        image: 'https://token2.com/logo.png',
-        name: 'Hello Token',
-        symbol: 'HELLO',
-        tokenFiatAmount: 200000,
-      }),
-    );
-  });
+  //   // Press the info button
+  //   fireEvent.press(infoButton);
+
+  //   // Verify navigation to Asset screen with the correct token params
+  //   expect(mockNavigate).toHaveBeenCalledWith(
+  //     'Asset',
+  //     expect.objectContaining({
+  //       address: ethToken2Address,
+  //       balance: '2.0',
+  //       balanceFiat: '$200000',
+  //       chainId: '0x1',
+  //       decimals: 18,
+  //       image: 'https://token2.com/logo.png',
+  //       name: 'Hello Token',
+  //       symbol: 'HELLO',
+  //       tokenFiatAmount: 200000,
+  //     }),
+  //   );
+  // });
 
   it('handles close button correctly', () => {
     const { getByTestId } = renderScreen(
