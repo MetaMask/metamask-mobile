@@ -5863,6 +5863,11 @@
     bn.js "^5.2.1"
     human-standard-token-abi "^2.0.0"
 
+"@metamask/test-dapp-multichain@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp-multichain/-/test-dapp-multichain-0.12.0.tgz#6cbb925d3e021df9bfd9abbb296efa51d5bd95c3"
+  integrity sha512-X5jS0F77f0hjtQ/RxwA8UNaPRGKFREpswokBfwPDVzIDZAcWI8xl7yqiznavmj6WMqOXzsVBu9b7wUx74OoLLg==
+
 "@metamask/test-dapp@^9.2.0":
   version "9.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.2.0.tgz#ee3a5a6466530dc266b5bdb1bd226393148329eb"
