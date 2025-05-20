@@ -85,6 +85,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     await NotificationDetailsView.tapOnBackButton();
 
     // Wallet Announcement Details
+    // Temp comment to kick off CI
     const walletNotifications = getMockWalletNotificationItemIds();
     for (const walletNotificationId of walletNotifications) {
       await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
