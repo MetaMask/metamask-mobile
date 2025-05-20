@@ -106,20 +106,7 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
-    let traceSucceeded = false;
-    try {
-      trace({
-        name: TraceName.OnboardingAddSrp,
-        op: TraceOperation.OnboardingSecurityOp,
-      });
-      await KeyringController.createNewVaultAndRestore(password, parsedSeed);
-      traceSucceeded = true;
-    } finally {
-      endTrace({
-        name: TraceName.OnboardingAddSrp,
-        data: { success: traceSucceeded },
-      });
-    }
+    await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
       Engine.context.KeyringController.state.keyringsMetadata[0].id;
@@ -547,11 +534,24 @@ class AuthenticationService {
         SeedlessOnboardingController.state,
       );
 
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringMetadata.id,
-      );
+      let traceSucceeded = false;
+      try {
+        trace({
+          name: TraceName.OnboardingAddSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringMetadata.id,
+        );
+        traceSucceeded = true;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingAddSrp,
+          data: { success: traceSucceeded },
+        });
+      }
 
       this.dispatchOauthReset();
     } catch (error) {
