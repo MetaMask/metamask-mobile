@@ -106,7 +106,7 @@ const createStyles = (colors: ThemeColors) =>
     bar: {
       width: 10,
       height: 2,
-      backgroundColor: colors.icon.default,
+      backgroundColor: constColors.btnBlack,
       opacity: 0.4,
       marginHorizontal: 2,
     },

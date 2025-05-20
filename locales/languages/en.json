@@ -166,6 +166,7 @@
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
     "hint_saved_toast": "Password hint saved",
+    "error_matches_password": "You cannot use your password as a hint",
     "remind_later": "We’ll remind you later",
     "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
@@ -331,7 +332,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Must be at least {{number}} characters",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -359,7 +360,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Must be at least {{number}} characters",
+    "must_be_at_least": "Password must be {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -369,10 +370,10 @@
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "Password updated",
     "successfully_changed": "Your password has been successfully changed",
-    "new_password_placeholder": "Use at least 8 characters",
+    "new_password_placeholder": "Enter a strong password",
     "confirm_password_placeholder": "Re-enter your password",
     "confirm_btn": "Confirm",
-    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
+    "warning_password_change_title": "You will need to re-login to all devices",
     "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
     "warning_password_change_button": "Confirm",
     "warning_password_cancel_button": "Cancel"
@@ -411,7 +412,8 @@
     "pass_flow": "Continue with Flow",
     "step": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
-    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again."
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",

@@ -1,17 +1,20 @@
 import React from 'react';
-import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
 import {
   Keyboard,
   StyleSheet,
   View,
-  ActivityIndicator,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTheme } from '../../../util/theme';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 
 export const ConfirmButtonState = {
   Error: 'error',
@@ -37,29 +40,12 @@ const getStyles = (colors) =>
     actionContainer: {
       width: '100%',
       flexDirection: 'row',
-      justifyContent: 'flex-end',
       marginBottom: 16,
       paddingHorizontal: 16,
+      columnGap: 8,
     },
     button: {
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
       flex: 1,
-    },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginTop: 'auto',
-      marginLeft: 8,
-    },
-    confirmButtonError: {
-      backgroundColor: colors.error.default,
-      borderColor: colors.error.default,
-    },
-    confirmButtonWarning: {
-      backgroundColor: colors.warning.default,
-      borderColor: colors.warning.default,
     },
   });
 
@@ -118,42 +104,29 @@ export default function ActionView({
 
           <View style={[styles.actionContainer, buttonContainerStyle]}>
             {showCancelButton && (
-              <StyledButton
-                testID={cancelTestID}
-                type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
+              <Button
+                variant={ButtonVariants.Secondary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
                 onPress={onCancelPress}
-                containerStyle={[styles.button, styles.cancel]}
-                disabled={confirmed}
-              >
-                {cancelText}
-              </StyledButton>
+                label={cancelText}
+                isDisabled={confirmed}
+                testID={cancelTestID}
+                style={styles.button}
+              />
             )}
             {showConfirmButton && (
-              <StyledButton
-                testID={confirmTestID}
-                type={confirmButtonMode}
+              <Button
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
                 onPress={onConfirmPress}
-                containerStyle={[
-                  styles.button,
-                  styles.confirm,
-                  confirmButtonState === ConfirmButtonState.Error
-                    ? styles.confirmButtonError
-                    : {},
-                  confirmButtonState === ConfirmButtonState.Warning
-                    ? styles.confirmButtonWarning
-                    : {},
-                ]}
-                disabled={confirmed || confirmDisabled || loading}
-              >
-                {confirmed || loading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.default}
-                  />
-                ) : (
-                  confirmText
-                )}
-              </StyledButton>
+                label={confirmText}
+                isDisabled={confirmed || confirmDisabled || loading}
+                loading={confirmed || loading}
+                testID={confirmTestID}
+                style={styles.button}
+              />
             )}
           </View>
         </View>

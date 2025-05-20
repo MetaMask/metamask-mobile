@@ -328,9 +328,16 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                         >
                           <View
                             style={
-                              {
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "flex": 1,
+                                },
+                                {
+                                  "flex": 1,
+                                  "flexDirection": "column",
+                                  "height": "100%",
+                                },
+                              ]
                             }
                           >
                             <RCTScrollView
@@ -372,6 +379,11 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                     "flex": 1,
                                   },
                                   undefined,
+                                  {
+                                    "flex": 1,
+                                    "flexDirection": "column",
+                                    "height": "100%",
+                                  },
                                 ]
                               }
                               update={[Function]}
@@ -379,66 +391,48 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                             >
                               <View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     {
-                                      "height": 470,
+                                      "flex": 1,
+                                      "flexDirection": "column",
+                                      "justifyContent": "space-between",
                                     }
                                   }
                                 >
-                                  <RCTScrollView
-                                    nestedScrollEnabled={true}
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    focusable={true}
+                                    onClick={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "height": 470,
+                                      }
+                                    }
                                   >
-                                    <View>
-                                      <View
-                                        onStartShouldSetResponder={[Function]}
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontSize": 18,
-                                              "fontWeight": "600",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 34,
-                                              "marginVertical": 3,
-                                              "paddingHorizontal": 16,
-                                              "textAlign": "center",
-                                            }
-                                          }
-                                        >
-                                          Spending cap request for your
-                                        </Text>
+                                    <RCTScrollView
+                                      nestedScrollEnabled={true}
+                                    >
+                                      <View>
                                         <View
+                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "justifyContent": "center",
+                                              "flex": 1,
                                             }
                                           }
                                         >
@@ -449,302 +443,286 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Bold",
                                                 "fontSize": 18,
-                                                "fontWeight": "700",
+                                                "fontWeight": "600",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "lineHeight": 34,
+                                                "marginVertical": 3,
+                                                "paddingHorizontal": 16,
                                                 "textAlign": "center",
                                               }
                                             }
                                           >
-                                            token
+                                            Spending cap request for your
                                           </Text>
-                                        </View>
-                                        <Text
-                                          accessibilityRole="link"
-                                          accessible={true}
-                                          onPressIn={[Function]}
-                                          onPressOut={[Function]}
-                                          style={
-                                            {
-                                              "backgroundColor": "transparent",
-                                              "color": "#4459ff",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                              "paddingVertical": 16,
-                                              "textAlign": "center",
-                                            }
-                                          }
-                                          suppressHighlighting={true}
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#4459ff",
-                                                "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Verify third party details
-                                          </Text>
-                                        </Text>
-                                        <View
-                                          style={
-                                            {
-                                              "paddingHorizontal": 16,
-                                            }
-                                          }
-                                        >
                                           <View
                                             style={
                                               {
-                                                "minWidth": "100%",
-                                                "paddingVertical": 10,
-                                                "width": "100%",
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                                "justifyContent": "center",
+                                              }
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "CentraNo1-Bold",
+                                                  "fontSize": 18,
+                                                  "fontWeight": "700",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                  "textAlign": "center",
+                                                }
+                                              }
+                                            >
+                                              token
+                                            </Text>
+                                          </View>
+                                          <Text
+                                            accessibilityRole="link"
+                                            accessible={true}
+                                            onPressIn={[Function]}
+                                            onPressOut={[Function]}
+                                            style={
+                                              {
+                                                "backgroundColor": "transparent",
+                                                "color": "#4459ff",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                                "paddingVertical": 16,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                            suppressHighlighting={true}
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#4459ff",
+                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "500",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              Verify third party details
+                                            </Text>
+                                          </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "paddingHorizontal": 16,
                                               }
                                             }
                                           >
                                             <View
                                               style={
-                                                [
-                                                  {
-                                                    "backgroundColor": "#f3f5f9",
-                                                    "borderRadius": 30,
-                                                    "padding": 14,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                  {
-                                                    "height": 50,
-                                                  },
-                                                ]
-                                              }
-                                            />
-                                            <TouchableOpacity
-                                              onPress={[Function]}
-                                              style={
                                                 {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "column",
+                                                  "minWidth": "100%",
+                                                  "paddingVertical": 10,
+                                                  "width": "100%",
                                                 }
                                               }
-                                              testID="view-transaction-details"
                                             >
                                               <View
                                                 style={
+                                                  [
+                                                    {
+                                                      "backgroundColor": "#f3f5f9",
+                                                      "borderRadius": 30,
+                                                      "padding": 14,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "height": 50,
+                                                    },
+                                                  ]
+                                                }
+                                              />
+                                              <TouchableOpacity
+                                                onPress={[Function]}
+                                                style={
                                                   {
-                                                    "flexDirection": "row",
-                                                    "marginTop": 8,
+                                                    "alignItems": "center",
+                                                    "flexDirection": "column",
                                                   }
                                                 }
+                                                testID="view-transaction-details"
                                               >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  reset={true}
+                                                <View
                                                   style={
                                                     {
-                                                      "color": "#4459ff",
-                                                      "fontFamily": "CentraNo1-Book",
-                                                      "fontSize": 12,
-                                                      "fontWeight": "400",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 16,
-                                                      "marginHorizontal": 4,
-                                                      "textAlign": "center",
+                                                      "flexDirection": "row",
+                                                      "marginTop": 8,
                                                     }
                                                   }
                                                 >
-                                                  View transaction details
-                                                </Text>
-                                                <Text
-                                                  allowFontScaling={false}
-                                                  selectable={false}
-                                                  style={
-                                                    [
+                                                  <Text
+                                                    accessibilityRole="text"
+                                                    reset={true}
+                                                    style={
                                                       {
-                                                        "color": undefined,
-                                                        "fontSize": 16,
-                                                      },
-                                                      {
-                                                        "color": "#686e7d",
-                                                      },
-                                                      {
-                                                        "fontFamily": "Ionicons",
-                                                        "fontStyle": "normal",
-                                                        "fontWeight": "normal",
-                                                      },
-                                                      {},
-                                                    ]
-                                                  }
-                                                >
-                                                  
-                                                </Text>
-                                              </View>
-                                            </TouchableOpacity>
+                                                        "color": "#4459ff",
+                                                        "fontFamily": "CentraNo1-Book",
+                                                        "fontSize": 12,
+                                                        "fontWeight": "400",
+                                                        "letterSpacing": 0,
+                                                        "lineHeight": 16,
+                                                        "marginHorizontal": 4,
+                                                        "textAlign": "center",
+                                                      }
+                                                    }
+                                                  >
+                                                    View transaction details
+                                                  </Text>
+                                                  <Text
+                                                    allowFontScaling={false}
+                                                    selectable={false}
+                                                    style={
+                                                      [
+                                                        {
+                                                          "color": undefined,
+                                                          "fontSize": 16,
+                                                        },
+                                                        {
+                                                          "color": "#686e7d",
+                                                        },
+                                                        {
+                                                          "fontFamily": "Ionicons",
+                                                          "fontStyle": "normal",
+                                                          "fontWeight": "normal",
+                                                        },
+                                                        {},
+                                                      ]
+                                                    }
+                                                  >
+                                                    
+                                                  </Text>
+                                                </View>
+                                              </TouchableOpacity>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
-                                    </View>
-                                  </RCTScrollView>
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "flex": 0,
-                                      "flexDirection": "row",
-                                      "paddingHorizontal": 24,
-                                      "paddingVertical": 16,
-                                    }
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={0.2}
-                                    disabled={false}
-                                    onPress={[Function]}
+                                    </RCTScrollView>
+                                  </View>
+                                  <View
                                     style={
                                       [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "borderColor": "#686e7d",
-                                            "borderWidth": 1,
-                                          },
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            {
-                                              "marginRight": 8,
-                                            },
-                                          ],
-                                        ],
-                                        null,
-                                      ]
-                                    }
-                                    testID=""
-                                  >
-                                    <Text
-                                      style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          [
-                                            {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#686e7d",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
-                                      }
-                                    >
-                                      Reject
-                                    </Text>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={true}
-                                    style={
-                                      [
-                                        [
-                                          {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff",
-                                            "minHeight": 50,
-                                          },
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            {
-                                              "marginLeft": 8,
-                                            },
-                                            {},
-                                            {},
-                                          ],
-                                        ],
                                         {
-                                          "opacity": 0.6,
+                                          "columnGap": 8,
+                                          "flexDirection": "row",
+                                          "marginBottom": 16,
+                                          "paddingHorizontal": 16,
+                                          "width": "100%",
                                         },
+                                        undefined,
                                       ]
                                     }
-                                    testID="Confirm"
                                   >
-                                    <Text
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        [
-                                          {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "color": "#dcdcdc",
-                                          },
-                                          [
-                                            {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            {
-                                              "color": "#ffffff",
-                                            },
-                                            undefined,
-                                          ],
-                                          {
-                                            "opacity": 0.6,
-                                          },
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#4459ff",
+                                          "borderRadius": 12,
+                                          "borderWidth": 1,
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      testID=""
                                     >
-                                      Approve
-                                    </Text>
-                                  </TouchableOpacity>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#4459ff",
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Reject
+                                      </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={true}
+                                      loading={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "#4459ff",
+                                          "borderRadius": 12,
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "opacity": 0.5,
+                                          "paddingHorizontal": 16,
+                                        }
+                                      }
+                                      testID="Confirm"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#ffffff",
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Approve
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
                                 </View>
                               </View>
                             </RCTScrollView>
