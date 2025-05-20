@@ -157,6 +157,8 @@ const Login: React.FC = () => {
   const handleBackPress = () => {
     if (!oauthLoginSuccess) {
       Authentication.lockApp();
+    } else {
+      navigation.goBack();
     }
     return false;
   };
