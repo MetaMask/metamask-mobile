@@ -18,6 +18,12 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
+jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
+  use7702TransactionType: jest
+    .fn()
+    .mockReturnValue({ isBatched: true, isBatchedUpgrade: true }),
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
@@ -25,6 +31,10 @@ jest.mock('../../../../../../core/Engine', () => {
       getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
+        findNetworkClientIdByChainId: jest.fn(),
+      },
+      TokenListController: {
+        fetchTokenList: jest.fn(),
       },
       GasFeeController: {
         startPolling: jest.fn(),

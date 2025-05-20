@@ -357,7 +357,9 @@ export function getLabelTextByAddress(address: string) {
             );
             // -1 means the address is not found in any of the hd keyrings
             if (hdKeyringIndex !== -1) {
-              return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+              return strings('accounts.srp_index', {
+                index: hdKeyringIndex + 1,
+              });
             }
           }
         }
