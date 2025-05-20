@@ -2,7 +2,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import Button, {
@@ -27,7 +26,6 @@ import {
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
-
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 const NetworkConnectMultiSelector = ({
