@@ -111,14 +111,20 @@ Example of memoizing a function using `useCallback`:
 
 ```javascript
 // Bad - new function created every render
-const renderScrollBar = () => {
-  return <ScrollableTabView data={data} />;
+const onPress = () => {
+  /* ... */
 };
 
+// Assume Button is memoized - still re-renders on parent update because onPress is a new function reference on each render
+return <Button onPress={onPress} />;
+
 // Good - function memoized with proper dependencies
-const renderScrollBar = useCallback(() => {
-  return <ScrollableTabView data={data} />;
-}, [data]);
+const onPress = useCallback(() => {
+  /* ... */
+}, []);
+
+// Assume Button is memoized - does not re-render on parent update because onPress is a memoized function reference
+return <Button onPress={onPress} />;
 ```
 
 Example of proper dependencies in `useEffect`:
