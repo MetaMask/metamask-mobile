@@ -19,14 +19,14 @@ import { ERC20_DEFAULT_DECIMALS, fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
-interface TokenValuesProps {
+interface TokenAmountProps {
   /**
    * Optional value in wei to display. If not provided, the amount from the transactionMetadata will be used.
    */
   amountWei?: string;
 }
 
-interface TokenValues {
+interface TokenAmount {
   amountPreciseDisplay: string | undefined;
   amountDisplay: string | undefined;
   fiatDisplay: string | undefined;
@@ -37,7 +37,7 @@ const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) 
   [tokenAddress, networkClientId],
 );
 
-export const useTokenAmount = ({ amountWei }: TokenValuesProps = {}): TokenValues => {
+export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmount => {
   const fiatFormatter = useFiatFormatter();
   const {
     chainId,
