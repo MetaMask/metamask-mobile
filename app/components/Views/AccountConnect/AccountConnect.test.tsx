@@ -13,6 +13,8 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2
 } from '../../../util/test/accountsControllerTestUtils';
+import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { PermissionConstraint } from '@metamask/permission-controller';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 
@@ -131,14 +133,16 @@ jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
 // Mock useAccounts to return test accounts
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn(() => ({
-    evmAccounts: [
+    accounts: [
       {
         address: mockAddress1,
         name: 'Account 1',
+        caipAccountId: `eip155:0:${mockAddress1}`
       },
       {
         address: mockAddress2,
         name: 'Account 2',
+        caipAccountId: `eip155:0:${mockAddress2}`
       },
     ],
     ensByAccountAddress: {},
@@ -172,7 +176,7 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 describe('AccountConnect', () => {
-  it('renders correctly', () => {
+  it('renders correctly with base request', () => {
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{
@@ -183,10 +187,24 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
-              },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'wallet:eip155': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
             },
             permissionRequestId: 'test',
           },
@@ -195,7 +213,86 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including chains and accounts', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: [`eip155:1:${mockAddress1}`]
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including only chains', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -211,10 +308,24 @@ describe('AccountConnect', () => {
                 origin: '',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
-              },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'wallet:eip155': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
+              }
             },
             permissionRequestId: 'test',
           },
@@ -240,9 +351,23 @@ describe('AccountConnect', () => {
                 origin: 'https://example.com',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'wallet:eip155': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -274,9 +399,23 @@ describe('AccountConnect', () => {
                     origin: 'https://example.com',
                   },
                   permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
+                    // @ts-expect-error partial object
+                    [Caip25EndowmentPermissionName]: {
+                      parentCapability: Caip25EndowmentPermissionName,
+                      caveats: [{
+                        type: Caip25CaveatType,
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {
+                            'wallet:eip155': {
+                              accounts: []
+                            }
+                          },
+                          isMultichainOrigin: false,
+                          sessionProperties: {},
+                        }
+                      }]
+                    } as PermissionConstraint,
                   },
                 },
                 permissionRequestId: 'test',
@@ -294,7 +433,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onSubmit([mockAddress2]);
+      multiSelector.props.onSubmit([`eip155:0:${mockAddress2}`]);
 
       // Verify that the screen changed back to PermissionsSummary
       expect(
@@ -314,9 +453,23 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [{
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'wallet:eip155': {
+                          accounts: []
+                        }
+                      },
+                      isMultichainOrigin: false,
+                      sessionProperties: {},
+                    }
+                  }]
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
