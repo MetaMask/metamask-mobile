@@ -15,9 +15,7 @@ import { MultichainNetworkServiceInit } from './multichain-network-service-init'
 export const multichainNetworkControllerInit = ({
   controllerMessenger,
   persistedState,
-}: ControllerInitRequest<MultichainNetworkControllerMessenger> & {
-  fetchFunction: typeof fetch;
-}): ReturnType<
+}: ControllerInitRequest<MultichainNetworkControllerMessenger>): ReturnType<
   ControllerInitFunction<
     MultichainNetworkController,
     MultichainNetworkControllerMessenger
