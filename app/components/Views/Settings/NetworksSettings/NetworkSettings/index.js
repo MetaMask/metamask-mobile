@@ -35,7 +35,6 @@ import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { PopularList } from '../../../../../util/networks/customNetworks';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -43,7 +42,7 @@ import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwo
 import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
-import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
+import onlyKeepHost from '../../../../../util/onlyKeepHost';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
@@ -57,12 +56,10 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlagController/walletFramework';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import {
-  isSafeChainId,
-  toHex,
-} from '@metamask/controller-utils';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -95,6 +92,11 @@ import Text, {
   getFontFamily,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT } from '../../../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
+import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
+import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import stripProtocol from '../../../../../util/stripProtocol';
+import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -215,7 +217,7 @@ const createStyles = (colors) =>
       borderColor: staticColors.transparent,
       padding: 0,
     },
-    onboardingInputDisabled: {
+    inputDisabled: {
       borderColor: colors.border.muted,
       color: colors.text.muted,
     },
@@ -390,6 +392,11 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'column',
     },
+    rpcTitleWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
   });
 
 const allNetworks = getAllNetworks();
@@ -454,10 +461,16 @@ export class NetworkSettings extends PureComponent {
      * Token network filter
      */
     tokenNetworkFilter: PropTypes.object,
+
+    /**
+     * Whether or not the RPC failover feature is enabled
+     */
+    isRpcFailoverEnabled: PropTypes.bool,
   };
 
   state = {
     rpcUrl: undefined,
+    failoverRpcUrls: undefined,
     rpcName: undefined,
     rpcUrlFrom: undefined,
     rpcNameForm: '',
@@ -545,6 +558,7 @@ export class NetworkSettings extends PureComponent {
       ticker,
       editable,
       rpcUrl,
+      failoverRpcUrls,
       rpcUrls,
       blockExplorerUrls,
       rpcName,
@@ -554,28 +568,31 @@ export class NetworkSettings extends PureComponent {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
         const networkInformation = Networks[networkTypeOrRpcUrl];
         chainId = networkInformation.chainId.toString();
+        const networkConfiguration = networkConfigurations?.[chainId];
+        const defaultRpcEndpoint = networkConfiguration
+          ? networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultRpcEndpointIndex
+            ]
+          : undefined;
 
-        nickname = networkConfigurations?.[chainId]?.name;
+        nickname = networkConfiguration?.name;
         editable = false;
-        blockExplorerUrl =
-          networkConfigurations?.[chainId]?.blockExplorerUrls[
-            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
-          ];
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
-        rpcName =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.type ??
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.name;
-        rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
-        blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
+        blockExplorerUrl = networkConfiguration
+          ? networkConfiguration.blockExplorerUrls[
+              networkConfiguration.defaultBlockExplorerUrlIndex
+            ]
+          : undefined;
+        rpcUrl = defaultRpcEndpoint?.url;
+        failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
+        rpcName = defaultRpcEndpoint
+          ? defaultRpcEndpoint.type === 'infura'
+            ? 'Infura'
+            : defaultRpcEndpoint.name
+          : undefined;
+        rpcUrls = networkConfiguration?.rpcEndpoints;
+        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
 
-        ticker = networkConfigurations?.[chainId]?.nativeCurrency;
+        ticker = networkConfiguration?.nativeCurrency;
       } else {
         const networkConfiguration = Object.values(networkConfigurations).find(
           ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
@@ -583,6 +600,11 @@ export class NetworkSettings extends PureComponent {
             rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
               networkTypeOrRpcUrl,
         );
+        const defaultRpcEndpoint = networkConfiguration
+          ? networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultRpcEndpointIndex
+            ]
+          : undefined;
         nickname = networkConfiguration?.name;
         chainId = networkConfiguration?.chainId;
         blockExplorerUrl =
@@ -591,19 +613,15 @@ export class NetworkSettings extends PureComponent {
           ];
         ticker = networkConfiguration?.nativeCurrency;
         editable = true;
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
+        rpcUrl = defaultRpcEndpoint?.url;
+        failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
         rpcUrls = networkConfiguration?.rpcEndpoints;
         blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
-        rpcName =
-          networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultRpcEndpointIndex
-          ]?.name ??
-          networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultRpcEndpointIndex
-          ]?.type;
+        rpcName = defaultRpcEndpoint
+          ? defaultRpcEndpoint.type === 'infura'
+            ? 'Infura'
+            : defaultRpcEndpoint.name
+          : undefined;
 
         selectedRpcEndpointIndex =
           networkConfiguration?.defaultRpcEndpointIndex;
@@ -611,6 +629,7 @@ export class NetworkSettings extends PureComponent {
 
       const initialState =
         rpcUrl +
+        failoverRpcUrls +
         blockExplorerUrl +
         nickname +
         chainId +
@@ -620,6 +639,7 @@ export class NetworkSettings extends PureComponent {
         blockExplorerUrls;
       this.setState({
         rpcUrl,
+        failoverRpcUrls,
         rpcName,
         rpcUrls,
         blockExplorerUrls,
@@ -1191,7 +1211,7 @@ export class NetworkSettings extends PureComponent {
   validateName = (chainToMatch = null) => {
     const { nickname, networkList, chainId } = this.state;
     const { useSafeChainsListValidation } = this.props;
-  
+
     if (!useSafeChainsListValidation) {
       return;
     }
@@ -1200,7 +1220,9 @@ export class NetworkSettings extends PureComponent {
     const name = chainToMatch?.name || networkList?.name || null;
 
     // Determine nameToUse based on chainId and nickname comparison
-    const nameToUse = isValidNetworkName(chainId, name, nickname) ? undefined : name;
+    const nameToUse = isValidNetworkName(chainId, name, nickname)
+      ? undefined
+      : name;
 
     // Update state with warningName
     this.setState({
@@ -1294,17 +1316,21 @@ export class NetworkSettings extends PureComponent {
     }
 
     const rpcName = name ?? '';
+    const newRpcUrl = {
+      url,
+      failoverUrls: undefined,
+      name: rpcName,
+      type: RpcEndpointType.Custom,
+    };
 
     await this.setState((prevState) => ({
-      rpcUrls: [
-        ...prevState.rpcUrls,
-        { url, name: rpcName, type: RpcEndpointType.Custom },
-      ],
+      rpcUrls: [...prevState.rpcUrls, newRpcUrl],
     }));
 
     await this.setState({
-      rpcUrl: url,
-      rpcName: name,
+      rpcUrl: newRpcUrl.url,
+      failoverRpcUrls: newRpcUrl.failoverUrls,
+      rpcName: newRpcUrl.name,
     });
 
     this.closeAddRpcForm();
@@ -1360,20 +1386,18 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onRpcUrlChangeWithName = async (url, name, type) => {
+  onRpcUrlChangeWithName = async (url, failoverUrls, name, type) => {
     const nameToUse = name ?? type;
     const { addMode } = this.state;
     await this.setState({
+      rpcName: nameToUse,
       rpcUrl: url,
+      failoverRpcUrls: failoverUrls,
       validatedRpcURL: false,
       warningRpcUrl: undefined,
       warningChainId: undefined,
       warningSymbol: undefined,
       warningName: undefined,
-    });
-
-    await this.setState({
-      rpcName: nameToUse,
     });
 
     this.validateName();
@@ -1609,7 +1633,10 @@ export class NetworkSettings extends PureComponent {
         ...networkConfiguration,
         formattedRpcUrl: networkConfiguration.warning
           ? null
-          : hideKeyFromUrl(networkConfiguration.rpcUrl),
+          : formatNetworkRpcUrl(
+              networkConfiguration.rpcUrl,
+              networkConfiguration.chainId,
+            ),
       },
     });
   };
@@ -1617,6 +1644,7 @@ export class NetworkSettings extends PureComponent {
   customNetwork = () => {
     const {
       rpcUrl,
+      failoverRpcUrls,
       rpcUrls,
       blockExplorerUrls,
       blockExplorerUrl,
@@ -1644,23 +1672,15 @@ export class NetworkSettings extends PureComponent {
       rpcName,
       blockExplorerUrlForm,
     } = this.state;
-    const { route, networkConfigurations } = this.props;
+    const { route, isRpcFailoverEnabled } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl, chainId) => {
-      const isNetworkPrePopulated = PopularList.find(
-        (val) => val.rpcUrl === rpcUrl && val.chainId === chainId,
-      );
-      if (isNetworkPrePopulated !== undefined) {
-        if (isNetworkPrePopulated.warning) {
-          return null;
-        }
-        return hideKeyFromUrl(isNetworkPrePopulated.rpcUrl);
-      }
+    const formatNetworkRpcUrl = (rpcUrl) => {
+      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
     };
     const inputStyle = [
       styles.input,
@@ -1706,7 +1726,7 @@ export class NetworkSettings extends PureComponent {
         : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
-      !addMode ? styles.onboardingInputDisabled : undefined,
+      !addMode ? styles.inputDisabled : undefined,
     ];
 
     const isRPCEditable = isCustomMainnet || editable;
@@ -1721,6 +1741,7 @@ export class NetworkSettings extends PureComponent {
 
     const selectedNetwork = {
       rpcUrl: url.href,
+      failoverRpcUrls: undefined,
       ticker,
       nickname,
       rpcPrefs: {
@@ -1967,20 +1988,26 @@ export class NetworkSettings extends PureComponent {
                   key={rpcUrl}
                   testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
                   variant={CellVariant.SelectWithMenu}
-                  title={rpcName || rpcUrl}
-                  // Conditionally include secondaryText only if rpcName exists
-                  {...(rpcName
-                    ? {
-                        secondaryText:
-                          hideKeyFromUrl(rpcUrl) ??
-                          hideKeyFromUrl(
-                            networkConfigurations?.[chainId]?.rpcEndpoints?.[
-                              networkConfigurations?.[chainId]
-                                ?.defaultRpcEndpointIndex
-                            ]?.url,
-                          ),
-                      }
-                    : {})}
+                  title={
+                    <View style={styles.rpcTitleWrapper}>
+                      <View>
+                        <Text
+                          numberOfLines={1}
+                          variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+                          testID={CellComponentSelectorsIDs.BASE_TITLE}
+                        >
+                          {rpcName || formatNetworkRpcUrl(rpcUrl)}
+                        </Text>
+                      </View>
+                      {isRpcFailoverEnabled &&
+                        failoverRpcUrls &&
+                        failoverRpcUrls.length > 0 && (
+                          <Tag label={strings('app_settings.failover')} />
+                        )}
+                    </View>
+                  }
+                  secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
+                  showSecondaryTextIcon={false}
                   isSelected={false}
                   withAvatar={false}
                   onPress={this.openRpcModal}
@@ -1996,7 +2023,7 @@ export class NetworkSettings extends PureComponent {
                 style={inputErrorRpcStyle}
                 autoCapitalize={'none'}
                 autoCorrect={false}
-                value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
+                value={formatNetworkRpcUrl(rpcUrl)}
                 editable={isRPCEditable}
                 onChangeText={this.onRpcUrlChange}
                 onBlur={() => {
@@ -2026,6 +2053,21 @@ export class NetworkSettings extends PureComponent {
                   </View>
                 )
               : null}
+
+            {isRpcFailoverEnabled &&
+              failoverRpcUrls &&
+              failoverRpcUrls.length > 0 && (
+                <>
+                  <Text style={styles.label}>
+                    {strings('app_settings.network_failover_rpc_url_label')}
+                  </Text>
+                  <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={onlyKeepHost(failoverRpcUrls[0])}
+                    editable={false}
+                  />
+                </>
+              )}
 
             <Text style={styles.label}>
               {strings('app_settings.network_chain_id_label')}
@@ -2378,36 +2420,73 @@ export class NetworkSettings extends PureComponent {
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {rpcUrls.length > 0 ? (
                   <View>
-                    {rpcUrls.map(({ url, name, type }) => (
-                      <Cell
-                        key={`${url}-${name}`}
-                        variant={CellVariant.SelectWithMenu}
-                        title={name || type}
-                        secondaryText={hideKeyFromUrl(url)}
-                        isSelected={rpcUrl === url}
-                        withAvatar={false}
-                        onPress={async () => {
-                          await this.onRpcUrlChangeWithName(url, name, type);
-                          this.closeRpcModal();
-                        }}
-                        showButtonIcon={
-                          rpcUrl !== url && type !== RpcEndpointType.Infura
-                        }
-                        buttonIcon={IconName.Trash}
-                        buttonProps={{
-                          onButtonClick: () => {
-                            this.onRpcUrlDelete(url);
-                          },
-                        }}
-                        onTextClick={async () => {
-                          await this.onRpcUrlChangeWithName(url, name, type);
-                          this.closeRpcModal();
-                        }}
-                        avatarProps={{
-                          variant: AvatarVariant.Token,
-                        }}
-                      />
-                    ))}
+                    {rpcUrls.map(({ url, failoverUrls, name, type }) => {
+                      const formattedName = type === 'infura' ? 'Infura' : name;
+                      return (
+                        <Cell
+                          key={`${url}-${name}`}
+                          variant={CellVariant.SelectWithMenu}
+                          title={
+                            <View style={styles.rpcTitleWrapper}>
+                              <View>
+                                <Text
+                                  numberOfLines={1}
+                                  variant={
+                                    DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT
+                                  }
+                                  testID={CellComponentSelectorsIDs.BASE_TITLE}
+                                >
+                                  {formattedName || formatNetworkRpcUrl(url)}
+                                </Text>
+                              </View>
+                              {isRpcFailoverEnabled &&
+                                failoverUrls &&
+                                failoverUrls.length > 0 && (
+                                  <Tag
+                                    label={strings('app_settings.failover')}
+                                  />
+                                )}
+                            </View>
+                          }
+                          secondaryText={
+                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                          }
+                          showSecondaryTextIcon={false}
+                          isSelected={rpcUrl === url}
+                          withAvatar={false}
+                          onPress={async () => {
+                            await this.onRpcUrlChangeWithName(
+                              url,
+                              failoverUrls,
+                              name,
+                              type,
+                            );
+                            this.closeRpcModal();
+                          }}
+                          showButtonIcon={
+                            rpcUrl !== url && type !== RpcEndpointType.Infura
+                          }
+                          buttonIcon={IconName.Trash}
+                          buttonProps={{
+                            onButtonClick: () => {
+                              this.onRpcUrlDelete(url);
+                            },
+                          }}
+                          onTextClick={async () => {
+                            await this.onRpcUrlChangeWithName(
+                              url,
+                              failoverUrls,
+                              name,
+                              type,
+                            );
+                            this.closeRpcModal();
+                          }}
+                          avatarProps={{
+                            variant: AvatarVariant.Token,
+                          }}
+                        />
+                      );
+                    })}
                   </View>
                 ) : null}
                 <View style={styles.scrollableBox}>
@@ -2588,6 +2667,7 @@ const mapStateToProps = (state) => ({
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
   isAllNetworks: selectIsAllNetworks(state),
   tokenNetworkFilter: selectTokenNetworkFilter(state),
+  isRpcFailoverEnabled: selectIsRpcFailoverEnabled(state),
 });
 
 export default compose(
