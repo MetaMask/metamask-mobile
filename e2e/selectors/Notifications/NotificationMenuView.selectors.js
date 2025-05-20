@@ -14,4 +14,5 @@ export const NotificationMenuViewSelectorsIDs = {
     /** @type {string} */
     id,
   ) => `notification-menu-view-item-${id}`,
+  ITEM_LIST_SCROLLVIEW: 'notification-menu-scroll-view',
 };
