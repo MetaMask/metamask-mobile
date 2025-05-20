@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import Device from '../../../../util/device';
 
 const styleSheet = (params: {
@@ -17,7 +17,10 @@ const styleSheet = (params: {
       marginTop: 0,
       marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
-    updateButtonContainer: { flexDirection: 'row' },
+    updateButtonContainer: {
+      flexDirection: 'row',
+      marginBottom: Platform.OS === 'android' ? 8 : 0,
+    },
     buttonPositioning: { flex: 1 },
     disabledOpacity: {
       opacity: 0.5,

@@ -1,12 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
-import StyledButton from '../StyledButton';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ImageSourcePropType,
   SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
+import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -50,6 +52,14 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import {
+  BOTTOM_SHEET_BASE_HEIGHT,
+  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
+  MAX_VISIBLE_ITEMS,
+  SCALE_FACTOR,
+} from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
 import { parseCaipAccountId } from '@metamask/utils';
 
@@ -71,14 +81,22 @@ const PermissionsSummary = ({
   accountAddresses = [],
   accounts = [],
   networkAvatars = [],
+  ensByAccountAddress = {},
   onAddNetwork = () => undefined,
   onChooseFromPermittedNetworks = () => undefined,
+  setTabIndex = () => undefined,
+  tabIndex = 0,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const { navigate } = useNavigation();
+  const { styles } = useStyles(styleSheet, {
+    isRenderedAsBottomSheet,
+  });
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
   const hostname = useMemo(
     () => new URL(currentPageInformation.url).hostname,
@@ -215,18 +233,19 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
+  }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
       if (accountAddresses.length === 1) {
-        const matchedConnectedAccount = accounts.find(
-          (account) => isCaipAccountIdInPermittedAccountIds(
-            account.caipAccountId,
-            [accountAddresses[0]]
-          )
+        const matchedConnectedAccount = accounts.find((account) =>
+          isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+            accountAddresses[0],
+          ]),
         );
-        return `${strings('permissions.connected_to')} ${matchedConnectedAccount?.name}`;
+        return `${strings('permissions.connected_to')} ${
+          matchedConnectedAccount?.name
+        }`;
       }
 
       return `${accountAddresses.length} ${strings(
@@ -235,11 +254,10 @@ const PermissionsSummary = ({
     }
 
     if (accountAddresses.length === 1 && accounts.length >= 1) {
-      const matchedAccount = accounts.find(
-        (account) => isCaipAccountIdInPermittedAccountIds(
-          account.caipAccountId,
-          [accountAddresses[0]]
-        )
+      const matchedAccount = accounts.find((account) =>
+        isCaipAccountIdInPermittedAccountIds(account.caipAccountId, [
+          accountAddresses[0],
+        ]),
       );
 
       return `${strings('permissions.requesting_for')}${
@@ -307,16 +325,16 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                  <AvatarGroup
-                    avatarPropsList={accountAddresses.map((caipAccountId) => {
-                      const { address } = parseCaipAccountId(caipAccountId);
-                      return {
+                <AvatarGroup
+                  avatarPropsList={accountAddresses.map((caipAccountId) => {
+                    const { address } = parseCaipAccountId(caipAccountId);
+                    return {
                       variant: AvatarVariant.Account,
                       accountAddress: address,
                       size: AvatarSize.Xs,
                     };
                   })}
-                  />
+                />
               </View>
             </View>
           </View>
@@ -372,8 +390,7 @@ const PermissionsSummary = ({
                     }
                     imageSource={
                       isNonDappNetworkSwitch
-                        ?
-                          getNetworkImageSource({
+                        ? getNetworkImageSource({
                             chainId,
                           })
                         : chainImage
@@ -392,7 +409,6 @@ const PermissionsSummary = ({
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      // @ts-expect-error - AvatarGroup is not typed
                       avatarPropsList={networkAvatars.map((avatar) => ({
                         ...avatar,
                         variant: AvatarVariant.Network,
@@ -409,10 +425,108 @@ const PermissionsSummary = ({
     );
   }
 
+  const calculateBottomSheetHeight = useMemo(() => {
+    let currentBaseHeight = BOTTOM_SHEET_BASE_HEIGHT;
+    if (isNonDappNetworkSwitch) {
+      currentBaseHeight += 150;
+    }
+
+    if (accountAddresses.length <= 2) {
+      return currentBaseHeight;
+    }
+
+    const visibleItems =
+      accountAddresses.length >= MAX_VISIBLE_ITEMS
+        ? MAX_VISIBLE_ITEMS
+        : accountAddresses.length;
+    const listHeight =
+      currentBaseHeight + ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * visibleItems;
+    return listHeight * SCALE_FACTOR;
+  }, [accountAddresses.length, isNonDappNetworkSwitch]);
+
+  const onChangeTab = useCallback(
+    (tabInfo: { i: number; ref: unknown }) => {
+      setTabIndex?.(tabInfo.i);
+      setBottomSheetHeight(calculateBottomSheetHeight);
+    },
+    [setTabIndex, calculateBottomSheetHeight],
+  );
+
+  const accountsConnectedTabProps = useMemo(
+    () => ({
+      key: 'account-connected-tab',
+      tabLabel: 'Accounts',
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const permissionsTabProps = useMemo(
+    () => ({
+      key: 'permissions-tab',
+      tabLabel: 'Permissions',
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const renderTabBar = useCallback(
+    (props: Record<string, unknown>) => (
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveUnderlineStyle={styles.tabUnderlineStyleInactive}
+          inactiveTextColor={colors.text.muted}
+          backgroundColor={colors.background.alternative}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          tabPadding={16}
+          style={styles.tabBar}
+          {...props}
+        />
+      </View>
+    ),
+    [styles, colors],
+  );
+
+  const renderTabsContent = () => {
+    const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
+      accountsConnectedTabProps;
+    const { key: permissionsTabKey, ...restPermissionsTabProps } =
+      permissionsTabProps;
+    return (
+      <ScrollableTabView
+        initialPage={tabIndex}
+        renderTabBar={renderTabBar}
+        onChangeTab={onChangeTab}
+      >
+        <AccountsConnectedItemList
+          key={accountsConnectedTabKey}
+          selectedAddresses={accountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+        <View
+          key={permissionsTabKey}
+          style={styles.permissionsManagementContainer}
+          {...restPermissionsTabProps}
+        >
+          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
+          {renderNetworkPermissionsRequestInfoCard()}
+        </View>
+      </ScrollableTabView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.mainContainer}>
-        <View>
+      <View style={[styles.mainContainer, { minHeight: bottomSheetHeight }]}>
+        <View style={styles.contentContainer}>
           {renderHeader()}
           <View
             style={styles.title}
@@ -420,16 +534,20 @@ const PermissionsSummary = ({
               PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
             }
           >
-            <TextComponent variant={TextVariant.HeadingSM}>
+            <TextComponent
+              style={styles.connectionTitle}
+              variant={TextVariant.HeadingMD}
+            >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
-                ? strings('permissions.title_dapp_url_wants_to', {
-                    dappUrl: hostname,
-                  })
+                ? hostname
                 : strings('permissions.title_dapp_url_has_approval_to', {
                     dappUrl: hostname,
                   })}
+            </TextComponent>
+            <TextComponent variant={TextVariant.BodyMD}>
+              {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
           </View>
           {isNonDappNetworkSwitch && (
@@ -440,8 +558,7 @@ const PermissionsSummary = ({
               {strings('permissions.non_permitted_network_description')}
             </TextComponent>
           )}
-          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
-          {renderNetworkPermissionsRequestInfoCard()}
+          <View style={styles.tabsContainer}>{renderTabsContent()}</View>
         </View>
         <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
@@ -475,7 +592,10 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={!isNetworkSwitch && (accountAddresses.length === 0 || networkAvatars.length === 0)}
+                disabled={
+                  !isNetworkSwitch &&
+                  (accountAddresses.length === 0 || networkAvatars.length === 0)
+                }
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,
