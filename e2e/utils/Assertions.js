@@ -231,28 +231,6 @@ class Assertions {
   }
 
   /**
-   * Check if text starting with a specific prefix exists in the UI.
-   * @param {string} prefix - The prefix to look for at the beginning of text
-   * @param {number} [index=undefined] - Optional index if multiple elements match the pattern
-   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds
-   * @returns {Promise<Detox.Element>} - The matching element
-   */
-  static async checkIfTextWithPrefixExists(prefix, index = undefined, timeout = TIMEOUT) {
-    let textElement;
-    const regex = new RegExp(`^${prefix}.*`);
-
-    if (index !== undefined) {
-      textElement = element(by.text(regex)).atIndex(index);
-    } else {
-      textElement = element(by.text(regex));
-    }
-
-    return await waitFor(textElement)
-      .toExist()
-      .withTimeout(timeout);
-  }
-
-  /**
    * Check if text ending with a specific suffix exists in the UI.
    * @param {string} suffix - The suffix to look for at the end of text
    * @param {number} [index=undefined] - Optional index if multiple elements match the pattern
