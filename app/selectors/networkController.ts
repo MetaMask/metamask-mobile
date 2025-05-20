@@ -226,6 +226,7 @@ export const getNetworkConfigurationsByCaipChainId = (
       };
     });
 
+    // for use in the near future when we want to include nonEvm configurations in what's returned
     // Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
     //   const caipChainId = _caipChainId as CaipChainId;
     //   networkConfigurationsByCaipChainId[caipChainId] = {
