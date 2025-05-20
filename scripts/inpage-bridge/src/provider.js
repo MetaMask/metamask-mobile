@@ -8,6 +8,7 @@ const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
+const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -74,6 +75,7 @@ function setupProviderStreams() {
 
   // forward communication across inpage-background for these channels only
   forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  forwardTrafficBetweenMuxes(MULTICHAIN_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);

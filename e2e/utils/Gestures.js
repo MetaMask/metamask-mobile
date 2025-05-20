@@ -59,7 +59,7 @@ class Gestures {
     const { timeout = 15000, delayBeforeTap = 0 } = options;
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
-  
+
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
