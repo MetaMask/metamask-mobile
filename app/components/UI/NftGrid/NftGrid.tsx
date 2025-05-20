@@ -309,6 +309,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
+  console.log('isNftFetchingProgress', isNftFetchingProgress);
+
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
