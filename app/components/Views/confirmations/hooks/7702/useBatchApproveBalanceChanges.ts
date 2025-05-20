@@ -42,9 +42,9 @@ export function useBatchApproveBalanceChanges() {
       },
     });
 
-  const finalBalanceChanges = useMemo(() => {
-    return (balanceChanges ?? []).map<ApprovalBalanceChange>(
-      (change, index) => {
+  const finalBalanceChanges = useMemo(
+    () =>
+      (balanceChanges ?? []).map<ApprovalBalanceChange>((change, index) => {
         const simulation = simulationBalanceChanges?.[index];
 
         return {
@@ -54,9 +54,9 @@ export function useBatchApproveBalanceChanges() {
           isUnlimitedApproval: simulation?.isUnlimited ?? false,
           nestedTransactionIndex: simulation?.nestedTransactionIndex ?? -1,
         };
-      },
-    );
-  }, [balanceChanges, simulationBalanceChanges]);
+      }),
+    [balanceChanges, simulationBalanceChanges],
+  );
 
   return {
     pending: pendingSimulationChanges || pendingBalanceChanges,

@@ -19,7 +19,9 @@ import * as TransactionMetadataRequestHook from '../../../hooks/transactions/use
 import ContractInteraction from './contract-interaction';
 
 jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
-  use7702TransactionType: jest.fn().mockReturnValue({ isBatched: false }),
+  use7702TransactionType: jest
+    .fn()
+    .mockReturnValue({ isBatched: true, isBatchedUpgrade: true }),
 }));
 
 jest.mock('../../../../../../core/Engine', () => {
@@ -29,6 +31,10 @@ jest.mock('../../../../../../core/Engine', () => {
       getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
+        findNetworkClientIdByChainId: jest.fn(),
+      },
+      TokenListController: {
+        fetchTokenList: jest.fn(),
       },
       GasFeeController: {
         startPolling: jest.fn(),

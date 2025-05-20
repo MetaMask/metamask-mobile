@@ -12,6 +12,7 @@ import {
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import {
   batchApprovalConfirmation,
+  generateContractInteractionState,
   getAppStateForConfirmation,
 } from '../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
@@ -82,6 +83,14 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../AnimatedSpinner');
 jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
@@ -104,7 +113,7 @@ describe('SimulationDetails', () => {
       value: [],
     });
 
-    render(
+    renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -114,6 +123,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(animatedSpinnerMock).toHaveBeenCalled();
@@ -122,7 +132,7 @@ describe('SimulationDetails', () => {
   describe("doesn't render", () => {
     it('chain is not supported', () => {
       expect(
-        render(
+        renderWithProvider(
           <SimulationDetails
             transaction={
               {
@@ -135,13 +145,14 @@ describe('SimulationDetails', () => {
             }
             enableMetrics={false}
           />,
+          { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
     });
 
     it('simulation is disabled', () => {
       expect(
-        render(
+        renderWithProvider(
           <SimulationDetails
             transaction={
               {
@@ -154,6 +165,7 @@ describe('SimulationDetails', () => {
             }
             enableMetrics={false}
           />,
+          { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
     });
@@ -161,7 +173,7 @@ describe('SimulationDetails', () => {
 
   describe('renders error', () => {
     it('if transaction will be reverted', () => {
-      const { getByText } = render(
+      const { getByText } = renderWithProvider(
         <SimulationDetails
           transaction={
             {
@@ -174,13 +186,14 @@ describe('SimulationDetails', () => {
           }
           enableMetrics={false}
         />,
+        { state: generateContractInteractionState },
       );
 
       expect(getByText('This transaction is likely to fail')).toBeDefined();
     });
 
     it('if simulation is failed', () => {
-      const { getByText } = render(
+      const { getByText } = renderWithProvider(
         <SimulationDetails
           transaction={
             {
@@ -193,6 +206,7 @@ describe('SimulationDetails', () => {
           }
           enableMetrics={false}
         />,
+        { state: generateContractInteractionState },
       );
 
       expect(
@@ -202,7 +216,7 @@ describe('SimulationDetails', () => {
   });
 
   it('renders if no balance change', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -212,6 +226,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(getByText('No changes predicted for your wallet')).toBeDefined();
@@ -249,7 +264,7 @@ describe('SimulationDetails', () => {
       ],
     });
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -259,6 +274,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(
