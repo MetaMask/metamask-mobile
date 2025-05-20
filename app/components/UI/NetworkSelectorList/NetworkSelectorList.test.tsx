@@ -23,7 +23,6 @@ const mockNetworks = [
     imageSource: { uri: 'https://ethereum.org/icon.png' },
     isSelected: false,
     yOffset: 0,
-    rpcUrl: 'https://mainnet.infura.io/v3',
     caipChainId: 'eip155:1' as const
   },
   {
@@ -32,7 +31,6 @@ const mockNetworks = [
     imageSource: { uri: 'https://polygon.org/icon.png' },
     isSelected: true,
     yOffset: 100,
-    rpcUrl: 'https://polygon-rpc.com',
     caipChainId: 'eip155:137' as const
   },
 ];
