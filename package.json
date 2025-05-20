@@ -3,7 +3,7 @@
   "version": "7.45.2",
   "private": true,
   "scripts": {
-    "install:foundryup": "yarn && yarn mm-foundryup",
+    "install:foundryup": "yarn mm-foundryup",
     "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
