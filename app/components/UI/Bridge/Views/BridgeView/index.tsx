@@ -268,6 +268,7 @@ const BridgeView = () => {
       // Necessary because snaps prevents navigation after tx is submitted
       if (isSolanaSwap || isSolanaToEvm) {
         navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        dispatch(setIsSubmittingTx(false));
       }
       await submitBridgeTx({
         quoteResponse: activeQuote,
