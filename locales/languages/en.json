@@ -1204,7 +1204,13 @@
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
           "snap_dialog": "Display custom dialogs",
-          "snap_manageAccounts": "Add and control Ethereum accounts"
+          "snap_manageAccounts": "Add and control Ethereum accounts",
+          "endowment:signature-insight": "Display signature insights modal",
+          "endowment:protocol": "Provide protocol data for one or more chains",
+          "snap_getPreferences": "See information like your preferred language and fiat currency",
+          "endowment:lifecycle-hooks": "Use lifecycle hooks",
+          "endowment:name-lookup": "Provide domain and address lookups",
+          "endowment:page-home": "Display a custom screen"
         }
       }
     },
@@ -3594,7 +3600,30 @@
       "start_earning": "Start earning"
     },
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+        "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+    },
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "transaction_submitted": "Transaction Submitted",
+    "every_minute": "Every minute",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Expected yearly increase of the value of your deposit, based on the reward rate over the past week.",
+        "part_two": "Note: APR changes over time."
+      },
+      "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
+      "reward_frequency": "Frequency at which your rewards are accounted for.",
+      "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     }
   },
   "stake": {
@@ -3821,7 +3850,9 @@
       "primary_type": "Primary type",
       "request_from": "Request from",
       "signing_in_with": "Signing in with",
-      "spender": "Spender"
+      "spender": "Spender",
+      "now": "Now",
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
@@ -3830,14 +3861,17 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
-      "transfer": "Transfer request"
+      "transfer": "Transfer request",
+      "switch_account_type": "Account update"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
-      "contract_interaction": "Review request details before you confirm."
+      "contract_interaction": "Review request details before you confirm.",
+      "switch_to_smart_account": "You're switching to a smart account.",
+      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
@@ -3849,6 +3883,9 @@
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
+    "smart_account": "Smart Account",
+    "smart_contract": "Smart contract",
+    "standard_account": "Standard Account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -3937,7 +3974,8 @@
     "bridge_to": "Bridge to",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
+    "fetching_quote": "Fetching quote",
+    "fee_disclaimer": "Includes 0.875% MM fee"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

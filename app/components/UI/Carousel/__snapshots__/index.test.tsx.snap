@@ -30,9 +30,6 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
               "navigate": [Function],
               "type": "function",
             },
-            "testID": "carousel-sixth-slide",
-            "testIDCloseButton": "carousel-sixth-slide-close-button",
-            "testIDTitle": "carousel-sixth-slide-title",
             "title": "banner.solana.title",
             "undismissable": false,
           },
@@ -43,9 +40,6 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
               "navigate": [Function],
               "type": "function",
             },
-            "testID": "carousel-second-slide",
-            "testIDCloseButton": "carousel-second-slide-close-button",
-            "testIDTitle": "carousel-second-slide-title",
             "title": "banner.fund.title",
             "undismissable": true,
           },
@@ -57,9 +51,6 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
               "route": "ImportSRPView",
               "type": "route",
             },
-            "testID": "carousel-fifth-slide",
-            "testIDCloseButton": "carousel-fifth-slide-close-button",
-            "testIDTitle": "carousel-fifth-slide-title",
             "title": "banner.multisrp.title",
             "undismissable": false,
           },
@@ -70,9 +61,6 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
               "route": "TurnOnBackupAndSync",
               "type": "route",
             },
-            "testID": "carousel-seventh-slide",
-            "testIDCloseButton": "carousel-seventh-slide-close-button",
-            "testIDTitle": "carousel-seventh-slide-title",
             "title": "banner.backupAndSync.title",
             "undismissable": false,
           },
@@ -155,7 +143,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                 false,
               ]
             }
-            testID="carousel-sixth-slide"
+            testID="carousel-slide-solana"
           >
             <View
               style={
@@ -224,7 +212,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-sixth-slide-title"
+                    testID="carousel-slide-solana-title"
                   >
                     banner.solana.title
                   </Text>
@@ -260,7 +248,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     "width": 26,
                   }
                 }
-                testID="carousel-sixth-slide-close-button"
+                testID="carousel-slide-solana-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -344,7 +332,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                 false,
               ]
             }
-            testID="carousel-second-slide"
+            testID="carousel-slide-fund"
           >
             <View
               style={
@@ -413,7 +401,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-second-slide-title"
+                    testID="carousel-slide-fund-title"
                   >
                     banner.fund.title
                   </Text>
@@ -496,7 +484,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                 false,
               ]
             }
-            testID="carousel-fifth-slide"
+            testID="carousel-slide-multisrp"
           >
             <View
               style={
@@ -565,7 +553,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-fifth-slide-title"
+                    testID="carousel-slide-multisrp-title"
                   >
                     banner.multisrp.title
                   </Text>
@@ -601,7 +589,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     "width": 26,
                   }
                 }
-                testID="carousel-fifth-slide-close-button"
+                testID="carousel-slide-multisrp-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -685,7 +673,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                 false,
               ]
             }
-            testID="carousel-seventh-slide"
+            testID="carousel-slide-backupAndSync"
           >
             <View
               style={
@@ -754,7 +742,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-seventh-slide-title"
+                    testID="carousel-slide-backupAndSync-title"
                   >
                     banner.backupAndSync.title
                   </Text>
@@ -790,7 +778,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     "width": 26,
                   }
                 }
-                testID="carousel-seventh-slide-close-button"
+                testID="carousel-slide-backupAndSync-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -924,9 +912,6 @@ exports[`Carousel should render correctly 1`] = `
               "navigate": [Function],
               "type": "function",
             },
-            "testID": "carousel-sixth-slide",
-            "testIDCloseButton": "carousel-sixth-slide-close-button",
-            "testIDTitle": "carousel-sixth-slide-title",
             "title": "banner.solana.title",
             "undismissable": false,
           },
@@ -937,9 +922,6 @@ exports[`Carousel should render correctly 1`] = `
               "href": "https://portfolio.metamask.io/card",
               "type": "url",
             },
-            "testID": "carousel-first-slide",
-            "testIDCloseButton": "carousel-first-slide-close-button",
-            "testIDTitle": "carousel-first-slide-title",
             "title": "banner.card.title",
             "undismissable": false,
           },
@@ -950,9 +932,6 @@ exports[`Carousel should render correctly 1`] = `
               "navigate": [Function],
               "type": "function",
             },
-            "testID": "carousel-second-slide",
-            "testIDCloseButton": "carousel-second-slide-close-button",
-            "testIDTitle": "carousel-second-slide-title",
             "title": "banner.fund.title",
             "undismissable": true,
           },
@@ -963,9 +942,6 @@ exports[`Carousel should render correctly 1`] = `
               "navigate": [Function],
               "type": "function",
             },
-            "testID": "carousel-third-slide",
-            "testIDCloseButton": "carousel-third-slide-close-button",
-            "testIDTitle": "carousel-third-slide-title",
             "title": "banner.cashout.title",
             "undismissable": false,
           },
@@ -977,9 +953,6 @@ exports[`Carousel should render correctly 1`] = `
               "route": "GeneralSettings",
               "type": "route",
             },
-            "testID": "carousel-fourth-slide",
-            "testIDCloseButton": "carousel-fourth-slide-close-button",
-            "testIDTitle": "carousel-fourth-slide-title",
             "title": "banner.aggregated.title",
             "undismissable": false,
           },
@@ -991,9 +964,6 @@ exports[`Carousel should render correctly 1`] = `
               "route": "ImportSRPView",
               "type": "route",
             },
-            "testID": "carousel-fifth-slide",
-            "testIDCloseButton": "carousel-fifth-slide-close-button",
-            "testIDTitle": "carousel-fifth-slide-title",
             "title": "banner.multisrp.title",
             "undismissable": false,
           },
@@ -1004,9 +974,6 @@ exports[`Carousel should render correctly 1`] = `
               "route": "TurnOnBackupAndSync",
               "type": "route",
             },
-            "testID": "carousel-seventh-slide",
-            "testIDCloseButton": "carousel-seventh-slide-close-button",
-            "testIDTitle": "carousel-seventh-slide-title",
             "title": "banner.backupAndSync.title",
             "undismissable": false,
           },
@@ -1089,7 +1056,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-sixth-slide"
+            testID="carousel-slide-solana"
           >
             <View
               style={
@@ -1158,7 +1125,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-sixth-slide-title"
+                    testID="carousel-slide-solana-title"
                   >
                     banner.solana.title
                   </Text>
@@ -1194,7 +1161,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-sixth-slide-close-button"
+                testID="carousel-slide-solana-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -1278,7 +1245,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-first-slide"
+            testID="carousel-slide-card"
           >
             <View
               style={
@@ -1347,7 +1314,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-first-slide-title"
+                    testID="carousel-slide-card-title"
                   >
                     banner.card.title
                   </Text>
@@ -1383,7 +1350,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-first-slide-close-button"
+                testID="carousel-slide-card-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -1467,7 +1434,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-second-slide"
+            testID="carousel-slide-fund"
           >
             <View
               style={
@@ -1536,7 +1503,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-second-slide-title"
+                    testID="carousel-slide-fund-title"
                   >
                     banner.fund.title
                   </Text>
@@ -1619,7 +1586,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-third-slide"
+            testID="carousel-slide-cashout"
           >
             <View
               style={
@@ -1688,7 +1655,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-third-slide-title"
+                    testID="carousel-slide-cashout-title"
                   >
                     banner.cashout.title
                   </Text>
@@ -1724,7 +1691,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-third-slide-close-button"
+                testID="carousel-slide-cashout-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -1808,7 +1775,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-fourth-slide"
+            testID="carousel-slide-aggregated"
           >
             <View
               style={
@@ -1877,7 +1844,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-fourth-slide-title"
+                    testID="carousel-slide-aggregated-title"
                   >
                     banner.aggregated.title
                   </Text>
@@ -1913,7 +1880,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-fourth-slide-close-button"
+                testID="carousel-slide-aggregated-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -1997,7 +1964,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-fifth-slide"
+            testID="carousel-slide-multisrp"
           >
             <View
               style={
@@ -2066,7 +2033,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-fifth-slide-title"
+                    testID="carousel-slide-multisrp-title"
                   >
                     banner.multisrp.title
                   </Text>
@@ -2102,7 +2069,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-fifth-slide-close-button"
+                testID="carousel-slide-multisrp-close-button"
               >
                 <Text
                   allowFontScaling={false}
@@ -2186,7 +2153,7 @@ exports[`Carousel should render correctly 1`] = `
                 false,
               ]
             }
-            testID="carousel-seventh-slide"
+            testID="carousel-slide-backupAndSync"
           >
             <View
               style={
@@ -2255,7 +2222,7 @@ exports[`Carousel should render correctly 1`] = `
                         "marginLeft": 14,
                       }
                     }
-                    testID="carousel-seventh-slide-title"
+                    testID="carousel-slide-backupAndSync-title"
                   >
                     banner.backupAndSync.title
                   </Text>
@@ -2291,7 +2258,7 @@ exports[`Carousel should render correctly 1`] = `
                     "width": 26,
                   }
                 }
-                testID="carousel-seventh-slide-close-button"
+                testID="carousel-slide-backupAndSync-close-button"
               >
                 <Text
                   allowFontScaling={false}

@@ -190,11 +190,7 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import {
-  BRIDGE_DEV_API_BASE_URL,
-  BridgeClientId,
-  BridgeController,
-} from '@metamask/bridge-controller';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -208,6 +204,7 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
+import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -322,7 +319,10 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet'], ChainId['monad-testnet']],
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+        ChainId['monad-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -961,9 +961,10 @@ export class Engine {
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
+
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
       trackMetaMetricsFn: (event, properties) => {
         const metricsEvent = MetricsEventBuilder.createEventBuilder({
@@ -1010,7 +1011,7 @@ export class Engine {
           ...args,
         ),
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
     });
 

@@ -2,6 +2,7 @@
 
 exports[`AssetElement should render correctly 1`] = `
 <TouchableOpacity
+  disabled={false}
   onLongPress={[Function]}
   onPress={[Function]}
   style={
