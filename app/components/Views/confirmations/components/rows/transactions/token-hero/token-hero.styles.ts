@@ -15,6 +15,9 @@ const styleSheet = (params: {
     assetAmountText: {
       textAlign: 'center',
     },
+    assetTextUnknown: {
+      color: theme.colors.text.alternative,
+    },
     assetFiatConversionText: {
       textAlign: 'center',
       color: theme.colors.text.alternative,

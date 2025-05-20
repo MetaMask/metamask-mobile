@@ -21,27 +21,36 @@ const AssetAmount = ({
   amount,
   setIsModalVisible,
   styles,
-  tokenSymbol,
 }: {
   amount?: string;
   setIsModalVisible: ((isModalVisible: boolean) => void) | null;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-  tokenSymbol?: string;
-}) => (
-  <View style={styles.assetAmountContainer}>
+}) => {
+  const { displayName } = useTokenAsset();
+  const isUnknownToken = displayName === strings('token.unknown');
+
+  return (
+    <View style={styles.assetAmountContainer}>
     {setIsModalVisible ? (
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-          {amount} {tokenSymbol}
+          {amount}{' '}
+          <Text style={isUnknownToken && styles.assetTextUnknown} variant={TextVariant.HeadingLG}>
+            {displayName}
+          </Text>
         </Text>
       </TouchableOpacity>
     ) : (
       <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-        {amount} {tokenSymbol}
+        {amount}{' '}
+          <Text style={isUnknownToken && styles.assetTextUnknown} variant={TextVariant.HeadingLG}>
+            {displayName}
+          </Text>
       </Text>
     )}
-  </View>
-);
+    </View>
+  );
+};
 
 const AssetFiatConversion = ({
   fiat,
@@ -73,7 +82,6 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   });
 
   const { amountPrecise, amount, fiat } = useTokenAmount({ amountWei });
-  const { displayName } = useTokenAsset();
 
   const isRoundedAmount = amountPrecise !== amount;
 
@@ -86,7 +94,6 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
         <AvatarTokenWithNetworkBadge />
         <AssetAmount
           amount={amount}
-          tokenSymbol={displayName}
           styles={styles}
           setIsModalVisible={isRoundedAmount ? setIsModalVisible : null}
         />
