@@ -65,7 +65,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       const networkName = networkConfigurations?.[item.chainId as Hex]?.name
         ?? PopularList.find((network) => network.chainId === item.chainId)?.nickname
         ?? 'Unknown Network';
-      
+
       const isSolanaSource = selectedSourceToken?.chainId === SolScope.Mainnet;
       const isSolanaDest = item.chainId === SolScope.Mainnet;
       const isSolanaSwap = isSolanaSource && isSolanaDest;
