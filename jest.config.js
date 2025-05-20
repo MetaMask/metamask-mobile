@@ -22,7 +22,7 @@ const config = {
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
   ],
   transform: {
-    '^.+\\.[jt]sx?$': 'babel-jest',
+    '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
@@ -37,6 +37,7 @@ const config = {
     '<rootDir>/app/lib/ppom/ppom.html.js',
     '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
+    '<rootDir>/app/declarations/index.d.ts',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
