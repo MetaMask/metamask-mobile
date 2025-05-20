@@ -121,6 +121,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -179,6 +180,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="Scan"
                   onPress={[Function]}
@@ -495,6 +497,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 >
                                   <SvgMock
                                     color="#686e7d"
+                                    fill="currentColor"
                                     height={20}
                                     name="Info"
                                     style={
@@ -686,7 +689,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
                                       "backgroundColor": "#4459ff",
-                                      "borderRadius": 24,
+                                      "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
