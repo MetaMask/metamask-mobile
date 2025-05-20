@@ -42,6 +42,7 @@ export const container: UIComponentFactory<BoxElement> = ({
           onCancel,
           variant: ButtonVariants.Secondary,
           isSnapAction: false,
+          testID: 'snap-confirmation-Modal-close-button',
         },
         children: t('navigation.close'),
       },

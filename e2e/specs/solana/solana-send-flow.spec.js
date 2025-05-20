@@ -18,7 +18,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import SendActionBottomSheet from '../../pages/wallet/SendActionBottomSheet';
+import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 // Test constants
@@ -26,8 +26,8 @@ const SOLANA_ACCOUNT_NAME = 'Solana Account 1';
 const INVALID_ADDRESS = 'invalid address';
 const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
 const RECIPIENT_ADDRESS = 'GxE7wWLyUEV4jMqQUMj8kT1XVpcfxq4iWBTVDTwCV77M';
-const TRANSFER_AMOUNT = '0.001';
-const EXPECTED_CONFIRMATION = '0.001 SOL was successfully sent';
+const TRANSFER_AMOUNT = '0.0011';
+const EXPECTED_CONFIRMATION = '0.0011 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
 
 describe(
@@ -57,36 +57,35 @@ describe(
     it('should validate recipient address format correctly', async () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
-      await SendActionBottomSheet.sendActionInputAddress(INVALID_ADDRESS);
+      await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
 
       await Assertions.checkIfElementToHaveText(
-        SendActionBottomSheet.invalidAddressError,
+        SnapSendActionSheet.invalidAddressError,
         INVALID_ADDRESS_ERROR,
       );
       // Snap UI components prove tricky for testID's
-      await SendActionBottomSheet.tapCancelButton();
+      await SnapSendActionSheet.tapCancelButton();
 
     });
 
     it('should successfully transfer SOL to a valid recipient address', async () => {
       await WalletActionsBottomSheet.tapSendButton();
-      await SendActionBottomSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
-      await SendActionBottomSheet.sendActionInputAmount(TRANSFER_AMOUNT);
-
-      // Snap UI components prove tricky for testID's
-      await SendActionBottomSheet.tapContinueButton();
+      await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
+      await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
+      await TestHelpers.delay(2000);
+      await SnapSendActionSheet.tapContinueButton();
       await Assertions.checkIfTextIsDisplayed(
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       );
       // Snap UI components prove tricky for testID's require more time
-      await SendActionBottomSheet.tapSendSOLTransactionButton();
+      await SnapSendActionSheet.tapSendSOLTransactionButton();
       // Assert transaction is sent
       await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
     });
 
     it('Should verify that transaction is sent successfully', async () => {
-      await SendActionBottomSheet.tapCloseButton();
-      await WalletActionsBottomSheet.swipeDownActionsBottomSheet();
+      await SnapSendActionSheet.tapCloseButton();
+      await WalletView.tapAwayFromBottomSheet();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
       await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);

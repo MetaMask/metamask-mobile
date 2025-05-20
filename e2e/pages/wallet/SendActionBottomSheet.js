@@ -10,6 +10,18 @@ class SendActionBottomSheet {
       get invalidAddressError() {
         return Matchers.getElementByID(SendActionViewSelectorsIDs.INVALID_ADDRESS_ERROR);
       }
+
+      get continueButton() {
+        return Matchers.getElementByID(SendActionViewSelectorsIDs.CONTINUE_BUTTON);
+      }
+
+      get cancelButton() {
+        return Matchers.getElementByID(SendActionViewSelectorsIDs.CANCEL_BUTTON);
+      }
+
+      get closeModalButton() {
+        return Matchers.getElementByID(SendActionViewSelectorsIDs.CLOSE_BUTTON);
+      }
     
       get sendSOLTransactionButton() {
         return Matchers.getElementByID(SendActionViewSelectorsIDs.SEND_TRANSACTION_BUTTON);
@@ -28,15 +40,15 @@ class SendActionBottomSheet {
       }
 
       async tapCancelButton() {
-        await Gestures.waitAndTapByTextPrefix('Cancel');
+        await Gestures.waitAndTap(this.cancelButton);
       } 
 
       async tapContinueButton() {
-        await Gestures.waitAndTapByTextPrefix('Continue');
+        await Gestures.waitAndTap(this.continueButton, { skipVisibilityCheck: true });
       }
 
       async tapCloseButton() {
-        await Gestures.waitAndTapByTextPrefix('Close');
+        await Gestures.waitAndTap(this.closeModalButton);
       }
 }
 

@@ -311,6 +311,14 @@ class WalletView {
   async tapCarouselSlide() {
     await Gestures.tap(this.carouselSlide);
   }
+
+  async tapBalanceButton() {
+    await Gestures.waitAndTap(this.balanceButton);
+  }
+
+  async tapAwayFromBottomSheet() {
+    await Gestures.waitAndTapByTextPrefix('Tokens'); //Swipe does't work on well on Android
+  }
 }
 
 export default new WalletView();

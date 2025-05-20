@@ -67,20 +67,23 @@ static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
 }
 
 /**
- * Wait for an element to be visible and then tap it.
- *
- * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
- * @param {Object} [options={}] - Configuration options
- * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
- * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
- */
+   * Wait for an element to be visible and then tap it.
+   *
+   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
+   * @param {Object} [options={}] - Configuration options
+   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+   */
 static async waitAndTap(elementID, options = {}) {
-  const { timeout = 15000, delayBeforeTap = 0 } = options;
+  const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
   const element = await elementID;
-  await waitFor(element).toBeVisible().withTimeout(timeout);
+  
+  if (!skipVisibilityCheck) {
+    await waitFor(element).toBeVisible().withTimeout(timeout);
+  }
 
   if (delayBeforeTap > 0) {
-    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
+    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap));
   }
   await element.tap();
 }
