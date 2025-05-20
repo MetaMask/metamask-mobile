@@ -39,6 +39,19 @@ class Gestures {
   }
 
 /**
+ * Wait for an element whose text ends with the specified pattern to be visible and then tap it
+ *
+ * @param {string} textPattern - Text suffix to match at the end of element text
+ * @param {number} index - Index of the element if multiple elements match (0-based)
+ * @param {number} timeout - Timeout for waiting (default: 15000ms)
+ */
+static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
+  const elementToTap = element(by.text(new RegExp(`.*${textPattern}$`))).atIndex(index);
+  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
+  await elementToTap.tap();
+}
+
+/**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
