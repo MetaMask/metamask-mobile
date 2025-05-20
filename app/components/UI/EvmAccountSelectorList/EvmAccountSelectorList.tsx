@@ -41,6 +41,14 @@ import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 
+/**
+ * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
+ * Functionally they should be nearly identical except that EvmAccountSelectorList expects
+ * Hex addressess where as CaipAccountSelectorList expects CaipAccountIds.
+ *
+ * If changes need to be made to this component, please instead make them to CaipAccountSelectorList
+ * and adopt that component instead.
+ */
 const EvmAccountSelectorList = ({
   onSelectAccount,
   onRemoveImportedAccount,
