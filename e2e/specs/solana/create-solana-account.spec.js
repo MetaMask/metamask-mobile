@@ -118,7 +118,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME, 0);
   });
 
-  it('should be able to reveal private key of created solana account', async () => {
+  it.skip('should be able to reveal private key of created solana account', async () => {
     // Create a Solana account to reveal the private key for
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);

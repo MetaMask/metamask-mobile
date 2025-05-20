@@ -40,6 +40,10 @@ class ActivitiesView {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
+  transactionItem(row) {
+    return Matchers.getElementByID(`transaction-item-${row}`);
+  }
+
   generateSwapActivityLabel(sourceToken, destinationToken) {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
@@ -78,6 +82,10 @@ class ActivitiesView {
   }
   async tapOnTransactionValue(transaction) {
     await Gestures.waitAndTapByTextSuffix(transaction, 0);
+  }
+
+  async tapOnTransactionItem(row) {
+    await Gestures.waitAndTap(this.transactionItem(row));
   }
 }
 

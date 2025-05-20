@@ -29,6 +29,7 @@ const RECIPIENT_ADDRESS = 'GxE7wWLyUEV4jMqQUMj8kT1XVpcfxq4iWBTVDTwCV77M';
 const TRANSFER_AMOUNT = '0.0011';
 const EXPECTED_CONFIRMATION = '0.0011 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
+const RECENT_TRANSACTION_INDEX = 0;
 
 describe(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
@@ -87,7 +88,9 @@ describe(
     it('Should verify that transaction is sent successfully', async () => {
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
-      await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
+      // await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
+      await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
+
       await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
     
     });
