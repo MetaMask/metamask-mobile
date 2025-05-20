@@ -184,6 +184,7 @@ class AccountInfoCard extends PureComponent {
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
+        chainId={transaction?.chainId}
         origin={actualOriginUrl}
         url={actualOriginUrl}
         from={rawFromAddress}
