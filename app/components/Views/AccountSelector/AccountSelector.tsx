@@ -69,7 +69,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
-
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
   }, []);
