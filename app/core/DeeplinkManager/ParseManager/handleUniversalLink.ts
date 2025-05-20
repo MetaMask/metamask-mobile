@@ -162,7 +162,7 @@ function handleUniversalLink({
         const swapPath = urlObj.href
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
-        instance._handleOpenSwap(swapPath);
+        instance._handleSwap(swapPath);
         break;
       }
       case ACTIONS.BUY:
