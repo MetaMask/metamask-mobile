@@ -13,6 +13,21 @@ const styleSheet = () =>
     button: {
       flex: 1,
     },
+    badgeWrapper: {
+      alignSelf: 'center',
+    },
+    balances: {
+      flex: 1,
+      justifyContent: 'center',
+      marginLeft: 20,
+      alignSelf: 'center',
+    },
+    ethLogo: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      overflow: 'hidden',
+    },
   });
 
 export default styleSheet;

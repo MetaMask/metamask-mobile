@@ -131,7 +131,7 @@ const EarnInputView = () => {
   const handleLendingFlow = useCallback(async () => {
     if (!activeAccount?.address) return;
 
-    // TODO: Add GasCostImpact for lending deposit flow.
+    // TODO: Add GasCostImpact for lending deposit flow after launch.
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
 
     const tokenContractAddress = earnToken?.address;
@@ -238,6 +238,7 @@ const EarnInputView = () => {
         undefined,
         true,
       );
+
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });

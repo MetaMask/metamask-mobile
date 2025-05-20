@@ -25,7 +25,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -33,9 +32,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
-import { isSupportedLendingTokenByChainId } from '../../Earn/utils';
-import EarnLendingBalance from '../../Earn/components/EarnLendingBalance';
-import { USER_HAS_LENDING_POSITIONS } from '../../Earn/constants/tempLendingConstants';
+import EarnBalance from '../../Earn/components/EarnBalance';
 
 interface BalanceProps {
   asset: TokenI;
@@ -155,11 +152,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
-      {/* TODO: Abstract StakingBalance and EarnLendingBalance into single EarnBalance entrypoint */}
-      {asset?.isETH && <StakingBalance asset={asset} />}
-      {asset?.chainId &&
-        isSupportedLendingTokenByChainId(asset.symbol, asset.chainId) &&
-        USER_HAS_LENDING_POSITIONS && <EarnLendingBalance asset={asset} />}
+      <EarnBalance asset={asset} />
     </View>
   );
 };
