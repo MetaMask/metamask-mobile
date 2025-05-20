@@ -8,7 +8,7 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import Engine, { EngineContext } from '../core/Engine';
-import { getPersistentState } from '@metamask/base-controller';
+import { getPersistentState } from './getPersistentState/getPersistentState';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
