@@ -132,7 +132,7 @@ exports[`CustomAlert should render correctly 1`] = `
         <Text
           style={
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "marginBottom": 15,

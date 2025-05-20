@@ -11,6 +11,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
 >
   <SvgMock
     color="#1c7e33"
+    fill="currentColor"
     height={32}
     name="Confirmation"
     style={
@@ -45,7 +46,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -69,11 +70,11 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -101,7 +102,7 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
@@ -114,11 +115,11 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -140,6 +141,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
 >
   <SvgMock
     color="#9a6300"
+    fill="currentColor"
     height={32}
     name="Danger"
     style={
@@ -166,7 +168,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "color": "#121314",
           "flex": 1,
           "flexWrap": "wrap",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -238,11 +240,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           {
             "color": "#686e7d",
             "flexShrink": 1,
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -255,11 +257,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "textAlign": "center",
       }
     }
@@ -289,7 +291,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
@@ -304,11 +306,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -327,7 +329,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
@@ -341,11 +343,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

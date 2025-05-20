@@ -8,7 +8,6 @@ import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { NetworkBadgeSource } from './Balance';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 jest.mock('react-redux', () => ({
@@ -82,7 +81,6 @@ jest.mock('../../../../util/networks', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn(),
 }));
 
 jest.mock('../../Stake/hooks/usePooledStakes', () => ({
@@ -127,9 +125,22 @@ describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
 
-  Image.getSize = jest.fn((_uri, success) => {
-    success(100, 100); // Mock successful response for ETH native Icon Image
-  });
+  interface ImageSize {
+    width: number;
+    height: number;
+  }
+  Image.getSize = jest.fn(
+    (
+      _uri: string,
+      success?: (width: number, height: number) => void,
+      _failure?: (error: Error) => void,
+    ) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+    },
+  );
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -148,33 +159,29 @@ describe('Balance', () => {
     jest.clearAllMocks();
   });
 
-  if (!isPortfolioViewEnabled()) {
-    it('should render correctly with main and secondary balance', () => {
-      const wrapper = render(
-        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
-      );
-      expect(wrapper).toMatchSnapshot();
-    });
-  }
-
-  if (!isPortfolioViewEnabled()) {
-    it('should render correctly without a secondary balance', () => {
-      const wrapper = render(
-        <Balance
-          asset={mockDAI}
-          mainBalance="123"
-          secondaryBalance={undefined}
-        />,
-      );
-      expect(wrapper).toMatchSnapshot();
-    });
-  }
-
-  it('should fire navigation event for non native tokens', () => {
-    const { queryByTestId } = render(
+  it('should render correctly with main and secondary balance', () => {
+    const wrapper = render(
       <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
     );
-    const assetElement = queryByTestId('asset-DAI');
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render correctly without a secondary balance', () => {
+    const wrapper = render(
+      <Balance
+        asset={mockDAI}
+        mainBalance="123"
+        secondaryBalance={undefined}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should fire navigation event for non native tokens', () => {
+    const { getByTestId } = render(
+      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+    );
+    const assetElement = getByTestId('asset-DAI');
     fireEvent.press(assetElement);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
@@ -198,59 +205,45 @@ describe('Balance', () => {
 
   describe('NetworkBadgeSource', () => {
     it('returns testnet image for a testnet chainId', () => {
-      const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+      const result = NetworkBadgeSource('0xaa36a7');
       expect(result).toBeDefined();
     });
 
     it('returns mainnet Ethereum image for mainnet chainId', () => {
-      const result = NetworkBadgeSource('0x1', 'ETH');
+      const result = NetworkBadgeSource('0x1');
       expect(result).toBeDefined();
     });
 
     it('returns Linea Mainnet image for Linea mainnet chainId', () => {
-      const result = NetworkBadgeSource('0xe708', 'LINEA');
+      const result = NetworkBadgeSource('0xe708');
       expect(result).toBeDefined();
     });
 
     it('returns undefined if no image is found', () => {
-      const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+      const result = NetworkBadgeSource('0x999');
       expect(result).toBeUndefined();
-    });
-
-    it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-      if (isPortfolioViewEnabled()) {
-        const result = NetworkBadgeSource('0xe708', 'LINEA');
-        expect(result).toBeDefined();
-      }
     });
   });
 });
 
 describe('NetworkBadgeSource', () => {
   it('returns testnet image for a testnet chainId', () => {
-    const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+    const result = NetworkBadgeSource('0xaa36a7');
     expect(result).toBeDefined();
   });
 
   it('returns mainnet Ethereum image for mainnet chainId', () => {
-    const result = NetworkBadgeSource('0x1', 'ETH');
-    expect(result).toBeDefined();
-  });
-
-  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
-    const result = NetworkBadgeSource('0xe708', 'LINEA');
+    const result = NetworkBadgeSource('0x1');
     expect(result).toBeDefined();
   });
 
   it('returns undefined if no image is found', () => {
-    const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+    const result = NetworkBadgeSource('0x999');
     expect(result).toBeUndefined();
   });
 
-  it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-    if (isPortfolioViewEnabled()) {
-      const result = NetworkBadgeSource('0xe708', 'LINEA');
-      expect(result).toBeDefined();
-    }
+  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
+    const result = NetworkBadgeSource('0xe708');
+    expect(result).toBeDefined();
   });
 });

@@ -1,10 +1,20 @@
 import { HdKeyring } from '@metamask/eth-hd-keyring';
-import { Json } from '@metamask/eth-query';
-import { EthKeyring } from '@metamask/keyring-internal-api';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
+///: BEGIN:ONLY_INCLUDE_IF(beta)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
+import {
+  endPerformanceTrace,
+  startPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
+import { store } from '../../store';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -39,24 +49,45 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     throw new Error('This mnemonic has already been imported.');
   }
 
-  const newKeyring = (await KeyringController.addNewKeyring(
+  const newKeyring = await KeyringController.addNewKeyring(
     ExtendedKeyringTypes.hd,
     {
       mnemonic,
       numberOfAccounts: 1,
     },
-  )) as EthKeyring<Json>;
-  const [newAccountAddress] = await newKeyring.getAccounts();
+  );
+
+  const [newAccountAddress] = await KeyringController.withKeyring(
+    {
+      id: newKeyring.id,
+    },
+    async ({ keyring }) => keyring.getAccounts(),
+  );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  const multichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Solana,
+  );
+
+  await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  ///: END:ONLY_INCLUDE_IF
+
   return Engine.setSelectedAddress(newAccountAddress);
 }
 
 export async function createNewSecretRecoveryPhrase() {
   const { KeyringController } = Engine.context;
-  const newHdkeyring = (await KeyringController.addNewKeyring(
+  const newHdkeyring = await KeyringController.addNewKeyring(
     ExtendedKeyringTypes.hd,
-  )) as HdKeyring;
+  );
 
-  const newAccountAddress = (await newHdkeyring.getAccounts())[0];
+  const [newAccountAddress] = await KeyringController.withKeyring(
+    {
+      id: newHdkeyring.id,
+    },
+    async ({ keyring }) => keyring.getAccounts(),
+  );
+
   return Engine.setSelectedAddress(newAccountAddress);
 }
 
@@ -73,13 +104,26 @@ export async function addNewHdAccount(
         type: ExtendedKeyringTypes.hd,
       };
 
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
-    async (keyring) => await keyring.addAccounts(1),
+    async ({ keyring }) => await keyring.addAccounts(1),
   );
   Engine.setSelectedAddress(addedAccountAddress);
 
   if (name) {
     Engine.setAccountLabel(addedAccountAddress, name);
   }
+
+  // We consider the account to be created once it got selected and renamed.
+  store.dispatch(
+    endPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
 }

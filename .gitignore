@@ -38,6 +38,7 @@ android/app/.project
 android/app/bin/
 android/app/gradle*
 android/app/_build*
+.cxx/
 
 # if we ever want to add google services
 android/app/google-services.json
@@ -134,6 +135,10 @@ android/app/src/main/assets/modules.json
 .expo
 dist/
 web-build/
+expo-env.d.ts
 
 # CICD
 github-tools/
+
+# API Monitor logs
+api-monitor-logs/

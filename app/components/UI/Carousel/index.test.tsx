@@ -5,9 +5,12 @@ import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { SolAccountType } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
+import { PREDEFINED_SLIDES } from './constants';
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
@@ -46,7 +49,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
+  setSelectedAddress: jest.fn(),
 }));
 
 const selectShowFiatInTestnets = jest.fn();
@@ -102,6 +106,28 @@ jest.mock('../../../images/banners/banner_image_cashout.png', () => ({
 }));
 jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
   uri: 'aggregated-image',
+}));
+
+// Mock useMultichainBalances hook
+jest.mock('../../../components/hooks/useMultichainBalances', () => ({
+  useSelectedAccountMultichainBalances: jest.fn().mockReturnValue({
+    selectedAccountMultichainBalance: {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      tokenFiatBalancesCrossChains: [],
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: true,
+      aggregatedBalance: {
+        ethFiat: 0,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 0,
+      },
+    },
+  }),
 }));
 
 const mockDispatch = jest.fn();
@@ -183,34 +209,48 @@ describe('Carousel', () => {
 
   it('opens correct URLs or navigates to correct screens when banners are clicked', async () => {
     const { getByTestId } = render(<Carousel />);
+    const { CAROUSEL_SLIDE } = WalletViewSelectorsIDs;
+    const slides = PREDEFINED_SLIDES.map((slide) =>
+      getByTestId(CAROUSEL_SLIDE(slide.id)),
+    );
+    const [
+      firstSlide,
+      secondSlide,
+      thirdSlide,
+      fourthSlide,
+      fifthSlide,
+      sixthSlide,
+      seventhSlide,
+    ] = slides;
 
-    const {
-      CAROUSEL_FIRST_SLIDE,
-      CAROUSEL_SECOND_SLIDE,
-      CAROUSEL_THIRD_SLIDE,
-      CAROUSEL_FOURTH_SLIDE,
-    } = WalletViewSelectorsIDs;
-    const firstSlide = getByTestId(CAROUSEL_FIRST_SLIDE);
-    const secondSlide = getByTestId(CAROUSEL_SECOND_SLIDE);
-    const thirdSlide = getByTestId(CAROUSEL_THIRD_SLIDE);
-    const fourthSlide = getByTestId(CAROUSEL_FOURTH_SLIDE);
+    // Test solana banner
+    fireEvent.press(firstSlide);
+    expect(mockNavigate).toHaveBeenCalled();
 
     // Test card banner
-    fireEvent.press(firstSlide);
+    fireEvent.press(secondSlide);
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/card',
     );
 
     // Test fund banner
-    fireEvent.press(secondSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test cashout banner
     fireEvent.press(thirdSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test aggregated banner
+    // Test cashout banner
     fireEvent.press(fourthSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test aggregated banner
+    fireEvent.press(fifthSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test multisrp banner
+    fireEvent.press(sixthSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test backup and sync banner
+    fireEvent.press(seventhSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -226,5 +266,81 @@ describe('Carousel', () => {
     });
 
     expect(flatList).toBeTruthy();
+  });
+
+  it('does not render solana banner if user has a solana account', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        settings: {
+          showFiatOnTestnets: false,
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { queryByTestId } = render(<Carousel />);
+    const solanaBanner = queryByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
+    );
+
+    expect(solanaBanner).toBeNull();
+  });
+
+  it('changes to a solana address if user has a solana account', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector({
+        banners: {
+          dismissedBanners: [],
+        },
+        settings: {
+          showFiatOnTestnets: false,
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                  '2': {
+                    address: 'SomeSolanaAddress',
+                    type: SolAccountType.DataAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const { getByTestId } = render(<Carousel />);
+    const solanaBanner = getByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
+    );
+    fireEvent.press(solanaBanner);
+
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
   });
 });

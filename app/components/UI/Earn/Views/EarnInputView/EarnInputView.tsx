@@ -19,7 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -30,7 +30,6 @@ import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -38,10 +37,20 @@ import {
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import styleSheet from './EarnInputView.styles';
-import { EarnInputViewProps } from './EarnInputView.types';
+import {
+  EARN_INPUT_VIEW_ACTIONS,
+  EarnInputViewProps,
+} from './EarnInputView.types';
 import { getEarnInputViewTitle } from './utils';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
+  getErc20SpendingLimit,
+} from '../../utils/tempLending';
+import BigNumber from 'bignumber.js';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -55,16 +64,19 @@ const EarnInputView = () => {
     setIsSubmittingStakeDepositTransaction,
   ] = useState(false);
 
-  // selectors
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
+
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+  );
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   // if token is ETH, use 1 as the exchange rate
@@ -116,7 +128,62 @@ const EarnInputView = () => {
     });
   };
 
-  const handleEarnPress = useCallback(async () => {
+  const handleLendingFlow = useCallback(async () => {
+    if (!activeAccount?.address) return;
+
+    // TODO: Add GasCostImpact for lending deposit flow.
+    const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
+
+    const tokenContractAddress = earnToken?.address;
+
+    if (!tokenContractAddress || !earnToken?.chainId) return;
+
+    const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
+      activeAccount.address,
+      tokenContractAddress,
+      earnToken.chainId,
+    );
+
+    const needsAllowanceIncrease = new BigNumber(
+      allowanceMinimalTokenUnit ?? '',
+    ).isLessThan(amountTokenMinimalUnitString);
+
+    const lendingPoolContractAddress =
+      CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
+
+    navigation.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+      params: {
+        token,
+        amountTokenMinimalUnit: amountTokenMinimalUnit.toString(),
+        amountFiat: amountFiatNumber,
+        // TODO: These values are inaccurate since useEarnInputHandlers doesn't support stablecoin lending yet.
+        // Make sure these values are accurate after updating useEarnInputHandlers to support stablecoin lending.
+        annualRewardsToken,
+        annualRewardsFiat,
+        annualRewardRate,
+        // TODO: Replace hardcoded protocol in future iteration.
+        lendingProtocol: 'AAVE v3',
+        lendingContractAddress: lendingPoolContractAddress,
+        action: needsAllowanceIncrease
+          ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
+          : EARN_INPUT_VIEW_ACTIONS.LEND,
+      },
+    });
+  }, [
+    activeAccount?.address,
+    amountFiatNumber,
+    amountTokenMinimalUnit,
+    annualRewardRate,
+    annualRewardsFiat,
+    annualRewardsToken,
+    earnToken?.address,
+    earnToken?.chainId,
+    navigation,
+    token,
+  ]);
+
+  const handlePooledStakingFlow = useCallback(async () => {
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -205,24 +272,41 @@ const EarnInputView = () => {
         .build(),
     );
   }, [
-    isHighGasCostImpact,
-    navigation,
-    amountTokenMinimalUnit,
+    activeAccount?.address,
     amountFiatNumber,
-    annualRewardsToken,
-    annualRewardsFiat,
-    annualRewardRate,
-    trackEvent,
-    createEventBuilder,
     amountToken,
+    amountTokenMinimalUnit,
+    annualRewardRate,
+    annualRewardsFiat,
+    annualRewardsToken,
+    attemptDepositTransaction,
+    createEventBuilder,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
+    isHighGasCostImpact,
     isStakingDepositRedesignedEnabled,
-    activeAccount,
-    attemptDepositTransaction,
+    navigation,
+    trackEvent,
   ]);
 
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+  const handleEarnPress = useCallback(async () => {
+    // Stablecoin Lending Flow
+    if (
+      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      isStablecoinLendingEnabled
+    ) {
+      await handleLendingFlow();
+      return;
+    }
+
+    // Pooled-Staking Flow
+    await handlePooledStakingFlow();
+  }, [
+    earnToken?.experience,
+    isStablecoinLendingEnabled,
+    handlePooledStakingFlow,
+    handleLendingFlow,
+  ]);
 
   const handleMaxButtonPress = () => {
     if (!isStablecoinLendingEnabled || token.isETH) {
@@ -363,8 +447,8 @@ const EarnInputView = () => {
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
-        {isStablecoinLendingFeatureEnabled() ? (
-          <EarnTokenSelector token={route?.params?.token} />
+        {isStablecoinLendingEnabled ? (
+          <EarnTokenSelector token={token} />
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}

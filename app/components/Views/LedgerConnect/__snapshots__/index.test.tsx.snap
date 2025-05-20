@@ -52,6 +52,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -80,7 +81,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -88,7 +89,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -112,7 +113,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 24,
             "fontWeight": "400",
           },
@@ -160,7 +161,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -168,7 +169,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               undefined,
               undefined,
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontWeight": "600",
               },
               undefined,
@@ -205,7 +206,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -246,7 +247,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -287,7 +288,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -328,7 +329,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -369,7 +370,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -410,7 +411,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -452,7 +453,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -460,7 +461,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontWeight": "600",
             },
             undefined,
@@ -548,7 +549,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                       "alignSelf": "flex-start",
                       "color": "#121314",
                       "flex": 1,
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "paddingBottom": 10,
@@ -561,6 +562,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                 </Text>
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -638,7 +640,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",

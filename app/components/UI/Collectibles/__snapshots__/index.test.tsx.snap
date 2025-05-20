@@ -39,7 +39,7 @@ exports[`Collectibles should render correctly 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 20,
               "fontWeight": "400",
             }

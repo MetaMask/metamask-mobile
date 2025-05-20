@@ -23,10 +23,12 @@ import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
-import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
 import { Skeleton } from '../../../component-library/components/Skeleton';
+import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
+import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
+import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -44,6 +46,7 @@ export const safeComponentList = {
   AddressElement,
   Box,
   SnapUIInput,
+  SnapUIAddressInput,
   SnapIcon,
   SnapUIIcon,
   SnapUIFooterButton,
@@ -53,9 +56,10 @@ export const safeComponentList = {
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
+  SnapUIAssetSelector,
   SnapUISelector,
   SnapUISpinner,
-  InfoRow,
+  SnapUIInfoRow,
   RNText,
   ScrollView,
   SnapUITooltip,

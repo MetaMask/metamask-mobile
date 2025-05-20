@@ -153,7 +153,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -237,7 +237,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -261,11 +261,11 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -327,11 +327,11 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >

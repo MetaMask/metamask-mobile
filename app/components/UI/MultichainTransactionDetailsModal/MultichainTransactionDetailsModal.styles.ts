@@ -1,6 +1,10 @@
 import { StyleSheet, TextStyle } from 'react-native';
 import { Colors } from '../../../util/theme/models';
 import { ThemeTypography } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors: Colors, typography: ThemeTypography) =>
   StyleSheet.create({
@@ -83,7 +87,8 @@ const createStyles = (colors: Colors, typography: ThemeTypography) =>
       marginRight: 5,
     },
     listItemStatus: {
-      ...(typography.lBodyMDBold as TextStyle),
+      ...(typography.sBodyMDBold as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     },
   });
 

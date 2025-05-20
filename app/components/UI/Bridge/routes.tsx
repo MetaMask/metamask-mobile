@@ -6,8 +6,10 @@ import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelecto
 import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
-import BridgeView from '.';
 import QuoteInfoModal from './components/QuoteInfoModal';
+import BridgeView from './Views/BridgeView';
+import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
+import QuoteExpiredModal from './components/QuoteExpiredModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -53,6 +55,14 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL}
       component={QuoteInfoModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
+      component={BlockExplorersModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
+      component={QuoteExpiredModal}
     />
   </ModalStack.Navigator>
 );

@@ -6,6 +6,7 @@ import {
 } from '@metamask/notification-services-controller/notification-services';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { createNotificationServicesController } from './create-notification-services-controller';
+import { getNotificationServicesControllerMessenger } from '../../messengers/notifications/notification-services-controller-messenger';
 
 jest.mock('@metamask/notification-services-controller/notification-services');
 
@@ -15,36 +16,7 @@ describe('Notification Services Controller', () => {
   const arrange = () => {
     const globalMessenger = new ExtendedControllerMessenger();
     const messenger: NotificationServicesControllerMessenger =
-      globalMessenger.getRestricted({
-        name: 'NotificationServicesController',
-        allowedActions: [
-          // Keyring Actions
-          'KeyringController:getState',
-          'KeyringController:getAccounts',
-          // Auth Actions
-          'AuthenticationController:getBearerToken',
-          'AuthenticationController:isSignedIn',
-          'AuthenticationController:performSignIn',
-          // Storage Actions
-          'UserStorageController:getStorageKey',
-          'UserStorageController:performGetStorage',
-          'UserStorageController:performSetStorage',
-          // Push Actions
-          'NotificationServicesPushController:enablePushNotifications',
-          'NotificationServicesPushController:disablePushNotifications',
-          'NotificationServicesPushController:updateTriggerPushNotifications',
-          'NotificationServicesPushController:subscribeToPushNotifications',
-        ],
-        allowedEvents: [
-          // Keyring Events
-          'KeyringController:unlock',
-          'KeyringController:lock',
-          'KeyringController:stateChange',
-          // Push Events
-          'NotificationServicesPushController:onNewNotifications',
-          'NotificationServicesPushController:stateChange',
-        ],
-      });
+      getNotificationServicesControllerMessenger(globalMessenger);
 
     const mockConstructor = jest.spyOn(
       NotificationServicesController.prototype,

@@ -10,6 +10,7 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
@@ -43,13 +44,13 @@ import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
 import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
+import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
-import Drawer from '../../UI/Drawer';
 
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
@@ -89,7 +90,11 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { AssetLoader } from '../../Views/AssetLoader';
+import { EarnScreenStack } from '../../UI/Earn/routes';
+import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -205,10 +210,15 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+      component={BridgeTransactionDetails}
+    />
   </Stack.Navigator>
 );
 
-const BrowserFlow = () => (
+/* eslint-disable react/prop-types */
+const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
@@ -221,10 +231,28 @@ const BrowserFlow = () => (
       component={Browser}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_LOADER}
+      component={AssetLoader}
+      options={{ headerShown: false, animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_VIEW}
+      component={Asset}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name="SwapsAmountView"
+      component={SwapsAmountView}
+      options={SwapsAmountView.navigationOptions}
+    />
+    <Stack.Screen
+      name="SwapsQuotesView"
+      component={SwapsQuotesView}
+      options={SwapsQuotesView.navigationOptions}
+    />
   </Stack.Navigator>
 );
-
-export const DrawerContext = React.createContext({ drawerRef: null });
 
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
@@ -388,6 +416,11 @@ const SettingsFlow = () => (
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
     />
+    <Stack.Screen
+      name={Routes.SETTINGS.BACKUP_AND_SYNC}
+      component={BackupAndSyncSettings}
+      options={BackupAndSyncSettings.navigationOptions}
+    />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
     }
@@ -404,7 +437,6 @@ const SettingsFlow = () => (
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
@@ -531,41 +563,34 @@ const HomeTabs = () => {
   };
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={renderTabBar}
-        >
-          <Tab.Screen
-            name={Routes.WALLET.HOME}
-            options={options.home}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-          />
-          <Tab.Screen
-            name={Routes.MODAL.WALLET_ACTIONS}
-            options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
+    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+      <Tab.Screen
+        name={Routes.WALLET.HOME}
+        options={options.home}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
+      />
+      <Tab.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        options={options.actions}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
+      />
 
-          <Tab.Screen
-            name={Routes.SETTINGS_VIEW}
-            options={options.settings}
-            component={SettingsFlow}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
+      <Tab.Screen
+        name={Routes.SETTINGS_VIEW}
+        options={options.settings}
+        component={SettingsFlow}
+      />
+    </Tab.Navigator>
   );
 };
 
@@ -632,6 +657,10 @@ const SendFlowView = () => (
       name={Routes.SEND_FLOW.CONFIRM}
       component={Confirm}
       options={Confirm.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      component={RedesignedConfirm}
     />
   </Stack.Navigator>
 );
@@ -829,6 +858,7 @@ const MainNavigator = () => (
       options={clearStackNavigatorOptions}
     />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+    <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
     <Stack.Screen
       name="StakeModals"
       component={StakeModalStack}
@@ -860,6 +890,11 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}
       options={NotificationsOptInStack.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
+      component={TurnOnBackupAndSync}
+      options={TurnOnBackupAndSync.navigationOptions}
     />
   </Stack.Navigator>
 );

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ShowNftSheet should render correctly 1`] = `
+exports[`ShowNftSheet render matches snapshot 1`] = `
 <View
   style={
     {
@@ -150,7 +150,13 @@ exports[`ShowNftSheet should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -440,7 +447,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 18,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -464,11 +471,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -480,11 +487,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 16,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -501,11 +508,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -516,11 +523,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 16,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -549,7 +556,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -565,11 +572,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -588,7 +595,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "flex": 1,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -603,11 +610,11 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >

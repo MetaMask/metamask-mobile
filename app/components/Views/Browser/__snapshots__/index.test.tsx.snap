@@ -150,7 +150,13 @@ exports[`Browser should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Browser should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -350,7 +357,7 @@ exports[`Browser should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "600",
                                   "lineHeight": 34,
@@ -386,6 +393,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#4459ff"
+                                fill="currentColor"
                                 height={24}
                                 name="Info"
                                 style={
@@ -409,11 +417,11 @@ exports[`Browser should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -444,6 +452,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#9a6300"
+                                fill="currentColor"
                                 height={24}
                                 name="Danger"
                                 style={
@@ -466,7 +475,7 @@ exports[`Browser should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "lineHeight": 20,
@@ -494,7 +503,7 @@ exports[`Browser should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "lineHeight": 20,
@@ -540,6 +549,7 @@ exports[`Browser should render correctly 1`] = `
                             >
                               <SvgMock
                                 color="#4459ff"
+                                fill="currentColor"
                                 height={16}
                                 name="Copy"
                                 style={
@@ -585,7 +595,7 @@ exports[`Browser should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "lineHeight": 20,
@@ -627,7 +637,7 @@ TypeError: Cannot read properties of undefined (reading 'map')
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                     "textAlign": "center",
                                   }
@@ -654,7 +664,7 @@ TypeError: Cannot read properties of undefined (reading 'map')
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                     "textAlign": "center",
                                   }
@@ -664,12 +674,6 @@ TypeError: Cannot read properties of undefined (reading 'map')
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="slide"
-                            hardwareAccelerated={false}
-                            onRequestClose={[Function]}
-                            visible={false}
-                          />
                         </View>
                       </RNCSafeAreaView>
                     </View>

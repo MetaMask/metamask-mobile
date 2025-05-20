@@ -126,6 +126,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
       >
         <SvgMock
           color="#ca3542"
+          fill="currentColor"
           height={32}
           name="Danger"
           style={
@@ -143,7 +144,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -160,17 +161,92 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
             {
               "alignSelf": "flex-start",
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "paddingBottom": 10,
               "paddingTop": 16,
             }
           }
         >
           This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "alignSelf": "flex-start",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "paddingBottom": 10,
+              "paddingTop": 16,
+            }
+          }
+        >
+          Turning this off also disables all features within
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            security and privacy, backup and sync
+             
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            and
+             
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 10,
+                "paddingTop": 16,
+              }
+            }
+          >
+            notifications.
+          </Text>
         </Text>
         <View
           style={
@@ -218,11 +294,11 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -251,7 +327,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
                   "borderColor": "#4459ff",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",
@@ -266,11 +342,11 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -297,7 +373,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#ca3542",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
@@ -312,11 +388,11 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >

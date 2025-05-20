@@ -28,10 +28,18 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
+import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { toHex } from '@metamask/controller-utils';
 
 interface StakeButtonProps {
   asset: TokenI;
 }
+
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -43,10 +51,23 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
-  const onStakeButtonPress = async () => {
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+
+  const earnToken = getTokenWithBalanceAndApr(asset);
+
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+
+  const handleStakeRedirect = async () => {
     if (!isStakingSupportedChain) {
-      const { MultichainNetworkController } = Engine.context;
-      await MultichainNetworkController.setActiveNetwork('mainnet');
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        'mainnet',
+      );
     }
     if (isEligible) {
       navigation.navigate('StakeScreens', {
@@ -90,27 +111,66 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     );
   };
 
+  const handleLendingRedirect = async () => {
+    if (!asset?.chainId) return;
+
+    const networkClientId =
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        toHex(asset.chainId),
+      );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
+      );
+      return;
+    }
+
+    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+      },
+    });
+  };
+
+  const onEarnButtonPress = async () => {
+    if (earnToken.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+      return handleStakeRedirect();
+    }
+
+    if (earnToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      return handleLendingRedirect();
+    }
+  };
+
+  if (areEarnExperiencesDisabled) return <></>;
+
   return (
     <Pressable
-      onPress={onStakeButtonPress}
+      onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
         {' • '}
-        <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.earn')} `}
-        </Text>
+      </Text>
+      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
+        {`${strings('stake.earn')}`}
       </Text>
       <Icon
         name={IconName.Plant}
         size={IconSize.Sm}
         color={IconColor.Primary}
+        style={styles.sprout}
       />
     </Pressable>
   );
 };
 
+// TODO: Rename to EarnButton and make component more generic to support lending.
 export const StakeButton = (props: StakeButtonProps) => (
   <StakeSDKProvider>
     <StakeButtonContent {...props} />

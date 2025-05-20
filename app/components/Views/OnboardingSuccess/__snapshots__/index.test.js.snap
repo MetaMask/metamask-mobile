@@ -35,11 +35,11 @@ exports[`OnboardingSuccess should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "paddingTop": 20,
             "textAlign": "center",
           }
@@ -59,7 +59,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -75,7 +75,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -91,11 +91,11 @@ exports[`OnboardingSuccess should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -137,6 +137,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           >
             <SvgMock
               color="#4459ff"
+              fill="currentColor"
               height={16}
               name="Setting"
               style={
@@ -153,11 +154,11 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -169,7 +170,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -195,6 +196,7 @@ Change these at any time.
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -202,7 +204,7 @@ Change these at any time.
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -216,11 +218,11 @@ Change these at any time.
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -228,35 +230,6 @@ Change these at any time.
         </Text>
       </TouchableOpacity>
     </View>
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      transparent={true}
-      visible={false}
-    />
   </View>
 </RCTScrollView>
 `;

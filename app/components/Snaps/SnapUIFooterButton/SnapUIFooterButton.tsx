@@ -42,6 +42,7 @@ interface SnapUIFooterButtonProps {
   snapVariant: ButtonProps['variant'];
   disabled?: boolean;
   loading?: boolean;
+  children: React.ReactNode;
 }
 
 export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
@@ -95,10 +96,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const buttonLabel = () => {
     if (loading) {
       return (
-        <ActivityIndicator
-          size="small"
-          color={theme.colors.primary.inverse}
-        />
+        <ActivityIndicator size="small" color={theme.colors.primary.inverse} />
       );
     } else if (isSnapAction && !hideSnapBranding) {
       return (

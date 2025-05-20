@@ -134,7 +134,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -174,7 +174,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                     }
@@ -207,7 +207,13 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -215,6 +221,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -399,11 +406,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 12,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -425,7 +432,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -440,7 +447,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -478,11 +485,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -490,6 +497,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -529,6 +537,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={24}
                               name="Info"
                               style={
@@ -552,11 +561,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -602,11 +611,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -639,11 +648,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -676,11 +685,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -710,6 +719,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -726,11 +736,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -780,7 +790,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -844,7 +854,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -908,7 +918,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -981,7 +991,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1045,7 +1055,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1109,7 +1119,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1182,7 +1192,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1246,7 +1256,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1310,7 +1320,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1381,7 +1391,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1445,7 +1455,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1507,6 +1517,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1533,7 +1544,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1559,7 +1570,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#4459ff",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -1573,11 +1584,11 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >

@@ -150,7 +150,13 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -546,8 +553,8 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -560,11 +567,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -576,11 +583,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -600,7 +607,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -611,6 +618,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -627,11 +635,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -688,7 +696,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -707,33 +715,6 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -897,7 +878,13 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -905,6 +892,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1293,8 +1281,8 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1307,11 +1295,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -1323,11 +1311,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1347,7 +1335,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -1358,6 +1346,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1374,11 +1363,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1435,7 +1424,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -1454,33 +1443,6 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1644,7 +1606,13 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1652,6 +1620,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2040,8 +2009,8 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2054,11 +2023,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -2070,11 +2039,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2094,7 +2063,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -2105,6 +2074,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2121,11 +2091,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2182,7 +2152,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -2201,33 +2171,6 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>

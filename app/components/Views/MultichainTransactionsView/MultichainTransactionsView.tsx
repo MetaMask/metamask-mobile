@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -21,6 +21,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
+import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
@@ -29,32 +30,17 @@ const MultichainTransactionsView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  useEffect(() => {
-    setLoading(true);
+  const transactions = useMemo(
+    () => solanaAccountTransactions?.transactions,
+    [solanaAccountTransactions],
+  );
 
-    // use the selector selectSolanaAccountTransactions
-    // simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      // check if solanaAccountTransactions is an object with transactions property
-      if (
-        solanaAccountTransactions &&
-        'transactions' in solanaAccountTransactions
-      ) {
-        setTransactions(solanaAccountTransactions.transactions);
-      } else {
-        setTransactions([]);
-      }
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [solanaAccountTransactions]);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
@@ -88,25 +74,19 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item }: { item: Transaction }) => (
-    <MultichainTransactionListItem
-      transaction={item}
-      selectedAddress={selectedAddress || ''}
-      navigation={navigation}
-    />
-  );
+  const renderTransactionItem = ({ item }: { item: Transaction }) => {
+    const srcTxHash = item.id;
+    const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-  if (loading) {
     return (
-      <View style={style.loader}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary.default}
-          testID={`transactions-loading-indicator`}
-        />
-      </View>
+      <MultichainTransactionListItem
+        transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        selectedAddress={selectedAddress || ''}
+        navigation={navigation}
+      />
     );
-  }
+  };
 
   return (
     <View style={style.wrapper}>
@@ -116,7 +96,7 @@ const MultichainTransactionsView = () => {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
-        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
+        ListFooterComponent={transactions?.length > 0 ? renderViewMore() : null}
         estimatedItemSize={200}
       />
     </View>

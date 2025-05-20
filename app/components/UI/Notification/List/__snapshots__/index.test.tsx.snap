@@ -73,7 +73,7 @@ exports[`NotificationsList renders empty state 1`] = `
     refreshing={false}
     removeClippedSubviews={false}
     renderItem={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     stickyHeaderIndices={[]}
     tabLabel=""
     viewabilityConfigCallbackPairs={[]}
@@ -92,6 +92,7 @@ exports[`NotificationsList renders empty state 1`] = `
       >
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={32}
           name="Notification"
           style={
@@ -110,7 +111,7 @@ exports[`NotificationsList renders empty state 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -128,11 +129,11 @@ exports[`NotificationsList renders empty state 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginBottom": 8,
               "paddingHorizontal": 32,
               "textAlign": "center",

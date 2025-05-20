@@ -24,11 +24,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 12,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 20,
+          "lineHeight": 22,
         }
       }
     >
@@ -39,11 +39,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#9ca1af",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 12,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 20,
+          "lineHeight": 22,
         }
       }
     >
@@ -66,11 +66,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -81,11 +81,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

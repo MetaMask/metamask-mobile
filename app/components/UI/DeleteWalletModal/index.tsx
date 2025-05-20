@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { OutlinedTextField } from 'react-native-material-textfield';
+import {
+  OutlinedTextField,
+  TextFieldProps,
+} from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
@@ -30,6 +33,7 @@ import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -100,6 +104,7 @@ const DeleteWalletModal = () => {
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
+    await dispatch(setCompletedOnboarding(false));
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();
@@ -135,7 +140,7 @@ const DeleteWalletModal = () => {
                 })}
               </Text>
               <OutlinedTextField
-                style={styles.input}
+                style={styles.input as TextFieldProps}
                 {...generateTestId(
                   Platform,
                   DeleteWalletModalSelectorsIDs.INPUT,

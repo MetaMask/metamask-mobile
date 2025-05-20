@@ -29,6 +29,7 @@ import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
+import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -68,6 +69,15 @@ have to have all these workarounds in the tests
 
     console.log('The marketing toast is not visible');
   }
+
+  // Handle Solana New feature sheet
+  try {
+    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The new Solana feature modal is not visible');
+  }
 };
 
 export const skipNotificationsDeviceSettings = async () => {
@@ -88,13 +98,33 @@ export const skipNotificationsDeviceSettings = async () => {
   }
 };
 
-export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
+/**
+ * Imports a wallet using a secret recovery phrase during the onboarding process.
+ *
+ * @async
+ * @function importWalletWithRecoveryPhrase
+ * @param {Object} [options={}] - Options for importing the wallet.
+ * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
+ * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @returns {Promise<void>} Resolves when the wallet import process is complete.
+ */
+export const importWalletWithRecoveryPhrase = async ({
+  seedPhrase,
+  password,
+  optInToMetrics = true,
+} = {}) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await MetaMetricsOptIn.tapAgreeButton();
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
+
   await TestHelpers.delay(3500);
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
@@ -109,13 +139,13 @@ export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await this.skipNotificationsDeviceSettings();
+  await skipNotificationsDeviceSettings();
   // Should dismiss Automatic Security checks screen
   await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals();
+  await closeOnboardingModals();
 };
 
 export const CreateNewWallet = async () => {
@@ -142,8 +172,6 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
   await device.enableSynchronization();
-  await Assertions.checkIfVisible(WalletView.container);
-
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
@@ -225,7 +253,24 @@ export const loginToApp = async () => {
 };
 
 export const waitForTestDappToLoad = async () => {
-  await TestHelpers.delay(3000);
-  await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-  await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 5000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
+      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
+
+      await Assertions.webViewElementExists(TestDApp.DappConnectButton);
+      return; // Success - page is fully loaded and interactive
+
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+      }
+      await TestHelpers.delay(RETRY_DELAY);
+    }
+  }
+
+  throw new Error('Test dapp failed to become fully interactive');
 };

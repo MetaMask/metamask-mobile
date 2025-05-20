@@ -102,15 +102,15 @@ exports[`AddressElement should render correctly 1`] = `
           {
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
-        0xd018...78E7
+        0xd0185...a78E7
       </Text>
     </View>
   </View>

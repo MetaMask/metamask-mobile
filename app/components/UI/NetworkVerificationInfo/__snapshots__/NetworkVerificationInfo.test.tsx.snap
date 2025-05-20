@@ -42,7 +42,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -131,11 +131,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             {
               "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginHorizontal": 8,
             }
           }
@@ -169,6 +169,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         >
           <SvgMock
             color="#9a6300"
+            fill="currentColor"
             height={24}
             name="Danger"
             style={
@@ -192,11 +193,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -231,6 +232,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={16}
               name="Close"
               style={
@@ -249,11 +251,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "textAlign": "center",
           }
         }
@@ -266,11 +268,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -302,11 +304,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -317,11 +319,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginBottom": 8,
               }
             }
@@ -342,11 +344,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -358,11 +360,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginBottom": 8,
               }
             }
@@ -387,11 +389,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
               testID="accordionheader-title"
@@ -417,6 +419,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             >
               <SvgMock
                 color="#4459ff"
+                fill="currentColor"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -458,7 +461,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
           "flexDirection": "row",
@@ -474,11 +477,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -497,7 +500,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
@@ -514,11 +517,11 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -571,7 +574,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -660,11 +663,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             {
               "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginHorizontal": 8,
             }
           }
@@ -678,11 +681,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "textAlign": "center",
           }
         }
@@ -692,11 +695,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -728,11 +731,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -743,11 +746,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginBottom": 8,
               }
             }
@@ -768,11 +771,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -807,6 +810,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                 >
                   <SvgMock
                     color="#4459ff"
+                    fill="currentColor"
                     height={16}
                     name="Info"
                     style={
@@ -822,11 +826,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -834,6 +838,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                   </Text>
                   <SvgMock
                     color="#4459ff"
+                    fill="currentColor"
                     height={12}
                     name="ArrowRight"
                     style={
@@ -853,11 +858,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginBottom": 8,
               }
             }
@@ -882,11 +887,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
               testID="accordionheader-title"
@@ -912,6 +917,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             >
               <SvgMock
                 color="#4459ff"
+                fill="currentColor"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -953,7 +959,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
           "flexDirection": "row",
@@ -969,11 +975,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -992,7 +998,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
@@ -1009,11 +1015,11 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

@@ -138,6 +138,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -179,7 +180,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -438,8 +446,8 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -478,11 +486,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -511,11 +519,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -537,7 +545,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#4459ff",
-                                        "borderRadius": 24,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -551,11 +559,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -580,11 +588,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -593,8 +601,8 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 18,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -608,11 +616,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -639,11 +647,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -722,11 +730,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -738,11 +746,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -796,6 +804,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -855,6 +864,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -941,11 +951,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#9ca1af",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -957,11 +967,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           style={
                                             {
                                               "color": "#9ca1af",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -1015,6 +1025,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -1074,6 +1085,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -1114,7 +1126,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
                                           "borderColor": "#4459ff",
-                                          "borderRadius": 24,
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -1129,11 +1141,11 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#4459ff",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 14,
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -1298,6 +1310,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -1339,7 +1352,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1374,7 +1387,13 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1382,6 +1401,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1598,8 +1618,8 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1638,11 +1658,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -1671,11 +1691,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -1697,7 +1717,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#4459ff",
-                                        "borderRadius": 24,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -1711,11 +1731,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -1740,11 +1760,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -1753,8 +1773,8 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 18,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -1768,11 +1788,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -1796,11 +1816,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -1833,7 +1853,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
                                           "borderColor": "#4459ff",
-                                          "borderRadius": 24,
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -1847,11 +1867,11 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         style={
                                           {
                                             "color": "#4459ff",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 14,
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -2016,6 +2036,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -2057,7 +2078,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2092,7 +2113,13 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2100,6 +2127,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2316,8 +2344,8 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2356,11 +2384,11 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -2389,11 +2417,11 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -2559,6 +2587,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -2600,7 +2629,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2635,7 +2664,13 @@ exports[`Settings Region renders correctly when region is set 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2643,6 +2678,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2859,8 +2895,8 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2899,11 +2935,11 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -2932,11 +2968,11 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -2958,7 +2994,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#4459ff",
-                                        "borderRadius": 24,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2972,11 +3008,11 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -3140,6 +3176,7 @@ exports[`Settings renders correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3181,7 +3218,7 @@ exports[`Settings renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3216,7 +3253,13 @@ exports[`Settings renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3224,6 +3267,7 @@ exports[`Settings renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3440,8 +3484,8 @@ exports[`Settings renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3480,11 +3524,11 @@ exports[`Settings renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -3513,11 +3557,11 @@ exports[`Settings renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -3539,7 +3583,7 @@ exports[`Settings renders correctly 1`] = `
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#4459ff",
-                                        "borderRadius": 24,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3553,11 +3597,11 @@ exports[`Settings renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -3721,6 +3765,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -3762,7 +3807,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3797,7 +3842,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3805,6 +3856,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4021,8 +4073,8 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 16,
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 18,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -4061,11 +4113,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4094,11 +4146,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4120,7 +4172,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "alignSelf": "stretch",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#4459ff",
-                                        "borderRadius": 24,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4134,11 +4186,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -4163,11 +4215,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -4176,8 +4228,8 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
+                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontSize": 18,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
@@ -4191,11 +4243,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -4219,11 +4271,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -4302,11 +4354,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4318,11 +4370,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4376,6 +4428,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -4435,6 +4488,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -4521,11 +4575,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#9ca1af",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4537,11 +4591,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           style={
                                             {
                                               "color": "#9ca1af",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 14,
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 16,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -4595,6 +4649,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#4459ff"
+                                            fill="currentColor"
                                             height={24}
                                             name="Edit"
                                             style={
@@ -4654,6 +4709,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         >
                                           <SvgMock
                                             color="#ca3542"
+                                            fill="currentColor"
                                             height={24}
                                             name="Trash"
                                             style={
@@ -4694,7 +4750,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           "alignSelf": "stretch",
                                           "backgroundColor": "transparent",
                                           "borderColor": "#4459ff",
-                                          "borderRadius": 24,
+                                          "borderRadius": 12,
                                           "borderWidth": 1,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4708,11 +4764,11 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#4459ff",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 14,
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >

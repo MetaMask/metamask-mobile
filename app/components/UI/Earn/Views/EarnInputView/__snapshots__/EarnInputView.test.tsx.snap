@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakeInputView render matches snapshot 1`] = `
+exports[`EarnInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -150,7 +150,13 @@ exports[`StakeInputView render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -342,11 +349,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 12,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -368,7 +375,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -383,7 +390,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -421,11 +428,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -433,6 +440,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -494,11 +502,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -510,6 +518,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -534,11 +543,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#1c7e33",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -549,11 +558,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 12,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -601,11 +610,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -638,11 +647,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -675,11 +684,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -709,6 +718,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -725,11 +735,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -779,7 +789,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -843,7 +853,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -907,7 +917,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -980,7 +990,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1044,7 +1054,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1108,7 +1118,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1181,7 +1191,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1245,7 +1255,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1309,7 +1319,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1380,7 +1390,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1444,7 +1454,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1506,6 +1516,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1532,7 +1543,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -1558,7 +1569,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#4459ff",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -1572,11 +1583,11 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1598,7 +1609,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
 </View>
 `;
 
-exports[`StakeInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
+exports[`EarnInputView when values are entered in the keypad updates ETH and fiat values 1`] = `
 <View
   style={
     {
@@ -1748,7 +1759,13 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1756,6 +1773,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1940,11 +1958,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 12,
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 20,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -1966,7 +1984,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -1981,7 +1999,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -2019,11 +2037,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -2031,6 +2049,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               </Text>
                               <SvgMock
                                 color="#121314"
+                                fill="currentColor"
                                 height={16}
                                 name="SwapVertical"
                                 style={
@@ -2092,11 +2111,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2108,6 +2127,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 >
                                   <SvgMock
                                     color="#9ca1af"
+                                    fill="currentColor"
                                     height={16}
                                     name="Question"
                                     style={
@@ -2132,11 +2152,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   style={
                                     {
                                       "color": "#1c7e33",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2147,11 +2167,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 12,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -2199,11 +2219,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2236,11 +2256,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2273,11 +2293,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2307,6 +2327,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                           >
                             <SvgMock
                               color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="Sparkle"
                               style={
@@ -2323,11 +2344,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2377,7 +2398,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2441,7 +2462,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2505,7 +2526,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2578,7 +2599,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2642,7 +2663,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2706,7 +2727,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2779,7 +2800,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2843,7 +2864,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2907,7 +2928,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -2978,7 +2999,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -3042,7 +3063,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -3104,6 +3125,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -3130,7 +3152,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -3156,7 +3178,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#4459ff",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
@@ -3170,11 +3192,11 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
+                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >

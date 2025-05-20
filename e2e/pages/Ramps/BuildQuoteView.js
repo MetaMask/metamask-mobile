@@ -55,6 +55,22 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
   }
 
+  get quickAmount25() {
+    return Matchers.getElementByLabel('25%');
+  }
+
+  get quickAmount50() {
+    return Matchers.getElementByLabel('50%');
+  }
+
+  get quickAmount75() {
+    return Matchers.getElementByLabel('75%');
+  }
+
+  get quickAmountMax() {
+    return Matchers.getElementByLabel('MAX');
+  }
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
@@ -104,6 +120,22 @@ class BuildQuoteView {
     for (let i = 0; i < times; i++) {
       await Gestures.waitAndTap(this.keypadDeleteButton);
     }
+  }
+
+  async tapQuickAmount25() {
+    await Gestures.waitAndTap(this.quickAmount25);
+  }
+
+  async tapQuickAmount50() {
+    await Gestures.waitAndTap(this.quickAmount50);
+  }
+
+  async tapQuickAmount75() {
+    await Gestures.waitAndTap(this.quickAmount75);
+  }
+
+  async tapQuickAmountMax() {
+    await Gestures.waitAndTap(this.quickAmountMax);
   }
 }
 

@@ -138,6 +138,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -179,7 +180,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`NetworksSettings should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`NetworksSettings should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -394,6 +402,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                       >
                         <Text
                           allowFontScaling={false}
+                          selectable={false}
                           style={
                             [
                               {
@@ -410,7 +419,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             ]
                           }
                         >
-                          
+                          
                         </Text>
                         <TextInput
                           onBlur={[Function]}
@@ -423,7 +432,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               "borderColor": "#b7bbc8",
                               "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 14,
                               "fontWeight": "400",
                               "paddingLeft": 10,
@@ -439,7 +448,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -486,7 +495,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -498,6 +507,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -558,7 +568,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -570,6 +580,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -632,18 +643,19 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
                                     }
                                   >
-                                    Solana Mainnet
+                                    Solana
                                   </Text>
                                 </View>
                               </View>
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -666,11 +678,28 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
+                          </View>
                           <Text
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -710,7 +739,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
@@ -720,6 +749,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -774,7 +804,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
@@ -784,6 +814,137 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "paddingVertical": 12,
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                    }
+                                  }
+                                >
+                                  Mega Testnet
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "paddingVertical": 12,
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                    }
+                                  }
+                                >
+                                  Monad Testnet
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -845,7 +1006,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               null,
                               [
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 14,
                                   "fontWeight": "600",
                                   "textAlign": "center",

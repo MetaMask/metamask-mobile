@@ -1,20 +1,23 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
-import { TokenIWithFiatAmount } from '../useTokensWithBalance';
-const MAX_TOKENS_RESULTS = 20;
+import { BridgeToken } from '../../types';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
+const MAX_TOKENS_RESULTS = 20;
 interface UseTokenSearchProps {
-  tokens: TokenIWithFiatAmount[];
+  tokens: BridgeToken[];
 }
 
 interface UseTokenSearchResult {
   searchString: string;
+  debouncedSearchString: string;
   setSearchString: (text: string) => void;
-  searchResults: TokenIWithFiatAmount[];
+  searchResults: BridgeToken[];
 }
 
 export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchResult {
   const [searchString, setSearchString] = useState('');
+  const debouncedSearchString = useDebouncedValue<string>(searchString);
 
   const tokenFuse = useMemo(
     () =>
@@ -31,19 +34,20 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
   );
 
   const tokenSearchResults = useMemo(
-    () => (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
+    () => (tokenFuse.search(debouncedSearchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
       // Sort results by balance fiat in descending order
-      const balanceA = a.tokenFiatAmount;
-      const balanceB = b.tokenFiatAmount;
+      const balanceA = a.tokenFiatAmount ?? 0;
+      const balanceB = b.tokenFiatAmount ?? 0;
       return balanceB - balanceA;
     }),
-    [searchString, tokenFuse],
+    [debouncedSearchString, tokenFuse],
   );
 
   const searchResults = tokenSearchResults;
 
   return {
     searchString,
+    debouncedSearchString,
     setSearchString,
     searchResults,
   };

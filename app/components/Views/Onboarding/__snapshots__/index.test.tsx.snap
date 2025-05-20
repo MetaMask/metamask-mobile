@@ -173,7 +173,13 @@ exports[`Onboarding should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -181,6 +187,7 @@ exports[`Onboarding should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -388,7 +395,7 @@ exports[`Onboarding should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -412,11 +419,11 @@ exports[`Onboarding should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginBottom": 16,
                                       "textAlign": "center",
                                     }
@@ -479,7 +486,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",
@@ -539,7 +546,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",
@@ -577,35 +584,6 @@ exports[`Onboarding should render correctly 1`] = `
                         }
                       />
                       <View />
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </View>
                   </View>
                 </View>

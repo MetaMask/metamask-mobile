@@ -42,7 +42,7 @@ exports[`OfflineMode should render correctly 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -52,7 +52,7 @@ exports[`OfflineMode should render correctly 1`] = `
             },
             undefined,
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontWeight": "600",
             },
             undefined,
@@ -77,7 +77,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "marginBottom": 10,
@@ -92,7 +92,7 @@ exports[`OfflineMode should render correctly 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -124,7 +124,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
             },
@@ -175,7 +175,7 @@ exports[`OfflineMode should render correctly 1`] = `
               null,
               [
                 {
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",

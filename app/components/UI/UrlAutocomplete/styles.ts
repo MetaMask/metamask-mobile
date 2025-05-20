@@ -1,5 +1,9 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
   StyleSheet.create({
@@ -13,11 +17,18 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     contentContainer: {
       paddingVertical: 15,
     },
+    categoryWrapper: {
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
     category: {
       color: colors.text.default,
-      padding: 10,
       backgroundColor: colors.background.default,
+      marginRight: 10,
       ...typography.lHeadingSM,
+      fontFamily: getFontFamily(TextVariant.HeadingSM),
     } as TextStyle,
     bookmarkIco: {
       width: 26,
@@ -30,11 +41,13 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     name: {
       color: colors.text.default,
-      ...typography.lBodyMDMedium,
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
     } as TextStyle,
     url: {
       color: colors.text.alternative,
-      ...typography.lBodySM,
+      ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
     } as TextStyle,
     item: {
       paddingVertical: 8,
@@ -51,9 +64,19 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     bg: {
       flex: 1,
     },
-    deleteFavorite: {
+    resultActionButton: {
       marginLeft: 10,
     },
+    hiddenButton: {
+      opacity: 0,
+    },
+    priceContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+    },
+    price: {
+      color: colors.text.default,
+    }
   });
 
 export default styleSheet;

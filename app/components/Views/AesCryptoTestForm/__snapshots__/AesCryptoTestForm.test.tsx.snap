@@ -24,7 +24,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -40,7 +40,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -62,7 +62,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -110,7 +110,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -125,11 +125,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -149,7 +149,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -222,7 +222,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -237,11 +237,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -261,7 +261,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -334,7 +334,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -349,11 +349,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -373,7 +373,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -421,7 +421,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -436,11 +436,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -460,7 +460,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -533,7 +533,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -548,11 +548,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -572,7 +572,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -620,7 +620,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "#4459ff",
-              "borderRadius": 20,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
@@ -635,11 +635,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >

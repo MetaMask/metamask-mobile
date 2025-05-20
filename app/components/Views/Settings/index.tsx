@@ -73,6 +73,13 @@ const Settings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
+  const onPressBackupAndSync = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_BACKUP_AND_SYNC).build(),
+    );
+    navigation.navigate(Routes.SETTINGS.BACKUP_AND_SYNC);
+  };
+
   const onPressSecurity = () => {
     trackEvent(
       createEventBuilder(
@@ -153,10 +160,13 @@ const Settings = () => {
   };
 
   const showHelp = () => {
-    goToBrowserUrl(
-      'https://support.metamask.io',
-      strings('app_settings.contact_support'),
-    );
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
@@ -221,6 +231,12 @@ const Settings = () => {
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
+      />
+      <SettingsDrawer
+        description={strings('backupAndSync.description')}
+        onPress={onPressBackupAndSync}
+        title={strings('backupAndSync.title')}
+        testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
       />
       {isNotificationsFeatureEnabled() && (
         <SettingsDrawer

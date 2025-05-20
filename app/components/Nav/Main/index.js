@@ -91,6 +91,8 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
 const Stack = createStackNavigator();
 
@@ -138,14 +140,7 @@ const Main = (props) => {
 
   useEffect(() => {
     stopIncomingTransactionPolling();
-
-    const filteredChainIds = Object.keys(props.networkConfigurations).filter(
-      (id) => showIncomingTransactionsNetworks[id],
-    );
-
-    if (filteredChainIds.length > 0) {
-      startIncomingTransactionPolling(filteredChainIds);
-    }
+    startIncomingTransactionPolling();
   }, [
     chainId,
     networkClientId,
@@ -194,11 +189,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.chainId]);
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.chainId],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -458,7 +453,9 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );

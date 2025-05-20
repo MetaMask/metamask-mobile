@@ -1,30 +1,22 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectNetworkConfigurationByChainId,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   getDefaultNetworkByChainId,
-  isLineaMainnetByChainId,
-  isMainnetByChainId,
   isTestNet,
-  isPortfolioViewEnabled,
 } from '../../../../util/networks';
-import images from '../../../../images/image-icons';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../../NetworkAssetLogo';
@@ -38,6 +30,7 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
+  getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
 
@@ -47,22 +40,7 @@ interface BalanceProps {
   secondaryBalance?: string;
 }
 
-export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
-  const isMainnet = isMainnetByChainId(chainId);
-  const isLineaMainnet = isLineaMainnetByChainId(chainId);
-  if (!isPortfolioViewEnabled()) {
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-    if (isMainnet) return images.ETHEREUM;
-
-    if (isLineaMainnet) return images['LINEA-MAINNET'];
-
-    if (CustomNetworkImgMapping[chainId]) {
-      return CustomNetworkImgMapping[chainId];
-    }
-
-    return ticker ? images[ticker as keyof typeof images] : undefined;
-  }
-
+export const NetworkBadgeSource = (chainId: Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
   const defaultNetwork = getDefaultNetworkByChainId(chainId) as
     | {
@@ -88,6 +66,11 @@ export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   if (network) {
     return network.rpcPrefs.imageSource;
   }
+
+  if (isCaipChainId(chainId)) {
+    return getNonEvmNetworkImageSourceByChainId(chainId);
+  }
+
   if (customNetworkImg) {
     return customNetworkImg;
   }
@@ -99,26 +82,19 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
-  const chainId = useSelector(selectChainId);
 
-  const tokenChainId = isPortfolioViewEnabled() ? asset.chainId : chainId;
-
-  const ticker = asset.symbol;
+  const tokenChainId = asset.chainId;
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!isPortfolioViewEnabled() && asset.isETH) {
-      return <NetworkMainAssetLogo style={styles.ethLogo} />;
-    }
-
-    if (isPortfolioViewEnabled() && asset.isNative) {
+    if (asset.isNative) {
       return (
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}
           style={styles.ethLogo}
-          ticker={asset.symbol}
+          ticker={asset.ticker ?? asset.symbol}
           big={false}
           biggest={false}
-          testID={'PLACE HOLDER'}
+          testID={asset.name}
         />
       );
     }
@@ -130,14 +106,22 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         size={AvatarSize.Md}
       />
     );
-  }, [
-    asset.isETH,
-    asset.image,
-    asset.symbol,
-    asset.isNative,
-    asset.chainId,
-    styles.ethLogo,
-  ]);
+  }, [asset, styles.ethLogo]);
+
+  const isDisabled = useMemo(
+    () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
+    [asset.chainId, asset.isNative],
+  );
+
+  const handlePress = useCallback(
+    () =>
+      !asset.isNative &&
+      navigation.navigate('AssetDetails', {
+        chainId: asset.chainId,
+        address: asset.address,
+      }),
+    [asset.address, asset.chainId, asset.isNative, navigation],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -145,17 +129,11 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         {strings('asset_overview.your_balance')}
       </Text>
       <AssetElement
+        disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
-        onPress={() =>
-          !asset.isETH &&
-          !asset.isNative &&
-          navigation.navigate('AssetDetails', {
-            chainId: asset.chainId,
-            address: asset.address,
-          })
-        }
+        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
@@ -163,7 +141,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(tokenChainId as Hex, ticker)}
+              imageSource={NetworkBadgeSource(tokenChainId as Hex)}
               name={networkConfigurationByChainId?.name}
             />
           }

@@ -129,7 +129,7 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                     }
@@ -166,11 +166,11 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -190,11 +190,11 @@ exports[`Confirm should render correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -232,7 +232,7 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                     }
@@ -265,7 +265,13 @@ exports[`Confirm should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -273,6 +279,7 @@ exports[`Confirm should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -454,11 +461,11 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -737,11 +744,11 @@ exports[`Confirm should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 12,
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -761,11 +768,11 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontSize": 16,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -780,11 +787,11 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 12,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
+                                      "lineHeight": 22,
                                       "marginLeft": "auto",
                                     }
                                   }
@@ -796,11 +803,11 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontSize": 16,
                                       "fontWeight": "700",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -838,11 +845,11 @@ exports[`Confirm should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -975,15 +982,15 @@ exports[`Confirm should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
-                                        0xe64d...920A
+                                        0xe64dD...b920A
                                       </Text>
                                       <View
                                         style={
@@ -994,6 +1001,7 @@ exports[`Confirm should render correctly 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -1020,35 +1028,6 @@ exports[`Confirm should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                       <RCTScrollView
                         style={
@@ -1071,7 +1050,7 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1101,7 +1080,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "marginVertical": 3,
@@ -1118,7 +1097,7 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1148,7 +1127,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 44,
                                     "fontWeight": "300",
                                     "textAlign": "center",
@@ -1162,7 +1141,7 @@ exports[`Confirm should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1192,7 +1171,7 @@ exports[`Confirm should render correctly 1`] = `
                                   undefined,
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "marginVertical": 3,
@@ -1259,7 +1238,7 @@ exports[`Confirm should render correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 30,
                                           "fontWeight": "400",
                                           "marginVertical": 2,
@@ -1267,7 +1246,7 @@ exports[`Confirm should render correctly 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontWeight": "600",
                                         },
                                         undefined,
@@ -1317,6 +1296,7 @@ exports[`Confirm should render correctly 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -1335,7 +1315,7 @@ exports[`Confirm should render correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰋼
                                       </Text>
                                     </TouchableOpacity>
                                   </Text>
@@ -1520,7 +1500,7 @@ exports[`Confirm should render correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 30,
                                           "fontWeight": "400",
                                           "marginVertical": 2,
@@ -1528,7 +1508,7 @@ exports[`Confirm should render correctly 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontWeight": "600",
                                         },
                                         undefined,
@@ -1657,93 +1637,6 @@ exports[`Confirm should render correctly 1`] = `
                                 </View>
                               </View>
                             </View>
-                            <Modal
-                              animationType="none"
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hardwareAccelerated={false}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[Function]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onRequestClose={[Function]}
-                              onSwipeComplete={[Function]}
-                              panResponderThreshold={4}
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
-                              supportedOrientations={
-                                [
-                                  "portrait",
-                                  "landscape",
-                                ]
-                              }
-                              swipeDirection="down"
-                              swipeThreshold={100}
-                              transparent={true}
-                              visible={false}
-                            />
-                            <Modal
-                              animationType="none"
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hardwareAccelerated={false}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[Function]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onRequestClose={[Function]}
-                              onSwipeComplete={[Function]}
-                              panResponderThreshold={4}
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
-                              supportedOrientations={
-                                [
-                                  "portrait",
-                                  "landscape",
-                                ]
-                              }
-                              swipeDirection="down"
-                              swipeThreshold={100}
-                              transparent={true}
-                              visible={false}
-                            />
-                            <Modal
-                              animationType="none"
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hardwareAccelerated={false}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[Function]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onRequestClose={[Function]}
-                              onSwipeComplete={[Function]}
-                              panResponderThreshold={4}
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
-                              supportedOrientations={
-                                [
-                                  "portrait",
-                                  "landscape",
-                                ]
-                              }
-                              swipeDirection="down"
-                              swipeThreshold={100}
-                              transparent={true}
-                              visible={false}
-                            />
                           </View>
                           <View
                             style={
@@ -1765,7 +1658,7 @@ exports[`Confirm should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1796,7 +1689,7 @@ exports[`Confirm should render correctly 1`] = `
                                     {
                                       "alignSelf": "center",
                                       "color": "#4459ff",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                     },
@@ -1865,7 +1758,7 @@ exports[`Confirm should render correctly 1`] = `
                                 },
                                 [
                                   {
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 14,
                                     "fontWeight": "600",
                                     "textAlign": "center",
@@ -1885,35 +1778,6 @@ exports[`Confirm should render correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>

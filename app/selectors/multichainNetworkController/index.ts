@@ -1,10 +1,15 @@
-import { MultichainNetworkControllerState } from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkControllerState,
+  NON_EVM_TESTNET_IDS,
+  type MultichainNetworkConfiguration,
+} from '@metamask/multichain-network-controller';
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { ImageSourcePropType } from 'react-native';
+import { createDeepEqualSelector } from '../util';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -15,7 +20,7 @@ export const selectIsEvmNetworkSelected = createSelector(
     multichainNetworkControllerState.isEvmSelected,
 );
 
-export const selectSelectedNonEvmNetworkChainId = createSelector(
+export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.selectedMultichainNetworkChainId,
@@ -50,11 +55,21 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: 'BTC',
       },
     };
+
+    // TODO: Add support for non-EVM testnets
+    const networks: Record<CaipChainId, MultichainNetworkConfiguration> = multichainNetworkControllerState.multichainNetworkConfigurationsByChainId || {};
+    const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
+      Object.keys(networks)
+        .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
+        .reduce((filteredNetworks: Record<CaipChainId, MultichainNetworkConfiguration>, key: string) => {
+          // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
+          filteredNetworks[key] = networks[key];
+          return filteredNetworks;
+      },
+    {});
+
     return Object.fromEntries(
-      Object.entries(
-        multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
-          {},
-      ).map(([key, network]) => [
+      Object.entries(nonEvmNetworks).map(([key, network]) => [
         key,
         { ...network, ...extendedNonEvmData[network.chainId] },
       ]),
@@ -98,15 +113,8 @@ export const selectSelectedNonEvmNetworkSymbol = createSelector(
       ?.ticker,
 );
 
-/**
- * This selector is used to get the accounts with activity for EVM networks.
- *
- * @param state - The root state object.
- * @returns An object where the keys are hex addresses and the values contain the namespace and an array of active chain IDs for that address.
- * @returns {ActiveNetworksByAddress} Object mapping hex addresses to their network activity status.
- */
-export const selectActiveEVMNetworksWithActivity = createSelector(
+export const selectNetworksWithActivity = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    multichainNetworkControllerState.networksWithActivity,
+    multichainNetworkControllerState.networksWithTransactionActivity,
 );

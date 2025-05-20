@@ -37,7 +37,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -66,8 +66,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -81,11 +81,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -102,11 +102,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "backgroundColor": "transparent",
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           suppressHighlighting={true}
@@ -116,11 +116,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -152,6 +152,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <SvgMock
               color="#ca3542"
+              fill="currentColor"
               height={24}
               name="Danger"
               style={
@@ -175,8 +176,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -199,7 +200,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -213,11 +214,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -238,8 +239,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -253,11 +254,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -277,7 +278,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
               "borderColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -293,11 +294,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -318,8 +319,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -333,11 +334,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -385,7 +386,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                         "color": "#121314",
                         "flex": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "paddingBottom": 10,
@@ -396,6 +397,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   />
                   <Text
                     allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
@@ -422,33 +424,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                   </Text>
                 </View>
               </TouchableOpacity>
-              <Modal
-                animationType="none"
-                deviceHeight={null}
-                deviceWidth={null}
-                hardwareAccelerated={false}
-                hideModalContentWhileAnimating={false}
-                onBackdropPress={[Function]}
-                onModalHide={[Function]}
-                onModalWillHide={[Function]}
-                onModalWillShow={[Function]}
-                onRequestClose={[Function]}
-                panResponderThreshold={4}
-                scrollHorizontal={false}
-                scrollOffset={0}
-                scrollOffsetMax={0}
-                scrollTo={null}
-                statusBarTranslucent={false}
-                supportedOrientations={
-                  [
-                    "portrait",
-                    "landscape",
-                  ]
-                }
-                swipeThreshold={100}
-                transparent={true}
-                visible={false}
-              />
             </View>
           </View>
         </View>
@@ -478,8 +453,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -530,11 +505,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -556,8 +531,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -571,11 +546,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -594,7 +569,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -609,11 +584,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -637,8 +612,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -681,11 +656,11 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "marginTop": 8,
           }
         }
@@ -698,11 +673,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -724,7 +699,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -742,8 +717,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -775,7 +750,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -813,11 +788,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -828,11 +803,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -842,130 +817,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-      <View
-        style={
-          {
-            "marginVertical": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "paddingBottom": 8,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 16,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Profile Sync
-          </Text>
-          <RCTSwitch
-            accessibilityRole="switch"
-            disabled={false}
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#4459ff"
-            style={
-              [
-                {
-                  "height": 31,
-                  "width": 51,
-                },
-                {
-                  "backgroundColor": "#b7bbc866",
-                  "borderRadius": 16,
-                },
-              ]
-            }
-            thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
-            value={false}
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-        <Modal
-          animationType="none"
-          deviceHeight={null}
-          deviceWidth={null}
-          hardwareAccelerated={false}
-          hideModalContentWhileAnimating={false}
-          onBackdropPress={[Function]}
-          onModalHide={[Function]}
-          onModalWillHide={[Function]}
-          onModalWillShow={[Function]}
-          onRequestClose={[Function]}
-          onSwipeComplete={[Function]}
-          panResponderThreshold={4}
-          scrollHorizontal={false}
-          scrollOffset={0}
-          scrollOffsetMax={0}
-          scrollTo={null}
-          statusBarTranslucent={false}
-          supportedOrientations={
-            [
-              "portrait",
-              "landscape",
-            ]
-          }
-          swipeDirection="down"
-          swipeThreshold={100}
-          transparent={true}
-          visible={false}
-        />
-      </View>
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -988,8 +846,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1003,11 +861,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1034,7 +892,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1048,11 +906,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1076,8 +934,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1091,11 +949,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1122,7 +980,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1137,11 +995,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1149,35 +1007,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             </Text>
           </TouchableOpacity>
         </View>
-        <Modal
-          animationType="none"
-          deviceHeight={null}
-          deviceWidth={null}
-          hardwareAccelerated={false}
-          hideModalContentWhileAnimating={false}
-          onBackdropPress={[Function]}
-          onModalHide={[Function]}
-          onModalWillHide={[Function]}
-          onModalWillShow={[Function]}
-          onRequestClose={[Function]}
-          onSwipeComplete={[Function]}
-          panResponderThreshold={4}
-          scrollHorizontal={false}
-          scrollOffset={0}
-          scrollOffsetMax={0}
-          scrollTo={null}
-          statusBarTranslucent={false}
-          supportedOrientations={
-            [
-              "portrait",
-              "landscape",
-            ]
-          }
-          swipeDirection="down"
-          swipeThreshold={100}
-          transparent={true}
-          visible={false}
-        />
       </View>
       <View
         style={
@@ -1192,8 +1021,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1207,11 +1036,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1239,7 +1068,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1254,11 +1083,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1279,8 +1108,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1294,11 +1123,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1326,7 +1155,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1341,11 +1170,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1354,42 +1183,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1421,8 +1221,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1473,11 +1273,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1488,11 +1288,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
                 "fontWeight": "700",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -1508,8 +1308,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -1541,8 +1341,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1593,11 +1393,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1618,8 +1418,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1633,11 +1433,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -1722,7 +1522,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1841,7 +1641,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1895,7 +1695,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
-                "name": "Solana Mainnet",
+                "name": "Solana",
                 "variant": "Network",
               }
             }
@@ -1909,7 +1709,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Solana Mainnet"
+            title="Solana"
           >
             <View
               style={
@@ -1960,7 +1760,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1969,7 +1769,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Solana Mainnet
+                  Solana
                 </Text>
               </View>
               <View
@@ -2012,35 +1812,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <View
         style={
           {
@@ -2062,8 +1833,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2113,11 +1884,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2133,11 +1904,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             suppressHighlighting={true}
@@ -2147,11 +1918,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -2165,8 +1936,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -2197,8 +1968,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2249,11 +2020,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2283,8 +2054,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -2335,11 +2106,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -2369,8 +2140,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2421,11 +2192,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2444,11 +2215,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -2478,8 +2249,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -2511,8 +2282,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -2562,11 +2333,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -2580,8 +2351,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -2613,8 +2384,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2666,11 +2437,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2687,11 +2458,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             suppressHighlighting={true}
@@ -2701,11 +2472,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -2736,8 +2507,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2789,11 +2560,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2813,8 +2584,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -2828,11 +2599,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -2842,11 +2613,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -2863,11 +2634,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             suppressHighlighting={true}
@@ -2877,11 +2648,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -2894,11 +2665,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -2910,11 +2681,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -2931,11 +2702,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             suppressHighlighting={true}
@@ -2945,11 +2716,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -2978,7 +2749,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -2993,11 +2764,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -3006,35 +2777,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
       <View
         style={
           {
@@ -3047,8 +2789,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -3062,11 +2804,11 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginTop": 8,
             }
           }
@@ -3095,7 +2837,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -3110,11 +2852,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -3123,65 +2865,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Modal
-        animationType="none"
-        deviceHeight={null}
-        deviceWidth={null}
-        hardwareAccelerated={false}
-        hideModalContentWhileAnimating={false}
-        onBackdropPress={[Function]}
-        onModalHide={[Function]}
-        onModalWillHide={[Function]}
-        onModalWillShow={[Function]}
-        onRequestClose={[Function]}
-        onSwipeComplete={[Function]}
-        panResponderThreshold={4}
-        scrollHorizontal={false}
-        scrollOffset={0}
-        scrollOffsetMax={0}
-        scrollTo={null}
-        statusBarTranslucent={false}
-        supportedOrientations={
-          [
-            "portrait",
-            "landscape",
-          ]
-        }
-        swipeDirection="down"
-        swipeThreshold={100}
-        transparent={true}
-        visible={false}
-      />
     </View>
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      transparent={true}
-      visible={false}
-    />
   </View>
 </RCTScrollView>
 `;

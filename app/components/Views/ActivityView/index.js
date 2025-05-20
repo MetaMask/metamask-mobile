@@ -35,6 +35,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
 import { typography } from '@metamask/design-tokens';
 import { useStyles } from '../../hooks/useStyles';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -58,6 +62,7 @@ const createStyles = (params) => {
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -68,13 +73,23 @@ const createStyles = (params) => {
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     header: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
       paddingHorizontal: 16,
     },
-    title: { marginTop: 20, fontSize: 20, ...typography.headingMd },
+    title: {
+      marginTop: 20,
+      fontSize: 20,
+      color: colors.text.default,
+      ...typography.sHeadingMD,
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
+    },
+    titleText: {
+      color: colors.text.default,
+    },
   });
 };
 
@@ -174,11 +189,9 @@ const ActivityView = () => {
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <Text numberOfLines={1}>
+              <Text numberOfLines={1} style={styles.titleText}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

@@ -101,6 +101,7 @@ exports[`AccountApproval should render correctly 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
@@ -126,7 +127,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 14,
             "fontWeight": "600",
             "textAlign": "center",
@@ -161,7 +162,7 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "padding": 5,
@@ -179,7 +180,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -197,7 +198,7 @@ exports[`AccountApproval should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -319,7 +320,7 @@ exports[`AccountApproval should render correctly 1`] = `
               {
                 "0": {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
                   "marginRight": 2,
@@ -327,11 +328,11 @@ exports[`AccountApproval should render correctly 1`] = `
                 },
                 "1": undefined,
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -345,22 +346,22 @@ exports[`AccountApproval should render correctly 1`] = `
                 "0": {
                   "color": "#121314",
                   "flexGrow": 1,
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
                 },
                 "1": undefined,
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
             (
-            0xC496...a756
+            0xC4966...4a756
             )
           </Text>
         </View>
@@ -372,17 +373,17 @@ exports[`AccountApproval should render correctly 1`] = `
               "0": {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "100",
               },
               "1": undefined,
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -447,7 +448,7 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -509,7 +510,7 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",

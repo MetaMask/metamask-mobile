@@ -9,11 +9,10 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import useInputHandler, { InputHandlerParams } from './useInput';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 
-// mock stablecoin lending feature flag
-jest.mock('../../Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn(() => false),
+jest.mock('../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
@@ -21,6 +20,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
   selectChainId: jest.fn(() => '0x1'),
   selectEvmChainId: jest.fn(() => '0x1'),
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({
@@ -37,6 +37,12 @@ jest.mock('../../../../selectors/networkController', () => ({
 describe('useInputHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
   });
 
   const mockInitialState = {
@@ -100,8 +106,11 @@ describe('useInputHandler', () => {
   });
 
   it('should initialize with default values with stablecoin lending enabled', () => {
-    jest.mocked(isStablecoinLendingFeatureEnabled).mockReturnValue(true);
-
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
     const { result } = renderHook();
 
     expect(result.current.amountToken).toBe('0');

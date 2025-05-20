@@ -81,7 +81,6 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View
@@ -139,7 +138,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -147,7 +146,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontWeight": "600",
                               },
                               undefined,
@@ -192,7 +191,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -241,7 +240,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -290,7 +289,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -298,7 +297,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontWeight": "600",
                                 },
                                 undefined,

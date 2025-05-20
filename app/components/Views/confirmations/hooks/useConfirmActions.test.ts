@@ -9,9 +9,9 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import/no-namespace
-import * as QRHardwareHook from '../context/QRHardwareContext/QRHardwareContext';
+import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 // eslint-disable-next-line import/no-namespace
-import * as LedgerContext from '../context/LedgerContext/LedgerContext';
+import * as LedgerContext from '../context/ledger-context/ledger-context';
 // eslint-disable-next-line import/no-namespace
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 import { useConfirmActions } from './useConfirmActions';
@@ -24,10 +24,15 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
-jest.mock('./useSignatureMetrics', () => ({
+jest.mock('./signatures/useSignatureMetrics', () => ({
   useSignatureMetrics: () => ({
     captureSignatureMetrics: mockCaptureSignatureMetrics,
   }),
@@ -189,7 +194,7 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to transactions view if confirmation is of type staking deposit', async () => {
+  it('navigates to transactions view if confirmation is standalone confirmation', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });

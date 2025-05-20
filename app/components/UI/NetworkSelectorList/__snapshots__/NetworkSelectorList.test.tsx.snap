@@ -43,7 +43,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   style={
     {
@@ -182,7 +182,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -267,6 +267,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                 >
                   <SvgMock
                     color="#ffffff"
+                    fill="currentColor"
                     height={20}
                     name="CheckBold"
                     onPressIn={[Function]}
@@ -344,7 +345,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,

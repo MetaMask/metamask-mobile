@@ -74,6 +74,7 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
+export const BRIDGE_TRANSACTION_ACTION_KEY = 'bridgeTransaction';
 export const INCREASE_ALLOWANCE_ACTION_KEY = 'increaseAllowance';
 export const SET_APPROVE_FOR_ALL_ACTION_KEY = 'setapprovalforall';
 
@@ -96,6 +97,7 @@ export const TRANSACTION_TYPES = {
   SENT_TOKEN: 'transaction_sent_token',
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
+  BRIDGE_TRANSACTION: 'bridge_transaction',
 };
 
 const MULTIPLIER_HEX = 16;
@@ -151,6 +153,7 @@ const actionKeys = {
     'transactions.smart_contract_interaction',
   ),
   [SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
+  [BRIDGE_TRANSACTION_ACTION_KEY]: strings('transactions.bridge_transaction'),
   [APPROVE_ACTION_KEY]: strings('transactions.approve'),
   [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
@@ -382,7 +385,8 @@ export async function isSmartContractAddress(
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokenList[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
@@ -453,6 +457,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (to === getSwapsContractAddress(chainId)) {
     return SWAPS_TRANSACTION_ACTION_KEY;
+  }
+
+  if (transaction.type === TransactionType.bridge) {
+    return BRIDGE_TRANSACTION_ACTION_KEY;
   }
 
   // if data in transaction try to get method data
@@ -641,8 +649,8 @@ export const calculateAmountsEIP1559 = ({
   gasFeeMinNative,
   gasFeeMaxNative,
   gasFeeMaxConversion,
-  gasFeeMinHex,
   gasFeeMaxHex,
+  gasFeeMinHex,
 }) => {
   // amount numbers
   const amountConversion = getValueFromWeiHex({
@@ -1174,6 +1182,7 @@ export const parseTransactionEIP1559 = (
       gasFeeMinConversion,
       renderableGasFeeMinConversion,
       gasFeeMaxNative,
+      gasFeeMaxHex,
       renderableGasFeeMaxNative,
       gasFeeMaxConversion,
       renderableGasFeeMaxConversion,
@@ -1274,6 +1283,7 @@ export const parseTransactionEIP1559 = (
     gasFeeMinConversion,
     renderableGasFeeMinConversion,
     gasFeeMaxNative,
+    gasFeeMaxHex,
     renderableGasFeeMaxNative,
     gasFeeMaxConversion,
     renderableGasFeeMaxConversion,
@@ -1633,4 +1643,16 @@ export const getIsNativeTokenTransferred = (txParams) =>
  */
 export function isNFTTokenStandard(tokenStandard) {
   return [ERC721, ERC1155].includes(tokenStandard);
+}
+
+/**
+ * Get a transaction by its ID
+ * @param {string} transactionId - The ID of the transaction to get
+ * @param {TransactionController} transactionController - The transaction controller
+ * @returns {TransactionMeta} The transaction meta object
+ */
+export function getTransactionById(transactionId, transactionController) {
+  return transactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
 }

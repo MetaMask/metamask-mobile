@@ -15,7 +15,7 @@ exports[`TokenDetails should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -53,11 +53,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -81,18 +81,19 @@ exports[`TokenDetails should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 12,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 20,
+                "lineHeight": 22,
               }
             }
           >
-            0x6B17...1d0F
+            0x6B175...71d0F
           </Text>
           <SvgMock
             color="#4459ff"
+            fill="currentColor"
             height={16}
             name="Copy"
             style={
@@ -120,11 +121,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -135,11 +136,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -165,11 +166,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -180,11 +181,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -199,7 +200,7 @@ exports[`TokenDetails should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -237,11 +238,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -252,15 +253,15 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
-          5.22B
+          $5.22B
         </Text>
       </View>
       <View
@@ -277,11 +278,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -292,15 +293,15 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
-          147.65M
+          $147.65M
         </Text>
       </View>
       <View
@@ -317,11 +318,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -332,11 +333,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -357,11 +358,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -372,11 +373,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -397,11 +398,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -412,11 +413,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -437,11 +438,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -452,11 +453,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
@@ -477,11 +478,11 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -492,15 +493,15 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 20,
+              "lineHeight": 22,
             }
           }
         >
-          1.92M
+          $5.22B
         </Text>
       </View>
     </View>

@@ -42,6 +42,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
+  isHDOrFirstPartySnapAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -54,8 +55,9 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-import { Hex } from '@metamask/utils';
+import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -77,6 +79,15 @@ const AccountActions = () => {
     const { KeyringController, PreferencesController } = Engine.context;
     return { KeyringController, PreferencesController };
   }, []);
+
+  const existingKeyrings = useSelector(selectKeyrings);
+
+  const keyringId = useMemo(() => {
+    const keyring = existingKeyrings.find((kr) =>
+      kr.accounts.includes(selectedAccount.address.toLowerCase()),
+    );
+    return keyring?.metadata.id;
+  }, [existingKeyrings, selectedAccount.address]);
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -203,6 +214,24 @@ const AccountActions = () => {
     });
   };
 
+  const goToSwitchAccountType = () => {
+    navigate(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE, {
+      screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+      params: {
+        address: selectedAddress,
+      },
+    });
+  };
+
+  const goToExportSRP = () => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId,
+      });
+    });
+  };
+
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
       strings('accounts.remove_hardware_account'),
@@ -229,8 +258,9 @@ const AccountActions = () => {
    */
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -265,8 +295,9 @@ const AccountActions = () => {
    */
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -387,7 +418,7 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate('EditAccountName', { selectedAccount });
+    navigate(Routes.EDIT_ACCOUNT_NAME, { selectedAccount });
   };
 
   const isExplorerVisible = Boolean(
@@ -420,12 +451,26 @@ const AccountActions = () => {
           onPress={onShare}
           testID={AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS}
         />
-        <AccountAction
-          actionTitle={strings('account_details.show_private_key')}
-          iconName={IconName.Key}
-          onPress={goToExportPrivateKey}
-          testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
-        />
+        {selectedAddress && isEvmAccountType(selectedAccount.type) && (
+          <AccountAction
+            actionTitle={strings('account_details.show_private_key')}
+            iconName={IconName.Key}
+            onPress={goToExportPrivateKey}
+            testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
+          />
+        )}
+        {
+          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+            <AccountAction
+              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+              iconName={IconName.Key}
+              onPress={goToExportSRP}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+              }
+            />
+          )
+        }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
@@ -448,6 +493,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

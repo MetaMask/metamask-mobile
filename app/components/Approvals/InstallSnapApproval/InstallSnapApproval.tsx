@@ -1,7 +1,9 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
-import useApprovalRequest, { ApprovalRequestType } from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest, {
+  ApprovalRequestType,
+} from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { SnapInstallState } from './InstallSnapApproval.types';
 import {
@@ -165,7 +167,11 @@ const InstallSnapApproval = () => {
   const content = renderModalContent();
 
   return content ? (
-    <ApprovalModal isVisible={installState !== undefined} onCancel={onReject}>
+    <ApprovalModal
+      isVisible={installState !== undefined}
+      onCancel={onReject}
+      avoidKeyboard
+    >
       {content}
     </ApprovalModal>
   ) : null;

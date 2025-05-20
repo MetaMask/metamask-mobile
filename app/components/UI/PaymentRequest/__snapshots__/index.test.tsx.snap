@@ -58,7 +58,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
               }
@@ -81,6 +81,7 @@ exports[`PaymentRequest renders correctly 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -101,7 +102,7 @@ exports[`PaymentRequest renders correctly 1`] = `
               ]
             }
           >
-            
+            
           </Text>
           <TextInput
             autoCapitalize="none"
@@ -118,7 +119,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "height": 40,
@@ -146,7 +147,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "marginBottom": 8,
@@ -284,7 +285,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "paddingBottom": 4,
@@ -297,7 +298,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontWeight": "400",
                       }
                     }
@@ -428,7 +429,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "paddingBottom": 4,
@@ -441,7 +442,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontWeight": "400",
                       }
                     }

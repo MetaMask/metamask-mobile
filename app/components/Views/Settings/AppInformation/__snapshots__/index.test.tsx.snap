@@ -138,6 +138,7 @@ exports[`AppInformation should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -179,7 +180,7 @@ exports[`AppInformation should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`AppInformation should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`AppInformation should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -411,7 +419,7 @@ exports[`AppInformation should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#686e7d",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 18,
                                   "fontWeight": "400",
                                   "marginBottom": 20,
@@ -425,7 +433,7 @@ exports[`AppInformation should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 18,
                                 "fontWeight": "400",
                                 "marginBottom": 20,
@@ -443,7 +451,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,
@@ -461,7 +469,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,
@@ -479,7 +487,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,
@@ -509,7 +517,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,
@@ -527,7 +535,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,
@@ -545,7 +553,7 @@ exports[`AppInformation should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 18,
                                     "fontWeight": "400",
                                     "marginBottom": 20,

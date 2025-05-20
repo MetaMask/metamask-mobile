@@ -52,11 +52,11 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -98,11 +98,11 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -144,11 +144,11 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -190,11 +190,11 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -252,11 +252,11 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -298,11 +298,11 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -344,11 +344,11 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -390,11 +390,11 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
