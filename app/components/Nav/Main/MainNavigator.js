@@ -57,6 +57,8 @@ import { RampType } from '../../UI/Ramp/types';
 import RampSettings from '../../UI/Ramp/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
 
+import DepositRoutes from '../../UI/Deposit/routes';
+
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
@@ -850,6 +852,7 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.RAMP.SELL}>
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
+    <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
     <Stack.Screen
