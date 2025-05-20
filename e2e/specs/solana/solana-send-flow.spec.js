@@ -69,6 +69,7 @@ describe(
     });
 
     it('should successfully transfer SOL to a valid recipient address', async () => {
+      await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
@@ -85,7 +86,6 @@ describe(
 
     it('Should verify that transaction is sent successfully', async () => {
       await SnapSendActionSheet.tapCloseButton();
-      await WalletView.tapAwayFromBottomSheet();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
       await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);

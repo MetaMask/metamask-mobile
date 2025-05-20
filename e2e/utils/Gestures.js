@@ -38,34 +38,6 @@ class Gestures {
     await element.tap();
   }
 
-
-/**
- * Wait for an element whose text matches the specified pattern based on matchType and then tap it
- *
- * @param {string} textPattern - Text pattern to match
- * @param {string} matchType - Type of match: 'prefix', 'suffix', or 'contains' (default: 'contains')
- * @param {number} index - Index of the element if multiple elements match (0-based)
- * @param {number} timeout - Timeout for waiting (default: 15000ms)
- */
-static async waitAndTapByTextPrefix(textPattern, index = 0, timeout = 15000) {
-  const elementToTap = element(by.text(new RegExp(`^${textPattern}.*`))).atIndex(index);
-  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
-  await elementToTap.tap();
-}
-
-/**
- * Wait for an element whose text ends with the specified pattern to be visible and then tap it
- *
- * @param {string} textPattern - Text suffix to match at the end of element text
- * @param {number} index - Index of the element if multiple elements match (0-based)
- * @param {number} timeout - Timeout for waiting (default: 15000ms)
- */
-static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
-  const elementToTap = element(by.text(new RegExp(`.*${textPattern}$`))).atIndex(index);
-  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
-  await elementToTap.tap();
-}
-
 /**
    * Wait for an element to be visible and then tap it.
    *
