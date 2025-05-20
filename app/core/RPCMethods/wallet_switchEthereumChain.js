@@ -8,6 +8,7 @@ import {
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import { isSnapId } from '@metamask/snaps-utils';
 
 /**
  * Switch chain implementation to be used in JsonRpcEngine middleware.
@@ -93,6 +94,7 @@ export const wallet_switchEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow: false,
+      autoApprove: isSnapId(origin),
       hooks: {
         toNetworkConfiguration,
         fromNetworkConfiguration,

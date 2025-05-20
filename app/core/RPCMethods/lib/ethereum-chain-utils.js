@@ -226,6 +226,7 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
+  autoApprove = false,
   hooks,
 }) {
   const {
@@ -263,7 +264,7 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
-      autoApprove: isAddNetworkFlow,
+      autoApprove: autoApprove || isAddNetworkFlow,
     });
   }
 
@@ -274,8 +275,8 @@ export async function switchToNetwork({
   const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
 
   const shouldShowRequestModal =
-    (!isAddNetworkFlow && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
+    ((!isAddNetworkFlow && shouldGrantPermissions) ||
+    !chainPermissionsFeatureEnabled) && !autoApprove;
 
   const requestData = {
     rpcUrl:
@@ -322,7 +323,7 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
-      autoApprove: isAddNetworkFlow,
+      autoApprove: autoApprove || isAddNetworkFlow,
     });
   } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
     await requestUserApproval({
