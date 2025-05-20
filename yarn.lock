@@ -4251,7 +4251,7 @@
   resolved "https://registry.yarnpkg.com/@json-schema-tools/meta-schema/-/meta-schema-1.6.19.tgz#295301c2d4a0c01eb2eafbf605aca8ebc0dfbbb6"
   integrity sha512-55zuWFW7tr4tf/G5AYmybcPdGOkVAreQbt2JdnogX4I2r/zkxZiimYPJESDf5je9BI2oRveak2p296HzDppeaA==
 
-"@json-schema-tools/meta-schema@^1.7.5":
+"@json-schema-tools/meta-schema@^1.6.10", "@json-schema-tools/meta-schema@^1.7.5":
   version "1.7.5"
   resolved "https://registry.yarnpkg.com/@json-schema-tools/meta-schema/-/meta-schema-1.7.5.tgz#2cd7992eee79c912d0d860b45c6064994ded99f2"
   integrity sha512-8Hy6tuMC2BQdK7O4ilLovFB9t0j5o0L/sQTuWeg2CNYpITmPiFTRiG7Yb/jYd483D8784kxLFJ0dT+T4O2hNmw==
@@ -4264,7 +4264,7 @@
     "@json-schema-spec/json-pointer" "^0.1.2"
     isomorphic-fetch "^3.0.0"
 
-"@json-schema-tools/reference-resolver@^1.2.4", "@json-schema-tools/reference-resolver@^1.2.6":
+"@json-schema-tools/reference-resolver@^1.2.1", "@json-schema-tools/reference-resolver@^1.2.4", "@json-schema-tools/reference-resolver@^1.2.6":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@json-schema-tools/reference-resolver/-/reference-resolver-1.2.6.tgz#e0109adc29e61c3f670ec6d110d2e3861b5e2cfc"
   integrity sha512-4QZu5ROb5EpLSvV+buzk8WR30W+dffSNaKqD3VGFYJ3y0BLDi2OHoSz5e6NKcLYTyUYXV8IKxocNOszeVBJI4Q==
@@ -4272,7 +4272,7 @@
     "@json-schema-spec/json-pointer" "^0.1.2"
     isomorphic-fetch "^3.0.0"
 
-"@json-schema-tools/traverse@^1.10.4", "@json-schema-tools/traverse@^1.7.8":
+"@json-schema-tools/traverse@^1.10.4", "@json-schema-tools/traverse@^1.7.5", "@json-schema-tools/traverse@^1.7.8":
   version "1.10.4"
   resolved "https://registry.yarnpkg.com/@json-schema-tools/traverse/-/traverse-1.10.4.tgz#44037fd334068aa1de77bfa829b66e884ffc26e2"
   integrity sha512-9e42zjhLIxzBONroNC4SGsTqdB877tzwH2S6lqgTav9K24kWJR9vNieeMVSuyqnY8FlclH21D8wsm/tuD9WA9Q==
@@ -4755,14 +4755,14 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
-"@metamask/chain-agnostic-permission@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.3.0.tgz#2e2e96552a109d62fe69ddc8d886812ec5cbd4ab"
-  integrity sha512-DBdPnWFfdhidlOUCf9px8N5DjupzGWp065y0uOIfzO7aPXU1rykq2K9u7Gk/c4RiwJ7EqoTnK/2QamN+FjfzeQ==
+"@metamask/chain-agnostic-permission@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.4.0.tgz#db4cf042edd21b70a6f974a56a3354c197186cfb"
+  integrity sha512-novE2rb5AV7Wdq/uTpItmv8qJTF5QYN8uXmSXEUbRw5Ac+qESdyhNjV0iGm16hdwznemq4lI3f8/shGiTPzk4A==
   dependencies:
     "@metamask/api-specs" "^0.10.12"
-    "@metamask/controller-utils" "^11.6.0"
-    "@metamask/network-controller" "^23.1.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/network-controller" "^23.2.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.2.0"
@@ -5231,6 +5231,23 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
+"@metamask/multichain-api-middleware@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-middleware/-/multichain-api-middleware-0.2.0.tgz#ae0473bb7f8cb44265a044812ddc12d86147a8b1"
+  integrity sha512-L8zNv16IM6HAHUKk+7VueLLyd0eHpi8c8E6M1pcKqnVTvvArDhcIgzk5tamkJgEysoOIsb5IPPwYGPPJeKvXQA==
+  dependencies:
+    "@metamask/api-specs" "^0.10.12"
+    "@metamask/chain-agnostic-permission" "^0.4.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/json-rpc-engine" "^10.0.3"
+    "@metamask/network-controller" "^23.2.0"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/utils" "^11.2.0"
+    "@open-rpc/meta-schema" "^1.14.6"
+    "@open-rpc/schema-utils-js" "^2.0.5"
+    jsonschema "^1.4.1"
+
 "@metamask/multichain-network-controller@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.4.0.tgz#10005bc04771d9cf4287009875c0cf865aec4893"
@@ -5295,10 +5312,10 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^23.1.0", "@metamask/network-controller@^23.4.0":
-  version "23.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.5.0.tgz#fb9b0a91c512eb141423c9115a65f285e93b7e1b"
-  integrity sha512-/42uOJlRU4sVsEw40qe0IcBY1qOhoeDKOQ0PJDZiiJviZZz8ziXLbqzHD7gBZXfwOKW38uc4OGM03+MGncDbNg==
+"@metamask/network-controller@^23.2.0", "@metamask/network-controller@^23.4.0":
+  version "23.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.4.0.tgz#17236ad4c06b5d1e1bc982aef4a03db6fddfd559"
+  integrity sha512-RQCbpNqWAJKLH4TLGRbS0Oj/R01cNsa+B8UF47hTVuRJXJMH/4ArU6kzUBbVyHM/gULcKU8eIrf1iEVqdkrWuw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
@@ -5742,10 +5759,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.27.0":
-  version "1.30.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.30.0.tgz#884cacde4421c9f4f401176a5a10b7c95701584b"
-  integrity sha512-SSgH8XRm3jRsvdTSGpIHoGYKUh4jCHx8sLQQVT/CZuODdLwcUdBzcwZZBcLqg7J/NIlXvdhezXqZPQxNMTImFA==
+"@metamask/solana-wallet-snap@^1.29.0":
+  version "1.29.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.29.0.tgz#166487b2c953bfad0088437674279172417b23a8"
+  integrity sha512-OzxFssGvkuEnKNDFKRizYxolTt5+6IVSnOITGQGU7zEqRVFKI+Taid+OUdMqL69ZaWmqW2fCzoZpJgB5Mr54sQ==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
@@ -6309,10 +6326,27 @@
     is-url "^1.2.4"
     isomorphic-fetch "^3.0.0"
 
-"@open-rpc/server-js@^1.9.5":
-  version "1.9.5"
-  resolved "https://registry.yarnpkg.com/@open-rpc/server-js/-/server-js-1.9.5.tgz#77c0f2dd678e2080daa0ab689e61d186ecbbd75f"
-  integrity sha512-8eu/gPGzabwEynmeV/v/nB4BTBt0RnmBPeuMHTfmLb9/7rd4B2JSiPOpM5JK8Pd0aKXZKottqyS9HfFhBh5hZw==
+"@open-rpc/schema-utils-js@^2.0.5":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@open-rpc/schema-utils-js/-/schema-utils-js-2.1.2.tgz#45d0f8b843b2a4e0c14eef85a05f4fc9777520dd"
+  integrity sha512-GQT+UQSBg/xoPW3NMr7a9YV9iype0DlSYUocCb1qe4IvgJk9HX6KPfXwSVCNr0S7o4fJpc6A80azqODqfkJXMQ==
+  dependencies:
+    "@json-schema-tools/dereferencer" "^1.6.3"
+    "@json-schema-tools/meta-schema" "^1.7.5"
+    "@json-schema-tools/reference-resolver" "^1.2.6"
+    "@open-rpc/meta-schema" "^1.14.9"
+    "@open-rpc/specification-extension-spec" "^1.0.2"
+    ajv "^6.10.0"
+    detect-node "^2.0.4"
+    fast-safe-stringify "^2.0.7"
+    fs-extra "^10.1.0"
+    is-url "^1.2.4"
+    isomorphic-fetch "^3.0.0"
+
+"@open-rpc/server-js@1.9.3":
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/@open-rpc/server-js/-/server-js-1.9.3.tgz#4679e729d8ec3eb1af689d429c1e6b5b6f298497"
+  integrity sha512-xrDc3qECunna9mpgVh+9J7dI5wcCYNGNTA7lrt4OpTJWWAqYEYgJ8yIreenStUopk4Mb+EKFPF/yKKr5rToeyA==
   dependencies:
     "@open-rpc/schema-utils-js" "^2.0.2"
     body-parser "^1.19.0"

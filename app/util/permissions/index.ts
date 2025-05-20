@@ -4,7 +4,15 @@ import { PermissionKeys } from '../../core/Permissions/specifications';
 import { CaveatTypes } from '../../core/Permissions/constants';
 import { pick } from 'lodash';
 import { isSnapId } from '@metamask/snaps-utils';
-import { Caip25CaveatType, Caip25EndowmentPermissionName, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25CaveatValue,
+  Caip25EndowmentPermissionName,
+  InternalScopesObject,
+  InternalScopeString,
+  setEthAccounts,
+  setPermittedEthChainIds
+} from '@metamask/chain-agnostic-permission';
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
@@ -270,4 +278,74 @@ export const rejectOriginPendingApprovals = (origin: string) => {
     deleteInterface,
     origin,
   });
+};
+
+/**
+ * Given the current and previous exposed CAIP-25 authorization for a PermissionController,
+ * returns the current value of scopes if they've changed, or empty scopes if not.
+ *
+ * @param newAuthorization - The new authorization.
+ * @param [previousAuthorization] - The previous authorization.
+ * @returns The changed authorization scopes or empty scopes if nothing changed.
+ */
+export const getChangedAuthorization = (
+  newAuthorization: Caip25CaveatValue,
+  previousAuthorization?: Caip25CaveatValue,
+): Pick<Caip25CaveatValue, 'requiredScopes' | 'optionalScopes'> => {
+  if (newAuthorization === previousAuthorization) {
+    return { requiredScopes: {}, optionalScopes: {} };
+  }
+
+  return newAuthorization;
+};
+
+/**
+ * Given the current and previous exposed CAIP-25 authorization for a PermissionController,
+ * returns an object containing only the scopes that were removed entirely from the authorization.
+ *
+ * @param newAuthorization - The new authorization.
+ * @param [previousAuthorization] - The previous authorization.
+ * @returns An object containing the removed scopes, or empty scopes if nothing was removed.
+ */
+export const getRemovedAuthorization = (
+  newAuthorization?: Caip25CaveatValue,
+  previousAuthorization?: Caip25CaveatValue,
+): Pick<Caip25CaveatValue, 'requiredScopes' | 'optionalScopes'> => {
+  if (
+    previousAuthorization === undefined ||
+    newAuthorization === previousAuthorization
+  ) {
+    return { requiredScopes: {}, optionalScopes: {} };
+  }
+
+  if (!newAuthorization) {
+    return previousAuthorization;
+  }
+
+  const removedRequiredScopes: InternalScopesObject = {};
+  Object.entries(previousAuthorization.requiredScopes).forEach(
+    ([scope, prevScopeObject]) => {
+      const newScopeObject =
+        newAuthorization.requiredScopes[scope as InternalScopeString];
+      if (!newScopeObject) {
+        removedRequiredScopes[scope as InternalScopeString] = prevScopeObject;
+      }
+    },
+  );
+
+  const removedOptionalScopes: InternalScopesObject = {};
+  Object.entries(previousAuthorization.optionalScopes).forEach(
+    ([scope, prevScopeObject]) => {
+      const newScopeObject =
+        newAuthorization.optionalScopes[scope as InternalScopeString];
+      if (!newScopeObject) {
+        removedOptionalScopes[scope as InternalScopeString] = prevScopeObject;
+      }
+    },
+  );
+
+  return {
+    requiredScopes: removedRequiredScopes,
+    optionalScopes: removedOptionalScopes,
+  };
 };
