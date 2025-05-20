@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
-import { isEqual } from 'lodash';
 import React, {
   useCallback,
   useContext,
@@ -41,13 +40,11 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../util/browser';
-import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
-import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -218,8 +215,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { toastRef } = useContext(ToastContext);
 
-  // origin is set to the last active tab url in the browser which can conflict with sdk
-  const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
@@ -260,7 +255,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
-      dappHostname = inappBrowserOrigin;
+      dappHostname = channelIdOrHostname;
     } else {
       title = strings('sdk.unknown');
       setIsSdkUrlUnknown(true);
@@ -269,7 +264,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
-    inappBrowserOrigin,
     isOriginMMSDKRemoteConn,
     isChannelId,
     dappUrl,
@@ -280,6 +274,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostname && !isUUID(hostname)
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
+
+  const {
+    hostname: hostnameFromUrlObj,
+    protocol: protocolFromUrlObj
+  } = getUrlObj(urlWithProtocol);
 
   useEffect(() => {
     // Create network avatars for all enabled networks
@@ -316,7 +315,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
-    inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
+    channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
   );
 
   const actualIcon = useMemo(() => {
@@ -340,10 +339,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(hostname) as URLParse<string>).protocol === 'https:'
+      protocolFromUrlObj === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [hostname],
+    [protocolFromUrlObj],
   );
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
@@ -441,8 +440,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
-      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
-    [hostname],
+      trackDappViewedEvent({ hostname: hostnameFromUrlObj, numberOfConnectedAccounts }),
+    [hostnameFromUrlObj],
   );
 
   const handleConnect = useCallback(async () => {
@@ -645,12 +644,10 @@ const AccountConnect = (props: AccountConnectProps) => {
           );
           break;
         }
-        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
         case USER_INTENT.ImportSrp: {
           navigation.navigate('ImportSrpView');
           break;
         }
-        ///: END:ONLY_INCLUDE_IF
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
@@ -693,12 +690,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
+        ...selectedAccount,
+        name:
+          isDefaultAccountName(selectedAccount.name) && ensName
+            ? ensName
+            : selectedAccount.name,
+      }
       : undefined;
     return (
       <AccountConnectSingle
@@ -790,7 +787,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
-        hostname={hostname}
+        hostname={hostnameFromUrlObj}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
@@ -800,7 +797,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       selectedAddresses,
       isLoading,
       sdkConnection,
-      hostname,
+      hostnameFromUrlObj,
       handleAccountsSelected
     ],
   );
@@ -810,15 +807,15 @@ const AccountConnect = (props: AccountConnectProps) => {
       <NetworkConnectMultiSelector
         onSubmit={handleNetworksSelected}
         isLoading={isLoading}
-        hostname={new URL(urlWithProtocol).hostname}
+        hostname={hostnameFromUrlObj}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         defaultSelectedChainIds={selectedChainIds}
       />
     ),
     [
       isLoading,
-      urlWithProtocol,
       handleNetworksSelected,
+      hostnameFromUrlObj,
       selectedChainIds,
     ],
   );

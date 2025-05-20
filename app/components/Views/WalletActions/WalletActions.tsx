@@ -229,6 +229,7 @@ const WalletActions = () => {
             scope: chainId as CaipChainId,
           },
         );
+        sheetRef.current?.onCloseBottomSheet();
       } catch {
         // Restore the previous page in case of any error
         sheetRef.current?.onCloseBottomSheet();
