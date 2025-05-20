@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import {
