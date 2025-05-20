@@ -177,6 +177,5 @@ async function buildSimulationTokenBalanceChanges({
 
     balanceChanges.push(balanceChange);
   }
-
   return balanceChanges;
 }

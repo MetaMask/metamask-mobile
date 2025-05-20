@@ -13,6 +13,7 @@ import {
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 
+import Engine from '../../../core/Engine';
 import {
   BalanceChange,
   TokenAssetIdentifier,
@@ -27,7 +28,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
 import { RootState } from '../../../reducers';
-import Engine from '../../../core/Engine';
 
 const NATIVE_DECIMALS = 18;
 

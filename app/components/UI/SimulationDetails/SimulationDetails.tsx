@@ -20,10 +20,10 @@ import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
+import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
-import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 
 export interface SimulationDetailsProps {
   transaction: TransactionMeta;

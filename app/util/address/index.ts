@@ -723,8 +723,6 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  // eslint-disable-next-line
-  console.log('tokenData ======================== ', tokenData);
   const { standard, name, symbol, decimals } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
