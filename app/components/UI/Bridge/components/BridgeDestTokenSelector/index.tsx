@@ -94,7 +94,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
         )}
       </TokenSelectorItem>
     );},
-    [handleTokenPress, networkConfigurations, selectedDestToken, navigation, styles.infoButton]
+    [handleTokenPress, networkConfigurations, selectedDestToken, navigation, styles.infoButton, selectedSourceToken?.chainId]
   );
 
   return (
