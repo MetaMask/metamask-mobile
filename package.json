@@ -3,8 +3,8 @@
   "version": "7.45.2",
   "private": true,
   "scripts": {
+    "install:foundryup": "yarn && yarn mm-foundryup",
     "audit:ci": "./scripts/yarn-audit.sh",
-    "install:foundryup": "./scripts/foundry-install.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
@@ -19,7 +19,7 @@
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
-    "setup": "yarn clean && yarn install:foundryup && node scripts/setup.mjs",
+    "setup": "yarn clean && node scripts/setup.mjs",
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
@@ -415,6 +415,7 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
+    "@metamask-previews/foundryup": "0.0.0-preview-c1fef6e5",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.25.3",
@@ -426,7 +427,6 @@
     "@ethersproject/providers": "^5.7.2",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
-    "@metamask-previews/foundryup": "^0.0.0-preview-c1fef6e5",
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/build-utils": "^1.0.0",
     "@metamask/eslint-config-typescript": "^9.0.0",

@@ -1066,10 +1066,9 @@ workflows:
                 # $HOME/.foundry/bin/foundryup
                 # command -v forge && forge --version
                 # command -v anvil && anvil --version
-                yarn install:foundryup
                 which anvil
                 anvil --version
-                
+                yarn install:foundryup
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
