@@ -537,7 +537,7 @@ class AuthenticationService {
       let traceSucceeded = false;
       try {
         trace({
-          name: TraceName.OnboardingAddSrp,
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
         await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
@@ -548,7 +548,7 @@ class AuthenticationService {
         traceSucceeded = true;
       } finally {
         endTrace({
-          name: TraceName.OnboardingAddSrp,
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
           data: { success: traceSucceeded },
         });
       }

@@ -65,6 +65,7 @@ export enum TraceName {
   OnboardingPasswordSetupAttempt = 'Onboarding - Password Setup Attempt',
   OnboardingPasswordLoginAttempt = 'Onboarding - Password Login Attempt',
   OnboardingResetPassword = 'Onboarding - Reset Password',
+  OnboardingCreateKeyAndBackupSrp = 'Onboarding - Create Key and Backup SRP',
   OnboardingAddSrp = 'Onboarding - Add SRP',
   OnboardingFetchSrps = 'Onboarding - Fetch SRPs',
   OnboardingOAuthProviderLogin = 'Onboarding - OAuth Provider Login',

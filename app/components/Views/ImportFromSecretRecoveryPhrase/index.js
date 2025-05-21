@@ -573,9 +573,9 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
 
         if (isMetricsEnabled()) {
+          endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
           endTrace({ name: TraceName.OnboardingExistingSrpImport });
           endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -604,6 +604,7 @@ const ImportFromSecretRecoveryPhrase = ({
               });
             },
             tracesToEnd: [
+              TraceName.OnboardingPasswordSetupAttempt,
               TraceName.OnboardingExistingSrpImport,
               TraceName.OnboardingJourneyOverall,
             ],

@@ -378,10 +378,10 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
 
       if (authType.oauth2Login) {
         if (this.props.metrics.isEnabled()) {
+          endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
           endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
           endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -408,12 +408,14 @@ class ChoosePassword extends PureComponent {
               });
             },
             tracesToEnd: [
+              TraceName.OnboardingPasswordSetupAttempt,
               TraceName.OnboardingNewSocialCreateWallet,
               TraceName.OnboardingJourneyOverall,
             ],
           });
         }
       } else {
+        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         this.props.navigation.replace('AccountBackupStep1');
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
