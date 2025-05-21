@@ -184,27 +184,23 @@ export const selectBridgeFeatureFlags = createSelector(
   (remoteFeatureFlags) => {
     const bridgeConfig = remoteFeatureFlags.bridgeConfigV2;
 
-    // Config when bridge is disabled
-    const disabledConfig = {
-      remoteFeatureFlags: {
-        bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
-      },
-    };
+    const featureFlags = selectBridgeFeatureFlagsBase({
+        remoteFeatureFlags: {
+          bridgeConfig,
+        },
+      });
 
-    // Return disabled config if minimum version is not met
+
     if (
-      !hasMinimumRequiredVersion(
-        (bridgeConfig as any)?.minimumVersion ||
-          process.env.BRIDGE_ENABLED !== 'true',
-      )
+      hasMinimumRequiredVersion(featureFlags.minimumVersion) &&
+          process.env.BRIDGE_ENABLED === 'true'
     ) {
-      return selectBridgeFeatureFlagsBase(disabledConfig);
+      return featureFlags;
     }
 
-    // Otherwise, pass through the original config
     return selectBridgeFeatureFlagsBase({
       remoteFeatureFlags: {
-        bridgeConfig,
+        bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
     });
   },
