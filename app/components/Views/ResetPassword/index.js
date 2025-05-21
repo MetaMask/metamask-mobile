@@ -438,19 +438,8 @@ class ResetPassword extends PureComponent {
       this.setState({ loading: true, showPasswordChangeWarning: false });
 
       await this.recreateVault();
-
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-      const seedlessOnboardingState =
-        ReduxService.store.getState().engine.backgroundState
-          .SeedlessOnboardingController;
-      if (
-        seedlessOnboardingState.authConnection &&
-        seedlessOnboardingState.authConnectionId
-      ) {
-        // Set biometrics for new password
-        await Authentication.resetPassword();
-      }
-      ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+      // Set biometrics for new password
+      await Authentication.resetPassword();
 
       try {
         // compute and store the new authentication method
