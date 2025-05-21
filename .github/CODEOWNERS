@@ -65,7 +65,7 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
-app/core/SnapKeyring
+app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
