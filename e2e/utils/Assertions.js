@@ -1,4 +1,5 @@
 import { waitFor, element, by } from 'detox';
+import Matchers from './Matchers';
 
 // Global timeout variable
 const TIMEOUT = 15000;
