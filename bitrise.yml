@@ -115,7 +115,7 @@ pipelines:
   test_release_pipeline:
     stages:
       - create_build_release: {}
-      - create_build_qa: {}
+      #- create_build_qa: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
