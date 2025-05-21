@@ -51,7 +51,7 @@ const calculateFontSize = (length: number): number => {
   return 20;
 };
 
-const createStyles = ({ theme, vars }: { theme: Theme; vars: { fontSize: number } }) =>
+const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
   StyleSheet.create({
     content: {
       paddingVertical: 16,
