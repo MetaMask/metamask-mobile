@@ -215,7 +215,7 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
  * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param {string} params.origin - The origin sending this request.
- * @param {boolean} params.autoApprove - Variable to check if the switc should be auto approved.
+ * @param {boolean} params.autoApprove - Variable to check if the switch should be auto approved.
  * @param {object} params.hooks - Method hooks passed to the method implementation.
  * @returns a null response on success or an error if user rejects an approval when autoApprove is false or on unexpected errors.
  */
