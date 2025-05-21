@@ -7410,6 +7410,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               "fontWeight": "400",
                                             }
                                           }
+                                          testID="region-modal-search-input"
                                           value=""
                                         />
                                       </View>
