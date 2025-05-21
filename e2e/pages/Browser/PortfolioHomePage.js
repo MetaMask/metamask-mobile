@@ -29,7 +29,7 @@ class PortfolioHomePage {
   get burgerMenu() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      PortfolioPageSelectorsWebID.BURGER_MENU,
+      PortfolioPageSelectorsWebID.BURGER_MENU_BUTTON,
     );
   }
 

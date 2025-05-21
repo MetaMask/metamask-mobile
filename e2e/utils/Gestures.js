@@ -94,7 +94,7 @@ class Gestures {
         await element.tap();
         return;
       } catch {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
     throw new Error('Web element not found or not tappable');

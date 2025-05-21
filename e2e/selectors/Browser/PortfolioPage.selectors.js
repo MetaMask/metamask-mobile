@@ -5,5 +5,5 @@ export const PortfolioPageSelectorsXpath = {
 
 export const PortfolioPageSelectorsWebID = {
   CONNECT_WALLET_BUTTON: 'connect-wallet-button',
-  BURGER_MENU: 'dashboard-mobile-button',
+  BURGER_MENU_BUTTON: 'dashboard-mobile-button',
 };
