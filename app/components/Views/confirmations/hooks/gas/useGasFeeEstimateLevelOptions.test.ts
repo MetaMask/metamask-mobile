@@ -12,9 +12,10 @@ import { useFeeCalculations } from './useFeeCalculations';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useGasFeeEstimateLevelOptions } from './useGasFeeEstimateLevelOptions';
+import '../../utils/time'
 
-jest.mock('../../../../../../util/transaction-controller');
-jest.mock('../../../../utils/time', () => ({
+jest.mock('../../../../../util/transaction-controller');
+jest.mock('../../utils/time', () => ({
   toHumanEstimatedTimeRange: jest.fn().mockReturnValue('~1 min'),
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');

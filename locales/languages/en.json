@@ -1908,7 +1908,7 @@
     "batched_transactions": "Batched transactions",
     "gas_modal": {
       "edit_network_fee": "Edit network fee",
-      "advanced_gas_fee": "Advanced gas fee",
+      "advanced_gas_fee": "Advanced network fee",
       "site_suggested": "Site suggested",
       "advanced": "Advanced",
       "low": "Low",
