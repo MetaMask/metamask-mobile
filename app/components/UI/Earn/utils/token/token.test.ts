@@ -8,8 +8,17 @@ import {
 } from '.';
 import { TokenI } from '../../../Tokens/types';
 import {
+  MOCK_ABASUSDC_BASE_MAINNET_ASSET,
   MOCK_ACCOUNT_MULTI_CHAIN_TOKENS,
+  MOCK_ADAI_MAINNET_ASSET,
+  MOCK_AETHUSDC_MAINNET_ASSET,
+  MOCK_AUSDT_MAINNET_ASSET,
+  MOCK_DAI_MAINNET_ASSET,
+  MOCK_ETH_MAINNET_ASSET,
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
+  MOCK_USDC_BASE_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -19,6 +28,25 @@ import {
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 
 describe('tokenUtils', () => {
+  const MOCK_EARN_TOKENS = [
+    ...MOCK_ACCOUNT_MULTI_CHAIN_TOKENS,
+    MOCK_AETHUSDC_MAINNET_ASSET,
+    MOCK_AUSDT_MAINNET_ASSET,
+    MOCK_ADAI_MAINNET_ASSET,
+    MOCK_ABASUSDC_BASE_MAINNET_ASSET,
+  ];
+
+  const MOCK_SUPPORTED_EARN_TOKENS = [
+    MOCK_ETH_MAINNET_ASSET,
+    MOCK_DAI_MAINNET_ASSET,
+    MOCK_USDC_MAINNET_ASSET,
+    MOCK_USDT_MAINNET_ASSET,
+    MOCK_AETHUSDC_MAINNET_ASSET,
+    MOCK_AUSDT_MAINNET_ASSET,
+    MOCK_ADAI_MAINNET_ASSET,
+    MOCK_ABASUSDC_BASE_MAINNET_ASSET,
+  ];
+
   describe('getSupportedEarnTokens', () => {
     const MOCK_ETH_TOKEN = createMockToken(
       getCreateMockTokenOptions(
@@ -64,12 +92,12 @@ describe('tokenUtils', () => {
     });
 
     it('extracts supported earn tokens from owned tokens', () => {
-      const result = getSupportedEarnTokens(MOCK_ACCOUNT_MULTI_CHAIN_TOKENS, {
+      const result = getSupportedEarnTokens(MOCK_EARN_TOKENS, {
         lendingTokens: true,
         receiptTokens: true,
         stakingTokens: true,
       });
-      expect(result).toEqual(MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE);
+      expect(result).toEqual(MOCK_SUPPORTED_EARN_TOKENS);
     });
 
     it('filters out Staked Ethereum but keeps Native Ethereum when selecting stakingTokens', () => {
@@ -86,6 +114,11 @@ describe('tokenUtils', () => {
         MOCK_MAINNET_DAI,
         MOCK_MAINNET_USDC,
         MOCK_MAINNET_USDT_NO_BALANCE,
+        MOCK_AETHUSDC_MAINNET_ASSET,
+        MOCK_AUSDT_MAINNET_ASSET,
+        MOCK_ADAI_MAINNET_ASSET,
+        MOCK_USDC_BASE_MAINNET_ASSET,
+        MOCK_ABASUSDC_BASE_MAINNET_ASSET,
       ];
       const result = getSupportedEarnTokens(tokens as TokenI[], {
         lendingTokens: true,
@@ -96,7 +129,11 @@ describe('tokenUtils', () => {
     });
 
     it('allows supported earn tokens on BASE', () => {
-      const tokens = [MOCK_ETH_TOKEN, MOCK_BASE_USDC];
+      const tokens = [
+        MOCK_ETH_TOKEN,
+        MOCK_BASE_USDC,
+        MOCK_ABASUSDC_BASE_MAINNET_ASSET,
+      ];
       const result = getSupportedEarnTokens(tokens as TokenI[], {
         lendingTokens: true,
         receiptTokens: true,
@@ -131,16 +168,17 @@ describe('tokenUtils', () => {
       expect(result).toStrictEqual(withoutStakingTokens);
     });
 
-    it('removes lending tokens if canLend is false', () => {
-      const withoutLendingTokens =
-        MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE.filter(
-          (token) => !SUPPORTED_LENDING_TOKENS.has(token.symbol),
-        );
-
-      const result = filterEligibleTokens(
-        MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-        { canStake: true, canLend: false },
+    it('removes lending and lending receipt tokens if canLend is false', () => {
+      const withoutLendingTokens = MOCK_SUPPORTED_EARN_TOKENS.filter(
+        (token) =>
+          !SUPPORTED_LENDING_TOKENS.has(token.symbol) &&
+          !SUPPORTED_LENDING_RECEIPT_TOKENS.has(token.symbol),
       );
+
+      const result = filterEligibleTokens(MOCK_SUPPORTED_EARN_TOKENS, {
+        canStake: true,
+        canLend: false,
+      });
 
       expect(result).toStrictEqual(withoutLendingTokens);
     });
