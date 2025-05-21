@@ -17,6 +17,11 @@ import Ganache from '../../../app/util/test/ganache';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
+import NetworkListModal from '../../pages/Network/NetworkListModal.js';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { startMockServer } from './bridge-mocks';
 import { stopMockServer } from '../../api-mocking/mock-server';
@@ -30,6 +35,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
   let localNode;
 
   beforeAll(async () => {
+    jest.setTimeout(120000);
     localNode = new Ganache();
     await localNode.start(localNodeOptions);
     await TestHelpers.reverseServerPort();
@@ -68,8 +74,6 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await QuoteView.selectNetwork('Base');
     await QuoteView.typeSearchToken('ETH');
     await QuoteView.selectToken('ETH');
-    await Assertions.checkIfVisible(QuoteView.expandQuoteDetails);
-    await QuoteView.tapExpandDetails()
     await Assertions.checkIfVisible(QuoteView.quotesLabel);
     await Assertions.checkIfVisible(QuoteView.continueButton);
     await QuoteView.tapContinue();
@@ -77,17 +81,31 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.brideActivityTitle('Base'));
+    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
     await Assertions.checkIfElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
-    //await device.enableSynchronization();
-    //await TestHelpers.delay(3000);
   });
 
   it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
+    await TabBarComponent.tapWallet();
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
+    await NetworkEducationModal.tapGotItButton();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(WalletView.container);
+
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.changeNetworkTo('Localhost', false);
+    await NetworkEducationModal.tapGotItButton();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(WalletView.container);
+
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
@@ -97,11 +115,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
-    await QuoteView.typeSearchToken('SOL');
     await QuoteView.selectToken('SOL');
-    //await TestHelpers.delay(1000);
-        await Assertions.checkIfVisible(QuoteView.expandQuoteDetails);
-    await QuoteView.tapExpandDetails()
     await Assertions.checkIfVisible(QuoteView.quotesLabel);
     await Assertions.checkIfVisible(QuoteView.continueButton);
     await QuoteView.tapContinue();
@@ -110,7 +124,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
-      ActivitiesView.brideActivityTitle('Solana'),
+      ActivitiesView.bridgeActivityTitle('Solana'),
     );
     await Assertions.checkIfElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),

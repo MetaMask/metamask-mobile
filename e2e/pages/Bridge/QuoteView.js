@@ -18,10 +18,6 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get expandQuoteDetails() {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.EXPAND_QUOTE_DETAILS);
-  }
-
   get quotesLabel() {
     return Matchers.getElementByID(QuoteViewSelectorText.QUOTES);
   }
@@ -39,10 +35,6 @@ class QuoteView {
 
   async tapBridgeTo() {
     await Gestures.waitAndTap(this.bridgeTo);
-  }
-
-  async tapExpandDetails() {
-    await Gestures.waitAndTap(this.expandQuoteDetails);
   }
 
   async selectNetwork(network) {

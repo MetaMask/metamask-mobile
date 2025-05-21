@@ -57,12 +57,11 @@ export const startMockServer = async (events, port) => {
     .forAnyRequest()
     .matching((request) => request.path.startsWith('/proxy'))
     .thenCallback(async (request) => {
-      const urlEndpoint = new URL(request.url).searchParams.get('url');
+      let urlEndpoint = new URL(request.url).searchParams.get('url');
       const method = request.method;
 
-      const regex = new RegExp('getTxStatus');
-      console.log(urlEndpoint);
-      if (regex.test(urlEndpoint)) {
+      // Mocking the getTxStatus on the destination transaction
+      if (urlEndpoint.includes('getTxStatus')) {
         const urlObj = new URL(urlEndpoint);
         const txHash = urlObj.searchParams.get('srcTxHash');
         const srcChainId = urlObj.searchParams.get('srcChainId');
@@ -102,6 +101,13 @@ export const startMockServer = async (events, port) => {
         };
       }
 
+      // Needed in order to get a quote for locahost
+      if (urlEndpoint.includes('getQuote')) {
+        urlEndpoint = urlEndpoint.replace(
+          'insufficientBal=false',
+          'insufficientBal=true',
+        );
+      }
       // If no matching mock found, pass through to actual endpoint
       const updatedUrl =
         device.getPlatform() === 'android'
