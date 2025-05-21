@@ -179,6 +179,7 @@ describe('MultichainWalletSnapClient', () => {
 
   describe('addDiscoveredAccounts', () => {
     it('adds discovered accounts to the keyring', async () => {
+      const expectAccountName = 'Solana Account 1';
       const mockEntropySource = 'test-entropy';
       const mockDiscoveredAccounts = [
         {
@@ -208,8 +209,10 @@ describe('MultichainWalletSnapClient', () => {
       expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
         mockSnapId,
         {
+          accountNameSuggestion: expectAccountName,
           derivationPath: mockDiscoveredAccounts[0].derivationPath,
           entropySource: mockEntropySource,
+          scope: SolScope.Mainnet,
         },
         expect.objectContaining({
           displayConfirmation: false,
