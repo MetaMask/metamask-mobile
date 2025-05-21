@@ -20,6 +20,7 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
+import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -227,7 +228,8 @@ export const selectEnabledSourceChains = createSelector(
 export const selectEnabledDestChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
-  (networks, bridgeFeatureFlags) => {
+  selectHasCreatedSolanaMainnetAccount,
+  (networks, bridgeFeatureFlags, hasSolanaAccount) => {
     // We always want to show the popular list in the destination chain selector
     const popularListFormatted = PopularList.map(
       ({ chainId, nickname, rpcUrl, ticker, rpcPrefs }) => ({
@@ -240,8 +242,14 @@ export const selectEnabledDestChains = createSelector(
     );
 
     return uniqBy([...networks, ...popularListFormatted], 'chainId').filter(
-      ({ chainId }) =>
-        bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isActiveDest,
+      ({ chainId }) => {
+        const caipChainId = formatChainIdToCaip(chainId);
+        // Only include Solana chains as active destinations if user has a Solana account
+        if (isSolanaChainId(chainId) && !hasSolanaAccount) {
+          return false;
+        }
+        return bridgeFeatureFlags.chains[caipChainId]?.isActiveDest;
+      },
     );
   },
 );
