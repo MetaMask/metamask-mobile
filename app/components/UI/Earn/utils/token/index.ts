@@ -53,6 +53,8 @@ const SUPPORTED_CHAIN_IDS = new Set<string>([
 
 export const getSupportedEarnTokens = (
   tokens: TokenI[],
+  // Passing "true" for a given token type will include it in the output.
+  // Passing "false" for a given token type will exclude it from the output.
   filter: Partial<{
     stakingTokens: boolean;
     lendingTokens: boolean;
@@ -130,7 +132,6 @@ export const isSupportedLendingTokenByChainId = (
 ) =>
   SUPPORTED_LENDING_TOKENS.has(tokenSymbol) && SUPPORTED_CHAIN_IDS.has(chainId);
 
-// TODO: Add tests for this new util
 export const isSupportedLendingReceiptTokenByChainId = (
   tokenSymbol: string,
   chainId: string,
