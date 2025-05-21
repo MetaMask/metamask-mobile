@@ -384,12 +384,11 @@ const Login: React.FC = () => {
 
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
-        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
         if (isMetricsEnabled()) {
+          endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
           endTrace({ name: TraceName.OnboardingExistingSocialLogin });
           endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -410,6 +409,7 @@ const Login: React.FC = () => {
                   });
                 },
                 tracesToEnd: [
+                  TraceName.OnboardingPasswordLoginAttempt,
                   TraceName.OnboardingExistingSocialLogin,
                   TraceName.OnboardingJourneyOverall,
                 ],
