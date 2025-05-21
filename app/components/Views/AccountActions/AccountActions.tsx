@@ -42,9 +42,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   isHDOrFirstPartySnapAccount,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,9 +55,7 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -84,7 +80,6 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
@@ -93,7 +88,6 @@ const AccountActions = () => {
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
-  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -229,7 +223,6 @@ const AccountActions = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -238,7 +231,6 @@ const AccountActions = () => {
       });
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -468,7 +460,6 @@ const AccountActions = () => {
           />
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
           selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
             <AccountAction
               actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
@@ -479,7 +470,6 @@ const AccountActions = () => {
               }
             />
           )
-          ///: END:ONLY_INCLUDE_IF
         }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
