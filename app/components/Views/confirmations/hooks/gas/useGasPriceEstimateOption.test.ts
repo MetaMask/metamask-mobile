@@ -14,7 +14,7 @@ import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useGasPriceEstimateOption } from './useGasPriceEstimateOption';
 
-jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../../../util/transaction-controller');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useFeeCalculations');
 jest.mock('./useGasFeeEstimates');
