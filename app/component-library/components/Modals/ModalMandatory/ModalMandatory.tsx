@@ -186,11 +186,10 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        onScroll={({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
+        onScroll={({ nativeEvent }) =>
+          isCloseToBottom(nativeEvent as unknown as NativeScrollEvent)
         }
         {...(source.uri && {
-          // @ts-expect-error - This is bc webview repo is lacking the type being exported - https://github.com/react-native-webview/react-native-webview/blob/1ddfe70521725c365cf8accf2a1bdf82eb4db80f/src/WebViewTypes.ts#L144
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
       />
