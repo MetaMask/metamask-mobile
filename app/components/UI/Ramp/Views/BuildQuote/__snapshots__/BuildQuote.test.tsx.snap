@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BuildQuote View Crypto Currency Data renders a special error page if crypto currencies are not available 1`] = `
+exports[`EmailAuth View Crypto Currency Data renders a special error page if crypto currencies are not available 1`] = `
 <View
   style={
     {
@@ -664,7 +664,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
 </View>
 `;
 
-exports[`BuildQuote View Crypto Currency Data renders a special error page if crypto currencies are not available 2`] = `
+exports[`EmailAuth View Crypto Currency Data renders a special error page if crypto currencies are not available 2`] = `
 <View
   style={
     {
@@ -1328,7 +1328,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
 </View>
 `;
 
-exports[`BuildQuote View Crypto Currency Data renders an error page when there is a cryptos error 1`] = `
+exports[`EmailAuth View Crypto Currency Data renders an error page when there is a cryptos error 1`] = `
 <View
   style={
     {
@@ -1992,7 +1992,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
 </View>
 `;
 
-exports[`BuildQuote View Crypto Currency Data renders the loading page when cryptos are loading 1`] = `
+exports[`EmailAuth View Crypto Currency Data renders the loading page when cryptos are loading 1`] = `
 <View
   style={
     {
@@ -2931,7 +2931,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
 </View>
 `;
 
-exports[`BuildQuote View Fiat Currency Data renders an error page when there is a fiat error 1`] = `
+exports[`EmailAuth View Fiat Currency Data renders an error page when there is a fiat error 1`] = `
 <View
   style={
     {
@@ -3595,7 +3595,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
 </View>
 `;
 
-exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats are loading 1`] = `
+exports[`EmailAuth View Fiat Currency Data renders the loading page when fiats are loading 1`] = `
 <View
   style={
     {
@@ -4534,7 +4534,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
 </View>
 `;
 
-exports[`BuildQuote View Payment Method Data renders an error page when there is a payment method error 1`] = `
+exports[`EmailAuth View Payment Method Data renders an error page when there is a payment method error 1`] = `
 <View
   style={
     {
@@ -5198,7 +5198,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
 </View>
 `;
 
-exports[`BuildQuote View Payment Method Data renders no icons if there are no payment methods 1`] = `
+exports[`EmailAuth View Payment Method Data renders no icons if there are no payment methods 1`] = `
 <View
   style={
     {
@@ -5779,7 +5779,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       }
                                     >
                                       Account 2
-                                       
+
                                       (0xC4966...4a756)
                                     </Text>
                                     <Text
@@ -6150,7 +6150,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               >
                                                 ETH
                                               </Text>
-                                                
+
                                               <Text
                                                 allowFontScaling={false}
                                                 selectable={false}
@@ -6210,7 +6210,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 >
                                   Current balance
                                   :
-                                   
+
                                   5.36385 ETH
                                    ≈ $27.02
                                 </Text>
@@ -6434,7 +6434,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               >
                                                 USD
                                               </Text>
-                                                
+
                                               <Text
                                                 allowFontScaling={false}
                                                 selectable={false}
@@ -6494,7 +6494,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   testID="min-limit-error"
                                 >
                                   Minimum deposit is
-                                   
+
                                   $
                                   2
                                 </Text>
@@ -6731,7 +6731,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             >
                                               Change
                                             </Text>
-                                              
+
                                             <Text
                                               allowFontScaling={false}
                                               selectable={false}
@@ -8168,7 +8168,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
 </View>
 `;
 
-exports[`BuildQuote View Payment Method Data renders the loading page when payment methods are loading 1`] = `
+exports[`EmailAuth View Payment Method Data renders the loading page when payment methods are loading 1`] = `
 <View
   style={
     {
@@ -9107,7 +9107,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
 </View>
 `;
 
-exports[`BuildQuote View Regions data renders an error page when there is a region error 1`] = `
+exports[`EmailAuth View Regions data renders an error page when there is a region error 1`] = `
 <View
   style={
     {
@@ -9771,7 +9771,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
 </View>
 `;
 
-exports[`BuildQuote View Regions data renders the loading page when regions are loading 1`] = `
+exports[`EmailAuth View Regions data renders the loading page when regions are loading 1`] = `
 <View
   style={
     {
@@ -10710,7 +10710,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
 </View>
 `;
 
-exports[`BuildQuote View renders correctly 1`] = `
+exports[`EmailAuth View renders correctly 1`] = `
 <View
   style={
     {
@@ -11291,7 +11291,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       }
                                     >
                                       Account 2
-                                       
+
                                       (0xC4966...4a756)
                                     </Text>
                                     <Text
@@ -11662,7 +11662,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               >
                                                 ETH
                                               </Text>
-                                                
+
                                               <Text
                                                 allowFontScaling={false}
                                                 selectable={false}
@@ -11722,7 +11722,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 >
                                   Current balance
                                   :
-                                   
+
                                   5.36385 ETH
                                    ≈ $27.02
                                 </Text>
@@ -11946,7 +11946,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               >
                                                 USD
                                               </Text>
-                                                
+
                                               <Text
                                                 allowFontScaling={false}
                                                 selectable={false}
@@ -12006,7 +12006,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   testID="min-limit-error"
                                 >
                                   Minimum deposit is
-                                   
+
                                   $
                                   2
                                 </Text>
@@ -12243,7 +12243,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             >
                                               Change
                                             </Text>
-                                              
+
                                             <Text
                                               allowFontScaling={false}
                                               selectable={false}
@@ -13726,7 +13726,7 @@ exports[`BuildQuote View renders correctly 1`] = `
 </View>
 `;
 
-exports[`BuildQuote View renders correctly 2`] = `
+exports[`EmailAuth View renders correctly 2`] = `
 <View
   style={
     {
@@ -14307,7 +14307,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       }
                                     >
                                       Account 2
-                                       
+
                                       (0xC4966...4a756)
                                     </Text>
                                     <Text
@@ -14746,7 +14746,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               >
                                                 ETH
                                               </Text>
-                                                
+
                                               <Text
                                                 allowFontScaling={false}
                                                 selectable={false}
@@ -14806,7 +14806,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 >
                                   Current balance
                                   :
-                                   
+
                                   5.36385 ETH
                                    ≈ $27.02
                                 </Text>
@@ -15173,7 +15173,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             >
                                               Change
                                             </Text>
-                                              
+
                                             <Text
                                               allowFontScaling={false}
                                               selectable={false}
@@ -16721,7 +16721,7 @@ exports[`BuildQuote View renders correctly 2`] = `
 </View>
 `;
 
-exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
+exports[`EmailAuth View renders correctly when sdkError is present 1`] = `
 <View
   style={
     {
@@ -17385,7 +17385,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
 </View>
 `;
 
-exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
+exports[`EmailAuth View renders correctly when sdkError is present 2`] = `
 <View
   style={
     {

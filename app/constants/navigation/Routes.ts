@@ -24,6 +24,9 @@ const Routes = {
   DEPOSIT: {
     ID: 'Deposit',
     ROOT: 'DepositRoot',
+    BUILD_QUOTE: 'BuildQuote',
+    EMAIL_AUTH: 'EmailAuth',
+    ID_VERIFY: 'IdVerify',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',

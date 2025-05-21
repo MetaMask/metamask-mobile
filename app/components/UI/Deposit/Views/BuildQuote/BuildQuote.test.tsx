@@ -1,11 +1,10 @@
 import React from 'react';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import Root from './Root';
+import BuildQuote from './BuildQuote';
 import Routes from '../../../../../constants/navigation/Routes';
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
-const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -13,10 +12,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
-      reset: mockReset,
     }),
   };
 });
@@ -25,7 +20,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.DEPOSIT.ROOT,
+      name: Routes.DEPOSIT.BUILD_QUOTE,
     },
     {
       state: {
@@ -37,18 +32,22 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('Root Component', () => {
+describe('BuildQuote Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
-    mockSetOptions.mockClear();
-    mockReset.mockClear();
   });
 
-  it('renders correctly and redirects to build quote', () => {
-    render(Root);
-    expect(mockReset).toBeCalledWith({
-      index: 0,
-      routes: [{ name: Routes.DEPOSIT.BUILD_QUOTE }],
-    });
+  it('renders correctly', () => {
+    render(BuildQuote);
+    expect(screen.getByText('Build Quote Page')).toBeTruthy();
+  });
+
+  it('navigates to EmailAuth screen on "Continue" button press', () => {
+    render(BuildQuote);
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.DEPOSIT.EMAIL_AUTH,
+      undefined,
+    );
   });
 });
