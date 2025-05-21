@@ -120,7 +120,6 @@ const removeLendingTokenPairs = (tokens: TokenI[]) => {
   return removeLendingReceiptTokens(withoutLendingTokens);
 };
 
-// TODO: Update tests to include receipt tokens
 export const filterEligibleTokens = (
   tokens: TokenI[],
   options: { canStake: boolean; canLend: boolean },
