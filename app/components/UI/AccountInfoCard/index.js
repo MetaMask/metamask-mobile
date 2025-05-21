@@ -155,7 +155,6 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const signatureRequest = Object.values(signatureRequests || {})?.[0];
-    console.log('OGP - signatureRequest.chainId', signatureRequest?.chainId);
     const fromAddress = safeToChecksumAddress(rawFromAddress);
     const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
