@@ -64,7 +64,7 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
     signatures: isSignaturesEnabled,
     staking_confirmations: isStakingConfirmationsEnabled,
     contract_interaction: isContractInteractionEnabled,
-    transfer: true,
+    transfer: isTransferEnabled,
   };
 };
 
