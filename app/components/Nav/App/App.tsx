@@ -145,7 +145,6 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
-import ReduxService from '../../../core/redux';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const clearStackNavigatorOptions = {
@@ -814,15 +813,9 @@ const App: React.FC = () => {
           // check if the seedless password is outdated at app init
           // if app is locked, check skip cache to ensure user need to input latest global password
           try {
-            const isUserLoggedIn = await selectUserLoggedIn(
-              ReduxService.store.getState(),
-            );
-            const skipCache = !isUserLoggedIn;
             const isOutdated =
-              await Authentication.checkIsSeedlessPasswordOutdated(skipCache);
-            Logger.log(
-              `Seedless password is outdated: ${isOutdated} ${skipCache}`,
-            );
+              await Authentication.checkIsSeedlessPasswordOutdated(true);
+            Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
           } catch (error) {
             Logger.error(
               error as Error,

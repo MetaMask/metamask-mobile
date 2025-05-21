@@ -506,6 +506,15 @@ class AuthenticationService {
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
+    try {
+      // check seedless password outdated skip cache when app lock
+      await this.checkIsSeedlessPasswordOutdated(true);
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        'Error in lockApp: checking seedless password outdated',
+      );
+    }
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
     NavigationService.navigation?.reset({
