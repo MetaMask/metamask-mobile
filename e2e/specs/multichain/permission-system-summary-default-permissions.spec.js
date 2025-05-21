@@ -40,14 +40,7 @@ describe(
           await ConnectedAccountsModal.tapManagePermissionsButton();
 
           // Step 3: Verify account permissions
-          const accountLabelElement =
-            await PermissionSummaryBottomSheet.accountPermissionLabelContainer;
-          const accountLabelAttributes =
-            await accountLabelElement.getAttributes();
-          const accountLabel = accountLabelAttributes.label;
-
-          await Assertions.checkIfTextMatches(
-            accountLabel,
+          await Assertions.checkIfTextIsDisplayed(
             PermissionSummaryBottomSheetSelectorsText.ACCOUNT_ONE_LABEL,
           );
 
