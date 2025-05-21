@@ -12,12 +12,12 @@ import styleSheet from './text-field-with-label.styles';
 
 export type TextFieldWithLabelProps = {
   error: string | boolean;
-  key: string;
+  inputType: string;
   label: string;
 } & TextFieldProps;
 
 export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
-  const { error, key, label, ...restProps } = props;
+  const { error, inputType, label, ...restProps } = props;
   const { styles, theme } = useStyles(styleSheet, {});
 
   return (
@@ -37,7 +37,7 @@ export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
         <Text
           color={theme.colors.error.default}
           style={styles.error}
-          testID={`${key}-error`}
+          testID={`${inputType}-error`}
           variant={TextVariant.BodySM}
         >
           {error}

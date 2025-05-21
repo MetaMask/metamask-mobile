@@ -90,7 +90,7 @@ export const PriorityFeeInput = ({
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
-        key="priority-fee"
+        inputType="priority-fee"
         keyboardType="numeric"
         label={strings('transactions.gas_modal.priority_fee')}
         onChangeText={handleChange}

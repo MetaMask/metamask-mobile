@@ -51,7 +51,7 @@ export const GasLimitInput = ({
     <View style={styles.container}>
       <TextFieldWithLabel
         error={error}
-        key="gas-limit"
+        inputType="gas-limit"
         keyboardType="numeric"
         label={strings('transactions.gas_modal.gas_limit')}
         onChangeText={handleChange}

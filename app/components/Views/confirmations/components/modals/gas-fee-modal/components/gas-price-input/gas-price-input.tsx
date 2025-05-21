@@ -55,7 +55,7 @@ export const GasPriceInput = ({
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
-        key="gas-price"
+        inputType="gas-price"
         keyboardType="numeric"
         label={strings('transactions.gas_modal.gas_price')}
         onChangeText={handleChange}

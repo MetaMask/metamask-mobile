@@ -92,7 +92,7 @@ export const MaxBaseFeeInput = ({
       <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
-        key="max-base-fee"
+        inputType="max-base-fee"
         keyboardType="numeric"
         label={strings('transactions.gas_modal.max_base_fee')}
         onChangeText={handleChange}
