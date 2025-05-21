@@ -37,6 +37,7 @@ export const initialState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           bridgeConfig: {
+            minimumVersion: '0.0.0',
             maxRefreshCount: 5,
             refreshRate: 30000,
             support: true,
