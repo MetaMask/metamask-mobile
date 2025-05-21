@@ -63,6 +63,17 @@ const createStyles = () =>
 const formatAddress = (address?: string) =>
   address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
+const getDisplayedAmount = (
+  amount?: string,
+  tokenType?: TokenInputAreaType,
+) => {
+  if (amount === undefined) return amount;
+
+  return tokenType === TokenInputAreaType.Source
+    ? amount
+    : parseAmount(amount, MAX_DECIMALS);
+};
+
 export enum TokenInputAreaType {
   Source = 'source',
   Destination = 'destination',
@@ -191,7 +202,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount ? parseAmount(amount, MAX_DECIMALS) : amount}
+                  value={getDisplayedAmount(amount, tokenType)}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -209,7 +220,11 @@ export const TokenInputArea = forwardRef<
                   }}
                   // Android only issue, for long numbers, the input field will focus on the right hand side
                   // Force it to focus on the left hand side
-                  selection={{ start: 0, end: 0 }}
+                  selection={
+                    tokenType === TokenInputAreaType.Destination
+                      ? { start: 0, end: 0 }
+                      : undefined
+                  }
                 />
               )}
             </Box>
