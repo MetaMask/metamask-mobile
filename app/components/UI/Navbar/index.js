@@ -741,7 +741,6 @@ export function getOnboardingCarouselNavbarOptions(
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: themeColors.text.default,
     },
   });
   return {

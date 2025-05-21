@@ -2,8 +2,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
+  KeyboardAvoidingView,
   Linking,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -27,10 +29,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
@@ -61,6 +59,18 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import TextComp, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+
+import Banner, {
+  BannerVariant,
+  BannerAlertSeverity,
+} from '../../../component-library/components/Banners/Banner';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -458,18 +468,24 @@ const RevealPrivateCredential = ({
 
   const renderPasswordEntry = () => (
     <>
-      <Text style={styles.enterPassword}>
+      <TextComp
+        variant={TextVariant.BodyMDBold}
+        color={TextColor.Default}
+        style={styles.enterPassword}
+      >
         {strings('reveal_credential.enter_password')}
-      </Text>
-      <TextInput
+      </TextComp>
+      <TextField
         style={styles.input}
-        placeholder={'Password'}
+        placeholder={'Make sure nobody is looking'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
         secureTextEntry
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
+        size={TextFieldSize.Lg}
+        autoCapitalize="none"
       />
       <Text
         style={styles.warningText}
@@ -563,106 +579,128 @@ const RevealPrivateCredential = ({
   );
 
   const renderSRPExplanation = () => (
-    <Text style={styles.normalText}>
+    <TextComp variant={TextVariant.BodySM} color={TextColor.Default}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
-      <Text
-        style={[styles.blueText, styles.link]}
+      <TextComp
+        variant={TextVariant.BodySM}
+        color={TextColor.Primary}
         onPress={() => Linking.openURL(SRP_GUIDE_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[1]}
-      </Text>{' '}
+      </TextComp>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text style={styles.boldText}>
+      <TextComp variant={TextVariant.BodySMBold} color={TextColor.Default}>
         {strings('reveal_credential.seed_phrase_explanation')[3]}
-      </Text>
+      </TextComp>
       {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-      <Text
-        style={[styles.blueText, styles.link]}
+      <TextComp
+        variant={TextVariant.BodySM}
+        color={TextColor.Primary}
         onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-      </Text>
+      </TextComp>
       {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text style={styles.boldText}>
+      <TextComp variant={TextVariant.BodySMBold} color={TextColor.Default}>
         {strings('reveal_credential.seed_phrase_explanation')[7]}
-      </Text>
-    </Text>
+      </TextComp>
+    </TextComp>
   );
 
   const renderWarning = (privCredentialName: string) => (
-    <View style={styles.warningWrapper}>
-      <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
-        {privCredentialName === PRIVATE_KEY ? (
-          <Text style={styles.warningMessageText}>
-            {strings(
-              `reveal_credential.${privCredentialName}_warning_explanation`,
-            )}
-          </Text>
-        ) : (
-          <Text style={styles.warningMessageText}>
-            {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
-            <Text style={styles.boldText}>
-              {strings('reveal_credential.seed_phrase_warning_explanation')[1]}
-            </Text>
-          </Text>
-        )}
-      </View>
+    <View style={styles.warning}>
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Error}
+        title={
+          privCredentialName === PRIVATE_KEY ? (
+            <TextComp variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {strings(
+                `reveal_credential.${privCredentialName}_warning_explanation`,
+              )}{' '}
+            </TextComp>
+          ) : (
+            <TextComp variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
+              <TextComp
+                variant={TextVariant.BodyMDBold}
+                color={TextColor.Default}
+              >
+                {
+                  strings(
+                    'reveal_credential.seed_phrase_warning_explanation',
+                  )[1]
+                }
+              </TextComp>
+            </TextComp>
+          )
+        }
+        style={styles.warning}
+      />
     </View>
   );
 
   return (
-    <View
+    <KeyboardAvoidingView
       style={[styles.wrapper]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <ActionView
-        cancelText={
-          unlocked
-            ? strings('reveal_credential.done')
-            : strings('reveal_credential.cancel')
-        }
-        confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? done : cancelReveal}
-        onConfirmPress={() => tryUnlock()}
-        showConfirmButton={!unlocked}
-        confirmDisabled={!passwordRequirementsMet(password)}
-        cancelTestID={
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
-        }
-        confirmTestID={
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
-        }
-        scrollViewTestID={
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
-        }
-        contentContainerStyle={styles.stretch}
-      >
-        <>
-          <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey ? (
-              <Text style={styles.normalText}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </Text>
-            ) : (
-              renderSRPExplanation()
-            )}
-          </View>
-          {renderWarning(credentialSlug)}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ActionView
+          cancelText={
+            unlocked
+              ? strings('reveal_credential.done')
+              : strings('reveal_credential.cancel')
+          }
+          confirmText={strings('reveal_credential.confirm')}
+          onCancelPress={unlocked ? done : cancelReveal}
+          onConfirmPress={() => tryUnlock()}
+          showConfirmButton={!unlocked}
+          confirmDisabled={!passwordRequirementsMet(password)}
+          cancelTestID={
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
+          }
+          confirmTestID={
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+          }
+          scrollViewTestID={
+            RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
+          }
+          contentContainerStyle={styles.stretch}
+          buttonContainerStyle={styles.ctaContainer}
+        >
+          <>
+            <View style={[styles.rowWrapper, styles.normalText]}>
+              {isPrivateKey ? (
+                <TextComp
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                >
+                  {strings(`reveal_credential.private_key_explanation`)}
+                </TextComp>
+              ) : (
+                renderSRPExplanation()
+              )}
+            </View>
 
-          <View style={[styles.rowWrapper, styles.stretch]}>
-            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
-          </View>
-        </>
-      </ActionView>
-      {renderModal(isPrivateKey)}
+            {renderWarning(credentialSlug)}
 
-      <ScreenshotDeterrent
-        enabled={unlocked}
-        isSRP={credentialSlug !== PRIVATE_KEY}
-        hasNavigation={hasNavigation}
-      />
-    </View>
+            <View style={[styles.rowWrapper, styles.stretch]}>
+              {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
+            </View>
+          </>
+        </ActionView>
+
+        {renderModal(isPrivateKey)}
+
+        <ScreenshotDeterrent
+          enabled={unlocked}
+          isSRP={credentialSlug !== PRIVATE_KEY}
+          hasNavigation={hasNavigation}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
