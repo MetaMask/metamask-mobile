@@ -102,8 +102,8 @@ exports[`ActionView should render correctly 1`] = `
           style={
             [
               {
+                "columnGap": 8,
                 "flexDirection": "row",
-                "justifyContent": "flex-end",
                 "marginBottom": 16,
                 "paddingHorizontal": 16,
                 "width": "100%",
@@ -115,61 +115,38 @@ exports[`ActionView should render correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
+            activeOpacity={1}
             disabled={false}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                      "flexDirection": "column",
-                      "justifyContent": "flex-end",
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
             }
             testID=""
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Cancel
@@ -178,64 +155,37 @@ exports[`ActionView should render correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
+            activeOpacity={1}
             disabled={false}
+            loading={false}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "transparent",
-                    "borderColor": "#4459ff",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                      "flexDirection": "column",
-                      "justifyContent": "flex-end",
-                    },
-                    {
-                      "marginLeft": 8,
-                      "marginTop": "auto",
-                    },
-                    {},
-                    {},
-                  ],
-                ],
-                null,
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 12,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
             }
             testID=""
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#4459ff",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Confirm

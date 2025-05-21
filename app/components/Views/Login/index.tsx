@@ -164,13 +164,16 @@ const Login: React.FC = () => {
     }
   }, [isSeedlessPasswordOutdated]);
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    if (!oauthLoginSuccess) {
+      Authentication.lockApp();
+    } else {
+      navigation.goBack();
+    }
     return false;
   };
-
-  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   const getHint = async () => {
     const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
@@ -293,10 +296,7 @@ const Login: React.FC = () => {
   };
 
   const handleUseOtherMethod = () => {
-    navigation.navigate('OnboardingRootNav', {
-      screen: 'OnboardingNav',
-      params: { screen: 'Onboarding' },
-    });
+    navigation.goBack();
     OAuthService.resetOauthState();
   };
 

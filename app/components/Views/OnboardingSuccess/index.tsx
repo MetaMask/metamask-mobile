@@ -47,6 +47,9 @@ import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import Engine from '../../../core/Engine';
+import { HelpTextSeverity } from '../../../component-library/components/Form/HelpText/HelpText.types';
+import HelpText from '../../../component-library/components/Form/HelpText/HelpText';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -67,6 +70,7 @@ const OnboardingSuccess = ({
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
   const [savedHint, setSavedHint] = useState('');
+  const [hintError, setHintError] = useState<string | null>(null);
 
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -144,8 +148,25 @@ const OnboardingSuccess = ({
     onDone();
   }, [onDone, dispatch]);
 
+  const checkHintMatchesPassword = async (hint: string): Promise<boolean> => {
+    const { KeyringController } = Engine.context;
+    try {
+      await KeyringController.verifyPassword(hint);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const saveHint = async () => {
     if (!hintText) return;
+
+    const hintMatchesPasswordLocal = await checkHintMatchesPassword(hintText);
+    if (hintMatchesPasswordLocal) {
+      setHintError(strings('onboarding_success.error_matches_password'));
+      return;
+    }
+
     setShowHint(false);
     const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
@@ -385,12 +406,20 @@ const OnboardingSuccess = ({
               style={styles.hintInput}
               placeholder={strings('onboarding_success.hint_placeholder')}
               value={hintText}
-              onChangeText={setHintText}
+              onChangeText={(text) => {
+                setHintText(text);
+                if (hintError) {
+                  setHintError(null);
+                }
+              }}
               size={TextFieldSize.Lg}
               placeholderTextColor={colors.text.muted}
               autoFocus
               keyboardAppearance={themeAppearance}
             />
+            {hintError && (
+              <HelpText severity={HelpTextSeverity.Error}>{hintError}</HelpText>
+            )}
           </View>
           <Button
             label={strings('onboarding_success.hint_saved')}

@@ -179,6 +179,9 @@ const createStyles = (colors: any) =>
     label: {
       marginBottom: -4,
     },
+    checkbox: {
+      alignItems: 'flex-start',
+    },
   });
 
 export default createStyles;

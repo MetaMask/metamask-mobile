@@ -557,6 +557,7 @@ class AuthenticationService {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
       await clearAllVaultBackups();
+      SeedlessOnboardingController.clearState();
       throw error;
     }
 
