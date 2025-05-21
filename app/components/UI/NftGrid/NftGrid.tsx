@@ -264,11 +264,54 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [isCollectibleIgnored, chainId, selectedAddress],
   );
 
+  const renderFooter = useCallback(
+    () => (
+      <View style={styles.footer} key={'collectible-contracts-footer'}>
+        {isNftFetchingProgress ? (
+          <ActivityIndicator
+            size="large"
+            style={styles.spinner}
+            testID={SpinnerTestId}
+          />
+        ) : null}
+      </View>
+    ),
+    [styles, isNftFetchingProgress],
+  );
+
   // Memoize the updatable collectibles to avoid recalculating on every render
   const updatableCollectibles = useMemo(
     () =>
       flatMultichainCollectibles?.filter(shouldUpdateCollectibleMetadata) || [],
     [flatMultichainCollectibles, shouldUpdateCollectibleMetadata],
+  );
+
+  const goToLearnMore = useCallback(
+    () =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: AppConstants.URLS.NFT },
+      }),
+    [navigation],
+  );
+
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Image
+          style={styles.emptyImageContainer}
+          source={require('../../../images/no-nfts-placeholder.png')}
+          resizeMode={'contain'}
+        />
+        <Text center style={styles.emptyTitleText} bold>
+          {strings('wallet.no_nfts_yet')}
+        </Text>
+        <Text center big link onPress={goToLearnMore}>
+          {strings('wallet.learn_more')}
+        </Text>
+      </View>
+    ),
+    [goToLearnMore, styles],
   );
 
   useEffect(() => {
@@ -295,13 +338,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       />
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
-      {isNftFetchingProgress && (
-        <ActivityIndicator
-          size="large"
-          style={styles.spinner}
-          testID={SpinnerTestId}
-        />
-      )}
       {/* empty state */}
       {!isNftFetchingProgress && flatMultichainCollectibles.length === 0 && (
         <>
@@ -310,7 +346,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         </>
       )}
       {/* nft grid */}
-      {!isNftFetchingProgress && flatMultichainCollectibles.length > 0 && (
+      {flatMultichainCollectibles.length > 0 && (
         <MasonryFlashList
           data={flatMultichainCollectibles}
           numColumns={3}
@@ -335,9 +371,18 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          ListFooterComponent={<NftGridFooter navigation={navigation} />}
+          // ListFooterComponent={<NftGridFooter navigation={navigation} />}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
         />
       )}
+      {/* {isNftFetchingProgress && (
+        <ActivityIndicator
+          size="large"
+          style={styles.spinner}
+          testID={SpinnerTestId}
+        />
+      )} */}
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
