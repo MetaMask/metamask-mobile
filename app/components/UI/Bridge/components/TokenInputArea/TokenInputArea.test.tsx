@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayedAmount } from '.';
+import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
 import { initialState } from '../../_mocks_/initialState';
 
 const mockOnTokenPress = jest.fn();
@@ -87,23 +87,23 @@ describe('calculateFontSize', () => {
   });
 });
 
-describe('getDisplayedAmount', () => {
+describe('getDisplayAmount', () => {
   it('returns undefined for undefined input', () => {
-    expect(getDisplayedAmount(undefined)).toBeUndefined();
+    expect(getDisplayAmount(undefined)).toBeUndefined();
   });
 
   it('returns full amount for source type when under max length', () => {
     const amount = '123456789012345678';
-    expect(getDisplayedAmount(amount, TokenInputAreaType.Source)).toBe(amount);
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
   });
 
   it('truncates amount for source type when over max length', () => {
     const amount = '1234567890123456789';
-    expect(getDisplayedAmount(amount, TokenInputAreaType.Source)).toBe('123456789012345678');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe('123456789012345678');
   });
 
   it('parses and truncates amount for destination type', () => {
     const amount = '1234567890123456789.12345';
-    expect(getDisplayedAmount(amount, TokenInputAreaType.Destination)).toBe('123456789012345678');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('123456789012345678');
   });
 });

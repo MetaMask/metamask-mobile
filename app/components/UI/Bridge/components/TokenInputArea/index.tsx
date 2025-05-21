@@ -38,7 +38,7 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/utils/parseAmount';
 
 const MAX_DECIMALS = 5;
-const MAX_INPUT_LENGTH = 18;
+export const MAX_INPUT_LENGTH = 18;
 
 /**
  * Calculates font size based on input length
@@ -80,17 +80,17 @@ export enum TokenInputAreaType {
 const formatAddress = (address?: string) =>
   address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
-export const getDisplayedAmount = (
+export const getDisplayAmount = (
   amount?: string,
   tokenType?: TokenInputAreaType,
 ) => {
   if (amount === undefined) return amount;
 
-  const processedAmount = tokenType === TokenInputAreaType.Source
+  const displayAmount = tokenType === TokenInputAreaType.Source
     ? amount
     : parseAmount(amount, MAX_DECIMALS);
 
-  return processedAmount?.slice(0, MAX_INPUT_LENGTH);
+  return displayAmount;
 };
 
 export interface TokenInputAreaRef {
@@ -205,7 +205,7 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayedAmount(amount, tokenType);
+    const displayedAmount = getDisplayAmount(amount, tokenType);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
