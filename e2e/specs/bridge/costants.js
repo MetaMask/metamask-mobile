@@ -1,5 +1,3 @@
-import { url } from 'inspector';
-
 export const localNodeOptions = {
   hardfork: 'london',
   mnemonic:
