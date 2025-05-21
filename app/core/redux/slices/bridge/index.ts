@@ -12,6 +12,7 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
+  DEFAULT_FEATURE_FLAG_CONFIG
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -23,7 +24,6 @@ import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exc
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 import compareVersions from 'compare-versions';
 import { getVersion } from 'react-native-device-info';
-import { DEFAULT_FEATURE_FLAG_CONFIG } from '@metamask/bridge-controller/dist/constants/bridge.cjs';
 
 const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined) => {
   if (!minRequiredVersion) return false;
