@@ -350,11 +350,11 @@ export class Engine {
         process.env.IN_TEST
           ? {}
           : {
-            pollingInterval: 20 * SECOND,
-            // The retry timeout is pretty short by default, and if the endpoint is
-            // down, it will end up exhausting the max number of consecutive
-            // failures quickly.
-            retryTimeout: 20 * SECOND,
+              pollingInterval: 20 * SECOND,
+              // The retry timeout is pretty short by default, and if the endpoint is
+              // down, it will end up exhausting the max number of consecutive
+              // failures quickly.
+              retryTimeout: 20 * SECOND,
           },
       getRpcServiceOptions: (rpcEndpointUrl: string) => {
         const maxRetries = 4;
@@ -1576,7 +1576,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-          NetworkStatus.Available &&
+            NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1777,7 +1777,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-        selectedInternalAccount.address
+          selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1790,7 +1790,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectedInternalAccountFormattedAddress
+          selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1831,7 +1831,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-          chainId
+            chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1842,8 +1842,8 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address as Hex],
-                  item.decimals,
+                    tokenBalances[item.address as Hex],
+                    item.decimals,
                 )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
