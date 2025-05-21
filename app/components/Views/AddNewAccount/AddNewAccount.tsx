@@ -11,9 +11,6 @@ import { SafeAreaView, View } from 'react-native';
 
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -27,7 +24,6 @@ import Text, {
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import Button, {
@@ -46,6 +42,7 @@ import BottomSheet, {
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
@@ -67,6 +64,15 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
+
+  const { keyringToDisplay, keyringIndex } = useMemo(() => {
+    const keyring =
+      hdKeyrings.find((kr) => kr.metadata.id === keyringId) ?? hdKeyrings[0];
+    return {
+      keyringToDisplay: keyring,
+      keyringIndex: hdKeyrings.indexOf(keyring) + 1,
+    };
+  }, [hdKeyrings, keyringId]);
 
   const onBack = () => {
     navigate(Routes.SHEET.ACCOUNT_SELECTOR);
@@ -118,17 +124,6 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     setAccountName(getMultichainAccountName(scope, clientType));
   }, [clientType, scope]);
 
-  const hdKeyringIndex = useMemo(
-    () =>
-      hdKeyrings.findIndex((keyring) => keyring.metadata.id === keyringId) + 1,
-    [hdKeyrings, keyringId],
-  );
-
-  const numberOfAccounts = useMemo(() => {
-    const keyring = hdKeyrings.find((kr) => kr.metadata.id === keyringId);
-    return keyring ? keyring.accounts.length : 0;
-  }, [hdKeyrings, keyringId]);
-
   const addAccountTitle = useMemo(() => {
     switch (clientType) {
       case WalletClientType.Bitcoin:
@@ -171,85 +166,68 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
             <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
           ) : (
             <View style={styles.base}>
-              <Fragment>
-                <View style={styles.accountInputContainer}>
-                  <Input
-                    testID={AddNewAccountIds.NAME_INPUT}
-                    textVariant={TextVariant.BodyMDMedium}
-                    style={styles.accountInput}
-                    value={accountName}
-                    onChangeText={(newName: string) => {
-                      setAccountName(newName);
-                    }}
-                    placeholder={accountName}
-                    placeholderTextColor={colors.text.default}
-                    onSubmitEditing={onSubmit}
-                  />
-                </View>
-                {hasMultipleSRPs && (
-                  <View style={styles.srpSelectorContainer}>
-                    <Text variant={TextVariant.BodyMDMedium}>
-                      {strings('accounts.select_secret_recovery_phrase')}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.srpSelector}
-                      onPress={() => setShowSRPList(true)}
-                      testID={AddNewAccountIds.SRP_SELECTOR}
-                    >
-                      <View style={styles.srp}>
-                        <View>
-                          <Text variant={TextVariant.BodyMDMedium}>{`${strings(
-                            'accounts.secret_recovery_phrase',
-                          )} ${hdKeyringIndex}`}</Text>
-                        </View>
-                        <View>
-                          <Text
-                            variant={TextVariant.BodyMD}
-                            color={TextColor.Primary}
-                          >{`${strings(
-                            'accounts.show_accounts',
-                          )} ${numberOfAccounts} ${strings(
-                            'accounts.accounts',
-                          )}`}</Text>
-                        </View>
-                      </View>
-                      <Icon
-                        style={styles.srpArrow}
-                        name={IconName.ArrowRight}
-                      />
-                    </TouchableOpacity>
-                    <Text variant={TextVariant.BodySM}>
-                      {strings('accounts.add_new_hd_account_helper_text')}
-                    </Text>
-                  </View>
-                )}
-                <View style={styles.footerContainer}>
-                  <Button
-                    testID={AddNewAccountIds.CANCEL}
-                    loading={isLoading}
-                    style={styles.button}
-                    variant={ButtonVariants.Secondary}
-                    onPress={onBack}
-                    labelTextVariant={TextVariant.BodyMD}
-                    label={strings('accounts.cancel')}
-                  />
-                  <Button
-                    testID={AddNewAccountIds.CONFIRM}
-                    loading={isLoading}
-                    isDisabled={isLoading || isDuplicateName}
-                    style={styles.button}
-                    variant={ButtonVariants.Primary}
-                    onPress={onSubmit}
-                    labelTextVariant={TextVariant.BodyMD}
-                    label={strings('accounts.add')}
-                  />
-                </View>
-                {error && (
-                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                    {error}
+              <View style={styles.accountInputContainer}>
+                <Input
+                  testID={AddNewAccountIds.NAME_INPUT}
+                  textVariant={TextVariant.BodyMDMedium}
+                  style={styles.accountInput}
+                  value={accountName}
+                  onChangeText={(newName: string) => {
+                    setAccountName(newName);
+                  }}
+                  placeholder={accountName}
+                  placeholderTextColor={colors.text.default}
+                  onSubmitEditing={onSubmit}
+                />
+              </View>
+              {hasMultipleSRPs && (
+                <View style={styles.srpSelectorContainer}>
+                  <Text variant={TextVariant.BodyMDMedium}>
+                    {strings('accounts.select_secret_recovery_phrase')}
                   </Text>
-                )}
-              </Fragment>
+                  <View style={styles.srpSelector}>
+                    <SRPListItem
+                      keyring={keyringToDisplay}
+                      name={`${strings(
+                        'accounts.secret_recovery_phrase',
+                      )} ${keyringIndex}`}
+                      onActionComplete={() => {
+                        setShowSRPList(true);
+                      }}
+                      testID={AddNewAccountIds.SRP_SELECTOR}
+                    />
+                  </View>
+                  <Text variant={TextVariant.BodySM}>
+                    {strings('accounts.add_new_hd_account_helper_text')}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.footerContainer}>
+                <Button
+                  testID={AddNewAccountIds.CANCEL}
+                  loading={isLoading}
+                  style={styles.button}
+                  variant={ButtonVariants.Secondary}
+                  onPress={onBack}
+                  labelTextVariant={TextVariant.BodyMD}
+                  label={strings('accounts.cancel')}
+                />
+                <Button
+                  testID={AddNewAccountIds.CONFIRM}
+                  loading={isLoading}
+                  isDisabled={isLoading || isDuplicateName}
+                  style={styles.button}
+                  variant={ButtonVariants.Primary}
+                  onPress={onSubmit}
+                  labelTextVariant={TextVariant.BodyMD}
+                  label={strings('accounts.add')}
+                />
+              </View>
+              {error && (
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {error}
+                </Text>
+              )}
             </View>
           )}
         </Fragment>
