@@ -264,7 +264,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [isCollectibleIgnored, chainId, selectedAddress],
   );
 
-  const renderFooter = useCallback(
+  const renderLoader = useCallback(
     () => (
       <View style={styles.footer} key={'collectible-contracts-footer'}>
         {isNftFetchingProgress ? (
@@ -329,6 +329,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     useNftDetection,
   ]);
 
+  console.log(
+    'isNftDetectionEnabled',
+    isNftDetectionEnabled,
+    isNftFetchingProgress,
+    flatMultichainCollectibles.length,
+  );
+
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
@@ -336,8 +343,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           navigation.navigate('AddAsset', { assetType: 'NFT' })
         }
       />
+      {/* initial fetching state */}
+      {isNftFetchingProgress &&
+        flatMultichainCollectibles.length === 0 &&
+        renderLoader()}
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
-      {/* fetching state */}
       {/* empty state */}
       {!isNftFetchingProgress && flatMultichainCollectibles.length === 0 && (
         <>
@@ -371,18 +381,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          // ListFooterComponent={<NftGridFooter navigation={navigation} />}
           ListEmptyComponent={renderEmpty}
-          ListFooterComponent={renderFooter}
+          // incremental fetching state
+          ListFooterComponent={renderLoader}
         />
       )}
-      {/* {isNftFetchingProgress && (
-        <ActivityIndicator
-          size="large"
-          style={styles.spinner}
-          testID={SpinnerTestId}
-        />
-      )} */}
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
