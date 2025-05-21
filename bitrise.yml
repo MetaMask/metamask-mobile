@@ -111,6 +111,10 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
+  #Test release pipeline that builds from any branch without version bump
+  test_release_pipeline:
+    stages:
+      - create_build_qa: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
