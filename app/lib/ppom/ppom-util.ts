@@ -208,7 +208,7 @@ function updateSecurityResultForTransaction(
 
 function fetchTransactionIdAndUpdateSecurityResultForTransaction(
   response: SecurityAlertResponse,
-  updateControllerState: boolean = false,
+  updateControllerState?: boolean,
   securityAlertId?: string,
 ) {
   const intervalId = setInterval(() => {
@@ -235,9 +235,7 @@ function setSecurityAlertResponse(
   }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
-    const trxnId =
-      transactionId ?? getTransactionIdForSecurityAlertId(securityAlertId);
-    if (securityAlertId && !trxnId) {
+    if (securityAlertId && !transactionId) {
       fetchTransactionIdAndUpdateSecurityResultForTransaction(
         response,
         updateControllerState,
@@ -245,7 +243,7 @@ function setSecurityAlertResponse(
       );
     } else {
       updateSecurityResultForTransaction(
-        trxnId,
+        transactionId,
         response,
         updateControllerState,
         securityAlertId,

@@ -309,6 +309,27 @@ describe('PPOM Utils', () => {
       expect(spy).toHaveBeenCalledTimes(2);
     });
 
+    it('should update transaction with validation result if transactionId is not found for securityAlertId provided', async () => {
+      const mockSecurityAlertId = 'abc123';
+      Engine.context.TransactionController.state.transactions = [
+        {
+          securityAlertResponse: { securityAlertId: '123' },
+          id: 'transactionId',
+        } as unknown as TransactionMeta,
+      ];
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      await PPOMUtil.validateRequest(
+        mockRequest,
+        undefined,
+        mockSecurityAlertId,
+      );
+      jest.advanceTimersByTime(10000);
+      expect(spy).toHaveBeenCalledTimes(0);
+    });
+
     it('should update signature requests with validation result', async () => {
       const spy = jest.spyOn(SignatureRequestActions, 'default');
       await PPOMUtil.validateRequest(mockSignatureRequest);
