@@ -44,7 +44,7 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
+import { ImageURISource, StyleSheet } from 'react-native';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -110,14 +110,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    {
-      size: AvatarSize;
-      name: string;
-      imageSource: ImageSourcePropType;
-    }[]
-  >([]);
-
   const requestedCaip25CaveatValue = useMemo(() => getRequestedCaip25CaveatValue(
     hostInfo.permissions,
   ), [hostInfo.permissions]
@@ -148,19 +140,15 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
-  const setSelectedChainIds = useCallback((newSelectedChainIds: CaipChainId[]) => {
-    _setSelectedChainIds(newSelectedChainIds);
-
-    const newNetworkAvatars = newSelectedChainIds.map(
-      (newSelectedChainId) => ({
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
+  const selectedNetworkAvatars = useMemo(() => selectedChainIds.map(
+      (selectedChainId) => ({
         size: AvatarSize.Xs,
-        name: networkConfigurations[newSelectedChainId]?.name || '',
-        imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+        name: networkConfigurations[selectedChainId]?.name || '',
+        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
       }),
-    );
-    setSelectedNetworkAvatars(newNetworkAvatars);
-  }, [networkConfigurations, setSelectedNetworkAvatars]);
+    ), [networkConfigurations, selectedChainIds]);
+
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
@@ -279,21 +267,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostname: hostnameFromUrlObj,
     protocol: protocolFromUrlObj
   } = getUrlObj(urlWithProtocol);
-
-  useEffect(() => {
-    // Create network avatars for all enabled networks
-    const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => ({
-        size: AvatarSize.Xs,
-        name: network.name || '',
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
-      }),
-    );
-
-    setSelectedNetworkAvatars(networkAvatars);
-
-    // No need to update selectedChainIds here since it's already initialized with all networks
-  }, [networkConfigurations]);
 
   useEffect(() => {
     let url = dappUrl || channelIdOrHostname || '';
