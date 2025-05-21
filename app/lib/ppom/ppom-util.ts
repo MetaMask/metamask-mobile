@@ -178,15 +178,14 @@ async function validateWithAPI(
 function getTransactionIdForSecurityAlertId(securityAlertId?: string) {
   if (!securityAlertId) return;
   const confirmation =
-    Engine.context.TransactionController.state.transactions.find((meta) => {
-      return (
+    Engine.context.TransactionController.state.transactions.find(
+      (meta) =>
         (
           meta.securityAlertResponse as SecurityAlertResponse & {
             securityAlertId: string;
           }
-        )?.securityAlertId === securityAlertId
-      );
-    });
+        )?.securityAlertId === securityAlertId,
+    );
   return confirmation?.id;
 }
 
