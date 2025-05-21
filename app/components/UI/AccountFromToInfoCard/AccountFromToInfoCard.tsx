@@ -22,6 +22,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../util/general';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, chainId, ticker, transactionState, origin } = props;
@@ -169,7 +170,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <View style={styles.container}>
       {fromAddress && (
-        <AddressFrom asset={selectedAsset} from={fromAddress} origin={origin} />
+        <AddressFrom
+          chainId={isPerDappSelectedNetworkEnabled() ? transactionState?.chainId : undefined}
+          asset={selectedAsset}
+          from={fromAddress}
+          origin={origin}
+        />
       )}
       {existingToAddress === undefined && confusableCollection.length ? (
         <TouchableOpacity onPress={() => setShowWarningModal(true)}>

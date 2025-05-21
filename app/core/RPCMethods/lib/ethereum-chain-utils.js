@@ -6,6 +6,7 @@ import {
   getDecimalChainId,
   isChainPermissionsFeatureEnabled,
   isPrefixedFormattedHexString,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
@@ -339,7 +340,7 @@ export async function switchToNetwork({
 
   const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
 
-  if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
+  if (isPerDappSelectedNetworkEnabled() && originHasAccountsPermission) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
       networkConfigurationId || networkConfiguration.networkType,

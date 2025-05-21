@@ -4,6 +4,7 @@ import Engine from '../../../core/Engine';
 import {
   isMultichainV1Enabled,
   getDecimalChainId,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -130,6 +131,7 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -190,6 +192,7 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isMultichainV1Enabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =
           networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
