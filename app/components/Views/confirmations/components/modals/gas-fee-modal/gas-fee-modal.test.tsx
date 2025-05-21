@@ -2,20 +2,20 @@ import { render } from '@testing-library/react-native';
 import React from 'react';
 
 import { GasFeeModal } from './gas-fee-modal';
-import { EstimatesModal } from './modals/estimates-modal';
-import { AdvancedEIP1559Modal } from './modals/advanced-eip1559-modal';
-import { AdvancedGasPriceModal } from './modals/advanced-gas-price-modal';
-import { GasModalType } from './constants';
+import { EstimatesModal } from '../estimates-modal';
+import { AdvancedEIP1559Modal } from '../advanced-eip1559-modal';
+import { AdvancedGasPriceModal } from '../advanced-gas-price-modal';
+import { GasModalType } from '../../../constants/gas';
 
-jest.mock('./modals/advanced-gas-price-modal', () => ({
+jest.mock('../advanced-gas-price-modal', () => ({
   AdvancedGasPriceModal: jest.fn(() => null),
 }));
 
-jest.mock('./modals/advanced-eip1559-modal', () => ({
+jest.mock('../advanced-eip1559-modal', () => ({
   AdvancedEIP1559Modal: jest.fn(() => null),
 }));
 
-jest.mock('./modals/estimates-modal', () => ({
+jest.mock('../estimates-modal', () => ({
   EstimatesModal: jest.fn(() => null),
 }));
 
