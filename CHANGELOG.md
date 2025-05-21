@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - fix(bridge): fix(bridge): update quote details card toggle to handle same chain swaps and improve slippage button layout ([#15153](https://github.com/MetaMask/metamask-mobile/pull/15153))
  - fix(bridge): show "Auto" slippage for Solana swaps
  - fix(bridge): add insufficient balance check for Solana swaps
+ - fix(bridge): disable Solana as destination network if no Solana account exists
 
 ## [7.46.0]
 
