@@ -7,6 +7,7 @@ import renderWithProvider from '../../../../../../../../util/test/renderWithProv
 import { transferTransactionStateMock } from '../../../../../mock-data/transfer-transaction-mock';
 import { feeMarketEstimates } from '../../../../../mock-data/gas-fee-controller-mock';
 import { useGasFeeEstimates } from '../../../../../hooks/gas/useGasFeeEstimates';
+import { validateMaxBaseFee } from '../../../../../utils/gas-validations';
 import { MaxBaseFeeInput } from './max-base-fee-input';
 
 jest.mock('../../../../../hooks/gas/useGasFeeEstimates');
@@ -18,8 +19,13 @@ jest.mock('../../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../utils/gas-validations', () => ({
+  validateMaxBaseFee: jest.fn(),
+}));
+
 describe('MaxBaseFeeInput', () => {
   const mockUseGasFeeEstimates = jest.mocked(useGasFeeEstimates);
+  const MAX_PRIO_FEE_PER_GAS_MOCK = '0x1c9c380';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,20 +36,28 @@ describe('MaxBaseFeeInput', () => {
 
   it('renders the max base fee title and input', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <MaxBaseFeeInput onChange={noop} />,
+      <MaxBaseFeeInput
+        maxPriorityFeePerGas={MAX_PRIO_FEE_PER_GAS_MOCK}
+        onChange={noop}
+        onErrorChange={noop}
+      />,
       {
         state: transferTransactionStateMock,
       },
     );
 
-    expect(getByText('Max Base Fee (GWEI)')).toBeOnTheScreen();
+    expect(getByText('Max Base Fee')).toBeOnTheScreen();
     expect(getByTestId('max-base-fee-input')).toBeOnTheScreen();
     expect(getByTestId('max-base-fee-input')).toHaveProp('value', '0.0135');
   });
 
   it('renders the estimated base fee and historical base fee range', () => {
     const { getByText } = renderWithProvider(
-      <MaxBaseFeeInput onChange={noop} />,
+      <MaxBaseFeeInput
+        maxPriorityFeePerGas={MAX_PRIO_FEE_PER_GAS_MOCK}
+        onChange={noop}
+        onErrorChange={noop}
+      />,
       {
         state: transferTransactionStateMock,
       },
@@ -56,7 +70,11 @@ describe('MaxBaseFeeInput', () => {
   it('calls onChange when input value changes', () => {
     const mockOnChange = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <MaxBaseFeeInput onChange={mockOnChange} />,
+      <MaxBaseFeeInput
+        maxPriorityFeePerGas={MAX_PRIO_FEE_PER_GAS_MOCK}
+        onChange={mockOnChange}
+        onErrorChange={noop}
+      />,
       {
         state: transferTransactionStateMock,
       },
@@ -66,6 +84,7 @@ describe('MaxBaseFeeInput', () => {
     fireEvent.changeText(input, '0.03');
 
     expect(mockOnChange).toHaveBeenCalledWith('0x1c9c380');
+    expect(validateMaxBaseFee).toHaveBeenCalledWith('0.03', '0.03');
   });
 
   it('does not render the info container if the fee info does not exist', () => {
@@ -78,7 +97,11 @@ describe('MaxBaseFeeInput', () => {
     });
 
     const { queryByTestId } = renderWithProvider(
-      <MaxBaseFeeInput onChange={noop} />,
+      <MaxBaseFeeInput
+        maxPriorityFeePerGas={MAX_PRIO_FEE_PER_GAS_MOCK}
+        onChange={noop}
+        onErrorChange={noop}
+      />,
       {
         state: transferTransactionStateMock,
       },

@@ -29,13 +29,21 @@ export const AdvancedGasPriceModal = ({
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
 
+  const { gas, gasPrice } = transactionMeta?.txParams || {};
+
   const [gasParams, setGasParams] = useState<{
-    gas: Hex | null;
-    gasPrice: Hex | null;
+    gas: Hex;
+    gasPrice: Hex;
   }>({
-    gas: null,
-    gasPrice: null,
+    gas: gas as Hex,
+    gasPrice: gasPrice as Hex,
   });
+
+  const [errors, setErrors] = useState({
+    gasLimit: false,
+    gasPrice: false,
+  });
+  const hasError = errors.gasLimit || errors.gasPrice;
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
@@ -63,6 +71,13 @@ export const AdvancedGasPriceModal = ({
     setActiveModal(GasModalType.ESTIMATES);
   }, [setActiveModal]);
 
+  const handleInputError = (
+    key: 'gasLimit' | 'gasPrice',
+    isError: boolean,
+  ) => {
+    setErrors((prev) => ({ ...prev, [key]: isError }));
+  };
+
   return (
     <BottomModal
       avoidKeyboard
@@ -76,16 +91,27 @@ export const AdvancedGasPriceModal = ({
           title={strings('transactions.gas_modal.advanced_gas_fee')}
         />
         <View style={styles.inputsContainer}>
-          <GasPriceInput onChange={handleGasPriceChange} />
-          <GasLimitInput onChange={handleGasLimitChange} />
+          <GasPriceInput
+            onChange={handleGasPriceChange}
+            onErrorChange={(error) =>
+              handleInputError('gasPrice', !!error)
+            }
+          />
+          <GasLimitInput
+            onChange={handleGasLimitChange}
+            onErrorChange={(error) =>
+              handleInputError('gasLimit', !!error)
+            }
+          />
         </View>
         <Button
-          style={styles.button}
-          onPress={handleSaveClick}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
+          isDisabled={hasError}
           label={strings('transactions.gas_modal.save')}
+          onPress={handleSaveClick}
+          size={ButtonSize.Lg}
+          style={styles.button}
           testID="save-gas-price-button"
+          variant={ButtonVariants.Primary}
         />
       </View>
     </BottomModal>

@@ -30,15 +30,26 @@ export const AdvancedEIP1559Modal = ({
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
 
+  const { gas, maxFeePerGas, maxPriorityFeePerGas } =
+    transactionMeta?.txParams || {};
+
   const [gasParams, setGasParams] = useState<{
-    gas: Hex | null;
-    maxFeePerGas: Hex | null;
-    maxPriorityFeePerGas: Hex | null;
+    gas: Hex;
+    maxFeePerGas: Hex;
+    maxPriorityFeePerGas: Hex;
   }>({
-    gas: null,
-    maxFeePerGas: null,
-    maxPriorityFeePerGas: null,
+    gas: gas as Hex,
+    maxFeePerGas: maxFeePerGas as Hex,
+    maxPriorityFeePerGas: maxPriorityFeePerGas as Hex,
   });
+
+  const [errors, setErrors] = useState({
+    gasLimit: false,
+    maxBaseFee: false,
+    priorityFee: false,
+  });
+  const isAnyErrorExists =
+    errors.gasLimit || errors.maxBaseFee || errors.priorityFee;
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
@@ -69,6 +80,13 @@ export const AdvancedEIP1559Modal = ({
     });
   };
 
+  const handleInputError = (
+    key: 'gasLimit' | 'maxBaseFee' | 'priorityFee',
+    hasError: boolean,
+  ) => {
+    setErrors((prev) => ({ ...prev, [key]: hasError }));
+  };
+
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);
   }, [setActiveModal]);
@@ -86,16 +104,34 @@ export const AdvancedEIP1559Modal = ({
           title={strings('transactions.gas_modal.advanced_gas_fee')}
         />
         <View style={styles.inputsContainer}>
-          <MaxBaseFeeInput onChange={handleMaxBaseFeeChange} />
-          <PriorityFeeInput onChange={handlePriorityFeeChange} />
-          <GasLimitInput onChange={handleGasLimitChange} />
+          <MaxBaseFeeInput
+            onChange={handleMaxBaseFeeChange}
+            maxPriorityFeePerGas={gasParams.maxPriorityFeePerGas}
+            onErrorChange={(hasError) =>
+              handleInputError('maxBaseFee', !!hasError)
+            }
+          />
+          <PriorityFeeInput
+            onChange={handlePriorityFeeChange}
+            maxFeePerGas={gasParams.maxFeePerGas}
+            onErrorChange={(hasError) =>
+              handleInputError('priorityFee', !!hasError)
+            }
+          />
+          <GasLimitInput
+            onChange={handleGasLimitChange}
+            onErrorChange={(hasError) =>
+              handleInputError('gasLimit', !!hasError)
+            }
+          />
         </View>
         <Button
-          style={styles.button}
-          onPress={handleSaveClick}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
+          isDisabled={isAnyErrorExists}
           label={strings('transactions.gas_modal.save')}
+          onPress={handleSaveClick}
+          size={ButtonSize.Lg}
+          style={styles.button}
+          variant={ButtonVariants.Primary}
         />
       </View>
     </BottomModal>
