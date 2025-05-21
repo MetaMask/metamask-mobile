@@ -17,6 +17,10 @@ jest.mock('@metamask/bridge-controller', () => ({
   fetchBridgeTokens: jest.fn(),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '1.0.0',
+}));
+
 describe('useTopTokens', () => {
   const mockChainId = '0x1' as Hex;
   const mockBridgeToken1: BridgeToken = {
