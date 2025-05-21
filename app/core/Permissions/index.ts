@@ -3,7 +3,7 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
@@ -258,7 +258,8 @@ export const addPermittedAccounts = (
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
   const evmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.networkConfigurationsByChainId;
-  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId);
+  const nonEvmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.multichainNetworkConfigurationsByChainId;
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
