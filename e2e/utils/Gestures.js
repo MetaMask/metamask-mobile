@@ -53,8 +53,6 @@ static async waitAndTap(elementID, options = {}) {
   if (!skipVisibilityCheck) {
     await waitFor(element).toBeVisible().withTimeout(timeout);
   }
-  await waitFor(element).toBeVisible().withTimeout(timeout);
-
   if (delayBeforeTap > 0) {
     await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
   }
