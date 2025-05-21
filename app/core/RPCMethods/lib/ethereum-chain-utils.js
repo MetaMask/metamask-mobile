@@ -263,7 +263,7 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
-      autoApprove: autoApprove,
+      autoApprove,
     });
   }
 
@@ -322,7 +322,7 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
-      autoApprove: autoApprove,
+      autoApprove,
     });
   } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
     await requestUserApproval({
