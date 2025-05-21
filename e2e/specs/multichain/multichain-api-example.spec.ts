@@ -1,6 +1,8 @@
-/// <reference types="detox" />
-
 'use strict';
+/**
+ * NOTE: This test is temporarily configured to use the online multichain test dapp
+ * at https://devdapp.siteed.net/ instead of the local version.
+ */
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
@@ -20,13 +22,10 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
   it('should load the multichain test dapp', async () => {
     await withFixtures(
       {
-        dapp: true,
-        multichainDapp: true,
-        disableGanache: true,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
-      async (/* { device } */) => {
+      async () => {
         await TestHelpers.reverseServerPort();
 
         // Login and navigate to the test dapp
@@ -39,7 +38,7 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
 
         // Verify the WebView is visible
         await Assertions.checkIfVisible(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
         );
       },
     );
@@ -48,13 +47,10 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
   it('should connect to multichain dapp and create a session with multiple chains', async () => {
     await withFixtures(
       {
-        dapp: true,
-        multichainDapp: true,
-        disableGanache: true,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
-      async (/* { device } */) => {
+      async () => {
         await TestHelpers.reverseServerPort();
 
         // Login and navigate to the test dapp
