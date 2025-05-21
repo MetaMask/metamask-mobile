@@ -10,6 +10,7 @@ import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import { extractRpcDomain } from '../../../../../util/rpc-domain-utils';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -81,6 +82,26 @@ export async function handleTransactionFinalizedEventForMetrics(
   );
 
   try {
+    // Explicitly get the RPC URL and domain for failed transactions
+    const network = getState().engine.backgroundState.NetworkController;
+    let rpcUrl: string | undefined;
+
+    // Check if the network has provider property and access it safely
+    if (network && typeof network === 'object' && 'provider' in network) {
+      const provider = network.provider;
+      if (provider && typeof provider === 'object') {
+        rpcUrl = (provider as any).rpcUrl || (provider as any).rpcTarget;
+      }
+    }
+
+    if (rpcUrl) {
+      const rpcDomain = extractRpcDomain(rpcUrl);
+      if (rpcDomain) {
+        // Add the RPC domain directly to the properties
+        eventBuilder.addProperties({ rpc_domain: rpcDomain } as unknown as JsonMap);
+      }
+    }
+
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
       transactionMeta.chainId,
@@ -108,6 +129,16 @@ export async function handleTransactionFinalizedEventForMetrics(
       defaultTransactionMetricProperties.properties as unknown as JsonMap
     );
 
+    // Log for debugging - can be removed in production
+    Logger.log('METRICS COMPARISON - Final output for Finalized Transaction:', JSON.stringify({
+      name: 'Transaction Finalized',
+      properties: {
+        ...defaultTransactionMetricProperties.properties,
+        transaction_internal_id: transactionMeta.id,
+      },
+      sensitiveProperties: defaultTransactionMetricProperties.sensitiveProperties,
+    }));
+
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
       defaultTransactionMetricProperties.sensitiveProperties
@@ -128,6 +159,16 @@ export async function handleTransactionFinalizedEventForMetrics(
   }
 
   const event = eventBuilder.build();
+
+  // Log the final event properties to verify RPC domain is included
+  if (transactionMeta.status === 'failed') {
+    Logger.log('METRICS BEING SENT FOR FAILED TX:', JSON.stringify({
+      eventName: event.name,
+      properties: event.properties,
+      has_rpc_domain: event.properties?.rpc_domain !== undefined,
+      rpc_domain: event.properties?.rpc_domain,
+    }));
+  }
 
   MetaMetrics.getInstance().trackEvent(event);
 }

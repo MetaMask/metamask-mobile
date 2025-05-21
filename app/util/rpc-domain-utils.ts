@@ -87,68 +87,58 @@ export function setKnownDomainsForTesting(domains: Set<string> | null): void {
 }
 
 /**
- * Extracts the domain from an RPC endpoint URL with privacy considerations
- *
- * @param rpcUrl - The RPC endpoint URL
- * @returns The domain for known providers, 'private' for private/custom networks, or 'invalid' for invalid URLs
+ * Extracts the domain from an RPC URL for analytics tracking
+ * @param rpcUrl - The RPC URL to extract domain from
+ * @returns The domain extracted from the URL, or undefined if the URL is invalid
+ */
+/**
+ * Extracts the domain from an RPC URL for analytics tracking
+ * @param rpcUrl - The RPC URL to extract domain from
+ * @returns The domain extracted from the URL, or "private" for non-known domains, or "invalid" for invalid URLs
  */
 export function extractRpcDomain(rpcUrl: string): string {
   if (!rpcUrl) {
     return 'invalid';
   }
-
-  // When domains are not initialized, use defaults for common RPC providers
-  // This provides robust fallback in case the chain data cache is empty
-  if (!knownDomainsSet) {
-    knownDomainsSet = new Set(['mainnet.infura.io', 'infura.io', 'eth-mainnet.alchemyapi.io']);
-
-    // Start async initialization for future calls
-    initializeRpcProviderDomains().catch(e =>
-      console.error('Error in background domain initialization:', e)
-    );
-  }
-
+  
   try {
-    // Try to parse the URL directly
-    let url;
-    try {
+    // Try to parse the URL
+    let url: URL;
+    
+    // Handle URLs without protocol
+    if (!rpcUrl.includes('://')) {
+      url = new URL(`https://${rpcUrl}`);
+    } else {
       url = new URL(rpcUrl);
-    } catch (e) {
-      // Special case for localhost:port format
-      if (rpcUrl.startsWith('localhost:') || rpcUrl.match(/^localhost:\d+$/)) {
-        return isKnownDomain('localhost') ? 'localhost' : 'private';
-      }
-
-      // If parsing fails, check if it looks like a domain without protocol
-      if (rpcUrl.includes('://')) {
-        return 'invalid';
-      }
-
-      // Handle domain:port format without protocol
-      if (rpcUrl.includes(':') && !rpcUrl.includes('//')) {
-        const domainPart = rpcUrl.split(':')[0];
-        if (domainPart) {
-          return isKnownDomain(domainPart.toLowerCase())
-            ? domainPart.toLowerCase()
-            : 'private';
-        }
-      }
-
-      // Try adding https:// prefix for domain-like strings
-      try {
-        url = new URL(`https://${rpcUrl}`);
-      } catch (e2) {
-        return 'invalid';
-      }
     }
-
-    // Check if the domain is known
-    if (isKnownDomain(url.hostname)) {
-      return url.hostname.toLowerCase();
+    
+    const domain = url.hostname.toLowerCase();
+    
+    // Check if this is a known domain
+    if (isKnownDomain(domain)) {
+      return domain;
     }
-
+    
+    // Special case for Infura subdomains - always return the actual domain
+    // even if not in the known domains list
+    if (domain.includes('infura.io')) {
+      return domain;
+    }
+    
+    // Special case for Alchemy subdomains
+    if (domain.endsWith('alchemyapi.io')) {
+      return domain;
+    }
+    
+    // Special case for local/development nodes
+    if (domain === 'localhost' || domain === '127.0.0.1') {
+      return 'private';
+    }
+    
+    // For all other domains, return "private" for privacy
     return 'private';
   } catch (error) {
+    // If URL parsing fails, return "invalid"
     return 'invalid';
   }
 }
@@ -163,14 +153,14 @@ export function getNetworkRpcUrl(chainId: string): string {
   try {
     const { NetworkController } = Engine.context;
 
-    // Find the network client ID for this chain ID
+    // Find network clientID for chainID
     const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
 
     if (!networkClientId) {
       return 'unknown';
     }
 
-    // Get network configuration
+    // Get network config
     const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
 
     if (!networkConfig) {
@@ -182,7 +172,7 @@ export function getNetworkRpcUrl(chainId: string): string {
       return typeof networkConfig.rpcUrl === 'string' ? networkConfig.rpcUrl : 'unknown';
     }
 
-    // Or if it uses rpcEndpoints array
+    // If we use rpcEndpoints array
     if (networkConfig.rpcEndpoints?.length > 0) {
       const defaultEndpointIndex = networkConfig.defaultRpcEndpointIndex || 0;
       return (

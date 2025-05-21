@@ -1,4 +1,3 @@
-import { merge } from 'lodash';
 import {
   TransactionType,
   type TransactionMeta,
@@ -130,12 +129,13 @@ export function generateDefaultTransactionMetrics(
   console.log('METRICS COMPARISON - Event type and status check:', eventType, status, isSubmittedOrFinalized);
 
   if (isSubmittedOrFinalized) {
+    // Always get RPC domain for all transaction statuses
     const rpcUrl = getNetworkRpcUrl(chainId);
     console.log('METRICS COMPARISON - RPC URL:', rpcUrl);
-    
+
     const rpc_domain = extractRpcDomain(rpcUrl);
     console.log('METRICS COMPARISON - RPC domain:', rpc_domain);
-    
+
     if (rpc_domain) {
       properties.rpc_domain = rpc_domain;
     }
