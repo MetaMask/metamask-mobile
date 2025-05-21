@@ -23,6 +23,8 @@ import {
 } from '../../../selectors/tokenBalancesController';
 import { useAsyncResult } from '../useAsyncResult';
 
+export const ERC20_DEFAULT_DECIMALS = 18;
+
 const useAddressBalance = (
   asset?: Asset,
   address?: string,
@@ -134,7 +136,7 @@ const useAddressBalance = (
       if (balance) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
           balance ?? '0',
-          Number(tokenDetails?.decimals) ?? decimals,
+          Number(tokenDetails?.decimals || decimals || ERC20_DEFAULT_DECIMALS),
         )} ${tokenDetails?.symbol ?? symbol}`;
         setAddressBalance(fromAccBalance);
       } else {
