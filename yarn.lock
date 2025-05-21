@@ -4751,10 +4751,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.12.1.tgz#2b60ac613992e97302a9898b3d4030395b2b2123"
   integrity sha512-8gsN7a5OyRMg6c0jw0tDrqePHjFv9uHi36eL2PdTMUYU9J3dL/t9cOWe/3RPSwu7tw/tMNXyM4mzwZvq7Kxs2Q==
 
-"@metamask/bridge-controller@^23.0.0":
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-23.0.0.tgz#22d98ae77a4968efeb963905c037d0ce8c49ea08"
-  integrity sha512-GX2o/bKHaIc+skvh29YLOXTBHwhe5qpLph/1zbXgHLh86jVsTGSaHOoCiyNBchwvHXJ31n9EAQFPHMgj2bcqwQ==
+"@metamask/bridge-controller@^25.1.0":
+  version "25.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-25.1.0.tgz#734d85e94f5d59d72bba17ea1437b2caa74248af"
+  integrity sha512-kJkCoG3maCphfe9/ye3Q0GoMP0GY4jSBQYHsse6zdW60dBzZr5VpQgh3l479sPx5EMnODhbwIoZfnVrhNxIPog==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4762,11 +4762,11 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.8.0"
+    "@metamask/controller-utils" "^11.9.0"
     "@metamask/gas-fee-controller" "^23.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.6.0"
+    "@metamask/multichain-network-controller" "^0.7.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
@@ -4861,6 +4861,23 @@
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
 "@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0", "@metamask/controller-utils@^11.8.0", "@metamask/controller-utils@^11.9.0":
+  version "11.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.9.0.tgz#fefe04fa53d6f0f808f756eaa079b02d256be4b1"
+  integrity sha512-rfOVI+wPO7WIcwsY5b/1fx44GSYIKsSgvIEUjpfF6YkI5TvbJiXKGKSHkKT1wwl0otq/k6qeM5hn3GuTOCiYwg==
+  dependencies:
+    "@ethereumjs/util" "^9.1.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/ethjs-unit" "^0.3.0"
+    "@metamask/utils" "^11.2.0"
+    "@spruceid/siwe-parser" "2.1.0"
+    "@types/bn.js" "^5.1.5"
+    bignumber.js "^9.1.2"
+    bn.js "^5.2.1"
+    cockatiel "^3.1.2"
+    eth-ens-namehash "^2.0.8"
+    fast-deep-equal "^3.1.3"
+
+"@metamask/controller-utils@^11.9.0":
   version "11.9.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.9.0.tgz#fefe04fa53d6f0f808f756eaa079b02d256be4b1"
   integrity sha512-rfOVI+wPO7WIcwsY5b/1fx44GSYIKsSgvIEUjpfF6YkI5TvbJiXKGKSHkKT1wwl0otq/k6qeM5hn3GuTOCiYwg==
@@ -5338,18 +5355,19 @@
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
-"@metamask/multichain-network-controller@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.6.0.tgz#ca8c68486fb48544231b4ce80206f79dad7c82f5"
-  integrity sha512-NQxTBQSRq3G9ZlPpJNKR9vlW7onV3+j+swwIVL7a+wqbVfDE6IU7AT3MXzQ3OaDJfo4oqEBqdK0/Z4mxCQLDbw==
+"@metamask/multichain-network-controller@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.7.0.tgz#1be6fe10fa71f5333686be16b953e5a76c705cd3"
+  integrity sha512-kgxU0Ce5qQdynBd2l+Uo6428VcIdbD8N3W+tUdeymgGkdVlNkyRdTUAyZLNFVUpP9KVkvksCQqXVN1CwU35UCw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/controller-utils" "^11.8.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/keyring-internal-api" "^6.0.1"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
+    lodash "^4.17.21"
 
 "@metamask/multichain-transactions-controller@^0.10.0":
   version "0.10.0"
@@ -26253,10 +26271,15 @@ semver@^6.0.0, semver@^6.3.0, semver@^6.3.1:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.0.0, semver@^7.1.1, semver@^7.1.3, semver@^7.3.5, semver@^7.3.7, semver@^7.3.8, semver@^7.5.0, semver@^7.5.2, semver@^7.5.3, semver@^7.5.4, semver@^7.6.0, semver@^7.6.3:
+semver@^7.0.0, semver@^7.1.1, semver@^7.1.3, semver@^7.3.5, semver@^7.3.7, semver@^7.3.8, semver@^7.5.0, semver@^7.5.2, semver@^7.5.3, semver@^7.5.4, semver@^7.6.3:
   version "7.7.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.1.tgz#abd5098d82b18c6c81f6074ff2647fd3e7220c9f"
   integrity sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==
+
+semver@^7.6.0:
+  version "7.7.2"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
+  integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 send@0.19.0, send@^0.19.0:
   version "0.19.0"
