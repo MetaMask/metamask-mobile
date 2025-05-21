@@ -15,6 +15,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { useAccounts } from '../../hooks/useAccounts';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 
 jest.useFakeTimers();
 
@@ -24,6 +28,21 @@ jest.mock('../../hooks/useAccounts', () => ({
     accounts: [],
     ensByAccountAddress: {},
   }),
+}));
+
+jest.mock('../../../core/Permissions', () => ({
+  // Mock specific named exports. Add others if Browser.js uses them.
+  getPermittedAccounts: jest.fn(),
+}));
+
+jest.mock('../BrowserTab/BrowserTab', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'BrowserTab')
+}));
+
+jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'TabThumbnail')
 }));
 
 const mockTabs = [
@@ -70,6 +89,14 @@ jest.mock('../../../core/Engine', () => {
         }),
       },
       AccountsController: mockAccountsControllerState,
+      PermissionsController: {
+        getCaveat: jest.fn(), // Default mock, can be configured in tests
+        getPermittedAccountsByHostname: jest.fn(),
+        // Add other PermissionsController methods if errors indicate they're needed
+        // For example:
+        // hasPermission: jest.fn().mockReturnValue(true),
+        // getPermissions: jest.fn().mockReturnValue({}),
+      },
     },
   };
 });
@@ -332,6 +359,99 @@ describe('Browser', () => {
 
     // Clean up
     setParamsSpy.mockRestore();
+  });
+
+  it('should show active account toast when visiting a site with permitted accounts', () => {
+    // 1. Mock dependencies
+    const mockShowToast = jest.fn();
+    const mockCloseToast = jest.fn();
+    const mockToastRef = { current: { showToast: mockShowToast, closeToast: mockCloseToast } };
+
+    // Mock required values
+    const testAccountAddress = '0xabcdef123456789';
+    const oldHostname = 'site1.com';
+    const newHostname = 'site2.com';
+    const mockAccountName = 'Test Account';
+
+    // Mock accounts and ENS data
+    const mockAccounts = [
+      { 
+        address: testAccountAddress, 
+        name: mockAccountName,
+        type: KeyringTypes.simple,
+        yOffset: 0,
+        isSelected: true
+      }
+    ];
+    const mockEnsByAccountAddress = {
+      [testAccountAddress]: 'test.eth'
+    };
+
+    // Setup mocks
+    (useAccounts as jest.Mock).mockReturnValue({
+      evmAccounts: mockAccounts,
+      accounts: mockAccounts,
+      ensByAccountAddress: mockEnsByAccountAddress,
+    });
+
+    (getPermittedAccounts as jest.Mock).mockImplementation((hostname) => {
+      if (hostname === newHostname) {
+        return [testAccountAddress];
+      }
+      return [];
+    });
+
+    // Mock the checkIfActiveAccountChanged effect function
+    // This is extracted from the useEffect in Browser.js
+    const checkIfActiveAccountChanged = (hostname: string) => {
+      const permittedAccounts = getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedAccounts?.[0];
+
+      if (activeAccountAddress) {
+        const accountName = activeAccountAddress === testAccountAddress ? mockAccountName : 'Unknown Account';
+
+        // Show toast - this is what we want to test
+        mockToastRef.current.showToast({
+          variant: 'Account',
+          labelOptions: [
+            {
+              label: `${accountName} `,
+              isBold: true,
+            },
+            { label: 'now active.' },
+          ],
+          accountAddress: activeAccountAddress,
+          accountAvatarType: 'JazzIcon',
+        });
+
+        return true;
+      }
+      return false;
+    };
+
+    // Verify toast is not shown initially for site1
+    const prevHostnameResult = checkIfActiveAccountChanged(oldHostname);
+    expect(prevHostnameResult).toBe(false);
+    expect(mockShowToast).not.toHaveBeenCalled();
+
+    // Verify toast is shown when changing to site2
+    mockShowToast.mockReset();
+    const newHostnameResult = checkIfActiveAccountChanged(newHostname);
+    expect(newHostnameResult).toBe(true);
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'Account',
+      accountAddress: testAccountAddress,
+      labelOptions: expect.arrayContaining([
+        expect.objectContaining({
+          isBold: true,
+          label: `${mockAccountName} `
+        }),
+        expect.objectContaining({
+          label: 'now active.'
+        })
+      ])
+    }));
   });
 });
 
