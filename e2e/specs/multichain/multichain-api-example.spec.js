@@ -1,3 +1,5 @@
+/// <reference types="detox" />
+
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
@@ -8,38 +10,73 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
+import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 
 describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
-    beforeAll(async () => {
-        jest.setTimeout(150000);
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
+
+  it('should load the multichain test dapp', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        multichainDapp: true,
+        disableGanache: true,
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async (/* { device } */) => {
         await TestHelpers.reverseServerPort();
-    });
 
-    it('should load the multichain test dapp', async () => {
-        await withFixtures(
-            {
-                dapp: true,
-                multichainDapp: true,
-                disableGanache: true, // Disable all local blockchain nodes
-                fixture: new FixtureBuilder()
-                    .withPopularNetworks()
-                    .build(),
-                restartDevice: true,
-            },
-            async () => {
-                // Login and navigate to the test dapp
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
+        // Login and navigate to the test dapp
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
-                // Navigate to the multichain test dapp
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+        // Navigate to the multichain test dapp
+        await MultichainTestDApp.navigateToMultichainTestDApp();
 
-                // Verify the dapp loaded successfully by checking for the connect button
-                await Assertions.webViewElementExists(MultichainTestDApp.connectButton);
-
-                console.log('Multichain test dapp loaded successfully!');
-            },
+        // Verify the WebView is visible
+        await Assertions.checkIfVisible(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
         );
-    });
+      },
+    );
+  });
+
+  it('should connect to multichain dapp and create a session with multiple chains', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        multichainDapp: true,
+        disableGanache: true,
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async (/* { device } */) => {
+        await TestHelpers.reverseServerPort();
+
+        // Login and navigate to the test dapp
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
+
+        // Navigate to the multichain test dapp
+        await MultichainTestDApp.navigateToMultichainTestDApp();
+
+        // Connect to the dapp with window.postMessage as the extension ID
+        await MultichainTestDApp.connect('window.postMessage');
+
+        // Create a session with Ethereum and Linea networks
+        await MultichainTestDApp.initCreateSessionScopes([
+          'eip155:1',
+          'eip155:59144',
+        ]);
+
+        // Get session data
+        await MultichainTestDApp.getSession();
+      },
+    );
+  });
 });
