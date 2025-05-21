@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayedAmount } from '.';
