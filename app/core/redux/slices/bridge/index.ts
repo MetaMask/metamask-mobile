@@ -192,7 +192,7 @@ export const selectBridgeFeatureFlags = createSelector(
     };
 
     // Return disabled config if minimum version is not met
-    if (!hasMinimumRequiredVersion(bridgeConfig?.minimumVersion)) {
+    if (!hasMinimumRequiredVersion((bridgeConfig as any)?.minimumVersion)) {
       return selectBridgeFeatureFlagsBase(disabledConfig);
     }
 
