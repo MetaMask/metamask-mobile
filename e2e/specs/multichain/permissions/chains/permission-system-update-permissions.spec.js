@@ -20,8 +20,9 @@ import ToastModal from '../../../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomSheet';
 
-const AccountTwoText = 'Account 2';
-const AccountThreeText = 'Account 3';
+const accountOneText = 'Account 1';
+const accountTwoText = 'Account 2';
+const accountThreeText = 'Account 3';
 
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -127,7 +128,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
     );
   });
 
-  it('should add permissions for multiple accounts and networks and then revoke all permissions', async () => {
+  it('should manage permissions for multiple accounts and networks accurately', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -142,36 +143,58 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
+        // navigate to test dapp and verify that the connected accounts modal is visible
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await TestHelpers.delay(2000);
-
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+
+        // validate that one account is connected
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await Assertions.checkIfTextIsDisplayed(accountOneText);
+        await PermissionSummaryBottomSheet.tapBackButton();
+        await TestHelpers.delay(2000);
+
+        // connect more accounts through the "connect more accounts" button
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapCreateAccount();
-        await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        await Assertions.checkIfTextIsDisplayed(accountTwoText);
 
         await AccountListBottomSheet.tapAccountIndex(0);
         await AccountListBottomSheet.tapConnectAccountsButton();
 
-        // validate that the correct amount of accounts are displayed
-        await Assertions.checkIfTextIsDisplayed(AccountTwoText);
-        await Assertions.checkIfTextIsDisplayed(AccountThreeText);
-
         // should add accounts from an alternative path by clicking "Edit Accounts" in the bottom sheet
         await Browser.tapNetworkAvatarButtonOnBrowser();
+
+        // validate 2 accounts are connected
+        await Assertions.checkIfTextIsDisplayed(accountOneText);
+        await Assertions.checkIfTextIsDisplayed(accountTwoText);
+
+        // create the third account
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapAccountListBottomSheet();
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapCreateAccount();
-        await Assertions.checkIfTextIsDisplayed(AccountThreeText);
+
+        // connect the third account
         await AccountListBottomSheet.tapAccountIndex(2);
         await AccountListBottomSheet.tapConnectAccountsButton();
 
+        // validate 3 accounts are connected
+        await Assertions.checkIfTextIsDisplayed(accountOneText);
+        await Assertions.checkIfTextIsDisplayed(accountTwoText);
+        await Assertions.checkIfTextIsDisplayed(accountThreeText);
+
+        // navigate to the permissions summary tab
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // validate that only 1 network is connected
+        await Assertions.checkIfTextIsDisplayed(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        );
 
         // append Sepolia and Linea Sepolia to the list of networks
         await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
@@ -183,6 +206,8 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Verify changes were saved by checking chain permissions again
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // validate that 3 networks are connected
         await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
         );
@@ -196,6 +221,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Navigate back because no changes were made
         await NetworkConnectMultiSelector.tapBackButton();
 
+        // disconnect all accounts and networks
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 

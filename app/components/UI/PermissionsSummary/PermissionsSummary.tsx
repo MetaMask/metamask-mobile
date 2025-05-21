@@ -72,7 +72,6 @@ import Badge, {
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
-
 const PermissionsSummary = ({
   currentPageInformation,
   customNetworkInformation,
@@ -202,6 +201,7 @@ const PermissionsSummary = ({
         <View style={styles.startAccessory}>
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
+              testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
               onPress={onBack}
