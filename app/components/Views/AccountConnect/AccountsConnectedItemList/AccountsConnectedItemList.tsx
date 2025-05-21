@@ -32,7 +32,10 @@ import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT } from '../../../UI/PermissionsSummary/PermissionSummary.constants';
+import {
+  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
+  MAX_VISIBLE_ITEMS,
+} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
@@ -55,11 +58,10 @@ const AccountsConnectedItemList = ({
 }) => {
   const HEIGHT_BY_ACCOUNTS_LENGTH =
     selectedAddresses.length * ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT;
-  const MAX_PARENT_HEIGHT = 3.5;
   const MAX_HEIGHT =
-    selectedAddresses.length < 4
+    selectedAddresses.length < MAX_VISIBLE_ITEMS
       ? HEIGHT_BY_ACCOUNTS_LENGTH
-      : MAX_PARENT_HEIGHT;
+      : MAX_VISIBLE_ITEMS;
 
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
   const accountAvatarType = useSelector(
@@ -106,8 +108,7 @@ const AccountsConnectedItemList = ({
 
   const renderAccountItem = useCallback(
     ({ item }: { item: CaipAccountId }) => {
-      const parsedItem = parseCaipAccountId(item);
-      const address = parsedItem.address;
+      const { address } = parseCaipAccountId(item);
       const shortAddress = formatAddress(address, 'short');
       const accountMetadata =
         Engine.context.AccountsController.getAccountByAddress(address);
@@ -120,7 +121,7 @@ const AccountsConnectedItemList = ({
         type: accountAvatarType,
         accountAddress: address,
       };
-      const accountMetadataName = accountMetadata?.metadata.name || '';
+      const accountMetadataName = accountMetadata?.metadata.name;
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(accountMetadataName) && ensName

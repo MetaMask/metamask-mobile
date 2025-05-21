@@ -3,7 +3,10 @@ import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT } from '../../../UI/PermissionsSummary/PermissionSummary.constants';
+import {
+  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
+  MAX_VISIBLE_ITEMS,
+} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 interface AccountConnectSummaryStyleSheetVars {
   itemHeight: number;
@@ -23,7 +26,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     // Account List Item
     container: {
-      maxHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * 3.5,
+      maxHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * MAX_VISIBLE_ITEMS,
     },
     accountListItem: {
       borderWidth: 0,

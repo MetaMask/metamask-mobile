@@ -13,7 +13,6 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
         },
         "isSelected": false,
         "name": "Ethereum Mainnet",
-        "rpcUrl": "https://mainnet.infura.io/v3",
         "yOffset": 0,
       },
       {
@@ -24,7 +23,6 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
         },
         "isSelected": true,
         "name": "Polygon",
-        "rpcUrl": "https://polygon-rpc.com",
         "yOffset": 100,
       },
     ]

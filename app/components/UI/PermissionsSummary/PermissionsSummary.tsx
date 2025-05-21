@@ -425,7 +425,7 @@ const PermissionsSummary = ({
     );
   }
 
-  const calculateBottomSheetHeight = useMemo(() => {
+  const calculatedBottomSheetHeight = useMemo(() => {
     let currentBaseHeight = BOTTOM_SHEET_BASE_HEIGHT;
     if (isNonDappNetworkSwitch) {
       currentBaseHeight += 150;
@@ -447,9 +447,9 @@ const PermissionsSummary = ({
   const onChangeTab = useCallback(
     (tabInfo: { i: number; ref: unknown }) => {
       setTabIndex?.(tabInfo.i);
-      setBottomSheetHeight(calculateBottomSheetHeight);
+      setBottomSheetHeight(calculatedBottomSheetHeight);
     },
-    [setTabIndex, calculateBottomSheetHeight],
+    [setTabIndex, calculatedBottomSheetHeight],
   );
 
   const accountsConnectedTabProps = useMemo(
