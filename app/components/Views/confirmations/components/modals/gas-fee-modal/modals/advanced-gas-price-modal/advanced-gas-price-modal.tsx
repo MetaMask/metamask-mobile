@@ -93,8 +93,8 @@ export const AdvancedGasPriceModal = ({
         <View style={styles.inputsContainer}>
           <GasPriceInput
             onChange={handleGasPriceChange}
-            onErrorChange={(hasError) =>
-              handleInputError('gasPrice', !!hasError)
+            onErrorChange={(error) =>
+              handleInputError('gasPrice', !!error)
             }
           />
           <GasLimitInput
