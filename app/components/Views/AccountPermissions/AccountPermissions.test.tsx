@@ -34,6 +34,8 @@ const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
 const MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_1}`;
 const MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_2}`;
 
+const MOCK_EVM_CAIP_SCOPE_1 = 'eip155:0';
+
 const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
   {
     name: MOCK_EVM_ACCOUNT_1_NAME,
@@ -74,7 +76,7 @@ const MOCK_INTERNAL_ACCOUNTS: InternalAccount[] = [
       keyring: { type: KeyringTypes.hd },
     },
     address: MOCK_EVM_ACCOUNT_1,
-    scopes: [MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID],
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
     methods: [
       'personal_sign',
       'eth_sign',
@@ -94,7 +96,7 @@ const MOCK_INTERNAL_ACCOUNTS: InternalAccount[] = [
       keyring: { type: KeyringTypes.hd },
     },
     address: MOCK_EVM_ACCOUNT_2,
-    scopes: [MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID],
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
     methods: [
       'personal_sign',
       'eth_sign',
