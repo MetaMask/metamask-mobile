@@ -1,8 +1,18 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 
-export default StyleSheet.create({
-  sheet: {
-    marginVertical: 16,
-    marginHorizontal: 16,
-  },
-});
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
+    sheet: {
+      marginVertical: 16,
+      marginHorizontal: 16,
+    },
+    bottomSheetContent: {
+      backgroundColor: colors.background.default,
+    },
+  });
+};
+
+export default styleSheet;
