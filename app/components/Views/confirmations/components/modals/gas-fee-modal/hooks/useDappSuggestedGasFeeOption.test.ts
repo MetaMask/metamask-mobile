@@ -190,40 +190,6 @@ describe('useDappSuggestedGasFeeOption', () => {
     expect(dappSuggestedGasFeeOption.isSelected).toEqual(true);
   });
 
-  it('returns selected dapp suggested gas fee option when userFeeLevel is undefined but dappSuggestedGasFees exists', () => {
-    const mockHandleCloseModals = jest.fn();
-
-    const transactionWithDappSuggestedGasFees = {
-      ...simpleSendTransaction,
-      origin: 'some-dapp.com',
-      userFeeLevel: undefined,
-      dappSuggestedGasFees: {
-        maxFeePerGas: '0x1',
-        maxPriorityFeePerGas: '0x1',
-      },
-    } as unknown as TransactionMeta;
-
-    mockUseTransactionMetadataRequest.mockReturnValue(
-      transactionWithDappSuggestedGasFees,
-    );
-
-    mockCalculateGasEstimate.mockReturnValue({
-      currentCurrencyFee: '$10',
-      preciseNativeCurrencyFee: '10',
-    });
-
-    const { result } = renderHook(() =>
-      useDappSuggestedGasFeeOption({
-        handleCloseModals: mockHandleCloseModals,
-      }),
-    );
-
-    expect(result.current.length).toEqual(1);
-
-    const dappSuggestedGasFeeOption = result.current[0];
-    expect(dappSuggestedGasFeeOption.isSelected).toEqual(true);
-  });
-
   it('updates transaction gas fees and closes modals when option is selected', () => {
     const mockHandleCloseModals = jest.fn();
 
