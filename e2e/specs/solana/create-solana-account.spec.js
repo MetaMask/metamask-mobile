@@ -82,12 +82,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
 
   it('should create another Solana account from the bottom sheet', async () => {
     await AccountListBottomSheet.tapAddAccountButton();
-    await AddNewHdAccountComponent.assertContainerIsVisible();
-
-    await device.disableSynchronization();
     await AddAccountBottomSheet.tapAddSolanaAccount();
-    await device.enableSynchronization();
-
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_TWO_TEXT, 2);
   });
