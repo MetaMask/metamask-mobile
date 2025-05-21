@@ -223,7 +223,7 @@ export abstract class MultichainWalletSnapClient {
           try {
             await this.createAccount(
               {
-                scope: this.getScope(),
+                scope: this.getScope(), // TODO: Check if we really need this?
                 entropySource,
               },
               {
@@ -245,7 +245,7 @@ export abstract class MultichainWalletSnapClient {
         try {
           await this.createAccount(
             {
-              scope: this.getScope(),
+              scope: this.getScope(), // TODO: Check if we really need this?
               derivationPath: account.derivationPath,
               entropySource,
             },
