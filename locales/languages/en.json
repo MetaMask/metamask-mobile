@@ -994,9 +994,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -1204,7 +1206,13 @@
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
           "snap_dialog": "Display custom dialogs",
-          "snap_manageAccounts": "Add and control Ethereum accounts"
+          "snap_manageAccounts": "Add and control Ethereum accounts",
+          "endowment:signature-insight": "Display signature insights modal",
+          "endowment:protocol": "Provide protocol data for one or more chains",
+          "snap_getPreferences": "See information like your preferred language and fiat currency",
+          "endowment:lifecycle-hooks": "Use lifecycle hooks",
+          "endowment:name-lookup": "Provide domain and address lookups",
+          "endowment:page-home": "Display a custom screen"
         }
       }
     },
@@ -4015,6 +4023,17 @@
   "snap_ui": {
     "asset_selector": {
       "title": "Select an asset"
-    }
+    },
+    "hideSentitiveInfo": {
+        "message": "Hide sensitive information"
+      },
+    "doNotShare": {
+        "message": "Do not share this with anyone"
+    },
+    "revealSensitiveContent": {
+      "message": "Reveal sensitive content"
+    },
+    "show_more": "more",
+    "show_less": "less"
   }
 }

@@ -66,8 +66,8 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
-import { parseUnits } from 'ethers/lib/utils';
-import { BigNumber } from 'ethers';
+import { ScrollView } from 'react-native';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -77,6 +77,7 @@ export interface BridgeRouteParams {
 
 const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   // Ref necessary to avoid race condition between Redux state and component state
@@ -113,9 +114,7 @@ const BridgeView = () => {
     isExpired,
     willRefresh,
   } = useBridgeQuoteData();
-  const { quoteRequest, quotesLastFetched } = useSelector(
-    selectBridgeControllerState,
-  );
+  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
@@ -156,21 +155,19 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
-  const hasInsufficientBalance =
-    quoteRequest?.insufficientBal ||
-    (isValidSourceAmount &&
-      parseUnits(sourceAmount, sourceToken.decimals).gt(
-        latestSourceBalance?.atomicBalance ?? BigNumber.from(0),
-      ));
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+  });
 
-  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
-  const shouldDisplayKeypad =
-    isInputFocused || !hasValidBridgeInputs || !activeQuote;
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
 
   // Compute error state directly from dependencies
   const isError = isNoQuotesAvailable || quoteFetchError;
+
+  // Primary condition for keypad visibility - when input is focused or we don't have valid inputs
+  const shouldDisplayKeypad =
+    isInputFocused || !hasValidBridgeInputs || (!activeQuote && !isError);
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -242,6 +239,20 @@ const BridgeView = () => {
     route.params.bridgeViewMode,
   ]);
 
+  // Update isErrorBannerVisible when input focus changes
+  useEffect(() => {
+    if (isInputFocused) {
+      setIsErrorBannerVisible(false);
+    }
+  }, [isInputFocused]);
+
+  // Reset isErrorBannerVisible when error state changes
+  useEffect(() => {
+    if (isError) {
+      setIsErrorBannerVisible(true);
+    }
+  }, [isError]);
+
   const handleKeypadChange = ({
     value,
   }: {
@@ -306,7 +317,7 @@ const BridgeView = () => {
   }, [isExpired, willRefresh, navigation]);
 
   const renderBottomContent = () => {
-    if (!hasValidBridgeInputs || isInputFocused) {
+    if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
           <Text color={TextColor.Primary}>
@@ -326,12 +337,16 @@ const BridgeView = () => {
       );
     }
 
-    if (isError) {
+    if (isError && isErrorBannerVisible) {
       return (
         <Box style={styles.buttonContainer}>
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={strings('bridge.error_banner_description')}
+            onClose={() => {
+              setIsErrorBannerVisible(false);
+              setIsInputFocused(true);
+            }}
           />
         </Box>
       );
@@ -367,51 +382,58 @@ const BridgeView = () => {
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box style={styles.content}>
-        <Box style={styles.mainContent}>
-          <Box style={styles.inputsContainer} gap={8}>
-            <TokenInputArea
-              ref={inputRef}
-              amount={sourceAmount}
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              networkImageSource={
-                sourceToken?.chainId
-                  ? getNetworkImageSource({
-                      chainId: sourceToken?.chainId,
-                    })
-                  : undefined
-              }
-              testID="source-token-area"
-              tokenType={TokenInputAreaType.Source}
-              onTokenPress={handleSourceTokenPress}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              onInputPress={() => setIsInputFocused(true)}
-            />
-            <Box style={styles.arrowContainer}>
-              <Box style={styles.arrowCircle}>
-                <ButtonIcon
-                  iconName={IconName.Arrow2Down}
-                  onPress={handleSwitchTokens}
-                  disabled={!destChainId || !destToken}
-                  testID="arrow-button"
-                />
-              </Box>
+        <Box style={styles.inputsContainer} gap={8}>
+          <TokenInputArea
+            ref={inputRef}
+            amount={sourceAmount}
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            networkImageSource={
+              sourceToken?.chainId
+                ? getNetworkImageSource({
+                    chainId: sourceToken?.chainId,
+                  })
+                : undefined
+            }
+            testID="source-token-area"
+            tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
+            onInputPress={() => setIsInputFocused(true)}
+          />
+          <Box style={styles.arrowContainer}>
+            <Box style={styles.arrowCircle}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Down}
+                onPress={handleSwitchTokens}
+                disabled={!destChainId || !destToken}
+                testID="arrow-button"
+              />
             </Box>
-            <TokenInputArea
-              amount={destTokenAmount}
-              token={destToken}
-              networkImageSource={
-                destToken
-                  ? getNetworkImageSource({ chainId: destToken?.chainId })
-                  : undefined
-              }
-              testID="dest-token-area"
-              tokenType={TokenInputAreaType.Destination}
-              onTokenPress={handleDestTokenPress}
-              isLoading={isLoading}
-            />
           </Box>
+          <TokenInputArea
+            amount={destTokenAmount}
+            token={destToken}
+            networkImageSource={
+              destToken
+                ? getNetworkImageSource({ chainId: destToken?.chainId })
+                : undefined
+            }
+            testID="dest-token-area"
+            tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
+            isLoading={isLoading}
+          />
+        </Box>
+
+        {/* Scrollable Dynamic Content */}
+        <ScrollView
+          testID="bridge-view-scroll"
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
           <Box style={styles.dynamicContent}>
             <Box style={styles.destinationAccountSelectorContainer}>
               {hasDestinationPicker && <DestinationAccountSelector />}
@@ -442,7 +464,7 @@ const BridgeView = () => {
               </Box>
             ) : null}
           </Box>
-        </Box>
+        </ScrollView>
         {renderBottomContent()}
       </Box>
     </ScreenView>
