@@ -8,7 +8,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
-import { Theme } from '../../../../../util/theme/models';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
