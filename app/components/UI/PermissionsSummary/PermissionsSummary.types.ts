@@ -1,3 +1,4 @@
+import { CaipAccountId } from '@metamask/utils';
 import { USER_INTENT } from '../../../constants/permissions';
 import { Account } from '../../hooks/useAccounts';
 
@@ -23,8 +24,8 @@ export interface PermissionsSummaryProps {
     chainName: string;
     chainId: string;
   };
-  accounts?: Account[];
-  accountAddresses?: string[];
+  accounts: Account[];
+  accountAddresses?: CaipAccountId[];
   networkAvatars?: ({ name: string; imageSource: string } | null)[];
   isNonDappNetworkSwitch?: boolean;
   onChooseFromPermittedNetworks?: () => void;
