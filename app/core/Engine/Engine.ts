@@ -1844,7 +1844,7 @@ export class Engine {
                 ? renderFromTokenMinimalUnit(
                     tokenBalances[item.address as Hex],
                     item.decimals,
-                )
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
