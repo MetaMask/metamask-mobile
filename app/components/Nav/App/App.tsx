@@ -142,10 +142,11 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
-import { strings } from '../../../../locales/i18n';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import ReduxService from '../../../core/redux';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -817,7 +818,11 @@ const App: React.FC = () => {
               ReduxService.store.getState(),
             );
             const skipCache = !isUserLoggedIn;
-            await Authentication.checkIsSeedlessPasswordOutdated(skipCache);
+            const isOutdated =
+              await Authentication.checkIsSeedlessPasswordOutdated(skipCache);
+            Logger.log(
+              `Seedless password is outdated: ${isOutdated} ${skipCache}`,
+            );
           } catch (error) {
             Logger.error(
               error as Error,
