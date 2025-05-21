@@ -3,7 +3,7 @@ import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { Alert } from '../../types/alerts';
-
+import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -23,17 +23,15 @@ export default function useConfirmationAlerts(): Alert[] {
   const blockaidAlerts = useBlockaidAlerts();
   const signatureAlerts = useSignatureAlerts();
   const transactionAlerts = useTransactionAlerts();
+  const accountTypeUpgrade = useAccountTypeUpgrade();
 
   return useMemo(
     () => [
       ...blockaidAlerts,
       ...signatureAlerts,
       ...transactionAlerts,
+      ...accountTypeUpgrade,
     ],
-    [
-      blockaidAlerts,
-      signatureAlerts,
-      transactionAlerts,
-    ],
+    [blockaidAlerts, signatureAlerts, transactionAlerts, accountTypeUpgrade],
   );
 }

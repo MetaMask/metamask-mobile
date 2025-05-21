@@ -1,7 +1,10 @@
 import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
-import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import {
+  Reason,
+  SecurityAlertResponse,
+} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
@@ -16,9 +19,7 @@ const IGNORED_RESULT_TYPES = [
   BlockaidResultType.RequestInProgress,
 ];
 
-function getBlockaidAlertSeverity(
-  severity: BlockaidResultType,
-): AlertSeverity {
+function getBlockaidAlertSeverity(severity: BlockaidResultType): AlertSeverity {
   switch (severity) {
     case BlockaidResultType.Malicious:
       return Severity.Danger;
@@ -32,7 +33,7 @@ function getBlockaidAlertSeverity(
 const getTitle = (reason: Reason): string =>
   strings(
     REASON_TITLE_I18N_KEY_MAP[reason] ??
-    'blockaid_banner.deceptive_request_title',
+      'blockaid_banner.deceptive_request_title',
   );
 
 const getConfirmModalDescription = (reason: Reason) => {
@@ -70,9 +71,11 @@ export default function useBlockaidAlerts(): Alert[] {
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackBlockaidAlertLinkClickedEvent } = useConfirmationMetricEvents();
 
-  const isResultTypeIgnored = IGNORED_RESULT_TYPES.includes(
-    securityAlertResponse?.result_type as BlockaidResultType,
-  );
+  const isResultTypeIgnored =
+    !securityAlertResponse?.result_type ||
+    IGNORED_RESULT_TYPES.includes(
+      securityAlertResponse?.result_type as BlockaidResultType,
+    );
 
   const alerts = useMemo(() => {
     if (!securityAlertResponse || isResultTypeIgnored) {
@@ -87,7 +90,9 @@ export default function useBlockaidAlerts(): Alert[] {
         content: (
           <BlockaidAlertContent
             alertDetails={features}
-            securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
+            securityAlertResponse={
+              securityAlertResponse as SecurityAlertResponse
+            }
             onContactUsClicked={trackBlockaidAlertLinkClickedEvent}
           />
         ),
