@@ -3625,19 +3625,13 @@
       "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
       "reward_frequency": "Frequency at which your rewards are accounted for.",
       "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
-      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets.",
-      "network_fee": {
-        "part_one": "Network fees are paid to crypto miners who process transactions on Ethereum network. Metamask does not profit from gas fees.",
-        "part_two": "Network fees are estimated and will fluctuate based on network traffic and transaction complexity.",
-        "part_three": "Learn more about network fees"
-      }
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
     },
     "withdraw": "Withdraw",
     "deposit_more": "Deposit more",
     "earning": "Earning",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
-    "network_fee": "Network Fee",
     "network": "Network",
     "health_factor": "Health factor",
     "liquidation_risk": "Liquidation risk"

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -28,10 +28,6 @@ import Badge, {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
-import AppConstants from '../../../../../core/AppConstants';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import { generateLendingWithdrawalTransaction } from '../../utils/tempLending';
 import useLendingTokenPair from '../../hooks/useLendingTokenPair';
@@ -177,9 +173,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
     }
   };
 
-  const handleNavigateToNetworkFeeFaq = () =>
-    Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME);
-
   return (
     <View style={styles.pageContainer}>
       <View style={styles.contentContainer}>
@@ -276,48 +269,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                         })}
                       />
                       <Text>{networkConfig?.name}</Text>
-                    </View>
-                  ),
-                }}
-              />
-            </View>
-          </InfoSection>
-          <InfoSection>
-            <View style={styles.infoSectionContainer}>
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.network_fee'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.network_fee'),
-                    content: (
-                      <View style={styles.networkFeeTooltipContent}>
-                        <Text>
-                          {strings('earn.tooltip_content.network_fee.part_one')}
-                        </Text>
-                        <Text>
-                          {strings('earn.tooltip_content.network_fee.part_two')}
-                        </Text>
-                        <Button
-                          variant={ButtonVariants.Link}
-                          label={strings(
-                            'earn.tooltip_content.network_fee.part_three',
-                          )}
-                          onPress={handleNavigateToNetworkFeeFaq}
-                        />
-                      </View>
-                    ),
-                    size: TooltipSizes.Sm,
-                  },
-                }}
-                value={{
-                  label: (
-                    <View style={styles.networkFeeRight}>
-                      <Text style={styles.foxIcon}>🦊</Text>
-                      <Text color={theme.colors.text.alternative}>$3.22</Text>
-                      <Text variant={TextVariant.BodyMDMedium}>0.001 ETH</Text>
                     </View>
                   ),
                 }}
