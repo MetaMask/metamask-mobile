@@ -29,7 +29,10 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
-import { removeAccountsFromPermissions, sortAccountsByLastSelected } from '../../../core/Permissions';
+import {
+  removeAccountsFromPermissions,
+  sortAccountsByLastSelected,
+} from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
@@ -144,18 +147,28 @@ const CaipAccountSelectorList = ({
                 let nextActiveAddress: string;
 
                 if (isSelected) {
-                  nextActiveAddress = accounts.find(acc => acc.caipAccountId !== caipAccountId)?.address || '';
+                  nextActiveAddress =
+                    accounts.find((acc) => acc.caipAccountId !== caipAccountId)
+                      ?.address || '';
                 } else {
+                  const nextCaipAccountIds = selectedAddresses.filter(
+                    (selectedAddress) => selectedAddress !== caipAccountId,
+                  );
+                  const nextAddresses = nextCaipAccountIds.map(
+                    (nextCaipAccountId) => {
+                      const { address: nextAddress } =
+                        parseAccountId(nextCaipAccountId);
+                      return nextAddress as Hex;
+                    },
+                  );
 
-                  const nextCaipAccountIds = selectedAddresses.filter(selectedAddress => selectedAddress !== caipAccountId);
-                  const nextAddresses = nextCaipAccountIds.map(nextCaipAccountId => {
-                    const { address: nextAddress } = parseAccountId(nextCaipAccountId);
-                    return nextAddress as Hex;
-                  });
-
-                  const nextAddressesSorted = sortAccountsByLastSelected(nextAddresses);
-                  const selectedAccountAddress = accounts.find((acc) => acc.isSelected)?.address;
-                  nextActiveAddress = nextAddressesSorted[0] || selectedAccountAddress || '';
+                  const nextAddressesSorted =
+                    sortAccountsByLastSelected(nextAddresses);
+                  const selectedAccountAddress = accounts.find(
+                    (acc) => acc.isSelected,
+                  )?.address;
+                  nextActiveAddress =
+                    nextAddressesSorted[0] || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
@@ -202,7 +215,15 @@ const CaipAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError, caipAccountId },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        caipAccountId,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -219,7 +240,7 @@ const CaipAccountSelectorList = ({
         cellVariant = CellVariant.Select;
       }
       let isSelectedAccount = isSelected;
-      if (selectedAddresses.length > 0 ) {
+      if (selectedAddresses.length > 0) {
         isSelectedAccount = selectedAddresses.includes(caipAccountId);
       }
 

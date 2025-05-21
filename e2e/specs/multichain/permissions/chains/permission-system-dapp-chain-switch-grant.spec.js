@@ -44,6 +44,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await Browser.navigateToTestDApp();
 
           await TestDApp.connect();
+          await ConnectedAccountsModal.tapPermissionsSummaryTab();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
           await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
