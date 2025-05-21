@@ -99,7 +99,6 @@ async function validateRequest(
 
   try {
     if (isTransaction && !transactionId && !securityAlertId) {
-      console.log('==========================', transactionId, securityAlertId);
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
