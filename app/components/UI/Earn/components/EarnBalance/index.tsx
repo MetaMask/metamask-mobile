@@ -24,16 +24,13 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     asset.symbol,
     asset.chainId,
   );
+
   const isReceiptToken = isSupportedLendingReceiptTokenByChainId(
     asset.symbol,
     asset.chainId,
   );
 
-  if (
-    asset?.chainId &&
-    (isLendingToken || isReceiptToken) &&
-    USER_HAS_LENDING_POSITIONS
-  ) {
+  if ((isLendingToken || isReceiptToken) && USER_HAS_LENDING_POSITIONS) {
     return (
       <EarnLendingBalance asset={asset} displayBalance={!isReceiptToken} />
     );
