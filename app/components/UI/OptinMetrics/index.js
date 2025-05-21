@@ -48,7 +48,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { setupSentry } from '../../../util/sentry/utils';
-import { flushBufferedTraces, discardBufferedTraces, endTrace } from '../../../util/trace';
+import { flushBufferedTraces, discardBufferedTraces } from '../../../util/trace';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -321,11 +321,6 @@ class OptinMetrics extends PureComponent {
       route,
     } = this.props;
 
-    const { tracesToEnd } = route.params || {};
-    if (tracesToEnd && Array.isArray(tracesToEnd)) {
-      tracesToEnd.forEach(traceName => endTrace({ name: traceName }));
-    }
-
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
@@ -357,10 +352,6 @@ class OptinMetrics extends PureComponent {
       route,
     } = this.props;
 
-    const { tracesToEnd } = route.params || {};
-    if (tracesToEnd && Array.isArray(tracesToEnd)) {
-      tracesToEnd.forEach(traceName => endTrace({ name: traceName }));
-    }
     await metrics.enable();
     await setupSentry(); // Re-setup Sentry with enabled: true
     await flushBufferedTraces();
