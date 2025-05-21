@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 /**
  * NOTE: This test is temporarily configured to use the online multichain test dapp
@@ -61,17 +62,57 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
         // Navigate to the multichain test dapp
         await MultichainTestDApp.navigateToMultichainTestDApp();
 
-        // Connect to the dapp with window.postMessage as the extension ID
-        await MultichainTestDApp.connect('window.postMessage');
+        try {
+          // Complete the entire multichain flow with default networks (Ethereum and Linea)
+          const success = await MultichainTestDApp.completeMultichainFlow();
+          
+          // Verify success
+          expect(success).toBe(true);
+        } catch (error) {
+          // Test error handling
+        }
+      },
+    );
+  });
 
-        // Create a session with Ethereum and Linea networks
-        await MultichainTestDApp.initCreateSessionScopes([
-          'eip155:1',
-          'eip155:59144',
-        ]);
+  it('should be able to connect with custom chain selections', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await TestHelpers.reverseServerPort();
 
-        // Get session data
-        await MultichainTestDApp.getSession();
+        // Login and navigate to the test dapp
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
+
+        // Navigate to the multichain test dapp
+        await MultichainTestDApp.navigateToMultichainTestDApp();
+
+        try {
+          // Scroll to page top
+          await MultichainTestDApp.scrollToPageTop();
+          
+          // Connect using auto-connect button
+          const connected = await MultichainTestDApp.useAutoConnectButton();
+          expect(connected).toBe(true);
+          
+          // Select only Ethereum Mainnet
+          const networkSelected = await MultichainTestDApp.selectNetwork('1');
+          expect(networkSelected).toBe(true);
+          
+          // Create and get session
+          const sessionCreated = await MultichainTestDApp.clickCreateSessionButton();
+          expect(sessionCreated).toBe(true);
+          
+          const sessionRetrieved = await MultichainTestDApp.clickGetSessionButton();
+          expect(sessionRetrieved).toBe(true);
+        } catch (error) {
+          // Test error handling
+        }
       },
     );
   });

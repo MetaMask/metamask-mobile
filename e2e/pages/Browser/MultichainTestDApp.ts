@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
 import Matchers from '../../utils/Matchers';
@@ -88,9 +89,6 @@ class MultichainTestDApp {
     const dappUrl = USE_ONLINE_DAPP ? MULTICHAIN_TEST_DAPP_ONLINE_URL : MULTICHAIN_TEST_DAPP_LOCAL_URL;
     await Browser.navigateToURL(dappUrl);
 
-    // Wait for the page to load
-    await TestHelpers.delay(5000);
-
     // Wait for WebView to be visible using native Detox waitFor
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
@@ -109,9 +107,6 @@ class MultichainTestDApp {
    * Connect to the dapp by entering extension ID and clicking connect
    */
   async connect(_extensionId = 'window.postMessage'): Promise<boolean> {
-    // Wait for the page to be fully loaded
-    await TestHelpers.delay(3000);
-
     try {
       // Get elements first
       const inputElement = await this.extensionIdInput;
@@ -119,17 +114,23 @@ class MultichainTestDApp {
 
       // Tap the input field to focus it
       await this.tapButton(inputElement);
-
+      
+      // Try a reliable direct approach - the dapp might set this to window.postMessage by default
+      
+      // 1. Double tap to select all text
+      await Gestures.tapWebElement(Promise.resolve(inputElement as Detox.IndexableWebElement));
+      
+      // 2. For iOS, try to select and delete text
+      await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).clearText();
+      
       // Tap the connect button
       await this.tapButton(connectBtn);
 
       // Wait for connection to establish
-      await TestHelpers.delay(3000);
+      await TestHelpers.delay(1500);
 
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error connecting to multichain dapp:', error);
       return false;
     }
   }
@@ -149,12 +150,10 @@ class MultichainTestDApp {
       await this.tapButton(createSessionBtn);
 
       // Wait for session creation
-      await TestHelpers.delay(3000);
+      await TestHelpers.delay(1500);
 
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error creating session scopes:', error);
       return false;
     }
   }
@@ -171,15 +170,13 @@ class MultichainTestDApp {
       await this.tapButton(getSessionBtn);
 
       // Wait for processing
-      await TestHelpers.delay(3000);
+      await TestHelpers.delay(1000);
 
       return {
         success: true,
         sessionScopes: { 'eip155:1': { accounts: ['0x...'] } },
       };
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error getting session:', error);
       return { success: false };
     }
   }
@@ -196,12 +193,10 @@ class MultichainTestDApp {
       await this.tapButton(revokeSessionBtn);
 
       // Wait for processing
-      await TestHelpers.delay(3000);
+      await TestHelpers.delay(1500);
 
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error revoking session:', error);
       return false;
     }
   }
@@ -217,13 +212,183 @@ class MultichainTestDApp {
       // Tap clear extension button
       await this.tapButton(clearExtensionBtn);
 
-      // Wait for processing
-      await TestHelpers.delay(1000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Connect to the dapp using JavaScript injection (alternative method)
+   * This can be used as a fallback if the regular connect method doesn't work
+   */
+  async connectViaJS(_extensionId = 'window.postMessage'): Promise<boolean> {
+    try {
+      // Make sure the webview exists and is visible
+      await expect(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible();
+
+      // Tap the webview to ensure it has focus
+      await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).tap();
+
+      // Just tap the connect button directly as a fallback
+      const connectBtn = await this.connectButton;
+      await this.tapButton(connectBtn);
+
+      // Wait for connection to establish
+      await TestHelpers.delay(1500);
 
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error clearing extension:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the WebView object for interaction
+   */
+  getWebView() {
+    return web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0);
+  }
+
+  /**
+   * Scroll to the top of the page
+   */
+  async scrollToPageTop(): Promise<void> {
+    try {
+      const webview = this.getWebView();
+      await webview.element(by.web.tag('body')).runScript('(el) => { window.scrollTo(0, 0); return true; }');
+    } catch (e) {
+      // Scroll error handling
+    }
+  }
+
+  /**
+   * Use the auto-connect button to connect with postMessage
+   */
+  async useAutoConnectButton(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const autoConnectButton = webview.element(by.web.id('auto-connect-postmessage-button'));
+
+      try {
+        // Simple click with minimal JS
+        await autoConnectButton.runScript('(el) => { el.click(); }');
+      } catch (e) {
+        // Try native tap as fallback
+        try {
+          await autoConnectButton.tap();
+        } catch (e2) {
+          return false;
+        }
+      }
+
+      // Wait for connection to process
+      await TestHelpers.delay(2000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Select a network by chain ID
+   */
+  async selectNetwork(chainId: string): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const networkCheckbox = webview.element(by.web.id(`network-checkbox-eip155-${chainId}`));
+      
+      await networkCheckbox.scrollToView();
+      await networkCheckbox.runScript('(el) => { if(!el.checked) { el.click(); } return el.checked; }');
+      
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Click the create session button
+   */
+  async clickCreateSessionButton(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const createSessionButton = webview.element(by.web.id('create-session-btn'));
+
+      await createSessionButton.scrollToView();
+      await createSessionButton.runScript('(el) => { el.click(); }');
+      
+      // Wait for session creation
+      await TestHelpers.delay(2000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Click the get session button
+   */
+  async clickGetSessionButton(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const getSessionButton = webview.element(by.web.id('get-session-btn'));
+
+      await getSessionButton.scrollToView();
+      await getSessionButton.runScript('(el) => { el.click(); }');
+      
+      // Wait for processing
+      await TestHelpers.delay(1000);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Click the revoke session button
+   */
+  async clickRevokeSessionButton(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const revokeSessionButton = webview.element(by.web.id('revoke-session-btn'));
+
+      await revokeSessionButton.scrollToView();
+      await revokeSessionButton.runScript('(el) => { el.click(); }');
+      
+      // Wait for processing
+      await TestHelpers.delay(1500);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Complete multichain connection flow
+   */
+  async completeMultichainFlow(chainIds: string[] = ['1', '59144']): Promise<boolean> {
+    try {
+      // Scroll to top
+      await this.scrollToPageTop();
+      
+      // Auto connect
+      const connected = await this.useAutoConnectButton();
+      if (!connected) return false;
+      
+      // Select networks
+      for (const chainId of chainIds) {
+        const selected = await this.selectNetwork(chainId);
+        if (!selected) return false;
+      }
+      
+      // Create session
+      const sessionCreated = await this.clickCreateSessionButton();
+      if (!sessionCreated) return false;
+      
+      // Get session
+      return await this.clickGetSessionButton();
+    } catch (error) {
       return false;
     }
   }
