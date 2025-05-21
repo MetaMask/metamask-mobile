@@ -311,9 +311,6 @@ class WalletView {
     await Gestures.tap(this.getCarouselSlide(id));
   }
 
-  async tapBalanceButton() {
-    await Gestures.waitAndTap(this.balanceButton);
-  }
 }
 
 export default new WalletView();

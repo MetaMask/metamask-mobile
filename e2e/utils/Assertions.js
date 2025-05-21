@@ -80,9 +80,9 @@ class Assertions {
    * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfTextIsDisplayed(text, index = 0, timeout = TIMEOUT) {
-    const textElement = element(by.text(text)).atIndex(index);
-    return this.checkIfVisible(textElement, timeout);
+  static async checkIfTextIsDisplayed(text, timeout = TIMEOUT) {
+    const element = Matchers.getElementByText(text);
+    return this.checkIfVisible(element, timeout);
   }
 
   /**
@@ -91,9 +91,9 @@ class Assertions {
    * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfTextIsNotDisplayed(text, index = 0, timeout = TIMEOUT) {
-    const textElement = element(by.text(text)).atIndex(index);
-    return this.checkIfNotVisible(textElement, timeout);
+  static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT) {
+    const element = Matchers.getElementByText(text);
+    return this.checkIfNotVisible(element, timeout);
   }
 
   /**

@@ -88,7 +88,7 @@ describe(
     it('Should verify that transaction is sent successfully', async () => {
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
-      // await ActivitiesView.tapOnTransactionValue(TRANSFER_AMOUNT + ' SOL');
+      
       await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
 
       await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
