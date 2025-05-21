@@ -38,20 +38,6 @@ class Gestures {
     await element.tap();
   }
 
-
-/**
- * Wait for an element whose text ends with the specified pattern to be visible and then tap it
- *
- * @param {string} textPattern - Text suffix to match at the end of element text
- * @param {number} index - Index of the element if multiple elements match (0-based)
- * @param {number} timeout - Timeout for waiting (default: 15000ms)
- */
-static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
-  const elementToTap = element(by.text(new RegExp(`.*${textPattern}$`))).atIndex(index);
-  await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
-  await elementToTap.tap();
-}
-
 /**
  * Wait for an element to be visible and then tap it.
  *
@@ -59,6 +45,7 @@ static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
  * @param {Object} [options={}] - Configuration options
  * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
  * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+ * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
  */
 static async waitAndTap(elementID, options = {}) {
   const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
