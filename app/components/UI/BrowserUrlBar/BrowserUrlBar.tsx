@@ -41,7 +41,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onSubmitEditing,
       onCancel,
       onFocus,
-      onBlur,
       onChangeText,
       connectedAccounts,
       activeUrl,
@@ -110,7 +109,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         return;
       }
       unfocusInput();
-      onBlur();
     };
 
     const onFocusInput = () => {

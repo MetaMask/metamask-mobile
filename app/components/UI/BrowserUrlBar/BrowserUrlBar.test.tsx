@@ -60,7 +60,6 @@ describe('BrowserUrlBar', () => {
     onSubmitEditing: jest.fn(),
     onCancel: jest.fn(),
     onFocus: jest.fn(),
-    onBlur: jest.fn(),
     onChangeText: jest.fn(),
     connectedAccounts: ['0x123'],
     activeUrl: 'https://example.com',
@@ -72,7 +71,6 @@ describe('BrowserUrlBar', () => {
     onSubmitEditing: jest.fn(),
     onCancel: jest.fn(),
     onFocus: jest.fn(),
-    onBlur: jest.fn(),
     onChangeText: jest.fn(),
     connectedAccounts: ['0x123'],
     activeUrl: 'https://example.com',
@@ -213,6 +211,5 @@ describe('BrowserUrlBar', () => {
 
     fireEvent(urlInput, 'blur');
     expect(defaultProps.setIsUrlBarFocused).toHaveBeenCalledWith(false);
-    expect(defaultProps.onBlur).toHaveBeenCalled();
   });
 });

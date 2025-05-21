@@ -31,13 +31,9 @@ export type BrowserTabProps = {
    */
   id: number;
   /**
-   * The ID of the active tab
-   */
-  activeTab: number;
-  /**
    * InitialUrl
    */
-  initialUrl: string;
+  initialUrl?: string | undefined;
   /**
    * linkType - type of link to open
    */
