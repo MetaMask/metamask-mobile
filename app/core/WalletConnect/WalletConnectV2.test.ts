@@ -127,7 +127,13 @@ jest.mock('../../selectors/networkController', () => ({
     ticker: 'ETH',
   }),
   selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
-  selectSelectedNetworkClientId: jest.fn().mockReturnValue('0x1'),
+  selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
+  selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io/v3/123'),
+}));
+
+jest.mock('../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../store/storage-wrapper', () => ({
