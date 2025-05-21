@@ -87,7 +87,7 @@ export async function handleTransactionFinalizedEventForMetrics(
       transactionMeta.chainId,
     );
 
-    // First, add the smart transaction properties if applicable
+    // Add smart transaction properties if applicable
     if (shouldUseSmartTransaction) {
       const stxMetricsProperties = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
@@ -95,24 +95,20 @@ export async function handleTransactionFinalizedEventForMetrics(
         true,
         initMessenger as unknown as BaseControllerMessenger,
       );
-
-      // Add the STX properties as a separate call
-      // This is what the test is expecting
       eventBuilder.addProperties({
         smart_transaction_timed_out: stxMetricsProperties.smart_transaction_timed_out,
         smart_transaction_proxied: stxMetricsProperties.smart_transaction_proxied,
       } as unknown as JsonMap);
     }
 
+    // Add RPC properties
     const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    const mergedProperties = merge(
-      {},
-      defaultTransactionMetricProperties.properties,
-      rpcProperties
-    );
+    eventBuilder.addProperties(rpcProperties as unknown as JsonMap);
 
-    // Then add the default properties
-    eventBuilder.addProperties(mergedProperties as unknown as JsonMap);
+    // Add default properties
+    eventBuilder.addProperties(
+      defaultTransactionMetricProperties.properties as unknown as JsonMap
+    );
 
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
@@ -122,15 +118,14 @@ export async function handleTransactionFinalizedEventForMetrics(
     // If selector fails, continue without smart transaction metrics
     Logger.log('Error getting smart transaction metrics:', error);
 
-    // Add default properties if there was an error
+    // Add RPC properties
     const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    const mergedProperties = merge(
-      {},
-      defaultTransactionMetricProperties.properties,
-      rpcProperties
-    );
+    eventBuilder.addProperties(rpcProperties as unknown as JsonMap);
 
-    eventBuilder.addProperties(mergedProperties as unknown as JsonMap);
+    // Add default properties if there was an error
+    eventBuilder.addProperties(
+      defaultTransactionMetricProperties.properties as unknown as JsonMap
+    );
 
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
