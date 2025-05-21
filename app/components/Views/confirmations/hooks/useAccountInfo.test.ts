@@ -9,6 +9,16 @@ import useAccountInfo from './useAccountInfo';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: { chainId: '0x1' },
+      }),
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+  },
 }));
 
 const MOCK_ADDRESS = '0x0';
@@ -31,6 +41,9 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
       },
     },
   },

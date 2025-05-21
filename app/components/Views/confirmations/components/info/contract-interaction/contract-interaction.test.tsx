@@ -10,6 +10,11 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
+jest.mock('../../rows/account-network-info-row', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
