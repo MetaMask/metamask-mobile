@@ -26,6 +26,11 @@ jest.mock('../../../core/NavigationService', () => ({
   },
 }));
 
+// expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
+}));
+
 // Mock the navigation hook
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
