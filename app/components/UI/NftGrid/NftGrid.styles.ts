@@ -49,6 +49,10 @@ const styleSheet = (colors: Colors) =>
       marginBottom: 8,
       fontSize: 14,
     },
+    loadingMore: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
   });
 
 export default styleSheet;

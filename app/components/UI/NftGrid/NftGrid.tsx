@@ -72,18 +72,31 @@ interface NftGridProps {
 /**
  * Handles the refresh functionality for NFTs
  * @param chainIdsToDetectNftsFor - Array of chain IDs to detect NFTs for
+ * @param onDetectionComplete - Callback to call when detection is complete
  * @returns Promise that resolves when refresh is complete
  */
 export const handleNftRefresh = async (
   chainIdsToDetectNftsFor: `0x${string}`[],
+  onDetectionComplete?: (result: {
+    continuationToken?: string;
+    hasMore: boolean;
+  }) => void,
 ) => {
   const { NftDetectionController, NftController } = Engine.context;
 
-  const actions = [
-    NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
+  const [detectionResult] = await Promise.allSettled([
+    NftDetectionController.detectNfts(chainIdsToDetectNftsFor, {
+      isInitialLoad: true,
+    }),
     NftController.checkAndUpdateAllNftsOwnershipStatus(),
-  ];
-  await Promise.allSettled(actions);
+  ]);
+
+  if (detectionResult.status === 'fulfilled' && onDetectionComplete) {
+    onDetectionComplete({
+      continuationToken: detectionResult.value.continuationToken,
+      hasMore: detectionResult.value.hasMore,
+    });
+  }
 };
 
 /**
@@ -140,6 +153,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [continuationToken, setContinuationToken] = useState<
+    string | undefined
+  >();
 
   // Memoize the hex chain IDs to avoid repeated conversions during flatMultichainCollectibles loop
   const hexChainIds = useMemo(
@@ -165,12 +183,21 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     );
     return collectibles;
   }, [multichainCollectibles, hexChainIds]);
+  console.log('flatMultichainCollectibles', flatMultichainCollectibles.length);
 
   const onRefresh = useCallback(() => {
     requestAnimationFrame(async () => {
       setRefreshing(true);
-      await handleNftRefresh(chainIdsToDetectNftsFor);
-      setRefreshing(false);
+      try {
+        await handleNftRefresh(chainIdsToDetectNftsFor, (result) => {
+          setContinuationToken(result.continuationToken);
+          setHasMore(result.hasMore);
+        });
+      } catch (error) {
+        console.error('Error refreshing NFTs:', error);
+      } finally {
+        setRefreshing(false);
+      }
     });
   }, [chainIdsToDetectNftsFor]);
 
@@ -315,6 +342,45 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
+  const detectMoreNfts = useCallback(async () => {
+    if (loadingMore || !hasMore || !useNftDetection || !continuationToken)
+      return;
+    console.log('detectMoreNfts');
+
+    setLoadingMore(true);
+    try {
+      const { NftDetectionController } = Engine.context;
+      const result = await NftDetectionController.detectMoreNfts(
+        chainIdsToDetectNftsFor,
+        continuationToken,
+        // {
+        //   userAddress: selectedAddress,
+        // },
+      );
+
+      setHasMore(result.hasMore);
+      setContinuationToken(result.continuationToken);
+    } catch (error) {
+      console.error('Error loading more NFTs:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [
+    loadingMore,
+    hasMore,
+    useNftDetection,
+    chainIdsToDetectNftsFor,
+    continuationToken,
+  ]);
+
+  console.log(loadingMore, hasMore, useNftDetection, continuationToken);
+
+  // Reset pagination when chainIds change
+  useEffect(() => {
+    setHasMore(true);
+    setContinuationToken(undefined);
+  }, [chainIdsToDetectNftsFor]);
+
   return (
     <View testID="collectible-contracts" style={styles.container}>
       <TokenListControlBar
@@ -358,7 +424,20 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          ListFooterComponent={<NftGridFooter navigation={navigation} />}
+          onEndReached={detectMoreNfts}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            <>
+              <NftGridFooter navigation={navigation} />
+              {loadingMore && (
+                <ActivityIndicator
+                  size="small"
+                  style={styles.loadingMore}
+                  color={colors.primary.default}
+                />
+              )}
+            </>
+          }
         />
       )}
       <ActionSheet
