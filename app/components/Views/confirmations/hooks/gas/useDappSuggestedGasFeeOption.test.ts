@@ -8,7 +8,7 @@ import { MMM_ORIGIN } from '../../constants/confirmations';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useDappSuggestedGasFeeOption } from './useDappSuggestedGasFeeOption';
 
-jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../../../util/transaction-controller');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useFeeCalculations');
 
