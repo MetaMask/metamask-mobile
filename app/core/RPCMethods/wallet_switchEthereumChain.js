@@ -93,7 +93,6 @@ export const wallet_switchEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-      isAddNetworkFlow: false,
       autoApprove: isSnapId(origin),
       hooks: {
         toNetworkConfiguration,
