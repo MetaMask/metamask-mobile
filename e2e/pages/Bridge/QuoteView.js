@@ -3,7 +3,7 @@ import Gestures from '../../utils/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
-} from '../../selectors/swaps/QuoteView.selectors';
+} from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
   get continueButton() {
@@ -16,6 +16,14 @@ class QuoteView {
 
   get searchToken() {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
+  }
+
+  get expandQuoteDetails() {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.EXPAND_QUOTE_DETAILS);
+  }
+
+  get quotesLabel() {
+    return Matchers.getElementByID(QuoteViewSelectorText.QUOTES);
   }
 
   async enterBridgeAmount(amount) {
@@ -33,8 +41,12 @@ class QuoteView {
     await Gestures.waitAndTap(this.bridgeTo);
   }
 
+  async tapExpandDetails() {
+    await Gestures.waitAndTap(this.expandQuoteDetails);
+  }
+
   async selectNetwork(network) {
-    const element =  Matchers.getElementByText(network);
+    const element = Matchers.getElementByText(network);
     await Gestures.waitAndTap(element);
   }
 
