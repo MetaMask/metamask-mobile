@@ -98,7 +98,8 @@ async function validateRequest(
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {
-    if (isTransaction && !(transactionId || securityAlertId)) {
+    if (isTransaction && !transactionId && !securityAlertId) {
+      console.log('==========================', transactionId, securityAlertId);
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
@@ -190,7 +191,7 @@ function getTransactionIdForSecurityAlertId(securityAlertId?: string) {
 }
 
 function updateSecurityResultForTransaction(
-  transactionId: string,
+  transactionId: string | undefined,
   response: SecurityAlertResponse,
   updateControllerState: boolean = false,
   securityAlertId?: string,
@@ -237,16 +238,15 @@ function setSecurityAlertResponse(
   if (isTransactionRequest(request)) {
     const trxnId =
       transactionId ?? getTransactionIdForSecurityAlertId(securityAlertId);
-
-    if (trxnId) {
-      updateSecurityResultForTransaction(
-        trxnId,
+    if (securityAlertId && !trxnId) {
+      fetchTransactionIdAndUpdateSecurityResultForTransaction(
         response,
         updateControllerState,
         securityAlertId,
       );
-    } else if (securityAlertId) {
-      fetchTransactionIdAndUpdateSecurityResultForTransaction(
+    } else {
+      updateSecurityResultForTransaction(
+        trxnId,
         response,
         updateControllerState,
         securityAlertId,

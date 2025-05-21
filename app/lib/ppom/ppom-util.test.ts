@@ -260,7 +260,7 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
-    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
+    it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid, securityAlertId is not defined', async () => {
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
