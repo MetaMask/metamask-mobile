@@ -52,10 +52,6 @@ const ProtectYourWallet = ({
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-  const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
-  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,

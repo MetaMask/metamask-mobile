@@ -1,14 +1,13 @@
 import { ViewStyle } from 'react-native';
+
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { CaipChainId } from '@metamask/utils';
-
 export type SlideId =
   | 'card'
   | 'fund'
   | 'cashout'
   | 'aggregated'
   | 'multisrp'
-  | 'secure'
   | 'backupAndSync'
   | 'solana';
 

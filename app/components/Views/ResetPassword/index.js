@@ -440,7 +440,6 @@ class ResetPassword extends PureComponent {
       await this.recreateVault();
       // Set biometrics for new password
       await Authentication.resetPassword();
-
       try {
         // compute and store the new authentication method
         const authData = await Authentication.componentAuthenticationType(

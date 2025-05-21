@@ -6,8 +6,6 @@ import { typography } from '@metamask/design-tokens';
 import { colors as commonColors } from '../../../../styles/common';
 
 const screenHeight = Dimensions.get('window').height;
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const bgColor = '#ECEEFF';
 /**
  * Style sheet function for ModalConfirmation component.
  *

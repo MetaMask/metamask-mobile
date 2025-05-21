@@ -138,7 +138,6 @@ export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   multisrp: multiSrpImage,
   ///: END:ONLY_INCLUDE_IF
-  secure: cardImage,
   backupAndSync: backupAndSyncImage,
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   solana: solanaImage,
