@@ -1,4 +1,6 @@
 import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl } from './rpc-domain-utils';
+import { generateRPCProperties } from '../core/Engine/controllers/transaction-controller/utils';
+import * as rpcUtils from './rpc-domain-utils';
 
 jest.mock('../core/Engine', () => ({
   __esModule: true,
@@ -124,6 +126,26 @@ describe('rpc-domain-utils', () => {
       // Verify "unknown" is returned
       expect(result).toBe('unknown');
       expect(Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('generateRPCProperties', () => {
+    it('returns { rpc_domain: "example.com" } for a known domain', () => {
+      jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('https://example.com');
+      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('example.com');
+      expect(generateRPCProperties('0x1')).toEqual({ rpc_domain: 'example.com' });
+    });
+
+    it('returns { rpc_domain: "invalid" } for an invalid domain', () => {
+      jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('invalid-url');
+      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('invalid');
+      expect(generateRPCProperties('0x2')).toEqual({ rpc_domain: 'invalid' });
+    });
+
+    it('returns { rpc_domain: "private" } for a private domain', () => {
+      jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('http://localhost:8545');
+      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('private');
+      expect(generateRPCProperties('0x3')).toEqual({ rpc_domain: 'private' });
     });
   });
 });
