@@ -1,4 +1,9 @@
 import { RequestedPermissions } from '@metamask/permission-controller';
+import { ImageSourcePropType } from 'react-native';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 
 /**
  * Enum to track states of the connect screen.
@@ -28,4 +33,11 @@ export interface AccountConnectProps {
   route: {
     params: AccountConnectParams;
   };
+}
+
+export interface NetworkAvatarProps {
+  size: AvatarSize;
+  name: string;
+  imageSource: ImageSourcePropType;
+  variant: AvatarVariant;
 }

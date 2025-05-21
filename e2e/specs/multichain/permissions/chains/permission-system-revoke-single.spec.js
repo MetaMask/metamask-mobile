@@ -38,6 +38,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Step 3: Navigate through permission management flow
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await ConnectedAccountsModal.tapSelectAllNetworksButton();
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();

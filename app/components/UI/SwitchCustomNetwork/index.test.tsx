@@ -14,6 +14,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 const mockInitialState = {
   wizard: {
     step: 1,
@@ -43,7 +51,7 @@ jest.mock('../../../components/hooks/useAccounts', () => {
             fiatBalance: '$0.00\n0 ETH',
           },
           balanceError: undefined,
-          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`,
         },
       ],
       evmAccounts: [
@@ -57,7 +65,7 @@ jest.mock('../../../components/hooks/useAccounts', () => {
             fiatBalance: '$0.00\n0 ETH',
           },
           balanceError: undefined,
-          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`
+          caipAccountId: `eip155:0:0x0000000000000000000000000000000000000001`,
         },
       ],
       ensByAccountAddress: {},

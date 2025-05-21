@@ -19,76 +19,78 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-    it('grants default permissions to single account and chain on first connect', async () => {
-      await withFixtures(
-        {
-          dapp: true,
-          fixture: new FixtureBuilder().withPermissionController().build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Assertions.checkIfVisible(Browser.browserScreenID);
+  it('grants default permissions to single account and chain on first connect', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder().withPermissionController().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
-          await Browser.navigateToTestDApp();
-          await TestDApp.connect();
-          await ConnectBottomSheet.tapConnectButton();
+        await Browser.navigateToTestDApp();
+        await TestDApp.connect();
+        await ConnectBottomSheet.tapConnectButton();
 
-          await Browser.tapNetworkAvatarButtonOnBrowser();
-          await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        },
-      );
-    });
-
-    it('allows user to modify permitted chains before completing connection', async () => {
-      await withFixtures(
-        {
-          dapp: true,
-          fixture: new FixtureBuilder().withPermissionController().build(),
-          restartDevice: true,
-        },
-        async () => {
-          // Initial setup: Login and navigate to test dapp
-          await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
-          await Assertions.checkIfVisible(Browser.browserScreenID);
-          await Browser.navigateToTestDApp();
-          // First permission modification: Add Linea Sepolia
-          await TestDApp.connect();
-          await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-
-          await ConnectedAccountsModal.tapDeselectAllNetworksButton();
-          await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-          await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
-          await NetworkConnectMultiSelector.tapUpdateButton();
-
-          // Second permission modification: Replace Linea Sepolia with Sepolia
-          await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-          await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName(); // uncheck Linea Sepolia
-          await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName(); // check Sepolia
-          await NetworkConnectMultiSelector.tapUpdateButton();
-
-          // Complete initial connection
-          await ConnectBottomSheet.tapConnectButton();
-
-          // Open network permissions menu
-          await Browser.tapNetworkAvatarButtonOnBrowser();
-          await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-          await ConnectedAccountsModal.tapManagePermissionsButton();
-          await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-
-          // Verify final permissions state
-          // - Should have only Ethereum Mainnet and Sepolia selected
-          // - Deselecting both should show the disconnect all button
-          await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-          await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-          await Assertions.checkIfVisible(
-            ConnectedAccountsModal.disconnectNetworksButton,
-          );
-        },
-      );
-    });
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+      },
+    );
   });
 
+  it('allows user to modify permitted chains before completing connection', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder().withPermissionController().build(),
+        restartDevice: true,
+      },
+      async () => {
+        // Initial setup: Login and navigate to test dapp
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Browser.navigateToTestDApp();
+        // First permission modification: Add Linea Sepolia
+        await TestDApp.connect();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+        await NetworkConnectMultiSelector.tapUpdateButton();
+
+        // Second permission modification: Replace Linea Sepolia with Sepolia
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName(); // uncheck Linea Sepolia
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName(); // check Sepolia
+        await NetworkConnectMultiSelector.tapUpdateButton();
+
+        // Complete initial connection
+        await ConnectBottomSheet.tapConnectButton();
+
+        // Open network permissions menu
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // Verify final permissions state
+        // - Should have only Ethereum Mainnet and Sepolia selected
+        // - Deselecting both should show the disconnect all button
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await Assertions.checkIfVisible(
+          ConnectedAccountsModal.disconnectNetworksButton,
+        );
+      },
+    );
+  });
+});

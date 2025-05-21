@@ -52,24 +52,22 @@ const AccountConnectMultiSelector = ({
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    [],
+  );
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
-  }, [
-    setSelectedAddresses,
-    defaultSelectedAddresses,
-  ]);
+  }, [setSelectedAddresses, defaultSelectedAddresses]);
 
   const onSelectAccount = useCallback(
     (accAddress: CaipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
-        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, accAddress),
+        (selectedAccountId) =>
+          !isEqualCaseInsensitive(selectedAccountId, accAddress),
       );
 
-      if (
-        updatedSelectedAccountAddresses.length === selectedAddresses.length
-      ) {
+      if (updatedSelectedAccountAddresses.length === selectedAddresses.length) {
         setSelectedAddresses([...selectedAddresses, accAddress]);
       } else {
         setSelectedAddresses(updatedSelectedAccountAddresses);
@@ -86,8 +84,9 @@ const AccountConnectMultiSelector = ({
     onSubmit([]);
   }, [onSubmit]);
 
-  const areAllAccountsSelected = accounts
-    .every(({ caipAccountId }) => selectedAddresses.includes(caipAccountId));
+  const areAllAccountsSelected = accounts.every(({ caipAccountId }) =>
+    selectedAddresses.includes(caipAccountId),
+  );
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
@@ -133,7 +132,8 @@ const AccountConnectMultiSelector = ({
     styles.selectAll,
   ]);
 
-  const renderCtaButtons = useCallback(() => (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
@@ -144,8 +144,7 @@ const AccountConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...(isLoading &&
-                  styles.disabled),
+                ...(isLoading && styles.disabled),
               }}
               disabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
@@ -177,16 +176,18 @@ const AccountConnectMultiSelector = ({
           </View>
         )}
       </View>
-    ), [
-    areAnyAccountsSelected,
-    isLoading,
-    styles,
-    areNoAccountsSelected,
-    hostname,
-    showDisconnectAllButton,
-    handleDisconnect,
-    handleSubmit,
-  ]);
+    ),
+    [
+      areAnyAccountsSelected,
+      isLoading,
+      styles,
+      areNoAccountsSelected,
+      hostname,
+      showDisconnectAllButton,
+      handleDisconnect,
+      handleSubmit,
+    ],
+  );
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (

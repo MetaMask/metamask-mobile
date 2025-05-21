@@ -1,27 +1,34 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: { isRenderedAsBottomSheet: boolean | undefined };
+  vars: {
+    isRenderedAsBottomSheet: boolean | undefined;
+  };
 }) => {
-  const { theme } = params;
-  const { vars } = params;
+  const { theme, vars } = params;
+  const { colors, typography } = theme;
+  const { isRenderedAsBottomSheet } = vars;
 
   return StyleSheet.create({
     safeArea: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.alternative,
     },
     mainContainer: {
-      backgroundColor: theme.colors.background.default,
-      paddingTop: 8,
+      backgroundColor: theme.colors.background.alternative,
+      paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      minHeight: 200,
-      height: vars.isRenderedAsBottomSheet ? undefined : '100%',
-      justifyContent: vars.isRenderedAsBottomSheet
-        ? 'flex-start'
-        : 'space-between',
+      height: isRenderedAsBottomSheet ? undefined : '100%',
+      justifyContent: isRenderedAsBottomSheet ? 'flex-start' : 'space-between',
+    },
+    contentContainer: {
+      flex: 1,
     },
     title: {
       alignSelf: 'center',
@@ -36,8 +43,9 @@ const createStyles = (params: {
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
-      paddingHorizontal: 24,
       marginTop: 8,
+      paddingHorizontal: 16,
+      marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
     buttonPositioning: {
       flex: 1,
@@ -114,7 +122,10 @@ const createStyles = (params: {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    startAccessory: { flex: 1, paddingLeft: 16 },
+    startAccessory: {
+      flex: 1,
+      paddingLeft: 16,
+    },
     endAccessory: {
       flex: 1,
       paddingRight: 16,
@@ -141,6 +152,42 @@ const createStyles = (params: {
     description: {
       marginHorizontal: 24,
       marginBottom: 16,
+    },
+    // Tab Bar
+    tabsContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    base: {
+      paddingHorizontal: 16,
+    },
+    tabStyle: {
+      paddingVertical: 16,
+    },
+    tabUnderlineStyle: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+    },
+    tabUnderlineStyleInactive: {
+      backgroundColor: colors.text.muted,
+    },
+    textStyle: {
+      ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+    },
+    tabBar: {
+      marginBottom: 8,
+    },
+    // Header
+    connectionTitle: {
+      textAlign: 'center',
+    },
+    // Permissions Management
+    permissionsManagementContainer: {
+      marginTop: 8,
+      backgroundColor: colors.background.default,
+      borderRadius: 16,
+      paddingVertical: 8,
     },
   });
 };
