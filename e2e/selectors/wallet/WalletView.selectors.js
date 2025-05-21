@@ -80,4 +80,6 @@ export const WalletViewSelectorsText = {
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
   NAVBAR_TITLE_TEXT: 'Wallet',
+  PERMISSIONS_SUMMARY_TAB: 'Permissions',
+  ACCOUNTS_SUMMARY_TAB: 'Accounts',
 };

@@ -4,6 +4,10 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 
 const mockedNavigate = jest.fn();
 
@@ -16,6 +20,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
 const mockInitialState = {
   wizard: {
@@ -67,15 +79,19 @@ describe('PermissionsSummary', () => {
             },
             caipAccountId: 'eip155:0:0x2',
             yOffset: 0,
-            type: KeyringTypes.simple
-          }
+            type: KeyringTypes.simple,
+          },
         ]}
         accountAddresses={['eip155:0:0x2']}
         networkAvatars={[
           {
-          name: 'Ethereum Mainnet',
-          imageSource: ''
-        }]}
+            name: 'Ethereum Mainnet',
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            imageSource: require('../../../assets/images/network-avatar.png'),
+            size: AvatarSize.Xs,
+            variant: AvatarVariant.Network,
+          },
+        ]}
       />,
       { state: mockInitialState },
     );

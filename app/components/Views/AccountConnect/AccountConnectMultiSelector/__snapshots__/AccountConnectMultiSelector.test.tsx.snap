@@ -649,6 +649,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           style={
             {
               "flexDirection": "row",
+              "marginBottom": 0,
             }
           }
         >

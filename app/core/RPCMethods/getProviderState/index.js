@@ -16,7 +16,7 @@ async function getProviderStateHandler(
   { getProviderState: _getProviderState },
 ) {
   res.result = {
-    ...(await _getProviderState(req.origin)),
+    ...(await _getProviderState(req.origin, req.networkClientId)),
   };
   return end();
 }
