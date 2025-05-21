@@ -68,8 +68,8 @@ app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-e
 app/core/SnapKeyring
 
 # Multichain Accounts
-**/multichain-accounts/**                              @MetaMask/accounts-engineers
-**/MultichainAccounts/**                              @MetaMask/accounts-engineers
+**/multichain-accounts/**                                   @MetaMask/accounts-engineers
+**/MultichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
