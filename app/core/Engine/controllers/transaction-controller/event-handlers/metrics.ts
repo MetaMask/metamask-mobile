@@ -129,16 +129,6 @@ export async function handleTransactionFinalizedEventForMetrics(
       defaultTransactionMetricProperties.properties as unknown as JsonMap
     );
 
-    // Log for debugging - can be removed in production
-    Logger.log('METRICS COMPARISON - Final output for Finalized Transaction:', JSON.stringify({
-      name: 'Transaction Finalized',
-      properties: {
-        ...defaultTransactionMetricProperties.properties,
-        transaction_internal_id: transactionMeta.id,
-      },
-      sensitiveProperties: defaultTransactionMetricProperties.sensitiveProperties,
-    }));
-
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
       defaultTransactionMetricProperties.sensitiveProperties
@@ -159,16 +149,5 @@ export async function handleTransactionFinalizedEventForMetrics(
   }
 
   const event = eventBuilder.build();
-
-  // Log the final event properties to verify RPC domain is included
-  if (transactionMeta.status === 'failed') {
-    Logger.log('METRICS BEING SENT FOR FAILED TX:', JSON.stringify({
-      eventName: event.name,
-      properties: event.properties,
-      has_rpc_domain: event.properties?.rpc_domain !== undefined,
-      rpc_domain: event.properties?.rpc_domain,
-    }));
-  }
-
   MetaMetrics.getInstance().trackEvent(event);
 }

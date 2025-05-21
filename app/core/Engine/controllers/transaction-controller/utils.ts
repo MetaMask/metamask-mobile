@@ -14,6 +14,7 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import Logger from '../../../../util/Logger';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -77,9 +78,6 @@ const getConfirmationMetricProperties = (
   const metrics = (state.confirmationMetrics.metricsById?.[transactionId] ||
     {}) as unknown as TransactionMetrics;
 
-  // Add logging to see what data is coming from the confirmation metrics
-  console.log('METRICS COMPARISON - Old metrics from state:', JSON.stringify(metrics));
-
   return metrics;
 };
 
@@ -126,15 +124,10 @@ export function generateDefaultTransactionMetrics(
     status === 'submitted' || 
     status === 'confirmed';
 
-  console.log('METRICS COMPARISON - Event type and status check:', eventType, status, isSubmittedOrFinalized);
-
   if (isSubmittedOrFinalized) {
     // Always get RPC domain for all transaction statuses
     const rpcUrl = getNetworkRpcUrl(chainId);
-    console.log('METRICS COMPARISON - RPC URL:', rpcUrl);
-
     const rpc_domain = extractRpcDomain(rpcUrl);
-    console.log('METRICS COMPARISON - RPC domain:', rpc_domain);
 
     if (rpc_domain) {
       properties.rpc_domain = rpc_domain;
@@ -149,13 +142,10 @@ export function generateDefaultTransactionMetrics(
         transactionMeta.id
       );
       
-      console.log('METRICS COMPARISON - State metrics:', JSON.stringify(stateMetrics));
-      
       // Check if stateMetrics has properties and merge them
       if (stateMetrics?.properties) {
         // Merge state metrics into our properties, preferring our new values if there's overlap
         Object.assign(properties, stateMetrics.properties);
-        console.log('METRICS COMPARISON - After merging state properties:', JSON.stringify(properties));
       }
       
       // Also check for transaction_internal_id which seems important in the old implementation
@@ -164,7 +154,7 @@ export function generateDefaultTransactionMetrics(
       }
     }
   } catch (e) {
-    console.log('METRICS COMPARISON - Error getting state metrics:', e);
+    Logger.log('METRICS COMPARISON - Error getting state metrics:', e);
   }
 
   const output = {
@@ -173,8 +163,6 @@ export function generateDefaultTransactionMetrics(
     sensitiveProperties,
     saveDataRecording: true,
   };
-  
-  console.log('METRICS COMPARISON - Final output:', JSON.stringify(output));
   
   return output;
 }
@@ -194,10 +182,6 @@ export function generateEvent({
     properties: properties || {},
     sensitiveProperties: sensitiveProperties || {}
   };
-  
-  console.log('METRICS BEING SENT - metametricsEvent:', JSON.stringify(metametricsEvent));
-  console.log('METRICS BEING SENT - properties:', JSON.stringify(properties || {}));
-  console.log('METRICS BEING SENT - sensitiveProperties:', JSON.stringify(sensitiveProperties || {}));
   
   return MetricsEventBuilder.createEventBuilder(metametricsEvent)
     .addProperties(properties ?? {})
