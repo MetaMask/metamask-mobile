@@ -107,6 +107,20 @@ const removeLendingTokens = (tokens: TokenI[]) => {
   );
 };
 
+const removeLendingReceiptTokens = (tokens: TokenI[]) => {
+  const tokensCopy = [...tokens];
+  return tokensCopy.filter(
+    (token) => !SUPPORTED_LENDING_RECEIPT_TOKENS.has(token.symbol),
+  );
+};
+
+const removeLendingTokenPairs = (tokens: TokenI[]) => {
+  const tokensCopy = [...tokens];
+  const withoutLendingTokens = removeLendingTokens(tokensCopy);
+  return removeLendingReceiptTokens(withoutLendingTokens);
+};
+
+// TODO: Update tests to include receipt tokens
 export const filterEligibleTokens = (
   tokens: TokenI[],
   options: { canStake: boolean; canLend: boolean },
@@ -120,7 +134,7 @@ export const filterEligibleTokens = (
   }
 
   if (!canLend) {
-    tokensCopy = removeLendingTokens(tokensCopy);
+    tokensCopy = removeLendingTokenPairs(tokensCopy);
   }
 
   return tokensCopy;
