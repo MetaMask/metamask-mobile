@@ -1061,12 +1061,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -1213,12 +1213,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -1254,8 +1254,6 @@ workflows:
                 #!/usr/bin/env bash
 
                 node -v
-
-                ls -a /Users/vagrant/git/ios/build/Build/Products/Release-iphonesimulator
 
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
