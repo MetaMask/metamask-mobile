@@ -789,6 +789,7 @@ export class Engine {
           useNftDetection,
           displayNftMedia,
           isMultiAccountBalancesEnabled,
+          showTestNetworks,
         } = this.getPreferences();
         const locale = I18n.locale;
         return {
@@ -802,6 +803,7 @@ export class Engine {
           displayNftMedia,
           useNftDetection,
           useExternalPricingData: true,
+          showTestnets: showTestNetworks,
         };
       },
     };
@@ -878,6 +880,8 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
+        isNonEvmScopeSupported: () => false,
+        getNonEvmAccountAddresses: () => [],
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),
@@ -1860,6 +1864,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     } = this.context.PreferencesController.state;
 
     return {
@@ -1870,6 +1875,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     };
   };
 
