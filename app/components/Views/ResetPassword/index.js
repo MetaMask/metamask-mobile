@@ -483,11 +483,6 @@ class ResetPassword extends PureComponent {
           strings('choose_password.security_alert_message'),
         );
         this.setState({ loading: false });
-      } else if (error instanceof SeedlessOnboardingRecoveryError) {
-        this.setState({
-          loading: false,
-          error: error.toString().replace('SeedlessOnboardingController -', ''),
-        });
       } else {
         this.setState({ loading: false, error: error.toString() });
       }

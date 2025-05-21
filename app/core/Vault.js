@@ -112,13 +112,17 @@ export const recreateVaultWithNewPassword = async (
   // TODO: Fix with latest controller isCompleted
   if (
     ReduxService.store.getState().engine.backgroundState
-      .SeedlessOnboardingController.authConnection
+      .SeedlessOnboardingController.vault
   ) {
     let specificTraceSucceeded = false;
     try {
       trace({ name: TraceName.OnboardingResetPassword, op: TraceOperation.OnboardingSecurityOp });
       await SeedlessOnboardingController.changePassword(newPassword, password);
       specificTraceSucceeded = true;
+    } catch (error) {
+      Logger.error(error);
+      await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+      throw new Error('Password change failed');
     } finally {
       endTrace({ name: TraceName.OnboardingResetPassword, data: { success: specificTraceSucceeded } });
     }
