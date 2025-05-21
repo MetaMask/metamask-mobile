@@ -21,7 +21,7 @@ const createTransactionEventHandler =
   ) => {
     const defaultTransactionMetricProperties =
       generateDefaultTransactionMetrics(
-        eventType.category, // Use category property instead of the whole object
+        eventType,
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -71,7 +71,7 @@ export async function handleTransactionFinalizedEventForMetrics(
     transactionEventHandlerRequest;
 
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED.category,
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
     transactionEventHandlerRequest,
   );

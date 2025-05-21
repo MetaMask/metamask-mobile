@@ -108,7 +108,7 @@ export function generateDefaultTransactionMetrics(
   );
 
   const output = {
-    name: eventType,
+    name: eventType.category,
     properties: transactionMetrics.properties,
     sensitiveProperties: transactionMetrics.sensitiveProperties,
     saveDataRecording: true,
