@@ -333,13 +333,6 @@ const generateTermsOfUseTask = {
     ),
 };
 
-const setupE2ETask = {
-  title: 'Setup Anvil environment',
-  task: async () => {
-    await $`yarn install:foundryup`;
-  },
-};
-
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -372,7 +365,7 @@ const prepareDependenciesTask = {
 const concurrentTasks = {
   title: 'Concurrent tasks',
   task: (_, task) =>
-    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask, setupE2ETask], {
+    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
       concurrent: true,
       exitOnError: true,
       rendererOptions,
