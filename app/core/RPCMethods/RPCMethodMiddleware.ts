@@ -19,7 +19,7 @@ import {
   PermissionController,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import {
   processOriginThrottlingRejection,
@@ -35,10 +35,7 @@ import { v1 as random } from 'uuid';
 import { getDefaultCaip25CaveatValue, getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
+import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -51,8 +48,8 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
+import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { createAsyncWalletMiddleware } from './createAsyncWalletMiddleware';
-
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,7 +92,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin?: string) => any;
+  getProviderState: (origin?: string, networkClientId?: string,) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -182,6 +179,7 @@ export const checkActiveAccountAndChainId = async ({
   DevLogger.log(
     `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
   );
+
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const providerConfigChainId = selectEvmChainId(store.getState());
@@ -190,7 +188,14 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (isInitialNetwork) {
+    if (hostname && isPerDappSelectedNetworkEnabled()) {
+      const perOriginChainId = selectPerOriginChainId(
+        store.getState(),
+        hostname,
+      );
+
+      activeChainId = perOriginChainId;
+    } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
       activeChainId = providerConfigChainId;
@@ -567,9 +572,12 @@ export const getRpcMethodMiddleware = ({
             req.params,
           );
         },
-        eth_chainId: async () => {
-          const networkProviderState = await getProviderState(origin);
-          res.result = networkProviderState.chainId;
+        eth_chainId: () => {
+          const networkConfiguration =
+            Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+              req.networkClientId,
+            );
+          res.result = networkConfiguration.chainId;
         },
         eth_hashrate: () => {
           res.result = '0x00';
@@ -581,7 +589,7 @@ export const getRpcMethodMiddleware = ({
           res.result = true;
         },
         net_version: async () => {
-          const networkProviderState = await getProviderState(origin);
+          const networkProviderState = await getProviderState(origin, req.networkClientId);
           res.result = networkProviderState.networkVersion;
         },
         eth_requestAccounts: async () => {
@@ -966,7 +974,7 @@ export const getRpcMethodMiddleware = ({
         metamask_getProviderState: async () => {
           const accounts = getPermittedAccounts(origin);
           res.result = {
-            ...(await getProviderState(origin)),
+            ...(await getProviderState(origin, req.networkClientId)),
             accounts,
           };
         },
