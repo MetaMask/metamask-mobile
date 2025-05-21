@@ -31,8 +31,6 @@ export const useSafeChains = () => {
           try {
             await StorageWrapper.setItem('SAFE_CHAINS_CACHE', JSON.stringify(safeChainsData));
           } catch (cacheError) {
-            // This creates an error but doesn't do anything with it
-            // Consider logging it instead:
             Logger.log('[SafeChains Debug] Error caching chains data:', cacheError);
           }
 
