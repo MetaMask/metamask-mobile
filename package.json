@@ -167,7 +167,7 @@
     "@metamask/assets-controllers": "^62.0.0",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.12.1",
-    "@metamask/bridge-controller": "^25.1.0",
+    "@metamask/bridge-controller": "file:.yalc/@metamask/bridge-controller",
     "@metamask/bridge-status-controller": "^20.0.0",
     "@metamask/chain-agnostic-permission": "^0.6.0",
     "@metamask/composable-controller": "^11.0.0",
