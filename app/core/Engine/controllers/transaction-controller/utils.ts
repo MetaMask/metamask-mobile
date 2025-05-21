@@ -14,6 +14,7 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import { getNetworkRpcUrl, extractRpcDomain } from '../../../../util/rpc-domain-utils';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -130,4 +131,10 @@ export function generateEvent({
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();
+}
+
+export function generateRPCProperties(chainId: string) {
+  const rpcUrl = getNetworkRpcUrl(chainId);
+  const rpcDomain = extractRpcDomain(rpcUrl);
+  return rpcDomain ? { rpc_domain: rpcDomain } : {};
 }

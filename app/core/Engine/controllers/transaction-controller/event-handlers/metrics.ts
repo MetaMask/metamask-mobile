@@ -6,11 +6,11 @@ import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-
 import { MetaMetrics } from '../../../../Analytics';
 import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import { BaseControllerMessenger } from '../../../types';
-import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
+import { generateDefaultTransactionMetrics, generateEvent, generateRPCProperties } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
-import { extractRpcDomain, getNetworkRpcUrl } from '../../../../../util/rpc-domain-utils';
+import { merge } from 'lodash';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -82,13 +82,6 @@ export async function handleTransactionFinalizedEventForMetrics(
   );
 
   try {
-    // Get RPC domain for the transaction
-    const rpcUrl = getNetworkRpcUrl(transactionMeta.chainId);
-    const rpcDomain = extractRpcDomain(rpcUrl);
-    if (rpcDomain) {
-      eventBuilder.addProperties({ rpc_domain: rpcDomain } as unknown as JsonMap);
-    }
-
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
       transactionMeta.chainId,
@@ -111,10 +104,15 @@ export async function handleTransactionFinalizedEventForMetrics(
       } as unknown as JsonMap);
     }
 
-    // Then add the default properties
-    eventBuilder.addProperties(
-      defaultTransactionMetricProperties.properties as unknown as JsonMap
+    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+    const mergedProperties = merge(
+      {},
+      defaultTransactionMetricProperties.properties,
+      rpcProperties
     );
+
+    // Then add the default properties
+    eventBuilder.addProperties(mergedProperties as unknown as JsonMap);
 
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
@@ -125,9 +123,14 @@ export async function handleTransactionFinalizedEventForMetrics(
     Logger.log('Error getting smart transaction metrics:', error);
 
     // Add default properties if there was an error
-    eventBuilder.addProperties(
-      defaultTransactionMetricProperties.properties as unknown as JsonMap
+    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+    const mergedProperties = merge(
+      {},
+      defaultTransactionMetricProperties.properties,
+      rpcProperties
     );
+
+    eventBuilder.addProperties(mergedProperties as unknown as JsonMap);
 
     // Add sensitive properties
     eventBuilder.addSensitiveProperties(
