@@ -137,6 +137,7 @@ class AccountInfoCard extends PureComponent {
     ticker: PropTypes.string,
     transaction: PropTypes.object,
     origin: PropTypes.string,
+    signatureRequests: PropTypes.object,
   };
 
   render() {
