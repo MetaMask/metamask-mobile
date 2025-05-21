@@ -41,6 +41,7 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 // Internal dependencies.
 import {
@@ -54,7 +55,7 @@ import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { getNetworkImageSource } from '../../../util/networks';
+import { getNetworkImageSource, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
@@ -84,7 +85,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
-
+  const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
       Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
@@ -288,8 +289,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       toggleRevokeAllPermissionsModal();
       return;
     }
+    const currentEvmCaipChainId: CaipChainId = isPerDappSelectedNetworkEnabled()
+    ? `eip155:${parseInt(networkInfo.chainId, 16)}` 
+    : `eip155:${parseInt(currentEvmChainId, 16)}`;
 
-    const currentEvmCaipChainId: CaipChainId = `eip155:${parseInt(currentEvmChainId, 16)}`;
 
     const newSelectedEvmChainId = chainIds.find((chainId) => {
       const { namespace } = parseChainId(chainId);
@@ -320,10 +323,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           const { rpcEndpoints, defaultRpcEndpointIndex } = config as NetworkConfiguration;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          // Switch to the network using networkClientId
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          if (isPerDappSelectedNetworkEnabled()) {
+            // For per-dapp network selection, directly set the network for this domain
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          } else {
+            // For global network selection, switch the active network
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
@@ -335,7 +346,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
     networkConfigurations,
     permittedCaipChainIds,
-    toggleRevokeAllPermissionsModal
+    toggleRevokeAllPermissionsModal,
+    networkInfo
   ]);
 
   const handleSelectAccountAddresses = useCallback((selectedAccounts: CaipAccountId[], newUserIntent: USER_INTENT) => {
