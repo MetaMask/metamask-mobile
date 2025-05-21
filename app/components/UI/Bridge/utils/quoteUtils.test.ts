@@ -21,6 +21,7 @@ describe('quoteUtils', () => {
     };
 
     const mockFeatureFlags: FeatureFlagsPlatformConfig = {
+      minimumVersion: '0.0.0',
       refreshRate: 10000,
       maxRefreshCount: 3,
       support: true,
