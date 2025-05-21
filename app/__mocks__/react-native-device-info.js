@@ -1,6 +1,6 @@
 export const getModel = () => Promise.resolve('iPhone 12');
 export const getApplicationName = () => Promise.resolve('applicationName');
-export const getVersion = () => '1.0.0';
+export const getVersion = () => Promise.resolve('version');
 export const getSystemVersion = () => '14.5';
 export const getBuildNumber = () => Promise.resolve('500');
 export const hasNotch = () => true;
