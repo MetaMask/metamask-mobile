@@ -316,7 +316,6 @@ export const checkWCPermissions = async ({
         requestUserApproval: onRequestUserApproval(origin),
         analytics: {},
         origin,
-        isAddNetworkFlow: false,
         hooks: getRpcMethodMiddlewareHooks(origin),
       });
     } catch (error) {

@@ -43,20 +43,6 @@ describe('Permission Utils', () => {
   });
 
   describe('requestPermittedChainsPermissionIncremental', () => {
-    it('throws if the origin is snapId', async () => {
-      await expect(() =>
-        requestPermittedChainsPermissionIncremental({
-          origin: 'npm:snap',
-          chainId: '0x1',
-          autoApprove: false,
-        }),
-      ).rejects.toThrow(
-        new Error(
-          'Cannot request permittedChains permission for Snaps with origin "npm:snap"',
-        ),
-      );
-    });
-
     it('requests permittedChains approval if autoApprove: false', async () => {
       const subjectPermissions: Partial<
         SubjectPermissions<
@@ -419,6 +405,9 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
+                    'eip155:100': {
+                      accounts: [],
+                    },
                     'wallet:eip155': {
                       accounts: [],
                     },
@@ -433,7 +422,7 @@ describe('Permission Utils', () => {
       );
     });
 
-    it('returns approval from the PermissionsController for only eth_accounts when both eth_accounts and permittedChains are specified in params and origin is snapId', async () => {
+    it('returns approval from the PermissionsController for eth_accounts and permittedChains when both eth_accounts and permittedChains are specified in params and origin is snapId', async () => {
       const permissions = await getCaip25PermissionFromLegacyPermissions(
         'npm:snap',
         {
@@ -465,6 +454,11 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
+                    'eip155:100': {
+                      accounts: [
+                        'eip155:100:0x0000000000000000000000000000000000000001'
+                      ],
+                    },
                     'wallet:eip155': {
                       accounts: [
                         'wallet:eip155:0x0000000000000000000000000000000000000001',
@@ -533,7 +527,7 @@ describe('Permission Utils', () => {
       );
     });
 
-    it('returns CAIP-25 approval with approved accounts for the `wallet:eip155` scope (and no approved chainIds) with isMultichainOrigin: false if origin is snapId', async () => {
+    it('returns CAIP-25 approval with approved accounts for the `wallet:eip155` scope with isMultichainOrigin: false if origin is snapId', async () => {
       const origin = 'npm:snap';
 
       const permissions = await getCaip25PermissionFromLegacyPermissions(
@@ -567,6 +561,12 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
+                    'eip155:1': {
+                      accounts: ['eip155:1:0xdeadbeef'],
+                    },
+                    'eip155:5': {
+                      accounts: ['eip155:5:0xdeadbeef'],
+                    },
                     'wallet:eip155': {
                       accounts: ['wallet:eip155:0xdeadbeef'],
                     },
