@@ -41,7 +41,7 @@ export interface MultichainWalletSnapOptions {
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
-  ///: END:ONLY_INCLUDE_IF
+  derivationPath?: string;
 }
 
 interface SnapKeyringOptions {
@@ -120,10 +120,9 @@ export abstract class MultichainWalletSnapClient {
       }),
     );
 
-    const accountName = getMultichainAccountName(
-      options.scope,
-      this.getClientType(),
-    );
+    const accountName =
+      options?.accountNameSuggestion ??
+      getMultichainAccountName(options.scope, this.getClientType());
 
     return await this.withSnapKeyring(async (keyring) => {
       (keyring as unknown as SnapKeyring).createAccount(
@@ -207,32 +206,25 @@ export abstract class MultichainWalletSnapClient {
         break;
       }
 
-      // Add all discovered accounts to the keyring
-      await this.withSnapKeyring(async (keyring) => {
-        const results = await Promise.allSettled(
-          discoveredAccounts.map(async (account) => {
-            keyring.createAccount(
-              this.snapId,
-              {
-                derivationPath: account.derivationPath,
-                entropySource,
-              },
-              {
-                displayConfirmation: false,
-                displayAccountNameSuggestion: false,
-                setSelectedAccount: false,
-              },
-            );
-          }),
-        );
-        for (const result of results) {
-          if (result.status === 'rejected') {
-            captureException(
-              new Error(`Failed to create account ${result.reason}`),
-            );
-          }
+      // Process discovered accounts sequentially
+      for (const account of discoveredAccounts) {
+        try {
+          await this.createAccount(
+            {
+              scope: this.getScope(),
+              derivationPath: account.derivationPath,
+              entropySource,
+            },
+            {
+              displayConfirmation: false,
+              displayAccountNameSuggestion: false,
+              setSelectedAccount: false,
+            },
+          );
+        } catch (error) {
+          captureException(new Error(`Failed to create account ${error}`));
         }
-      });
+      }
     }
   }
 }
