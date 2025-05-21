@@ -31,6 +31,9 @@ const createStyles = ({ colors }: Theme) =>
       alignItems: 'center',
       gap: 4,
     },
+    disclaimerText: {
+      textAlign: 'center',
+    },
   });
 
 export default createStyles;

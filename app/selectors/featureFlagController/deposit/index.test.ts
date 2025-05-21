@@ -1,6 +1,8 @@
 import {
   DepositConfig,
   selectDepositConfig,
+  selectDepositEntrypointWalletActions,
+  selectDepositEntrypoints,
   selectDepositProviderApiKey,
   selectDepositProviderFrontendAuth,
 } from './index';
@@ -60,6 +62,34 @@ describe('Deposit selectors', () => {
     it('should return null when providerFrontendAuth does not exist', () => {
       const result = selectDepositProviderFrontendAuth.resultFunc({});
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectDepositEntrypoints', () => {
+    it('should return the entrypoints when they exist', () => {
+      const result = selectDepositEntrypoints.resultFunc(
+        mockRemoteFeatureFlags.depositConfig,
+      );
+      expect(result).toEqual(mockRemoteFeatureFlags.depositConfig.entrypoints);
+    });
+
+    it('should return undefined when entrypoints do not exist', () => {
+      const result = selectDepositEntrypoints.resultFunc({});
+      expect(result).toEqual(undefined);
+    });
+  });
+
+  describe('selectDepositEntrypointWalletActions', () => {
+    it('should return the walletActions entrypoint when it exists', () => {
+      const result = selectDepositEntrypointWalletActions.resultFunc(
+        mockRemoteFeatureFlags.depositConfig.entrypoints,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('should return false when walletActions entrypoint does not exist', () => {
+      const result = selectDepositEntrypointWalletActions.resultFunc({});
+      expect(result).toBe(false);
     });
   });
 });

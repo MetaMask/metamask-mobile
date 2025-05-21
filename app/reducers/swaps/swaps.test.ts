@@ -368,7 +368,7 @@ describe('swaps reducer', () => {
           globalSetting: true,
         },
       };
-      
+
       const chainFlags = {
         '0x1': {
           fallbackToV1: false,
@@ -378,12 +378,12 @@ describe('swaps reducer', () => {
           },
         },
       };
-      
+
       const rootState = createTestState({
         globalFeatureFlags: globalFlags,
         chainFeatureFlags: chainFlags,
       });
-      
+
       const result = selectSwapsChainFeatureFlags(rootState);
       expect(result).toEqual({
         fallbackToV1: false,

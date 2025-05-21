@@ -5,7 +5,6 @@ import getRpcMethodMiddleware, {
 } from '../../RPCMethods/RPCMethodMiddleware';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { PROTOCOLS } from '../../../constants/deeplinks';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -23,13 +22,11 @@ export const setupBridge = ({
     DevLogger.log(`setupBridge:: backgroundBridge already exists`);
     return connection.backgroundBridge;
   }
-
   const backgroundBridge = new BackgroundBridge({
     webview: null,
     isMMSDK: true,
     channelId: connection.channelId,
-    url:
-      PROTOCOLS.METAMASK + '://' + originatorInfo.url || originatorInfo.title,
+    url: originatorInfo.url,
     isRemoteConn: true,
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

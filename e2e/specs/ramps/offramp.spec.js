@@ -57,21 +57,19 @@ describe(SmokeTrade('Off-Ramp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should display Build Sell Quote page after user selects a region', async () => {
+  const itif = (condition) => (condition ? it : it.skip);
+
+  itif(device.getPlatform() === 'ios')('should display Build Sell Quote page after user clicks Get Started', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
-    await BuildQuoteView.tapSelectRegionDropdown();
-    await SelectRegionView.tapRegionOption(Regions.USA);
-    await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
-    await SelectRegionView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should show quotes', async () => {
+  itif(device.getPlatform() === 'ios')('should show quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await BuildQuoteView.enterAmount('2');

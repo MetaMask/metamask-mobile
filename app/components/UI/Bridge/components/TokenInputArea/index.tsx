@@ -26,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectBridgeControllerState,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -35,6 +34,10 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import parseAmount from '../../../Ramp/utils/parseAmount';
+
+const MAX_DECIMALS = 5;
 
 const createStyles = () =>
   StyleSheet.create({
@@ -145,8 +148,8 @@ export const TokenInputArea = forwardRef<
     const networkConfigurationsByChainId = useSelector(
       selectNetworkConfigurations,
     );
-    const { quoteRequest } = useSelector(selectBridgeControllerState);
-    const isInsufficientBalance = quoteRequest?.insufficientBal;
+
+    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -184,11 +187,11 @@ export const TokenInputArea = forwardRef<
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>
               {isLoading ? (
-                <Skeleton width={100} height={40} style={styles.input} />
+                <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount}
+                  value={amount ? parseAmount(amount, MAX_DECIMALS) : amount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -204,6 +207,9 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
+                  selection={{ start: 0, end: 0 }}
                 />
               )}
             </Box>
@@ -226,7 +232,7 @@ export const TokenInputArea = forwardRef<
           </Box>
           <Box style={styles.row}>
             {isLoading ? (
-              <Skeleton width={100} height={10} />
+              <Skeleton width={80} height={24} />
             ) : (
               <>
                 {token && currencyValue ? (

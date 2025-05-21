@@ -22,13 +22,10 @@ export const createStyles = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
+      paddingTop: 12,
     },
     button: {
       width: '100%',
-    },
-    bottomSection: {
-      flex: 1,
-      justifyContent: 'flex-end',
     },
     arrowContainer: {
       position: 'relative',
@@ -62,8 +59,7 @@ export const createStyles = (params: { theme: Theme }) => {
     keypadContainer: {
       flex: 1,
       justifyContent: 'flex-end',
-      paddingBottom: 36,
-      paddingTop: 8,
+      paddingBottom: 8,
     },
     keypad: {
       paddingHorizontal: 4,
@@ -71,18 +67,20 @@ export const createStyles = (params: { theme: Theme }) => {
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
-    mainContent: {
-      flex: 1,
-    },
     dynamicContent: {
       flex: 1,
       paddingBottom: 12,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
-      justifyContent: 'center',
-      paddingTop: 8,
-      paddingBottom: 12,
+      justifyContent: 'flex-end',
+      paddingBottom: 8,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollViewContent: {
+      flexGrow: 1,
     },
   });
 };

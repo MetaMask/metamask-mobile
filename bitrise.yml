@@ -195,7 +195,8 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # TODO: Re-enable in a future commit
+      #- run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}

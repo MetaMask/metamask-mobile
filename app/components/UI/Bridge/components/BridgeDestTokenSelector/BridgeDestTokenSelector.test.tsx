@@ -131,7 +131,7 @@ describe('BridgeDestTokenSelector', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         chainId: '0x1',
         decimals: 18,
         image: 'https://token2.com/logo.png',
@@ -170,7 +170,7 @@ describe('BridgeDestTokenSelector', () => {
       'Asset',
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         balanceFiat: '$200000',
         chainId: '0x1',
         decimals: 18,

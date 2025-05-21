@@ -9,7 +9,10 @@ export interface BridgeToken {
   image?: string;
   decimals: number;
   chainId: Hex | CaipChainId;
-  balance?: string; // A truncated non-atomic balance, e.g. 1.23456
+  // A non-truncated non-atomic balance, e.g. 1.23456789,
+  // can always do calculations on this, regardless of small numbers
+  // I.e. will NOT be "< 0.00001" like TokenI.balance
+  balance?: string;
   balanceFiat?: string; // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
