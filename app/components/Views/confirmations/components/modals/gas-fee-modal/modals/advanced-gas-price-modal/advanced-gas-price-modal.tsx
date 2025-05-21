@@ -73,9 +73,9 @@ export const AdvancedGasPriceModal = ({
 
   const handleInputError = (
     key: 'gasLimit' | 'gasPrice',
-    hasError: boolean,
+    isError: boolean,
   ) => {
-    setErrors((prev) => ({ ...prev, [key]: hasError }));
+    setErrors((prev) => ({ ...prev, [key]: isError }));
   };
 
   return (
@@ -99,8 +99,8 @@ export const AdvancedGasPriceModal = ({
           />
           <GasLimitInput
             onChange={handleGasLimitChange}
-            onErrorChange={(hasError) =>
-              handleInputError('gasLimit', !!hasError)
+            onErrorChange={(error) =>
+              handleInputError('gasLimit', !!error)
             }
           />
         </View>
