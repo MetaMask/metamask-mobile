@@ -92,7 +92,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin?: string) => any;
+  getProviderState: (origin?: string, networkClientId?: string,) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -572,9 +572,12 @@ export const getRpcMethodMiddleware = ({
             req.params,
           );
         },
-        eth_chainId: async () => {
-          const networkProviderState = await getProviderState(origin);
-          res.result = networkProviderState.chainId;
+        eth_chainId: () => {
+          const networkConfiguration =
+            Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+              req.networkClientId,
+            );
+          res.result = networkConfiguration.chainId;
         },
         eth_hashrate: () => {
           res.result = '0x00';
@@ -586,7 +589,7 @@ export const getRpcMethodMiddleware = ({
           res.result = true;
         },
         net_version: async () => {
-          const networkProviderState = await getProviderState(origin);
+          const networkProviderState = await getProviderState(origin, req.networkClientId);
           res.result = networkProviderState.networkVersion;
         },
         eth_requestAccounts: async () => {
@@ -971,7 +974,7 @@ export const getRpcMethodMiddleware = ({
         metamask_getProviderState: async () => {
           const accounts = getPermittedAccounts(origin);
           res.result = {
-            ...(await getProviderState(origin)),
+            ...(await getProviderState(origin, req.networkClientId)),
             accounts,
           };
         },
