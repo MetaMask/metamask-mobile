@@ -214,9 +214,8 @@ const homePageUrl = useCallback(
   }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
-    const checkIfActiveAccountChanged = () => {
-      const hostname = new URL(currentUrl || browserUrl).hostname;
-      const permittedAccounts = getPermittedAccounts(hostname);
+    const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
+      const permittedAccounts = getPermittedAccounts(hostnameForToastCheck);
       const activeAccountAddress = permittedAccounts?.[0];
 
       if (activeAccountAddress) {
@@ -241,15 +240,15 @@ const homePageUrl = useCallback(
       }
     };
 
-    // Handle when the Browser initially mounts and when url changes.
-    const effectiveUrl = currentUrl || browserUrl;
-    if (accounts.length && effectiveUrl) {
-      const hostname = new URL(effectiveUrl).hostname;
-      if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
-        checkIfActiveAccountChanged();
+    const urlForEffect = browserUrl || currentUrl;
+
+    if (accounts.length && urlForEffect) {
+      const newHostname = new URL(urlForEffect).hostname;
+      if (prevSiteHostname.current !== newHostname || !hasAccounts.current) {
+        checkIfActiveAccountChanged(newHostname);
       }
       hasAccounts.current = true;
-      prevSiteHostname.current = hostname;
+      prevSiteHostname.current = newHostname;
     }
   }, [currentUrl, browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
 

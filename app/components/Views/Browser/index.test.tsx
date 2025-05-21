@@ -18,6 +18,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { useAccounts } from '../../hooks/useAccounts';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 
 
 jest.useFakeTimers();
@@ -335,7 +336,6 @@ describe('Browser', () => {
                     closeTab={jest.fn()}
                     setActiveTab={jest.fn()}
                     updateTab={mockUpdateTab}
-                    // This prop would need to be added to the Browser component
                     forceShowTabs
                   />
                 )}
@@ -452,6 +452,295 @@ describe('Browser', () => {
         })
       ])
     }));
+  });
+
+  describe('useEffect for active account toast', () => {
+    const mockShowToast = jest.fn();
+    const mockCloseToast = jest.fn();
+    const mockToastRef = { current: { showToast: mockShowToast, closeToast: mockCloseToast } };
+
+    const testAccountAddress1 = '0x123';
+    const testAccountAddress2 = '0x456';
+    const mockAccountName1 = 'Account 1';
+    const mockAccountName2 = 'Account 2';
+
+    const mockAccounts = [
+      { address: testAccountAddress1, name: mockAccountName1, type: KeyringTypes.simple, yOffset: 0, isSelected: true },
+      { address: testAccountAddress2, name: mockAccountName2, type: KeyringTypes.simple, yOffset: 0, isSelected: false },
+    ];
+    const mockEnsByAccountAddress = {
+      [testAccountAddress1]: 'account1.eth',
+      [testAccountAddress2]: 'account2.eth',
+    };
+
+    const defaultBrowserProps = {
+      navigation: mockNavigation,
+      createNewTab: jest.fn(),
+      closeAllTabs: jest.fn(),
+      closeTab: jest.fn(),
+      setActiveTab: jest.fn(),
+      updateTab: jest.fn(),
+      tabs: [{ id: 1, url: 'https://initial.com', image: '', isArchived: false }],
+      activeTab: 1,
+    };
+
+    const renderBrowserWithProps = (props: Partial<React.ComponentProps<typeof Browser>>) =>
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              <NavigationContainer independent>
+                <Stack.Navigator>
+                  <Stack.Screen name={Routes.BROWSER.VIEW}>
+                    {() => (
+                      <Browser
+                        {...defaultBrowserProps}
+                        {...props}
+                      />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: { tabs: props.tabs || defaultBrowserProps.tabs, activeTab: props.activeTab || defaultBrowserProps.activeTab },
+          },
+        },
+      );
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (useAccounts as jest.Mock).mockReturnValue({
+        evmAccounts: mockAccounts,
+        accounts: mockAccounts,
+        ensByAccountAddress: mockEnsByAccountAddress,
+      });
+      (getPermittedAccounts as jest.Mock).mockReturnValue([]);
+    });
+
+    it('should show toast when url changes to a new host with a permitted account', () => {
+      (getPermittedAccounts as jest.Mock).mockImplementation((hostname) =>
+        hostname === 'newsite.com' ? [testAccountAddress1] : [],
+      );
+
+      const { rerender } = renderBrowserWithProps({
+        route: { params: { url: 'https://initial.com' } },
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled(); // No toast on initial render for initial.com
+
+      rerender(
+        <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              <NavigationContainer independent>
+                <Stack.Navigator>
+                  <Stack.Screen name={Routes.BROWSER.VIEW}>
+                    {() => (
+                      <Browser
+                        {...defaultBrowserProps}
+                        route={{ params: { url: 'https://newsite.com' } }}
+                      />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>
+      );
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountAddress: testAccountAddress1,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({ label: `${mockEnsByAccountAddress[testAccountAddress1]} ` }),
+          ]),
+        }),
+      );
+    });
+
+    it('should show toast when accounts become available for the current host', () => {
+      (getPermittedAccounts as jest.Mock).mockReturnValue([testAccountAddress1]);
+       // Initial render with no accounts
+      (useAccounts as jest.Mock).mockReturnValue({
+        evmAccounts: [],
+        accounts: [],
+        ensByAccountAddress: {},
+      });
+
+
+      const { rerender } = renderBrowserWithProps({
+        route: { params: { url: 'https://currentsite.com' } },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      // Rerender with accounts
+      (useAccounts as jest.Mock).mockReturnValue({
+        evmAccounts: mockAccounts,
+        accounts: mockAccounts,
+        ensByAccountAddress: mockEnsByAccountAddress,
+      });
+
+      rerender(
+         <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              <NavigationContainer independent>
+                <Stack.Navigator>
+                  <Stack.Screen name={Routes.BROWSER.VIEW}>
+                    {() => (
+                      <Browser
+                        {...defaultBrowserProps}
+                        route={{ params: { url: 'https://currentsite.com' } }}
+                      />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>
+      );
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountAddress: testAccountAddress1,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({ label: `${mockEnsByAccountAddress[testAccountAddress1]} ` }),
+          ]),
+        }),
+      );
+    });
+
+    it('should NOT show toast if host changes but no permitted accounts for new host', () => {
+      (getPermittedAccounts as jest.Mock).mockImplementation((hostname) =>
+        hostname === 'initial.com' ? [testAccountAddress1] : [],
+      );
+
+      const { rerender } = renderBrowserWithProps({
+        route: { params: { url: 'https://initial.com' } },
+      });
+      // Toast for initial.com
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      mockShowToast.mockClear();
+
+
+      rerender(
+        <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              <NavigationContainer independent>
+                <Stack.Navigator>
+                  <Stack.Screen name={Routes.BROWSER.VIEW}>
+                    {() => (
+                      <Browser
+                        {...defaultBrowserProps}
+                        route={{ params: { url: 'https://anothernewsite.com' } }}
+                      />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>
+      );
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should NOT show toast if already on the same host with permitted accounts', () => {
+      (getPermittedAccounts as jest.Mock).mockReturnValue([testAccountAddress1]);
+
+      const { rerender } = renderBrowserWithProps({
+        route: { params: { url: 'https://samesite.com' } },
+      });
+      expect(mockShowToast).toHaveBeenCalledTimes(1); // Initial toast
+      mockShowToast.mockClear();
+
+      // Rerender with same URL (e.g., due to some other state change not affecting URL or accounts)
+       rerender(
+         <Provider store={mockStore(mockInitialState)}>
+          <ThemeContext.Provider value={mockTheme}>
+            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+              <NavigationContainer independent>
+                <Stack.Navigator>
+                  <Stack.Screen name={Routes.BROWSER.VIEW}>
+                    {() => (
+                      <Browser
+                        {...defaultBrowserProps}
+                        route={{ params: { url: 'https://samesite.com' } }}
+                      />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ToastContext.Provider>
+          </ThemeContext.Provider>
+        </Provider>
+      );
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+     it('should NOT show toast if there are no accounts at all', () => {
+      (useAccounts as jest.Mock).mockReturnValue({
+        evmAccounts: [],
+        accounts: [],
+        ensByAccountAddress: {},
+      });
+      (getPermittedAccounts as jest.Mock).mockReturnValue([testAccountAddress1]);
+
+
+      renderBrowserWithProps({
+        route: { params: { url: 'https://anyvalidurl.com' } },
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should NOT show toast if effectiveUrl is null/undefined', () => {
+      // Ensure getPermittedAccounts only returns accounts for a specific, non-null hostname
+      (getPermittedAccounts as jest.Mock).mockImplementation((hostname) =>
+        hostname === 'somevalidhost.com' ? [testAccountAddress1] : [],
+      );
+      renderBrowserWithProps({
+        route: { params: { url: null } }, // browserUrl will be null
+        tabs: [{ id: 1, url: null, image: '', isArchived: false }], // currentUrl might become homePageUrl initially
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('should use browserUrl from props if currentUrl is not set initially', () => {
+      (getPermittedAccounts as jest.Mock).mockImplementation((hostname) =>
+        hostname === 'propurl.com' ? [testAccountAddress1] : [],
+      );
+
+      renderBrowserWithProps({
+        route: { params: {} }, // No URL in route.params, so currentUrl is initially AppConstants.HOMEPAGE_URL
+        // Browser component will receive props.browserUrl via route.params.url
+        // We are testing the case where currentUrl is not set via route.params.url initially and it defaults to homePageUrl
+        // and then a new browserUrl prop is passed
+      });
+       expect(mockShowToast).not.toHaveBeenCalled(); // homePageUrl likely won't have permitted accounts
+
+      // Simulate a new navigation where browserUrl is passed directly in route.params
+      /* const { rerender } = */ renderBrowserWithProps({
+        route: { params: { url: 'https://propurl.com' } },
+      });
+
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ accountAddress: testAccountAddress1 }),
+      );
+    });
   });
 });
 
