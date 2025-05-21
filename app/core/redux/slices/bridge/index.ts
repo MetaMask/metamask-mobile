@@ -12,7 +12,7 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
-  DEFAULT_FEATURE_FLAG_CONFIG
+  DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -192,7 +192,12 @@ export const selectBridgeFeatureFlags = createSelector(
     };
 
     // Return disabled config if minimum version is not met
-    if (!hasMinimumRequiredVersion((bridgeConfig as any)?.minimumVersion)) {
+    if (
+      !hasMinimumRequiredVersion(
+        (bridgeConfig as any)?.minimumVersion ||
+          process.env.BRIDGE_ENABLED !== 'true',
+      )
+    ) {
       return selectBridgeFeatureFlagsBase(disabledConfig);
     }
 
