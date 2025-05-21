@@ -18,7 +18,7 @@ const styleSheet = (params: {
       color: theme.colors.text.alternative,
     },
     title: {
-      paddingTop: 4,
+      paddingTop: 8,
     },
     titleText: {
       textAlign: 'center',
