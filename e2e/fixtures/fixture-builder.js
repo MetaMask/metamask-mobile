@@ -290,6 +290,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
+                    scopes: ['eip155:0']
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -771,7 +772,7 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(additionalPermissions),
     );
-    
+
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
   }
@@ -819,6 +820,8 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -827,7 +830,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
+            value: caip25CaveatValueWithDefaultAccount,
           },
         ],
         date: 1732715918637,
