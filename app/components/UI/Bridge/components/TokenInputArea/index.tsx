@@ -8,6 +8,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
+import { Theme } from '../../../../../util/theme/models';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -39,7 +40,18 @@ import parseAmount from '../../../Ramp/utils/parseAmount';
 
 const MAX_DECIMALS = 5;
 
-const createStyles = () =>
+/**
+ * Calculates font size based on input length
+ */
+const calculateFontSize = (length: number): number => {
+  if (length <= 10) return 40;
+  if (length <= 15) return 35;
+  if (length <= 20) return 30;
+  if (length <= 25) return 25;
+  return 20;
+};
+
+const createStyles = ({ theme, vars }: { theme: Theme; vars: { fontSize: number } }) =>
   StyleSheet.create({
     content: {
       paddingVertical: 16,
@@ -53,10 +65,10 @@ const createStyles = () =>
       flex: 1,
     },
     input: {
-      fontSize: 40,
       borderWidth: 0,
       lineHeight: 50,
       height: 50,
+      fontSize: vars.fontSize,
     },
   });
 
@@ -141,7 +153,6 @@ export const TokenInputArea = forwardRef<
       },
     }));
 
-    const { styles } = useStyles(createStyles, {});
     const navigation = useNavigation();
 
     const navigateToDestNetworkSelector = () => {
@@ -192,6 +203,10 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
+    const displayedAmount = getDisplayedAmount(amount, tokenType);
+    const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
+    const { styles } = useStyles(createStyles, { fontSize });
+
     return (
       <Box>
         <Box style={styles.content} gap={4}>
@@ -202,7 +217,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={getDisplayedAmount(amount, tokenType)}
+                  value={displayedAmount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
