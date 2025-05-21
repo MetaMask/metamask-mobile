@@ -52,7 +52,6 @@ describe(Regression('Transaction'), () => {
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-
         await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
