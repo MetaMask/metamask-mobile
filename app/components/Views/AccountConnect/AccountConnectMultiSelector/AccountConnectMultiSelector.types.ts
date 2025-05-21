@@ -6,6 +6,7 @@ export enum AccountConnectMultiSelectorScreens {
   AddAccountActions = 'AddAccountActions',
 }
 
+import { CaipAccountId } from '@metamask/utils';
 // External dependencies.
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
@@ -15,8 +16,8 @@ import { UseAccounts } from '../../../hooks/useAccounts';
  */
 export interface AccountConnectMultiSelectorProps
   extends Omit<UseAccounts, 'evmAccounts'> {
-  defaultSelectedAddresses: string[];
-  onSubmit: (addresses: string[]) => void;
+  defaultSelectedAddresses: CaipAccountId[];
+  onSubmit: (addresses: CaipAccountId[]) => void;
   isLoading?: boolean;
   hostname: string;
   isAutoScrollEnabled?: boolean;
