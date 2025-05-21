@@ -105,7 +105,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
     //Assert solana account 2 on main wallet view
-    await Assertions.checkIfTextIsNotDisplayed(ACCOUNT_ONE_TEXT, 0);
+    await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT, 0);
   });
 
   it('should be able to rename Solana account', async () => {

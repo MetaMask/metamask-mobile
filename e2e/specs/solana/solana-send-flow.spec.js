@@ -4,19 +4,13 @@ import WalletView from '../../pages/wallet/WalletView';
 import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase, loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import TestHelpers from '../../helpers';
-import {
-  SolanaNewFeatureSheetSelectorsIDs,
-} from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
-import Gestures from '../../utils/Gestures';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
