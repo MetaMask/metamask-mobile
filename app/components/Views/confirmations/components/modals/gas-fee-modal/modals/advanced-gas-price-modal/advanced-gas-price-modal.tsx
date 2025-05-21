@@ -43,7 +43,7 @@ export const AdvancedGasPriceModal = ({
     gasLimit: false,
     gasPrice: false,
   });
-  const isAnyErrorExists = errors.gasLimit || errors.gasPrice;
+  const hasError = errors.gasLimit || errors.gasPrice;
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
@@ -105,7 +105,7 @@ export const AdvancedGasPriceModal = ({
           />
         </View>
         <Button
-          isDisabled={isAnyErrorExists}
+          isDisabled={hasError}
           label={strings('transactions.gas_modal.save')}
           onPress={handleSaveClick}
           size={ButtonSize.Lg}
