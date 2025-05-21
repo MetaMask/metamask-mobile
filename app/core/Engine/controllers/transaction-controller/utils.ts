@@ -2,7 +2,7 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { extractRpcDomain, getNetworkRpcUrl } from '../../../../util/rpc-domain-utils';
+import { merge } from 'lodash';
 
 import type { RootState } from '../../../../reducers';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
@@ -14,7 +14,6 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
-import Logger from '../../../../util/Logger';
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -75,92 +74,43 @@ const getConfirmationMetricProperties = (
   transactionId: string,
 ): TransactionMetrics => {
   const state = getState();
-  const metrics = (state.confirmationMetrics.metricsById?.[transactionId] ||
+  return (state.confirmationMetrics.metricsById?.[transactionId] ||
     {}) as unknown as TransactionMetrics;
-
-  return metrics;
 };
 
-interface TransactionMetricsProperties {
-  chain_id: string;
-  status: string;
-  source?: string;
-  transaction_type?: string;
-  gas_limit?: string;
-  gas_price?: string;
-  max_fee_per_gas?: string;
-  max_priority_fee_per_gas?: string;
-  nonce?: number;
-  transaction_envelope_type?: number;
-  rpc_domain?: string; // Add the rpc_domain property
-}
-
 export function generateDefaultTransactionMetrics(
-  eventType: string,
+  eventType: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, status, origin, type } = transactionMeta;
+  const { chainId, status, type, id } = transactionMeta;
   
-  // Start with our new implementation properties
-  const properties: Record<string, any> = {
-    chain_id: chainId,
-    status,
-    source: 'MetaMask Mobile',
-    transaction_type: type || 'unknown',
-    transaction_envelope_type: type || 'unknown',
-  };
-
-  // Get txData for sensitive properties
-  const txData = transactionMeta?.txParams || {};
-  const sensitiveProperties: Record<string, any> = {
-    value: txData.value?.toString(),
-    to_address: txData.to,
-    from_address: txData.from,
-  };
-
-  // Check if we need to add RPC domain
-  const isSubmittedOrFinalized = 
-    status === 'submitted' || 
-    status === 'confirmed';
-
-  if (isSubmittedOrFinalized) {
-    // Always get RPC domain for all transaction statuses
-    const rpcUrl = getNetworkRpcUrl(chainId);
-    const rpc_domain = extractRpcDomain(rpcUrl);
-
-    if (rpc_domain) {
-      properties.rpc_domain = rpc_domain;
-    }
-  }
-
-  // Preserve existing functionality "getting state metrics + merge if available"
-  try {
-    if (transactionEventHandlerRequest?.getState && transactionMeta.id) {
-      const stateMetrics = getConfirmationMetricProperties(
-        transactionEventHandlerRequest.getState,
-        transactionMeta.id
-      );
-      
-      // Check if stateMetrics has properties and merge them
-      if (stateMetrics?.properties) {
-        // Merge state metrics into our properties, preferring our new values if there's overlap
-        Object.assign(properties, stateMetrics.properties);
-      }
-      
-      // Also check for transaction_internal_id which seems important in the old implementation
-      if (transactionMeta.id) {
-        properties.transaction_internal_id = transactionMeta.id;
-      }
-    }
-  } catch (e) {
-    Logger.log('METRICS COMPARISON - Error getting state metrics:', e);
-  }
+  const transactionMetrics = merge(
+    {
+      properties: {
+        chain_id: chainId,
+        status,
+        source: 'MetaMask Mobile',
+        transaction_type: getTransactionTypeValue(type),
+        transaction_envelope_type: transactionMeta.txParams.type,
+        transaction_internal_id: id,
+      },
+      sensitiveProperties: {
+        value: transactionMeta.txParams.value,
+        to_address: transactionMeta.txParams.to,
+        from_address: transactionMeta.txParams.from,
+      },
+    },
+    getConfirmationMetricProperties(
+      transactionEventHandlerRequest.getState,
+      id
+    ),
+  );
 
   const output = {
     name: eventType,
-    properties,
-    sensitiveProperties,
+    properties: transactionMetrics.properties,
+    sensitiveProperties: transactionMetrics.sensitiveProperties,
     saveDataRecording: true,
   };
   
@@ -176,13 +126,6 @@ export function generateEvent({
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
 }) {
-  // Create a representation of the metrics object being sent
-  const metricsObject = {
-    metametricsEvent, // Include the entire event object
-    properties: properties || {},
-    sensitiveProperties: sensitiveProperties || {}
-  };
-  
   return MetricsEventBuilder.createEventBuilder(metametricsEvent)
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})

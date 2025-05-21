@@ -10,7 +10,7 @@ import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
-import { extractRpcDomain } from '../../../../../util/rpc-domain-utils';
+import { extractRpcDomain, getNetworkRpcUrl } from '../../../../../util/rpc-domain-utils';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -82,24 +82,11 @@ export async function handleTransactionFinalizedEventForMetrics(
   );
 
   try {
-    // Explicitly get the RPC URL and domain for failed transactions
-    const network = getState().engine.backgroundState.NetworkController;
-    let rpcUrl: string | undefined;
-
-    // Check if the network has provider property and access it safely
-    if (network && typeof network === 'object' && 'provider' in network) {
-      const provider = network.provider;
-      if (provider && typeof provider === 'object') {
-        rpcUrl = (provider as any).rpcUrl || (provider as any).rpcTarget;
-      }
-    }
-
-    if (rpcUrl) {
-      const rpcDomain = extractRpcDomain(rpcUrl);
-      if (rpcDomain) {
-        // Add the RPC domain directly to the properties
-        eventBuilder.addProperties({ rpc_domain: rpcDomain } as unknown as JsonMap);
-      }
+    // Get RPC domain for the transaction
+    const rpcUrl = getNetworkRpcUrl(transactionMeta.chainId);
+    const rpcDomain = extractRpcDomain(rpcUrl);
+    if (rpcDomain) {
+      eventBuilder.addProperties({ rpc_domain: rpcDomain } as unknown as JsonMap);
     }
 
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
