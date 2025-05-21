@@ -178,6 +178,6 @@ describe('useAddressBalance', () => {
       },
     );
     expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
-    expect(res.result.current.addressBalance).toStrictEqual('0.5 TST');
+    expect(res.result.current.addressBalance).toStrictEqual('0.0005 TST');
   });
 });
