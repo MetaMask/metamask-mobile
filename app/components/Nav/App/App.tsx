@@ -135,8 +135,6 @@ import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FRESH_INSTALL_CHECK_DONE } from '../../../constants/storage';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -310,9 +308,7 @@ interface RootModalFlowProps {
     params: Record<string, unknown>;
   };
 }
-const RootModalFlow = (
-  props: RootModalFlowProps,
-) => (
+const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -912,77 +908,56 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
+      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+      if (!existingUser) {
+        // List of chainIds to add (as hex strings)
+        const chainIdsToAdd: `0x${string}`[] = [
+          CHAIN_IDS.ARBITRUM,
+          CHAIN_IDS.BASE,
+          CHAIN_IDS.BSC,
+          CHAIN_IDS.OPTIMISM,
+          CHAIN_IDS.POLYGON,
+        ];
+
+        // Filter the PopularList to get only the specified networks based on chainId
+        const selectedNetworks = PopularList.filter((network) =>
+          chainIdsToAdd.includes(network.chainId),
+        );
+        const { NetworkController } = Engine.context;
+
+        // Loop through each selected network and call NetworkController.addNetwork
+        for (const network of selectedNetworks) {
+          try {
+            await NetworkController.addNetwork({
+              chainId: network.chainId,
+              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+              defaultRpcEndpointIndex: 0,
+              defaultBlockExplorerUrlIndex: 0,
+              name: network.nickname,
+              nativeCurrency: network.ticker,
+              rpcEndpoints: [
+                {
+                  url: network.rpcUrl,
+                  failoverUrls: network.failoverRpcUrls,
+                  name: network.nickname,
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+            });
+          } catch (error) {
+            Logger.error(error as Error);
+          }
+        }
+      }
+
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-        
-        // Handle version update - only if we have a previous version
-        if (savedVersion && currentVersion !== savedVersion) {
-          console.log('App version changed:', { currentVersion, savedVersion });
-          
-          // Store the previous version before updating
-          await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          
-          // Update current version first
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-          
-          // Clear any potentially incompatible data
-          await StorageWrapper.clearAll();
-          
-          // Re-set the current version after clearing storage
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-          
-          // Ensure fresh install check runs again
-          await AsyncStorage.removeItem(FRESH_INSTALL_CHECK_DONE);
-          
-          // Force app to restart by throwing an error
-          throw new Error('App version updated, restarting...');
-        } else if (!savedVersion) {
-          // This is a fresh install, just set the current version
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-          await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
-        }
 
-        // Check if this is a fresh install
-        const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-        if (!existingUser) {
-          // List of chainIds to add (as hex strings)
-          const chainIdsToAdd: `0x${string}`[] = [
-            CHAIN_IDS.ARBITRUM,
-            CHAIN_IDS.BASE,
-            CHAIN_IDS.BSC,
-            CHAIN_IDS.OPTIMISM,
-            CHAIN_IDS.POLYGON,
-          ];
-
-          // Filter the PopularList to get only the specified networks based on chainId
-          const selectedNetworks = PopularList.filter((network) =>
-            chainIdsToAdd.includes(network.chainId),
-          );
-          const { NetworkController } = Engine.context;
-
-          // Loop through each selected network and call NetworkController.addNetwork
-          for (const network of selectedNetworks) {
-            try {
-              await NetworkController.addNetwork({
-                chainId: network.chainId,
-                blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-                defaultRpcEndpointIndex: 0,
-                defaultBlockExplorerUrlIndex: 0,
-                name: network.nickname,
-                nativeCurrency: network.ticker,
-                rpcEndpoints: [
-                  {
-                    url: network.rpcUrl,
-                    name: network.nickname,
-                    type: RpcEndpointType.Custom,
-                  },
-                ],
-              });
-            } catch (error) {
-              Logger.error(error as Error);
-            }
-          }
+        if (currentVersion !== savedVersion) {
+          if (savedVersion)
+            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
 
         // Ensure last version is set
@@ -998,10 +973,6 @@ const App: React.FC = () => {
         }
       } catch (error) {
         Logger.error(error as Error, 'Error in startApp');
-        // Ensure we don't leave the app in a broken state
-        await StorageWrapper.clearAll();
-        await AsyncStorage.removeItem(FRESH_INSTALL_CHECK_DONE);
-        // Re-throw the error to force app restart
         throw error;
       }
     }
