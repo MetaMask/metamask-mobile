@@ -177,6 +177,7 @@ function handleUniversalLink({
         instance._handleOpenHome();
     }
   } else {
+    // Normal links (same as dapp)
     instance._handleBrowserUrl(urlObj.href, browserCallBack);
   }
 
