@@ -2007,6 +2007,9 @@
     "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
     "connect_an_account": "Connect an account"
   },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
+  },
   "select": {
     "cancel": "Cancel",
     "done": "Done"
