@@ -19,7 +19,7 @@ import {
   PermissionController,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import {
   processOriginThrottlingRejection,
@@ -35,10 +35,7 @@ import { v1 as random } from 'uuid';
 import { getDefaultCaip25CaveatValue, getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
+import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -51,8 +48,8 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
+import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { createAsyncWalletMiddleware } from './createAsyncWalletMiddleware';
-
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -182,6 +179,7 @@ export const checkActiveAccountAndChainId = async ({
   DevLogger.log(
     `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
   );
+
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const providerConfigChainId = selectEvmChainId(store.getState());
@@ -190,7 +188,14 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (isInitialNetwork) {
+    if (hostname && isPerDappSelectedNetworkEnabled()) {
+      const perOriginChainId = selectPerOriginChainId(
+        store.getState(),
+        hostname,
+      );
+
+      activeChainId = perOriginChainId;
+    } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
       activeChainId = providerConfigChainId;
