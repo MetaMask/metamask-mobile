@@ -69,7 +69,11 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
+import {
+  getDecimalChainId,
+  isTestNet,
+  isMultichainV1Enabled,
+} from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -919,11 +923,11 @@ export class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      useRequestQueuePreference: isMultichainV1Enabled(),
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
         listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
+      ) => listener({ useRequestQueue: isMultichainV1Enabled() }),
       domainProxyMap: new DomainProxyMap(),
     });
 
