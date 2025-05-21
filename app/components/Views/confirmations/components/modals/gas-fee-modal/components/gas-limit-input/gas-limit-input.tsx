@@ -10,7 +10,7 @@ import {
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import { validateGas } from '../../../../../utils/gas-validations';
-import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
+import { TextFieldWithLabel } from '../../../../UI/text-field-with-label';
 import styleSheet from './gas-limit-input.styles';
 
 export const GasLimitInput = ({
@@ -49,7 +49,7 @@ export const GasLimitInput = ({
 
   return (
     <View style={styles.container}>
-      <TextInputEnhanced
+      <TextFieldWithLabel
         error={error}
         key="gas-limit"
         keyboardType="numeric"

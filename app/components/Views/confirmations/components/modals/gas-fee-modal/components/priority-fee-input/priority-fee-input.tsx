@@ -16,7 +16,7 @@ import {
 } from '../../../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../../../util/number';
 import styleSheet from './priority-fee-input.styles';
-import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
+import { TextFieldWithLabel } from '../../../../UI/text-field-with-label';
 import { validatePriorityFee } from '../../../../../utils/gas-validations';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
@@ -87,7 +87,7 @@ export const PriorityFeeInput = ({
 
   return (
     <View style={styles.container}>
-      <TextInputEnhanced
+      <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
         key="priority-fee"

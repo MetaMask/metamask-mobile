@@ -14,7 +14,7 @@ import {
 } from '../../../../../../../../util/conversions';
 import styleSheet from './gas-price-input.styles';
 import { validateGasPrice } from '../../../../../utils/gas-validations';
-import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
+import { TextFieldWithLabel } from '../../../../UI/text-field-with-label';
 
 export const GasPriceInput = ({
   onChange,
@@ -52,7 +52,7 @@ export const GasPriceInput = ({
 
   return (
     <View style={styles.container}>
-      <TextInputEnhanced
+      <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
         key="gas-price"

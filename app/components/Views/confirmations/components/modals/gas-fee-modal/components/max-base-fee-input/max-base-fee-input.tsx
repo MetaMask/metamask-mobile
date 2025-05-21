@@ -7,7 +7,7 @@ import { useStyles } from '../../../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../../../component-library/components/Texts/Text';
-import { TextInputEnhanced } from '../../../../UI/text-input-enhanced';
+import { TextFieldWithLabel } from '../../../../UI/text-field-with-label';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -89,7 +89,7 @@ export const MaxBaseFeeInput = ({
 
   return (
     <View style={styles.container}>
-      <TextInputEnhanced
+      <TextFieldWithLabel
         endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
         error={error}
         key="max-base-fee"

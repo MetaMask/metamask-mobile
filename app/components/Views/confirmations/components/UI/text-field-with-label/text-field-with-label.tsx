@@ -8,15 +8,15 @@ import TextField, {
   TextFieldSize,
 } from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
-import styleSheet from './text-input-enhanced.styles';
+import styleSheet from './text-field-with-label.styles';
 
-export type TextInputEnhancedProps = {
+export type TextFieldWithLabelProps = {
   error: string | boolean;
   key: string;
   label: string;
 } & TextFieldProps;
 
-export const TextInputEnhanced = (props: TextInputEnhancedProps) => {
+export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
   const { error, key, label, ...restProps } = props;
   const { styles, theme } = useStyles(styleSheet, {});
 
