@@ -93,10 +93,6 @@ jest.mock('../../../core/Engine', () => {
       PermissionsController: {
         getCaveat: jest.fn(), // Default mock, can be configured in tests
         getPermittedAccountsByHostname: jest.fn(),
-        // Add other PermissionsController methods if errors indicate they're needed
-        // For example:
-        // hasPermission: jest.fn().mockReturnValue(true),
-        // getPermissions: jest.fn().mockReturnValue({}),
       },
     },
   };
