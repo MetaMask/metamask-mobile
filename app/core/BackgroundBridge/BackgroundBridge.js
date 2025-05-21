@@ -285,20 +285,20 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN, networkClientId) {
-    const _networkClientId = networkClientId ?? Engine.controllerMessenger.call(
+  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
+    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
-      _networkClientId,
+      networkClientId,
     );
 
     const { chainId } = networkClient.configuration;
 
-    let networkVersion = this.deprecatedNetworkVersions[_networkClientId];
+    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
     if (!networkVersion) {
       const ethQuery = new EthQuery(networkClient.provider);
       networkVersion = await new Promise((resolve) => {
@@ -311,7 +311,7 @@ export class BackgroundBridge extends EventEmitter {
           }
         });
       });
-      this.deprecatedNetworkVersions[_networkClientId] = networkVersion;
+      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
     }
 
     return {
