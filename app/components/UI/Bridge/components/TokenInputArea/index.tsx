@@ -60,6 +60,11 @@ const createStyles = () =>
     },
   });
 
+export enum TokenInputAreaType {
+  Source = 'source',
+  Destination = 'destination',
+}
+
 const formatAddress = (address?: string) =>
   address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
@@ -73,11 +78,6 @@ const getDisplayedAmount = (
     ? amount
     : parseAmount(amount, MAX_DECIMALS);
 };
-
-export enum TokenInputAreaType {
-  Source = 'source',
-  Destination = 'destination',
-}
 
 export interface TokenInputAreaRef {
   blur: () => void;
