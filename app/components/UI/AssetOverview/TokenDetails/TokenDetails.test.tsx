@@ -341,7 +341,7 @@ describe('TokenDetails', () => {
     expect(getByText('Market details')).toBeDefined();
   });
 
-  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero', () => {
+  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero and user does not have existing positions', () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     const SELECTOR_MOCKS = {
       selectTokenMarketDataByChainId: {},

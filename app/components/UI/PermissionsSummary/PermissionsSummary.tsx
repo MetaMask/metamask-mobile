@@ -30,7 +30,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
-import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -51,6 +50,8 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
+import { parseCaipAccountId } from '@metamask/utils';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -76,7 +77,6 @@ const PermissionsSummary = ({
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
-  const selectedAccount = useSelectedAccount();
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
@@ -219,14 +219,14 @@ const PermissionsSummary = ({
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
-      if (accountAddresses.length === 0 && selectedAccount) {
-        return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
-      }
       if (accountAddresses.length === 1) {
         const matchedConnectedAccount = accounts.find(
-          (account) => account.address === accountAddresses[0],
+          (account) => isCaipAccountIdInPermittedAccountIds(
+            account.caipAccountId,
+            [accountAddresses[0]]
+          )
         );
-        return matchedConnectedAccount?.name;
+        return `${strings('permissions.connected_to')} ${matchedConnectedAccount?.name}`;
       }
 
       return `${accountAddresses.length} ${strings(
@@ -234,9 +234,12 @@ const PermissionsSummary = ({
       )}`;
     }
 
-    if (accountAddresses.length === 1 && accounts?.length >= 1) {
+    if (accountAddresses.length === 1 && accounts.length >= 1) {
       const matchedAccount = accounts.find(
-        (account) => account.address === accountAddresses[0],
+        (account) => isCaipAccountIdInPermittedAccountIds(
+          account.caipAccountId,
+          [accountAddresses[0]]
+        )
       );
 
       return `${strings('permissions.requesting_for')}${
@@ -244,18 +247,10 @@ const PermissionsSummary = ({
       }`;
     }
 
-    if (accountAddresses.length === 0 && selectedAccount) {
-      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
-    }
-
-    if (!selectedAccount) {
-      return `${strings('permissions.connect_an_account')}`;
-    }
-
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
+  }, [accountAddresses, isAlreadyConnected, accounts]);
 
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -312,23 +307,16 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                {accountAddresses.length > 0 ? (
                   <AvatarGroup
-                    avatarPropsList={accountAddresses.map((address) => ({
+                    avatarPropsList={accountAddresses.map((caipAccountId) => {
+                      const { address } = parseCaipAccountId(caipAccountId);
+                      return {
                       variant: AvatarVariant.Account,
                       accountAddress: address,
                       size: AvatarSize.Xs,
-                    }))}
+                    };
+                  })}
                   />
-                ) : (
-                  selectedAccount?.address && (
-                    <Avatar
-                      size={AvatarSize.Xs}
-                      variant={AvatarVariant.Account}
-                      accountAddress={selectedAccount.address}
-                    />
-                  )
-                )}
               </View>
             </View>
           </View>
@@ -487,7 +475,7 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
-                disabled={!selectedAccount && accountAddresses.length === 0}
+                disabled={!isNetworkSwitch && (accountAddresses.length === 0 || networkAvatars.length === 0)}
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,
