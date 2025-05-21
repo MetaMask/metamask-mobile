@@ -42,7 +42,7 @@ const MAX_DECIMALS = 5;
 /**
  * Calculates font size based on input length
  */
-const calculateFontSize = (length: number): number => {
+export const calculateFontSize = (length: number): number => {
   if (length <= 10) return 40;
   if (length <= 15) return 35;
   if (length <= 20) return 30;
