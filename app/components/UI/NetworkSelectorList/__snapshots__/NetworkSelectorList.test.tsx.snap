@@ -6,23 +6,23 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   data={
     [
       {
+        "caipChainId": "eip155:1",
         "id": "network-1",
         "imageSource": {
           "uri": "https://ethereum.org/icon.png",
         },
         "isSelected": false,
         "name": "Ethereum Mainnet",
-        "rpcUrl": "https://mainnet.infura.io/v3",
         "yOffset": 0,
       },
       {
+        "caipChainId": "eip155:137",
         "id": "network-2",
         "imageSource": {
           "uri": "https://polygon.org/icon.png",
         },
         "isSelected": true,
         "name": "Polygon",
-        "rpcUrl": "https://polygon-rpc.com",
         "yOffset": 100,
       },
     ]

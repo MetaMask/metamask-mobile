@@ -165,7 +165,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     ({ item: slide }: { item: CarouselSlide }) => (
       <Pressable
         key={slide.id}
-        testID={slide.testID}
+        testID={`carousel-slide-${slide.id}`}
         style={[
           styles.slideContainer,
           pressedSlideId === slide.id && styles.slideContainerPressed,
@@ -187,7 +187,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.title}
-                testID={slide.testIDTitle}
+                testID={`carousel-slide-${slide.id}-title`}
               >
                 {slide.title}
               </Text>
@@ -198,7 +198,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
           </View>
           {!slide.undismissable && (
             <TouchableOpacity
-              testID={slide.testIDCloseButton}
+              testID={`carousel-slide-${slide.id}-close-button`}
               style={styles.closeButton}
               onPress={() => handleClose(slide.id)}
             >
