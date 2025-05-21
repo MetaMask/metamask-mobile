@@ -88,7 +88,7 @@ export const Hero = ({
         styles={styles}
       />
       {subtitle && (
-        <Text style={styles.subtitle} variant={TextVariant.BodyMD}>
+        <Text style={styles.subtitle}>
           {subtitle}
         </Text>
       )}
