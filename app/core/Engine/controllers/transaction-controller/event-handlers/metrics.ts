@@ -10,7 +10,6 @@ import { generateDefaultTransactionMetrics, generateEvent, generateRPCProperties
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
-import { merge } from 'lodash';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -32,16 +31,6 @@ const createTransactionEventHandler =
       properties: defaultTransactionMetricProperties.properties as unknown as JsonMap,
       sensitiveProperties: defaultTransactionMetricProperties.sensitiveProperties,
     });
-
-    // Only log for TRANSACTION_SUBMITTED events
-    if (eventType === TRANSACTION_EVENTS.TRANSACTION_SUBMITTED) {
-      Logger.log('SENDING METRICS EVENT (SUBMITTED):', JSON.stringify({
-        event: event.name,
-        properties: event.properties,
-        has_rpc_domain: event.properties?.rpc_domain !== undefined,
-        rpc_domain: event.properties?.rpc_domain,
-      }));
-    }
 
     MetaMetrics.getInstance().trackEvent(event);
   };
