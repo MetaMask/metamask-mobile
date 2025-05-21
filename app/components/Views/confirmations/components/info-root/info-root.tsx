@@ -16,7 +16,7 @@ import SwitchAccountType from '../info/switch-account-type';
 import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
-import { Text } from 'react-native-svg';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -24,11 +24,12 @@ interface ConfirmationInfoComponentRequest {
 }
 
 const TransactionBatchComponent = () => {
-  return (<Text>asdf</Text>);
-}
+  console.log('TransactionBatchComponent mounted');
+  return <Text>Hello World</Text>;
+};
 
 const ConfirmationInfoComponentMap = {
-  ['transaction_batch']: () => TransactionBatchComponent,
+  'transaction_batch': () => TransactionBatchComponent,
   [TransactionType.personalSign]: () => PersonalSign,
   [TransactionType.signTypedData]: ({
     signatureRequestVersion,
@@ -65,13 +66,15 @@ interface InfoProps {
 }
 
 const Info = ({ route }: InfoProps) => {
-  console.log("info 123")
+  console.log('info >>>');
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
 
-  console.log({ approvalRequest, transactionMetadata });
+  console.log('approvalRequest >>>>', approvalRequest );
+
+  console.log('transactionMetadata >>>>', transactionMetadata );
 
   if (!approvalRequest?.type) {
     return null;

@@ -133,7 +133,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       }),
     [asset.address, asset.chainId, asset.isNative, navigation],
   );
-  const openStablecoinLendingConfirmation = async function() {
+  const openStablecoinLendingConfirmation = useCallback(async function() {
     const { batchId: id } = await addTransactionBatch({
       from: activeAccount?.address as Hex || '0x',
       networkClientId,
@@ -163,7 +163,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       useHook: true,
       requireApproval: true,
     });
-  };
+  }, [activeAccount?.address, networkClientId]);
 
   return (
     <View style={styles.wrapper}>
