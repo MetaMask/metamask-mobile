@@ -3,7 +3,6 @@ import Engine from '../../core/Engine';
 import { PermissionKeys } from '../../core/Permissions/specifications';
 import { CaveatTypes } from '../../core/Permissions/constants';
 import { pick } from 'lodash';
-import { isSnapId } from '@metamask/snaps-utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -28,12 +27,12 @@ const approvalLog = createProjectLogger('approval-utils');
  * Requests user approval for the CAIP-25 permission for the specified origin
  * and returns a granted permissions object.
  *
- * @param {string} origin - The origin to request approval for.
+ * @param {string} _origin - The origin to request approval for.
  * @param requestedPermissions - The legacy permissions to request approval for.
  * @returns the approved permissions object.
  */
 export const getCaip25PermissionFromLegacyPermissions = (
-  origin: string,
+  _origin: string,
   requestedPermissions?: {
     [PermissionKeys.eth_accounts]?: {
       caveats?: {
@@ -62,10 +61,6 @@ export const getCaip25PermissionFromLegacyPermissions = (
     permissions[PermissionKeys.permittedChains] = {};
   }
 
-  if (isSnapId(origin)) {
-    delete permissions[PermissionKeys.permittedChains];
-  }
-
   const requestedAccounts =
     permissions[PermissionKeys.eth_accounts]?.caveats?.find(
       (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
@@ -89,7 +84,7 @@ export const getCaip25PermissionFromLegacyPermissions = (
 
   const caveatValueWithChains = setPermittedEthChainIds(
     newCaveatValue,
-    isSnapId(origin) ? [] : requestedChains,
+    requestedChains,
   );
 
   const caveatValueWithAccountsAndChains = setEthAccounts(
@@ -132,12 +127,6 @@ export const requestPermittedChainsPermissionIncremental = async ({
   chainId: Hex;
   autoApprove: boolean;
 }) => {
-  if (isSnapId(origin)) {
-    throw new Error(
-      `Cannot request permittedChains permission for Snaps with origin "${origin}"`,
-    );
-  }
-
   const { PermissionController } = Engine.context;
   const caveatValueWithChains = setPermittedEthChainIds(
     {
