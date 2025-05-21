@@ -4,8 +4,13 @@ import {
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
 } from '@metamask/snaps-rpc-methods';
 ///: END:ONLY_INCLUDE_IF
-import {  RestrictedMethods } from './constants';
-import { caip25CaveatBuilder, Caip25CaveatType, caip25EndowmentBuilder, createCaip25Caveat } from '@metamask/chain-agnostic-permission';
+import { RestrictedMethods } from './constants';
+import {
+  caip25CaveatBuilder,
+  Caip25CaveatType,
+  caip25EndowmentBuilder,
+  createCaip25Caveat,
+} from '@metamask/chain-agnostic-permission';
 
 /**
  * This file contains the specifications of the permissions and caveats
@@ -47,15 +52,21 @@ export const CaveatFactories = Object.freeze({
  * @param {{
  * listAccounts: () => import('@metamask/keyring-api').InternalAccount[],
  * findNetworkClientIdByChainId: (chainId: `0x${string}`) => string,
+ * isNonEvmScopeSupported: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => boolean
+ * getNonEvmAccountAddresses: (scope: import('@metamask/chain-agnostic-permission').InternalScopeString) => import('@metamask/utils').CaipAccountId[],
  * }} options - Options bag.
  */
 export const getCaveatSpecifications = ({
   listAccounts,
   findNetworkClientIdByChainId,
+  isNonEvmScopeSupported,
+  getNonEvmAccountAddresses,
 }) => ({
   [Caip25CaveatType]: caip25CaveatBuilder({
     listAccounts,
     findNetworkClientIdByChainId,
+    isNonEvmScopeSupported,
+    getNonEvmAccountAddresses,
   }),
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ...snapsCaveatsSpecifications,
@@ -154,6 +165,7 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_addEthereumChain',
   'wallet_sendCalls',
   'wallet_getCallsStatus',
+  'wallet_getCapabilities',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',

@@ -51,7 +51,8 @@ const CustomNetwork = ({
         ) => {
           if (
             isNonEvmChainId(networkConfiguration.chainId) ||
-            isNonEvmChainId(savedNetwork.chainId)
+            isNonEvmChainId(savedNetwork.chainId) ||
+            ('isEvm' in savedNetwork && savedNetwork.isEvm === false)
           ) {
             return false;
           }
@@ -83,7 +84,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {isNetworkModalVisible && (
+      {isNetworkModalVisible && selectedNetwork && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
           isVisible={isNetworkModalVisible}
