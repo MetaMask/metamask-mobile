@@ -38,7 +38,10 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import { getNetworkImageSource } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
@@ -52,6 +55,13 @@ import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/select
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
 import { parseCaipAccountId } from '@metamask/utils';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -84,7 +94,7 @@ const PermissionsSummary = ({
     () => new URL(currentPageInformation.url).hostname,
     [currentPageInformation.url],
   );
-  const networkInfo = useNetworkInfo(hostname);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -114,12 +124,50 @@ const PermissionsSummary = ({
     onEditNetworks?.();
   };
 
+  const switchNetwork = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+  }, [navigate]);
+
   const renderTopIcon = () => {
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return (
+    return isPerDappSelectedNetworkEnabled() && isAlreadyConnected ? (
+      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+        <TouchableOpacity
+          onPress={switchNetwork}
+          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+        >
+          <BadgeWrapper
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
+          >
+            {icon ? (
+              <AvatarFavicon
+                imageSource={{
+                  uri: typeof icon === 'string' ? icon : icon?.uri,
+                }}
+                size={AvatarSize.Md}
+              />
+            ) : (
+              <AvatarToken
+                name={iconTitle}
+                isHaloEnabled
+                size={AvatarSize.Md}
+              />
+            )}
+          </BadgeWrapper>
+        </TouchableOpacity>
+      </View>
+    ) : (
       <WebsiteIcon
         style={styles.domainLogoContainer}
         viewStyle={styles.assetLogoContainer}
@@ -357,7 +405,7 @@ const PermissionsSummary = ({
                       </TextComponent>
                       <TextComponent variant={TextVariant.BodySMMedium}>
                         {isNonDappNetworkSwitch
-                          ? networkInfo?.networkName || providerConfig.nickname
+                          ? networkName || providerConfig.nickname
                           : chainName}
                       </TextComponent>
                     </TextComponent>
@@ -367,7 +415,7 @@ const PermissionsSummary = ({
                     size={AvatarSize.Xs}
                     name={
                       isNonDappNetworkSwitch
-                        ? networkInfo?.networkName || providerConfig.nickname
+                        ? networkName || providerConfig.nickname
                         : chainName
                     }
                     imageSource={
