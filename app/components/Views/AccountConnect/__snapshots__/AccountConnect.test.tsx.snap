@@ -354,7 +354,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                             }
                           }
                           testID="celldisplay"
-                          title=""
                         >
                           <View
                             style={
@@ -1623,7 +1622,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             }
                           }
                           testID="celldisplay"
-                          title=""
                         >
                           <View
                             style={
@@ -2892,7 +2890,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             }
                           }
                           testID="celldisplay"
-                          title=""
                         >
                           <View
                             style={
