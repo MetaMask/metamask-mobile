@@ -185,15 +185,14 @@ export const selectBridgeFeatureFlags = createSelector(
     const bridgeConfig = remoteFeatureFlags.bridgeConfigV2;
 
     const featureFlags = selectBridgeFeatureFlagsBase({
-        remoteFeatureFlags: {
-          bridgeConfig,
-        },
-      });
-
+      remoteFeatureFlags: {
+        bridgeConfig,
+      },
+    });
 
     if (
       hasMinimumRequiredVersion(featureFlags.minimumVersion) &&
-          process.env.BRIDGE_ENABLED === 'true'
+      process.env.BRIDGE_ENABLED === 'true'
     ) {
       return featureFlags;
     }
