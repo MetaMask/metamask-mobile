@@ -38,6 +38,7 @@ class Gestures {
     await element.tap();
   }
 
+
 /**
  * Wait for an element whose text ends with the specified pattern to be visible and then tap it
  *
@@ -52,23 +53,23 @@ static async waitAndTapByTextSuffix(textPattern, index = 0, timeout = 15000) {
 }
 
 /**
-   * Wait for an element to be visible and then tap it.
-   *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
-   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
-   */
+ * Wait for an element to be visible and then tap it.
+ *
+ * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
+ * @param {Object} [options={}] - Configuration options
+ * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+ * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+ */
 static async waitAndTap(elementID, options = {}) {
   const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
   const element = await elementID;
-
   if (!skipVisibilityCheck) {
     await waitFor(element).toBeVisible().withTimeout(timeout);
   }
+  await waitFor(element).toBeVisible().withTimeout(timeout);
 
   if (delayBeforeTap > 0) {
-    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap));
+    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
   }
   await element.tap();
 }
@@ -139,8 +140,6 @@ static async waitAndTap(elementID, options = {}) {
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
-   * @param {number} timeout - Timeout for waiting
-   * @param {number} index - Index of the element (default 0)
    */
   static async replaceTextInField(elementID, text, index = 0, timeout = 10000) {
     const element = await elementID;
@@ -149,24 +148,6 @@ static async waitAndTap(elementID, options = {}) {
 
     await targetElement.replaceText(text);
   }
-
-  /**
- * Type text into an element with specified index
- *
- * @param {string} elementId - ID of the element to type into
- * @param {number} index - Index of the element (0-based)
- * @param {string} text - Text to type
- */
-static async typeTextByIdAtIndex(elementId, index, text) {
-  // Create a direct reference to element at index
-  const targetElement = element(by.id(elementId)).atIndex(index);
-  
-  // Wait for element to be visible
-  await waitFor(targetElement).toBeVisible().withTimeout(10000);
-  
-  // Type text into the element
-  await targetElement.replaceText(text);
-}
 
   /**
    * Swipe on an element identified by ID.

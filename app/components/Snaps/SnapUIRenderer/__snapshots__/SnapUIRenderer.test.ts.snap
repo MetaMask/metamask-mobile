@@ -130,6 +130,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="snap-confirmation-Modal-close-button"
       >
         <Text
           accessibilityRole="text"
