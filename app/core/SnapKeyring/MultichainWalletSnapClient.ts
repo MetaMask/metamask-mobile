@@ -200,9 +200,9 @@ export abstract class MultichainWalletSnapClient {
         break;
       }
 
-      // Add all discovered accounts to the keyring
-      const results = await Promise.allSettled(
-        discoveredAccounts.map(async (account) => {
+      // Process discovered accounts sequentially
+      for (const account of discoveredAccounts) {
+        try {
           await this.createAccount(
             {
               scope: this.getScope(),
@@ -215,13 +215,8 @@ export abstract class MultichainWalletSnapClient {
               setSelectedAccount: false,
             },
           );
-        }),
-      );
-      for (const result of results) {
-        if (result.status === 'rejected') {
-          captureException(
-            new Error(`Failed to create account ${result.reason}`),
-          );
+        } catch (error) {
+          captureException(new Error(`Failed to create account ${error}`));
         }
       }
     }
