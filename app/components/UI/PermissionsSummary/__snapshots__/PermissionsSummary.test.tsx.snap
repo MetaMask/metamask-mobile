@@ -240,7 +240,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       }
                     }
                     testID="celldisplay"
-                    title=""
                   >
                     <View
                       style={
