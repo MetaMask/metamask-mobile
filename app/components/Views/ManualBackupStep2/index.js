@@ -109,6 +109,9 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             showPasswordHint: true,
           });
         } else {
+          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
+
           navigation.navigate('OptinMetrics', {
             steps: route.params?.steps,
             words,
@@ -117,10 +120,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 showPasswordHint: true,
               });
             },
-            tracesToEnd: [
-              TraceName.OnboardingNewSrpCreateWallet,
-              TraceName.OnboardingJourneyOverall,
-            ],
           });
         }
         trackOnboarding(

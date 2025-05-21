@@ -170,10 +170,10 @@ const AccountBackupStep1 = (props) => {
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
 
-    if (isMetricsEnabled()) {
-      endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
+    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
 
+    if (isMetricsEnabled()) {
       props.navigation.navigate('OnboardingSuccess', {
         showPasswordHint: false,
       });
@@ -184,10 +184,6 @@ const AccountBackupStep1 = (props) => {
           showPasswordHint: false,
         });
         },
-        tracesToEnd: [
-          TraceName.OnboardingNewSrpCreateWallet,
-          TraceName.OnboardingJourneyOverall,
-        ],
       });
     }
   };

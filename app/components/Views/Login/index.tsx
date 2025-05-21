@@ -387,11 +387,11 @@ const Login: React.FC = () => {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
-        if (isMetricsEnabled()) {
-          endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-          endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
+        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
 
+        if (isMetricsEnabled()) {
           navigation.reset({
             index: 0,
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
@@ -408,11 +408,6 @@ const Login: React.FC = () => {
                     routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
                   });
                 },
-                tracesToEnd: [
-                  TraceName.OnboardingPasswordLoginAttempt,
-                  TraceName.OnboardingExistingSocialLogin,
-                  TraceName.OnboardingJourneyOverall,
-                ],
               },
             },
           });

@@ -380,11 +380,11 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
-        if (this.props.metrics.isEnabled()) {
-          endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-          endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
+        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
 
+        if (this.props.metrics.isEnabled()) {
           this.props.navigation.reset({
             index: 0,
             routes: [
@@ -407,11 +407,6 @@ class ChoosePassword extends PureComponent {
                 ],
               });
             },
-            tracesToEnd: [
-              TraceName.OnboardingPasswordSetupAttempt,
-              TraceName.OnboardingNewSocialCreateWallet,
-              TraceName.OnboardingJourneyOverall,
-            ],
           });
         }
       } else {

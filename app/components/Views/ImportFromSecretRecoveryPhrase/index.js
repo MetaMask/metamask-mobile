@@ -574,11 +574,11 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        if (isMetricsEnabled()) {
-          endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-          endTrace({ name: TraceName.OnboardingExistingSrpImport });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
+        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        endTrace({ name: TraceName.OnboardingExistingSrpImport });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
 
+        if (isMetricsEnabled()) {
           navigation.reset({
             index: 1,
             routes: [
@@ -603,11 +603,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 ],
               });
             },
-            tracesToEnd: [
-              TraceName.OnboardingPasswordSetupAttempt,
-              TraceName.OnboardingExistingSrpImport,
-              TraceName.OnboardingJourneyOverall,
-            ],
           });
         }
       } catch (error) {
