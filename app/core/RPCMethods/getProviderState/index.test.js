@@ -21,6 +21,7 @@ describe('getProviderState', () => {
       id: '22',
       jsonrpc: '2.0',
       method: 'metamask_getProviderState',
+      networkClientId: '0x1',
     };
 
     const res = {
@@ -38,7 +39,7 @@ describe('getProviderState', () => {
       getProviderState: mockGetProviderState,
     });
 
-    expect(mockGetProviderState).toHaveBeenCalledWith(req.origin);
+    expect(mockGetProviderState).toHaveBeenCalledWith(req.origin, req.networkClientId);
     expect(res.result).toStrictEqual({
       chainId: '0x539',
       isUnlocked: true,
