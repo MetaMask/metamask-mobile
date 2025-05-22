@@ -45,7 +45,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await loadFixture(fixtureServer, {
       fixture: new FixtureBuilder()
         .withSolanaFixture()
-        .withSolanaFeatureSheetShown()
+        .withSolanaFeatureSheetDisplayed()
         .build(),
     });
 

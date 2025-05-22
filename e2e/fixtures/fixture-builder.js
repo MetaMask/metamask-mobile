@@ -71,7 +71,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withSolanaFeatureSheetShown() {
+  withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
     }
