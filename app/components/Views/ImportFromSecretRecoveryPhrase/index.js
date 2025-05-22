@@ -144,7 +144,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const inputPadding = Platform.OS === 'ios' ? 4 : 3;
   const numColumns = 3; // Number of columns
