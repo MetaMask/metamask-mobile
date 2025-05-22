@@ -108,7 +108,10 @@ export function generateDefaultTransactionMetrics(
     ),
   );
 
-  return mergedDefaultProperties;
+  return {
+    metametricsEvent,
+    ...mergedDefaultProperties,
+  };
 }
 
 export function generateEvent({

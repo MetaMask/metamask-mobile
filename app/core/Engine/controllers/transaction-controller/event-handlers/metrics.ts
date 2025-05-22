@@ -9,7 +9,6 @@ import { BaseControllerMessenger } from '../../../types';
 import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -25,12 +24,7 @@ const createTransactionEventHandler =
         transactionEventHandlerRequest,
       );
 
-    // Create the event using the original format expected by tests
-    const event = generateEvent({
-      metametricsEvent: eventType,
-      properties: defaultTransactionMetricProperties.properties as unknown as JsonMap,
-      sensitiveProperties: defaultTransactionMetricProperties.sensitiveProperties,
-    });
+    const event = generateEvent(defaultTransactionMetricProperties);
 
     MetaMetrics.getInstance().trackEvent(event);
   };
@@ -88,10 +82,6 @@ export async function handleTransactionFinalizedEventForMetrics(
   const mergedEventProperties = merge({}, defaultTransactionMetricProperties, smartTransactionProperties);
 
   // Generate and track the event
-  const event = generateEvent({
-    metametricsEvent: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    properties: mergedEventProperties.properties,
-    sensitiveProperties: mergedEventProperties.sensitiveProperties,
-  });
+  const event = generateEvent(mergedEventProperties);
   MetaMetrics.getInstance().trackEvent(event);
 }
