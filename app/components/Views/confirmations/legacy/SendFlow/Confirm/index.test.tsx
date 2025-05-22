@@ -22,6 +22,11 @@ import { flushPromises } from '../../../../../../util/test/utils';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
+jest.mock('../../../../../../selectors/keyringController', () => ({
+  ...jest.requireActual('../../../../../../selectors/keyringController'),
+  selectHdEntropyIndex: jest.fn(() => 1),
+}));
+
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
