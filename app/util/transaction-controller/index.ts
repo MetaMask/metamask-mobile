@@ -1,5 +1,6 @@
 import {
   TransactionParams,
+  TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -8,32 +9,6 @@ import Engine from '../../core/Engine';
 import { NetworkClientId } from '@metamask/network-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
-
-function sanitizeTransactionParamsGasValues(
-  transactionId: string,
-  requestedTransactionParamsToUpdate: Partial<TransactionParams>,
-) {
-  const { TransactionController } = Engine.context;
-
-  const transactionMeta = TransactionController.getTransactions({
-    searchCriteria: { id: transactionId },
-  })?.[0];
-
-  if (!transactionMeta || !requestedTransactionParamsToUpdate) {
-    return;
-  }
-
-  const envelopeType = transactionMeta.txParams.type;
-
-  if (envelopeType === '0x0') {
-    // legacy transaction
-    delete requestedTransactionParamsToUpdate.maxFeePerGas;
-    delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
-  } else {
-    // EIP-1559 compatible transaction
-    delete requestedTransactionParamsToUpdate.gasPrice;
-  }
-}
 
 export async function addTransaction(
   transaction: TransactionParams,
@@ -168,3 +143,27 @@ export const getNetworkNonce = async (
 
   return nextNonce;
 };
+
+function sanitizeTransactionParamsGasValues(
+  transactionId: string,
+  requestedTransactionParamsToUpdate: Partial<TransactionParams>,
+) {
+  const { TransactionController } = Engine.context;
+
+  const transactionMeta = TransactionController.getTransactions({
+    searchCriteria: { id: transactionId },
+  })?.[0];
+
+  if (!transactionMeta || !requestedTransactionParamsToUpdate) {
+    return;
+  }
+
+  const envelopeType = transactionMeta.txParams.type;
+
+  if (envelopeType === TransactionEnvelopeType.legacy) {
+    delete requestedTransactionParamsToUpdate.maxFeePerGas;
+    delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
+  } else if (envelopeType === TransactionEnvelopeType.feeMarket) {
+    delete requestedTransactionParamsToUpdate.gasPrice;
+  }
+}
