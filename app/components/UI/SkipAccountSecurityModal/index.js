@@ -105,15 +105,13 @@ const SkipAccountSecurityModal = ({ route }) => {
 
   const onConfirmAction = () => {
     if (route && route.params && route.params.onConfirm) {
-      route.params.onConfirm();
-      // sheetRef.current?.onCloseBottomSheet?.();
+      sheetRef.current?.onCloseBottomSheet?.(route.params.onConfirm);
     }
   };
 
   const onCancelAction = () => {
     if (route && route.params && route.params.onCancel) {
-      route.params.onCancel();
-      sheetRef.current?.onCloseBottomSheet?.();
+      sheetRef.current?.onCloseBottomSheet?.(route.params.onCancel);
     }
   };
 

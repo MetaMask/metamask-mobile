@@ -117,6 +117,7 @@ const ImportFromSecretRecoveryPhrase = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const seedPhraseInputRefs = useRef([]);
   const { toastRef } = useContext(ToastContext);
@@ -217,17 +218,20 @@ const ImportFromSecretRecoveryPhrase = ({
               />
             </TouchableOpacity>
           ),
-          headerRight: () => (
-            <TouchableOpacity onPress={onQrCodePress}>
-              <Icon
-                name={IconName.Scan}
-                size={24}
-                color={colors.text.default}
-                onPress={onQrCodePress}
-                style={styles.headerRight}
-              />
-            </TouchableOpacity>
-          ),
+          headerRight: () =>
+            currentStep === 0 ? (
+              <TouchableOpacity onPress={onQrCodePress}>
+                <Icon
+                  name={IconName.Scan}
+                  size={24}
+                  color={colors.text.default}
+                  onPress={onQrCodePress}
+                  style={styles.headerRight}
+                />
+              </TouchableOpacity>
+            ) : (
+              <View />
+            ),
         },
         colors,
         false,
@@ -603,9 +607,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 routes: [
                   {
                     name: Routes.ONBOARDING.SUCCESS_FLOW,
-                    params: {
-                      showPasswordHint: false,
-                    },
+                    params: { showPasswordHint: false },
                   },
                 ],
               });
@@ -705,7 +707,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     <View style={styles.seedPhraseInnerContainer}>
                       {seedPhrase.length <= 1 ? (
                         <TextInput
-                          textAlignVertical="center"
+                          textAlignVertical="top"
                           label={strings('import_from_seed.srp')}
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
@@ -877,7 +879,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   </Label>
                   <TextField
                     placeholder={strings(
-                      'import_from_seed.use_at_least_8_characters',
+                      'import_from_seed.enter_strong_password',
                     )}
                     size={TextFieldSize.Lg}
                     value={password}
@@ -892,17 +894,26 @@ const ImportFromSecretRecoveryPhrase = ({
                       <Icon
                         name={
                           showPasswordIndex.includes(0)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
+                            ? IconName.Eye
+                            : IconName.EyeSlash
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.default}
+                        color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(0)}
                       />
                     }
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                   />
-                  {password !== '' && (
+                  {password === '' ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  ) : (
                     <Text
                       style={styles.passwordStrengthLabel}
                       testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
@@ -941,33 +952,29 @@ const ImportFromSecretRecoveryPhrase = ({
                       <Icon
                         name={
                           showPasswordIndex.includes(1)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
+                            ? IconName.Eye
+                            : IconName.EyeSlash
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.default}
+                        color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(1)}
                       />
                     }
                     testID={
                       ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
+                    isDisabled={password === ''}
                   />
-                  {password === '' || password !== confirmPassword ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('choose_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
-                  ) : null}
-                  {password === '' || password !== confirmPassword ? (
-                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                      {strings('import_from_seed.password_error')}
-                    </Text>
-                  ) : null}
+                  {password !== '' &&
+                    confirmPassword !== '' &&
+                    password !== confirmPassword && (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Error}
+                      >
+                        {strings('import_from_seed.password_error')}
+                      </Text>
+                    )}
                 </View>
 
                 {renderSwitch()}
@@ -977,6 +984,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 <Checkbox
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
+                  style={styles.checkbox}
                   label={
                     <View style={styles.learnMoreTextContainer}>
                       <Text

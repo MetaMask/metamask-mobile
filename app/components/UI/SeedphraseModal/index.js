@@ -9,41 +9,25 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    whatIsSeedphraseTitle: {
-      flex: 1,
-      fontSize: 18,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
-    modalNoBorder: {
-      borderTopWidth: 0,
-      paddingHorizontal: 0,
-      paddingVertical: 0,
-      width: '100%',
-      marginTop: 16,
-      marginBottom: Platform.OS === 'ios' ? 8 : 16,
-    },
     modalContainer: {
-      flex: 1,
-      paddingTop: 24,
+      padding: 16,
       flexDirection: 'column',
-    },
-    modalXButton: {
-      padding: 5,
-      alignItems: 'flex-end',
+      rowGap: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     titleContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 16,
-    },
-    auxCenterView: {
-      width: 26,
     },
     explanationText: {
       fontSize: 14,
@@ -53,9 +37,8 @@ const createStyles = (colors) =>
       color: colors.text.default,
       lineHeight: 20,
     },
-    modalXIcon: {
-      fontSize: 16,
-      color: colors.text.default,
+    list: {
+      marginTop: 24,
     },
     listItem: {
       flexDirection: 'row',
@@ -74,7 +57,10 @@ const createStyles = (colors) =>
     },
     explanationTextContainer: {
       flexDirection: 'column',
-      gap: 16,
+    },
+    buttonContainer: {
+      marginTop: 16,
+      width: '100%',
     },
   });
 
@@ -95,47 +81,42 @@ const SeedphraseModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <ActionContent
-        actionContainerStyle={styles.modalNoBorder}
-        displayCancelButton={false}
-        onRequestClose={hideWhatIsSeedphrase}
-        confirmText={strings(
-          'account_backup_step_1.what_is_seedphrase_confirm',
-        )}
-        confirmButtonMode={'blue'}
-        onConfirmPress={hideWhatIsSeedphrase}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.titleContainer}>
-            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-              {strings('account_backup_step_1.what_is_seedphrase_title')}
-            </Text>
-          </View>
-          <View style={styles.explanationTextContainer}>
+      <View style={styles.modalContainer}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+            {strings('account_backup_step_1.what_is_seedphrase_title')}
+          </Text>
+        </View>
+        <View style={styles.explanationTextContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('account_backup_step_1.what_is_seedphrase_text_1')}
+          </Text>
+          <View style={styles.list}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {strings('account_backup_step_1.what_is_seedphrase_text_1')}
+              {strings('account_backup_step_1.what_is_seedphrase_text_4')}
             </Text>
-            <View>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('account_backup_step_1.what_is_seedphrase_text_4')}
-              </Text>
-              <View style={styles.listContainer}>
-                {seedPhrasePoints.map((point, index) => (
-                  <View style={styles.listItem} key={index}>
-                    <Text style={styles.bullet}>{'\u2022'}</Text>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
-                    >
-                      {point}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+            <View style={styles.listContainer}>
+              {seedPhrasePoints.map((point, index) => (
+                <View style={styles.listItem} key={index}>
+                  <Text style={styles.bullet}>{'\u2022'}</Text>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {point}
+                  </Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
-      </ActionContent>
+        <View style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            onPress={hideWhatIsSeedphrase}
+            label={strings('account_backup_step_1.what_is_seedphrase_confirm')}
+          />
+        </View>
+      </View>
     </BottomSheet>
   );
 };

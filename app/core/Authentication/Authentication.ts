@@ -49,7 +49,7 @@ import {
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
-import { resetVaultBackup } from '../BackupVault/backupVault';
+import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
@@ -565,7 +565,8 @@ class AuthenticationService {
       await this.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      await resetVaultBackup();
+      await clearAllVaultBackups();
+      SeedlessOnboardingController.clearState();
       throw error;
     }
 
