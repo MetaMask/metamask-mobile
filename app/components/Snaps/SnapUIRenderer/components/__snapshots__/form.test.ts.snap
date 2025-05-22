@@ -121,7 +121,6 @@ exports[`SnapUIForm will render 1`] = `
                         "paddingVertical": 0,
                       }
                     }
-                    testID="input"
                     value=""
                   />
                 </View>

@@ -1758,7 +1758,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "paddingVertical": 0,
                       }
                     }
-                    testID="input"
                     value=""
                   />
                 </View>
