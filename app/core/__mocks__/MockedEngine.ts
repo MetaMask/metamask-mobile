@@ -69,11 +69,8 @@ export const mockedEngine = {
       createNewVaultAndKeychain: jest.fn(),
     },
     MultichainNetworkController: {
-      metadata: {
-        multichainNetworkConfigurationsByChainId: {
-          anonymous: true,
-          persist: true,
-        },
+      state: {
+        multichainNetworkConfigurationsByChainId: {},
       }
     },
     NetworkController: {

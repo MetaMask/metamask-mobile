@@ -278,7 +278,7 @@ export const addPermittedAccounts = (
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
   const evmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.networkConfigurationsByChainId;
-  const nonEvmNetworkConfigurationsByChainId = Engine.context.MultichainNetworkController.metadata.multichainNetworkConfigurationsByChainId;
+  const nonEvmNetworkConfigurationsByChainId = Engine.context.MultichainNetworkController.state.multichainNetworkConfigurationsByChainId;
   const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
