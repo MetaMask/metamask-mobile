@@ -355,12 +355,12 @@ export class Engine {
         process.env.IN_TEST
           ? {}
           : {
-            pollingInterval: 20 * SECOND,
-            // The retry timeout is pretty short by default, and if the endpoint is
-            // down, it will end up exhausting the max number of consecutive
-            // failures quickly.
-            retryTimeout: 20 * SECOND,
-          },
+              pollingInterval: 20 * SECOND,
+              // The retry timeout is pretty short by default, and if the endpoint is
+              // down, it will end up exhausting the max number of consecutive
+              // failures quickly.
+              retryTimeout: 20 * SECOND,
+            },
       getRpcServiceOptions: (rpcEndpointUrl: string) => {
         const maxRetries = 4;
         const commonOptions = {
@@ -1579,7 +1579,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-          NetworkStatus.Available &&
+            NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
