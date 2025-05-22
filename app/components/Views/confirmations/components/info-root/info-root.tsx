@@ -4,7 +4,7 @@ import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { useSmartAccountSwitchType } from '../../hooks/7702/useSmartAccountSwitchType';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
@@ -34,6 +34,8 @@ const ConfirmationInfoComponentMap = {
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
     switch (transactionType) {
+      case TransactionType.batch:
+        return ContractInteraction;
       case TransactionType.contractInteraction:
         return ContractInteraction;
       case TransactionType.stakingClaim:
@@ -60,13 +62,13 @@ const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
-  const { isAccountTypeSwitchOnly } = useSmartAccountSwitchType();
+  const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
 
   if (!approvalRequest?.type) {
     return null;
   }
 
-  if (isAccountTypeSwitchOnly) {
+  if (isDowngrade || isUpgradeOnly) {
     return <SwitchAccountType />;
   }
 

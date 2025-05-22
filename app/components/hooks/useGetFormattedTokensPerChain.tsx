@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEqual } from 'lodash';
@@ -66,15 +66,15 @@ export interface MarketDataMapping {
  * @returns - stable property
  */
 const useStableReference = <T,>(value: T) => {
-  const ref = useRef(value);
+  const [stableValue, setStableValue] = useState(value);
 
   useEffect(() => {
-    if (!isEqual(ref.current, value)) {
-      ref.current = value;
+    if (!isEqual(stableValue, value)) {
+      setStableValue(value);
     }
-  }, [value]);
+  }, [value, stableValue]);
 
-  return ref.current;
+  return stableValue;
 };
 
 export const useGetFormattedTokensPerChain = (

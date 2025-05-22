@@ -556,6 +556,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
           style={
             {
               "flexDirection": "row",
+              "marginBottom": 0,
             }
           }
         >
