@@ -1,4 +1,8 @@
 import React from 'react';
+import { act, fireEvent } from '@testing-library/react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Account } from '../../hooks/useAccounts';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -6,45 +10,119 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { fireEvent } from '@testing-library/react-native';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
-import { updatePermittedChains, addPermittedAccounts, removePermittedAccounts } from '../../../core/Permissions';
+import {
+  updatePermittedChains,
+  addPermittedAccounts,
+  removePermittedAccounts,
+} from '../../../core/Permissions';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../core/Engine';
 
-const MOCK_ACCOUNTS = [      {
-  name: 'Account 1',
-  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-  assets: {
-    fiatBalance: '$3200.00\n1 ETH',
-    tokens: [],
+const MOCK_EVM_ACCOUNT_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const MOCK_EVM_ACCOUNT_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+const MOCK_EVM_ACCOUNT_1_NAME = 'Account 1';
+const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
+
+const MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_1}`;
+const MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_2}`;
+
+const MOCK_EVM_CAIP_SCOPE_1 = 'eip155:0';
+
+const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
+  {
+    name: MOCK_EVM_ACCOUNT_1_NAME,
+    address: MOCK_EVM_ACCOUNT_1,
+    assets: {
+      fiatBalance: '$3200.00\n1 ETH',
+      tokens: [],
+    },
+    type: KeyringTypes.hd,
+    yOffset: 0,
+    isSelected: true,
+    balanceError: undefined,
+    caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
   },
-  type: 'HD Key Tree',
-  yOffset: 0,
-  isSelected: true,
-  balanceError: undefined,
-},
-{
-  name: 'Account 2',
-  address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
-  assets: {
-    fiatBalance: '$6400.00\n2 ETH',
-    tokens: [],
+  {
+    name: MOCK_EVM_ACCOUNT_2_NAME,
+    address: MOCK_EVM_ACCOUNT_2,
+    assets: {
+      fiatBalance: '$6400.00\n2 ETH',
+      tokens: [],
+    },
+    type: KeyringTypes.hd,
+    yOffset: 78,
+    isSelected: false,
+    balanceError: undefined,
+    caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
   },
-  type: 'HD Key Tree',
-  yOffset: 78,
-  isSelected: false,
-  balanceError: undefined,
-}];
+];
+
+const MOCK_INTERNAL_ACCOUNTS: InternalAccount[] = [
+  {
+    type: 'eip155:eoa',
+    id: 'mock-id-1',
+    options: {},
+    metadata: {
+      name: MOCK_EVM_ACCOUNT_1_NAME,
+      importTime: 1700000000,
+      keyring: { type: KeyringTypes.hd },
+    },
+    address: MOCK_EVM_ACCOUNT_1,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
+    methods: [
+      'personal_sign',
+      'eth_sign',
+      'eth_signTransaction',
+      'eth_signTypedData_v1',
+      'eth_signTypedData_v3',
+      'eth_signTypedData_v4',
+    ],
+  },
+  {
+    type: 'eip155:eoa',
+    id: 'mock-id-2',
+    options: {},
+    metadata: {
+      name: MOCK_EVM_ACCOUNT_2_NAME,
+      importTime: 1700000001,
+      keyring: { type: KeyringTypes.hd },
+    },
+    address: MOCK_EVM_ACCOUNT_2,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
+    methods: [
+      'personal_sign',
+      'eth_sign',
+      'eth_signTransaction',
+      'eth_signTypedData_v1',
+      'eth_signTypedData_v3',
+      'eth_signTypedData_v4',
+    ],
+  },
+];
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedTrackEvent = jest.fn();
 
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
-    NetworkController: {
+    MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
     PermissionController: {
@@ -53,16 +131,19 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: [],
-      }
+      },
     },
     AccountsController: {
-      listAccounts: jest.fn(() => MOCK_ACCOUNTS),
+      listAccounts: jest.fn(() => MOCK_USE_ACCOUNTS_RETURN),
+      getAccountByAddress: jest.fn((address: string) =>
+        MOCK_INTERNAL_ACCOUNTS.find((account) => account.address === address),
+      ),
       state: {
         internalAccounts: {
-          accounts: {}
-        }
-      }
-    }
+          accounts: {},
+        },
+      },
+    },
   },
 }));
 
@@ -108,8 +189,8 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
-    evmAccounts: MOCK_ACCOUNTS,
-    accounts: MOCK_ACCOUNTS,
+    evmAccounts: MOCK_USE_ACCOUNTS_RETURN,
+    accounts: MOCK_USE_ACCOUNTS_RETURN,
     ensByAccountAddress: {},
   }));
   return {
@@ -118,39 +199,51 @@ jest.mock('../../hooks/useAccounts', () => {
   };
 });
 
-const mockInitialState: DeepPartial<RootState> = {
+const mockInitialState = (
+  accounts: Hex[] = ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+): DeepPartial<RootState> => ({
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       PermissionController: {
         subjects: {
-          'test': {
+          test: {
             permissions: {
               [Caip25EndowmentPermissionName]: {
-                caveats: [{
-                  type: Caip25CaveatType,
-                  value: {
-                    requiredScopes: {},
-                    optionalScopes: {
-                      'eip155:1': {
-                        accounts: ['eip155:1:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272']
-                      }
-                    }
-                  }
-                }]
-              }
-            }
-          }
-        }
-      }
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: accounts.map(
+                            (account) => `eip155:1:${account}`,
+                          ),
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   },
-};
+});
 
 describe('AccountPermissions', () => {
+  beforeEach(() => {
+    mockUpdatePermittedChains.mockReset();
+    mockAddPermittedAccounts.mockReset();
+    mockRemovePermittedAccounts.mockReset();
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <AccountPermissions
@@ -160,7 +253,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -175,7 +268,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     const managePermissionsButton = getByTestId(
@@ -196,7 +289,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     expect(getByText('Connect more accounts')).toBeDefined();
@@ -212,7 +305,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Select a network
@@ -225,10 +318,50 @@ describe('AccountPermissions', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(mockUpdatePermittedChains).toHaveBeenCalledWith('test', [
-      '0x1',
-      '0xaa36a7'
-    ], true);
+    expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
+      'test',
+      ['eip155:1', 'eip155:11155111'],
+      true,
+    );
+  });
+
+  it('handles switches the active network when active network is no longer selected', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreNetworks,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    // Unselect existing network
+    const existingNetwork = getByText('Ethereum Mainnet');
+    fireEvent.press(existingNetwork);
+
+    // Select a network
+    const network = getByText('Sepolia');
+    fireEvent.press(network);
+
+    // Press update button
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    await act(() => {
+      fireEvent.press(updateButton);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalled();
+    expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
+      'test',
+      ['eip155:11155111'],
+      true,
+    );
   });
 
   it('handles the revoke permissions modal when no networks are selected', async () => {
@@ -241,7 +374,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Unselect existing permitted chain
@@ -257,7 +390,35 @@ describe('AccountPermissions', () => {
     expect(mockedNavigate).toHaveBeenCalled();
   });
 
-  it('handles update permissions when accounts are selected', async () => {
+  it('handles update permissions when accounts are selected from connect more view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreAccounts,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    // Select a new account
+    const newAccount = getByText('Account 2');
+    fireEvent.press(newAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    ]);
+  });
+
+  it('handles update permissions when accounts are added from edit view', async () => {
     const { getByText, getByTestId } = renderWithProvider(
       <AccountPermissions
         route={{
@@ -267,7 +428,70 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
+    );
+
+    // Select a new account
+    const newAccount = getByText('Account 2');
+    fireEvent.press(newAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
+    ]);
+    expect(mockRemovePermittedAccounts).not.toHaveBeenCalled();
+  });
+
+  it('handles update permissions when accounts are removed from edit view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.EditAccountsPermissions,
+          },
+        }}
+      />,
+      {
+        state: mockInitialState([
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          '0xd018538C87232FF95acbCe4870629b75640a78E7',
+        ]),
+      },
+    );
+
+    // Unselect exsting permitted account
+    const existingAccount = getByText('Account 1');
+    fireEvent.press(existingAccount);
+
+    // Press update button
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+    fireEvent.press(updateButton);
+
+    expect(mockAddPermittedAccounts).not.toHaveBeenCalled();
+    expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
+      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+    ]);
+  });
+
+  it('handles update permissions when accounts are added and removed from edit view', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.EditAccountsPermissions,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
     );
 
     // Unselect exsting permitted account
@@ -285,10 +509,10 @@ describe('AccountPermissions', () => {
     fireEvent.press(updateButton);
 
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
-      '0xd018538C87232FF95acbCe4870629b75640a78E7'
+      'eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7',
     ]);
     expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
-      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
     ]);
   });
 
@@ -302,7 +526,7 @@ describe('AccountPermissions', () => {
           },
         }}
       />,
-      { state: mockInitialState },
+      { state: mockInitialState() },
     );
 
     // Unselect existing permitted account
