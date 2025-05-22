@@ -45,7 +45,7 @@ describe('engineReducer', () => {
     };
     const { backgroundState } = engineReducer(
       reduxInitialState,
-      updateBgState({ key }),
+      updateBgState({ updatedControllers: [key] }),
     );
     expect(backgroundState).toEqual({
       ...reduxInitialState.backgroundState,
