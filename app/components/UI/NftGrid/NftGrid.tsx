@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Platform,
+  Image,
+  Text,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -46,6 +48,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
+import AppConstants from '../../../core/AppConstants';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -270,11 +273,54 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [isCollectibleIgnored, chainId, selectedAddress],
   );
 
+  const renderLoader = useCallback(
+    () => (
+      <View style={styles.footer} key={'collectible-contracts-footer'}>
+        {isNftFetchingProgress ? (
+          <ActivityIndicator
+            size="large"
+            style={styles.spinner}
+            testID={SpinnerTestId}
+          />
+        ) : null}
+      </View>
+    ),
+    [styles, isNftFetchingProgress],
+  );
+
   // Memoize the updatable collectibles to avoid recalculating on every render
   const updatableCollectibles = useMemo(
     () =>
       flatMultichainCollectibles?.filter(shouldUpdateCollectibleMetadata) || [],
     [flatMultichainCollectibles, shouldUpdateCollectibleMetadata],
+  );
+
+  const goToLearnMore = useCallback(
+    () =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: AppConstants.URLS.NFT },
+      }),
+    [navigation],
+  );
+
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Image
+          style={styles.emptyImageContainer}
+          source={require('../../../images/no-nfts-placeholder.png')}
+          resizeMode={'contain'}
+        />
+        <Text center style={styles.emptyTitleText} bold>
+          {strings('wallet.no_nfts_yet')}
+        </Text>
+        <Text center big link onPress={goToLearnMore}>
+          {strings('wallet.learn_more')}
+        </Text>
+      </View>
+    ),
+    [goToLearnMore, styles],
   );
 
   useEffect(() => {
@@ -322,15 +368,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           navigation.navigate('AddAsset', { assetType: 'NFT' })
         }
       />
+      {/* initial fetching state */}
+      {isNftFetchingProgress &&
+        flatMultichainCollectibles.length === 0 &&
+        renderLoader()}
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
-      {/* fetching state */}
-      {isNftFetchingProgress && (
-        <ActivityIndicator
-          size="large"
-          style={styles.spinner}
-          testID={SpinnerTestId}
-        />
-      )}
       {/* empty state */}
       {!isNftFetchingProgress && flatMultichainCollectibles.length === 0 && (
         <>
@@ -339,7 +381,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         </>
       )}
       {/* nft grid */}
-      {!isNftFetchingProgress && flatMultichainCollectibles.length > 0 && (
+      {flatMultichainCollectibles.length > 0 && (
         <MasonryFlashList
           data={flatMultichainCollectibles}
           numColumns={3}
@@ -358,7 +400,9 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          ListFooterComponent={<NftGridFooter navigation={navigation} />}
+          ListEmptyComponent={renderEmpty}
+          // incremental fetching state
+          ListFooterComponent={renderLoader}
         />
       )}
       <ActionSheet
