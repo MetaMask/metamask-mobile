@@ -185,6 +185,7 @@ export abstract class MultichainWalletSnapClient {
             await this.createAccount(
               {
                 scope: this.getScope(),
+                entropySource,
               },
               {
                 displayConfirmation: false,
