@@ -1,5 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { getTransactionTypeValue } from './utils';
+import { generateRPCProperties } from './utils';
+import * as rpcUtils from '../../../../util/rpc-domain-utils';
 
 describe('getTransactionTypeValue', () => {
   it('should return correct string value for snake case conversion cases', () => {
@@ -91,5 +93,34 @@ describe('getTransactionTypeValue', () => {
     expect(getTransactionTypeValue('nonexistentType' as TransactionType)).toBe(
       'unknown',
     );
+  });
+});
+
+describe('generateRPCProperties', () => {
+  it('returns the correct shape for a known domain', () => {
+    jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('https://example.com');
+    jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('example.com');
+    expect(generateRPCProperties('0x1')).toEqual({
+      properties: { rpc_domain: 'example.com' },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for an invalid domain', () => {
+    jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('invalid-url');
+    jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue(rpcUtils.RpcDomainStatus.Invalid);
+    expect(generateRPCProperties('0x2')).toEqual({
+      properties: { rpc_domain: rpcUtils.RpcDomainStatus.Invalid },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for a private domain', () => {
+    jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('http://localhost:8545');
+    jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue(rpcUtils.RpcDomainStatus.Private);
+    expect(generateRPCProperties('0x3')).toEqual({
+      properties: { rpc_domain: rpcUtils.RpcDomainStatus.Private },
+      sensitiveProperties: {},
+    });
   });
 });
