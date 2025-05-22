@@ -657,8 +657,6 @@ export class Engine {
     };
 
     const snapRestrictedMethods = {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       clearSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
@@ -728,14 +726,10 @@ export class Engine {
       ),
       handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
         await handleSnapRequest(this.controllerMessenger, args),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapStateAction,
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       updateSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerUpdateSnapStateAction,
@@ -895,14 +889,10 @@ export class Engine {
           ),
         isNonEvmScopeSupported: this.controllerMessenger.call.bind(
           this.controllerMessenger,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           MultichainRouterIsSupportedScopeEvent,
         ),
         getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
           this.controllerMessenger,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           MultichainRouterGetSupportedAccountsEvent,
         ),
       }),

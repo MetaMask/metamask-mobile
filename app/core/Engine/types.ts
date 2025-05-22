@@ -162,6 +162,7 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -206,9 +207,7 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import {
-  getPermissionSpecifications,
-} from '../Permissions/specifications.js';
+import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -295,12 +294,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -350,7 +349,8 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
-  | AppMetadataControllerActions;
+  | AppMetadataControllerActions
+  | MultichainRouterActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
