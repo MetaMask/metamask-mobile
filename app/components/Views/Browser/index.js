@@ -67,7 +67,6 @@ export const Browser = (props) => {
     updateTab,
     activeTab: activeTabId,
     tabs,
-    forceShowTabs
   } = props;
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
@@ -79,7 +78,7 @@ export const Browser = (props) => {
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
-  const [shouldShowTabs, setShouldShowTabs] = useState(forceShowTabs || false);
+  const [shouldShowTabs, setShouldShowTabs] = useState(false);
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -103,12 +102,6 @@ const homePageUrl = useCallback(
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
-  useEffect(() => {
-    if (forceShowTabs) {
-      setShouldShowTabs(true);
-    }
-  }, [forceShowTabs]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // TODO remove after we release Solana dapp connectivity
@@ -497,10 +490,7 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Force tabs to be shown (for testing)
-   */
-    forceShowTabs: PropTypes.bool,
+
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';
