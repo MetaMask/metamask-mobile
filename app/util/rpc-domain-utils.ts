@@ -86,14 +86,22 @@ export function setKnownDomainsForTesting(domains: Set<string> | null): void {
   testDomains = domains;
 }
 
+export const RpcDomainStatus = {
+  Invalid: 'invalid',
+  Private: 'private',
+  Unknown: 'unknown',
+} as const;
+
+export type RpcDomainStatus = typeof RpcDomainStatus[keyof typeof RpcDomainStatus];
+
 /**
  * Extracts the domain from an RPC URL for analytics tracking
  * @param rpcUrl - The RPC URL to extract domain from
  * @returns The domain extracted from the URL, or "private" for non-known domains, or "invalid" for invalid URLs
  */
-export function extractRpcDomain(rpcUrl: string): string {
+export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!rpcUrl) {
-    return 'invalid';
+    return RpcDomainStatus.Invalid;
   }
 
   try {
@@ -127,14 +135,14 @@ export function extractRpcDomain(rpcUrl: string): string {
 
     // Special case for local/development nodes
     if (domain === 'localhost' || domain === '127.0.0.1') {
-      return 'private';
+      return RpcDomainStatus.Private;
     }
 
     // For all other domains, return "private" for privacy
-    return 'private';
+    return RpcDomainStatus.Private;
   } catch (error) {
     // If URL parsing fails, return "invalid"
-    return 'invalid';
+    return RpcDomainStatus.Invalid;
   }
 }
 

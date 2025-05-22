@@ -1,4 +1,4 @@
-import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl } from './rpc-domain-utils';
+import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl, RpcDomainStatus } from './rpc-domain-utils';
 import { generateRPCProperties } from '../core/Engine/controllers/transaction-controller/utils';
   // eslint-disable-next-line import/no-namespace
 import * as rpcUtils from './rpc-domain-utils';
@@ -32,25 +32,25 @@ describe('rpc-domain-utils', () => {
     it('should extract domain from valid URLs', () => {
       expect(extractRpcDomain('https://example.com')).toBe('example.com');
       expect(extractRpcDomain('https://infura.io/v3/123')).toBe('infura.io');
-      expect(extractRpcDomain('http://localhost:8545')).toBe('private');
+      expect(extractRpcDomain('http://localhost:8545')).toBe(RpcDomainStatus.Private);
       expect(extractRpcDomain('wss://eth-mainnet.alchemyapi.io/v2/key')).toBe('eth-mainnet.alchemyapi.io');
     });
 
     it('should return "private" for unknown domains', () => {
-      expect(extractRpcDomain('https://custom-rpc.org')).toBe('private');
-      expect(extractRpcDomain('https://my-private-node.com')).toBe('private');
+      expect(extractRpcDomain('https://custom-rpc.org')).toBe(RpcDomainStatus.Private);
+      expect(extractRpcDomain('https://my-private-node.com')).toBe(RpcDomainStatus.Private);
     });
 
     it('should handle URLs without protocol', () => {
       expect(extractRpcDomain('infura.io/v3/123')).toBe('infura.io');
-      expect(extractRpcDomain('localhost:8545')).toBe('private');
+      expect(extractRpcDomain('localhost:8545')).toBe(RpcDomainStatus.Private);
     });
 
     it('should return "invalid" for unparseable URLs', () => {
-      expect(extractRpcDomain('')).toBe('invalid');
-      expect(extractRpcDomain(null as unknown as string)).toBe('invalid');
-      expect(extractRpcDomain(undefined as unknown as string)).toBe('invalid');
-      expect(extractRpcDomain(':::invalid-url')).toBe('invalid');
+      expect(extractRpcDomain('')).toBe(RpcDomainStatus.Invalid);
+      expect(extractRpcDomain(null as unknown as string)).toBe(RpcDomainStatus.Invalid);
+      expect(extractRpcDomain(undefined as unknown as string)).toBe(RpcDomainStatus.Invalid);
+      expect(extractRpcDomain(':::invalid-url')).toBe(RpcDomainStatus.Invalid);
     });
   });
 
@@ -142,18 +142,18 @@ describe('rpc-domain-utils', () => {
 
     it('returns { properties: { rpc_domain: "invalid" }, sensitiveProperties: {} } for an invalid domain', () => {
       jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('invalid-url');
-      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('invalid');
+      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue(RpcDomainStatus.Invalid);
       expect(generateRPCProperties('0x2')).toEqual({
-        properties: { rpc_domain: 'invalid' },
+        properties: { rpc_domain: RpcDomainStatus.Invalid },
         sensitiveProperties: {},
       });
     });
 
     it('returns { properties: { rpc_domain: "private" }, sensitiveProperties: {} } for a private domain', () => {
       jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('http://localhost:8545');
-      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('private');
+      jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue(RpcDomainStatus.Private);
       expect(generateRPCProperties('0x3')).toEqual({
-        properties: { rpc_domain: 'private' },
+        properties: { rpc_domain: RpcDomainStatus.Private },
         sensitiveProperties: {},
       });
     });
