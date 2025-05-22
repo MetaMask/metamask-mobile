@@ -1049,7 +1049,6 @@ class Confirm extends PureComponent {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
                   ...this.getTransactionMetrics(),
-                  hd_entropy_index: this.props.hdEntropyIndex,
                 },
               ),
             type: 'signTransaction',
