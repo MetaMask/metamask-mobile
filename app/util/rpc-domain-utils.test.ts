@@ -36,7 +36,7 @@ describe('rpc-domain-utils', () => {
       expect(extractRpcDomain('wss://eth-mainnet.alchemyapi.io/v2/key')).toBe('eth-mainnet.alchemyapi.io');
     });
 
-    it('should return "private" for unknown domains', () => {
+    it('returns "private" for unknown domains', () => {
       expect(extractRpcDomain('https://custom-rpc.org')).toBe('private');
       expect(extractRpcDomain('https://my-private-node.com')).toBe('private');
     });
