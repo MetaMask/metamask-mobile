@@ -25,7 +25,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -33,6 +32,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
+import EarnBalance from '../../Earn/components/EarnBalance';
 
 interface BalanceProps {
   asset: TokenI;
@@ -152,7 +152,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
-      {asset?.isETH && <StakingBalance asset={asset} />}
+      <EarnBalance asset={asset} />
     </View>
   );
 };

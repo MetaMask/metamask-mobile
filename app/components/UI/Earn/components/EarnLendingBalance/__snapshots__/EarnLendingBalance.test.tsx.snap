@@ -1,0 +1,299 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EarnLendingBalance renders balance and buttons by default 1`] = `
+<View>
+  <TouchableOpacity
+    disabled={false}
+    onLongPress={[Function]}
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+        "paddingHorizontal": 15,
+        "paddingVertical": 10,
+      }
+    }
+    testID="asset-ADAI"
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignSelf": "center",
+          "position": "relative",
+        }
+      }
+      testID="badge-wrapper-badge"
+    >
+      <View>
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderRadius": 16,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+          testID="receipt-token-balance-asset-logo"
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={
+              {
+                "uri": "",
+              }
+            }
+            style={
+              {
+                "flex": 1,
+                "height": undefined,
+                "width": undefined,
+              }
+            }
+            testID="token-avatar-image"
+          />
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "aspectRatio": 1,
+            "bottom": 0,
+            "height": 0,
+            "justifyContent": "center",
+            "position": "absolute",
+            "right": 0,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+              {
+                "translateY": 0,
+              },
+            ],
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "aspectRatio": 1,
+              "height": "50%",
+              "justifyContent": "center",
+              "maxHeight": 24,
+              "minHeight": 8,
+              "opacity": 0,
+            }
+          }
+          testID="badgenetwork"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 8,
+                "borderWidth": 2,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "shadowColor": "#0000001a",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 1,
+                "shadowRadius": 4,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
+          "fontWeight": "500",
+          "justifyContent": "center",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginLeft": 20,
+        }
+      }
+      testID="receipt-token-label"
+    >
+      Aave v3 DAI
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "alignSelf": "flex-end",
+          "flexShrink": 0,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="balance-test-id"
+      >
+        $32.05
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "paddingHorizontal": 0,
+          }
+        }
+        testID="secondary-balance-test-id"
+      >
+        32.05 ADAI
+      </Text>
+    </View>
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "space-between",
+        "paddingBottom": 6,
+        "paddingHorizontal": 16,
+        "paddingTop": 14,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="withdraw-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Withdraw
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="deposit-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Deposit more
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

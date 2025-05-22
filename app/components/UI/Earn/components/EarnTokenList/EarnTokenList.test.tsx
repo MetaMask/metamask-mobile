@@ -338,7 +338,6 @@ describe('EarnTokenList', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        action: 'STAKE',
         token: {
           address: MOCK_ETH_MAINNET_ASSET.address,
           aggregators: [],
@@ -384,7 +383,6 @@ describe('EarnTokenList', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        action: 'LEND',
         token: {
           address: MOCK_USDC_MAINNET_ASSET.address,
           aggregators: [],
