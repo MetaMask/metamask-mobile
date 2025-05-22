@@ -324,8 +324,7 @@ dependencies {
     androidTestImplementation "net.java.dev.jna:jna:5.12.1"
     androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
     androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
-    androidTestImplementation("com.facebook.react:react-android")
-
+    androidTestImplementation "com.facebook.react.bridge:react-bridge:0.76.9"
     
     // Make sure you have the proper Mockito dependencies
     androidTestImplementation "org.mockito:mockito-core:4.8.0"
