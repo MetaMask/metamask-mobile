@@ -27,7 +27,7 @@ const ACCOUNT_UPGRADE_URL =
   'https://support.metamask.io/configure/accounts/what-is-a-smart-account';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const smartAccountUpdateImage = require('../../../../../../images/smart-account-update.png');
+const smartAccountUpdateImage = require('../../../../../images/smart-account-update.png');
 
 const ListItem = ({
   iconName,
