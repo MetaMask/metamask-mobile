@@ -97,13 +97,13 @@ describe('getDisplayAmount', () => {
     expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
   });
 
-  it('truncates amount for source type when over max length', () => {
+  it('returns full amount for source type when over max length', () => {
     const amount = '1234567890123456789';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe('123456789012345678');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
   });
 
-  it('parses and truncates amount for destination type', () => {
+  it('parses amount for destination type', () => {
     const amount = '1234567890123456789.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('123456789012345678');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('1234567890123456789.12345');
   });
 });
