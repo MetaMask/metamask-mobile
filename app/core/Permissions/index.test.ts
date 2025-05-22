@@ -26,7 +26,7 @@ import {
   removePermittedAccounts,
   removeAccountsFromPermissions,
   updatePermittedChains,
-  sortAccountsByLastSelected,
+  sortEvmAccountsByLastSelected,
   getPermittedAccounts,
   removePermittedChain,
 } from '.';
@@ -152,8 +152,8 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      // Mock sortAccountsByLastSelected to return empty array
-      jest.spyOn(permissions, 'sortAccountsByLastSelected').mockReturnValue([]);
+      // Mock sortEvmAccountsByLastSelected to return empty array
+      jest.spyOn(permissions, 'sortEvmAccountsByLastSelected').mockReturnValue([]);
 
       const result = getPermittedEvmAddressesByHostname(
         mockState,
@@ -250,8 +250,8 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      // Mock sortAccountsByLastSelected to return empty array
-      jest.spyOn(permissions, 'sortAccountsByLastSelected').mockReturnValue([]);
+      // Mock sortEvmAccountsByLastSelected to return empty array
+      jest.spyOn(permissions, 'sortEvmAccountsByLastSelected').mockReturnValue([]);
 
       const result = getPermittedCaipAccountIdsByHostname(
         mockState,
@@ -805,7 +805,7 @@ describe('Permission Utility Functions', () => {
     });
   });
 
-  describe('sortAccountsByLastSelected', () => {
+  describe('sortEvmAccountsByLastSelected', () => {
     it('should sort accounts by lastSelected timestamp', () => {
       const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
@@ -825,7 +825,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
     });
 
@@ -848,7 +848,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x3', '0x1', '0x2']);
     });
 
@@ -871,7 +871,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       // We don't assert the exact order for accounts with the same lastSelected value
       expect(result).toContain('0x1');
       expect(result).toContain('0x2');
@@ -898,7 +898,7 @@ describe('Permission Utility Functions', () => {
         Engine.context.KeyringController.getAccountKeyringType as jest.Mock
       ).mockResolvedValue('Simple Key Pair');
 
-      expect(() => sortAccountsByLastSelected(accounts)).toThrow(
+      expect(() => sortEvmAccountsByLastSelected(accounts)).toThrow(
         'Missing identity for address: "0x2".',
       );
       expect(captureException).toHaveBeenCalled();
@@ -923,7 +923,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
     });
   });
@@ -971,7 +971,7 @@ describe('Permission Utility Functions', () => {
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
       jest
-        .spyOn(permissions, 'sortAccountsByLastSelected')
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
         .mockReturnValue(sortedAccounts);
 
       const result = getPermittedAccounts('https://example.com');
@@ -1020,9 +1020,9 @@ describe('Permission Utility Functions', () => {
       mockIsUnlocked.mockReturnValue(false);
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
-      // Mock sortAccountsByLastSelected
+      // Mock sortEvmAccountsByLastSelected
       jest
-        .spyOn(permissions, 'sortAccountsByLastSelected')
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
         .mockReturnValue(sortedAccounts);
 
       const result = getPermittedAccounts('https://example.com', {
