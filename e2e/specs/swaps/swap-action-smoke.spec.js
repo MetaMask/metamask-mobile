@@ -35,7 +35,6 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
-import { EVENT_NAME } from '../../../app/core/Analytics/MetaMetrics.events';
 import SoftAssert from '../../utils/SoftAssert.ts';
 
 const fixtureServer = new FixtureServer();
@@ -210,6 +209,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
   );
 
   it('should validate segment/metametric events for a successful swap', async () => {
+
     const testCases = [
       {
         type: 'wrap',
@@ -225,12 +225,19 @@ describe(SmokeTrade('Swap from Actions'), () => {
       },
     ];
 
+    const EVENT_NAMES = {
+      SWAP_STARTED: 'Swap Started',
+      SWAP_COMPLETED: 'Swap Completed',
+      SWAPS_OPENED: 'Swaps Opened',
+      QUOTES_RECEIVED: 'Quotes Received',
+    };
+
     // METAMETRICS EVENTS
     const events = await getEventsPayloads(mockServer, [
-      EVENT_NAME.SWAP_STARTED,
-      EVENT_NAME.SWAP_COMPLETED,
-      EVENT_NAME.SWAPS_OPENED,
-      EVENT_NAME.QUOTES_RECEIVED,
+      EVENT_NAMES.SWAP_STARTED,
+      EVENT_NAMES.SWAP_COMPLETED,
+      EVENT_NAMES.SWAPS_OPENED,
+      EVENT_NAMES.QUOTES_RECEIVED,
     ]);
 
     const softAssert = new SoftAssert();
@@ -242,7 +249,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
 
     // Assert Swaps Opened events
     const swapsOpenedEvents = events.filter(
-      (e) => e.event === EVENT_NAME.SWAPS_OPENED,
+      (e) => e.event === EVENT_NAMES.SWAPS_OPENED,
     );
 
     await softAssert.checkAndCollect(
@@ -266,7 +273,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
 
     // Assert Quotes Received events
     const quotesReceivedEvents = events.filter(
-      (e) => e.event === EVENT_NAME.QUOTES_RECEIVED,
+      (e) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
     );
 
     await softAssert.checkAndCollect(
@@ -324,7 +331,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
     }
 
     // Assert Swap Started event
-    const swapStartedEvents = events.filter((e) => e.event === 'Swap Started');
+    const swapStartedEvents = events.filter((e) => e.event === EVENT_NAMES.SWAP_STARTED);
 
     await softAssert.checkAndCollect(
       () =>
@@ -374,7 +381,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
 
     // Assert Swap Completed events
     const swapCompletedEvents = events.filter(
-      (e) => e.event === 'Swap Completed',
+      (e) => e.event === EVENT_NAMES.SWAP_COMPLETED,
     );
 
     await softAssert.checkAndCollect(
