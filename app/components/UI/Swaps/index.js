@@ -707,7 +707,6 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
-          testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -717,6 +716,7 @@ function SwapsAmountView({
               onPress={toggleSourceModal}
               icon={sourceToken?.iconUrl}
               symbol={sourceToken?.symbol}
+              testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
             />
           )}
 
@@ -788,10 +788,7 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View
-          style={styles.tokenButtonContainer}
-          testID={QuoteViewSelectorIDs.DEST_TOKEN}
-        >
+        <View style={styles.tokenButtonContainer}>
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -800,6 +797,7 @@ function SwapsAmountView({
               onPress={toggleDestinationModal}
               icon={destinationToken?.iconUrl}
               symbol={destinationToken?.symbol}
+              testID={QuoteViewSelectorIDs.DEST_TOKEN}
             />
           )}
           <TokenSelectModal
