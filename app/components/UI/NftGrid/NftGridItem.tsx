@@ -1,5 +1,5 @@
 import React, { MutableRefObject, RefObject, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import CollectibleMedia from '../CollectibleMedia';
 import Text from '../../../component-library/components/Texts/Text';
 import { Nft } from '@metamask/assets-controllers';
@@ -38,20 +38,14 @@ function NftGridItem({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
 
-  const onLongPressCollectible = useCallback(
-    (collectible: Nft) => {
-      actionSheetRef?.current?.show();
-      longPressedCollectible.current = collectible;
-    },
-    [actionSheetRef, longPressedCollectible],
-  );
+  const onLongPressCollectible = useCallback(() => {
+    actionSheetRef?.current?.show();
+    longPressedCollectible.current = nft;
+  }, [actionSheetRef, longPressedCollectible, nft]);
 
-  const onItemPress = useCallback(
-    (nftItem: Nft) => {
-      debouncedNavigation(navigation, nftItem);
-    },
-    [navigation],
-  );
+  const onItemPress = useCallback(() => {
+    debouncedNavigation(navigation, nft);
+  }, [navigation, nft]);
 
   if (!nft) return null;
 
@@ -59,16 +53,18 @@ function NftGridItem({
     <TouchableOpacity
       key={nft.address}
       style={styles.collectibleCard}
-      onPress={() => onItemPress(nft)}
-      onLongPress={() => onLongPressCollectible(nft)}
+      onPress={onItemPress}
+      onLongPress={onLongPressCollectible}
       testID={nft.name as string}
     >
-      <CollectibleMedia
-        style={styles.collectibleIcon}
-        collectible={nft}
-        isTokenImage
-        privacyMode={privacyMode}
-      />
+      <View style={styles.collectibleIconContainer}>
+        <CollectibleMedia
+          style={styles.collectibleIcon}
+          collectible={nft}
+          isTokenImage
+          privacyMode={privacyMode}
+        />
+      </View>
       <Text numberOfLines={1} ellipsizeMode="tail">
         {nft.name}
       </Text>
@@ -79,4 +75,4 @@ function NftGridItem({
   );
 }
 
-export default NftGridItem;
+export default React.memo(NftGridItem);

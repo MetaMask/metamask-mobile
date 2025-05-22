@@ -5,7 +5,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Platform,
+  Image,
+  Text,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -40,6 +48,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
+import AppConstants from '../../../core/AppConstants';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -329,11 +338,27 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     useNftDetection,
   ]);
 
-  console.log(
-    'isNftDetectionEnabled',
-    isNftDetectionEnabled,
-    isNftFetchingProgress,
-    flatMultichainCollectibles.length,
+  const renderItem = useCallback(
+    ({ item }: { item: Nft }) => (
+      <NftGridItem
+        nft={item}
+        navigation={navigation}
+        privacyMode={privacyMode}
+        actionSheetRef={actionSheetRef}
+        longPressedCollectible={longPressedCollectible}
+      />
+    ),
+    [navigation, privacyMode],
+  );
+
+  const keyExtractor = useCallback(
+    (_: unknown, index: number) => index.toString(),
+    [],
+  );
+
+  const refreshColors = useMemo(
+    () => [colors.primary.default],
+    [colors.primary.default],
   );
 
   return (
@@ -361,21 +386,15 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           data={flatMultichainCollectibles}
           numColumns={3}
           estimatedItemSize={200}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={keyExtractor}
           testID={RefreshTestId}
-          renderItem={({ item }: { item: Nft }) => (
-            <NftGridItem
-              nft={item}
-              navigation={navigation}
-              privacyMode={privacyMode}
-              actionSheetRef={actionSheetRef}
-              longPressedCollectible={longPressedCollectible}
-            />
-          )}
+          renderItem={renderItem}
+          decelerationRate="fast"
+          removeClippedSubviews={Platform.OS === 'android'}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
-              colors={[colors.primary.default]}
+              colors={refreshColors}
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={onRefresh}

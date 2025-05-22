@@ -21,6 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     collectibleMediaStyle: {
+      aspectRatio: 1,
       alignItems: 'center',
       flexGrow: 0,
       flexShrink: 0,

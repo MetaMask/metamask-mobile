@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import RemoteImage from '../../Base/RemoteImage';
+import RemoteImageExpo from '../../Base/RemoteImageExpo';
 import MediaPlayer from '../../Views/MediaPlayer';
 import Text from '../../Base/Text';
 import { isIPFSUri } from '../../../util/general';
@@ -29,6 +29,7 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { toHex } from '@metamask/controller-utils';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -41,7 +42,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   onClose,
   onPressColectible,
   isTokenImage,
-  isFullRatio,
   privacyMode = false,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
@@ -96,7 +96,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     (isImageSourcePossiblyAvailable: boolean) =>
       isImageSourcePossiblyAvailable ? (
         <View>
-          <RemoteImage
+          <RemoteImageExpo
             source={NftFallbackImage}
             style={[
               styles.textContainer,
@@ -208,9 +208,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
          * the tiny boolean is used to indicate when the image is the NFT source icon
          */
         return (
-          <RemoteImage
-            fadeIn
-            resizeMode={'contain'}
+          <RemoteImageExpo
             source={{ uri: sourceUri }}
             style={[
               styles.image,
@@ -220,11 +218,10 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               cover && styles.cover,
               style,
             ]}
-            chainId={collectible.chainId}
-            onError={fallback}
+            chainId={toHex(collectible.chainId ?? '')}
             testID="nft-image"
-            isTokenImage={isTokenImage}
-            isFullRatio={isFullRatio}
+            fadeIn
+            showNetworkBadge={isTokenImage}
           />
         );
       }
@@ -262,9 +259,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     colors.text.muted,
     renderAnimation,
     onClose,
-    fallback,
     isTokenImage,
-    isFullRatio,
   ]);
 
   return <View style={styles.container}>{renderMedia()}</View>;
