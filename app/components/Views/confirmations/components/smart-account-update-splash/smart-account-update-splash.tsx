@@ -2,26 +2,26 @@ import React, { ReactElement, useCallback, useState } from 'react';
 import { Image, Linking, View } from 'react-native';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
 
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
+import { EIP5792ErrorCode } from '../../../../../constants/transaction';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import Name from '../../../../../UI/Name';
-import { NameType } from '../../../../../UI/Name/Name.types';
-import { useStyles } from '../../../../../hooks/useStyles';
-import { EIP5792ErrorCode } from '../../../constants/confirmations';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import styleSheet from './smart-account-update.styles';
+} from '../../../../../component-library/components/Texts/Text';
+import Name from '../../../../UI/Name';
+import { NameType } from '../../../../UI/Name/Name.types';
+import { useStyles } from '../../../../hooks/useStyles';
+import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import styleSheet from './smart-account-update-splash.styles';
 
 const ACCOUNT_UPGRADE_URL =
   'https://support.metamask.io/configure/accounts/what-is-a-smart-account';
@@ -51,7 +51,7 @@ const ListItem = ({
   </View>
 );
 
-export const SmartAccountUpdate = () => {
+export const SmartAccountUpdateSplash = () => {
   const [acknowledged, setAcknowledged] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});

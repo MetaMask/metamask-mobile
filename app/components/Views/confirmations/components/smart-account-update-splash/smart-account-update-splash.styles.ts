@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.alternative,
-      display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -23,7 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
     },
     buttonSection: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
@@ -35,7 +33,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 8,
     },
     requestSection: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -44,7 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 24,
     },
     listWrapper: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
       paddingInline: 2,

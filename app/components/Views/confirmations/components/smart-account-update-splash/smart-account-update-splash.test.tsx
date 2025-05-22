@@ -1,14 +1,14 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   getAppStateForConfirmation,
   upgradeAccountConfirmation,
-} from '../../../../../../util/test/confirm-data-helpers';
+} from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
-import * as ConfirmationActions from '../../../hooks/useConfirmActions';
-import { SmartAccountUpdate } from './smart-account-update';
+import * as ConfirmationActions from '../../hooks/useConfirmActions';
+import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -31,7 +31,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('SmartContractWithLogo', () => {
   it('renders correctly', () => {
-    const { getByText } = renderWithProvider(<SmartAccountUpdate />, {
+    const { getByText } = renderWithProvider(<SmartAccountUpdateSplash />, {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Use smart account?')).toBeTruthy();
@@ -40,7 +40,7 @@ describe('SmartContractWithLogo', () => {
 
   it('close after `Yes` button is clicked', () => {
     const { getByText, queryByText } = renderWithProvider(
-      <SmartAccountUpdate />,
+      <SmartAccountUpdateSplash />,
       {
         state: getAppStateForConfirmation(upgradeAccountConfirmation),
       },
@@ -56,7 +56,7 @@ describe('SmartContractWithLogo', () => {
       .spyOn(ConfirmationActions, 'useConfirmActions')
       .mockReturnValue({ onConfirm: jest.fn(), onReject: mockOnReject });
     const { getByText, queryByText } = renderWithProvider(
-      <SmartAccountUpdate />,
+      <SmartAccountUpdateSplash />,
       {
         state: getAppStateForConfirmation(upgradeAccountConfirmation),
       },
