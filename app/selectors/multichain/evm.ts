@@ -44,7 +44,7 @@ import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
-import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
+import { toFormattedAddress } from '../../util/address';
 
 interface NativeTokenBalance {
   balance: string;
@@ -500,12 +500,12 @@ export const selectEvmTokenMarketData = createDeepEqualSelector(
     }
 
     // Get checksummed address
-    const checksumAddress = safeToChecksumAddress(tokenAddress);
-    if (!checksumAddress) return null;
+    const formattedAddress = toFormattedAddress(tokenAddress);
+    if (!formattedAddress) return null;
 
     // Get token metadata and market data
-    const tokenMetadata = tokenList?.[checksumAddress.toLowerCase()];
-    const tokenMarketData = marketData?.[chainId]?.[checksumAddress as Hex];
+    const tokenMetadata = tokenList?.[formattedAddress.toLowerCase()];
+    const tokenMarketData = marketData?.[chainId]?.[formattedAddress as Hex];
 
     return {
       metadata: tokenMetadata,
