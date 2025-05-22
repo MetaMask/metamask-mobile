@@ -92,7 +92,7 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     // Add RPC properties
     const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    eventBuilder.addProperties(rpcProperties as unknown as JsonMap);
+    eventBuilder.addProperties(rpcProperties);
 
     // Add default properties
     eventBuilder.addProperties(
@@ -109,7 +109,7 @@ export async function handleTransactionFinalizedEventForMetrics(
 
     // Add RPC properties
     const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    eventBuilder.addProperties(rpcProperties as unknown as JsonMap);
+    eventBuilder.addProperties(rpcProperties);
 
     // Add default properties if there was an error
     eventBuilder.addProperties(

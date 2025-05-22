@@ -133,7 +133,7 @@ export function generateEvent({
     .build();
 }
 
-export function generateRPCProperties(chainId: string) {
+export function generateRPCProperties(chainId: string): JsonMap {
   const rpcUrl = getNetworkRpcUrl(chainId);
   const rpcDomain = extractRpcDomain(rpcUrl);
   return rpcDomain ? { rpc_domain: rpcDomain } : {};
