@@ -9,6 +9,32 @@ import { NetworkClientId } from '@metamask/network-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
 
+function sanitizeTransactionParamsGasValues(
+  transactionId: string,
+  requestedTransactionParamsToUpdate: Partial<TransactionParams>,
+) {
+  const { TransactionController } = Engine.context;
+
+  const transactionMeta = TransactionController.getTransactions({
+    searchCriteria: { id: transactionId },
+  })?.[0];
+
+  if (!transactionMeta || !requestedTransactionParamsToUpdate) {
+    return;
+  }
+
+  const envelopeType = transactionMeta.txParams.type;
+
+  if (envelopeType === '0x0') {
+    // legacy transaction
+    delete requestedTransactionParamsToUpdate.maxFeePerGas;
+    delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
+  } else {
+    // EIP-1559 compatible transaction
+    delete requestedTransactionParamsToUpdate.gasPrice;
+  }
+}
+
 export async function addTransaction(
   transaction: TransactionParams,
   opts: Parameters<BaseTransactionController['addTransaction']>[1],
@@ -102,6 +128,12 @@ export function updateTransaction(
   ...args: Parameters<BaseTransactionController['updateTransaction']>
 ) {
   const { TransactionController } = Engine.context;
+  const { txParams, id } = args[0];
+
+  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
+  // Once redesign is complete, this can be removed
+  sanitizeTransactionParamsGasValues(id, txParams);
+
   return TransactionController.updateTransaction(...args);
 }
 
@@ -116,6 +148,13 @@ export function updateEditableParams(
   ...args: Parameters<BaseTransactionController['updateEditableParams']>
 ) {
   const { TransactionController } = Engine.context;
+  const id = args[0];
+  const txParams = args[1];
+
+  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
+  // Once redesign is complete, this can be removed
+  sanitizeTransactionParamsGasValues(id, txParams);
+
   return TransactionController.updateEditableParams(...args);
 }
 
