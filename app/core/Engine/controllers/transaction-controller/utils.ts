@@ -126,8 +126,14 @@ export function generateEvent({
     .build();
 }
 
-export function generateRPCProperties(chainId: string): JsonMap {
+export function generateRPCProperties(chainId: string) {
   const rpcUrl = getNetworkRpcUrl(chainId);
   const rpcDomain = extractRpcDomain(rpcUrl);
-  return rpcDomain ? { rpc_domain: rpcDomain } : {};
+
+  const rpcMetrics = {
+    properties: rpcDomain ? { rpc_domain: rpcDomain } : {},
+    sensitiveProperties: {}
+  };
+
+  return rpcMetrics;
 }
