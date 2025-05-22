@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import {
   Alert,
+  ImageSourcePropType,
   InteractionManager,
   ListRenderItem,
   View,
@@ -18,7 +19,6 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -42,6 +42,8 @@ import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import { Skeleton } from '../../../component-library/components/Skeleton';
+import { parseCaipAccountId } from '@metamask/utils';
+import { getNetworkImageSource } from '../../../util/networks';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -97,10 +99,10 @@ const EvmAccountSelectorList = ({
       { fiatBalance, tokens }: Assets,
       address: string,
       isLoadingAccount: boolean,
+      networkImage: ImageSourcePropType
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
 
       return (
         <View
@@ -119,22 +121,17 @@ const EvmAccountSelectorList = ({
                 {fiatBalanceAmount}
               </SensitiveText>
 
-              <SensitiveText
-                length={SensitiveTextLength.Short}
-                style={styles.balanceLabel}
-                isHidden={privacyMode}
-                color={privacyMode ? TextColor.Alternative : TextColor.Default}
-              >
-                {tokenTicker}
-              </SensitiveText>
-              {tokens && (
-                <AvatarGroup
-                  avatarPropsList={tokens.map((tokenObj) => ({
-                    ...tokenObj,
-                    variant: AvatarVariant.Token,
-                  }))}
-                />
-              )}
+              <AvatarGroup
+                avatarPropsList={tokens ? tokens.map((tokenObj) => ({
+                  ...tokenObj,
+                  variant: AvatarVariant.Token,
+                })) : [
+                  {
+                    variant: AvatarVariant.Network,
+                    imageSource: networkImage,
+                  },
+                ]}
+              />
             </>
           )}
         </View>
@@ -235,12 +232,15 @@ const EvmAccountSelectorList = ({
         isSelected,
         balanceError,
         isLoadingAccount,
+        caipAccountId,
       },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
+      const chainId = parseCaipAccountId(caipAccountId).chainId;
+      const networkImage = getNetworkImageSource({ chainId });
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
@@ -301,6 +301,11 @@ const EvmAccountSelectorList = ({
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
+          titleProps={{
+            style: {
+              fontWeight: '500',
+            }
+          }}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
@@ -313,7 +318,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, address, isLoadingAccount))}
+              renderAccountBalances(assets, address, isLoadingAccount, networkImage))}
         </Cell>
       );
     },
