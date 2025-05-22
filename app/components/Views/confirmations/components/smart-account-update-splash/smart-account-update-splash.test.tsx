@@ -10,7 +10,7 @@ import {
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     TokenListController: {
