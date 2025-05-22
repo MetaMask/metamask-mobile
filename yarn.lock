@@ -4655,10 +4655,10 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^28.0.0":
-  version "28.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-28.0.0.tgz#408895c2e42a323bbaa6d2338059684dec9d4984"
-  integrity sha512-MSv2oPR2SlHnL31T/sLgb3RKmkORIH38/9c7xg/irw5/TvmdPXMnHvhTTuC0V84o+kH8NIji6qEggG3wCBz1mA==
+"@metamask/accounts-controller@npm:@metamask-previews/accounts-controller@29.0.0-preview-f6dbfb00":
+  version "29.0.0-preview-f6dbfb00"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/accounts-controller/-/accounts-controller-29.0.0-preview-f6dbfb00.tgz#11e0666e962a0a82ffc15fe056bf4ab3a39dfc3b"
+  integrity sha512-JR+m/IkB9kDSTowpitiAPEe97cYqvcudYYkWvaqqBTZaZm8Te5axzbvNzWDJdVvdXSBl3rv4jp+6SOhekPxiJw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
@@ -5561,10 +5561,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-0c874fe4":
-  version "15.0.0-preview-0c874fe4"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-0c874fe4.tgz#c317c0977fd22282cb98a043ea8d624d6e05e2e7"
-  integrity sha512-FtvFKySpyJ6MvlxSxIJIH5NYgsLaeI2ZiQ4rnDjBOzD47qVgquDJ0IqFfmhnoAx64GgT18KcrP9aGeV3m7Ho8A==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-f6dbfb00":
+  version "15.0.0-preview-f6dbfb00"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-f6dbfb00.tgz#e2c4879db4c5c880a260253a129e636dd4e6491a"
+  integrity sha512-sw6TfJcM6xG8HdVv2SxWuerL/6dzZhCeWjYaiTnPk6eagBRYayi3aHO6E2jL0NFPrTRyX/Hi1bU8V2In8heUuA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^6.22.0"
