@@ -7,6 +7,7 @@ const initialState = {
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
+  passwordResetInProgress: false,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -61,6 +62,11 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         deviceNotificationEnabled: action.deviceNotificationEnabled,
+      };
+    case 'TOGGLE_PASSWORD_RESET_IN_PROGRESS':
+      return {
+        ...state,
+        passwordResetInProgress: action.passwordResetInProgress,
       };
 
     default:
