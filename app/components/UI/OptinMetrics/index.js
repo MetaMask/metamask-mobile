@@ -318,9 +318,7 @@ class OptinMetrics extends PureComponent {
     const {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
-      route,
     } = this.props;
-
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
@@ -349,7 +347,6 @@ class OptinMetrics extends PureComponent {
       metrics,
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
-      route,
     } = this.props;
 
     await metrics.enable();

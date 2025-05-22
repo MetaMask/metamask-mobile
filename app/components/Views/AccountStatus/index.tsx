@@ -28,7 +28,12 @@ import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
-import { endTrace, trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 
@@ -59,7 +64,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     const traceToEnd = type === 'found'
       ? TraceName.OnboardingNewSocialAccountExists
       : TraceName.OnboardingExistingSocialAccountNotFound;
-    endTrace({ name: traceToEnd });
+    bufferedEndTrace({ name: traceToEnd });
 
     const marginLeft = 16;
     const headerLeft = () => (
@@ -100,7 +105,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     const nextScenarioTraceName = type === 'found'
       ? TraceName.OnboardingExistingSocialLogin
       : TraceName.OnboardingNewSocialCreateWallet;
-    trace({
+    bufferedTrace({
       name: nextScenarioTraceName,
       op: TraceOperation.OnboardingUserJourney,
       tags: {

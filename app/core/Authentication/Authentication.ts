@@ -29,7 +29,14 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+  bufferedEndTrace,
+  bufferedTrace,
+} from '../../util/trace';
 import ReduxService from '../redux';
 ///: BEGIN:ONLY_INCLUDE_IF(beta)
 import {
@@ -536,7 +543,7 @@ class AuthenticationService {
 
       let traceSucceeded = false;
       try {
-        trace({
+        bufferedTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
@@ -547,7 +554,7 @@ class AuthenticationService {
         );
         traceSucceeded = true;
       } finally {
-        endTrace({
+        bufferedEndTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           data: { success: traceSucceeded },
         });
@@ -577,7 +584,7 @@ class AuthenticationService {
       let result: Uint8Array[] | null = null;
       let traceSucceeded = false;
       try {
-        trace({
+        bufferedTrace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
@@ -586,7 +593,7 @@ class AuthenticationService {
         );
         traceSucceeded = true;
       } finally {
-        endTrace({
+        bufferedEndTrace({
           name: TraceName.OnboardingFetchSrps,
           data: { success: traceSucceeded, count: result?.length || 0 },
         });

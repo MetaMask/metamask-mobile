@@ -32,7 +32,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, bufferedEndTrace } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
@@ -102,15 +102,15 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else if (isMetricsEnabled()) {
-          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
+          bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
           navigation.navigate('OnboardingSuccess', {
             showPasswordHint: true,
           });
         } else {
-          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-          endTrace({ name: TraceName.OnboardingJourneyOverall });
+          bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
           navigation.navigate('OptinMetrics', {
             steps: route.params?.steps,

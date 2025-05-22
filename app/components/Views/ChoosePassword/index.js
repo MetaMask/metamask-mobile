@@ -74,7 +74,12 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { TraceName, endTrace, trace, TraceOperation } from '../../../util/trace';
+import {
+  TraceName,
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceOperation,
+} from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -272,7 +277,7 @@ class ChoosePassword extends PureComponent {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
-      this.passwordSetupAttemptTraceCtx = trace({
+      this.passwordSetupAttemptTraceCtx = bufferedTrace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtx,
@@ -324,7 +329,7 @@ class ChoosePassword extends PureComponent {
   componentWillUnmount() {
     this.mounted = false;
     if (this.passwordSetupAttemptTraceCtx) {
-      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
       this.passwordSetupAttemptTraceCtx = null;
     }
   }
@@ -380,9 +385,9 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (this.props.metrics.isEnabled()) {
           this.props.navigation.reset({
@@ -410,7 +415,7 @@ class ChoosePassword extends PureComponent {
           });
         }
       } else {
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         this.props.navigation.replace('AccountBackupStep1');
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {

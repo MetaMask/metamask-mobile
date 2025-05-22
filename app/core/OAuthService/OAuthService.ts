@@ -1,7 +1,12 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
-import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  bufferedTrace,
+  bufferedEndTrace,
+  TraceName,
+  TraceOperation,
+} from '../../util/trace';
 
 import { UserActionType } from '../../actions/user';
 import {
@@ -138,14 +143,14 @@ export class OAuthService {
       let result, data, handleCodeFlowResult;
       let providerLoginSuccess = false;
       try {
-        trace({
+        bufferedTrace({
           name: TraceName.OnboardingOAuthProviderLogin,
           op: TraceOperation.OnboardingSecurityOp,
         });
         result = await loginHandler.login();
         providerLoginSuccess = true;
       } finally {
-        endTrace({
+        bufferedEndTrace({
           name: TraceName.OnboardingOAuthProviderLogin,
           data: { success: providerLoginSuccess },
         });
@@ -157,7 +162,7 @@ export class OAuthService {
       if (result) {
         let getAuthTokensSuccess = false;
         try {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             op: TraceOperation.OnboardingSecurityOp,
           });
@@ -167,7 +172,7 @@ export class OAuthService {
           );
           getAuthTokensSuccess = true;
         } finally {
-          endTrace({
+          bufferedEndTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             data: { success: getAuthTokensSuccess },
           });
@@ -192,7 +197,7 @@ export class OAuthService {
 
         let seedlessAuthSuccess = false;
         try {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
           });
@@ -202,7 +207,7 @@ export class OAuthService {
           );
           seedlessAuthSuccess = true;
         } finally {
-          endTrace({
+          bufferedEndTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             data: { success: seedlessAuthSuccess },
           });

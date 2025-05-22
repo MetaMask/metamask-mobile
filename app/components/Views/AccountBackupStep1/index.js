@@ -40,7 +40,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { TraceName, endTrace } from '../../../util/trace';
+import { TraceName, bufferedEndTrace } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
@@ -170,8 +170,8 @@ const AccountBackupStep1 = (props) => {
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
 
-    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-    endTrace({ name: TraceName.OnboardingJourneyOverall });
+    bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
     if (isMetricsEnabled()) {
       props.navigation.navigate('OnboardingSuccess', {

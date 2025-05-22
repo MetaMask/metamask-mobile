@@ -56,6 +56,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
 import {
+  bufferedTrace,
+  bufferedEndTrace,
   trace,
   endTrace,
   TraceName,
@@ -181,7 +183,7 @@ const Login: React.FC = () => {
 
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
-      passwordLoginAttemptTraceCtxRef.current = trace({
+      passwordLoginAttemptTraceCtxRef.current = bufferedTrace({
         name: TraceName.OnboardingPasswordLoginAttempt,
         op: TraceOperation.Login,
         parentContext: onboardingTraceCtxFromRoute,
@@ -235,7 +237,7 @@ const Login: React.FC = () => {
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
       if (passwordLoginAttemptTraceCtxRef.current) {
-        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
         passwordLoginAttemptTraceCtxRef.current = null;
       }
     };
@@ -387,9 +389,9 @@ const Login: React.FC = () => {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
-        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-        endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (isMetricsEnabled()) {
           navigation.reset({

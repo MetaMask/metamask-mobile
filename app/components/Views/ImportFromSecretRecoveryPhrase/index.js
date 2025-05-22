@@ -88,7 +88,12 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { TraceName, endTrace, trace, TraceOperation } from '../../../util/trace';
+import {
+  TraceName,
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceOperation,
+} from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
@@ -194,7 +199,7 @@ const ImportFromSecretRecoveryPhrase = ({
       navigation.goBack();
     } else {
       if (currentStep === 1 && passwordSetupAttemptTraceCtxRef.current) {
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         passwordSetupAttemptTraceCtxRef.current = null;
       }
       setCurrentStep(currentStep - 1);
@@ -489,7 +494,7 @@ const ImportFromSecretRecoveryPhrase = ({
     // Start the trace when moving to the password setup step
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
-      passwordSetupAttemptTraceCtxRef.current = trace({
+      passwordSetupAttemptTraceCtxRef.current = bufferedTrace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtx,
@@ -574,9 +579,9 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-        endTrace({ name: TraceName.OnboardingExistingSrpImport });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+        bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (isMetricsEnabled()) {
           navigation.reset({

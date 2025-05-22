@@ -48,7 +48,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
-import { trace, TraceName, TraceOperation, endTrace } from '../../../util/trace';
+import { bufferedTrace, TraceName, TraceOperation, bufferedEndTrace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -309,7 +309,7 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
-    this.onboardingTraceCtx = trace({
+    this.onboardingTraceCtx = bufferedTrace({
       name: TraceName.OnboardingJourneyOverall,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
@@ -373,7 +373,7 @@ class Onboarding extends PureComponent {
     this.setState({ bottomSheetVisible: false });
     OAuthLoginService.resetOauthState();
     const action = () => {
-      trace({
+      bufferedTrace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
         tags: getTraceTags(store.getState()),
@@ -393,7 +393,7 @@ class Onboarding extends PureComponent {
     this.setState({ bottomSheetVisible: false });
     OAuthLoginService.resetOauthState();
     const action = async () => {
-      trace({
+      bufferedTrace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
         tags: getTraceTags(store.getState()),
@@ -413,14 +413,14 @@ class Onboarding extends PureComponent {
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   handlePostSocialLogin = (result, createWallet) => {
     if (this.socialLoginTraceCtx) {
-      endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
+      bufferedEndTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
     }
 
     if (result.type === 'success') {
       if (createWallet) {
         if (result.existingUser) {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingNewSocialAccountExists,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
@@ -432,7 +432,7 @@ class Onboarding extends PureComponent {
             onboardingTraceCtx: this.onboardingTraceCtx,
           });
         } else {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingNewSocialCreateWallet,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
@@ -447,7 +447,7 @@ class Onboarding extends PureComponent {
         }
       } else if (!createWallet) {
         if (result.existingUser) {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingExistingSocialLogin,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
@@ -460,7 +460,7 @@ class Onboarding extends PureComponent {
           });
           this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
-          trace({
+          bufferedTrace({
             name: TraceName.OnboardingExistingSocialAccountNotFound,
             op: TraceOperation.OnboardingUserJourney,
             tags: getTraceTags(store.getState()),
@@ -480,7 +480,7 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithApple = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = trace({
+    this.socialLoginTraceCtx = bufferedTrace({
       name: TraceName.OnboardingSocialLoginAttempt,
       op: TraceOperation.OnboardingUserJourney,
       tags: { ...getTraceTags(store.getState()), provider: 'apple' },
@@ -501,7 +501,7 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithGoogle = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = trace({
+    this.socialLoginTraceCtx = bufferedTrace({
       name: TraceName.OnboardingSocialLoginAttempt,
       op: TraceOperation.OnboardingUserJourney,
       tags: { ...getTraceTags(store.getState()), provider: 'google' },

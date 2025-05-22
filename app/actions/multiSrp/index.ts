@@ -18,7 +18,12 @@ import { store } from '../../store';
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import ReduxService from '../../core/redux';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+} from '../../util/trace';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
@@ -82,7 +87,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     const seed = new Uint8Array(inputCodePoints.buffer);
     let addSeedPhraseSuccess = false;
     try {
-      trace({
+      bufferedTrace({
         name: TraceName.OnboardingAddSrp,
         op: TraceOperation.OnboardingSecurityOp,
       });
@@ -92,7 +97,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
       );
       addSeedPhraseSuccess = true;
     } finally {
-      endTrace({
+      bufferedEndTrace({
         name: TraceName.OnboardingAddSrp,
         data: { success: addSeedPhraseSuccess },
       });

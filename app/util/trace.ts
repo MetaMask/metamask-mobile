@@ -213,34 +213,9 @@ export function trace<T>(
   request: TraceRequest,
   fn?: TraceCallback<T>,
 ): T | TraceContext {
-  // If consent is not cached or not given, buffer the trace start
-  if (consentCache !== true) {
-    if (consentCache === null) {
-      updateIsConsentGivenForSentry();
-    }
-    // Extract parent trace name if parentContext exists
-    let parentTraceName: string | undefined;
-    if (request.parentContext && typeof request.parentContext === 'object') {
-      const parentSpan = request.parentContext as SentrySpanWithName;
-      parentTraceName = parentSpan._name;
-    }
-    preConsentCallBuffer.push({
-      type: 'start',
-      request: {
-        ...request,
-        parentContext: undefined, // Remove original parentContext to avoid invalid references
-        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
-        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
-        startTime: request.startTime ?? Date.now(),
-      },
-      parentTraceName, // Store the parent trace name for later reconnection
-    });
-  }
-
   if (!fn) {
     return startTrace(request);
   }
-
   return traceCallback(request, fn);
 }
 
@@ -251,22 +226,6 @@ export function trace<T>(
  * @param request - The data necessary to identify and end the pending trace.
  */
 export function endTrace(request: EndTraceRequest): void {
-  // If consent is not cached or not given, buffer the trace end
-  if (consentCache !== true) {
-    if (consentCache === null) {
-      updateIsConsentGivenForSentry();
-    }
-    preConsentCallBuffer.push({
-      type: 'end',
-      request: {
-        ...request,
-        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
-        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
-        timestamp: request.timestamp ?? Date.now(),
-      },
-    });
-  }
-
   const { name, timestamp } = request;
   const id = getTraceId(request);
   const key = getTraceKey(request);
@@ -294,6 +253,66 @@ export function endTrace(request: EndTraceRequest): void {
   const duration = endTime - startTime;
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
+}
+
+/**
+ * Buffered version of trace. Handles consent and buffering logic before calling trace.
+ */
+export function bufferedTrace<T>(
+  request: TraceRequest,
+  fn?: TraceCallback<T>,
+): T | TraceContext {
+  // If consent is not cached or not given, buffer the trace start
+  if (consentCache !== true) {
+    if (consentCache === null) {
+      updateIsConsentGivenForSentry();
+    }
+    // Extract parent trace name if parentContext exists
+    let parentTraceName: string | undefined;
+    if (request.parentContext && typeof request.parentContext === 'object') {
+      const parentSpan = request.parentContext as SentrySpanWithName;
+      parentTraceName = parentSpan._name;
+    }
+    preConsentCallBuffer.push({
+      type: 'start',
+      request: {
+        ...request,
+        parentContext: undefined, // Remove original parentContext to avoid invalid references
+        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
+        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
+        startTime: request.startTime ?? Date.now(),
+      },
+      parentTraceName, // Store the parent trace name for later reconnection
+    });
+    return undefined as unknown as T | TraceContext;
+  }
+  if (fn) {
+    return trace(request, fn);
+  }
+  return trace(request);
+}
+
+/**
+ * Buffered version of endTrace. Handles consent and buffering logic before calling endTrace.
+ */
+export function bufferedEndTrace(request: EndTraceRequest): void {
+  // If consent is not cached or not given, buffer the trace end
+  if (consentCache !== true) {
+    if (consentCache === null) {
+      updateIsConsentGivenForSentry();
+    }
+    preConsentCallBuffer.push({
+      type: 'end',
+      request: {
+        ...request,
+        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
+        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
+        timestamp: request.timestamp ?? Date.now(),
+      },
+    });
+    return;
+  }
+  endTrace(request);
 }
 
 export async function flushBufferedTraces(): Promise<void> {
