@@ -35,10 +35,6 @@ class AddNewHdAccountComponent {
   async tapConfirm() {
     await Gestures.waitAndTap(this.confirmButton);
   }
-  
-  async assertContainerIsVisible() {
-    await Assertions.checkIfVisible(this.container);
-  }
 
   async enterName(accountName) {
     await Gestures.clearField(this.nameInput);

@@ -4,6 +4,7 @@ import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { SendActionViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
@@ -42,7 +43,7 @@ export const container: UIComponentFactory<BoxElement> = ({
           onCancel,
           variant: ButtonVariants.Secondary,
           isSnapAction: false,
-          testID: 'snap-confirmation-Modal-close-button',
+          testID: SendActionViewSelectorsIDs.CLOSE_BUTTON,
         },
         children: t('navigation.close'),
       },

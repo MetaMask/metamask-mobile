@@ -18,6 +18,7 @@ export interface SnapUIInputProps {
   error?: string;
   style?: ViewStyle;
   disabled?: boolean;
+  testID?: string;
 }
 
 export const SnapUIInput = ({
@@ -27,6 +28,7 @@ export const SnapUIInput = ({
   error,
   style,
   disabled,
+  testID,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -62,6 +64,9 @@ export const SnapUIInput = ({
   const handleFocus = () => setCurrentFocusedInput(name);
   const handleBlur = () => setCurrentFocusedInput(null);
 
+  // Compact testID assignment
+  const inputTestID = testID ?? (name.includes('amount') ? 'send-amount-input' : name.includes('send-to') ? 'snap-input-send-to' : undefined);
+
   return (
     <Box style={style}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
@@ -73,6 +78,7 @@ export const SnapUIInput = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         id={name}
+        testID={inputTestID}
         value={value}
         onChangeText={handleChange}
         autoCapitalize="none"

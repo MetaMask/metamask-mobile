@@ -6,6 +6,10 @@ class SendActionBottomSheet {
     get solanaAddressInputField() {
         return Matchers.getElementByID(SendActionViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD);
       }
+
+      get solanaAmountInputField() {
+        return Matchers.getElementByID(SendActionViewSelectorsIDs.SOLANA_INPUT_AMOUNT_FIELD);
+      }
     
       get invalidAddressError() {
         return Matchers.getElementByID(SendActionViewSelectorsIDs.INVALID_ADDRESS_ERROR);
@@ -32,7 +36,7 @@ class SendActionBottomSheet {
       }
     
       async sendActionInputAmount(amount) {
-        await Gestures.replaceTextInField(this.solanaAddressInputField, amount, 1);
+        await Gestures.replaceTextInField(this.solanaAmountInputField, amount);
       }
 
       async tapSendSOLTransactionButton() {
