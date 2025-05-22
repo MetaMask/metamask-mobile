@@ -64,7 +64,6 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
-  NetworkAvatarProps,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
@@ -123,9 +122,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const requestedCaip25CaveatValue = useMemo(() => getRequestedCaip25CaveatValue(
-    hostInfo.permissions,
-  ), [hostInfo.permissions]
+  const requestedCaip25CaveatValue = useMemo(
+    () => getRequestedCaip25CaveatValue(hostInfo.permissions),
+    [hostInfo.permissions],
   );
 
   const requestedCaipAccountIds = useMemo(
@@ -156,16 +155,19 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds);
-  const selectedNetworkAvatars = useMemo(() => selectedChainIds.map(
-      (selectedChainId) => ({
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds,
+  );
+  const selectedNetworkAvatars = useMemo(
+    () =>
+      selectedChainIds.map((selectedChainId) => ({
         size: AvatarSize.Xs,
         name: networkConfigurations[selectedChainId]?.name || '',
         imageSource: getNetworkImageSource({ chainId: selectedChainId }),
         variant: AvatarVariant.Network,
-      }),
-    ), [networkConfigurations, selectedChainIds]);
-
+      })),
+    [networkConfigurations, selectedChainIds],
+  );
 
   // all accounts that match the requested namespaces
   const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
