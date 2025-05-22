@@ -10,6 +10,8 @@ import {
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockNavigate = jest.fn();
 
@@ -21,9 +23,31 @@ jest.mock('@react-navigation/native', () => ({
 
 const renderSRPQuiz = (props: SRPQuizProps, completeQuiz: boolean = true) => {
   const mockStore = configureMockStore();
+  const selectedAccount =
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount;
   const initialState = {
     engine: {
-      backgroundState: {},
+      backgroundState: {
+        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        KeyringController: {
+          isUnlocked: false,
+          keyrings: [
+            {
+              type: KeyringTypes.hd,
+              accounts: [
+                MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                  selectedAccount
+                ].address,
+              ],
+              metadata: {
+                id: 'hd-1',
+                name: '',
+              },
+            },
+          ],
+          keyringsMetadata: [],
+        },
+      },
     },
   };
   const store = mockStore(initialState);

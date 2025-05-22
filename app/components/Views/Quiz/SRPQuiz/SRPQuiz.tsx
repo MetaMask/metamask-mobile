@@ -13,7 +13,6 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
-import { store } from '../../../../store';
 import { selectHdEntropyIndex } from '../../../../selectors/multisrp';
 
 import { QuizStage } from '../types';
@@ -29,6 +28,7 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
@@ -54,6 +54,8 @@ const SRPQuiz = (props: SRPQuizProps) => {
   const { colors } = theme;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const hdEntropyIndex = useSelector(selectHdEntropyIndex);
 
   const dismissModal = (): void => {
     modalRef.current?.dismissModal();
@@ -96,14 +98,14 @@ const SRPQuiz = (props: SRPQuizProps) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED)
         .addProperties({
-          hd_entropy_index: selectHdEntropyIndex(store.getState()),
+          hd_entropy_index: hdEntropyIndex,
         })
         .build(),
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA)
         .addProperties({
-          hd_entropy_index: selectHdEntropyIndex(store.getState()),
+          hd_entropy_index: hdEntropyIndex,
         })
         .build(),
     );
@@ -112,7 +114,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
       shouldUpdateNav: true,
       keyringId,
     });
-  }, [navigation, trackEvent, createEventBuilder, keyringId]);
+  }, [trackEvent, createEventBuilder, hdEntropyIndex, navigation, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(
