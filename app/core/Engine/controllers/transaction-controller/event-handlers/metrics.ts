@@ -1,5 +1,6 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { merge } from 'lodash';
 
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
@@ -115,22 +116,41 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
-  const eventBuilder = MetricsEventBuilder.createEventBuilder(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED
-  );
-
-  await addSmartTransactionProperties(
-    eventBuilder,
+  // Generate default properties
+  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
     transactionEventHandlerRequest,
   );
 
-  addDefaultProperties(
-    eventBuilder,
-    transactionMeta,
-    transactionEventHandlerRequest,
-  );
+  // Generate smart transaction properties if applicable
+  let smartTransactionMetrics = {};
+  try {
+    const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
+    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+      getState(),
+      transactionMeta.chainId,
+    );
+    if (shouldUseSmartTransaction) {
+      smartTransactionMetrics = await getSmartTransactionMetricsProperties(
+        smartTransactionsController,
+        transactionMeta,
+        true,
+        initMessenger as unknown as BaseControllerMessenger,
+      );
+    }
+  } catch (error) {
+    Logger.log('Error getting smart transaction metrics:', error);
+  }
 
-  const event = eventBuilder.build();
+  // Merge default and smart transaction properties
+  const mergedEventProperties = merge({}, defaultTransactionMetricProperties, smartTransactionMetrics);
+
+  // Generate and track the event
+  const event = generateEvent({
+    metametricsEvent: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+    properties: mergedEventProperties.properties,
+    sensitiveProperties: mergedEventProperties.sensitiveProperties,
+  });
   MetaMetrics.getInstance().trackEvent(event);
 }
