@@ -185,7 +185,7 @@ const Login: React.FC = () => {
     if (onboardingTraceCtxFromRoute) {
       passwordLoginAttemptTraceCtxRef.current = bufferedTrace({
         name: TraceName.OnboardingPasswordLoginAttempt,
-        op: TraceOperation.Login,
+        op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtxFromRoute,
       });
     }
