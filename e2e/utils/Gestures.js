@@ -77,9 +77,20 @@ static async waitAndTap(elementID, options = {}) {
    *
    * @param {Promise<Detox.IndexableWebElement>} elementID - ID of the element to tap
    */
-  static async tapWebElement(elementID) {
+  static async tapWebElement(elementID, timeout = 15000) {
     const element = await elementID;
-    await element.tap();
+    // For web elements, we need to use a different approach to wait
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      try {
+        await expect(element).toExist();
+        await element.tap();
+        return;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+    throw new Error('Web element not found or not tappable');
   }
 
   /**
