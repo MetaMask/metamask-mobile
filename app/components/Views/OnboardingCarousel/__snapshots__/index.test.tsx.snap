@@ -267,7 +267,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           "paddingHorizontal": 40,
         }
       }
-      testID="welcome-screen-get-started-button-id"
     >
       <View
         style={
@@ -299,6 +298,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               null,
             ]
           }
+          testID="welcome-screen-get-started-button-id"
         >
           <Text
             style={
@@ -616,7 +616,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           "paddingHorizontal": 40,
         }
       }
-      testID="welcome-screen-get-started-button-id"
     >
       <View
         style={
@@ -648,6 +647,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               null,
             ]
           }
+          testID="welcome-screen-get-started-button-id"
         >
           <Text
             style={
@@ -965,7 +965,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           "paddingHorizontal": 40,
         }
       }
-      testID="welcome-screen-get-started-button-id"
     >
       <View
         style={
@@ -997,6 +996,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               null,
             ]
           }
+          testID="welcome-screen-get-started-button-id"
         >
           <Text
             style={
@@ -1314,7 +1314,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           "paddingHorizontal": 40,
         }
       }
-      testID="welcome-screen-get-started-button-id"
     >
       <View
         style={
@@ -1346,6 +1345,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               null,
             ]
           }
+          testID="welcome-screen-get-started-button-id"
         >
           <Text
             style={
