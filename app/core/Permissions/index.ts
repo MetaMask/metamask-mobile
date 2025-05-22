@@ -20,7 +20,7 @@ import {
   getPermittedEthChainIds,
   isInternalAccountInPermittedAccountIds,
   setChainIdsInCaip25CaveatValue,
-  setNonSCACaipAccountIdsInCaip25CaveatValue ,
+  setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import {
   CaveatConstraint,
