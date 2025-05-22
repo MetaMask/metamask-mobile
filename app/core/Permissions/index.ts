@@ -74,8 +74,8 @@ const captureKeyringTypesWithMissingIdentities = (
    * Sorts a list of addresses by most recently selected by using the lastSelected value for
    * the matching InternalAccount object from the list of internalAccounts provided.
    */
-  const sortAddressesWithInternalAccounts = <T extends string>(addresses: T[], internalAccounts: InternalAccount[]): T[] => {
-    return addresses.sort((firstAddress, secondAddress) => {
+  const sortAddressesWithInternalAccounts = <T extends string>(addresses: T[], internalAccounts: InternalAccount[]): T[] =>
+    addresses.sort((firstAddress, secondAddress) => {
       const firstAccount = internalAccounts.find(
         (internalAccount) =>
           internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
@@ -113,7 +113,6 @@ const captureKeyringTypesWithMissingIdentities = (
         secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
       );
     });
-  }
 
   /**
    * Sorts a list of evm account addresses by most recently selected by using
