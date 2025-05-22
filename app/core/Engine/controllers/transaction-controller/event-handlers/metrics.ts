@@ -6,7 +6,7 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
 import { BaseControllerMessenger } from '../../../types';
-import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
+import { generateDefaultTransactionMetrics, generateEvent, generateRPCProperties } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 
@@ -78,10 +78,19 @@ export async function handleTransactionFinalizedEventForMetrics(
     Logger.log('Error getting smart transaction metrics:', error);
   }
 
-  // Merge default and smart transaction properties
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties, smartTransactionProperties);
+  // Add RPC properties
+  const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+
+  // Merge default, smart transaction, and RPC properties
+  const mergedEventProperties = merge(
+    {},
+    defaultTransactionMetricProperties,
+    smartTransactionProperties,
+    { properties: rpcProperties.properties, sensitiveProperties: rpcProperties.sensitiveProperties }
+  );
 
   // Generate and track the event
   const event = generateEvent(mergedEventProperties);
+
   MetaMetrics.getInstance().trackEvent(event);
 }
