@@ -68,7 +68,7 @@ describe(
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapContinueButton();
       await Assertions.checkIfTextIsDisplayed(
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
@@ -80,6 +80,7 @@ describe(
     });
 
     it('Should verify that transaction is sent successfully', async () => {
+      await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
       
