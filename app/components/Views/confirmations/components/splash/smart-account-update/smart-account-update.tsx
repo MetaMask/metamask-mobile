@@ -3,10 +3,6 @@ import { Image, Linking, View } from 'react-native';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -15,6 +11,10 @@ import Icon, {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import Name from '../../../../../UI/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { useStyles } from '../../../../../hooks/useStyles';

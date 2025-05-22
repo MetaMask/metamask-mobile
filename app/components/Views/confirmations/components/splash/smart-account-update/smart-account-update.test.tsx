@@ -38,7 +38,7 @@ describe('SmartContractWithLogo', () => {
     expect(getByText('Request for')).toBeTruthy();
   });
 
-  it('close after confirm button is clicked', () => {
+  it('close after `Yes` button is clicked', () => {
     const { getByText, queryByText } = renderWithProvider(
       <SmartAccountUpdate />,
       {
@@ -50,7 +50,7 @@ describe('SmartContractWithLogo', () => {
     expect(queryByText('Request for')).toBeNull();
   });
 
-  it('call reject function when No button is clicked', () => {
+  it('call reject function when `No` button is clicked', () => {
     const mockOnReject = jest.fn();
     jest
       .spyOn(ConfirmationActions, 'useConfirmActions')
