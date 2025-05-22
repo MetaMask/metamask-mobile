@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 074: Reset PhishingController phishingLists', () => {
+describe('Migration 079: Reset PhishingController phishingLists', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
