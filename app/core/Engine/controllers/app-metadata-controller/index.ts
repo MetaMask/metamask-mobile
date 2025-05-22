@@ -47,10 +47,8 @@ export const appMetadataControllerInit: ControllerInitFunction<
     currentMigrationVersion,
   });
 
-  // Update version asynchronously after initialization
-  Promise.resolve(getVersion()).then((version: string) => {
-    controller.state.currentAppVersion = version;
-  });
+  // Update version synchronously
+  controller.state.currentAppVersion = getVersion();
 
   return { controller };
 };
