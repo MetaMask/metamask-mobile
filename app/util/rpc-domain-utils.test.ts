@@ -25,8 +25,8 @@ interface NetworkConfiguration {
 }
 
 interface MockNetworkController {
-  findNetworkClientIdByChainId: jest.Mock<string | null>;
-  getNetworkConfigurationByNetworkClientId: jest.Mock<NetworkConfiguration | null>;
+  findNetworkClientIdByChainId: jest.Mock<string | null, [`0x${string}`]>;
+  getNetworkConfigurationByNetworkClientId: jest.Mock<NetworkConfiguration | null, [string]>;
 }
 
 describe('rpc-domain-utils', () => {
@@ -189,16 +189,17 @@ describe('rpc-domain-utils', () => {
   });
 
   describe('getNetworkRpcUrl', () => {
+    let mockNetworkController: MockNetworkController;
+
     beforeEach(() => {
-      const mockNetworkController: MockNetworkController = {
+      mockNetworkController = {
         findNetworkClientIdByChainId: jest.fn(),
         getNetworkConfigurationByNetworkClientId: jest.fn(),
       };
-      (Engine.context as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+      (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
     });
 
     it('should return RPC URL from legacy format', () => {
-      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcUrl: 'https://legacy-rpc.com',
@@ -208,7 +209,6 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should return RPC URL from rpcEndpoints array', () => {
-      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcEndpoints: [
@@ -222,14 +222,12 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should return unknown when network client ID not found', () => {
-      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(null);
 
       expect(getNetworkRpcUrl('0x1')).toBe('unknown');
     });
 
     it('should return unknown when network configuration not found', () => {
-      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
 
@@ -237,7 +235,6 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should handle errors gracefully', () => {
-      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockImplementation(() => {
         throw new Error('Test error');
       });
