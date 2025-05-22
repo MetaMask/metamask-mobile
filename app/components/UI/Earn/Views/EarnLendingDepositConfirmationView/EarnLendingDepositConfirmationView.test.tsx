@@ -3,7 +3,6 @@ import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
 } from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { useRoute } from '@react-navigation/native';
@@ -13,9 +12,9 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import {
-  DEPOSIT_FOOTER_TEST_ID,
-  LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS,
-} from './components/DepositFooter';
+  CONFIRMATION_FOOTER_TEST_IDS,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+} from './components/ConfirmationFooter';
 import { act, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -23,6 +22,7 @@ import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestU
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
 import { Result, TransactionType } from '@metamask/transaction-controller';
+import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -96,7 +96,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     key: 'EarnLendingDepositConfirmation-abc123',
     name: 'params',
     params: {
-      action: EARN_INPUT_VIEW_ACTIONS.LEND,
+      action: EARN_LENDING_ACTIONS.DEPOSIT,
       amountFiat: '4.99',
       amountTokenMinimalUnit: '5000000',
       annualRewardsFiat: '0.26',
@@ -138,12 +138,12 @@ describe('EarnLendingDepositConfirmationView', () => {
     // Deposit Receive Section
     expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
     // Footer
-    expect(getByTestId(DEPOSIT_FOOTER_TEST_ID)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_IDS)).toBeDefined();
     expect(
-      getByTestId(LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
     ).toBeDefined();
   });
 
@@ -169,7 +169,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const cancelButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
 
     act(() => {
@@ -184,7 +184,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       ...defaultRouteParams,
       params: {
         ...defaultRouteParams.params,
-        action: EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
       },
     };
 
@@ -204,7 +204,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const approveButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
     // Ensure we're on the approval step
@@ -247,7 +247,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     );
 
     const depositButton = getByTestId(
-      LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
     // Ensure we're on the deposit step

@@ -18,14 +18,24 @@ import { TokenI } from '../../Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../constants/experiences';
-import { isSupportedLendingTokenByChainId } from '../utils';
+import {
+  isSupportedLendingReceiptTokenByChainId,
+  isSupportedLendingTokenByChainId,
+} from '../utils';
+import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  // Tokens
   Ethereum: '2.3',
   USDC: '4.5',
   USDT: '4.1',
   DAI: '5.0',
+  // Receipt tokens
+  AETHUSDC: '4.5',
+  AUSDT: '4.1',
+  ADAI: '5.0',
+  aBasUSDC: '4.5',
 };
 
 export interface EarnTokenDetails extends TokenI {
@@ -36,9 +46,11 @@ export interface EarnTokenDetails extends TokenI {
   balanceFiatNumber: number;
   estimatedAnnualRewardsFormatted: string;
   experience: string;
+  tokenUsdExchangeRate: number;
 }
 
 export const useEarnTokenDetails = () => {
+  const { annualRewardRate: pooledStakingApy } = useVaultMetadata();
   const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -47,7 +59,6 @@ export const useEarnTokenDetails = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
-
   const isStablecoinLendingFeatureEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -67,14 +78,31 @@ export const useEarnTokenDetails = () => {
             ]?.[token.address as Hex],
           );
 
+      const tokenExchangeRates = multiChainMarketData?.[tokenChainId] || {};
+
+      const tokenToEthExchangeRate =
+        tokenExchangeRates[token?.address as Hex]?.price ?? 0;
+
+      const ethToUsdConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
+
+      // Token -> USD exchange rate needed for AAVE v3 risk-aware withdrawal calculations.
+      const tokenUsdExchangeRate = new BigNumber(ethToUsdConversionRate)
+        .multipliedBy(tokenToEthExchangeRate)
+        .dividedBy(1)
+        .toNumber();
+
+      const ethToUserSelectedFiatConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+
       const { balanceValueFormatted, balanceFiat, balanceFiatCalculation } =
         deriveBalanceFromAssetMarketDetails(
           token,
-          multiChainMarketData?.[tokenChainId] || {},
+          tokenExchangeRates,
           multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
             tokenChainId
           ] || {},
-          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0,
+          ethToUserSelectedFiatConversionRate,
           currentCurrency || '',
         );
 
@@ -89,7 +117,9 @@ export const useEarnTokenDetails = () => {
       let estimatedAnnualRewardsFormatted = '';
       let apr = '0.0';
       if (isStablecoinLendingFeatureEnabled) {
-        apr = MOCK_APR_VALUES[token.symbol] || apr;
+        apr = token.isETH
+          ? parseFloat(pooledStakingApy).toString()
+          : MOCK_APR_VALUES[token.symbol] || apr;
         const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
         const estimatedAnnualRewardsDecimal = new BigNumber(
           assetBalanceFiatNumber,
@@ -122,9 +152,14 @@ export const useEarnTokenDetails = () => {
 
         const isSupportedLendingToken =
           token?.chainId &&
-          isSupportedLendingTokenByChainId(token?.symbol, token.chainId);
+          isSupportedLendingTokenByChainId(token.symbol, token.chainId);
 
-        if (isSupportedLendingToken) return EARN_EXPERIENCES.STABLECOIN_LENDING;
+        const isSupportedLendingReceiptToken =
+          token?.chainId &&
+          isSupportedLendingReceiptTokenByChainId(token.symbol, token.chainId);
+
+        if (isSupportedLendingToken || isSupportedLendingReceiptToken)
+          return EARN_EXPERIENCES.STABLECOIN_LENDING;
 
         return '';
       };
@@ -153,6 +188,7 @@ export const useEarnTokenDetails = () => {
         // i.e. $2.12 or £0.00
         estimatedAnnualRewardsFormatted,
         experience: getTokenEarnExperience(),
+        tokenUsdExchangeRate,
       };
     },
     [
@@ -165,6 +201,7 @@ export const useEarnTokenDetails = () => {
       currentCurrency,
       balanceFiatNumber,
       isStablecoinLendingFeatureEnabled,
+      pooledStakingApy,
     ],
   );
 
