@@ -178,7 +178,7 @@ export function getNetworkRpcUrl(chainId: string): string {
     }
     return 'unknown';
   } catch (error) {
-    console.error('Error getting RPC URL:', error);
+    Logger.error('Error getting RPC URL:', error);
     return 'unknown';
   }
 }
