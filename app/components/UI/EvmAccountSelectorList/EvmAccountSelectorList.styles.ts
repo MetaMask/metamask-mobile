@@ -16,6 +16,9 @@ const styleSheet = () =>
       flexDirection: 'column',
     },
     balanceLabel: { textAlign: 'right' },
+    networkTokensContainer: {
+      marginTop: 4,
+    },
   });
 
 export default styleSheet;

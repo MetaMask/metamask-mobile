@@ -72,4 +72,82 @@ describe('AvatarGroup', () => {
       spaceBetweenAvatars,
     );
   });
+  it('should render the last maxStackedAvatars avatars when renderOverflowCounter is false', () => {
+    const avatarPropsList = [
+      ...SAMPLE_AVATARGROUP_PROPS.avatarPropsList,
+
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xLastAddress1',
+      },
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xLastAddress2',
+      },
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xLastAddress3',
+      },
+    ];
+
+    const maxStackedAvatars = 4;
+
+    const { getAllByTestId, queryByTestId } = renderComponent({
+      avatarPropsList,
+      maxStackedAvatars,
+      renderOverflowCounter: false,
+    });
+
+    const overflowCounter = queryByTestId(AVATARGROUP_OVERFLOWCOUNTER_TESTID);
+    expect(overflowCounter).toBeNull();
+
+    const avatars = getAllByTestId(AVATARGROUP_AVATAR_TESTID);
+
+    expect(avatars.length).toBe(maxStackedAvatars);
+    const lastAvatarProps = avatarPropsList.slice(-maxStackedAvatars);
+
+    expect(avatars.length).toBe(lastAvatarProps.length);
+  });
+
+  it('should render the first maxStackedAvatars avatars when renderOverflowCounter is true', () => {
+    const avatarPropsList = [
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xFirstAddress1',
+      },
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xFirstAddress2',
+      },
+      {
+        variant: 'Account',
+        type: 'JazzIcon',
+        accountAddress: '0xFirstAddress3',
+      },
+      ...SAMPLE_AVATARGROUP_PROPS.avatarPropsList,
+    ];
+
+    const maxStackedAvatars = 3;
+
+    const { getAllByTestId, getByTestId } = renderComponent({
+      avatarPropsList,
+      maxStackedAvatars,
+      renderOverflowCounter: true,
+    });
+
+    const overflowCounter = getByTestId(AVATARGROUP_OVERFLOWCOUNTER_TESTID);
+    expect(overflowCounter).toBeDefined();
+
+    const avatars = getAllByTestId(AVATARGROUP_AVATAR_TESTID);
+
+    expect(avatars.length).toBe(maxStackedAvatars);
+
+    const overflowCounterNumber = avatarPropsList.length - maxStackedAvatars;
+    expect(overflowCounter.props.children).toBe(`+${overflowCounterNumber}`);
+  });
 });
