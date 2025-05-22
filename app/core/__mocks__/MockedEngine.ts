@@ -68,6 +68,14 @@ export const mockedEngine = {
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
     },
+    MultichainNetworkController: {
+      metadata: {
+        multichainNetworkConfigurationsByChainId: {
+          anonymous: true,
+          persist: true,
+        },
+      }
+    },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
       findNetworkClientIdByChainId: jest.fn(),
