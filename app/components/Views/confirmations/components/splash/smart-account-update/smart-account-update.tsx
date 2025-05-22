@@ -119,7 +119,7 @@ export const SmartAccountUpdate = () => {
                 color={TextColor.Primary}
                 onPress={() => Linking.openURL(ACCOUNT_UPGRADE_URL)}
               >
-                {strings('alert_system.upgarde_account.learn_more')}
+                {strings('alert_system.upgrade_account.learn_more')}
               </Text>
             </Text>
           </>
