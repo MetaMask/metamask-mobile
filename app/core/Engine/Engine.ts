@@ -1119,7 +1119,11 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
-        allowedEvents: [],
+        allowedEvents: [
+          'TransactionController:transactionFailed',
+          'TransactionController:transactionConfirmed',
+          'MultichainTransactionsController:transactionConfirmed'
+        ],
       }),
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
