@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 
 import Avatar, {
   AvatarAccountType,
@@ -30,7 +31,6 @@ import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import styleSheet from './account-network-info-collapsed.styles';
-import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 
 const AccountNetworkInfoCollapsed = () => {
@@ -50,7 +50,7 @@ const AccountNetworkInfoCollapsed = () => {
     chainId = transactionMetadata?.chainId;
     fromAddress = transactionMetadata?.txParams?.from as string;
   }
-  const { accountName } = useAccountInfo(fromAddress);
+  const { accountName } = useAccountInfo(fromAddress, chainId as Hex);
   const accountLabel = getLabelTextByAddress(fromAddress);
   const { styles } = useStyles(styleSheet, {
     accountNameWide: Boolean(!accountLabel),
