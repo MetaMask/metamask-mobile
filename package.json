@@ -20,7 +20,7 @@
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
-    "setup": "yarn clean && node scripts/setup.mjs",
+    "setup": "yarn clean && node scripts/setup.mjs && yarn mm-foundryup",
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
@@ -650,5 +650,23 @@
       "ts-node>@swc/core": false
     }
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "foundryup": {
+    "binaries": [
+      "anvil"
+    ],
+    "checksums": {
+      "algorithm": "sha256",
+      "binaries": {
+        "anvil": {
+          "darwin-amd64": "8404e555223fe884557d5e22de494baf8b5f0b82c6f87a4c790c5150e546c9d0",
+          "darwin-arm64": "888500bc210752e71a355ed4d492ad6dcb4c0ef54d283c105a29a5ccc73d0dbd",
+          "linux-amd64": "6104069b183fa0f3cdcb692681da9dbd203a3c1bceb435853bbf7abd991c649e",
+          "linux-arm64": "d66ed8f848e829882ebb65d28aaac72aeab6a101655bb62147186040655928b5",
+          "win32-amd64": "6c71d9a7be39ed32b53c89bdbc83aa748f41587517212ffe2a8b955c3e9c2e9b"
+        }
+      }
+    },
+    "version": "v0.3.0"
+  }
 }
