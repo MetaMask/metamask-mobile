@@ -22,6 +22,11 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorText.QUOTES);
   }
 
+  token(symbol) {
+    return Matchers.getElementByID(`asset-${symbol}`);
+  }
+
+
   async enterBridgeAmount(amount) {
     for (let idx = 0; idx < amount.length; idx++) {
       const element = Matchers.getElementByText(amount[idx]);
@@ -46,8 +51,8 @@ class QuoteView {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectToken(symbol, index = 0) {
-    const element = Matchers.getElementByID(`asset-${symbol}`, index);
+  async selectToken(symbol) {
+    const element = await this.token(symbol)
     await Gestures.waitAndTap(element);
   }
 

@@ -72,7 +72,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Base');
-    await QuoteView.typeSearchToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
     await Assertions.checkIfVisible(QuoteView.quotesLabel);
     await Assertions.checkIfVisible(QuoteView.continueButton);
@@ -96,12 +96,14 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
@@ -110,11 +112,11 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
     await device.disableSynchronization();
-    await TestHelpers.delay(1000);
     await QuoteView.enterBridgeAmount('1');
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
+    await Assertions.checkIfVisible(QuoteView.token('SOL'));
     await QuoteView.selectToken('SOL');
     await Assertions.checkIfVisible(QuoteView.quotesLabel);
     await Assertions.checkIfVisible(QuoteView.continueButton);
