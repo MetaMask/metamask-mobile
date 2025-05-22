@@ -627,7 +627,6 @@ exports[`AccountPermissions renders correctly 1`] = `
             "marginVertical": 16,
           }
         }
-        testID="connect-accounts-buttons"
       >
         <View>
           <TouchableOpacity
@@ -650,6 +649,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="connect-accounts-buttons"
           >
             <Text
               accessibilityRole="text"

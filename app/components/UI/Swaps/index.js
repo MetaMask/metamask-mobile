@@ -707,6 +707,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
+          testID={QuoteViewSelectorIDs.SOURCE_TOKEN_SELECTOR}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />

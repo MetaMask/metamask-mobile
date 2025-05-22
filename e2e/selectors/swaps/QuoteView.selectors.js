@@ -10,4 +10,5 @@ export const QuoteViewSelectorIDs = {
   DEST_TOKEN: 'select-dest-token',
   MAX_SLIPPAGE: 'swap_max-slippage',
   SEARCH_TOKEN: 'swaps-search-token',
+  SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
 };
