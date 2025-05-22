@@ -18,6 +18,11 @@ import { SigningBottomSheetSelectorsIDs } from '../../../../../../../e2e/selecto
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
+jest.mock('../../../../../UI/AccountInfoCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockMetrics = {
   trackEvent: jest.fn(),
 };
