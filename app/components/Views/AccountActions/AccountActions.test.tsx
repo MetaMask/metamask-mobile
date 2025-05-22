@@ -70,6 +70,10 @@ jest.mock('../../../selectors/networkController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(
     () => '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
   ),
+  selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
+  selectNetworkClientId: jest.fn(() => 'mainnet'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectRpcUrl: jest.fn(() => 'https://mainnet.infura.io/v3/123'),
 }));
 
 // Import the mocked selectors
@@ -310,6 +314,10 @@ const customRpcState = {
     },
   },
 } as unknown;
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(() => false),
+}));
 
 describe('AccountActions', () => {
   const mockKeyringController = mockEngine.context.KeyringController;
