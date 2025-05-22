@@ -1,54 +1,151 @@
 import {
-  AppMetadataController,
-  type AppMetadataControllerState,
-  type AppMetadataControllerMessenger,
-} from '@metamask/app-metadata-controller';
-import { logAppMetadataControllerCreation } from './utils';
-import type { ControllerInitFunction } from '../../types';
-import { defaultAppMetadataControllerState } from './constants';
+  BaseController,
+  ControllerGetStateAction,
+  ControllerStateChangeEvent,
+  RestrictedMessenger,
+  StateConstraint,
+} from '@metamask/base-controller';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../../../store/migrations';
+import type { ControllerInitRequest } from '../../types';
+import { logAppMetadataControllerCreation } from './utils';
+import { Json } from '@metamask/utils';
 
-// Export types
-export type { AppMetadataControllerMessenger };
+const controllerName = 'AppMetadataController';
 
-// Export constants
-export * from './constants';
+export interface AppMetadataControllerOptions {
+  state?: Partial<AppMetadataControllerState>;
+  messenger: AppMetadataControllerMessenger;
+  currentMigrationVersion?: number;
+  currentAppVersion?: string;
+}
 
-/**
- * Initialize the AppMetadataController.
- *
- * @param request - The request object.
- * @returns The AppMetadataController.
- */
-export const appMetadataControllerInit: ControllerInitFunction<
-  AppMetadataController,
-  AppMetadataControllerMessenger
-> = (request) => {
-  const { controllerMessenger, persistedState } = request;
+export interface AppMetadataControllerState extends StateConstraint {
+  currentAppVersion: string;
+  previousAppVersion: string;
+  previousMigrationVersion: number;
+  currentMigrationVersion: number;
+  [key: string]: Json;
+}
 
-  // Get current app version and migration version
-  const currentAppVersion = getVersion();
-  const currentMigrationVersion = migrationVersion;
-
-  const appMetadataControllerState = {
-    ...(persistedState.AppMetadataController ??
-      defaultAppMetadataControllerState),
-    currentAppVersion,
-    currentMigrationVersion,
-  } as AppMetadataControllerState;
-
-  logAppMetadataControllerCreation(appMetadataControllerState);
-
-  const controller = new AppMetadataController({
-    messenger: controllerMessenger,
-    state: appMetadataControllerState,
-    currentAppVersion,
-    currentMigrationVersion,
+export const getDefaultAppMetadataControllerState =
+  (): AppMetadataControllerState => ({
+    currentAppVersion: '',
+    previousAppVersion: '',
+    previousMigrationVersion: 0,
+    currentMigrationVersion: 0,
   });
 
-  // Update version synchronously
-  controller.state.currentAppVersion = getVersion();
+export type AppMetadataControllerGetStateAction = ControllerGetStateAction<
+  typeof controllerName,
+  AppMetadataControllerState
+>;
 
-  return { controller };
+export type AppMetadataControllerActions = AppMetadataControllerGetStateAction;
+
+export type AppMetadataControllerStateChangeEvent = ControllerStateChangeEvent<
+  typeof controllerName,
+  AppMetadataControllerState
+>;
+
+export type AppMetadataControllerEvents = AppMetadataControllerStateChangeEvent;
+
+type AllowedActions = never;
+
+type AllowedEvents = never;
+
+export type AppMetadataControllerMessenger = RestrictedMessenger<
+  typeof controllerName,
+  AppMetadataControllerActions | AllowedActions,
+  AppMetadataControllerEvents | AllowedEvents,
+  AllowedActions['type'],
+  AllowedEvents['type']
+>;
+
+const controllerMetadata = {
+  currentAppVersion: {
+    persist: true,
+    anonymous: true,
+  },
+  previousAppVersion: {
+    persist: true,
+    anonymous: true,
+  },
+  previousMigrationVersion: {
+    persist: true,
+    anonymous: true,
+  },
+  currentMigrationVersion: {
+    persist: true,
+    anonymous: true,
+  },
 };
+
+export class AppMetadataController extends BaseController<
+  typeof controllerName,
+  AppMetadataControllerState,
+  AppMetadataControllerMessenger
+> {
+  constructor({
+    state = {},
+    messenger,
+    currentAppVersion = '',
+    currentMigrationVersion = 0,
+  }: AppMetadataControllerOptions) {
+    const initialState = {
+      ...getDefaultAppMetadataControllerState(),
+      ...state,
+    } as AppMetadataControllerState;
+
+    super({
+      name: controllerName,
+      metadata: controllerMetadata,
+      state: initialState,
+      messenger,
+    });
+
+    this.updateAppVersion(currentAppVersion);
+    this.updateMigrationVersion(currentMigrationVersion);
+  }
+
+  updateAppVersion(newAppVersion: string): void {
+    const oldCurrentAppVersion = this.state.currentAppVersion;
+
+    if (newAppVersion !== oldCurrentAppVersion) {
+      this.update((state) => {
+        state.currentAppVersion = newAppVersion;
+        state.previousAppVersion = oldCurrentAppVersion;
+      });
+    }
+  }
+
+  updateMigrationVersion(newMigrationVersion: number): void {
+    const oldCurrentMigrationVersion = this.state.currentMigrationVersion;
+
+    if (newMigrationVersion !== oldCurrentMigrationVersion) {
+      this.update((state) => {
+        state.previousMigrationVersion = oldCurrentMigrationVersion;
+        state.currentMigrationVersion = newMigrationVersion;
+      });
+    }
+  }
+}
+
+export function appMetadataControllerInit(
+  initRequest: ControllerInitRequest<AppMetadataControllerMessenger>,
+) {
+  const currentVersion = getVersion();
+  const currentState =
+    initRequest.persistedState?.AppMetadataController ||
+    getDefaultAppMetadataControllerState();
+
+  const controller = new AppMetadataController({
+    state: currentState,
+    messenger: initRequest.controllerMessenger,
+    currentAppVersion: currentVersion,
+    currentMigrationVersion: migrationVersion,
+  });
+
+  logAppMetadataControllerCreation(controller.state);
+  return { controller };
+}
