@@ -333,7 +333,7 @@ class OptinMetrics extends PureComponent {
       clearOnboardingEvents();
       await metrics.enable(false);
       await setupSentry(); // Re-setup Sentry with enabled: false
-      await discardBufferedTraces();
+      discardBufferedTraces();
     }, 200);
     this.continue();
   };

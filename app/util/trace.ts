@@ -355,7 +355,7 @@ export async function flushBufferedTraces(): Promise<void> {
   log('Finished flushing buffered traces');
 }
 
-export async function discardBufferedTraces() {
+export function discardBufferedTraces() {
   preConsentCallBuffer.length = 0;
 }
 
