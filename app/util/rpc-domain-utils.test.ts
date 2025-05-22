@@ -41,7 +41,7 @@ describe('rpc-domain-utils', () => {
       expect(extractRpcDomain('https://my-private-node.com')).toBe('private');
     });
 
-    it('should handle URLs without protocol', () => {
+    it('returns "private" for URLs without protocol', () => {
       expect(extractRpcDomain('infura.io/v3/123')).toBe('infura.io');
       expect(extractRpcDomain('localhost:8545')).toBe('private');
     });
