@@ -162,7 +162,7 @@ class WalletConnect2Session {
       this.lastChainId = newChainId;
       const decimalChainId = parseInt(newChainId, 16);
       this.handleChainChange(decimalChainId).catch((error) => {
-        console.log(
+        console.warn(
           'WC2::store.subscribe Error handling chain change:',
           error,
         );
@@ -327,7 +327,7 @@ class WalletConnect2Session {
       await this.emitEvent('chainChanged', chainIdDecimal);
     } catch (error) {
       DevLogger.log(
-        `WC2::handleChainChangehandleChainChange error while updating session`,
+        `WC2::handleChainChange error while updating session`,
         error,
       );
       throw error;
