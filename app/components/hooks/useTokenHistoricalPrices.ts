@@ -15,6 +15,8 @@ export type TokenPrice = [string, number];
 
 const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
 
+// EVM passes in timePeriod in the format of '1d', '1w', '7d', '1m', '3m', '1y', '3y'
+// Multichain passes in timePeriod in the correct ISO8601 duration format, so we don't need to convert it, so it's the default case
 export const standardizeTimeInterval = (timePeriod: TimePeriod) => {
   switch (timePeriod) {
     case '1d':
@@ -32,7 +34,7 @@ export const standardizeTimeInterval = (timePeriod: TimePeriod) => {
     case '3y':
       return 'P3Y';
     default:
-      return 'P1D';
+      return timePeriod;
   }
 };
 
