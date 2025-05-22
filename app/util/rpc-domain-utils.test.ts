@@ -36,12 +36,12 @@ describe('rpc-domain-utils', () => {
       expect(extractRpcDomain('wss://eth-mainnet.alchemyapi.io/v2/key')).toBe('eth-mainnet.alchemyapi.io');
     });
 
-    it('should return "private" for unknown domains', () => {
-      expect(extractRpcDomain('https://custom-rpc.org')).toBe(RpcDomainStatus.Private);
-      expect(extractRpcDomain('https://my-private-node.com')).toBe(RpcDomainStatus.Private);
+    it('returns "private" for unknown domains', () => {
+      expect(extractRpcDomain('https://custom-rpc.org')).toBe('private');
+      expect(extractRpcDomain('https://my-private-node.com')).toBe('private');
     });
 
-    it('should handle URLs without protocol', () => {
+    it('returns "private" for URLs without protocol', () => {
       expect(extractRpcDomain('infura.io/v3/123')).toBe('infura.io');
       expect(extractRpcDomain('localhost:8545')).toBe(RpcDomainStatus.Private);
     });
@@ -118,7 +118,7 @@ describe('rpc-domain-utils', () => {
       expect(result).toBe('https://legacy.example.com');
     });
 
-    it('should return "unknown" when network client ID is not found', () => {
+    it('returns "unknown" when network client ID is not found', () => {
       // Mock implementation for missing network client
       (Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock).mockReturnValue(null);
 
