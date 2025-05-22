@@ -4,7 +4,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import React from 'react';
-import { generateContractInteractionState } from '../../../../../../util/test/confirm-data-helpers';
+import {
+  generateContractInteractionState,
+  getAppStateForConfirmation,
+  upgradeAccountConfirmation,
+} from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
@@ -137,5 +141,19 @@ describe('ContractInteraction', () => {
     });
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders switch account section for batched upgrade', () => {
+    jest
+      .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+      .mockReturnValue(
+        upgradeAccountConfirmation as unknown as TransactionMeta,
+      );
+
+    const { getByText } = renderWithProvider(<ContractInteraction />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Now')).toBeDefined();
+    expect(getByText('Switching To')).toBeDefined();
   });
 });
