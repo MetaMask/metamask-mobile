@@ -1,3 +1,43 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+index 53f4bef..048d49c 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+@@ -136,9 +136,10 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+      * Fetches historical prices for the current account
+      *
+      * @param asset - The asset to fetch historical prices for.
++     * @param account - optional account to fetch historical prices for
+      * @returns The historical prices.
+      */
+-    async fetchHistoricalPricesForAsset(asset) {
++    async fetchHistoricalPricesForAsset(asset, account) {
+         const releaseLock = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_mutex, "f").acquire();
+         return (async () => {
+             const currentCaipCurrency = constant_1.MAP_CAIP_CURRENCIES[__classPrivateFieldGet(this, _MultichainAssetsRatesController_currentCurrency, "f")] ?? constant_1.MAP_CAIP_CURRENCIES.usd;
+@@ -150,7 +151,8 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+             if (historicalPriceHasExpired === false) {
+                 return;
+             }
+-            const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
++            const selectedAccount = account ??
++                this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
+             try {
+                 const historicalPricesResponse = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_handleSnapRequest).call(this, {
+                     snapId: selectedAccount?.metadata.snap?.id,
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+index 4bf9a94..aab0300 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+@@ -131,7 +131,7 @@ export declare class MultichainAssetsRatesController extends MultichainAssetsRat
+      * @param asset - The asset to fetch historical prices for.
+      * @returns The historical prices.
+      */
+-    fetchHistoricalPricesForAsset(asset: CaipAssetType): Promise<void>;
++    fetchHistoricalPricesForAsset(asset: CaipAssetType, account?: InternalAccount): Promise<void>;
+ }
+ export {};
+ //# sourceMappingURL=MultichainAssetsRatesController.d.cts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 0f15eb6..d814ed8 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs

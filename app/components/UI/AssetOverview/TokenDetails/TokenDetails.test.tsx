@@ -236,7 +236,19 @@ describe('TokenDetails', () => {
       selectConversionRateBySymbol: mockExchangeRate,
       selectNativeCurrencyByChainId: 'ETH',
       selectMultichainAssetsRates: {},
+      selectEvmTokenMarketData: {
+        marketData:
+          mockTokenMarketDataByChainId['0x1'][
+            '0x6b175474e89094c44da98b954eedeac495271d0f'
+          ],
+        metadata: {
+          decimals: 18,
+          conversionRate: 2712.15,
+          aggregators: ['Metamask', 'Coinmarketcap'],
+        },
+      },
     } as const;
+
 
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       if (typeof selectorOrCallback === 'function') {

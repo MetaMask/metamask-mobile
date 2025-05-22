@@ -20,7 +20,7 @@ import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { CaipAssetId } from '@metamask/utils';
+import {  CaipAssetType, } from '@metamask/utils';
 import { AssetConversion } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
 
@@ -34,9 +34,9 @@ interface PriceProps {
   isLoading: boolean;
   timePeriod: TimePeriod;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
+  multichainAssetsRates: Record<CaipAssetType, AssetConversion>;
   ///: END:ONLY_INCLUDE_IF
-  isEvmNetworkSelected: boolean;
+  isEvmAssetSelected: boolean;
 }
 
 const Price = ({
@@ -51,11 +51,16 @@ const Price = ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainAssetsRates,
   ///: END:ONLY_INCLUDE_IF
-  isEvmNetworkSelected,
+  isEvmAssetSelected,
 }: PriceProps) => {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const assetAddress = asset.address;
+  const isCaipAssetType = assetAddress.startsWith(`${asset.chainId}`);
+  const normalizedCaipAssetTypeAddress = isCaipAssetType
+    ? assetAddress
+    : `${asset.chainId}/token:${asset.address}`;
   const multichainAssetRates =
-    multichainAssetsRates[asset.address as CaipAssetId];
+    multichainAssetsRates[normalizedCaipAssetTypeAddress as CaipAssetType];
   ///: END:ONLY_INCLUDE_IF
 
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
@@ -81,9 +86,10 @@ const Price = ({
     '3y': strings('asset_overview.chart_time_period.3y'),
   };
 
-  const price: number = isEvmNetworkSelected
+  const price: number = isEvmAssetSelected
     ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
-    : Number(multichainAssetRates.rate);
+    : Number(multichainAssetRates?.rate);
+
 
   const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
     ? toDateFormat(distributedPriceData[activeChartIndex]?.[0])
