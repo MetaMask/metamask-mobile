@@ -982,6 +982,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn mm-foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1072,6 +1078,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn mm-foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1224,6 +1236,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn mm-foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
