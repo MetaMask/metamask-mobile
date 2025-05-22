@@ -49,34 +49,22 @@ export const handleTransactionSubmittedEventForMetrics = createTransactionEventH
   TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
 );
 
-// Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
-// as unified type for all finalized transactions.
-// Status could be derived from transactionMeta.status
-export async function handleTransactionFinalizedEventForMetrics(
+/**
+ * Adds smart transaction properties to the event builder if smart transactions are enabled
+ */
+async function addSmartTransactionProperties(
+  eventBuilder: ReturnType<typeof MetricsEventBuilder.createEventBuilder>,
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
-) {
-  const { getState, initMessenger, smartTransactionsController } =
-    transactionEventHandlerRequest;
-
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionEventHandlerRequest,
-  );
-
-  // Create the event builder directly
-  const eventBuilder = MetricsEventBuilder.createEventBuilder(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED
-  );
-
+): Promise<void> {
+  const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
+  
   try {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
       transactionMeta.chainId,
     );
 
-    // Add smart transaction properties if applicable
     if (shouldUseSmartTransaction) {
       const stxMetricsProperties = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
@@ -84,43 +72,64 @@ export async function handleTransactionFinalizedEventForMetrics(
         true,
         initMessenger as unknown as BaseControllerMessenger,
       );
+      
       eventBuilder.addProperties({
         smart_transaction_timed_out: stxMetricsProperties.smart_transaction_timed_out,
         smart_transaction_proxied: stxMetricsProperties.smart_transaction_proxied,
       } as unknown as JsonMap);
     }
-
-    // Add RPC properties
-    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    eventBuilder.addProperties(rpcProperties);
-
-    // Add default properties
-    eventBuilder.addProperties(
-      defaultTransactionMetricProperties.properties as unknown as JsonMap
-    );
-
-    // Add sensitive properties
-    eventBuilder.addSensitiveProperties(
-      defaultTransactionMetricProperties.sensitiveProperties
-    );
   } catch (error) {
-    // If selector fails, continue without smart transaction metrics
     Logger.log('Error getting smart transaction metrics:', error);
-
-    // Add RPC properties
-    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-    eventBuilder.addProperties(rpcProperties);
-
-    // Add default properties if there was an error
-    eventBuilder.addProperties(
-      defaultTransactionMetricProperties.properties as unknown as JsonMap
-    );
-
-    // Add sensitive properties
-    eventBuilder.addSensitiveProperties(
-      defaultTransactionMetricProperties.sensitiveProperties
-    );
   }
+}
+
+/**
+ * Adds default properties (RPC + transaction metrics) to the event builder
+ */
+function addDefaultProperties(
+  eventBuilder: ReturnType<typeof MetricsEventBuilder.createEventBuilder>,
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+): void {
+  // Add RPC properties
+  const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+  eventBuilder.addProperties(rpcProperties);
+
+  // Add default transaction properties
+  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
+
+  eventBuilder.addProperties(
+    defaultTransactionMetricProperties.properties as unknown as JsonMap
+  );
+
+  eventBuilder.addSensitiveProperties(
+    defaultTransactionMetricProperties.sensitiveProperties
+  );
+}
+
+export async function handleTransactionFinalizedEventForMetrics(
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+): Promise<void> {
+  const eventBuilder = MetricsEventBuilder.createEventBuilder(
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED
+  );
+
+  await addSmartTransactionProperties(
+    eventBuilder,
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
+
+  addDefaultProperties(
+    eventBuilder,
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
 
   const event = eventBuilder.build();
   MetaMetrics.getInstance().trackEvent(event);
