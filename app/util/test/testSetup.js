@@ -9,6 +9,9 @@ import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
+// Mock the redux-devtools-expo-dev-plugin module
+jest.mock('redux-devtools-expo-dev-plugin', () => {});
+
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
