@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTopTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
@@ -8,17 +9,12 @@ import {
   fetchBridgeTokens,
 } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
 
 // Mock dependencies
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   fetchBridgeTokens: jest.fn(),
-}));
-
-jest.mock('react-native-device-info', () => ({
-  getVersion: () => '1.0.0',
 }));
 
 describe('useTopTokens', () => {

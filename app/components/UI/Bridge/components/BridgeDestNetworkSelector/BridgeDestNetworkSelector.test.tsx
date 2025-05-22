@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestNetworkSelector } from '.';
@@ -5,7 +6,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
