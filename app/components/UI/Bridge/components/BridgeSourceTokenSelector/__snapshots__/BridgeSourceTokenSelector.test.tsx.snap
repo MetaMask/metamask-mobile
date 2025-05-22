@@ -572,7 +572,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#b7bbc866",
-                                  "borderRadius": 20,
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 40,
@@ -790,11 +790,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                           </View>
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
+                            bounces={true}
+                            collapsable={false}
                             data={
                               [
                                 {
                                   "address": "0x0000000000000000000000000000000000000002",
-                                  "balance": "2",
+                                  "balance": "2.0",
                                   "balanceFiat": "$200000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -805,7 +807,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000003",
-                                  "balance": "5",
+                                  "balance": "5.0",
                                   "balanceFiat": "$80000",
                                   "chainId": "0xa",
                                   "decimals": 18,
@@ -816,7 +818,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000000",
-                                  "balance": "20",
+                                  "balance": "20.0",
                                   "balanceFiat": "$40000",
                                   "chainId": "0xa",
                                   "decimals": 18,
@@ -827,7 +829,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000001",
-                                  "balance": "1",
+                                  "balance": "1.0",
                                   "balanceFiat": "$20000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -838,7 +840,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000000",
-                                  "balance": "3",
+                                  "balance": "3.0",
                                   "balanceFiat": "$6000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -853,6 +855,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             getItemCount={[Function]}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
@@ -861,7 +865,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             onScrollEndDrag={[Function]}
                             removeClippedSubviews={false}
                             renderItem={[Function]}
+                            renderScrollComponent={[Function]}
+                            scrollEnabled={true}
                             scrollEventThrottle={0.0001}
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={true}
                             stickyHeaderIndices={[]}
                             viewabilityConfigCallbackPairs={[]}
                           >

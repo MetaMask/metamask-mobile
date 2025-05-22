@@ -1,6 +1,9 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
-import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
 import { ApprovalType } from '@metamask/controller-utils';
@@ -19,12 +22,16 @@ import {
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import styleSheet from './title.styles';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
   signatureRequest?: SignatureRequest,
   transactionMetadata?: TransactionMeta,
+  isDowngrade: boolean = false,
+  isBatchedUpgrade: boolean = false,
+  isUpgradeOnly: boolean = false,
 ) => {
   const type = approvalRequest?.type;
 
@@ -58,7 +65,11 @@ const getTitleAndSubTitle = (
           };
         }
 
-        const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+        const isDaiRevoke = isPermitDaiRevoke(
+          verifyingContract,
+          allowed,
+          value,
+        );
         const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
@@ -79,10 +90,23 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
-      if (transactionMetadata?.type === TransactionType.contractInteraction) {
+      if (isDowngrade || isUpgradeOnly) {
+        return {
+          title: strings('confirm.title.switch_account_type'),
+          subTitle: isDowngrade
+            ? strings('confirm.sub_title.switch_to_standard_account')
+            : strings('confirm.sub_title.switch_to_smart_account'),
+        };
+      }
+      if (
+        transactionMetadata?.type === TransactionType.contractInteraction ||
+        isBatchedUpgrade
+      ) {
         return {
           title: strings('confirm.title.contract_interaction'),
-          subTitle: strings('confirm.sub_title.contract_interaction'),
+          subTitle: isBatchedUpgrade
+            ? ''
+            : strings('confirm.sub_title.contract_interaction'),
         };
       }
       if (
@@ -107,6 +131,8 @@ const Title = () => {
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const { isDowngrade, isBatchedUpgrade, isUpgradeOnly } =
+    use7702TransactionType();
 
   if (isStandaloneConfirmation) {
     return null;
@@ -116,6 +142,9 @@ const Title = () => {
     approvalRequest,
     signatureRequest,
     transactionMetadata,
+    isDowngrade,
+    isBatchedUpgrade,
+    isUpgradeOnly,
   );
 
   return (

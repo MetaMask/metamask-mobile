@@ -6,17 +6,22 @@ import {
   WalletClientType,
 } from './MultichainWalletSnapClient';
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BITCOIN_WALLET_SNAP_ID } from './BitcoinWalletSnap';
+
+const mockSnapKeyring = {
+  createAccount: jest.fn(),
+  discoverAccounts: jest.fn(),
+};
 
 jest.mock('../Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
-  getSnapKeyring: jest.fn(),
+  getSnapKeyring: () => mockSnapKeyring,
   context: {
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
@@ -94,32 +99,29 @@ describe('MultichainWalletSnapClient', () => {
 
   describe('withSnapKeyring', () => {
     it('calls the callback with the keyring', async () => {
-      const mockCallback = jest.fn();
-      const mockKeyring = { test: 'keyring' };
-
-      (Engine.controllerMessenger.call as jest.Mock).mockImplementationOnce(
-        async (_, __, callback) => {
-          await callback({ keyring: mockKeyring });
-        },
-      );
+      const mockOptions = {};
+      const mockCallback = async (keyring: SnapKeyring) => {
+        await keyring.createAccount(
+          mockSnapId,
+          mockOptions,
+          mockSnapKeyringOptions,
+        );
+      };
 
       await client.testWithSnapKeyring(mockCallback);
 
-      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
-        'KeyringController:withKeyring',
-        { type: KeyringTypes.snap },
-        expect.any(Function),
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
+        mockSnapId,
+        mockOptions,
+        mockSnapKeyringOptions,
       );
-      expect(mockCallback).toHaveBeenCalledWith(mockKeyring);
     });
 
     it('handles errors from the controller messenger', async () => {
       const mockError = new Error('Test error');
-      (Engine.controllerMessenger.call as jest.Mock).mockRejectedValueOnce(
-        mockError,
-      );
+      const mockCallback = jest.fn().mockRejectedValueOnce(mockError);
 
-      await expect(client.testWithSnapKeyring(jest.fn())).rejects.toThrow(
+      await expect(client.testWithSnapKeyring(mockCallback)).rejects.toThrow(
         'Test error',
       );
     });
@@ -133,19 +135,9 @@ describe('MultichainWalletSnapClient', () => {
         entropySource: 'test-entropy',
       };
 
-      const mockKeyring = {
-        createAccount: jest.fn(),
-      };
-
-      (Engine.controllerMessenger.call as jest.Mock).mockImplementationOnce(
-        async (_, __, callback) => {
-          await callback({ keyring: mockKeyring });
-        },
-      );
-
       await client.createAccount(mockOptions);
 
-      expect(mockKeyring.createAccount).toHaveBeenCalledWith(
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
         mockSnapId,
         mockOptions,
         mockSnapKeyringOptions,
@@ -187,6 +179,7 @@ describe('MultichainWalletSnapClient', () => {
 
   describe('addDiscoveredAccounts', () => {
     it('adds discovered accounts to the keyring', async () => {
+      const expectAccountName = 'Solana Account 1';
       const mockEntropySource = 'test-entropy';
       const mockDiscoveredAccounts = [
         {
@@ -212,12 +205,14 @@ describe('MultichainWalletSnapClient', () => {
 
       await client.addDiscoveredAccounts(mockEntropySource);
 
-      expect(mockKeyring.createAccount).toHaveBeenCalledTimes(1);
-      expect(mockKeyring.createAccount).toHaveBeenCalledWith(
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledTimes(1);
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
         mockSnapId,
         {
+          accountNameSuggestion: expectAccountName,
           derivationPath: mockDiscoveredAccounts[0].derivationPath,
           entropySource: mockEntropySource,
+          scope: SolScope.Mainnet,
         },
         expect.objectContaining({
           displayConfirmation: false,
@@ -291,6 +286,23 @@ describe('Wallet Client Implementations', () => {
     it('getScope returns bitcoin network', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
+    });
+
+    it('adds synchronize parameter to createAccount', async () => {
+      const mockOptions = {
+        scope: BtcScope.Mainnet,
+        accountNameSuggestion: 'Bitcoin Account 1',
+        entropySource: 'test-entropy',
+      };
+
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      await bitcoinClient.createAccount(mockOptions);
+
+      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
+        BITCOIN_WALLET_SNAP_ID,
+        { ...mockOptions, synchronize: true },
+        mockSnapKeyringOptions,
+      );
     });
   });
 

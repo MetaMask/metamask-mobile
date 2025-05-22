@@ -14,7 +14,6 @@ app/selectors/featureFlagController/*                       @MetaMask/mobile-pla
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
 bitrise.yml                                                 @MetaMask/mobile-platform
-yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -38,6 +37,7 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
+app/components/UI/Deposit/           @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -64,6 +64,11 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
+app/core/SnapKeyring                                        @MetaMask/accounts-engineers
+
+# Multichain Accounts
+**/multichain-accounts/**                                   @MetaMask/accounts-engineers
+**/MultichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers

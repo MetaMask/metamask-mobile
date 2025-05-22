@@ -5,6 +5,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
   testID="staking-balance-container"
 >
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -399,7 +400,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -439,7 +440,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -476,6 +477,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
   testID="staking-balance-container"
 >
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -870,7 +872,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -910,7 +912,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",

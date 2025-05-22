@@ -6,6 +6,10 @@ import {
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
   transferConfirmationState,
+  upgradeOnlyAccountConfirmation,
+  getAppStateForConfirmation,
+  downgradeAccountConfirmation,
+  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
@@ -78,4 +82,28 @@ describe('Confirm Title', () => {
     expect(getByText('Transfer request')).toBeTruthy();
   });
 
+  it('renders correct title and subtitle for upgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(getByText("You're switching to a smart account.")).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for downgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(downgradeAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(
+      getByText("You're switching back to a standard account (EOA)."),
+    ).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for upgrade+batched confirmation', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Transaction request')).toBeTruthy();
+  });
 });

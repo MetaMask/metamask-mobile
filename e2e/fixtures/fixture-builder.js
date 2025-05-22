@@ -60,6 +60,18 @@ class FixtureBuilder {
   }
 
   /**
+   * Ensures that the Solana feature modal is suppressed by adding the appropriate flag to asyncState.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureSolanaModalSuppressed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
+    return this;
+  }
+
+  /**
    * Set the default fixture values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -278,6 +290,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
+                    scopes: ['eip155:0']
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -647,6 +660,7 @@ class FixtureBuilder {
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+        '@MetaMask:solanaFeatureModalShown': 'true',
       },
     };
     return this;
@@ -702,7 +716,6 @@ class FixtureBuilder {
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
-
     return this;
   }
 
@@ -758,7 +771,9 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(additionalPermissions),
     );
-    return this;
+
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withRampsSelectedRegion(region = null) {
@@ -804,6 +819,8 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -812,7 +829,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
+            value: caip25CaveatValueWithDefaultAccount,
           },
         ],
         date: 1732715918637,
@@ -870,7 +887,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withSepoliaNetwork() {
@@ -910,7 +928,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPopularNetworks() {
@@ -961,7 +980,8 @@ class FixtureBuilder {
       networkConfigurationsByChainId,
     };
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPreferencesController(data) {
@@ -976,8 +996,8 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
           type: 'HD Key Tree',
-          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
         },
         { type: 'QR Hardware Wallet Device', accounts: [] },
       ],
@@ -1085,6 +1105,23 @@ class FixtureBuilder {
     });
     return this;
   }
+
+  /**
+   * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState.
+   * This indicates that the user has agreed to MetaMetrics data collection.
+   *
+   * @returns {this} The current instance for method chaining.
+   */
+  withMetaMetricsOptIn() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:metricsOptIn'] = 'agreed';
+    return this;
+  }
+
+
+
 
   /**
    * Build and return the fixture object.
