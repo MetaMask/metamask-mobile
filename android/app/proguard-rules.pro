@@ -52,6 +52,11 @@
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
 
+# Keep React Native bridge classes needed for Detox testing
+-keep class com.facebook.react.bridge.JavaOnlyMap { *; }
+-keep class com.facebook.react.bridge.JavaOnlyMap$Companion { *; }
+-keep class com.facebook.react.uimanager.ReactStylesDiffMap { *; }
+
 # Ignore missing Java desktop classes referenced by JNA
 -dontwarn java.awt.**
 -dontwarn javax.swing.**
