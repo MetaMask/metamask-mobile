@@ -3,7 +3,7 @@
   "version": "7.45.2",
   "private": true,
   "scripts": {
-    "install:foundryup": "scripts/foundry-install.sh",
+    "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
     "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",

@@ -244,6 +244,13 @@ const patchPackageTask = {
   },
 };
 
+const installFoundryTask = {
+  title: 'Install Foundry',
+  task: async () => {
+    await $`yarn install:foundryup`;
+  },
+};
+
 const expoBuildLinks = {
   title: 'Try EXPO!',
   task: async () => {
@@ -349,6 +356,7 @@ const prepareDependenciesTask = {
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        installFoundryTask,
         expoBuildLinks
       ],
       {

@@ -987,7 +987,7 @@ workflows:
           inputs:
             - content: |-
                 #!/bin/bash
-                yarn mm-foundryup
+                yarn install:foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1083,7 +1083,7 @@ workflows:
           inputs:
             - content: |-
                 #!/bin/bash
-                yarn mm-foundryup
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1241,7 +1241,7 @@ workflows:
           inputs:
             - content: |-
                 #!/bin/bash
-                yarn mm-foundryup
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
