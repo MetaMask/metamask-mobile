@@ -31,7 +31,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import {
   removeAccountsFromPermissions,
-  sortAccountsByLastSelected,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -163,7 +163,7 @@ const CaipAccountSelectorList = ({
                   );
 
                   const nextAddressesSorted =
-                    sortAccountsByLastSelected(nextAddresses);
+                    sortMultichainAccountsByLastSelected(nextAddresses);
                   const selectedAccountAddress = accounts.find(
                     (acc) => acc.isSelected,
                   )?.address;
