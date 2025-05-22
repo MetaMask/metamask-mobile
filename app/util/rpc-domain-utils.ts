@@ -6,7 +6,6 @@ import Logger from './Logger';
 // Cache for known domains
 let knownDomainsSet: Set<string> | null = null;
 let initPromise: Promise<void> | null = null;
-let testDomains: Set<string> | null = null;
 
 /**
  * Get the list of safe chains from cache only
@@ -35,7 +34,6 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
  * Initialize the set of known domains from the chains list
  */
 export async function initializeRpcProviderDomains(): Promise<void> {
-
   if (initPromise) {
     return initPromise;
   }
@@ -67,23 +65,28 @@ export async function initializeRpcProviderDomains(): Promise<void> {
 }
 
 /**
+ * Get the current set of known domains
+ * @returns The set of known domains or null if not initialized
+ */
+export function getKnownDomains(): Set<string> | null {
+  return knownDomainsSet;
+}
+
+/**
+ * Set the known domains (for testing purposes)
+ * @param domains - The set of domains to use
+ */
+export function setKnownDomains(domains: Set<string> | null): void {
+  knownDomainsSet = domains;
+}
+
+/**
  * Check if a domain is in the known domains list
  *
  * @param domain - The domain to check
  */
 export function isKnownDomain(domain: string): boolean {
-  const testResult = testDomains?.has(domain?.toLowerCase());
-  const knownResult = knownDomainsSet?.has(domain?.toLowerCase());
-  return testResult ?? (knownResult ?? false);
-}
-
-/**
- * Set known domains for testing
- *
- * @param domains - Set of domains to use for testing
- */
-export function setKnownDomainsForTesting(domains: Set<string> | null): void {
-  testDomains = domains;
+  return knownDomainsSet?.has(domain?.toLowerCase()) ?? false;
 }
 
 export const RpcDomainStatus = {

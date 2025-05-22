@@ -1,6 +1,6 @@
-import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl, RpcDomainStatus } from './rpc-domain-utils';
+import { extractRpcDomain, isKnownDomain, setKnownDomains, getNetworkRpcUrl, RpcDomainStatus } from './rpc-domain-utils';
 import { generateRPCProperties } from '../core/Engine/controllers/transaction-controller/utils';
-  // eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import/no-namespace
 import * as rpcUtils from './rpc-domain-utils';
 
 jest.mock('../core/Engine', () => ({
@@ -18,17 +18,17 @@ jest.mock('../core/Engine', () => ({
 import Engine from '../core/Engine';
 
 describe('rpc-domain-utils', () => {
+  const mockKnownDomains = new Set(['example.com', 'infura.io', 'eth-mainnet.alchemyapi.io']);
+
+  beforeEach(() => {
+    setKnownDomains(mockKnownDomains);
+  });
+
+  afterEach(() => {
+    setKnownDomains(null);
+  });
+
   describe('extractRpcDomain', () => {
-    beforeEach(() => {
-      // Set up known domains for testing
-      setKnownDomainsForTesting(new Set(['example.com', 'infura.io', 'eth-mainnet.alchemyapi.io']));
-    });
-
-    afterEach(() => {
-      // Clear test domains
-      setKnownDomainsForTesting(null);
-    });
-
     it('should extract domain from valid URLs', () => {
       expect(extractRpcDomain('https://example.com')).toBe('example.com');
       expect(extractRpcDomain('https://infura.io/v3/123')).toBe('infura.io');
@@ -55,14 +55,6 @@ describe('rpc-domain-utils', () => {
   });
 
   describe('isKnownDomain', () => {
-    beforeEach(() => {
-      setKnownDomainsForTesting(new Set(['example.com', 'infura.io']));
-    });
-
-    afterEach(() => {
-      setKnownDomainsForTesting(null);
-    });
-
     it('should return true for known domains', () => {
       expect(isKnownDomain('example.com')).toBe(true);
       expect(isKnownDomain('infura.io')).toBe(true);
