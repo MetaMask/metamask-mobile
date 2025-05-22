@@ -162,6 +162,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         size: AvatarSize.Xs,
         name: networkConfigurations[selectedChainId]?.name || '',
         imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+        variant: AvatarVariant.Network,
       }),
     ), [networkConfigurations, selectedChainIds]);
 
