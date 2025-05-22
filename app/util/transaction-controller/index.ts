@@ -150,7 +150,7 @@ function sanitizeTransactionParamsGasValues(
 ) {
   const { TransactionController } = Engine.context;
 
-  const transactionMeta = TransactionController.getTransactions({
+  const transactionMeta = TransactionController?.getTransactions({
     searchCriteria: { id: transactionId },
   })?.[0];
 
