@@ -4,7 +4,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
-  IGNORE_ANALYTICS_RPCS,
+  isAnalyticsTrackedRpcMethod,
   MessageType,
   SendAnalytics,
   TrackingEvents,
@@ -80,7 +80,7 @@ export const handleConnectionMessage = async ({
 
   const anonId = connection.originatorInfo?.anonId;
 
-  if (anonId && !IGNORE_ANALYTICS_RPCS.includes(message.method)) {
+  if (anonId && isAnalyticsTrackedRpcMethod(message.method)) {
     DevLogger.log(`[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`);
     analytics.track('wallet_action_received', { anon_id: anonId });
   }

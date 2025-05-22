@@ -1,4 +1,5 @@
 import { analytics } from '@metamask/sdk-analytics';
+import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
 import Routes from '../../../../app/constants/navigation/Routes';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
@@ -7,7 +8,6 @@ import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
-import { IGNORE_ANALYTICS_RPCS } from '@metamask/sdk-communication-layer';
 
 export const handleSendMessage = async ({
   msg,
@@ -26,7 +26,7 @@ export const handleSendMessage = async ({
     let method = connection.rpcQueueManager.getId(msgId);
     const anonId = connection.originatorInfo?.anonId;
 
-    if (!IGNORE_ANALYTICS_RPCS.includes(method) && msgId && msgId !== 'undefined' && anonId) {
+    if (isAnalyticsTrackedRpcMethod(method) && msgId && msgId !== 'undefined' && anonId) {
       if (msg?.data?.error) {
         DevLogger.log(`[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`);
         analytics.track('wallet_action_user_rejected', { anon_id: anonId });
