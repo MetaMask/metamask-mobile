@@ -46,7 +46,7 @@ describe('rpc-domain-utils', () => {
       expect(extractRpcDomain('localhost:8545')).toBe(RpcDomainStatus.Private);
     });
 
-    it('should return "invalid" for unparseable URLs', () => {
+    it('returns "invalid" for unparseable URLs', () => {
       expect(extractRpcDomain('')).toBe(RpcDomainStatus.Invalid);
       expect(extractRpcDomain(null as unknown as string)).toBe(RpcDomainStatus.Invalid);
       expect(extractRpcDomain(undefined as unknown as string)).toBe(RpcDomainStatus.Invalid);
