@@ -39,6 +39,9 @@ const styleSheet = (params: {
     button: {
       flex: 1,
     },
+    newAccountButton: {
+      paddingRight: 0,
+    },
     buttonSeparator: {
       width: 16,
     },

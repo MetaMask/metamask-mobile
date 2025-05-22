@@ -4,6 +4,7 @@
 export enum AccountConnectMultiSelectorScreens {
   AccountMultiSelector = 'AccountMultiSelector',
   AddAccountActions = 'AddAccountActions',
+  AddNewAccount = 'AddNewAccount',
 }
 
 import { CaipAccountId } from '@metamask/utils';
