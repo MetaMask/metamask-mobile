@@ -18,6 +18,7 @@ jest.mock('./accountsController', () => ({
     () => TEST_ADDRESS_ONE,
   ),
   selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
+  selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
 }));
 
 jest.mock('./tokensController', () => ({

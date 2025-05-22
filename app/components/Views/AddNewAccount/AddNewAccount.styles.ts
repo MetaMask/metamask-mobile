@@ -37,16 +37,14 @@ const styleSheet = (params: { theme: Theme }) => {
     srpSelectorContainer: {
       display: 'flex',
       width: '100%',
+      flexShrink: 1,
     },
     srpSelector: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 13,
-      borderColor: colors.border.muted,
-      backgroundColor: colors.background.muted,
       borderRadius: 8,
+      maxHeight: 200,
     },
     srp: {
       flex: 1,

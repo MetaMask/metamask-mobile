@@ -6,6 +6,7 @@ import {
   downgradeAccountConfirmation,
   getAppStateForConfirmation,
   personalSignatureConfirmationState,
+  upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
@@ -93,6 +94,15 @@ describe('Info', () => {
     const { getByText } = renderWithProvider(<Info />, {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
+    expect(getByText('Switching To')).toBeTruthy();
+    expect(getByText('Smart Account')).toBeTruthy();
+  });
+
+  it('renders correctly for smart account type - upgrade + batched confirmations', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Estimated changes')).toBeTruthy();
     expect(getByText('Switching To')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
   });
