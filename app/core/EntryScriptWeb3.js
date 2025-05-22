@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-namespace
 import * as FileSystem from 'expo-file-system';
 
 const EntryScriptWeb3 = {
