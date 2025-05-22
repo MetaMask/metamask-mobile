@@ -291,7 +291,6 @@ interface RampTransaction {
   currency_destination: string;
   order_id?: string;
   provider_offramp: string;
-  hd_entropy_index?: number;
 }
 
 interface RampQuotesExpanded {
