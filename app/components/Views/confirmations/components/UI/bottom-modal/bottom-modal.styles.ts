@@ -21,6 +21,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     wrapper: {
       justifyContent: 'flex-end',
+      // ensure the wrapper is big enough for tooltips on android 15
+      height: 400,
     },
   });
 };
