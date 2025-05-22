@@ -228,7 +228,7 @@ describe('BackgroundBridge', () => {
       // Verify the spy was called with the correct URL
       expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
-    })
+    });
 
     it('notifies of chain changes when network state is updated', async () => {
        // Create the new network state with a different chain
@@ -244,7 +244,7 @@ describe('BackgroundBridge', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(bridge, 'sendNotification');
-      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState')
+      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
 
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
       expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
