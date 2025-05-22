@@ -29,6 +29,7 @@ const CellSelectWithMenu = ({
   style,
   avatarProps,
   title,
+  titleProps,
   secondaryText,
   tertiaryText,
   tagLabel,
@@ -64,6 +65,7 @@ const CellSelectWithMenu = ({
               numberOfLines={1}
               variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
               testID={CellComponentSelectorsIDs.BASE_TITLE}
+              {...titleProps}
             >
               {title}
             </Text>
