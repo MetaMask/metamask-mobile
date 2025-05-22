@@ -133,7 +133,7 @@ export class AppMetadataController extends BaseController<
 
 export function appMetadataControllerInit(
   initRequest: ControllerInitRequest<AppMetadataControllerMessenger>,
-) {
+): { controller: AppMetadataController } {
   const currentVersion = getVersion();
   const currentState =
     initRequest.persistedState?.AppMetadataController ||
