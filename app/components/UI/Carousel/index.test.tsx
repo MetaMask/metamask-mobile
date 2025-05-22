@@ -262,6 +262,8 @@ describe('Carousel', () => {
       nativeEvent: {
         contentOffset: { x: 400 },
         layoutMeasurement: { width: 400 },
+        contentSize: { width: 1600, height: 400 },
+        target: flatList,
       },
     });
 
