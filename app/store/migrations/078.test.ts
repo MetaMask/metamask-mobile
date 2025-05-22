@@ -255,7 +255,7 @@ describe('Migration 77: Add `Monad Testnet`', () => {
     expect(migratedState).toStrictEqual(orgState);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       new Error(
-        'Migration 77: NetworkController or networkConfigurationsByChainId not found in state',
+        'Migration 78: NetworkController or networkConfigurationsByChainId not found in state',
       ),
     );
   });
