@@ -172,6 +172,11 @@ const mockInitialState: DeepPartial<RootState> = {
         [mockAddress2, mockAddress2],
         mockAddress1,
       ),
+      // FIXME: [ffmcgee] https://github.com/MetaMask/metamask-mobile/pull/15526/ this merge should fix `app/components/Views/AccountConnect/AccountConnect.tsx`
+      // networkAvatar L#170 preceding requested chains
+      MultichainNetworkController: {
+        multichainNetworkConfigurationsByChainId: {},
+      },
       NetworkController: {
         networkConfigurationsByChainId: {
           '0x1': {
