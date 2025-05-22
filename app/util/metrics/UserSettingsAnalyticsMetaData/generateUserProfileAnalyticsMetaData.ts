@@ -46,7 +46,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length - 1,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings?.length ?? 0,
   };
 };
 
