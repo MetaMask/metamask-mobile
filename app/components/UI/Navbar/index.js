@@ -68,7 +68,7 @@ import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
-import store from '../../../store';
+import { store } from '../../../store';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
