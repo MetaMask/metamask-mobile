@@ -49,7 +49,7 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getCaip25Caveat, getPermittedAccounts } from '../Permissions';
+import { getCaip25Caveat, getPermittedAccounts, sortMultichainAccountsByLastSelected } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -459,7 +459,7 @@ export class BackgroundBridge extends EventEmitter {
         `${Engine.context.PermissionController.name}:stateChange`,
         this.handleSolanaAccountChangedFromScopeChanges,
       );
-      this.controllerMessenger.unsubscribe(
+      Engine.controllerMessenger.unsubscribe(
         `${Engine.context.AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges
       );
@@ -857,7 +857,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // wallet_notify for solana accountChanged when selected account changes
-    this.controllerMessenger.subscribe(
+    controllerMessenger.subscribe(
       `${Engine.context.AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges
     );
@@ -926,122 +926,122 @@ export class BackgroundBridge extends EventEmitter {
     this.notifyCaipAuthorizationChange(changedAuthorization);
   };
 
-  handleSolanaAccountChangedFromScopeChanges = async (currentValue, previousValue) => {
-    // const previousSolanaAccountChangedNotificationsEnabled = Boolean(
-    //   previousValue?.sessionProperties?.[
-    //     KnownSessionProperties.SolanaAccountChangedNotifications
-    //   ],
-    // );
-    // const currentSolanaAccountChangedNotificationsEnabled = Boolean(
-    //   currentValue?.sessionProperties?.[
-    //     KnownSessionProperties.SolanaAccountChangedNotifications
-    //   ],
-    // );
+  handleSolanaAccountChangedFromScopeChanges = (currentValue, previousValue) => {
+    const previousSolanaAccountChangedNotificationsEnabled = Boolean(
+      previousValue?.sessionProperties?.[
+        KnownSessionProperties.SolanaAccountChangedNotifications
+      ],
+    );
+    const currentSolanaAccountChangedNotificationsEnabled = Boolean(
+      currentValue?.sessionProperties?.[
+        KnownSessionProperties.SolanaAccountChangedNotifications
+      ],
+    );
 
-    // if (
-    //   !previousSolanaAccountChangedNotificationsEnabled &&
-    //   !currentSolanaAccountChangedNotificationsEnabled
-    // ) {
-    //   return;
-    // }
+    if (
+      !previousSolanaAccountChangedNotificationsEnabled &&
+      !currentSolanaAccountChangedNotificationsEnabled
+    ) {
+      return;
+    }
 
-    // const previousSolanaCaipAccountIds = previousValue
-    //   ? getPermittedAccountsForScopes(previousValue, [
-    //       SolScope.Mainnet,
-    //       SolScope.Devnet,
-    //       SolScope.Testnet,
-    //     ])
-    //   : [];
-    // const previousNonUniqueSolanaHexAccountAddresses =
-    //   previousSolanaCaipAccountIds.map((caipAccountId) => {
-    //     const { address } = parseCaipAccountId(caipAccountId);
-    //     return address;
-    //   });
-    // const previousSolanaHexAccountAddresses = uniq(
-    //   previousNonUniqueSolanaHexAccountAddresses,
-    // );
-    // const [previousSelectedSolanaAccountAddress] =
-    //   this.sortMultichainAccountsByLastSelected(
-    //     previousSolanaHexAccountAddresses,
-    //   );
+    const previousSolanaCaipAccountIds = previousValue
+      ? getPermittedAccountsForScopes(previousValue, [
+          SolScope.Mainnet,
+          SolScope.Devnet,
+          SolScope.Testnet,
+        ])
+      : [];
+    const previousNonUniqueSolanaHexAccountAddresses =
+      previousSolanaCaipAccountIds.map((caipAccountId) => {
+        const { address } = parseCaipAccountId(caipAccountId);
+        return address;
+      });
+    const previousSolanaHexAccountAddresses = uniq(
+      previousNonUniqueSolanaHexAccountAddresses,
+    );
+    const [previousSelectedSolanaAccountAddress] =
+      sortMultichainAccountsByLastSelected(
+        previousSolanaHexAccountAddresses,
+      );
 
-    // const currentSolanaCaipAccountIds = currentValue
-    //   ? getPermittedAccountsForScopes(currentValue, [
-    //       SolScope.Mainnet,
-    //       SolScope.Devnet,
-    //       SolScope.Testnet,
-    //     ])
-    //   : [];
-    // const currentNonUniqueSolanaHexAccountAddresses =
-    //   currentSolanaCaipAccountIds.map((caipAccountId) => {
-    //     const { address } = parseCaipAccountId(caipAccountId);
-    //     return address;
-    //   });
-    // const currentSolanaHexAccountAddresses = uniq(
-    //   currentNonUniqueSolanaHexAccountAddresses,
-    // );
-    // const [currentSelectedSolanaAccountAddress] =
-    //   this.sortMultichainAccountsByLastSelected(
-    //     currentSolanaHexAccountAddresses,
-    //   );
+    const currentSolanaCaipAccountIds = currentValue
+      ? getPermittedAccountsForScopes(currentValue, [
+          SolScope.Mainnet,
+          SolScope.Devnet,
+          SolScope.Testnet,
+        ])
+      : [];
+    const currentNonUniqueSolanaHexAccountAddresses =
+      currentSolanaCaipAccountIds.map((caipAccountId) => {
+        const { address } = parseCaipAccountId(caipAccountId);
+        return address;
+      });
+    const currentSolanaHexAccountAddresses = uniq(
+      currentNonUniqueSolanaHexAccountAddresses,
+    );
+    const [currentSelectedSolanaAccountAddress] =
+      sortMultichainAccountsByLastSelected(
+        currentSolanaHexAccountAddresses,
+      );
 
-    // if (
-    //   previousSelectedSolanaAccountAddress !==
-    //   currentSelectedSolanaAccountAddress
-    // ) {
-    //   this._notifySolanaAccountChange(
-    //     currentSelectedSolanaAccountAddress
-    //       ? [currentSelectedSolanaAccountAddress]
-    //       : [],
-    //   );
-    // }
+    if (
+      previousSelectedSolanaAccountAddress !==
+      currentSelectedSolanaAccountAddress
+    ) {
+      this._notifySolanaAccountChange(
+        currentSelectedSolanaAccountAddress
+          ? [currentSelectedSolanaAccountAddress]
+          : [],
+      );
+    }
   };
 
-  handleSolanaAccountChangedFromSelectedAccountChanges = async (account) => {
-    // if (
-    //   account.type === SolAccountType.DataAccount &&
-    //   account.address !== this.lastSelectedSolanaAccountAddress
-    // ) {
-    //   this.lastSelectedSolanaAccountAddress = account.address;
+  handleSolanaAccountChangedFromSelectedAccountChanges = (account) => {
+    if (
+      account.type === SolAccountType.DataAccount &&
+      account.address !== this.lastSelectedSolanaAccountAddress
+    ) {
+      this.lastSelectedSolanaAccountAddress = account.address;
 
 
-    //   let caip25Caveat;
-    //   try {
-    //     caip25Caveat = Engine.context.PermissionController.getCaveat(
-    //       this.origin,
-    //       Caip25EndowmentPermissionName,
-    //       Caip25CaveatType,
-    //     );
-    //   } catch {
-    //     // noop
-    //   }
-    //   if (!caip25Caveat) {
-    //     return;
-    //   }
+      let caip25Caveat;
+      try {
+        caip25Caveat = Engine.context.PermissionController.getCaveat(
+          this.origin,
+          Caip25EndowmentPermissionName,
+          Caip25CaveatType,
+        );
+      } catch {
+        // noop
+      }
+      if (!caip25Caveat) {
+        return;
+      }
 
-    //   const shouldNotifySolanaAccountChanged = caip25Caveat.value.sessionProperties?.[KnownSessionProperties.SolanaAccountChangedNotifications];
-    //   if (!shouldNotifySolanaAccountChanged) {
-    //     return;
-    //   }
+      const shouldNotifySolanaAccountChanged = caip25Caveat.value.sessionProperties?.[KnownSessionProperties.SolanaAccountChangedNotifications];
+      if (!shouldNotifySolanaAccountChanged) {
+        return;
+      }
 
-    //   const solanaAccounts = getPermittedAccountsForScopes(
-    //     caip25Caveat.value,
-    //     [
-    //       SolScope.Mainnet,
-    //       SolScope.Devnet,
-    //       SolScope.Testnet,
-    //     ],
-    //   );
+      const solanaAccounts = getPermittedAccountsForScopes(
+        caip25Caveat.value,
+        [
+          SolScope.Mainnet,
+          SolScope.Devnet,
+          SolScope.Testnet,
+        ],
+      );
 
-    //   const parsedSolanaAddresses = solanaAccounts.map((caipAccountId) => {
-    //     const { address } = parseCaipAccountId(caipAccountId);
-    //     return address;
-    //   });
+      const parsedSolanaAddresses = solanaAccounts.map((caipAccountId) => {
+        const { address } = parseCaipAccountId(caipAccountId);
+        return address;
+      });
 
-    //   if (parsedSolanaAddresses.includes(account.address)) {
-    //     this._notifySolanaAccountChange([account.address]);
-    //   }
-    // }
+      if (parsedSolanaAddresses.includes(account.address)) {
+        this._notifySolanaAccountChange([account.address]);
+      }
+    }
   };
 
   sendNotificationEip1193(payload) {
@@ -1176,7 +1176,7 @@ export class BackgroundBridge extends EventEmitter {
         return address;
       });
 
-      const [accountAddressToEmit] = this.sortMultichainAccountsByLastSelected(
+      const [accountAddressToEmit] = sortMultichainAccountsByLastSelected(
         parsedPermittedSolanaAddresses,
       );
 
@@ -1200,20 +1200,6 @@ export class BackgroundBridge extends EventEmitter {
       },
     );
   }
-
-    /**
-   * Sorts a list of multichain account addresses by most recently selected by using
-   * the lastSelected value for the matching InternalAccount object stored in state.
-   *
-   * @param {string[]} [addresses] - The list of addresses (not full CAIP-10 Account IDs) to sort.
-   * @returns {string[]} The sorted accounts addresses.
-   */
-    sortMultichainAccountsByLastSelected(addresses) {
-      const internalAccounts = Engine.context.AccountsController.listMultichainAccounts();
-      return addresses;
-      // Fix this
-      // return this.sortAddressesWithInternalAccounts(addresses, internalAccounts);
-    }
 }
 
 export default BackgroundBridge;
