@@ -1,12 +1,13 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-import { EIP_7702_REVOKE_ADDRESS } from './useEIP7702Accounts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { EIP_7702_REVOKE_ADDRESS } from './useEIP7702Accounts';
 
-export function useSmartAccountSwitchType() {
+export function use7702TransactionType() {
   const transactionMetadata: TransactionMeta | undefined =
     useTransactionMetadataRequest();
-  const { txParams } = transactionMetadata ?? {
+
+  const { nestedTransactions, txParams } = transactionMetadata ?? {
     txParams: { data: '', authorizationList: [] },
   };
   const { authorizationList, data } = txParams ?? { data: '' };
@@ -25,7 +26,8 @@ export function useSmartAccountSwitchType() {
   return {
     isDowngrade,
     isUpgrade,
+    isBatched: !isUpgrade && Boolean(nestedTransactions?.length),
+    isBatchedUpgrade: isUpgrade && Boolean(nestedTransactions?.length),
     isUpgradeOnly,
-    isAccountTypeSwitchOnly: isDowngrade || isUpgradeOnly,
   };
 }

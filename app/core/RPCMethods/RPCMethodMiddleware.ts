@@ -8,10 +8,21 @@ import {
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  rejectOriginPendingApprovals,
+  requestPermittedChainsPermissionIncremental,
+} from '../../util/permissions';
 import { Hex } from '@metamask/utils';
-import { getPermissionsHandler, requestPermissionsHandler, revokePermissionsHandler } from '@metamask/eip1193-permission-middleware';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  getPermissionsHandler,
+  requestPermissionsHandler,
+  revokePermissionsHandler,
+} from '@metamask/eip1193-permission-middleware';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { ChainId, NetworkType } from '@metamask/controller-utils';
@@ -32,7 +43,10 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import { getDefaultCaip25CaveatValue, getPermittedAccounts } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
@@ -365,8 +379,7 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     Engine.context.NetworkController.getNetworkConfigurationByChainId.bind(
       Engine.context.NetworkController,
     ),
-  rejectApprovalRequestsForOrigin: () =>
-    rejectOriginPendingApprovals(origin),
+  rejectApprovalRequestsForOrigin: () => rejectOriginPendingApprovals(origin),
 });
 
 /**
@@ -532,7 +545,8 @@ export const getRpcMethodMiddleware = ({
                   resolve(undefined);
                 },
                 {
-                  getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                  getAccounts: (...args) =>
+                    getPermittedAccounts(origin, ...args),
                   getCaip25PermissionFromLegacyPermissionsForOrigin: (
                     requestedPermissions,
                   ) =>

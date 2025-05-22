@@ -7,9 +7,14 @@ class SelectRegionView {
     return Matchers.getElementByText(SelectRegionSelectors.CONTINUE_BUTTON);
   }
 
+  get regionSearchInput() {
+    return Matchers.getElementByID(SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT);
+  }
+
   async tapRegionOption(region) {
-    const regionOption = Matchers.getElementByText(region);
-    await Gestures.waitAndTap(regionOption);
+    await Gestures.typeTextAndHideKeyboard(this.regionSearchInput, region);
+    const regionName = Matchers.getElementByText(region, 1);
+    await Gestures.waitAndTap(regionName);
   }
 
   async tapContinueButton() {

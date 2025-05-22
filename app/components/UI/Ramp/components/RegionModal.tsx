@@ -30,6 +30,7 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { SelectRegionSelectors } from '../../../../../e2e/selectors/Ramps/SelectRegion.selectors';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -376,6 +377,7 @@ const RegionModal: React.FC<Props> = ({
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
                   onChangeText={handleSearchTextChange}
+                  testID={SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT}
                 />
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>
