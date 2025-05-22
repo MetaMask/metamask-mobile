@@ -285,8 +285,8 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN) {
-    const networkClientId = Engine.controllerMessenger.call(
+  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
+    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
@@ -416,10 +416,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  async getProviderState(origin) {
+  async getProviderState(origin, networkClientId) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...(await this.getProviderNetworkState(origin)),
+      ...(await this.getProviderNetworkState(origin, networkClientId)),
     };
   }
 
@@ -433,11 +433,11 @@ export class BackgroundBridge extends EventEmitter {
 
   onDisconnect = () => {
     this.disconnected = true;
-    Engine.controllerMessenger.unsubscribe(
+    Engine.controllerMessenger.tryUnsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.controllerMessenger.unsubscribe(
+    Engine.controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
@@ -885,7 +885,7 @@ export class BackgroundBridge extends EventEmitter {
       }
     });
     this.notifyCaipAuthorizationChange(changedAuthorization);
-  }
+  };
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
