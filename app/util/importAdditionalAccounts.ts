@@ -7,6 +7,9 @@ import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { getGlobalEthQuery } from './networks/global-network';
 import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
+import { trace, endTrace, TraceName, TraceOperation } from './trace';
+import { getTraceTags } from './sentry/tags';
+import { store } from '../store';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -37,11 +40,30 @@ export default async () => {
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();
 
+    trace({
+      name: TraceName.EvmDiscoverAccounts,
+      op: TraceOperation.DiscoverAccounts,
+      tags: getTraceTags(store.getState()),
+    });
+
     await KeyringController.withKeyring(
       { type: ExtendedKeyringTypes.hd, index: 0 },
       async ({ keyring }) => {
         for (let i = 0; i < MAX; i++) {
+          // TODO: Maybe refactor this and re-use the same function for HD account creation
+          // to have tracing in one single place?
+          trace({
+            name: TraceName.CreateHdAccount,
+            op: TraceOperation.CreateAccount,
+            tags: {
+              ...(getTraceTags(store.getState())),
+              discovery: true,
+            },
+          });
           const [newAccount] = await keyring.addAccounts(1);
+          endTrace({
+            name: TraceName.CreateHdAccount,
+          });
 
           let newAccountBalance = ZERO_BALANCE;
           try {
@@ -61,6 +83,10 @@ export default async () => {
       },
     );
   } finally {
+    endTrace({
+      name: TraceName.EvmDiscoverAccounts,
+    });
+
     // We don't want to catch errors here, we let them bubble up to the caller
     // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
     await setIsAccountSyncingReadyToBeDispatched(true);
