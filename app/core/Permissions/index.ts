@@ -1,10 +1,31 @@
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { CaipAccountId, CaipChainId, Hex, KnownCaipNamespace, parseCaipAccountId, parseCaipChainId } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getAllScopesFromCaip25CaveatValue, getCaipAccountIdsFromCaip25CaveatValue, getEthAccounts, getPermittedEthChainIds, isInternalAccountInPermittedAccountIds, setChainIdsInCaip25CaveatValue, setNonSCACaipAccountIdsInCaip25CaveatValue } from '@metamask/chain-agnostic-permission';
-import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25CaveatValue,
+  Caip25EndowmentPermissionName,
+  getAllScopesFromCaip25CaveatValue,
+  getCaipAccountIdsFromCaip25CaveatValue,
+  getEthAccounts,
+  getPermittedEthChainIds,
+  isInternalAccountInPermittedAccountIds,
+  setChainIdsInCaip25CaveatValue,
+  setNonSCACaipAccountIdsInCaip25CaveatValue,
+} from '@metamask/chain-agnostic-permission';
+import {
+  CaveatConstraint,
+  PermissionDoesNotExistError,
+} from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 
@@ -96,8 +117,7 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCaipAccountIdsFromSubject(subject: any) {
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
   }
@@ -126,8 +146,7 @@ export const getPermittedCaipAccountIdsByHostname = (
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getEvmAddessesFromSubject(subject: any) {
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
   }
@@ -157,8 +176,7 @@ export const getPermittedEvmAddressesByHostname = (
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPermittedScopesFromSubject(subject: any) {
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
   }
@@ -253,12 +271,14 @@ export const addPermittedAccounts = (
     caip25Caveat.value,
   );
 
-  const updatedAccountIds = Array.from(new Set([...existingPermittedAccountIds, ...accounts]));
+  const updatedAccountIds = Array.from(
+    new Set([...existingPermittedAccountIds, ...accounts]),
+  );
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
   const evmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.networkConfigurationsByChainId;
-  const nonEvmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.multichainNetworkConfigurationsByChainId;
+  const nonEvmNetworkConfigurationsByChainId = Engine.context.MultichainNetworkController.state.multichainNetworkConfigurationsByChainId;
   const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
@@ -295,18 +315,16 @@ export const addPermittedAccounts = (
     }
   });
 
-  const updatedCaveatValueWithChainIds =
-    setChainIdsInCaip25CaveatValue(
-      caip25Caveat.value,
-      updatedPermittedChainIds,
-    );
+  const updatedCaveatValueWithChainIds = setChainIdsInCaip25CaveatValue(
+    caip25Caveat.value,
+    updatedPermittedChainIds,
+  );
 
   const updatedCaveatValueWithAccountIds =
     setNonSCACaipAccountIdsInCaip25CaveatValue(
       updatedCaveatValueWithChainIds,
       updatedAccountIds,
     );
-
 
   Engine.context.PermissionController.updateCaveat(
     origin,
@@ -316,7 +334,10 @@ export const addPermittedAccounts = (
   );
 };
 
-export const removePermittedAccounts = (origin: string, addresses: string[]) => {
+export const removePermittedAccounts = (
+  origin: string,
+  addresses: string[],
+) => {
   const { PermissionController, AccountsController } = Engine.context;
 
   const caip25Caveat = getCaip25Caveat(origin);
@@ -326,7 +347,9 @@ export const removePermittedAccounts = (origin: string, addresses: string[]) => 
     );
   }
 
-  const internalAccounts = addresses.map((address) => AccountsController.getAccountByAddress(address)) as InternalAccount[];
+  const internalAccounts = addresses.map((address) =>
+    AccountsController.getAccountByAddress(address),
+  ) as InternalAccount[];
 
   const existingCaipAccountIds = getCaipAccountIdsFromCaip25CaveatValue(
     caip25Caveat.value,
@@ -334,9 +357,11 @@ export const removePermittedAccounts = (origin: string, addresses: string[]) => 
 
   const remainingAccountIds = existingCaipAccountIds.filter(
     (existingCaipAccountId) =>
-      !internalAccounts.some(internalAccount => isInternalAccountInPermittedAccountIds(internalAccount, [
-        existingCaipAccountId
-      ]))
+      !internalAccounts.some((internalAccount) =>
+        isInternalAccountInPermittedAccountIds(internalAccount, [
+          existingCaipAccountId,
+        ]),
+      ),
   );
 
   if (remainingAccountIds.length === existingCaipAccountIds.length) {
@@ -427,7 +452,10 @@ export const updatePermittedChains = (
  * @param hostname - Subject to remove permitted chain. Ex: A Dapp is a subject
  * @param chainId - ChainId to remove.
  */
-export const removePermittedChain = (hostname: string, chainId: CaipChainId) => {
+export const removePermittedChain = (
+  hostname: string,
+  chainId: CaipChainId,
+) => {
   const caip25Caveat = getCaip25Caveat(hostname);
   if (!caip25Caveat) {
     throw new Error(
@@ -442,7 +470,9 @@ export const removePermittedChain = (hostname: string, chainId: CaipChainId) => 
   );
 
   const permittedChainIds = getAllScopesFromCaip25CaveatValue(caveat.value);
-  const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
+  const newPermittedChains = permittedChainIds.filter(
+    (chain: string) => chain !== chainId,
+  );
   if (newPermittedChains.length === permittedChainIds.length) {
     return;
   } else if (newPermittedChains.length === 0) {
@@ -519,7 +549,7 @@ export const getPermittedChains = async (
   const caveat = PermissionController.getCaveat(
     hostname,
     Caip25EndowmentPermissionName,
-    Caip25CaveatType
+    Caip25CaveatType,
   );
 
   if (caveat) {

@@ -214,7 +214,15 @@ import {
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
-import { MultichainRouter } from '@metamask/snaps-controllers';
+import {
+  MultichainRouter,
+  MultichainRouterMessenger,
+  MultichainRouterArgs,
+} from '@metamask/snaps-controllers';
+import {
+  MultichainRouterGetSupportedAccountsEvent,
+  MultichainRouterIsSupportedScopeEvent,
+} from './controllers/multichain-router/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -359,7 +367,7 @@ export class Engine {
               // down, it will end up exhausting the max number of consecutive
               // failures quickly.
               retryTimeout: 20 * SECOND,
-          },
+            },
       getRpcServiceOptions: (rpcEndpointUrl: string) => {
         const maxRetries = 4;
         const commonOptions = {
@@ -649,8 +657,6 @@ export class Engine {
     };
 
     const snapRestrictedMethods = {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       clearSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
@@ -720,14 +726,10 @@ export class Engine {
       ),
       handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
         await handleSnapRequest(this.controllerMessenger, args),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapStateAction,
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       updateSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerUpdateSnapStateAction,
@@ -885,17 +887,13 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
-        //@ts-expect-error typescript FIXME: [ffmcgee]
         isNonEvmScopeSupported: this.controllerMessenger.call.bind(
           this.controllerMessenger,
-          //@ts-expect-error typescript FIXME: [ffmcgee]
-          'MultichainRouter:isSupportedScope',
+          MultichainRouterIsSupportedScopeEvent,
         ),
-        //@ts-expect-error typescript FIXME: [ffmcgee]
         getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
           this.controllerMessenger,
-          //@ts-expect-error typescript FIXME: [ffmcgee]
-          'MultichainRouter:getSupportedAccounts',
+          MultichainRouterGetSupportedAccountsEvent,
         ),
       }),
       permissionSpecifications: {
@@ -1643,7 +1641,9 @@ export class Engine {
     // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
     // it would cause a deadlock.
     // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
-    const withSnapKeyring = async (operation: ({ keyring }: { keyring: unknown }) => void) => {
+    const withSnapKeyring = async (
+      operation: ({ keyring }: { keyring: unknown }) => void,
+    ) => {
       const keyring = await this.getSnapKeyring();
 
       return operation({ keyring });
@@ -1658,13 +1658,12 @@ export class Engine {
         `AccountsController:listMultichainAccounts`,
       ],
       allowedEvents: [],
-    });
+    }) as MultichainRouterMessenger;
 
     this.multichainRouter = new MultichainRouter({
-      //@ts-expect-error FIXME [ffmcgee] types
       messenger: multichainRouterMessenger,
-      //@ts-expect-error FIXME [ffmcgee] types
-      withSnapKeyring,
+      withSnapKeyring:
+        withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
 
     this.configureControllersOnNetworkChange();
