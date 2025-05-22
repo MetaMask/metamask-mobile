@@ -214,8 +214,15 @@ import {
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
-import { MultichainRouter, MultichainRouterMessenger, MultichainRouterArgs } from '@metamask/snaps-controllers';
-import { MultichainRouterGetSupportedAccountsEvent, MultichainRouterIsSupportedScopeEvent } from './controllers/multichain-router/constants';
+import {
+  MultichainRouter,
+  MultichainRouterMessenger,
+  MultichainRouterArgs,
+} from '@metamask/snaps-controllers';
+import {
+  MultichainRouterGetSupportedAccountsEvent,
+  MultichainRouterIsSupportedScopeEvent,
+} from './controllers/multichain-router/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -886,12 +893,16 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
-        isNonEvmScopeSupported: this.getMultichainRouterMessenger().call.bind(
+        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
           this.controllerMessenger,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           MultichainRouterIsSupportedScopeEvent,
         ),
-        getNonEvmAccountAddresses: this.getMultichainRouterMessenger().call.bind(
+        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
           this.controllerMessenger,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           MultichainRouterGetSupportedAccountsEvent,
         ),
       }),
@@ -1640,7 +1651,9 @@ export class Engine {
     // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
     // it would cause a deadlock.
     // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
-    const withSnapKeyring = async (operation: ({ keyring }: { keyring: unknown }) => void) => {
+    const withSnapKeyring = async (
+      operation: ({ keyring }: { keyring: unknown }) => void,
+    ) => {
       const keyring = await this.getSnapKeyring();
 
       return operation({ keyring });
@@ -1659,7 +1672,8 @@ export class Engine {
 
     this.multichainRouter = new MultichainRouter({
       messenger: multichainRouterMessenger,
-      withSnapKeyring: withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
+      withSnapKeyring:
+        withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
 
     this.configureControllersOnNetworkChange();
@@ -2119,10 +2133,6 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
-  }
-
-  private getMultichainRouterMessenger(): MultichainRouterMessenger {
-    return this.controllerMessenger as unknown as MultichainRouterMessenger;
   }
 }
 
