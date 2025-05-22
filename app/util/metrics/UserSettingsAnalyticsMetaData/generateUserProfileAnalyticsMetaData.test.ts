@@ -59,20 +59,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
   describe('NUMBER_OF_HD_ENTROPIES', () => {
     const testCases = [
       {
-        name: 'with undefined keyrings',
-        state: {
-          engine: {
-            backgroundState: {
-              KeyringController: {
-                keyrings: undefined,
-                keyringsMetadata: undefined,
-              },
-            },
-          },
-        },
-        expected: 0,
-      },
-      {
         name: 'with empty keyrings array',
         state: {
           engine: {

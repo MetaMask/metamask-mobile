@@ -21,14 +21,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   const isDataCollectionForMarketingEnabled =
     reduxState?.security?.dataCollectionForMarketing;
 
-  let numberOfHDEntropies = 0;
-  try {
-    const hdKeyrings = selectHDKeyrings(reduxState);
-    numberOfHDEntropies = hdKeyrings?.length ?? 0;
-  } catch (error) {
-    // If the selector throws due to undefined keyrings, default to 0
-    numberOfHDEntropies = 0;
-  }
+  const hdKeyrings = selectHDKeyrings(reduxState);
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -54,7 +47,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: numberOfHDEntropies,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
   };
 };
 
