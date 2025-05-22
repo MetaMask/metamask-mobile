@@ -80,7 +80,7 @@ const getConfirmationMetricProperties = (
 };
 
 export function generateDefaultTransactionMetrics(
-metametricsEvent: IMetaMetricsEvent,
+  metametricsEvent: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
