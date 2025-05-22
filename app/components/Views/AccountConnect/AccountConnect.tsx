@@ -140,7 +140,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? supportedRequestedCaipChainIds
       : allNetworksList;
 
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds as CaipChainId[]);
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(defaultSelectedChainIds);
   const selectedNetworkAvatars = useMemo(() => selectedChainIds.map(
       (selectedChainId) => ({
         size: AvatarSize.Xs,
