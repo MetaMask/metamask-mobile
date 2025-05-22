@@ -389,7 +389,6 @@ const Login: React.FC = () => {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
         bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
         bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 

@@ -198,10 +198,6 @@ const ImportFromSecretRecoveryPhrase = ({
     if (currentStep === 0) {
       navigation.goBack();
     } else {
-      if (currentStep === 1 && passwordSetupAttemptTraceCtxRef.current) {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-        passwordSetupAttemptTraceCtxRef.current = null;
-      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -273,6 +269,13 @@ const ImportFromSecretRecoveryPhrase = ({
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
+
+  useEffect(() => () => {
+    if (passwordSetupAttemptTraceCtxRef.current) {
+      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      passwordSetupAttemptTraceCtxRef.current = null;
+    }
+  }, []);
 
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
@@ -579,7 +582,6 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
         bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 

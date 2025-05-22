@@ -385,7 +385,6 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         bufferedEndTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -415,7 +414,6 @@ class ChoosePassword extends PureComponent {
           });
         }
       } else {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         this.props.navigation.replace('AccountBackupStep1');
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
