@@ -5,11 +5,7 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../accountsController';
-import {
-  selectHDKeyrings,
-  selectKeyrings,
-  ExtendedKeyring,
-} from '../keyringController';
+import { selectHDKeyrings, ExtendedKeyring } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 
 /**
@@ -90,55 +86,37 @@ export const getSnapAccountsByKeyringId = createDeepEqualSelector(
 
 /**
  * A memoized selector that returns the HD entropy index for the currently selected account.
- * The index represents the position of the HD keyring that contains the selected account.
- * If the account is not found in HD keyrings, it checks the account's entropySource option
- * to find the matching keyring index.
- * Returns undefined if:
- * - No selected account exists
- * - Account not found in HD keyrings and no matching entropySource
- * - Account not found in HD keyrings and no entropySource in options
- * - Account not found in HD keyrings and entropySource matches a non-HD keyring
+ * Returns undefined if the account is not associated with an HD keyring.
  */
 export const selectHdEntropyIndex = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectHDKeyrings,
-  selectKeyrings,
   (
     selectedAccount: InternalAccount | undefined,
     hdKeyrings: ExtendedKeyring[],
-    allKeyrings: ExtendedKeyring[],
   ) => {
     if (!selectedAccount) return undefined;
 
-    // First try to find the account in HD keyrings
+    // Try to find the account in HD keyrings
     const hdIndex = hdKeyrings.findIndex((keyring) =>
       keyring.accounts.some((account) =>
         isEqualCaseInsensitive(account, selectedAccount.address),
       ),
     );
 
-    // If found in HD keyrings, return that index
     if (hdIndex !== -1) {
       return hdIndex;
     }
 
-    // If not found in HD keyrings and has entropySource, try to find by entropySource in all keyrings
+    // If not found, check if account's entropySource matches an HD keyring
     const entropySource = selectedAccount.options?.entropySource;
     if (entropySource) {
-      const keyringIndex = allKeyrings.findIndex(
+      const sourceIndex = hdKeyrings.findIndex(
         (keyring) => keyring.metadata.id === entropySource,
       );
-      if (keyringIndex !== -1) {
-        // Convert the overall keyring index to HD keyring index
-        const hdKeyringIndex = hdKeyrings.findIndex(
-          (hdKeyring) => hdKeyring.metadata.id === entropySource,
-        );
-        // Only return the HD keyring index if we found a matching HD keyring
-        return hdKeyringIndex !== -1 ? hdKeyringIndex : undefined;
-      }
+      return sourceIndex !== -1 ? sourceIndex : undefined;
     }
 
-    // If not found in either case, return undefined
     return undefined;
   },
 );
