@@ -10,7 +10,7 @@ import React, {
 import { InteractionManager, View } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -29,11 +29,12 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 // Internal dependencies.
+import { useStyles } from '../../../component-library/hooks';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
-import styles from './AccountSelector.styles';
+import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
@@ -41,6 +42,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
@@ -120,7 +122,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={_onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}
@@ -151,6 +153,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       privacyMode,
       disablePrivacyMode,
       handleAddAccount,
+      styles.sheet,
     ],
   );
 
@@ -170,7 +173,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
+  return (
+    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef}>
+      {renderAccountScreens()}
+    </BottomSheet>
+  );
 };
 
 export default React.memo(AccountSelector);

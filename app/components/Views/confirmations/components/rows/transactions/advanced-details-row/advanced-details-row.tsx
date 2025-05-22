@@ -17,7 +17,7 @@ import {
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
-import { useSmartAccountSwitchType } from '../../../../hooks/7702/useSmartAccountSwitchType';
+import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
@@ -34,7 +34,8 @@ const AdvancedDetailsRow = () => {
     proposedNonce,
     userSelectedNonce,
   } = useEditNonce();
-  const { isUpgradeOnly, isDowngrade } = useSmartAccountSwitchType();
+  const { isBatched, isUpgrade, isUpgradeOnly, isDowngrade } =
+    use7702TransactionType();
 
   if (!transactionMetadata?.txParams?.to) {
     return null;
@@ -61,7 +62,7 @@ const AdvancedDetailsRow = () => {
             {!isDowngrade && (
               <InfoSection>
                 <InfoRow label={strings('stake.interacting_with')}>
-                  {isUpgradeOnly ? (
+                  {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />
                   ) : (
                     <Name

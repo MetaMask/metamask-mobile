@@ -24,6 +24,11 @@
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
     "review_alert": "Review alert",
+    "upgarde_account": {
+      "title": "Updating your account",
+      "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
+      "learn_more": "Learn more"
+    },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
       "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
@@ -994,9 +999,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -2004,6 +2011,9 @@
     "edit_permissions": "Edit permissions",
     "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
     "connect_an_account": "Connect an account"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
   },
   "select": {
     "cancel": "Cancel",
@@ -4021,6 +4031,17 @@
   "snap_ui": {
     "asset_selector": {
       "title": "Select an asset"
-    }
+    },
+    "hideSentitiveInfo": {
+        "message": "Hide sensitive information"
+      },
+    "doNotShare": {
+        "message": "Do not share this with anyone"
+    },
+    "revealSensitiveContent": {
+      "message": "Reveal sensitive content"
+    },
+    "show_more": "more",
+    "show_less": "less"
   }
 }
