@@ -1,5 +1,6 @@
 import { extractRpcDomain, isKnownDomain, setKnownDomainsForTesting, getNetworkRpcUrl } from './rpc-domain-utils';
 import { generateRPCProperties } from '../core/Engine/controllers/transaction-controller/utils';
+  // eslint-disable-next-line import/no-namespace
 import * as rpcUtils from './rpc-domain-utils';
 
 jest.mock('../core/Engine', () => ({
