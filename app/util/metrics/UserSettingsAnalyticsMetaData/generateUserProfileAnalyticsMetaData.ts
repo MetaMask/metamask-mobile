@@ -20,7 +20,15 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
     reduxState?.security?.dataCollectionForMarketing;
-  const hdKeyrings = selectHDKeyrings(reduxState);
+
+  let numberOfHDEntropies = 0;
+  try {
+    const hdKeyrings = selectHDKeyrings(reduxState);
+    numberOfHDEntropies = hdKeyrings?.length ?? 0;
+  } catch (error) {
+    // If the selector throws due to undefined keyrings, default to 0
+    numberOfHDEntropies = 0;
+  }
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -46,7 +54,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings?.length ?? 0,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: numberOfHDEntropies,
   };
 };
 

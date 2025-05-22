@@ -17,9 +17,15 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
-
 describe('generateUserProfileAnalyticsMetaData', () => {
+  beforeEach(() => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const mockState = {
     engine: {
       backgroundState: {
@@ -49,6 +55,122 @@ describe('generateUserProfileAnalyticsMetaData', () => {
     user: { appTheme: 'os' },
     security: { dataCollectionForMarketing: true },
   };
+
+  describe('NUMBER_OF_HD_ENTROPIES', () => {
+    const testCases = [
+      {
+        name: 'with undefined keyrings',
+        state: {
+          engine: {
+            backgroundState: {
+              KeyringController: {
+                keyrings: undefined,
+                keyringsMetadata: undefined,
+              },
+            },
+          },
+        },
+        expected: 0,
+      },
+      {
+        name: 'with empty keyrings array',
+        state: {
+          engine: {
+            backgroundState: {
+              KeyringController: {
+                keyrings: [],
+              },
+            },
+          },
+        },
+        expected: 0,
+      },
+      {
+        name: 'with one HD keyring',
+        state: {
+          engine: {
+            backgroundState: {
+              KeyringController: {
+                keyrings: [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: ['0x123'],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        expected: 1,
+      },
+      {
+        name: 'with two HD keyrings',
+        state: {
+          engine: {
+            backgroundState: {
+              KeyringController: {
+                keyrings: [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: ['0x123'],
+                  },
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: ['0x456'],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        expected: 2,
+      },
+      {
+        name: 'with mixed keyring types',
+        state: {
+          engine: {
+            backgroundState: {
+              KeyringController: {
+                keyrings: [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: ['0x123'],
+                  },
+                  {
+                    type: ExtendedKeyringTypes.simple,
+                    accounts: ['0x456'],
+                  },
+                  {
+                    type: ExtendedKeyringTypes.qr,
+                    accounts: ['0x789'],
+                  },
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: ['0xabc'],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        expected: 2,
+      },
+    ];
+
+    testCases.forEach(({ name, state, expected }) => {
+      it(name, () => {
+        mockGetState.mockReturnValue({
+          ...mockState,
+          ...state,
+        });
+
+        const metadata = generateUserProfileAnalyticsMetaData();
+        expect(metadata[UserProfileProperty.NUMBER_OF_HD_ENTROPIES]).toBe(
+          expected,
+        );
+      });
+    });
+  });
 
   it('returns metadata', () => {
     mockGetState.mockReturnValue(mockState);
