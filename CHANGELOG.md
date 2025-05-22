@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(swap): fix default swap destination token when USDC is the source token
 - fix(bridge): prevent quote error during bridge destination account selection
 
+### Changed
+- feat: update minimum version modal UI ([#15567](https://github.com/MetaMask/metamask-mobile/pull/15567))
+
 ### Added
 
 - feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
