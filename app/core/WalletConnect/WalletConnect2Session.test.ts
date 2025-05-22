@@ -10,6 +10,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import Device from '../../util/device';
 import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -180,6 +181,9 @@ jest.mock('../../selectors/util', () => ({
 
 jest.mock('../../util/networks', () => ({
   isPerDappSelectedNetworkEnabled: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../util/networks/global-network', () => ({
   getGlobalNetworkClientId: jest.fn().mockReturnValue('1'),
 }));
 
@@ -768,6 +772,10 @@ describe('WalletConnect2Session', () => {
       (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
       // Reset mock function before test
       mockedEngine.context.MultichainNetworkController.setActiveNetwork.mockClear();
+
+      // Mock getGlobalNetworkClientId to return testNetworkClientId
+      (getGlobalNetworkClientId as jest.Mock).mockReturnValue(testNetworkClientId);
+
       const request: WalletKitTypes.SessionRequest = {
         id: 42,
         topic: mockSession.topic,
@@ -801,13 +809,11 @@ describe('WalletConnect2Session', () => {
         id: request.id + '',
         result: true,
       });
-
     }
 
     it('handles wallet_switchEthereumChain correctly with isPerDappSelectedNetworkEnabled()', async () => {
       // Directly spy on the getNetworkClientIdForChainId method
-      const getNetworkClientIdSpy = jest.spyOn(session as any, 'getNetworkClientIdForChainId')
-        .mockReturnValue(testNetworkClientId);
+      const getNetworkClientIdSpy = jest.spyOn(session as any, 'getNetworkClientIdForChainId');
 
       await buildCase(true, testChainId);
 
@@ -823,16 +829,13 @@ describe('WalletConnect2Session', () => {
 
     it('handles wallet_switchEthereumChain correctly with isPerDappSelectedNetworkEnabled() = false', async () => {
       // Directly spy on the getNetworkClientIdForChainId method
-      const getNetworkClientIdSpy = jest.spyOn(session as any, 'getNetworkClientIdForChainId')
-        .mockReturnValue(testNetworkClientId);
+      const getNetworkClientIdSpy = jest.spyOn(session as any, 'getNetworkClientIdForChainId');
 
       await buildCase(false, testChainId);
-
       expect(getNetworkClientIdSpy).toHaveBeenCalled();
       expect(mockedEngine.context.MultichainNetworkController.setActiveNetwork).toHaveBeenCalledWith(
         testNetworkClientId
       );
-
       // Restore the original method
       getNetworkClientIdSpy.mockRestore();
     });
