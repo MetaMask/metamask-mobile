@@ -111,7 +111,7 @@ await Assertions.checkIfObjectsMatch(
 When testing Segment events, it's crucial to ensure the MetaMetrics opt-in state is properly set. There are two scenarios to consider:
 
 ### 1. Using Onboarding Fixture
-When using `withOnboardingFixture()`, the opt-in state is automatically set during the onboarding flow. No additional configuration is needed.
+When using `withOnboardingFixture()`, the opt-in state is automatically set during the onboarding flow **WHEN THE ACCEPT BUTTON IS TAPPED**. No additional configuration is needed.
 
 ```javascript
 await withFixtures({
