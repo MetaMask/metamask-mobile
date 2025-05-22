@@ -1,0 +1,67 @@
+diff --git a/node_modules/@metamask/bridge-controller/dist/constants/bridge.cjs b/node_modules/@metamask/bridge-controller/dist/constants/bridge.cjs
+index 79396e7..3a4a57c 100644
+--- a/node_modules/@metamask/bridge-controller/dist/constants/bridge.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/constants/bridge.cjs
+@@ -35,6 +35,7 @@ exports.REFRESH_INTERVAL_MS = 30 * 1000;
+ exports.DEFAULT_MAX_REFRESH_COUNT = 5;
+ exports.BRIDGE_CONTROLLER_NAME = 'BridgeController';
+ exports.DEFAULT_FEATURE_FLAG_CONFIG = {
++    minimumVersion: '0.0.0',
+     refreshRate: exports.REFRESH_INTERVAL_MS,
+     maxRefreshCount: exports.DEFAULT_MAX_REFRESH_COUNT,
+     support: false,
+diff --git a/node_modules/@metamask/bridge-controller/dist/index.cjs b/node_modules/@metamask/bridge-controller/dist/index.cjs
+index 5a9d0a5..3d967d2 100644
+--- a/node_modules/@metamask/bridge-controller/dist/index.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/index.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.selectIsQuoteExpired = exports.selectExchangeRateByChainIdAndAddress = exports.selectBridgeQuotes = exports.formatAddressToCaipReference = exports.formatChainIdToHex = exports.formatChainIdToCaip = exports.fetchBridgeTokens = exports.calcLatestSrcBalance = exports.formatEtaInMinutes = exports.isValidQuoteRequest = exports.getDefaultBridgeControllerState = exports.getNativeAssetForChainId = exports.isSolanaChainId = exports.isNativeAddress = exports.isEthUsdt = exports.getEthUsdtResetData = exports.SWAPS_API_V2_BASE_URL = exports.SWAPS_CHAINID_DEFAULT_TOKEN_MAP = exports.BRIDGE_PROD_API_BASE_URL = exports.BRIDGE_DEV_API_BASE_URL = exports.METABRIDGE_CHAIN_TO_ADDRESS_MAP = exports.DEFAULT_BRIDGE_CONTROLLER_STATE = exports.DEFAULT_MAX_REFRESH_COUNT = exports.REFRESH_INTERVAL_MS = exports.BRIDGE_MM_FEE_RATE = exports.BRIDGE_DEFAULT_SLIPPAGE = exports.BRIDGE_PREFERRED_GAS_ESTIMATE = exports.BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE = exports.BRIDGE_QUOTE_MAX_ETA_SECONDS = exports.BRIDGE_CONTROLLER_NAME = exports.BridgeClientId = exports.ALLOWED_BRIDGE_CHAIN_IDS = exports.FeeType = exports.BridgeBackgroundAction = exports.BridgeUserAction = exports.RequestStatus = exports.ChainId = exports.ActionTypes = exports.SortOrder = exports.AssetType = exports.StatusTypes = exports.isCustomSlippage = exports.isHardwareWallet = exports.getSwapType = exports.getActionType = exports.getRequestParams = exports.formatProviderLabel = exports.UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY = exports.UnifiedSwapBridgeEventName = exports.BridgeController = void 0;
+-exports.selectBridgeFeatureFlags = void 0;
++exports.DEFAULT_FEATURE_FLAG_CONFIG = exports.selectBridgeFeatureFlags = void 0;
+ var bridge_controller_1 = require("./bridge-controller.cjs");
+ Object.defineProperty(exports, "BridgeController", { enumerable: true, get: function () { return bridge_controller_1.BridgeController; } });
+ var constants_1 = require("./utils/metrics/constants.cjs");
+@@ -77,4 +77,6 @@ Object.defineProperty(exports, "selectExchangeRateByChainIdAndAddress", { enumer
+  */
+ Object.defineProperty(exports, "selectIsQuoteExpired", { enumerable: true, get: function () { return selectors_1.selectIsQuoteExpired; } });
+ Object.defineProperty(exports, "selectBridgeFeatureFlags", { enumerable: true, get: function () { return selectors_1.selectBridgeFeatureFlags; } });
++var bridge_3 = require("./constants/bridge.cjs");
++Object.defineProperty(exports, "DEFAULT_FEATURE_FLAG_CONFIG", { enumerable: true, get: function () { return bridge_3.DEFAULT_FEATURE_FLAG_CONFIG; } });
+ //# sourceMappingURL=index.cjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs b/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs
+index c2efdfd..84309ec 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs
+@@ -31,8 +31,15 @@ exports.processFeatureFlags = processFeatureFlags;
+ function getBridgeFeatureFlags(messenger) {
+     // This will return the bridgeConfig for the current platform even without specifying the platform
+     const remoteFeatureFlagControllerState = messenger.call('RemoteFeatureFlagController:getState');
++    // bridgeConfigV2 is the feature flag for the mobile app
++    // bridgeConfig for Mobile has been deprecated since release of bridge and Solana in 7.46.0 was pushed back
++    // and there's no way to turn on bridgeConfig for 7.47.0 without affecting 7.46.0 as well.
++    // You will still get bridgeConfig returned from remoteFeatureFlagControllerState but you should use bridgeConfigV2 instead
++    // Mobile's bridgeConfig will be permanently serving the disabled variation, so falling back to it in Mobile will be ok
++    const rawMobileFlags = remoteFeatureFlagControllerState?.remoteFeatureFlags?.bridgeConfigV2;
++    // Extension LaunchDarkly will not have the bridgeConfigV2 field, so we'll continue to use bridgeConfig
+     const rawBridgeConfig = remoteFeatureFlagControllerState?.remoteFeatureFlags?.bridgeConfig;
+-    return (0, exports.processFeatureFlags)(rawBridgeConfig);
++    return (0, exports.processFeatureFlags)(rawMobileFlags || rawBridgeConfig);
+ }
+ exports.getBridgeFeatureFlags = getBridgeFeatureFlags;
+ //# sourceMappingURL=feature-flags.cjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs b/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs
+index 569b1d3..56bc7ec 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs
+@@ -29,6 +29,7 @@ const validateFeatureFlagsResponse = (data) => {
+         topAssets: (0, superstruct_1.optional)((0, superstruct_1.array)((0, superstruct_1.string)())),
+     });
+     const PlatformConfigSchema = (0, superstruct_1.type)({
++        minimumVersion: (0, superstruct_1.string)(),
+         refreshRate: (0, superstruct_1.number)(),
+         maxRefreshCount: (0, superstruct_1.number)(),
+         support: (0, superstruct_1.boolean)(),
