@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -22,6 +22,13 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from './multichainNetworkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+
+export type EvmAndMultichainNetworkConfigurationsWithCaipChainId = (
+  | NetworkConfiguration
+  | MultichainNetworkConfiguration
+) & {
+  caipChainId: CaipChainId;
+};
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -197,6 +204,63 @@ export const selectNetworkConfigurations = createDeepEqualSelector(
   },
 );
 
+/**
+ * Gets EVM (and eventually non-EVM) Network Configurations keyed by CaipChainId.
+ *
+ * @returns network configurations keyed by CaipChainId.
+ */
+// Uncomment relevant lines when ready for non-evm support
+export const getNetworkConfigurationsByCaipChainId = (
+  evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+  // nonEvmNetworkConfigurationsByChainId,
+): Record<
+  CaipChainId,
+  EvmAndMultichainNetworkConfigurationsWithCaipChainId
+> => {
+  const networkConfigurationsByCaipChainId: Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  > = {};
+
+  Object.entries(evmNetworkConfigurationsByChainId).forEach(
+    ([chainId, networkConfiguration]) => {
+      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
+      networkConfigurationsByCaipChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId,
+      };
+    },
+  );
+
+  // for use in the near future when we want to include nonEvm configurations in what's returned
+  // Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
+  //   const caipChainId = _caipChainId as CaipChainId;
+  //   networkConfigurationsByCaipChainId[caipChainId] = {
+  //     ...networkConfiguration,
+  //     caipChainId
+  //   }
+  // })
+
+  return networkConfigurationsByCaipChainId;
+};
+
+// Uncomment relevant lines when ready for non-evm support
+export const selectNetworkConfigurationsByCaipChainId = createSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  // selectNonEvmNetworkConfigurationsByChainId,
+  (
+    evmNetworkConfigurationsByChainId,
+    // nonEvmNetworkConfigurationsByChainId,
+  ): Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  > =>
+    getNetworkConfigurationsByCaipChainId(
+      evmNetworkConfigurationsByChainId,
+      // nonEvmNetworkConfigurationsByChainId,
+    ),
+);
+
 export const selectNativeNetworkCurrencies = createDeepEqualSelector(
   selectNetworkConfigurations,
   (networkConfigurationsByChainId) => {
@@ -303,6 +367,12 @@ export const selectProviderTypeByChainId = createSelector(
 export const selectRpcUrlByChainId = createSelector(
   selectDefaultEndpointByChainId,
   (defaultEndpoint) => defaultEndpoint?.url,
+);
+
+export const selectTickerByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
 );
 
 export const checkNetworkAndAccountSupports1559 = createSelector(
