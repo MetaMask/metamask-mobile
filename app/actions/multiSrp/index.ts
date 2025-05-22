@@ -18,6 +18,12 @@ import { store } from '../../store';
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import ReduxService from '../../core/redux';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+} from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
@@ -77,10 +83,23 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
-    await SeedlessOnboardingController.addNewSeedPhraseBackup(
-      seed,
-      newKeyring.id,
-    );
+    let addSeedPhraseSuccess = false;
+    try {
+      bufferedTrace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+        seed,
+        newKeyring.id,
+      );
+      addSeedPhraseSuccess = true;
+    } finally {
+      bufferedEndTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
+    }
   }
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 

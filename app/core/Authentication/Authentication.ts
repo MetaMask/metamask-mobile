@@ -29,7 +29,14 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+  bufferedEndTrace,
+  bufferedTrace,
+} from '../../util/trace';
 import ReduxService from '../redux';
 ///: BEGIN:ONLY_INCLUDE_IF(beta)
 import {
@@ -534,11 +541,24 @@ class AuthenticationService {
         SeedlessOnboardingController.state,
       );
 
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringMetadata.id,
-      );
+      let traceSucceeded = false;
+      try {
+        bufferedTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringMetadata.id,
+        );
+        traceSucceeded = true;
+      } finally {
+        bufferedEndTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          data: { success: traceSucceeded },
+        });
+      }
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -562,9 +582,23 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
-        password,
-      );
+      let result: Uint8Array[] | null = null;
+      let traceSucceeded = false;
+      try {
+        bufferedTrace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+          password,
+        );
+        traceSucceeded = true;
+      } finally {
+        bufferedEndTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: traceSucceeded, count: result?.length || 0 },
+        });
+      }
 
       if (result.length > 0) {
         const { KeyringController } = Engine.context;

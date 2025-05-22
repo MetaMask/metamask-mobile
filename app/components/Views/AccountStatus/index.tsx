@@ -28,6 +28,14 @@ import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 import AccountStatusImg from '../../../images/already_exist.png';
 
@@ -38,6 +46,7 @@ interface AccountStatusProps {
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: string;
 }
 
 const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
@@ -48,8 +57,15 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   const accountName = (route.params as AccountRouteParams)?.accountName;
   const oauthLoginSuccess = (route.params as AccountRouteParams)
     ?.oauthLoginSuccess;
+  const onboardingTraceCtx = (route.params as AccountRouteParams)
+    ?.onboardingTraceCtx;
 
   useLayoutEffect(() => {
+    const traceToEnd = type === 'found'
+      ? TraceName.OnboardingNewSocialAccountExists
+      : TraceName.OnboardingExistingSocialAccountNotFound;
+    bufferedEndTrace({ name: traceToEnd });
+
     const marginLeft = 16;
     const headerLeft = () => (
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -75,7 +91,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         false,
       ),
     );
-  }, [navigation, colors, route]);
+  }, [navigation, colors, route, type]);
 
   const track = (event: IMetaMetricsEvent) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
@@ -86,10 +102,24 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     previousScreen: string,
     metricEvent: string,
   ) => {
+    const nextScenarioTraceName = type === 'found'
+      ? TraceName.OnboardingExistingSocialLogin
+      : TraceName.OnboardingNewSocialCreateWallet;
+    bufferedTrace({
+      name: nextScenarioTraceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: {
+        ...getTraceTags(store.getState()),
+        source: 'account_status_redirect',
+      },
+      parentContext: onboardingTraceCtx,
+    });
+
     navigation.dispatch(
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
+        onboardingTraceCtx,
       }),
     );
     track(
