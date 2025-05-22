@@ -118,7 +118,7 @@ describe('rpc-domain-utils', () => {
       expect(result).toBe('https://legacy.example.com');
     });
 
-    it('should return "unknown" when network client ID is not found', () => {
+    it('returns "unknown" when network client ID is not found', () => {
       // Mock implementation for missing network client
       (Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock).mockReturnValue(null);
 
