@@ -94,56 +94,49 @@ export const RpcDomainStatus = {
 
 export type RpcDomainStatus = typeof RpcDomainStatus[keyof typeof RpcDomainStatus];
 
+function parseDomain(url: string): string | undefined {
+  try {
+    const normalizedUrl = url.includes('://') ? url : `https://${url}`;
+    return new URL(normalizedUrl).hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Extracts the domain from an RPC URL for analytics tracking
  * @param rpcUrl - The RPC URL to extract domain from
  * @returns The domain extracted from the URL, or "private" for non-known domains, or "invalid" for invalid URLs
  */
 export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
-  if (!rpcUrl) {
+  const domain = parseDomain(rpcUrl);
+  if (!domain) {
     return RpcDomainStatus.Invalid;
   }
 
-  try {
-    // Try to parse the URL
-    let url: URL;
+  // Check if this is a known domain
+  if (isKnownDomain(domain)) {
+    return domain;
+  }
 
-    // Handle URLs without protocol
-    if (!rpcUrl.includes('://')) {
-      url = new URL(`https://${rpcUrl}`);
-    } else {
-      url = new URL(rpcUrl);
-    }
+  // Special case for Infura subdomains - always return the actual domain
+  // even if not in the known domains list
+  if (domain.includes('infura.io')) {
+    return domain;
+  }
 
-    const domain = url.hostname.toLowerCase();
+  // Special case for Alchemy subdomains
+  if (domain.endsWith('alchemyapi.io')) {
+    return domain;
+  }
 
-    // Check if this is a known domain
-    if (isKnownDomain(domain)) {
-      return domain;
-    }
-
-    // Special case for Infura subdomains - always return the actual domain
-    // even if not in the known domains list
-    if (domain.includes('infura.io')) {
-      return domain;
-    }
-
-    // Special case for Alchemy subdomains
-    if (domain.endsWith('alchemyapi.io')) {
-      return domain;
-    }
-
-    // Special case for local/development nodes
-    if (domain === 'localhost' || domain === '127.0.0.1') {
-      return RpcDomainStatus.Private;
-    }
-
-    // For all other domains, return "private" for privacy
+  // Special case for local/development nodes
+  if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
-  } catch (error) {
-    // If URL parsing fails, return "invalid"
-    return RpcDomainStatus.Invalid;
   }
+
+  // For all other domains, return "private" for privacy
+  return RpcDomainStatus.Private;
 }
 
 /**
@@ -185,8 +178,12 @@ export function getNetworkRpcUrl(chainId: string): string {
       );
     }
     return 'unknown';
-  } catch (error) {
-    Logger.error('Error getting RPC URL:', error);
+  } catch (error: unknown) {
+    Logger.error(
+      error instanceof Error
+        ? error
+        : new Error(`Error getting RPC URL: ${String(error)}`)
+    );
     return 'unknown';
   }
 }
