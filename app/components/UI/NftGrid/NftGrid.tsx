@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Image,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -40,7 +46,8 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
-
+import Text from '../../../component-library/components/Texts/Text';
+import AppConstants from '../../../core/AppConstants';
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
 
@@ -300,15 +307,14 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
-        <Text center style={styles.emptyTitleText} bold>
+        <Text style={styles.emptyTitleText}>
           {strings('wallet.no_nfts_yet')}
         </Text>
-        <Text center big link onPress={goToLearnMore}>
-          {strings('wallet.learn_more')}
-        </Text>
+        <Text onPress={goToLearnMore}>{strings('wallet.learn_more')}</Text>
       </View>
     ),
     [goToLearnMore, styles],
@@ -328,13 +334,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     displayNftMedia,
     useNftDetection,
   ]);
-
-  console.log(
-    'isNftDetectionEnabled',
-    isNftDetectionEnabled,
-    isNftFetchingProgress,
-    flatMultichainCollectibles.length,
-  );
 
   return (
     <View testID="collectible-contracts" style={styles.container}>
