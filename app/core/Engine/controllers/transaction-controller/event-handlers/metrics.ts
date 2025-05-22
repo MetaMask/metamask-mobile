@@ -58,7 +58,7 @@ async function addSmartTransactionProperties(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
   const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
-  
+
   try {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
@@ -72,7 +72,7 @@ async function addSmartTransactionProperties(
         true,
         initMessenger as unknown as BaseControllerMessenger,
       );
-      
+
       eventBuilder.addProperties({
         smart_transaction_timed_out: stxMetricsProperties.smart_transaction_timed_out,
         smart_transaction_proxied: stxMetricsProperties.smart_transaction_proxied,

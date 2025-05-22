@@ -89,52 +89,47 @@ export function setKnownDomainsForTesting(domains: Set<string> | null): void {
 /**
  * Extracts the domain from an RPC URL for analytics tracking
  * @param rpcUrl - The RPC URL to extract domain from
- * @returns The domain extracted from the URL, or undefined if the URL is invalid
- */
-/**
- * Extracts the domain from an RPC URL for analytics tracking
- * @param rpcUrl - The RPC URL to extract domain from
  * @returns The domain extracted from the URL, or "private" for non-known domains, or "invalid" for invalid URLs
  */
 export function extractRpcDomain(rpcUrl: string): string {
   if (!rpcUrl) {
     return 'invalid';
   }
-  
+
   try {
     // Try to parse the URL
     let url: URL;
-    
+
     // Handle URLs without protocol
     if (!rpcUrl.includes('://')) {
       url = new URL(`https://${rpcUrl}`);
     } else {
       url = new URL(rpcUrl);
     }
-    
+
     const domain = url.hostname.toLowerCase();
-    
+
     // Check if this is a known domain
     if (isKnownDomain(domain)) {
       return domain;
     }
-    
+
     // Special case for Infura subdomains - always return the actual domain
     // even if not in the known domains list
     if (domain.includes('infura.io')) {
       return domain;
     }
-    
+
     // Special case for Alchemy subdomains
     if (domain.endsWith('alchemyapi.io')) {
       return domain;
     }
-    
+
     // Special case for local/development nodes
     if (domain === 'localhost' || domain === '127.0.0.1') {
       return 'private';
     }
-    
+
     // For all other domains, return "private" for privacy
     return 'private';
   } catch (error) {

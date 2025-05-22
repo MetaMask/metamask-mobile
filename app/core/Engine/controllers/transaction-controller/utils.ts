@@ -114,7 +114,7 @@ export function generateDefaultTransactionMetrics(
     sensitiveProperties: transactionMetrics.sensitiveProperties,
     saveDataRecording: true,
   };
-  
+
   return output;
 }
 

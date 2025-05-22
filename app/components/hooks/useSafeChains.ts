@@ -26,13 +26,13 @@ export const useSafeChains = () => {
       const fetchSafeChains = async () => {
         try {
           const response = await fetch('https://chainid.network/chains.json');
-          
+
           if (!response.ok) {
             throw new Error(`Failed to fetch chains: ${response.status}`);
           }
-          
+
           const safeChainsData = await response.json();
-          
+
           // Validate the structure
           if (!Array.isArray(safeChainsData)) {
             throw new Error('Invalid chains data format');
