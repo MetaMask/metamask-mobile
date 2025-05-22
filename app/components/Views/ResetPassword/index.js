@@ -22,7 +22,7 @@ import Text, {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
+import { setLockTime, togglePasswordResetInProgress } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
@@ -273,6 +273,11 @@ class ResetPassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * The action to toggle the password reset in progress flag
+     * in the redux store
+     */
+    togglePasswordResetInProgress: PropTypes.func,
   };
 
   state = {
@@ -379,7 +384,7 @@ class ResetPassword extends PureComponent {
     }
     try {
       this.setState({ loading: true });
-
+      this.props.togglePasswordResetInProgress(true);
       await this.recreateVault();
       // Set biometrics for new password
       await Authentication.resetPassword();
@@ -399,6 +404,7 @@ class ResetPassword extends PureComponent {
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
+        this.props.togglePasswordResetInProgress(false);
         NotificationManager.showSimpleNotification({
           status: 'success',
           duration: 5000,
@@ -407,6 +413,7 @@ class ResetPassword extends PureComponent {
         });
       });
     } catch (error) {
+      this.props.togglePasswordResetInProgress(false);
       // Should we force people to enable passcode / biometrics?
       if (error.toString() === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
@@ -811,6 +818,8 @@ const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
+  togglePasswordResetInProgress: (passwordResetInProgress) =>
+    dispatch(togglePasswordResetInProgress(passwordResetInProgress)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);
