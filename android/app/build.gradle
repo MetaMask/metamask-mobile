@@ -298,6 +298,13 @@ android {
     }
 }
 
+// Disable minification for the specific androidTest variant that's failing
+tasks.whenTaskAdded { task ->
+    if (task.name == 'minifyQaReleaseAndroidTestWithR8') {
+        task.enabled = false
+    }
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation(files("../libs/ecies.aar"))
@@ -324,7 +331,6 @@ dependencies {
     androidTestImplementation "net.java.dev.jna:jna:5.12.1"
     androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
     androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
-    androidTestImplementation "com.facebook.react.bridge:react-bridge:0.76.9"
     
     // Make sure you have the proper Mockito dependencies
     androidTestImplementation "org.mockito:mockito-core:4.8.0"
