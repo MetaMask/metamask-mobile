@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.46.0]
 
+### Fixed 
+- fix: capture exception with Sentry instead throwing the error ([#15469](https://github.com/MetaMask/metamask-mobile/pull/15469))
+
+## [7.46.0]
+
 ### Added
 
 - feat(bridge): implement quote expiration handling in Bridge feature ([#14872](https://github.com/MetaMask/metamask-mobile/pull/14872))
@@ -5405,7 +5410,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...HEAD
+[7.46.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.0...v7.46.1
 [7.46.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...v7.46.0
 [7.45.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...v7.45.1
 [7.45.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.44.0...v7.45.0
