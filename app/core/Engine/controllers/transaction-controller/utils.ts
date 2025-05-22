@@ -86,7 +86,7 @@ export function generateDefaultTransactionMetrics(
 ) {
   const { chainId, status, type, id } = transactionMeta;
   
-  const transactionMetrics = merge(
+  const mergedDefaultProperties = merge(
     {
       properties: {
         chain_id: chainId,
@@ -108,14 +108,7 @@ export function generateDefaultTransactionMetrics(
     ),
   );
 
-  const output = {
-    name: eventType.category,
-    properties: transactionMetrics.properties,
-    sensitiveProperties: transactionMetrics.sensitiveProperties,
-    saveDataRecording: true,
-  };
-
-  return output;
+  return mergedDefaultProperties;
 }
 
 export function generateEvent({
