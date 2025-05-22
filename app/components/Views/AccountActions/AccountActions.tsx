@@ -463,16 +463,18 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-          <AccountAction
-            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-            iconName={IconName.Key}
-            onPress={goToExportSRP}
-            testID={
-              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-            }
-          />
-        )}
+        {
+          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+            <AccountAction
+              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+              iconName={IconName.Key}
+              onPress={goToExportSRP}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+              }
+            />
+          )
+        }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
