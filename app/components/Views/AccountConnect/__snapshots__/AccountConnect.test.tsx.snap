@@ -63,6 +63,9 @@ exports[`AccountConnect renders correctly with base request 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -984,6 +987,9 @@ exports[`AccountConnect renders correctly with request including chains and acco
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={2}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -1906,7 +1912,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
     <View
       collapsable={false}
       enabled={true}
-      handlerTag={1}
+      handlerTag={3}
       handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
