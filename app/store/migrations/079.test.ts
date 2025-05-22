@@ -72,7 +72,7 @@ describe('Migration 79: Update profile sync state properties to backup and sync 
       },
       test: 'invalid UserStorageController state',
       expectedError:
-        "FATAL ERROR: Migration 78: Invalid UserStorageController state error: 'string'",
+        "FATAL ERROR: Migration 79: Invalid UserStorageController state error: 'string'",
     },
     {
       state: {
@@ -82,7 +82,7 @@ describe('Migration 79: Update profile sync state properties to backup and sync 
       },
       test: 'invalid UserStorageController state',
       expectedError:
-        "FATAL ERROR: Migration 78: Invalid UserStorageController state error: 'undefined'",
+        "FATAL ERROR: Migration 79: Invalid UserStorageController state error: 'undefined'",
     },
   ])(
     'captures exception and returns state unchanged for invalid state - $test',
