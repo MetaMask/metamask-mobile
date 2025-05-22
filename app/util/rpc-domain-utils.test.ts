@@ -17,6 +17,18 @@ jest.mock('../store/storage-wrapper');
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
+// Define types for NetworkController mock
+interface NetworkConfiguration {
+  rpcUrl?: string;
+  rpcEndpoints?: Array<{ url: string }>;
+  defaultRpcEndpointIndex?: number;
+}
+
+interface MockNetworkController {
+  findNetworkClientIdByChainId: jest.Mock<string | null>;
+  getNetworkConfigurationByNetworkClientId: jest.Mock<NetworkConfiguration | null>;
+}
+
 describe('rpc-domain-utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -178,15 +190,15 @@ describe('rpc-domain-utils', () => {
 
   describe('getNetworkRpcUrl', () => {
     beforeEach(() => {
-      const mockNetworkController = {
+      const mockNetworkController: MockNetworkController = {
         findNetworkClientIdByChainId: jest.fn(),
         getNetworkConfigurationByNetworkClientId: jest.fn(),
       };
-      (Engine.context as any).NetworkController = mockNetworkController;
+      (Engine.context as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
     });
 
     it('should return RPC URL from legacy format', () => {
-      const mockNetworkController = Engine.context.NetworkController as jest.Mocked<any>;
+      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcUrl: 'https://legacy-rpc.com',
@@ -196,7 +208,7 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should return RPC URL from rpcEndpoints array', () => {
-      const mockNetworkController = Engine.context.NetworkController as jest.Mocked<any>;
+      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcEndpoints: [
@@ -210,14 +222,14 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should return unknown when network client ID not found', () => {
-      const mockNetworkController = Engine.context.NetworkController as jest.Mocked<any>;
+      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(null);
 
       expect(getNetworkRpcUrl('0x1')).toBe('unknown');
     });
 
     it('should return unknown when network configuration not found', () => {
-      const mockNetworkController = Engine.context.NetworkController as jest.Mocked<any>;
+      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
 
@@ -225,7 +237,7 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should handle errors gracefully', () => {
-      const mockNetworkController = Engine.context.NetworkController as jest.Mocked<any>;
+      const mockNetworkController = Engine.context.NetworkController;
       mockNetworkController.findNetworkClientIdByChainId.mockImplementation(() => {
         throw new Error('Test error');
       });
