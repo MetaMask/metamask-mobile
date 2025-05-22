@@ -23,7 +23,7 @@ const mockNetworks = [
     imageSource: { uri: 'https://ethereum.org/icon.png' },
     isSelected: false,
     yOffset: 0,
-    caipChainId: 'eip155:1' as const
+    caipChainId: 'eip155:1' as const,
   },
   {
     id: 'network-2',
@@ -31,7 +31,7 @@ const mockNetworks = [
     imageSource: { uri: 'https://polygon.org/icon.png' },
     isSelected: true,
     yOffset: 100,
-    caipChainId: 'eip155:137' as const
+    caipChainId: 'eip155:137' as const,
   },
 ];
 
