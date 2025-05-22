@@ -161,9 +161,11 @@ function sanitizeTransactionParamsGasValues(
   const envelopeType = transactionMeta.txParams.type;
 
   if (envelopeType === TransactionEnvelopeType.legacy) {
+    requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.legacy;
     delete requestedTransactionParamsToUpdate.maxFeePerGas;
     delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
   } else if (envelopeType === TransactionEnvelopeType.feeMarket) {
+    requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.feeMarket;
     delete requestedTransactionParamsToUpdate.gasPrice;
   }
 }
