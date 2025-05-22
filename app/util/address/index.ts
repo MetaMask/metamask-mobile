@@ -723,7 +723,7 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  const { standard, name, symbol, decimals } = tokenData;
+  const { standard, name, symbol, decimals, balance } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
@@ -735,6 +735,7 @@ export const getTokenDetails = async (
     symbol,
     decimals,
     standard,
+    balance,
   };
 };
 

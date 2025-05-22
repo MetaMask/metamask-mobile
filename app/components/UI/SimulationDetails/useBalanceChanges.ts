@@ -12,6 +12,7 @@ import {
   fetchTokenContractExchangeRates,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
+import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../core/Engine';
 import {
@@ -181,13 +182,20 @@ function getTokenBalanceChanges(
         ? erc20Decimals[asset.address] ?? ERC20_DEFAULT_DECIMALS
         : 0;
     const amount = getAssetAmount(tokenBc, decimals);
+    const balance = getAssetAmount(
+      {
+        difference: toHex(tokenBc.previousBalance),
+        isDecrease: false,
+      } as SimulationBalanceChange,
+      decimals,
+    );
 
     const fiatRate = erc20FiatRates[tokenBc.address];
     const fiatAmount = fiatRate
       ? amount.times(fiatRate).toNumber()
       : FIAT_UNAVAILABLE;
 
-    return { asset, amount, fiatAmount };
+    return { asset, amount, fiatAmount, balance, decimals };
   });
 }
 

@@ -5,6 +5,7 @@ import { View, ViewProps } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import EditRowValue from '../../../Views/confirmations/components/edit-row-value';
 import { useStyles } from '../../../hooks/useStyles';
 import { BalanceChange } from '../types';
 import AmountPill from '../AmountPill/AmountPill';
@@ -16,11 +17,13 @@ interface BalanceChangeRowProperties extends ViewProps {
   label?: string;
   showFiat?: boolean;
   balanceChange: BalanceChange;
+  enableEdit?: boolean;
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
-  label,
   balanceChange,
+  enableEdit,
+  label,
   showFiat,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -37,6 +40,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       )}
       <View style={styles.pillContainer}>
         <View style={styles.pills}>
+          {enableEdit && <EditRowValue balanceChange={balanceChange} />}
           <AmountPill
             asset={asset}
             amount={amount}

@@ -75,4 +75,6 @@ export type BalanceChange = Readonly<{
    * The amount of fiat currency that corresponds to the asset amount.
    */
   fiatAmount: FiatAmount;
+
+  balance?: BigNumber;
 }>;

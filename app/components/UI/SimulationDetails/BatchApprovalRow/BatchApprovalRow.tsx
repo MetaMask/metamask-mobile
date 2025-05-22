@@ -3,7 +3,7 @@ import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { useBatchApproveBalanceChanges } from '../../../Views/confirmations/hooks/7702/useBatchApproveBalanceChanges';
 import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
-import { BalanceChange } from '../types';
+import { AssetType, BalanceChange } from '../types';
 
 const BatchApprovalRow = () => {
   const { value: approveBalanceChanges } =
@@ -17,8 +17,9 @@ const BatchApprovalRow = () => {
     <>
       {approveBalanceChanges.map((balanceChange) => (
         <BalanceChangeRow
-          label={strings('confirm.simulation.label_change_type_approve')}
+          enableEdit={balanceChange.asset.type === AssetType.ERC20}
           balanceChange={balanceChange as BalanceChange}
+          label={strings('confirm.simulation.label_change_type_approve')}
         />
       ))}
     </>
