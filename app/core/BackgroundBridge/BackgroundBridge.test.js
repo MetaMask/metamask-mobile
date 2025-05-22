@@ -114,7 +114,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
     ...defaultBridgeParams,
   });
 
-  // Setup the engine property to support sendNotification
+  // Setup the engine property to support sendNotificationEip1193
   bridge.engine = {
     emit: jest.fn()
   };
@@ -243,7 +243,7 @@ describe('BackgroundBridge', () => {
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotification');
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationEip1193');
       const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
 
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
