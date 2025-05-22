@@ -111,7 +111,7 @@ browserstack.err
 e2e/reports
 
 # anvil binaries
-.metamask
+.metamask/*
 # ppom
 ppom/node_modules
 ppom/dist
