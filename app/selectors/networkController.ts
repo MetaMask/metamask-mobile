@@ -30,7 +30,6 @@ export type EvmAndMultichainNetworkConfigurationsWithCaipChainId = (
   caipChainId: CaipChainId;
 };
 
-
 interface InfuraRpcEndpoint {
   name?: string;
   networkClientId: BuiltInNetworkClientId;
