@@ -18,6 +18,7 @@ import { store } from '../../store';
 
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import ReduxService from '../../core/redux';
+import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
@@ -72,10 +73,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { SeedlessOnboardingController } = Engine.context;
 
   // TODO: to use loginCompleted
-  if (
-    ReduxService.store.getState().engine.backgroundState
-      .SeedlessOnboardingController.authConnection
-  ) {
+  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
