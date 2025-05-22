@@ -131,22 +131,31 @@ describe('rpc-domain-utils', () => {
   });
 
   describe('generateRPCProperties', () => {
-    it('returns { rpc_domain: "example.com" } for a known domain', () => {
+    it('returns { properties: { rpc_domain: "example.com" }, sensitiveProperties: {} } for a known domain', () => {
       jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('https://example.com');
       jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('example.com');
-      expect(generateRPCProperties('0x1')).toEqual({ rpc_domain: 'example.com' });
+      expect(generateRPCProperties('0x1')).toEqual({
+        properties: { rpc_domain: 'example.com' },
+        sensitiveProperties: {},
+      });
     });
 
-    it('returns { rpc_domain: "invalid" } for an invalid domain', () => {
+    it('returns { properties: { rpc_domain: "invalid" }, sensitiveProperties: {} } for an invalid domain', () => {
       jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('invalid-url');
       jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('invalid');
-      expect(generateRPCProperties('0x2')).toEqual({ rpc_domain: 'invalid' });
+      expect(generateRPCProperties('0x2')).toEqual({
+        properties: { rpc_domain: 'invalid' },
+        sensitiveProperties: {},
+      });
     });
 
-    it('returns { rpc_domain: "private" } for a private domain', () => {
+    it('returns { properties: { rpc_domain: "private" }, sensitiveProperties: {} } for a private domain', () => {
       jest.spyOn(rpcUtils, 'getNetworkRpcUrl').mockReturnValue('http://localhost:8545');
       jest.spyOn(rpcUtils, 'extractRpcDomain').mockReturnValue('private');
-      expect(generateRPCProperties('0x3')).toEqual({ rpc_domain: 'private' });
+      expect(generateRPCProperties('0x3')).toEqual({
+        properties: { rpc_domain: 'private' },
+        sensitiveProperties: {},
+      });
     });
   });
 });
