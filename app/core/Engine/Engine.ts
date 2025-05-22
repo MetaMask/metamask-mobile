@@ -1791,7 +1791,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectedInternalAccountFormattedAddress
+          selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
