@@ -8,6 +8,14 @@ let knownDomainsSet: Set<string> | null = null;
 let initPromise: Promise<void> | null = null;
 
 /**
+ * Reset the module state (for testing purposes)
+ */
+export function resetModuleState(): void {
+  knownDomainsSet = null;
+  initPromise = null;
+}
+
+/**
  * Get the list of safe chains from cache only
  * This allows us to use chain data without making network requests
  */

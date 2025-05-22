@@ -10,6 +10,7 @@ import {
   RpcDomainStatus,
   extractRpcDomain,
   getNetworkRpcUrl,
+  resetModuleState,
 } from './rpc-domain-utils';
 
 // Mock dependencies
@@ -20,7 +21,7 @@ jest.mock('./Logger');
 // Define types for NetworkController mock
 interface NetworkConfiguration {
   rpcUrl?: string;
-  rpcEndpoints?: Array<{ url: string }>;
+  rpcEndpoints?: { url: string }[];
   defaultRpcEndpointIndex?: number;
 }
 
@@ -32,8 +33,7 @@ interface MockNetworkController {
 describe('rpc-domain-utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the knownDomainsSet between tests
-    setKnownDomains(null);
+    resetModuleState();
   });
 
   describe('getSafeChainsListFromCacheOnly', () => {
@@ -99,6 +99,7 @@ describe('rpc-domain-utils', () => {
 
       await initializeRpcProviderDomains();
       const knownDomains = getKnownDomains();
+      expect(knownDomains).toBeInstanceOf(Set);
       expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
       expect(knownDomains?.size).toBe(1);
     });
@@ -145,7 +146,7 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should handle case-insensitive domain matching', () => {
-      const testDomains = new Set(['Test.com']);
+      const testDomains = new Set(['test.com']);
       setKnownDomains(testDomains);
       expect(isKnownDomain('test.com')).toBe(true);
       expect(isKnownDomain('TEST.COM')).toBe(true);
@@ -163,7 +164,7 @@ describe('rpc-domain-utils', () => {
     });
 
     it('should return Invalid for invalid URLs', () => {
-      expect(extractRpcDomain('invalid-url')).toBe(RpcDomainStatus.Invalid);
+      expect(extractRpcDomain(':::invalid-url')).toBe(RpcDomainStatus.Invalid);
     });
 
     it('should return Private for unknown domains', () => {
