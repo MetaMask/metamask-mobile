@@ -10,7 +10,7 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../__mocks__/mockData';
+} from '../../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
@@ -18,6 +18,11 @@ import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
+>;
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -37,9 +42,16 @@ const mockInitialState = {
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
-Image.getSize = jest.fn((_uri, success) => {
-  success(100, 100); // Mock successful response for ETH native Icon Image
-});
+Image.getSize = jest
+  .fn()
+  .mockImplementation(
+    (_uri: string, success?: (width: number, height: number) => void) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve({ width: 100, height: 100 });
+    },
+  );
 
 const mockNavigate = jest.fn();
 
@@ -120,6 +132,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
+}));
+
 afterEach(() => {
   jest.clearAllMocks();
 });
@@ -127,6 +143,9 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
   });
 
   it('render matches snapshot', () => {
@@ -198,6 +217,24 @@ describe('StakingBalance', () => {
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeNull();
   });
 
+  it('should not render stake cta if pooled staking is disabled', () => {
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
+
+    const { getByText, getByTestId, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
+
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByText(strings('stake.unstake'))).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+  });
+
   it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
     const { queryByText, queryByTestId } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
@@ -226,5 +263,24 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeTruthy();
     expect(queryByText(strings('stake.unstake'))).toBeTruthy();
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeTruthy();
+  });
+
+  // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
+  it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
+
+    const { getByText, getByTestId, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
+
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByText(strings('stake.unstake'))).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 });

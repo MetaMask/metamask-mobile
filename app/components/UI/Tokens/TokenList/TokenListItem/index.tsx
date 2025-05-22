@@ -71,6 +71,11 @@ import {
   selectMultichainAssetsRates,
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 import { FlashListAssetKey } from '..';
 interface TokenListItemProps {
@@ -134,6 +139,14 @@ export const TokenListItem = React.memo(
     const multiChainTokenBalance = useSelector(selectTokensBalances);
     const multiChainMarketData = useSelector(selectTokenMarketData);
     const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+
+    const earnTokens = useEarnTokens();
+
+    // Earn feature flags
+    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+    const isStablecoinLendingEnabled = useSelector(
+      selectStablecoinLendingEnabledFlag,
+    );
 
     const styles = createStyles(colors);
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -343,7 +356,7 @@ export const TokenListItem = React.memo(
             ticker={asset.ticker || ''}
             big={false}
             biggest={false}
-            testID={'PLACE HOLDER'}
+            testID={asset.name}
           />
         );
       }
@@ -355,7 +368,38 @@ export const TokenListItem = React.memo(
           size={AvatarSize.Md}
         />
       );
-    }, [asset, chainId, styles.ethLogo]);
+    }, [asset, styles.ethLogo, chainId]);
+
+    const renderEarnCta = useCallback(() => {
+      if (!asset) {
+        return null;
+      }
+      const isCurrentAssetEth = evmAsset?.isETH && !evmAsset?.isStaked;
+      const shouldShowPooledStakingCta =
+        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+
+      const isAssetSupportedStablecoin = earnTokens.find(
+        (token) =>
+          token.symbol === asset.symbol &&
+          asset.chainId === token?.chainId &&
+          !asset?.isStaked,
+      );
+      const shouldShowStablecoinLendingCta =
+        isAssetSupportedStablecoin && isStablecoinLendingEnabled;
+
+      if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
+        // TODO: Rename to EarnCta
+        return <StakeButton asset={asset} />;
+      }
+    }, [
+      asset,
+      earnTokens,
+      evmAsset?.isETH,
+      evmAsset?.isStaked,
+      isPooledStakingEnabled,
+      isStablecoinLendingEnabled,
+      isStakingSupportedChain,
+    ]);
 
     if (!asset || !chainId) {
       return null;
@@ -392,13 +436,13 @@ export const TokenListItem = React.memo(
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
-            {asset.isETH && isStakingSupportedChain && !asset.isStaked && (
-              <StakeButton asset={asset} />
-            )}
           </View>
-          {!isTestNet(chainId) && showPercentageChange ? (
-            <PercentageChange value={getPricePercentChange1d()} />
-          ) : null}
+          <View style={styles.percentageChange}>
+            {!isTestNet(chainId) && showPercentageChange ? (
+              <PercentageChange value={getPricePercentChange1d()} />
+            ) : null}
+            {renderEarnCta()}
+          </View>
         </View>
         <ScamWarningIcon
           asset={asset}

@@ -5,10 +5,22 @@ import {
   siweSignatureConfirmationState,
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
+  transferConfirmationState,
+  upgradeOnlyAccountConfirmation,
+  getAppStateForConfirmation,
+  downgradeAccountConfirmation,
+  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
 
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
@@ -61,5 +73,37 @@ describe('Confirm Title', () => {
     expect(
       getByText('Review request details before you confirm.'),
     ).toBeTruthy();
+  });
+
+  it('renders correct title for transfer', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: transferConfirmationState,
+    });
+    expect(getByText('Transfer request')).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for upgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(getByText("You're switching to a smart account.")).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for downgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(downgradeAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(
+      getByText("You're switching back to a standard account (EOA)."),
+    ).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for upgrade+batched confirmation', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Transaction request')).toBeTruthy();
   });
 });

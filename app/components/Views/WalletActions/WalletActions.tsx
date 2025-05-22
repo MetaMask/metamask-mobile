@@ -39,7 +39,6 @@ import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
-import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
@@ -54,7 +53,9 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -64,8 +65,14 @@ const WalletActions = () => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
+  const isDepositWalletActionEnabled = useSelector(
+    selectDepositEntrypointWalletActions,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -192,6 +199,12 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const onDeposit = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.DEPOSIT.ID);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const onSend = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_BUTTON_CLICKED)
@@ -226,6 +239,7 @@ const WalletActions = () => {
             scope: chainId as CaipChainId,
           },
         );
+        sheetRef.current?.onCloseBottomSheet();
       } catch {
         // Restore the previous page in case of any error
         sheetRef.current?.onCloseBottomSheet();
@@ -315,6 +329,16 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
+        {isDepositWalletActionEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Swap}
@@ -355,7 +379,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingEnabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}

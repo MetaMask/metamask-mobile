@@ -51,11 +51,18 @@ class Gestures {
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
-   * @param {number} timeout - Timeout for waiting (default: 8000ms)
+   * @param {Object} [options={}] - Configuration options
+   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
    */
-  static async waitAndTap(elementID, timeout = 15000) {
+  static async waitAndTap(elementID, options = {}) {
+    const { timeout = 15000, delayBeforeTap = 0 } = options;
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
+
+    if (delayBeforeTap > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
+    }
     await element.tap();
   }
 
@@ -77,9 +84,20 @@ class Gestures {
    *
    * @param {Promise<Detox.IndexableWebElement>} elementID - ID of the element to tap
    */
-  static async tapWebElement(elementID) {
+  static async tapWebElement(elementID, timeout = 15000) {
     const element = await elementID;
-    await element.tap();
+    // For web elements, we need to use a different approach to wait
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      try {
+        await expect(element).toExist();
+        await element.tap();
+        return;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+    throw new Error('Web element not found or not tappable');
   }
 
   /**

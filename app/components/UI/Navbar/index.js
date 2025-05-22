@@ -311,7 +311,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
-          name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+          name={'arrow-back'}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
         />
@@ -381,7 +381,7 @@ export function getPaymentRequestOptionsTitle(
           testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
-            name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+            name={'arrow-back'}
             size={Device.isAndroid() ? 24 : 28}
             style={innerStyles.headerIcon}
           />
@@ -396,7 +396,7 @@ export function getPaymentRequestOptionsTitle(
         style={styles.closeButton}
       >
         <IonicIcon
-          name={'ios-close'}
+          name={'close'}
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -440,7 +440,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         )}
       >
         <IonicIcon
-          name="ios-close"
+          name="close"
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -838,7 +838,7 @@ export function getClosableNavigationOptions(
           {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -874,7 +874,7 @@ export function getOfflineModalNavbar() {
  * @param {Object} navigation - The navigation object
  * @param {Object} themeColors - The theme colors object
  * @param {boolean} isNotificationEnabled - Whether notifications are enabled
- * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
+ * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
@@ -891,7 +891,7 @@ export function getWalletNavbarOptions(
   navigation,
   themeColors,
   isNotificationEnabled,
-  isProfileSyncingEnabled,
+  isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
 ) {
@@ -995,7 +995,7 @@ export function getWalletNavbarOptions(
         )
           .addProperties({
             action_type: 'started',
-            is_profile_syncing_enabled: isProfileSyncingEnabled,
+            is_profile_syncing_enabled: isBackupAndSyncEnabled,
           })
           .build(),
       );
@@ -1310,7 +1310,7 @@ export function getNetworkNavbarOptions(
           />
         }
         endAccessory={
-          onRightPress && (
+          onRightPress ? (
             <ButtonIcon
               style={styles.headerRightButton}
               onPress={onRightPress}
@@ -1318,6 +1318,9 @@ export function getNetworkNavbarOptions(
               iconName={IconName.MoreVertical}
               iconColor={IconColor.Default}
             />
+          ) : (
+            // Empty View to maintain layout spacing without showing a button
+            <View style={styles.headerRightButton} />
           )
         }
       >
@@ -1371,7 +1374,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
           {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1383,7 +1386,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
@@ -1506,7 +1509,7 @@ export function getPaymentMethodApplePayNavbar(
           style={styles.backButton}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1561,7 +1564,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1576,7 +1579,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
@@ -1701,7 +1704,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
         // eslint-disable-next-line react/jsx-no-bind
         <TouchableOpacity onPress={leftAction} style={styles.backButton}>
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
@@ -1842,7 +1845,7 @@ export function getFiatOnRampAggNavbar(
           accessible
         >
           <IonicIcon
-            name={'md-arrow-back'}
+            name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />

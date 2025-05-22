@@ -146,8 +146,6 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
@@ -208,7 +206,9 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import {
+  getPermissionSpecifications,
+} from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -296,13 +296,11 @@ type SnapsGlobalActions =
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
-  | SnapsAllowedActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
-  | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =

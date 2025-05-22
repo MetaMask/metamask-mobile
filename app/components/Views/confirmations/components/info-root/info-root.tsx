@@ -4,6 +4,7 @@ import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
@@ -11,6 +12,8 @@ import QRInfo from '../qr-info';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
+import SwitchAccountType from '../info/switch-account-type';
+import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
 
@@ -31,6 +34,8 @@ const ConfirmationInfoComponentMap = {
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
     switch (transactionType) {
+      case TransactionType.batch:
+        return ContractInteraction;
       case TransactionType.contractInteraction:
         return ContractInteraction;
       case TransactionType.stakingClaim:
@@ -39,6 +44,10 @@ const ConfirmationInfoComponentMap = {
         return StakingDeposit;
       case TransactionType.stakingUnstake:
         return StakingWithdrawal;
+      case TransactionType.simpleSend:
+      case TransactionType.tokenMethodTransfer:
+      case TransactionType.tokenMethodTransferFrom:
+        return Transfer;
       default:
         return null;
     }
@@ -53,9 +62,14 @@ const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
+  const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
 
   if (!approvalRequest?.type) {
     return null;
+  }
+
+  if (isDowngrade || isUpgradeOnly) {
+    return <SwitchAccountType />;
   }
 
   if (isSigningQRObject) {
@@ -75,7 +89,8 @@ const Info = ({ route }: InfoProps) => {
   if (!InfoComponent) return null;
 
   if (
-    transactionType && [
+    transactionType &&
+    [
       // We only need this path for stake withdrawal and claim confirmations
       // because they are passed the same route object as an argument that
       // contains the wei amount to be withdrawn / claimed. Staking deposit
@@ -85,11 +100,18 @@ const Info = ({ route }: InfoProps) => {
       TransactionType.stakingClaim,
     ].includes(transactionType)
   ) {
-    const StakingComponentWithArgs = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
-    return <StakingComponentWithArgs route={route as UnstakeConfirmationViewProps['route']} />;
+    const StakingComponentWithArgs =
+      InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+    return (
+      <StakingComponentWithArgs
+        route={route as UnstakeConfirmationViewProps['route']}
+      />
+    );
   }
 
-  const GenericComponent = InfoComponent as React.ComponentType<Record<string, never>>;
+  const GenericComponent = InfoComponent as React.ComponentType<
+    Record<string, never>
+  >;
   return <GenericComponent />;
 };
 

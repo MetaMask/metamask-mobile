@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ProfileSyncingModal should render correctly 1`] = `
+exports[`ResetNotificationsModal should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -126,6 +126,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
       >
         <SvgMock
           color="#ca3542"
+          fill="currentColor"
           height={32}
           name="Danger"
           style={
@@ -200,7 +201,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
                   "borderColor": "#4459ff",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",
@@ -247,7 +248,7 @@ exports[`ProfileSyncingModal should render correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#4459ff",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
