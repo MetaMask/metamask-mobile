@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import StorageWrapper from '../../store/storage-wrapper';
 import { useSafeChains, rpcIdentifierUtility, SafeChain } from './useSafeChains';
