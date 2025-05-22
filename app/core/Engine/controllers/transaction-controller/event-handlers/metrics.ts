@@ -5,9 +5,8 @@ import { merge } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
-import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import { BaseControllerMessenger } from '../../../types';
-import { generateDefaultTransactionMetrics, generateEvent, generateRPCProperties } from '../utils';
+import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
@@ -50,68 +49,6 @@ export const handleTransactionSubmittedEventForMetrics = createTransactionEventH
   TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
 );
 
-/**
- * Adds smart transaction properties to the event builder if smart transactions are enabled
- */
-async function addSmartTransactionProperties(
-  eventBuilder: ReturnType<typeof MetricsEventBuilder.createEventBuilder>,
-  transactionMeta: TransactionMeta,
-  transactionEventHandlerRequest: TransactionEventHandlerRequest,
-): Promise<void> {
-  const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
-
-  try {
-    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      getState(),
-      transactionMeta.chainId,
-    );
-
-    if (shouldUseSmartTransaction) {
-      const stxMetricsProperties = await getSmartTransactionMetricsProperties(
-        smartTransactionsController,
-        transactionMeta,
-        true,
-        initMessenger as unknown as BaseControllerMessenger,
-      );
-
-      eventBuilder.addProperties({
-        smart_transaction_timed_out: stxMetricsProperties.smart_transaction_timed_out,
-        smart_transaction_proxied: stxMetricsProperties.smart_transaction_proxied,
-      } as unknown as JsonMap);
-    }
-  } catch (error) {
-    Logger.log('Error getting smart transaction metrics:', error);
-  }
-}
-
-/**
- * Adds default properties (RPC + transaction metrics) to the event builder
- */
-function addDefaultProperties(
-  eventBuilder: ReturnType<typeof MetricsEventBuilder.createEventBuilder>,
-  transactionMeta: TransactionMeta,
-  transactionEventHandlerRequest: TransactionEventHandlerRequest,
-): void {
-  // Add RPC properties
-  const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-  eventBuilder.addProperties(rpcProperties);
-
-  // Add default transaction properties
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionEventHandlerRequest,
-  );
-
-  eventBuilder.addProperties(
-    defaultTransactionMetricProperties.properties as unknown as JsonMap
-  );
-
-  eventBuilder.addSensitiveProperties(
-    defaultTransactionMetricProperties.sensitiveProperties
-  );
-}
-
 export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
@@ -124,7 +61,7 @@ export async function handleTransactionFinalizedEventForMetrics(
   );
 
   // Generate smart transaction properties if applicable
-  let smartTransactionMetrics = {};
+  let smartTransactionProperties = { properties: {}, sensitiveProperties: {} };
   try {
     const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
@@ -132,19 +69,23 @@ export async function handleTransactionFinalizedEventForMetrics(
       transactionMeta.chainId,
     );
     if (shouldUseSmartTransaction) {
-      smartTransactionMetrics = await getSmartTransactionMetricsProperties(
+      const smartMetrics = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         true,
         initMessenger as unknown as BaseControllerMessenger,
       );
+      smartTransactionProperties = {
+        properties: smartMetrics,
+        sensitiveProperties: {},
+      };
     }
   } catch (error) {
     Logger.log('Error getting smart transaction metrics:', error);
   }
 
   // Merge default and smart transaction properties
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties, smartTransactionMetrics);
+  const mergedEventProperties = merge({}, defaultTransactionMetricProperties, smartTransactionProperties);
 
   // Generate and track the event
   const event = generateEvent({
