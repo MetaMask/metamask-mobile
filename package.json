@@ -305,7 +305,7 @@
     "expo": "52.0.27",
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.18",
-    "expo-file-system": "~18.0.12",
+    "expo-file-system": "~18.0.7",
     "fuse.js": "3.4.4",
     "he": "^1.2.0",
     "https-browserify": "0.0.1",
