@@ -244,7 +244,13 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -252,6 +258,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1268,6 +1275,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       >
                                                         <SvgMock
                                                           color="#4459ff"
+                                                          fill="currentColor"
                                                           height={16}
                                                           name="ArrowDown"
                                                           style={
@@ -1309,7 +1317,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     "alignSelf": "flex-start",
                                                     "backgroundColor": "transparent",
                                                     "borderColor": "#4459ff",
-                                                    "borderRadius": 24,
+                                                    "borderRadius": 12,
                                                     "borderWidth": 1,
                                                     "flex": 1,
                                                     "flexDirection": "row",
@@ -1348,7 +1356,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     "alignItems": "center",
                                                     "alignSelf": "flex-start",
                                                     "backgroundColor": "#4459ff",
-                                                    "borderRadius": 24,
+                                                    "borderRadius": 12,
                                                     "flex": 1,
                                                     "flexDirection": "row",
                                                     "height": 48,
@@ -1943,7 +1951,13 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1951,6 +1965,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3068,7 +3083,13 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3076,6 +3097,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4193,7 +4215,13 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4201,6 +4229,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5318,7 +5347,13 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5326,6 +5361,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -6645,7 +6681,13 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -6653,6 +6695,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7972,7 +8015,13 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -7980,6 +8029,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -8180,6 +8230,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8205,7 +8256,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -8605,7 +8656,13 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -8613,6 +8670,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -8813,6 +8871,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8838,7 +8897,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -9238,7 +9297,13 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -9246,6 +9311,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -9446,6 +9512,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -9471,7 +9538,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View

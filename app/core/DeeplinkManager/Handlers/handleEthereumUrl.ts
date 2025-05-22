@@ -1,14 +1,18 @@
-import { ETH_ACTIONS } from '../../../constants/deeplinks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import DeeplinkManager from '../DeeplinkManager';
+import { ETH_ACTIONS } from '../../../constants/deeplinks';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
 import { NetworkSwitchErrorType } from '../../../constants/error';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../util/networks';
-import Engine from '../../Engine';
 import { MAINNET } from '../../../constants/network';
+import Engine from '../../Engine';
+import DeeplinkManager from '../DeeplinkManager';
+import {
+  addTransactionForDeeplink,
+  isDeeplinkRedesignedConfirmationCompatible,
+} from '../../../components/Views/confirmations/utils/deeplink';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -41,6 +45,14 @@ async function handleEthereumUrl({
       ethUrl.chain_id === CHAIN_IDS.GOERLI
     ) {
       deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
+      return;
+    }
+
+    if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+      await addTransactionForDeeplink({
+        ...txMeta,
+        origin,
+      });
       return;
     }
 

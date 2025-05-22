@@ -1,6 +1,14 @@
-import { cloneDeep } from 'lodash';
 import React from 'react';
-import { generateContractInteractionState } from '../../../../../../../util/test/confirm-data-helpers';
+import { cloneDeep } from 'lodash';
+import { fireEvent } from '@testing-library/react-native';
+
+import {
+  downgradeAccountConfirmation,
+  generateContractInteractionState,
+  getAppStateForConfirmation,
+  upgradeAccountConfirmation,
+  upgradeOnlyAccountConfirmation,
+} from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import AdvancedDetailsRow from './advanced-details-row';
@@ -13,16 +21,21 @@ jest.mock('../../../../../../UI/Name', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock('../../../../legacy/SendFlow/components/CustomNonceModal', () => 'CustomNonceModal');
-jest.mock('../../../UI/expandable-section', () => 'ExpandableSection');
-jest.mock('../../../../../../../component-library/components/Texts/Text', () => ({
-  TextColor: { Primary: 'primary' },
-  TextVariant: { BodyMD: 'bodyMD' },
-  default: 'Text',
-}));
+jest.mock(
+  '../../../../legacy/SendFlow/components/CustomNonceModal',
+  () => 'CustomNonceModal',
+);
 
 jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
+}));
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
 }));
 
 describe('AdvancedDetailsRow', () => {
@@ -42,12 +55,13 @@ describe('AdvancedDetailsRow', () => {
   it('does not render when transaction metadata is missing', () => {
     // Create state without transaction to ensure metadata is missing
     const stateWithoutTransaction = cloneDeep(generateContractInteractionState);
-    stateWithoutTransaction.engine.backgroundState.TransactionController.transactions = [];
+    stateWithoutTransaction.engine.backgroundState.TransactionController.transactions =
+      [];
 
     const { toJSON } = renderWithProvider(
       <AdvancedDetailsRow />,
       { state: stateWithoutTransaction },
-      false
+      false,
     );
     expect(toJSON()).toBeNull();
   });
@@ -55,12 +69,13 @@ describe('AdvancedDetailsRow', () => {
   it('does not render when txParams.to is missing', () => {
     // Create a state with a transaction that has no 'to' field
     const stateWithoutTo = cloneDeep(generateContractInteractionState);
-    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to = undefined;
+    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to =
+      undefined;
 
     const { toJSON } = renderWithProvider(
       <AdvancedDetailsRow />,
       { state: stateWithoutTo },
-      false
+      false,
     );
     expect(toJSON()).toBeNull();
   });
@@ -76,10 +91,57 @@ describe('AdvancedDetailsRow', () => {
     renderWithProvider(
       <AdvancedDetailsRow />,
       { state: generateContractInteractionState },
-      false
+      false,
     );
 
     // Verify the hook was called
     expect(useEditNonce).toHaveBeenCalled();
+  });
+
+  it('display correct information for downgrade confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(downgradeAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(queryByText('Data')).toBeNull();
+    expect(queryByText('Interacting with')).toBeNull();
+  });
+
+  it('display correct information for upgrade confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('Smart contract')).toBeTruthy();
+    expect(queryByText('Data')).toBeNull();
+  });
+
+  it('display correct information for upgrade+batch confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(upgradeAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('Smart contract')).toBeTruthy();
+    expect(queryByText('Data')).toBeTruthy();
   });
 });

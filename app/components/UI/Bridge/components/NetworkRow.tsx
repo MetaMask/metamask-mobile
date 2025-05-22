@@ -29,7 +29,6 @@ interface NetworkRowProps {
 export const NetworkRow: React.FC<NetworkRowProps> = ({ chainId, chainName, children }) => {
   const { styles } = useStyles(createStyles, {});
 
-  // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const imageSource = getNetworkImageSource({ chainId });
 
   return (

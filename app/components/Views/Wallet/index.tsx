@@ -14,7 +14,9 @@ import {
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView, {
+  ChangeTabProperties,
+} from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
@@ -53,7 +55,6 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -62,18 +63,12 @@ import {
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
-  selectTokens,
-  selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
@@ -99,14 +94,13 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -119,10 +113,6 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
-import {
-  selectNativeEvmAsset,
-  selectStakedEvmAsset,
-} from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -162,7 +152,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
@@ -181,6 +170,66 @@ interface WalletProps {
   hideNftFetchingLoadingIndicator: () => void;
 }
 
+const WalletTokensTabView = React.memo(
+  (props: {
+    navigation: WalletProps['navigation'];
+    onChangeTab: (value: ChangeTabProperties) => void;
+  }) => {
+    const { navigation, onChangeTab } = props;
+    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+
+    const theme = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { colors } = theme;
+
+    const renderTabBar = useCallback(
+      (tabBarProps: Record<string, unknown>) => (
+        <View style={styles.base}>
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyle}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            tabPadding={16}
+            style={styles.tabBar}
+            {...tabBarProps}
+          />
+        </View>
+      ),
+      [styles, colors],
+    );
+
+    const tokensTabProps = useMemo(
+      () => ({
+        key: 'tokens-tab',
+        tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const collectibleContractsTabProps = useMemo(
+      () => ({
+        key: 'nfts-tab',
+        tabLabel: strings('wallet.collectibles'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    return (
+      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
+        <Tokens {...tokensTabProps} />
+        {isEvmSelected && (
+          <CollectibleContracts {...collectibleContractsTabProps} />
+        )}
+      </ScrollableTabView>
+    );
+  },
+);
+
 /**
  * Main view for the wallet
  */
@@ -197,7 +246,7 @@ const Wallet = ({
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -211,30 +260,10 @@ const Wallet = ({
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
-   * ETH to current currency conversion rate
-   */
-  const conversionRate = useSelector(selectConversionRate);
-  const contractBalances = useSelector(selectContractBalances);
-  /**
-   * Currency code of the currently-active currency
-   */
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  /**
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  /**
-   * An array that represents the user tokens
-   */
-  const tokens = useSelector(selectTokens);
-  /**
-   * An array that represents the user tokens by chainId and address
-   */
-  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
-  /**
-   * Current provider ticker
-   */
-  const ticker = useSelector(selectEvmTicker);
+
   /**
    * Current onboarding wizard step
    */
@@ -340,7 +369,7 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -348,7 +377,6 @@ const Wallet = ({
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const name = useSelector(selectNetworkName);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
@@ -359,8 +387,6 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
-  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -461,9 +487,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });
@@ -488,7 +514,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
-        isProfileSyncingEnabled,
+        isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
       ),
@@ -503,7 +529,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
   ]);
@@ -608,25 +634,6 @@ const Wallet = ({
     selectedNetworkClientId,
   ]);
 
-  const renderTabBar = useCallback(
-    (props) => (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.default}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          tabPadding={16}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
-    ),
-    [styles, colors],
-  );
-
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
     try {
       return {
@@ -640,7 +647,7 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
@@ -701,47 +708,8 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const tokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const collectibleContractsTabProps = useMemo(
-    () => ({
-      key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  function renderTokensContent() {
-    return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {isEvmSelected && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
-    );
-  }
-
-  const renderContent = useCallback(() => {
-    const assets = tokensByChainIdAndAddress
-      ? [...tokensByChainIdAndAddress]
-      : [];
-    if (nativeEvmAsset) {
-      assets.push(nativeEvmAsset);
-    }
-    if (stakedEvmAsset) {
-      assets.push(stakedEvmAsset);
-    }
-
-    return (
+  const renderContent = useCallback(
+    () => (
       <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
@@ -762,7 +730,10 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
-          {renderTokensContent()}
+          <WalletTokensTabView
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+          />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             <SolanaNewFeatureContent />
@@ -770,26 +741,17 @@ const Wallet = ({
           }
         </>
       </View>
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tokens,
-    accountBalanceByChainId,
-    styles,
-    colors,
-    basicFunctionalityEnabled,
-    turnOnBasicFunctionality,
-    onChangeTab,
-    navigation,
-    ticker,
-    conversionRate,
-    currentCurrency,
-    contractBalances,
-    isEvmSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    tokensByChainIdAndAddress,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+    ),
+    [
+      styles.banner,
+      styles.carouselContainer,
+      styles.wrapper,
+      basicFunctionalityEnabled,
+      turnOnBasicFunctionality,
+      onChangeTab,
+      navigation,
+    ],
+  );
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>

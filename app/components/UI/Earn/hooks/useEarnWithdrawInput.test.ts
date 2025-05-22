@@ -11,6 +11,7 @@ import useEarnWithdrawInputHandlers from './useEarnWithdrawInput';
 import useBalance from '../../Stake/hooks/useBalance';
 import useInputHandler from './useInput';
 import { EarnTokenDetails } from './useEarnTokenDetails';
+import { EARN_EXPERIENCES } from '../constants/experiences';
 
 jest.mock('../../Stake/hooks/useBalance');
 jest.mock('./useInput');
@@ -39,6 +40,7 @@ describe('useEarnWithdrawInputHandlers', () => {
     balance: '1',
     chainId: CHAIN_IDS.MAINNET,
     isNative: true,
+    experience: EARN_EXPERIENCES.POOLED_STAKING,
   };
 
   const mockConversionRate = 2000; // 1 ETH = $2000
@@ -173,6 +175,7 @@ describe('useEarnWithdrawInputHandlers', () => {
       earnToken: {
         ...mockEarnToken,
         isETH: false,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
       conversionRate: mockConversionRate,
       exchangeRate: mockExchangeRate,

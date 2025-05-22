@@ -309,7 +309,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -348,7 +348,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
@@ -378,34 +378,5 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       </TouchableOpacity>
     </View>
   </View>
-  <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
-    onSwipeComplete={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeDirection="down"
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />
 </View>
 `;

@@ -1,6 +1,7 @@
+import { CaipAccountId } from '@metamask/utils';
 import { USER_INTENT } from '../../../constants/permissions';
-import { Account } from '../../hooks/useAccounts';
-
+import { Account, EnsByAccountAddress } from '../../hooks/useAccounts';
+import { NetworkAvatarProps } from '../../Views/AccountConnect/AccountConnect.types';
 export interface PermissionsSummaryProps {
   currentPageInformation: {
     currentEnsName: string;
@@ -23,9 +24,12 @@ export interface PermissionsSummaryProps {
     chainName: string;
     chainId: string;
   };
-  accounts?: Account[];
-  accountAddresses?: string[];
-  networkAvatars?: ({ name: string; imageSource: string } | null)[];
+  accounts: Account[];
+  accountAddresses?: CaipAccountId[];
+  networkAvatars?: NetworkAvatarProps[];
   isNonDappNetworkSwitch?: boolean;
   onChooseFromPermittedNetworks?: () => void;
+  ensByAccountAddress?: EnsByAccountAddress;
+  setTabIndex?: (tabIndex: number) => void;
+  tabIndex?: number;
 }

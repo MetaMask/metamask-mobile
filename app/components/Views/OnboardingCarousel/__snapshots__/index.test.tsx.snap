@@ -83,7 +83,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View
@@ -433,7 +432,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View
@@ -783,7 +781,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View
@@ -1133,7 +1130,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View

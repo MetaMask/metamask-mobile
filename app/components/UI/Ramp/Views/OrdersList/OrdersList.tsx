@@ -57,7 +57,7 @@ function OrdersList() {
   );
 
   const handleNavigateToTxDetails = useCallback(
-    (orderId) => {
+    (orderId: string) => {
       navigation.navigate(
         ...createOrderDetailsNavDetails({
           orderId,

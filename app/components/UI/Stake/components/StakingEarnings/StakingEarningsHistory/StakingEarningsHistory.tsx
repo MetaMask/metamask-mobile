@@ -13,7 +13,7 @@ import {
 } from '../../../../../../selectors/currencyRateController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
-import { Hex } from '../../../../../../util/smart-transactions/smart-publish-hook';
+import { Hex } from '@metamask/utils';
 import {
   EarningsHistoryData,
   StakingEarningsHistoryProps,

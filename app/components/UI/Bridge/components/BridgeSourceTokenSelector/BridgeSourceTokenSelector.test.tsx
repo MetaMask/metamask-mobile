@@ -131,7 +131,7 @@ describe('BridgeSourceTokenSelector', () => {
 
     expect(setSourceToken).toHaveBeenCalledWith({
       address: '0x0000000000000000000000000000000000000001',
-      balance: '1',
+      balance: '1.0',
       balanceFiat: '$20000',
       chainId: '0x1',
       decimals: 18,

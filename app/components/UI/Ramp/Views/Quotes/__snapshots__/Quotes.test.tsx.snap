@@ -791,7 +791,13 @@ exports[`Quotes custom action renders correctly after animation with the recomme
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -799,6 +805,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1138,6 +1145,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -1361,6 +1369,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                               />
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -1380,7 +1389,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                   ]
                                                 }
                                               >
-                                                
+                                                
                                               </Text>
                                             </View>
                                           </TouchableOpacity>
@@ -1505,7 +1514,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 20,
+                                  "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
@@ -1531,34 +1540,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
                         </View>
                       </View>
                     </View>
@@ -1841,7 +1822,13 @@ exports[`Quotes renders animation on first fetching 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1849,6 +1836,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2933,7 +2921,13 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2941,6 +2935,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3261,6 +3256,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -3472,34 +3468,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </Text>
                                 </View>
                               </View>
-                              <Modal
-                                animationType="none"
-                                deviceHeight={null}
-                                deviceWidth={null}
-                                hardwareAccelerated={false}
-                                hideModalContentWhileAnimating={false}
-                                onBackdropPress={[Function]}
-                                onModalHide={[Function]}
-                                onModalWillHide={[Function]}
-                                onModalWillShow={[Function]}
-                                onRequestClose={[Function]}
-                                panResponderThreshold={4}
-                                scrollHorizontal={false}
-                                scrollOffset={0}
-                                scrollOffsetMax={0}
-                                scrollTo={null}
-                                statusBarTranslucent={false}
-                                supportedOrientations={
-                                  [
-                                    "portrait",
-                                    "landscape",
-                                  ]
-                                }
-                                swipeDirection="down"
-                                swipeThreshold={100}
-                                transparent={true}
-                                visible={false}
-                              />
                               <View
                                 style={
                                   [
@@ -3528,7 +3496,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   collapsable={false}
                                   onScroll={[Function]}
                                   scrollEventThrottle={16}
-                                  style={{}}
                                 >
                                   <View>
                                     <View
@@ -3679,6 +3646,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       />
                                                       <Text
                                                         allowFontScaling={false}
+                                                        selectable={false}
                                                         style={
                                                           [
                                                             {
@@ -3698,7 +3666,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           ]
                                                         }
                                                       >
-                                                        
+                                                        
                                                       </Text>
                                                     </View>
                                                   </TouchableOpacity>
@@ -4027,6 +3995,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       />
                                                       <Text
                                                         allowFontScaling={false}
+                                                        selectable={false}
                                                         style={
                                                           [
                                                             {
@@ -4046,7 +4015,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           ]
                                                         }
                                                       >
-                                                        
+                                                        
                                                       </Text>
                                                     </View>
                                                   </TouchableOpacity>
@@ -4300,6 +4269,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       />
                                                       <Text
                                                         allowFontScaling={false}
+                                                        selectable={false}
                                                         style={
                                                           [
                                                             {
@@ -4319,7 +4289,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           ]
                                                         }
                                                       >
-                                                        
+                                                        
                                                       </Text>
                                                     </View>
                                                   </TouchableOpacity>
@@ -4770,7 +4740,13 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4778,6 +4754,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5117,6 +5094,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 >
                                   <SvgMock
                                     color="#121314"
+                                    fill="currentColor"
                                     height={16}
                                     name="Close"
                                     style={
@@ -5428,6 +5406,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 />
                                                 <Text
                                                   allowFontScaling={false}
+                                                  selectable={false}
                                                   style={
                                                     [
                                                       {
@@ -5447,7 +5426,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     ]
                                                   }
                                                 >
-                                                  
+                                                  
                                                 </Text>
                                               </View>
                                             </TouchableOpacity>
@@ -5636,7 +5615,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
                                   "backgroundColor": "transparent",
-                                  "borderRadius": 20,
+                                  "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
@@ -5662,34 +5641,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
                         </View>
                       </View>
                     </View>
@@ -5972,7 +5923,13 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5980,6 +5937,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -6266,6 +6224,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -6291,7 +6250,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -6714,7 +6673,13 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -6722,6 +6687,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7008,6 +6974,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -7033,7 +7000,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -7456,7 +7423,13 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -7464,6 +7437,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7750,6 +7724,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -7775,7 +7750,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -8198,7 +8173,13 @@ exports[`Quotes renders quotes expired screen 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -8206,6 +8187,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -8492,6 +8474,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8517,7 +8500,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅐
                                 </Text>
                               </View>
                               <View

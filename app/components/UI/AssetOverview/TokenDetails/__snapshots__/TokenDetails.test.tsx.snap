@@ -93,6 +93,7 @@ exports[`TokenDetails should render correctly 1`] = `
           </Text>
           <SvgMock
             color="#4459ff"
+            fill="currentColor"
             height={16}
             name="Copy"
             style={

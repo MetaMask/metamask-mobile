@@ -111,7 +111,7 @@ describe('UrlAutocomplete', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should show sites from dapp list', async () => {

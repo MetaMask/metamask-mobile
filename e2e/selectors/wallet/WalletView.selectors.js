@@ -64,23 +64,12 @@ export const WalletViewSelectorsIDs = {
     'profile-button-avatar-network-subtitle-container',
   // Carousel selectors
   CAROUSEL_CONTAINER: 'carousel-container',
-  CAROUSEL_FIRST_SLIDE: 'carousel-first-slide',
-  CAROUSEL_FIRST_SLIDE_TITLE: 'carousel-first-slide-title',
-  CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON: 'carousel-first-slide-close-button',
-  CAROUSEL_SECOND_SLIDE: 'carousel-second-slide',
-  CAROUSEL_SECOND_SLIDE_TITLE: 'carousel-second-slide-title',
-  CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON: 'carousel-second-slide-close-button',
-  CAROUSEL_THIRD_SLIDE: 'carousel-third-slide',
-  CAROUSEL_THIRD_SLIDE_TITLE: 'carousel-third-slide-title',
-  CAROUSEL_THIRD_SLIDE_CLOSE_BUTTON: 'carousel-third-slide-close-button',
-  CAROUSEL_FOURTH_SLIDE: 'carousel-fourth-slide',
-  CAROUSEL_FOURTH_SLIDE_TITLE: 'carousel-fourth-slide-title',
-  CAROUSEL_FOURTH_SLIDE_CLOSE_BUTTON: 'carousel-fourth-slide-close-button',
-  CAROUSEL_FIFTH_SLIDE: 'carousel-fifth-slide',
-  CAROUSEL_FIFTH_SLIDE_TITLE: 'carousel-fifth-slide-title',
-  CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON: 'carousel-fifth-slide-close-button',
+
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
-  CAROUSEL_SLIDE: 'carousel-slide',
+  CAROUSEL_SLIDE: (id) => `carousel-slide-${id}`,
+  CAROUSEL_SLIDE_TITLE: (id) => `carousel-slide-${id}-title`,
+  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) =>
+    `carousel-slide-${id}-close-button`,
 };
 
 export const WalletViewSelectorsText = {
@@ -91,4 +80,6 @@ export const WalletViewSelectorsText = {
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
   NAVBAR_TITLE_TEXT: 'Wallet',
+  PERMISSIONS_SUMMARY_TAB: 'Permissions',
+  ACCOUNTS_SUMMARY_TAB: 'Accounts',
 };

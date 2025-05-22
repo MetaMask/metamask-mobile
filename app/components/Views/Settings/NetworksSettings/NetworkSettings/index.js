@@ -35,7 +35,6 @@ import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { PopularList } from '../../../../../util/networks/customNetworks';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -57,6 +56,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlagController/walletFramework';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
@@ -461,11 +461,16 @@ export class NetworkSettings extends PureComponent {
      * Token network filter
      */
     tokenNetworkFilter: PropTypes.object,
+
+    /**
+     * Whether or not the RPC failover feature is enabled
+     */
+    isRpcFailoverEnabled: PropTypes.bool,
   };
 
   state = {
     rpcUrl: undefined,
-    failoverRpcUrls: [],
+    failoverRpcUrls: undefined,
     rpcName: undefined,
     rpcUrlFrom: undefined,
     rpcNameForm: '',
@@ -1313,7 +1318,7 @@ export class NetworkSettings extends PureComponent {
     const rpcName = name ?? '';
     const newRpcUrl = {
       url,
-      failoverUrls: [],
+      failoverUrls: undefined,
       name: rpcName,
       type: RpcEndpointType.Custom,
     };
@@ -1667,7 +1672,7 @@ export class NetworkSettings extends PureComponent {
       rpcName,
       blockExplorerUrlForm,
     } = this.state;
-    const { route, networkConfigurations } = this.props;
+    const { route, isRpcFailoverEnabled } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
@@ -1736,7 +1741,7 @@ export class NetworkSettings extends PureComponent {
 
     const selectedNetwork = {
       rpcUrl: url.href,
-      failoverRpcUrls: [],
+      failoverRpcUrls: undefined,
       ticker,
       nickname,
       rpcPrefs: {
@@ -1994,9 +1999,11 @@ export class NetworkSettings extends PureComponent {
                           {rpcName || formatNetworkRpcUrl(rpcUrl)}
                         </Text>
                       </View>
-                      {failoverRpcUrls.length > 0 && (
-                        <Tag label={strings('app_settings.failover')} />
-                      )}
+                      {isRpcFailoverEnabled &&
+                        failoverRpcUrls &&
+                        failoverRpcUrls.length > 0 && (
+                          <Tag label={strings('app_settings.failover')} />
+                        )}
                     </View>
                   }
                   secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
@@ -2047,18 +2054,20 @@ export class NetworkSettings extends PureComponent {
                 )
               : null}
 
-            {failoverRpcUrls.length > 0 && (
-              <>
-                <Text style={styles.label}>
-                  {strings('app_settings.network_failover_rpc_url_label')}
-                </Text>
-                <TextInput
-                  style={[styles.input, styles.inputDisabled]}
-                  value={onlyKeepHost(failoverRpcUrls[0])}
-                  editable={false}
-                />
-              </>
-            )}
+            {isRpcFailoverEnabled &&
+              failoverRpcUrls &&
+              failoverRpcUrls.length > 0 && (
+                <>
+                  <Text style={styles.label}>
+                    {strings('app_settings.network_failover_rpc_url_label')}
+                  </Text>
+                  <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={onlyKeepHost(failoverRpcUrls[0])}
+                    editable={false}
+                  />
+                </>
+              )}
 
             <Text style={styles.label}>
               {strings('app_settings.network_chain_id_label')}
@@ -2430,9 +2439,13 @@ export class NetworkSettings extends PureComponent {
                                   {formattedName || formatNetworkRpcUrl(url)}
                                 </Text>
                               </View>
-                              {failoverUrls.length > 0 && (
-                                <Tag label={strings('app_settings.failover')} />
-                              )}
+                              {isRpcFailoverEnabled &&
+                                failoverUrls &&
+                                failoverUrls.length > 0 && (
+                                  <Tag
+                                    label={strings('app_settings.failover')}
+                                  />
+                                )}
                             </View>
                           }
                           secondaryText={
@@ -2654,6 +2667,7 @@ const mapStateToProps = (state) => ({
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
   isAllNetworks: selectIsAllNetworks(state),
   tokenNetworkFilter: selectTokenNetworkFilter(state),
+  isRpcFailoverEnabled: selectIsRpcFailoverEnabled(state),
 });
 
 export default compose(

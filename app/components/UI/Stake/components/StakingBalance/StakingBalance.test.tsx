@@ -10,7 +10,7 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../__mocks__/mockData';
+} from '../../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
@@ -42,9 +42,16 @@ const mockInitialState = {
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
-Image.getSize = jest.fn((_uri, success) => {
-  success(100, 100); // Mock successful response for ETH native Icon Image
-});
+Image.getSize = jest
+  .fn()
+  .mockImplementation(
+    (_uri: string, success?: (width: number, height: number) => void) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve({ width: 100, height: 100 });
+    },
+  );
 
 const mockNavigate = jest.fn();
 

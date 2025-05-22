@@ -689,7 +689,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           avatarProps={
             {
               "imageSource": 1,
-              "name": "Solana Mainnet",
+              "name": "Solana",
               "variant": "Network",
             }
           }
@@ -703,7 +703,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
           }
           testID="celldisplay"
-          title="Solana Mainnet"
+          title="Solana"
         >
           <View
             style={
@@ -763,7 +763,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="cellbase-avatar-title"
               >
-                Solana Mainnet
+                Solana
               </Text>
             </View>
             <View

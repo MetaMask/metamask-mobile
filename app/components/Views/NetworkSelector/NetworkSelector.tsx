@@ -60,9 +60,7 @@ import {
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
-import {
-  InfuraNetworkType,
-} from '@metamask/controller-utils';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
@@ -83,11 +81,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-import {
-  TraceName,
-  TraceOperation,
-  trace,
-} from '../../../util/trace';
+import { TraceName, TraceOperation, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -171,7 +165,7 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-
+  
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -233,14 +227,17 @@ const NetworkSelector = () => {
         networkConfiguration.rpcEndpoints.length > 1,
     );
 
-  const openRpcModal = useCallback(({ chainId, networkName }) => {
-    setShowMultiRpcSelectModal({
-      isVisible: true,
-      chainId,
-      networkName,
-    });
-    rpcMenuSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: Hex; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
 
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
@@ -252,7 +249,12 @@ const NetworkSelector = () => {
   }, []);
 
   const openModal = useCallback(
-    (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
+    (
+      chainId: Hex,
+      displayEdit: boolean,
+      networkTypeOrRpcUrl: string,
+      isReadOnly: boolean,
+    ) => {
       setNetworkMenuModal({
         isVisible: true,
         chainId,
@@ -518,7 +520,6 @@ const NetworkSelector = () => {
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
       if (isNetworkUiRedesignEnabled()) {

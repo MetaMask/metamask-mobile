@@ -18,6 +18,7 @@ jest.mock('../../utils/quoteUtils', () => ({
 
 const mockSelectPrimaryCurrency = jest.fn();
 jest.mock('../../../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../../../selectors/settings'),
   selectPrimaryCurrency: () => mockSelectPrimaryCurrency(),
 }));
 
@@ -29,6 +30,27 @@ jest.mock('@metamask/bridge-controller', () => {
     selectBridgeQuotes: jest.fn(),
   };
 });
+
+// Mock Engine context
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      getNetworkClientById: jest.fn(() => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      })),
+    },
+  },
+}));
+
+// Mock getProviderByChainId
+jest.mock('../../../../../util/notifications/methods/common', () => ({
+  getProviderByChainId: jest.fn(() => ({
+    getBalance: jest.fn().mockResolvedValue('1000000000000000000'),
+  })),
+}));
 
 describe('useBridgeQuoteData', () => {
   beforeEach(() => {
@@ -62,7 +84,7 @@ describe('useBridgeQuoteData', () => {
     expect(result.current).toEqual({
       activeQuote: mockQuoteWithMetadata,
       bestQuote: mockQuoteWithMetadata,
-      destTokenAmount: '57.06',
+      destTokenAmount: '57.056221',
       formattedQuoteData: {
         networkFee: '-',
         estimatedTime: '1 min',

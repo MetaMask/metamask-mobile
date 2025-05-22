@@ -89,7 +89,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           networkClientId: 'mainnet',
           type: 'custom',
           url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          failoverUrls: [],
         },
       ],
     },
@@ -102,7 +101,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           networkClientId: 'goerli',
           type: 'custom',
           url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-          failoverUrls: [],
         },
       ],
     },
@@ -270,7 +268,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -325,7 +322,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -371,7 +367,6 @@ describe('NetworkSettings', () => {
             {
               networkClientId: 'mainnet',
               url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Custom,
             },
           ],
@@ -421,7 +416,6 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Custom,
               name: 'Ethereum mainnet',
             },
@@ -535,7 +529,6 @@ describe('NetworkSettings', () => {
           rpcEndpoints: [
             {
               url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
-              failoverUrls: [],
               type: RpcEndpointType.Infura,
             },
           ],
@@ -995,7 +988,6 @@ describe('NetworkSettings', () => {
         rpcUrls: [
           {
             url: 'http://localhost:8545',
-            failoverUrls: [],
             type: 'custom',
             name: 'test',
           },
@@ -1149,6 +1141,7 @@ describe('NetworkSettings', () => {
       // Call the function
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1156,7 +1149,7 @@ describe('NetworkSettings', () => {
       // Assert that state was updated
       expect(wrapper.state('rpcUrl')).toBe('https://example.com');
       expect(wrapper.state('validatedRpcURL')).toBe(false);
-      expect(wrapper.state('rpcName')).toBe('Custom');
+      expect(wrapper.state('rpcName')).toBe('Test Network');
       expect(wrapper.state('warningRpcUrl')).toBeUndefined();
       expect(wrapper.state('warningChainId')).toBeUndefined();
       expect(wrapper.state('warningSymbol')).toBeUndefined();
@@ -1174,7 +1167,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
-        [],
+        undefined,
         null,
         'Custom',
       );
@@ -1194,6 +1187,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        undefined,
         'Test Network',
         'Custom',
       );
@@ -1227,7 +1221,6 @@ describe('NetworkSettings', () => {
                 networkClientId: 'mainnet',
                 type: 'Infura',
                 url: 'https://mainnet.infura.io/v3/',
-                failoverUrls: [],
               },
             ],
             name: 'Ethereum Main Network',
@@ -1305,7 +1298,6 @@ describe('NetworkSettings', () => {
             rpcEndpoints: [
               {
                 url: 'https://custom-network.io',
-                failoverUrls: [],
                 type: RpcEndpointType.Custom,
               },
             ],
@@ -1392,7 +1384,6 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -1421,7 +1412,6 @@ describe('NetworkSettings', () => {
         rpcUrls: [
           {
             url: 'http://localhost:8080',
-            failoverUrls: [],
             type: 'custom',
             name: '',
           },
@@ -1448,7 +1438,6 @@ describe('NetworkSettings', () => {
               name: '',
               type: 'custom',
               url: 'http://localhost:8080',
-              failoverUrls: [],
             },
           ],
         }),
@@ -1466,7 +1455,6 @@ describe('NetworkSettings', () => {
         rpcEndpoints: [
           {
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       },
@@ -1478,7 +1466,6 @@ describe('NetworkSettings', () => {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       },
@@ -1530,7 +1517,6 @@ describe('NetworkSettings', () => {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
           },
         ],
       };

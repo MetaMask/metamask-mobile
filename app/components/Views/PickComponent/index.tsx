@@ -62,7 +62,8 @@ export default class PickComponent extends PureComponent<PickComponentProps> {
   render = () => {
     const { selectedValue, valueFirst, valueSecond, textFirst, textSecond } =
       this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors =
+      (this.context as unknown as Theme).colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return (

@@ -34,7 +34,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     removeClippedSubviews={false}
     renderItem={[Function]}
     renderScrollComponent={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     showsVerticalScrollIndicator={false}
     stickyHeaderIndices={[]}
     style={
@@ -228,7 +228,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     removeClippedSubviews={false}
     renderItem={[Function]}
     renderScrollComponent={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     showsVerticalScrollIndicator={false}
     stickyHeaderIndices={[]}
     style={
@@ -408,6 +408,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 </Text>
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -427,7 +428,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     ]
                   }
                 >
-                  
+                  
                 </Text>
               </TouchableOpacity>
             </View>
@@ -666,6 +667,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 </Text>
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -685,7 +687,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     ]
                   }
                 >
-                  
+                  
                 </Text>
               </TouchableOpacity>
             </View>

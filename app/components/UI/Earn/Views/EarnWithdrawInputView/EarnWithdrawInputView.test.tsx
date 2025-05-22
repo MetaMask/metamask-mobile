@@ -13,9 +13,10 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
+import { flushPromises } from '../../../../../util/test/utils';
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -250,9 +251,8 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('Review'));
 
-      jest.useRealTimers();
-      // Wait for the async operation to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      jest.useFakeTimers({ legacyFakeTimers: true });
+      await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {

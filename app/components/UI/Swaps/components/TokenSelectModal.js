@@ -399,7 +399,7 @@ function TokenSelectModal({
         </Text>
         <TouchableWithoutFeedback onPress={handleSearchPress}>
           <View style={styles.inputWrapper}>
-            <Icon name="ios-search" size={20} style={styles.searchIcon} />
+            <Icon name="search" size={20} style={styles.searchIcon} />
             <TextInput
               ref={searchInput}
               style={styles.input}
@@ -413,7 +413,7 @@ function TokenSelectModal({
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
                 <Icon
-                  name="ios-close-circle"
+                  name="close-circle"
                   size={20}
                   style={styles.searchIcon}
                 />
