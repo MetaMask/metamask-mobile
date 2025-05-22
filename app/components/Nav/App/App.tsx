@@ -959,7 +959,6 @@ const App: React.FC = () => {
             await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
           await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
-
         // Ensure last version is set
         const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
@@ -973,7 +972,6 @@ const App: React.FC = () => {
         }
       } catch (error) {
         Logger.error(error as Error, 'Error in startApp');
-        throw error;
       }
     }
 

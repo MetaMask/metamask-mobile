@@ -166,6 +166,7 @@ class StorageWrapper {
   static handleFreshInstallWithRestoredData = () => {
     (async () => {
       try {
+        const storage = StorageWrapper.getInstance();
         // Check if we've already performed this check
         const freshInstallCheckDone = await AsyncStorage.getItem(
           FRESH_INSTALL_CHECK_DONE,
@@ -179,8 +180,8 @@ class StorageWrapper {
 
           if (isFreshInstall) {
             // On fresh install, always clear storage to ensure a clean state
-            await StorageWrapper.getInstance().clearAll();
-            await AsyncStorage.removeItem(EXISTING_USER);
+            await storage.clearAll();
+            await storage.removeItem(EXISTING_USER);
             await AsyncStorage.removeItem(FRESH_INSTALL_CHECK_DONE);
           }
 
