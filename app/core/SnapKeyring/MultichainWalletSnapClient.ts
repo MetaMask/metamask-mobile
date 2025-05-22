@@ -41,7 +41,6 @@ export interface MultichainWalletSnapOptions {
   scope?: CaipChainId;
   synchronize?: boolean;
   entropySource?: string;
-  derivationPath?: string;
   accountNameSuggestion?: string;
   derivationPath?: string;
 }
