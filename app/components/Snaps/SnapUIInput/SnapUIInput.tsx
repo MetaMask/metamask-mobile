@@ -65,7 +65,7 @@ export const SnapUIInput = ({
   const handleBlur = () => setCurrentFocusedInput(null);
 
   // Compact testID assignment
-  const inputTestID = testID ?? (name.includes('amount') ? 'send-amount-input' : name.includes('send-to') ? 'snap-input-send-to' : undefined);
+  const inputTestID = testID ?? (name.includes('amount') ? 'send-amount-input' : name.includes('send-to') ? 'snap-input-send-to' : 'input');
 
   return (
     <Box style={style}>

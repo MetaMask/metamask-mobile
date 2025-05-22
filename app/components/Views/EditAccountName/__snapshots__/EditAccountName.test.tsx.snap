@@ -159,6 +159,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "paddingVertical": 0,
               }
             }
+            testID="input"
           />
         </View>
       </View>
