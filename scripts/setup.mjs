@@ -357,7 +357,7 @@ const prepareDependenciesTask = {
         runLavamoatAllowScriptsTask,
         patchPackageTask,
         installFoundryTask,
-        expoBuildLinks
+        expoBuildLinks,
       ],
       {
         exitOnError: true,
