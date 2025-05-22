@@ -62,7 +62,6 @@ jest.mock('../../core/Engine', () => ({
   context: {
     TransactionController: {
       getTransactions: jest.fn(),
-
       addTransaction: jest.fn(),
       estimateGas: jest.fn(),
       estimateGasFee: jest.fn(),
@@ -140,7 +139,9 @@ describe('Transaction Controller Util', () => {
       const proxyMethodsKeys = Object.keys(proxyMethods);
       proxyMethodsKeys.forEach((key) => {
         const proxyMethod = proxyMethods[key as keyof typeof proxyMethods];
-        proxyMethod();
+        // This is to avoid type errors when calling the proxy method no type can be inferred
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        proxyMethod({} as any);
         expect(
           Engine.context.TransactionController[
             key as keyof typeof proxyMethods
