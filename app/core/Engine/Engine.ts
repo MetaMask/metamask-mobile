@@ -214,7 +214,8 @@ import {
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
-import { MultichainRouter } from '@metamask/snaps-controllers';
+import { MultichainRouter, MultichainRouterMessenger, MultichainRouterArgs } from '@metamask/snaps-controllers';
+import { MultichainRouterGetSupportedAccountsEvent, MultichainRouterIsSupportedScopeEvent } from './controllers/multichain-router/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -354,11 +355,11 @@ export class Engine {
         process.env.IN_TEST
           ? {}
           : {
-              pollingInterval: 20 * SECOND,
-              // The retry timeout is pretty short by default, and if the endpoint is
-              // down, it will end up exhausting the max number of consecutive
-              // failures quickly.
-              retryTimeout: 20 * SECOND,
+            pollingInterval: 20 * SECOND,
+            // The retry timeout is pretty short by default, and if the endpoint is
+            // down, it will end up exhausting the max number of consecutive
+            // failures quickly.
+            retryTimeout: 20 * SECOND,
           },
       getRpcServiceOptions: (rpcEndpointUrl: string) => {
         const maxRetries = 4;
@@ -885,17 +886,13 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
-        //@ts-expect-error typescript FIXME: [ffmcgee]
-        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
+        isNonEvmScopeSupported: this.getMultichainRouterMessenger().call.bind(
           this.controllerMessenger,
-          //@ts-expect-error typescript FIXME: [ffmcgee]
-          'MultichainRouter:isSupportedScope',
+          MultichainRouterIsSupportedScopeEvent,
         ),
-        //@ts-expect-error typescript FIXME: [ffmcgee]
-        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
+        getNonEvmAccountAddresses: this.getMultichainRouterMessenger().call.bind(
           this.controllerMessenger,
-          //@ts-expect-error typescript FIXME: [ffmcgee]
-          'MultichainRouter:getSupportedAccounts',
+          MultichainRouterGetSupportedAccountsEvent,
         ),
       }),
       permissionSpecifications: {
@@ -1582,7 +1579,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
@@ -1658,13 +1655,11 @@ export class Engine {
         `AccountsController:listMultichainAccounts`,
       ],
       allowedEvents: [],
-    });
+    }) as MultichainRouterMessenger;
 
     this.multichainRouter = new MultichainRouter({
-      //@ts-expect-error FIXME [ffmcgee] types
       messenger: multichainRouterMessenger,
-      //@ts-expect-error FIXME [ffmcgee] types
-      withSnapKeyring,
+      withSnapKeyring: withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
 
     this.configureControllersOnNetworkChange();
@@ -1783,7 +1778,7 @@ export class Engine {
       const chainIdHex = toHexadecimal(chainId);
       const tokens =
         TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
+        selectedInternalAccount.address
         ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
@@ -1796,7 +1791,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
+        selectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceHex =
@@ -1837,7 +1832,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1848,9 +1843,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2124,6 +2119,10 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
+  }
+
+  private getMultichainRouterMessenger(): MultichainRouterMessenger {
+    return this.controllerMessenger as unknown as MultichainRouterMessenger;
   }
 }
 

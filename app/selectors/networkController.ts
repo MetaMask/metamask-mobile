@@ -212,7 +212,7 @@ export const selectNetworkConfigurations = createDeepEqualSelector(
  */
 export const getNetworkConfigurationsByCaipChainId = (
   evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-  nonEvmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
 ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
   const networkConfigurationsByCaipChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
   };
@@ -246,7 +246,6 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
   ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> =>
     getNetworkConfigurationsByCaipChainId(
       evmNetworkConfigurationsByChainId,
-      //@ts-expect-error [ffmcge] FIXME
       nonEvmNetworkConfigurationsByChainId,
     )
 );
