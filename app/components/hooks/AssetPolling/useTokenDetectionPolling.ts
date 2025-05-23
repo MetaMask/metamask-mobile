@@ -55,8 +55,6 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
           ]
         : [],
   });
-
-  return {};
 };
 
 export default useTokenDetectionPolling;

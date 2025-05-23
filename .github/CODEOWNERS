@@ -14,7 +14,6 @@ app/selectors/featureFlagController/*                       @MetaMask/mobile-pla
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
 bitrise.yml                                                 @MetaMask/mobile-platform
-yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -132,6 +131,7 @@ app/components/UI/CollectibleMedia @MetaMask/metamask-assets
 app/components/UI/CollectibleModal @MetaMask/metamask-assets
 app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
+app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
@@ -144,6 +144,8 @@ app/components/Views/DetectedTokens @MetaMask/metamask-assets
 app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
 app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
+app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
+app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux
