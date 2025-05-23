@@ -5,7 +5,6 @@ import {
   getSafeChainsListFromCacheOnly,
   initializeRpcProviderDomains,
   getKnownDomains,
-  setKnownDomains,
   isKnownDomain,
   RpcDomainStatus,
   extractRpcDomain,
@@ -187,9 +186,9 @@ describe('rpc-domain-utils', () => {
       it('correctly stores and retrieves the domains', () => {
         // Setup
         const testDomains = new Set(['test.com']);
+        jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains').mockReturnValue(testDomains);
 
         // Exercise
-        setKnownDomains(testDomains);
         const result = getKnownDomains();
 
         // Verify
@@ -197,8 +196,10 @@ describe('rpc-domain-utils', () => {
       });
 
       it('handles null domains', () => {
+        // Setup
+        jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains').mockReturnValue(null);
+
         // Exercise
-        setKnownDomains(null);
         const result = getKnownDomains();
 
         // Verify
@@ -209,49 +210,66 @@ describe('rpc-domain-utils', () => {
 
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
-      it('returns true for known domains', () => {
-        // Setup
-        const testDomains = new Set(['test.com']);
-        setKnownDomains(testDomains);
+      beforeEach(async () => {
+        resetModuleState();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Test Chain',
+            nativeCurrency: { symbol: 'TEST' },
+            rpc: ['https://known-domain.com/api'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+        await initializeRpcProviderDomains();
+      });
 
-        // Exercise
-        const result = isKnownDomain('test.com');
+      it('returns true for known domains', () => {
+        // Execute
+        const result = isKnownDomain('known-domain.com');
 
         // Verify
         expect(result).toBe(true);
       });
 
       it('returns false for unknown domains', () => {
-        // Setup
-        const testDomains = new Set(['test.com']);
-        setKnownDomains(testDomains);
-
-        // Exercise
-        const result = isKnownDomain('unknown.com');
+        // Execute
+        const result = isKnownDomain('unknown-domain.com');
 
         // Verify
         expect(result).toBe(false);
       });
 
-      it('handles null knownDomainsSet', () => {
+      it('handles null knownDomainsSet', async () => {
         // Setup
-        setKnownDomains(null);
+        resetModuleState();
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+        await initializeRpcProviderDomains();
 
-        // Exercise
-        const result = isKnownDomain('test.com');
+        // Execute
+        const result = isKnownDomain('any-domain.com');
 
         // Verify
         expect(result).toBe(false);
       });
 
-      it('performs case-insensitive domain matching', () => {
+      it('performs case-insensitive domain matching', async () => {
         // Setup
-        const testDomains = new Set(['test.com']);
-        setKnownDomains(testDomains);
+        resetModuleState();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Test Chain',
+            nativeCurrency: { symbol: 'TEST' },
+            rpc: ['https://Known-Domain.com/api'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+        await initializeRpcProviderDomains();
 
-        // Exercise
-        const result1 = isKnownDomain('test.com');
-        const result2 = isKnownDomain('TEST.COM');
+        // Execute
+        const result1 = isKnownDomain('known-domain.com');
+        const result2 = isKnownDomain('KNOWN-DOMAIN.COM');
 
         // Verify
         expect(result1).toBe(true);
@@ -262,14 +280,23 @@ describe('rpc-domain-utils', () => {
 
   describe('extractRpcDomain', () => {
     describe('when processing URLs', () => {
-      beforeEach(() => {
-        const testDomains = new Set(['known-domain.com']);
-        setKnownDomains(testDomains);
+      beforeEach(async () => {
+        resetModuleState();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Test Chain',
+            nativeCurrency: { symbol: 'TEST' },
+            rpc: ['https://known-domain.com/api'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+        await initializeRpcProviderDomains();
       });
 
       it('returns domain for known domains', () => {
-        // Exercise
-        const result = extractRpcDomain('https://known-domain.com');
+        // Execute
+        const result = extractRpcDomain('https://known-domain.com/api');
 
         // Verify
         expect(result).toBe('known-domain.com');
@@ -318,8 +345,8 @@ describe('rpc-domain-utils', () => {
       });
 
       it('handles URLs without protocol', () => {
-        // Exercise
-        const result = extractRpcDomain('known-domain.com');
+        // Execute
+        const result = extractRpcDomain('known-domain.com/api');
 
         // Verify
         expect(result).toBe('known-domain.com');

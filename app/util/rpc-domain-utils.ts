@@ -81,14 +81,6 @@ export function getKnownDomains(): Set<string> | null {
 }
 
 /**
- * Set the known domains (for testing purposes)
- * @param domains - The set of domains to use
- */
-export function setKnownDomains(domains: Set<string> | null): void {
-  knownDomainsSet = domains;
-}
-
-/**
  * Check if a domain is in the known domains list
  *
  * @param domain - The domain to check
