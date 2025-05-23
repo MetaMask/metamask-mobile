@@ -12,6 +12,14 @@ import * as BatchApprovalUtils from '../../../Views/confirmations/hooks/7702/use
 import { AssetType } from '../types';
 import BatchApprovalRow from './BatchApprovalRow';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 const approvalData = [
   {
     asset: {

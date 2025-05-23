@@ -8,7 +8,7 @@ export type TokenDetailsERC20 = Awaited<
   ReturnType<
     ReturnType<AssetsContractController['getERC20Standard']>['getDetails']
   >
-> & { decimalsNumber: number; balance: Hex };
+> & { decimalsNumber: number; balance?: Hex };
 
 export type TokenDetailsERC721 = Awaited<
   ReturnType<
