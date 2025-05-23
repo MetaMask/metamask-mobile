@@ -88,6 +88,7 @@ export function generateDefaultTransactionMetrics(
   
   const mergedDefaultProperties = merge(
     {
+      metametricsEvent,
       properties: {
         chain_id: chainId,
         status,
@@ -108,10 +109,7 @@ export function generateDefaultTransactionMetrics(
     ),
   );
 
-  return {
-    metametricsEvent,
-    ...mergedDefaultProperties,
-  };
+  return mergedDefaultProperties;
 }
 
 export function generateEvent({
