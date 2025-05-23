@@ -734,8 +734,6 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
-  const collectiblesEnabled = isEvmSelected;
-
   const renderContent = useCallback(
     () => (
       <View
@@ -762,7 +760,7 @@ const Wallet = ({
             navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
+            collectiblesEnabled={isEvmSelected}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -778,7 +776,7 @@ const Wallet = ({
       styles.wrapper,
       basicFunctionalityEnabled,
       defiEnabled,
-      collectiblesEnabled,
+      isEvmSelected,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
