@@ -4,7 +4,7 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 
 // Temporary: Will be replaced with supported vaults from API request
-const HOODI_CHAIN_ID_HEX = '0x88BB0'; // Chain id 560048
+const HOODI_CHAIN_ID_HEX = '0x88A10'; // Chain id 560048
 
 const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 

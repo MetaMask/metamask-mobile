@@ -19,7 +19,7 @@ import {
   MOCK_VAULT_DAILY_APYS,
 } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
-export const HOODI_CHAIN_ID = '0x88BB0'; // Chain id 560048
+export const HOODI_CHAIN_ID = '0x88A90'; // Chain id 560048
 
 export const createMockToken = (options: CreateMockTokenOptions) => {
   const {
