@@ -265,7 +265,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="bar"
                 />
               </View>
@@ -391,7 +391,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value=""
                 />
               </View>
@@ -455,7 +455,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input2-snap-ui-input"
                   value=""
                 />
               </View>
@@ -580,7 +580,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="bar"
                 />
               </View>
@@ -643,7 +643,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input2-snap-ui-input"
                   value="foo"
                 />
               </View>
@@ -1919,7 +1919,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="a"
                 />
               </View>
