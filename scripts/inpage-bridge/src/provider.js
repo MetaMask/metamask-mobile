@@ -4,6 +4,8 @@ const pump = require('pump');
 const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
+const { getMultichainClient, getDefaultTransport } = require('@metamask/multichain-api-client');
+const { registerSolanaWalletStandard } = require('@metamask/solana-wallet-standard');
 
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
@@ -40,6 +42,13 @@ const init = () => {
     writable: false,
   });
 
+  const multichainClient = getMultichainClient({
+    transport: getDefaultTransport(),
+  });
+  registerSolanaWalletStandard({
+    client: multichainClient,
+    walletName: process.env.METAMASK_BUILD_NAME,
+  });
 }
 
 // Functions
