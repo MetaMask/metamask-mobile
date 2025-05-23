@@ -27,6 +27,7 @@ jest.mock('../../store', () => ({
 }));
 
 const ID_MOCK = 'testId';
+
 const EIP_1559_TRANSACTION_PARAMS_MOCK = {
   from: '0x1559From',
   to: '0x1559To',
@@ -36,6 +37,7 @@ const EIP_1559_TRANSACTION_PARAMS_MOCK = {
   maxFeePerGas: '0x1559MaxFeePerGas',
   maxPriorityFeePerGas: '0x1559MaxPriorityFeePerGas',
 };
+
 const LEGACY_TRANSACTION_PARAMS_MOCK = {
   from: '0xlegacyFrom',
   to: '0xlegacyTo',
@@ -44,11 +46,14 @@ const LEGACY_TRANSACTION_PARAMS_MOCK = {
   gas: '0xlegacyGas',
   gasPrice: '0xlegacyGasPrice',
 };
+
 const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
+
 const EIP1559_TRANSACTION_META_MOCK = {
   id: ID_MOCK,
   txParams: EIP_1559_TRANSACTION_PARAMS_MOCK,
 } as TransactionMeta;
+
 const LEGACY_TRANSACTION_META_MOCK = {
   id: ID_MOCK,
   txParams: LEGACY_TRANSACTION_PARAMS_MOCK,
