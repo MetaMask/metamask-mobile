@@ -253,21 +253,21 @@ describe('Transaction Controller Util', () => {
 
   describe('Gas property sanitization', () => {
     function testSanitization<Params extends unknown[]>({
+      expectedCallArgumentIndex = 0,
+      paramToSanitize = [],
       testName,
+      transactionMock,
       updaterFunction,
       updaterFunctionName,
       updaterFunctionParams,
-      transactionMock,
-      expectedCallArgumentIndex = 0,
-      paramToSanitize = [],
     }: {
+      expectedCallArgumentIndex?: number;
+      paramToSanitize?: string[];
       testName: string;
+      transactionMock: TransactionMeta;
       updaterFunction: (...args: Params) => void;
       updaterFunctionName: 'updateTransaction' | 'updateEditableParams';
       updaterFunctionParams: Params;
-      transactionMock: TransactionMeta;
-      expectedCallArgumentIndex?: number;
-      paramToSanitize?: string[];
     }) {
       it(testName, () => {
         const clonedUpdaterFunctionParams = cloneDeep(updaterFunctionParams);
@@ -386,46 +386,46 @@ describe('Transaction Controller Util', () => {
     });
 
     testSanitization({
+      expectedCallArgumentIndex: 0,
+      paramToSanitize: ['maxFeePerGas', 'maxPriorityFeePerGas'],
       testName:
         'updateTransaction removes maxFeePerGas and maxPriorityFeePerGas values for legacy transactions',
+      transactionMock: LEGACY_TRANSACTION_META_MOCK,
       updaterFunction: TransactionControllerUtils.updateTransaction,
       updaterFunctionName: 'updateTransaction',
       updaterFunctionParams: [EIP1559_TRANSACTION_META_MOCK, 'testNote'],
-      transactionMock: LEGACY_TRANSACTION_META_MOCK,
-      expectedCallArgumentIndex: 0,
-      paramToSanitize: ['maxFeePerGas', 'maxPriorityFeePerGas'],
     });
 
     testSanitization({
-      testName: 'updateTransaction removes gasPrice for EIP-1559 transactions',
-      updaterFunction: TransactionControllerUtils.updateTransaction,
-      updaterFunctionName: 'updateTransaction',
-      updaterFunctionParams: [EIP1559_TRANSACTION_META_MOCK, 'testNote'],
-      transactionMock: EIP1559_TRANSACTION_META_MOCK,
       expectedCallArgumentIndex: 0,
       paramToSanitize: ['gasPrice'],
+      testName: 'updateTransaction removes gasPrice for EIP-1559 transactions',
+      transactionMock: EIP1559_TRANSACTION_META_MOCK,
+      updaterFunction: TransactionControllerUtils.updateTransaction,
+      updaterFunctionName: 'updateTransaction',
+      updaterFunctionParams: [EIP1559_TRANSACTION_META_MOCK, 'testNote'],
     });
 
     testSanitization({
+      expectedCallArgumentIndex: 1,
+      paramToSanitize: ['maxFeePerGas', 'maxPriorityFeePerGas'],
       testName:
         'updateEditableParams removes maxFeePerGas and maxPriorityFeePerGas values for legacy transactions',
+      transactionMock: LEGACY_TRANSACTION_META_MOCK,
       updaterFunction: TransactionControllerUtils.updateEditableParams,
       updaterFunctionName: 'updateEditableParams',
       updaterFunctionParams: [ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK],
-      transactionMock: LEGACY_TRANSACTION_META_MOCK,
-      expectedCallArgumentIndex: 1,
-      paramToSanitize: ['maxFeePerGas', 'maxPriorityFeePerGas'],
     });
 
     testSanitization({
+      expectedCallArgumentIndex: 1,
+      paramToSanitize: ['gasPrice'],
       testName:
         'updateEditableParams removes gasPrice for EIP-1559 transactions',
+      transactionMock: EIP1559_TRANSACTION_META_MOCK,
       updaterFunction: TransactionControllerUtils.updateEditableParams,
       updaterFunctionName: 'updateEditableParams',
       updaterFunctionParams: [ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK],
-      transactionMock: EIP1559_TRANSACTION_META_MOCK,
-      expectedCallArgumentIndex: 1,
-      paramToSanitize: ['gasPrice'],
     });
   });
 });
