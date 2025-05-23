@@ -104,7 +104,7 @@ describe('container', () => {
             "props": {
               "isSnapAction": false,
               "onCancel": [MockFunction],
-              "testID": "snap-confirmation-Modal-close-button",
+              "testID": "default-snap-footer-button",
               "variant": "Secondary",
             },
           },

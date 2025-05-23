@@ -4,7 +4,6 @@ import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { SendActionViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,

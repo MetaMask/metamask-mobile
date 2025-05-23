@@ -302,7 +302,7 @@ exports[`SnapUIAddressInput renders with an invalid CAIP Account ID 1`] = `
             "paddingVertical": 0,
           }
         }
-        testID="input"
+        testID="input-snap-address-input"
         value="eip155:0:https://foobar.baz/foobar"
       />
     </View>
