@@ -4,15 +4,15 @@ import { TokenDetails } from '../TokenDetails/TokenDetails';
 
 export const getTokenDetails = (
   asset: TokenI,
-  isEvmNetworkSelected: boolean,
+  isNonEvmAsset: boolean,
   tokenContractAddress: string | undefined,
   tokenMetadata: Record<string, string | number | string[]>,
 ): TokenDetails => {
-  if (!isEvmNetworkSelected) {
+  if (isNonEvmAsset) {
     return {
       contractAddress: asset.address || null,
       tokenDecimal: asset.decimals || null,
-      tokenList: asset.aggregators.join(', ') || null,
+      tokenList: asset?.aggregators?.join(', ') || null,
     };
   }
 
