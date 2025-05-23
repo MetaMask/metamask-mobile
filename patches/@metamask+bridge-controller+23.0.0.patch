@@ -31,6 +31,18 @@ index 5a9d0a5..3d967d2 100644
 +Object.defineProperty(exports, "DEFAULT_FEATURE_FLAG_CONFIG", { enumerable: true, get: function () { return bridge_3.DEFAULT_FEATURE_FLAG_CONFIG; } });
  //# sourceMappingURL=index.cjs.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/bridge-controller/dist/types.d.cts b/node_modules/@metamask/bridge-controller/dist/types.d.cts
+index 60f7310..66d0023 100644
+--- a/node_modules/@metamask/bridge-controller/dist/types.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/types.d.cts
+@@ -271,6 +271,7 @@ export type TxData = {
+     gasLimit: number | null;
+ };
+ export type FeatureFlagsPlatformConfig = {
++    minimumVersion: string;
+     refreshRate: number;
+     maxRefreshCount: number;
+     support: boolean;
 diff --git a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs b/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs
 index c2efdfd..84309ec 100644
 --- a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.cjs
