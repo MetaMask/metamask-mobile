@@ -22,7 +22,6 @@ export function resetModuleState(): void {
 export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
   try {
     const cachedData = await StorageWrapper.getItem('SAFE_CHAINS_CACHE');
-
     if (cachedData) {
       try {
         const parsed = JSON.parse(cachedData);
@@ -45,7 +44,6 @@ export async function initializeRpcProviderDomains(): Promise<void> {
   if (initPromise) {
     return initPromise;
   }
-
   initPromise = (async () => {
     try {
       const chainsList = await getSafeChainsListFromCacheOnly();
@@ -58,8 +56,7 @@ export async function initializeRpcProviderDomains(): Promise<void> {
               const url = new URL(rpcUrl);
               knownDomainsSet.add(url.hostname.toLowerCase());
             } catch (e) {
-              // Skip invalid URLs
-              continue;
+              continue; // Skip invalid URLs
             }
           }
         }
@@ -116,28 +113,23 @@ export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!domain) {
     return RpcDomainStatus.Invalid;
   }
-
   // Check if this is a known domain
   if (isKnownDomain(domain)) {
     return domain;
   }
-
   // Special case for Infura subdomains - always return the actual domain
   // even if not in the known domains list
   if (domain.includes('infura.io')) {
     return domain;
   }
-
   // Special case for Alchemy subdomains
   if (domain.endsWith('alchemyapi.io')) {
     return domain;
   }
-
   // Special case for local/development nodes
   if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
   }
-
   // For all other domains, return "private" for privacy
   return RpcDomainStatus.Private;
 }
@@ -154,14 +146,12 @@ export function getNetworkRpcUrl(chainId: string): string {
 
     // Find network clientID for chainID
     const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
-
     if (!networkClientId) {
       return 'unknown';
     }
 
     // Get network config
     const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
-
     if (!networkConfig) {
       return 'unknown';
     }
