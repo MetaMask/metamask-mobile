@@ -49,7 +49,6 @@ import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
 import AppConstants from '../../../core/AppConstants';
 import Text from '../../../component-library/components/Texts/Text';
-import styles from './NftGrid.styles';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -310,6 +309,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
