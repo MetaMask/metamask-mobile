@@ -26,17 +26,17 @@ export function useAccountTypeUpgrade(): Alert[] {
         key: RowAlertKey.AccountTypeUpgrade,
         content: (
           <Text>
-            {strings('alert_system.upgarde_account.message')}{' '}
+            {strings('alert_system.upgrade_account.message')}{' '}
             <Text
               color={TextColor.Primary}
               onPress={() => Linking.openURL(ACCOUNT_UPGRADE_URL)}
             >
-              {strings('alert_system.upgarde_account.learn_more')}
+              {strings('alert_system.upgrade_account.learn_more')}
             </Text>
           </Text>
         ),
         severity: Severity.Info,
-        title: strings('alert_system.upgarde_account.title'),
+        title: strings('alert_system.upgrade_account.title'),
       },
     ];
   }, [isBatchedUpgrade]);
