@@ -1,4 +1,5 @@
 import {
+  GasFeeEstimateType,
   WalletDevice,
   type TransactionMeta,
   TransactionEnvelopeType,
@@ -53,6 +54,15 @@ const EIP1559_TRANSACTION_META_MOCK = {
   id: ID_MOCK,
   txParams: EIP_1559_TRANSACTION_PARAMS_MOCK,
 } as TransactionMeta;
+
+const GAS_PRICE_MOCK = '0x1234';
+const EIP1559_TRANSACTION_META_MOCK_WITH_GAS_FEE_ESTIMATES = {
+  ...EIP1559_TRANSACTION_META_MOCK,
+  gasFeeEstimates: {
+    type: GasFeeEstimateType.GasPrice,
+    gasPrice: GAS_PRICE_MOCK,
+  },
+} as unknown as TransactionMeta;
 
 const LEGACY_TRANSACTION_META_MOCK = {
   id: ID_MOCK,
@@ -301,6 +311,139 @@ describe('Transaction Controller Util', () => {
         .spyOn(Engine.context.TransactionController, 'getTransactions')
         .mockReturnValue(transactions);
     }
+
+    describe('updates 1559 gas properties when gasPrice estimation is used', () => {
+      it('uses requestedTransactionParamsToUpdate values if provided', () => {
+        const customMaxFeePerGas = '0x5678';
+        const customMaxPriorityFeePerGas = '0x9abc';
+
+        mockGetTransactions([
+          EIP1559_TRANSACTION_META_MOCK_WITH_GAS_FEE_ESTIMATES,
+        ]);
+
+        TransactionControllerUtils.updateTransaction(
+          {
+            id: ID_MOCK,
+            txParams: {
+              ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+              maxFeePerGas: customMaxFeePerGas,
+              maxPriorityFeePerGas: customMaxPriorityFeePerGas,
+            },
+          } as TransactionMeta,
+          'testNote',
+        );
+
+        const updatedParams = (
+          Engine.context.TransactionController.updateTransaction as jest.Mock
+        ).mock.calls[0][0].txParams;
+        expect(updatedParams.maxFeePerGas).toBe(customMaxFeePerGas);
+        expect(updatedParams.maxPriorityFeePerGas).toBe(
+          customMaxPriorityFeePerGas,
+        );
+      });
+
+      it('falls back to existing txParams values if requested values are not provided', () => {
+        const existingMaxFeePerGas = '0xabcd';
+        const existingMaxPriorityFeePerGas = '0xef01';
+
+        // Create transaction meta with txParams and gasPrice estimation
+        const transactionWithExistingParams = {
+          ...EIP1559_TRANSACTION_META_MOCK_WITH_GAS_FEE_ESTIMATES,
+          txParams: {
+            ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+            maxFeePerGas: existingMaxFeePerGas,
+            maxPriorityFeePerGas: existingMaxPriorityFeePerGas,
+          },
+        } as unknown as TransactionMeta;
+
+        mockGetTransactions([transactionWithExistingParams]);
+
+        // Call without fee values in the requested update
+        TransactionControllerUtils.updateTransaction(
+          {
+            id: ID_MOCK,
+            txParams: {
+              ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+              maxFeePerGas: undefined,
+              maxPriorityFeePerGas: undefined,
+            },
+          } as TransactionMeta,
+          'testNote',
+        );
+
+        // Verify fallback to existing txParams values
+        const updatedParams = (
+          Engine.context.TransactionController.updateTransaction as jest.Mock
+        ).mock.calls[0][0].txParams;
+        expect(updatedParams.maxFeePerGas).toBe(existingMaxFeePerGas);
+        expect(updatedParams.maxPriorityFeePerGas).toBe(
+          existingMaxPriorityFeePerGas,
+        );
+      });
+
+      it('falls back to gasPrice estimation if neither requested nor existing values are available', () => {
+        // Create transaction meta with only gasPrice estimation
+        const transactionWithOnlyGasPriceEstimate = {
+          ...EIP1559_TRANSACTION_META_MOCK_WITH_GAS_FEE_ESTIMATES,
+          txParams: {
+            ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+            maxFeePerGas: undefined,
+            maxPriorityFeePerGas: undefined,
+          },
+        } as TransactionMeta;
+
+        mockGetTransactions([transactionWithOnlyGasPriceEstimate]);
+
+        // Call without fee values
+        TransactionControllerUtils.updateTransaction(
+          {
+            id: ID_MOCK,
+            txParams: {
+              ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+              maxFeePerGas: undefined,
+              maxPriorityFeePerGas: undefined,
+            },
+          } as TransactionMeta,
+          'testNote',
+        );
+
+        // Verify fallback to gasPrice estimation
+        const updatedParams = (
+          Engine.context.TransactionController.updateTransaction as jest.Mock
+        ).mock.calls[0][0].txParams;
+        expect(updatedParams.maxFeePerGas).toBe(GAS_PRICE_MOCK);
+        expect(updatedParams.maxPriorityFeePerGas).toBe(GAS_PRICE_MOCK);
+      });
+
+      it('does not update 1559 gas properties when gasPrice estimation is not used', () => {
+        // Create transaction meta without gasPrice estimation
+        const transactionWithoutGasPriceEstimate = {
+          ...EIP1559_TRANSACTION_META_MOCK_WITH_GAS_FEE_ESTIMATES,
+          gasFeeEstimates: {
+            type: 'fee-market', // Not gasPrice
+            someOtherProperty: 'value',
+          },
+        } as unknown as TransactionMeta;
+
+        mockGetTransactions([transactionWithoutGasPriceEstimate]);
+
+        TransactionControllerUtils.updateTransaction(
+          {
+            id: ID_MOCK,
+            txParams: {
+              ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+            },
+          } as unknown as TransactionMeta,
+          'testNote',
+        );
+
+        // Verify that the transaction was passed as is
+        const updatedParams = (
+          Engine.context.TransactionController.updateTransaction as jest.Mock
+        ).mock.calls[0][0].txParams;
+        expect(updatedParams).toEqual(EIP_1559_TRANSACTION_PARAMS_MOCK);
+      });
+    });
 
     describe('does not modify transaction params', () => {
       it('when transaction is not exist', () => {
