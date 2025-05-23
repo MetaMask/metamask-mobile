@@ -33,6 +33,10 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  DeFiPositionsController,
+  DeFiPositionsControllerState,
+  DeFiPositionsControllerEvents,
+  DeFiPositionsControllerActions,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -350,7 +354,8 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | AppMetadataControllerActions
-  | MultichainRouterActions;
+  | MultichainRouterActions
+  | DeFiPositionsControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -401,7 +406,8 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | AppMetadataControllerEvents;
+  | AppMetadataControllerEvents
+  | DeFiPositionsControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -447,6 +453,7 @@ export type Controllers = {
   TokenRatesController: TokenRatesController;
   TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
+  DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
@@ -508,6 +515,7 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
@@ -589,7 +597,8 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'TransactionController'
   | 'GasFeeController'
-  | 'SignatureController';
+  | 'SignatureController'
+  | 'DeFiPositionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
