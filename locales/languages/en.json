@@ -24,6 +24,11 @@
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
     "review_alert": "Review alert",
+    "upgarde_account": {
+      "title": "Updating your account",
+      "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
+      "learn_more": "Learn more"
+    },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
       "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
@@ -2022,6 +2027,9 @@
     "edit_permissions": "Edit permissions",
     "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
     "connect_an_account": "Connect an account"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
   },
   "select": {
     "cancel": "Cancel",

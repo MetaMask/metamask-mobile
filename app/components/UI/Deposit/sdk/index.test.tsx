@@ -10,23 +10,74 @@ import {
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
+import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+
 declare module '@consensys/native-ramps-sdk' {
   interface NativeRampsSdk {
-    initializeSdk: () => Promise<void>;
-    getProviders: () => Promise<string[]>;
-    getQuote: () => Promise<{ id: string; amount: number }>;
+    getVersion: () => string;
+    getBuyQuote: (
+      fiatCurrency: string,
+      cryptoCurrency: string,
+      network: string,
+      paymentMethod: string,
+      fiatAmount: string,
+    ) => Promise<BuyQuote>;
+    getUserDetails: () => Promise<NativeTransakUserDetails>;
   }
 }
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
   NativeRampsSdk: jest.fn().mockImplementation(() => ({
-    initializeSdk: jest.fn().mockResolvedValue(undefined),
-    getProviders: jest.fn().mockResolvedValue(['provider1', 'provider2']),
-    getQuote: jest.fn().mockResolvedValue({ id: 'quote-id', amount: 100 }),
+    getVersion: jest.fn().mockReturnValue('1.0.0'),
+    getBuyQuote: jest.fn().mockResolvedValue({
+      quoteId: 'quote-id',
+      fiatAmount: 100,
+      conversionPrice: 1000,
+      marketConversionPrice: 1000,
+      slippage: 0,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      paymentMethod: 'credit_card',
+      cryptoAmount: 0.1,
+      isBuyOrSell: 'BUY',
+      network: 'mainnet',
+      feeDecimal: 0,
+      totalFee: 0,
+      feeBreakdown: [],
+      nonce: 1,
+      cryptoLiquidityProvider: 'provider',
+      notes: [],
+    }),
+    getUserDetails: jest.fn().mockResolvedValue({
+      id: 'user-id',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@example.com',
+      mobileNumber: '1234567890',
+      status: 'active',
+      dob: '1990-01-01',
+      kyc: {
+        l1: {
+          status: 'APPROVED',
+          type: 'BASIC',
+          updatedAt: '2023-01-01',
+          kycSubmittedAt: '2023-01-01',
+        },
+      },
+      address: {
+        addressLine1: '123 Main St',
+        addressLine2: '',
+        state: 'NY',
+        city: 'New York',
+        postCode: '10001',
+        country: 'United States',
+        countryCode: 'US',
+      },
+      createdAt: '2023-01-01',
+      isKycApproved: jest.fn().mockReturnValue(true),
+    }),
   })),
 }));
-
-import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 const mockedState = {
   engine: {
@@ -95,38 +146,15 @@ describe('Deposit SDK Context', () => {
   });
 
   describe('useDepositSDK', () => {
-    it('returns the correct context values', () => {
-      const TestComponent = () => {
-        const { providerApiKey, providerFrontendAuth } = useDepositSDK();
-        return (
-          <Text>
-            {`API Key: ${providerApiKey}, Frontend Auth: ${providerFrontendAuth}`}
-          </Text>
-        );
-      };
-
-      renderWithProvider(
-        <DepositSDKProvider>
-          <TestComponent />
-        </DepositSDKProvider>,
-        {
-          state: mockedState,
-        },
-      );
-      expect(screen.toJSON()).toMatchSnapshot();
-      const textElement = screen.getByText(
-        'API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth',
-      );
-      expect(textElement).toBeOnTheScreen();
-    });
-
     it('provides access to the NativeRampsSdk instance', () => {
       const TestComponent = () => {
-        const { nativeRampsSdk } = useDepositSDK();
+        const { sdk } = useDepositSDK();
 
         React.useEffect(() => {
-          nativeRampsSdk.getProviders();
-        }, [nativeRampsSdk]);
+          if (sdk) {
+            sdk.getBuyQuote('USD', 'ETH', 'mainnet', 'credit_card', '100');
+          }
+        }, [sdk]);
         return <Text>Test Component</Text>;
       };
 
@@ -138,19 +166,70 @@ describe('Deposit SDK Context', () => {
           state: mockedState,
         },
       );
+      expect(screen.toJSON()).toMatchSnapshot();
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;
-      expect(mockSdkInstance.getProviders).toHaveBeenCalled();
+      expect(mockSdkInstance.getBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'ETH',
+        'mainnet',
+        'credit_card',
+        '100',
+      );
+    });
+
+    it('allows calling SDK methods through the context', async () => {
+      const TestComponent = () => {
+        const { sdk } = useDepositSDK();
+        return (
+          <Text
+            testID="sdk-test"
+            onPress={() =>
+              sdk?.getBuyQuote('USD', 'ETH', 'mainnet', 'credit_card', '100')
+            }
+          >
+            Test SDK
+          </Text>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      // Manually trigger the onPress event
+      const button = getByTestId('sdk-test');
+      button.props.onPress();
+
+      const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
+        .value;
+      expect(mockSdkInstance.getBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'ETH',
+        'mainnet',
+        'credit_card',
+        '100',
+      );
     });
   });
 
   describe('NativeRampsSdk integration', () => {
     it('allows calling SDK methods through the context', async () => {
       const TestComponent = () => {
-        const { nativeRampsSdk } = useDepositSDK();
+        const { sdk } = useDepositSDK();
         return (
-          <Text testID="sdk-test" onPress={() => nativeRampsSdk.getQuote()}>
+          <Text
+            testID="sdk-test"
+            onPress={() =>
+              sdk?.getBuyQuote('USD', 'ETH', 'mainnet', 'credit_card', '100')
+            }
+          >
             Test SDK
           </Text>
         );
@@ -170,7 +249,13 @@ describe('Deposit SDK Context', () => {
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;
-      expect(mockSdkInstance.getQuote).toHaveBeenCalled();
+      expect(mockSdkInstance.getBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'ETH',
+        'mainnet',
+        'credit_card',
+        '100',
+      );
     });
 
     it('throws an error when used outside of provider', () => {
