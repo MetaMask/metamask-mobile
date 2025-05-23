@@ -9,11 +9,16 @@ const createStyles = (params: {
   theme: Theme;
   vars: {
     isRenderedAsBottomSheet: boolean | undefined;
+    nonTabView: boolean | undefined;
   };
 }) => {
   const { theme, vars } = params;
   const { colors, typography } = theme;
-  const { isRenderedAsBottomSheet } = vars;
+  const { isRenderedAsBottomSheet, nonTabView } = vars;
+
+  const tabHeight = nonTabView ? 400 : undefined;
+  const bottomSheetHeight = isRenderedAsBottomSheet ? undefined : '100%';
+  const height = nonTabView ? tabHeight : bottomSheetHeight;
 
   return StyleSheet.create({
     safeArea: {
@@ -24,11 +29,18 @@ const createStyles = (params: {
       paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      height: isRenderedAsBottomSheet ? undefined : '100%',
+      height,
       justifyContent: isRenderedAsBottomSheet ? 'flex-start' : 'space-between',
     },
     contentContainer: {
       flex: 1,
+    },
+    container: {
+      marginTop: 16,
+      backgroundColor: colors.background.default,
+      borderRadius: 16,
+      paddingTop: 8,
+      marginHorizontal: 16,
     },
     title: {
       alignSelf: 'center',
