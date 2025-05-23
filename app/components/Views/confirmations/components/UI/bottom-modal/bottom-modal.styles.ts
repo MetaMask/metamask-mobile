@@ -2,8 +2,9 @@ import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
+const styleSheet = (params: { theme: Theme, vars: { isTooltip: boolean } }) => {
   const { theme } = params;
+  const isTooltip = params.vars.isTooltip
 
   return StyleSheet.create({
     bottomModal: {
@@ -22,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       justifyContent: 'flex-end',
       // ensure the wrapper is big enough for tooltips on android 15
-      height: 400,
+      ...(isTooltip && { height: 400 }),
     },
   });
 };
