@@ -40,9 +40,7 @@ describe('OtpCode Component', () => {
   it('renders the OtpCode view correctly', () => {
     render(OtpCode);
     expect(
-      screen.getByText(
-        "We'll send a six-digit code to your email to check it's you.",
-      ),
+      screen.getByText('Enter the 6 digit code that we sent to your email'),
     ).toBeTruthy();
   });
 });

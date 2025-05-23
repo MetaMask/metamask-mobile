@@ -39,7 +39,7 @@ describe('BuildQuote Component', () => {
 
   it('renders correctly', () => {
     render(BuildQuote);
-    expect(screen.getByText('Build Quote Page')).toBeTruthy();
+    expect(screen.getByText('Build Quote Page Placeholder')).toBeTruthy();
   });
 
   it('navigates to OtpCode screen on "Continue" button press', () => {

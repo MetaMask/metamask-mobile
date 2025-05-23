@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import EnterEmail from './EnterEmail.styles';
+import EnterEmail from './EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
