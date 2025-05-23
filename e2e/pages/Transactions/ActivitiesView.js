@@ -51,6 +51,12 @@ class ActivitiesView {
     return title;
   }
 
+  generateBridgeActivityLabel(destNetwork) {
+    let title = ActivitiesViewSelectorsText.BRIDGE;
+    title = title.replace('{{chainName}}', destNetwork);
+    return title;
+  }
+
   generateApprovedTokenActivityLabel(sourceToken) {
     let title = ActivitiesViewSelectorsText.APPROVE;
     title = title.replace('{{sourceToken}}', sourceToken);
@@ -64,6 +70,11 @@ class ActivitiesView {
     );
   }
 
+  bridgeActivityTitle(destNetwork) {
+    return Matchers.getElementByText(
+      this.generateBridgeActivityLabel(destNetwork),
+    );
+  }
   tokenApprovalActivity(sourceToken) {
     return Matchers.getElementByText(
       this.generateApprovedTokenActivityLabel(sourceToken),
