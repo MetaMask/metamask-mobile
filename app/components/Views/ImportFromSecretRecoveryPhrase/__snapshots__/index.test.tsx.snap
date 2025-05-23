@@ -106,32 +106,59 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "marginLeft": 16,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <View
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
-                    "justifyContent": "center",
+                    "color": "#4459ff",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
-              >
-                <Image
-                  resizeMethod="auto"
-                  source={1}
-                  style={
-                    {
-                      "height": 35,
-                      "tintColor": "#121314",
-                      "width": 70,
-                    }
-                  }
-                />
-              </View>
+              />
             </View>
             <View
               collapsable={false}
@@ -148,7 +175,25 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                 }
               }
             >
-              <View />
+              <TouchableOpacity
+                onPress={[Function]}
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="Scan"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "height": 24,
+                      "marginRight": 16,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -375,7 +420,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                         style={
                           {
                             "flex": 1,
-                            "paddingHorizontal": 32,
+                            "paddingHorizontal": 16,
                           }
                         }
                         update={[Function]}
@@ -386,1197 +431,294 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                             testID="import-from-seed-screen"
                           >
                             <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Step 1 of 2
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Bold",
-                                  "fontSize": 25,
-                                  "fontWeight": "600",
-                                  "justifyContent": "center",
-                                  "marginBottom": 20,
-                                  "marginTop": 20,
-                                  "textAlign": "center",
+                                  "fontSize": 32,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 40,
                                 }
                               }
                               testID="import-from-seed-screen-title-id"
                             >
-                              Import from Secret Recovery Phrase
+                              Import a wallet
                             </Text>
                             <View
                               style={
                                 {
-                                  "alignItems": "flex-end",
-                                  "flexDirection": "row",
+                                  "marginTop": 6,
                                 }
                               }
                             >
                               <View
                                 style={
                                   {
-                                    "width": "70%",
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 4,
                                   }
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "marginBottom": 12,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  Secret Recovery Phrase
+                                  Enter your Secret Recovery Phrase
                                 </Text>
-                              </View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "width": "70%",
-                                    },
-                                    {
-                                      "flexDirection": "row-reverse",
-                                      "width": "30%",
-                                    },
-                                  ]
-                                }
-                              >
                                 <TouchableOpacity
                                   onPress={[Function]}
                                 >
-                                  <Text
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={20}
+                                    name="Info"
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "marginBottom": 12,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                  >
-                                    Show
-                                  </Text>
+                                    width={20}
+                                  />
                                 </TouchableOpacity>
                               </View>
-                            </View>
-                            <View
-                              onResponderRelease={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              pointerEvents="auto"
-                              style={
-                                {
-                                  "width": "99%",
-                                }
-                              }
-                            >
                               <View
-                                collapsable={false}
                                 style={
                                   {
-                                    "alignItems": "flex-end",
-                                    "flexDirection": "row",
-                                    "height": 56,
-                                    "paddingBottom": 16,
-                                    "paddingLeft": 12,
-                                    "paddingRight": 46,
-                                    "paddingTop": 0,
+                                    "flexDirection": "column",
+                                    "gap": 4,
+                                    "marginBottom": 24,
                                   }
                                 }
                               >
                                 <View
-                                  pointerEvents="none"
-                                  style={
-                                    [
-                                      {
-                                        "height": 4,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "top": 0,
-                                      },
-                                      {
-                                        "left": 8,
-                                        "right": 8,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    style={
-                                      {
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                        "transform": [
-                                          {
-                                            "scaleX": 1,
-                                          },
-                                          {
-                                            "translateX": 0,
-                                          },
-                                        ],
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": -4,
-                                          "left": -4,
-                                          "position": "absolute",
-                                          "right": -4,
-                                          "top": 0,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                </View>
-                                <View
-                                  pointerEvents="none"
-                                  style={
-                                    [
-                                      {
-                                        "height": 4,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      },
-                                      {
-                                        "width": 8,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    style={
-                                      {
-                                        "borderColor": "rgba(183, 187, 200, 1)",
-                                        "borderRadius": 4,
-                                        "borderStyle": "solid",
-                                        "borderWidth": 1,
-                                        "bottom": -4,
-                                        "left": -4,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  pointerEvents="none"
                                   style={
                                     {
-                                      "bottom": 0,
-                                      "left": 0,
-                                      "overflow": "hidden",
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 4,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    style={
-                                      {
-                                        "borderColor": "rgba(183, 187, 200, 1)",
-                                        "borderRadius": 4,
-                                        "borderStyle": "solid",
-                                        "borderWidth": 1,
-                                        "bottom": 0.5,
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": -4,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  pointerEvents="none"
-                                  style={
-                                    [
-                                      {
-                                        "height": 4,
-                                        "left": 0,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "top": 0,
-                                        "width": 4,
-                                      },
-                                      {
-                                        "width": 8,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    collapsable={false}
-                                    style={
-                                      {
-                                        "borderColor": "rgba(183, 187, 200, 1)",
-                                        "borderRadius": 4,
-                                        "borderStyle": "solid",
-                                        "borderWidth": 1,
-                                        "bottom": -4,
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": -4,
-                                        "top": 0,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    {
-                                      "alignSelf": "stretch",
-                                      "flex": 1,
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 10,
+                                      "marginTop": 16,
+                                      "minHeight": 264,
+                                      "paddingTop": 16,
                                     }
                                   }
                                 >
                                   <View
                                     style={
                                       {
-                                        "alignItems": "flex-end",
-                                        "flex": 1,
-                                        "flexDirection": "row",
+                                        "paddingBottom": 16,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                   >
                                     <TextInput
-                                      activeLineWidth={2}
-                                      animationDuration={225}
                                       autoCapitalize="none"
-                                      baseColor="#b7bbc8"
-                                      containerStyle={
-                                        {
-                                          "width": "99%",
-                                        }
-                                      }
-                                      disableFullscreenUI={true}
-                                      disabled={false}
-                                      disabledLineType="dotted"
-                                      disabledLineWidth={0.5}
-                                      editable={true}
-                                      errorColor="rgb(213, 0, 0)"
-                                      fontSize={16}
-                                      inputContainerStyle={
-                                        {
-                                          "paddingRight": 46,
-                                        }
-                                      }
-                                      keyboardAppearance="light"
-                                      labelFontSize={12}
-                                      lineType="solid"
-                                      lineWidth={1}
-                                      onBlur={[Function]}
-                                      onChange={[Function]}
+                                      autoComplete="off"
+                                      autoFocus={true}
+                                      blurOnSubmit={false}
+                                      label="Secret Recovery Phrase"
+                                      multiline={true}
                                       onChangeText={[Function]}
-                                      onContentSizeChange={[Function]}
-                                      onFocus={[Function]}
-                                      onSubmitEditing={[Function]}
-                                      placeholder="Enter your Secret Recovery Phrase"
-                                      placeholderTextColor="#9ca1af"
-                                      returnKeyType="next"
-                                      secureTextEntry={true}
-                                      selectionColor="#4459ff"
-                                      style={
-                                        [
-                                          {
-                                            "flex": 1,
-                                            "includeFontPadding": false,
-                                            "margin": 0,
-                                            "padding": 0,
-                                            "paddingTop": 0,
-                                            "textAlign": "left",
-                                            "textAlignVertical": "top",
-                                            "top": 2,
-                                          },
-                                          {
-                                            "color": "rgba(0, 0, 0, .87)",
-                                            "fontSize": 16,
-                                            "height": 24,
-                                          },
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "paddingTop": 2,
-                                          },
-                                        ]
+                                      onKeyPress={[Function]}
+                                      placeholder="Add a space between each word and make sure no one is watching 👀"
+                                      placeholderStyle={
+                                        {
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                        }
                                       }
-                                      testID="import-from-seed-screen-seed-phrase-input-id"
-                                      textColor="rgba(0, 0, 0, .87)"
-                                      tintColor="#4459ff"
-                                      underlineColorAndroid="transparent"
+                                      placeholderTextColor="#686e7d"
+                                      style={
+                                        {
+                                          "backgroundColor": "#f3f5f9",
+                                          "borderWidth": 0,
+                                          "color": "#686e7d",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "height": 66,
+                                          "paddingHorizontal": 0,
+                                        }
+                                      }
+                                      textAlignVertical="top"
                                       value=""
                                     />
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "borderTopColor": "#ffffff",
+                                        "borderTopWidth": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                        "marginTop": "auto",
+                                        "width": "100%",
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="link"
+                                      accessible={true}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "transparent",
+                                          "color": "#121314",
+                                          "flex": 1,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "paddingHorizontal": 16,
+                                          "paddingVertical": 16,
+                                          "textAlign": "center",
+                                        }
+                                      }
+                                      suppressHighlighting={true}
+                                      width="full"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#4459ff",
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Show all
+                                      </Text>
+                                    </Text>
+                                    <Text
+                                      accessibilityRole="link"
+                                      accessible={true}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "transparent",
+                                          "color": "#121314",
+                                          "flex": 1,
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "paddingHorizontal": 16,
+                                          "paddingVertical": 16,
+                                          "textAlign": "center",
+                                        }
+                                      }
+                                      suppressHighlighting={true}
+                                      width="full"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#4459ff",
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Paste
+                                      </Text>
+                                    </Text>
                                   </View>
                                 </View>
                               </View>
                               <View
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "flex-start",
-                                      "flexDirection": "row",
-                                      "justifyContent": "flex-end",
-                                      "minHeight": 8,
-                                    },
-                                    {
-                                      "paddingLeft": 12,
-                                      "paddingRight": 12,
-                                    },
-                                  ]
-                                }
-                              />
-                            </View>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignSelf": "flex-end",
-                                  "borderColor": "#9ca1af",
-                                  "borderRadius": 6,
-                                  "borderWidth": 1,
-                                  "marginBottom": 30,
-                                  "marginRight": 10,
-                                  "marginTop": -50,
-                                  "paddingHorizontal": 6,
-                                  "paddingVertical": 4,
-                                }
-                              }
-                            >
-                              <Text
-                                allowFontScaling={false}
-                                selectable={false}
-                                style={
-                                  [
-                                    {
-                                      "color": "#121314",
-                                      "fontSize": 20,
-                                    },
-                                    undefined,
-                                    {
-                                      "fontFamily": "FontAwesome",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                            </TouchableOpacity>
-                            <View
-                              style={
-                                {
-                                  "marginVertical": 5,
-                                  "position": "relative",
-                                }
-                              }
-                            >
-                              <View
-                                style={
                                   {
-                                    "alignItems": "flex-end",
-                                    "flexDirection": "row",
+                                    "flexDirection": "column",
+                                    "gap": 16,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <View
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={true}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
-                                      "width": "70%",
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#4459ff",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "opacity": 0.5,
+                                      "paddingHorizontal": 16,
                                     }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "color": "#ffffff",
+                                        "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "marginBottom": 12,
-                                      }
-                                    }
-                                  >
-                                    New Password
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "width": "70%",
-                                      },
-                                      {
-                                        "flexDirection": "row-reverse",
-                                        "width": "30%",
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                  >
-                                    <Text
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "marginBottom": 12,
-                                        }
-                                      }
-                                    >
-                                      Show
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                              <View
-                                onResponderRelease={[Function]}
-                                onStartShouldSetResponder={[Function]}
-                                pointerEvents="auto"
-                                style={
-                                  {
-                                    "width": "99%",
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  style={
-                                    {
-                                      "alignItems": "flex-end",
-                                      "flexDirection": "row",
-                                      "height": 56,
-                                      "paddingBottom": 16,
-                                      "paddingLeft": 12,
-                                      "paddingRight": 12,
-                                      "paddingTop": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "top": 0,
-                                        },
-                                        {
-                                          "left": 8,
-                                          "right": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "bottom": 0,
-                                          "left": 0,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                          "transform": [
-                                            {
-                                              "scaleX": 1,
-                                            },
-                                            {
-                                              "translateX": 0,
-                                            },
-                                          ],
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        collapsable={false}
-                                        style={
-                                          {
-                                            "borderColor": "rgba(183, 187, 200, 1)",
-                                            "borderRadius": 4,
-                                            "borderStyle": "solid",
-                                            "borderWidth": 1,
-                                            "bottom": -4,
-                                            "left": -4,
-                                            "position": "absolute",
-                                            "right": -4,
-                                            "top": 0,
-                                          }
-                                        }
-                                      />
-                                    </View>
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                        },
-                                        {
-                                          "width": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": -4,
-                                          "left": -4,
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 4,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": 0.5,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": -4,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "left": 0,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "top": 0,
-                                          "width": 4,
-                                        },
-                                        {
-                                          "width": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": -4,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "right": -4,
-                                          "top": 0,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "alignSelf": "stretch",
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-end",
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <TextInput
-                                        activeLineWidth={2}
-                                        animationDuration={225}
-                                        autoCapitalize="none"
-                                        baseColor="#b7bbc8"
-                                        containerStyle={
-                                          {
-                                            "width": "99%",
-                                          }
-                                        }
-                                        disableFullscreenUI={true}
-                                        disabled={false}
-                                        disabledLineType="dotted"
-                                        disabledLineWidth={0.5}
-                                        editable={true}
-                                        errorColor="rgb(213, 0, 0)"
-                                        fontSize={16}
-                                        keyboardAppearance="light"
-                                        labelFontSize={12}
-                                        lineType="solid"
-                                        lineWidth={1}
-                                        onBlur={[Function]}
-                                        onChange={[Function]}
-                                        onChangeText={[Function]}
-                                        onContentSizeChange={[Function]}
-                                        onFocus={[Function]}
-                                        onSubmitEditing={[Function]}
-                                        placeholder="New Password"
-                                        placeholderTextColor="#9ca1af"
-                                        returnKeyType="next"
-                                        secureTextEntry={true}
-                                        selectionColor="#4459ff"
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                              "includeFontPadding": false,
-                                              "margin": 0,
-                                              "padding": 0,
-                                              "paddingTop": 0,
-                                              "textAlign": "left",
-                                              "textAlignVertical": "top",
-                                              "top": 2,
-                                            },
-                                            {
-                                              "color": "rgba(0, 0, 0, .87)",
-                                              "fontSize": 16,
-                                              "height": 24,
-                                            },
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "paddingTop": 2,
-                                            },
-                                          ]
-                                        }
-                                        testID="create-password-first-input-field"
-                                        textColor="rgba(0, 0, 0, .87)"
-                                        tintColor="#4459ff"
-                                        underlineColorAndroid="transparent"
-                                        value=""
-                                      />
-                                    </View>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "flex-start",
-                                        "flexDirection": "row",
-                                        "justifyContent": "flex-end",
-                                        "minHeight": 8,
-                                      },
-                                      {
-                                        "paddingLeft": 12,
-                                        "paddingRight": 12,
-                                      },
-                                    ]
-                                  }
-                                />
-                              </View>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 21.428571428571427,
-                                    "fontWeight": "400",
-                                    "height": 20,
-                                  }
-                                }
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "marginVertical": 5,
-                                  "position": "relative",
-                                }
-                              }
-                            >
-                              <Text
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "marginBottom": 12,
-                                  }
-                                }
-                              >
-                                Confirm password
-                              </Text>
-                              <View
-                                onResponderRelease={[Function]}
-                                onStartShouldSetResponder={[Function]}
-                                pointerEvents="auto"
-                                style={
-                                  {
-                                    "width": "99%",
-                                  }
-                                }
-                              >
-                                <View
-                                  collapsable={false}
-                                  style={
-                                    {
-                                      "alignItems": "flex-end",
-                                      "flexDirection": "row",
-                                      "height": 56,
-                                      "paddingBottom": 16,
-                                      "paddingLeft": 12,
-                                      "paddingRight": 12,
-                                      "paddingTop": 0,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "top": 0,
-                                        },
-                                        {
-                                          "left": 8,
-                                          "right": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "bottom": 0,
-                                          "left": 0,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                          "transform": [
-                                            {
-                                              "scaleX": 1,
-                                            },
-                                            {
-                                              "translateX": 0,
-                                            },
-                                          ],
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        collapsable={false}
-                                        style={
-                                          {
-                                            "borderColor": "rgba(183, 187, 200, 1)",
-                                            "borderRadius": 4,
-                                            "borderStyle": "solid",
-                                            "borderWidth": 1,
-                                            "bottom": -4,
-                                            "left": -4,
-                                            "position": "absolute",
-                                            "right": -4,
-                                            "top": 0,
-                                          }
-                                        }
-                                      />
-                                    </View>
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                        },
-                                        {
-                                          "width": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": -4,
-                                          "left": -4,
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": 0,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      {
-                                        "bottom": 0,
-                                        "left": 0,
-                                        "overflow": "hidden",
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 4,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": 0.5,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "right": 0,
-                                          "top": -4,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    pointerEvents="none"
-                                    style={
-                                      [
-                                        {
-                                          "height": 4,
-                                          "left": 0,
-                                          "overflow": "hidden",
-                                          "position": "absolute",
-                                          "top": 0,
-                                          "width": 4,
-                                        },
-                                        {
-                                          "width": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      collapsable={false}
-                                      style={
-                                        {
-                                          "borderColor": "rgba(183, 187, 200, 1)",
-                                          "borderRadius": 4,
-                                          "borderStyle": "solid",
-                                          "borderWidth": 1,
-                                          "bottom": -4,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "right": -4,
-                                          "top": 0,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "alignSelf": "stretch",
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "flex-end",
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <TextInput
-                                        activeLineWidth={2}
-                                        animationDuration={225}
-                                        autoCapitalize="none"
-                                        baseColor="#b7bbc8"
-                                        containerStyle={
-                                          {
-                                            "width": "99%",
-                                          }
-                                        }
-                                        disableFullscreenUI={true}
-                                        disabled={false}
-                                        disabledLineType="dotted"
-                                        disabledLineWidth={0.5}
-                                        editable={true}
-                                        errorColor="rgb(213, 0, 0)"
-                                        fontSize={16}
-                                        keyboardAppearance="light"
-                                        labelFontSize={12}
-                                        lineType="solid"
-                                        lineWidth={1}
-                                        onBlur={[Function]}
-                                        onChange={[Function]}
-                                        onChangeText={[Function]}
-                                        onContentSizeChange={[Function]}
-                                        onFocus={[Function]}
-                                        onSubmitEditing={[Function]}
-                                        placeholder="Confirm password"
-                                        placeholderTextColor="#9ca1af"
-                                        returnKeyType="next"
-                                        secureTextEntry={true}
-                                        selectionColor="#4459ff"
-                                        style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                              "includeFontPadding": false,
-                                              "margin": 0,
-                                              "padding": 0,
-                                              "paddingTop": 0,
-                                              "textAlign": "left",
-                                              "textAlignVertical": "top",
-                                              "top": 2,
-                                            },
-                                            {
-                                              "color": "rgba(0, 0, 0, .87)",
-                                              "fontSize": 16,
-                                              "height": 24,
-                                            },
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "paddingTop": 2,
-                                            },
-                                          ]
-                                        }
-                                        testID="create-password-second-input-field"
-                                        textColor="rgba(0, 0, 0, .87)"
-                                        tintColor="#4459ff"
-                                        underlineColorAndroid="transparent"
-                                        value=""
-                                      />
-                                    </View>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "flex-start",
-                                        "flexDirection": "row",
-                                        "justifyContent": "flex-end",
-                                        "minHeight": 8,
-                                      },
-                                      {
-                                        "paddingLeft": 12,
-                                        "paddingRight": 12,
-                                      },
-                                    ]
-                                  }
-                                />
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "alignSelf": "flex-end",
-                                    "position": "absolute",
-                                    "right": 17,
-                                    "top": 52,
-                                  }
-                                }
-                              />
-                              <Text
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 21.428571428571427,
-                                    "fontWeight": "400",
-                                    "height": 20,
-                                  }
-                                }
-                              >
-                                Must be at least 8 characters
-                              </Text>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "marginTop": 20,
-                                }
-                              }
-                            >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={true}
-                                style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 100,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#4459ff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
-                                }
-                                testID="import-from-seed-screen-submit-button-id"
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
                                         "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#dcdcdc",
-                                      },
-                                      [
-                                        {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#ffffff",
-                                        },
-                                        undefined,
-                                      ],
-                                      {
-                                        "opacity": 0.6,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  IMPORT
-                                </Text>
-                              </TouchableOpacity>
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Continue
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </View>
                       </RCTScrollView>
-                      <View
-                        style={
-                          {
-                            "paddingVertical": 10,
-                          }
-                        }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          testID="terms-and-conditions-button-id"
-                        >
-                          <Text
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 10,
-                                "fontWeight": "400",
-                                "textAlign": "center",
-                              }
-                            }
-                          >
-                            By proceeding, you agree to these 
-                            <Text
-                              style={
-                                {
-                                  "textDecorationLine": "underline",
-                                }
-                              }
-                            >
-                              Terms and Conditions
-                            </Text>
-                            .
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
                       <View />
                     </RCTSafeAreaView>
                   </View>
