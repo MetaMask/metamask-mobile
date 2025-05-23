@@ -716,7 +716,6 @@ class FixtureBuilder {
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
-
     return this;
   }
 
@@ -1104,6 +1103,23 @@ class FixtureBuilder {
     });
     return this;
   }
+
+  /**
+   * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState.
+   * This indicates that the user has agreed to MetaMetrics data collection.
+   *
+   * @returns {this} The current instance for method chaining.
+   */
+  withMetaMetricsOptIn() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:metricsOptIn'] = 'agreed';
+    return this;
+  }
+
+
+
 
   /**
    * Build and return the fixture object.

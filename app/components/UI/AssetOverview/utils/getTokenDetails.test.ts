@@ -26,7 +26,7 @@ describe('getTokenDetails', () => {
     it('should format token details for non-EVM networks', () => {
       const result = getTokenDetails(
         mockAsset,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -46,7 +46,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         ethAsset,
-        true,
+        false, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -59,7 +59,12 @@ describe('getTokenDetails', () => {
     });
 
     it('should format regular token details for EVM networks', () => {
-      const result = getTokenDetails(mockAsset, true, '0x456', mockEvmMetadata);
+      const result = getTokenDetails(
+        mockAsset,
+        false,
+        '0x456',
+        mockEvmMetadata,
+      );
 
       expect(result).toEqual({
         contractAddress: '0x456',
@@ -77,7 +82,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false,
         '0x456',
         metadataWithoutDecimals,
       );
@@ -96,7 +101,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false,
         '0x456',
         metadataWithoutAggregators,
       );
@@ -116,7 +121,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false, // isNonEvmAsset
         '0x456',
         metadataWithInvalidAggregators,
       );
@@ -138,7 +143,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutAddress,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -158,7 +163,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutDecimals,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -178,7 +183,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutAggregators,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
