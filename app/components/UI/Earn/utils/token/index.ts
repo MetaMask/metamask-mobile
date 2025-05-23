@@ -5,6 +5,17 @@ import { TokenI } from '../../../Tokens/types';
 
 const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 
+/**
+ * aToken Addresses:
+ * Linea
+ * aLinUSDC (USDC): 0x374D7860c4f2f604De0191298dD393703Cce84f3
+ * aLinUSDT (USDT): 0x88231dfEC71D4FF5c1e466D08C321944A7adC673
+ * Arbitrum
+ * aArbUSDCn (USDC): 0x724dc807b04555b71ed48a6896b6F41593b8C637
+ * aArbDAI (DAI): 0x82E64f49Ed5EC1bC6e43DAD4FC8Af9bb3A2312EE
+ * aArbUSDT (USDT): 0x6ab707Aca953eDAeFBc4fD23bA73294241490620
+ */
+
 // Temporary: Will be replaced with supported markets from API request
 export const SUPPORTED_LENDING_RECEIPT_TOKENS = new Set([
   // Ethereum mainnet
@@ -13,6 +24,13 @@ export const SUPPORTED_LENDING_RECEIPT_TOKENS = new Set([
   'AUSDT',
   // Base
   'aBasUSDC',
+  // Linea
+  'aLinUSDC', // USDC
+  'aLinUSDT', // USDT
+  // Arbitrum
+  'aArbUSDCn', // USDC
+  'aArbDAI', // DAI
+  'aArbUSDT', // USDT
 ]);
 
 // Temporary: Will be replaced with supported markets from API request
@@ -22,13 +40,22 @@ export const LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP: Record<
   string,
   Record<string, string>
 > = {
-  '0x1': {
+  [CHAIN_IDS.MAINNET]: {
     DAI: 'ADAI',
     USDC: 'AETHUSDC',
     USDT: 'AUSDT',
   },
-  '0x2105': {
+  [CHAIN_IDS.BASE]: {
     USDC: 'aBasUSDC',
+  },
+  [CHAIN_IDS.LINEA_MAINNET]: {
+    USDC: 'aLinUSDC',
+    USDT: 'aLinUSDT',
+  },
+  [CHAIN_IDS.ARBITRUM]: {
+    USDC: 'aArbUSDCn',
+    DAI: 'aArbDAI',
+    USDT: 'aArbUSDT',
   },
 };
 
@@ -36,19 +63,30 @@ export const RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP: Record<
   string,
   Record<string, string>
 > = {
-  '0x1': {
+  [CHAIN_IDS.MAINNET]: {
     ADAI: 'DAI',
     AETHUSDC: 'USDC',
     AUSDT: 'USDT',
   },
-  '0x2105': {
+  [CHAIN_IDS.BASE]: {
     aBasUSDC: 'USDC',
+  },
+  [CHAIN_IDS.LINEA_MAINNET]: {
+    aLinUSDC: 'USDC',
+    aLinUSDT: 'USDT',
+  },
+  [CHAIN_IDS.ARBITRUM]: {
+    aArbUSDCn: 'USDC',
+    aArbDAI: 'DAI',
+    aArbUSDT: 'USDT',
   },
 };
 
 const SUPPORTED_CHAIN_IDS = new Set<string>([
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BASE,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.ARBITRUM,
 ]);
 
 // TODO: Update tests to support "nativeTokens" filter option

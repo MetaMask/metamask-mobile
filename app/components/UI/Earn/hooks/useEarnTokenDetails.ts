@@ -35,7 +35,15 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   AETHUSDC: '4.5',
   AUSDT: '4.1',
   ADAI: '5.0',
+  // Base
   aBasUSDC: '4.5',
+  // Linea
+  aLinUSDC: '4.5',
+  aLinUSDT: '4.1',
+  // Arbitrum
+  aArbUSDC: '4.5',
+  aArbDAI: '5.0',
+  aArbUSDT: '4.1',
 };
 
 export interface EarnTokenDetails extends TokenI {

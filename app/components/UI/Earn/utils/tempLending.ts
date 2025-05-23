@@ -7,9 +7,10 @@ import {
 import { ethers, BigNumber as EthersBigNumber } from 'ethers';
 import Engine from '../../../../core/Engine';
 import { EarnTokenDetails } from '../hooks/useEarnTokenDetails';
-import { TokenI } from '../../Tokens/types';
 import BigNumber from 'bignumber.js';
-import { isEmpty } from 'lodash';
+
+// TODO: ADD SUPPORT FOR LINEA: Feasibility TBD
+// TODO: ADD SUPPORT FOR ARBITRUM: Feasibility TBD
 
 const { parseUnits, formatUnits } = ethers.utils;
 /**
@@ -17,6 +18,8 @@ const { parseUnits, formatUnits } = ethers.utils;
  */
 const ETH_MAINNET_INFURA_URL = `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 const BASE_INFURA_URL = `https://base-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
+const LINEA_INFURA_URL = `https://linea-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
+const ARBITRUM_INFURA_URL = `https://arbitrum-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 
 // Minimal ERC20 ABI containing only needed function signatures/
 const erc20Abi = [
@@ -41,6 +44,8 @@ const aavePoolContractAbi = [
 const CHAIN_ID_TO_INFURA_URL_MAPPING: Record<string, string> = {
   '0x1': ETH_MAINNET_INFURA_URL,
   '0x2105': BASE_INFURA_URL,
+  '0xe708': LINEA_INFURA_URL,
+  '0xa4b1': ARBITRUM_INFURA_URL,
 };
 
 const ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS =
@@ -49,10 +54,18 @@ const ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS =
 const BASE_AAVE_V3_POOL_CONTRACT_ADDRESS =
   '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5';
 
+const LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0xc47b8C00b0f69a36fa203Ffeac0334874574a8Ac';
+
+const ARBITRUM_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0x794a61358D6845594F94dc1DB02A252b5b4814aD';
+
 export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
   {
     '0x1': ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0x2105': BASE_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0xe708': LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0xa4b1': ARBITRUM_AAVE_V3_POOL_CONTRACT_ADDRESS,
   };
 
 export const getErc20SpendingLimit = async (

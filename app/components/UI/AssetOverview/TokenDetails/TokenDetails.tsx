@@ -41,7 +41,8 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
-import { USER_HAS_LENDING_POSITIONS } from '../../Earn/constants/tempLendingConstants';
+import useLendingTokenPair from '../../Earn/hooks/useLendingTokenPair';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -104,6 +105,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     conversionTime: Number(multichainAssetRates?.conversionTime),
   };
   ///: END:ONLY_INCLUDE_IF
+
+  const { lendingToken, receiptToken } = useLendingTokenPair(asset);
 
   const evmMarketData = useSelector((state: RootState) =>
     isEvmNetworkSelected
@@ -187,8 +190,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     );
   }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
 
-  const hasAssetBalance =
-    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
+  const hasLendingTokenBalance =
+    lendingToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+    asset.balanceFiat &&
+    parseFloatSafe(asset.balanceFiat) > 0;
+
+  const hasReceiptTokenBalance =
+    (receiptToken?.balanceFiat &&
+      parseFloatSafe(receiptToken.balanceFiat) > 0) ??
+    false;
 
   return (
     <View style={styles.tokenDetailsContainer}>
@@ -196,12 +206,13 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
       {asset.isETH && <StakingEarnings asset={asset} />}
       {isStablecoinLendingEnabled &&
         isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
+        // Don't display for receipt tokens
         !isSupportedLendingReceiptTokenByChainId(
           asset.symbol,
           asset.chainId ?? '',
         ) &&
-        hasAssetBalance &&
-        !USER_HAS_LENDING_POSITIONS && <EarnEmptyStateCta token={asset} />}
+        hasLendingTokenBalance &&
+        !hasReceiptTokenBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

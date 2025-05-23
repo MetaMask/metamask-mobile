@@ -32,8 +32,11 @@ const useLendingTokenPair = (
   const isLendingToken = SUPPORTED_LENDING_TOKENS.has(token?.symbol);
 
   if (isLendingToken) {
+    result.lendingToken = getTokenWithBalanceAndApr(token);
+
     const relatedReceiptTokenSymbol =
-      LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP[token.chainId][token.symbol];
+      LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP?.[token.chainId]?.[token.symbol];
+
     const relatedReceiptToken = receiptTokens.find(
       (receiptToken) =>
         receiptToken.symbol === relatedReceiptTokenSymbol &&
@@ -42,11 +45,12 @@ const useLendingTokenPair = (
 
     if (!relatedReceiptToken) return result;
 
-    result.lendingToken = getTokenWithBalanceAndApr(token);
     result.receiptToken = getTokenWithBalanceAndApr(relatedReceiptToken);
 
     return result;
   }
+
+  result.receiptToken = getTokenWithBalanceAndApr(token);
 
   // Find lending token relating to passed in receipt token.
   const relatedLendingTokenSymbol =
@@ -63,7 +67,6 @@ const useLendingTokenPair = (
   if (!relatedLendingToken) return result;
 
   result.lendingToken = getTokenWithBalanceAndApr(relatedLendingToken);
-  result.receiptToken = getTokenWithBalanceAndApr(token);
 
   return result;
 };
