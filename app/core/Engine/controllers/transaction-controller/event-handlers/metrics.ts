@@ -28,17 +28,38 @@ const createTransactionEventHandler =
 
     MetaMetrics.getInstance().trackEvent(event);
   };
-
-// Simple handlers - no unique properties / actions
+/**
+ * Handles metrics tracking when a transaction is added to the transaction controller
+ * @param transactionMeta - The transaction metadata
+ * @param transactionEventHandlerRequest - The event handler request containing state and controller references
+ */
 export const handleTransactionAddedEventForMetrics = createTransactionEventHandler(
   TRANSACTION_EVENTS.TRANSACTION_ADDED,
 );
+
+/**
+ * Handles metrics tracking when a transaction is approved by the user
+ * @param transactionMeta - The transaction metadata
+ * @param transactionEventHandlerRequest - The event handler request containing state and controller references
+ */
 export const handleTransactionApprovedEventForMetrics = createTransactionEventHandler(
   TRANSACTION_EVENTS.TRANSACTION_APPROVED,
 );
+
+/**
+ * Handles metrics tracking when a transaction is rejected by the user
+ * @param transactionMeta - The transaction metadata
+ * @param transactionEventHandlerRequest - The event handler request containing state and controller references
+ */
 export const handleTransactionRejectedEventForMetrics = createTransactionEventHandler(
   TRANSACTION_EVENTS.TRANSACTION_REJECTED,
 );
+
+/**
+ * Handles metrics tracking when a transaction is submitted to the network
+ * @param transactionMeta - The transaction metadata
+ * @param transactionEventHandlerRequest - The event handler request containing state and controller references
+ */
 export const handleTransactionSubmittedEventForMetrics = createTransactionEventHandler(
   TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
 );
@@ -46,6 +67,15 @@ export const handleTransactionSubmittedEventForMetrics = createTransactionEventH
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.
 // Status could be derived from transactionMeta.status
+/**
+ * Handles metrics tracking when a transaction is finalized (confirmed/failed/dropped)
+ * This is a unified handler for all finalized transaction states, with the specific status
+ * derived from transactionMeta.status
+ * 
+ * @param transactionMeta - The transaction metadata
+ * @param transactionEventHandlerRequest - The event handler request containing state and controller references
+ * @returns Promise that resolves when the metrics event has been tracked
+ */
 export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
