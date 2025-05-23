@@ -48,6 +48,16 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       gap: 8,
     },
+    healthFactorTooltipContainer: {
+      gap: 8,
+    },
+    healthFactorTooltipContent: {
+      paddingTop: 8,
+    },
+    healthFactorTooltipRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
   });
 };
 

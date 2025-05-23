@@ -124,7 +124,8 @@ const WalletActions = () => {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         params: {
           tokenFilter: {
-            includeStakingTokens: true,
+            includeNativeTokens: true,
+            includeStakingTokens: false,
             includeLendingTokens: true,
             includeReceiptTokens: false,
           },

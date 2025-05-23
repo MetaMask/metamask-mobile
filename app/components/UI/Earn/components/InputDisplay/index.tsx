@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -10,6 +10,19 @@ import type { Colors } from '../../../../../util/theme/models';
 import CurrencyToggle from '../CurrencySwitch';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
+import { TokenI } from '../../../Tokens/types';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { isSupportedLendingReceiptTokenByChainId } from '../../utils';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
+import FadeInView from '../FadeInView';
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -19,20 +32,25 @@ export interface InputDisplayProps {
   balanceText: string;
   balanceValue: string;
   isNonZeroAmount: boolean;
+  asset: TokenI;
   isFiat: boolean;
-  ticker: string;
   amountToken: string;
   amountFiatNumber: string;
   currentCurrency: string;
   handleCurrencySwitch: () => void;
   currencyToggleValue: string;
+  maxWithdrawalAmount?: string;
+  error?: string;
 }
 
 const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
-  params: { isStablecoinLendingEnabled: boolean },
+  params: {
+    isStablecoinLendingEnabled: boolean;
+    shouldShowLendingMaxSafeWithdrawalMessage: boolean;
+  },
 ) =>
   StyleSheet.create({
     inputContainer: {
@@ -65,6 +83,20 @@ const createStyles = (
       opacity: 1,
       backgroundColor: colors.border.default,
     },
+    maxWithdrawalContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      // Using opacity instead of conditional rendering prevents UI shifting
+      opacity: params?.shouldShowLendingMaxSafeWithdrawalMessage ? 1 : 0,
+      // When using opacity, the elements is still interactive even if it's invisible.
+      // We want to prevent clicking when it's invisible
+      pointerEvents: params?.shouldShowLendingMaxSafeWithdrawalMessage
+        ? 'auto'
+        : 'none',
+    },
+    warningAndErrorMessagesContainer: {
+      alignItems: 'center',
+    },
   });
 
 const InputDisplay = ({
@@ -72,19 +104,58 @@ const InputDisplay = ({
   balanceText,
   balanceValue,
   isFiat,
-  ticker,
+  asset,
   amountToken,
   amountFiatNumber,
   currentCurrency,
   handleCurrencySwitch,
   currencyToggleValue,
+  maxWithdrawalAmount,
+  error,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
+  const navigation = useNavigation();
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
-  const styles = createStyles(colors, { isStablecoinLendingEnabled });
+
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+
+  const earnToken = getTokenWithBalanceAndApr(asset);
+
+  const shouldShowLendingMaxSafeWithdrawalMessage = useMemo(() => {
+    if (earnToken.experience !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      return false;
+    }
+
+    if (!earnToken?.chainId) return false;
+
+    if (
+      !isSupportedLendingReceiptTokenByChainId(
+        earnToken.symbol,
+        earnToken.chainId,
+      )
+    ) {
+      return false;
+    }
+
+    if (!maxWithdrawalAmount) return false;
+
+    return true;
+  }, [
+    earnToken.chainId,
+    earnToken.experience,
+    earnToken.symbol,
+    maxWithdrawalAmount,
+  ]);
+
+  const styles = createStyles(colors, {
+    isStablecoinLendingEnabled,
+    shouldShowLendingMaxSafeWithdrawalMessage,
+  });
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
+
+  const ticker = asset.ticker ?? asset.symbol;
 
   useEffect(() => {
     const blinkAnimation = Animated.loop(
@@ -107,7 +178,9 @@ const InputDisplay = ({
     blinkAnimation.start();
   }, [cursorOpacity]);
 
-  const getBalanceText = () => {
+  const getBalanceText = useCallback(() => {
+    if (error) return error;
+
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', { ticker });
     }
@@ -116,20 +189,49 @@ const InputDisplay = ({
     }
     if (isStablecoinLendingEnabled) return '\u00A0';
     return `${balanceText}: ${balanceValue}`;
-  };
+  }, [
+    balanceText,
+    balanceValue,
+    error,
+    isOverMaximum.isOverMaximumEth,
+    isOverMaximum.isOverMaximumToken,
+    isStablecoinLendingEnabled,
+    ticker,
+  ]);
 
   const balanceInfo = getBalanceText();
 
+  const onNavigateToLendingMaxWithdrawModal = () => {
+    navigation.navigate(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL,
+    });
+  };
+
   return (
     <View style={styles.inputContainer}>
-      <View>
+      <View style={styles.warningAndErrorMessagesContainer}>
+        <FadeInView key={maxWithdrawalAmount}>
+          <View style={styles.maxWithdrawalContainer}>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {`${maxWithdrawalAmount} ${ticker} ${strings(
+                'earn.available_to_withdraw',
+              )}`}
+            </Text>
+            <ButtonIcon
+              size={TooltipSizes.Md}
+              iconColor={IconColor.Alternative}
+              iconName={IconName.Question}
+              onPress={onNavigateToLendingMaxWithdrawModal}
+            />
+          </View>
+        </FadeInView>
+
         <Text
           variant={TextVariant.BodySM}
-          color={
-            isOverMaximum.isOverMaximumToken || isOverMaximum.isOverMaximumEth
-              ? TextColor.Error
-              : undefined
-          }
+          color={balanceInfo ? TextColor.Error : undefined}
         >
           {balanceInfo}
         </Text>

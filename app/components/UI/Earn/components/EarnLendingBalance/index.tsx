@@ -80,7 +80,7 @@ const EarnLendingBalance = ({
     });
   };
 
-  if (!isStablecoinLendingEnabled) return null;
+  if (!isStablecoinLendingEnabled || !receiptToken?.chainId) return null;
 
   return (
     <View>

@@ -14,10 +14,12 @@ import {
 
 // Filters user's tokens to only return the supported and enabled earn tokens.
 const useEarnTokens = ({
+  includeNativeTokens = false, // ETH only for now
   includeStakingTokens = false,
   includeLendingTokens = false,
   includeReceiptTokens = false,
 }: Partial<{
+  includeNativeTokens: boolean;
   includeStakingTokens: boolean;
   includeLendingTokens: boolean;
   includeReceiptTokens: boolean;
@@ -46,6 +48,7 @@ const useEarnTokens = ({
     if (!allTokens.length) return [];
 
     const supportedTokens = getSupportedEarnTokens(allTokens, {
+      nativeTokens: includeNativeTokens,
       stakingTokens: includeStakingTokens,
       lendingTokens: includeLendingTokens,
       receiptTokens: includeReceiptTokens,
@@ -74,6 +77,7 @@ const useEarnTokens = ({
   }, [
     getTokenWithBalanceAndApr,
     includeLendingTokens,
+    includeNativeTokens,
     includeReceiptTokens,
     includeStakingTokens,
     isEligibleToStake,

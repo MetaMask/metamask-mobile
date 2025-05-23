@@ -43,14 +43,20 @@ const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
   const handlePress = () => {
     const tokenFilter = {
       // Staking tokens visible for both deposit and withdrawals
-      includeStakingTokens: true,
+      includeNativeTokens: false,
+      includeStakingTokens: false,
       includeLendingTokens: false,
       includeReceiptTokens: false,
     };
 
+    // Withdraw
     if (action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      tokenFilter.includeStakingTokens = true;
       tokenFilter.includeReceiptTokens = true;
-    } else {
+    }
+    // Deposit
+    else {
+      tokenFilter.includeNativeTokens = true;
       tokenFilter.includeLendingTokens = true;
     }
 

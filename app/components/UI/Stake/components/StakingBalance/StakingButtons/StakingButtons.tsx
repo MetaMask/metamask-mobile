@@ -16,6 +16,7 @@ import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
 import { TokenI } from '../../../../Tokens/types';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import useEarnTokens from '../../../../Earn/hooks/useEarnTokens';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -48,12 +49,14 @@ const StakingButtons = ({
     }
   };
 
+  const stakedEthToken = useEarnTokens({ includeStakingTokens: true })[0];
+
   const onUnstakePress = async () => {
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
-        token: asset,
+        token: stakedEthToken,
       },
     });
     trackEvent(

@@ -51,45 +51,56 @@ const SUPPORTED_CHAIN_IDS = new Set<string>([
   CHAIN_IDS.BASE,
 ]);
 
+// TODO: Update tests to support "nativeTokens" filter option
 export const getSupportedEarnTokens = (
   tokens: TokenI[],
   // Passing "true" for a given token type will include it in the output.
   // Passing "false" for a given token type will exclude it from the output.
   filter: Partial<{
+    nativeTokens: boolean; // ETH only for now
     stakingTokens: boolean;
     lendingTokens: boolean;
     receiptTokens: boolean;
   }> = {},
 ) =>
   Object.values(tokens).filter(({ isETH, isStaked, symbol, chainId }) => {
-    // We only support staking on Ethereum
-    if (isETH && !isSupportedChain(getDecimalChainId(chainId))) return false;
-    if (isStaked) return false;
-
     const {
+      nativeTokens = false,
       stakingTokens = false,
       lendingTokens = false,
       receiptTokens = false,
     } = filter;
 
-    const tokenFilter = new Set();
+    if (!SUPPORTED_CHAIN_IDS.has(chainId as string)) return false;
 
-    if (stakingTokens) {
-      for (const token of SUPPORTED_STAKING_TOKENS) tokenFilter.add(token);
+    if (
+      isETH &&
+      !isStaked &&
+      nativeTokens &&
+      isSupportedChain(getDecimalChainId(chainId))
+    ) {
+      return true;
+    }
+
+    if (
+      isETH &&
+      isStaked &&
+      stakingTokens &&
+      // We only support staking on Ethereum
+      isSupportedChain(getDecimalChainId(chainId))
+    ) {
+      return true;
     }
 
     if (lendingTokens) {
-      for (const token of SUPPORTED_LENDING_TOKENS) tokenFilter.add(token);
+      return SUPPORTED_LENDING_TOKENS.has(symbol);
     }
 
     if (receiptTokens) {
-      for (const token of SUPPORTED_LENDING_RECEIPT_TOKENS)
-        tokenFilter.add(token);
+      return SUPPORTED_LENDING_RECEIPT_TOKENS.has(symbol);
     }
 
-    return (
-      SUPPORTED_CHAIN_IDS.has(chainId as string) && tokenFilter.has(symbol)
-    );
+    return false;
   });
 
 const removeStakingTokens = (tokens: TokenI[]) => {

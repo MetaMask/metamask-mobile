@@ -67,6 +67,7 @@ const EarnTokenListSkeletonPlaceholder = () => (
 
 interface EarnTokenListViewRouteParams {
   tokenFilter: {
+    includeNativeTokens: boolean;
     includeStakingTokens: boolean;
     includeLendingTokens: boolean;
     includeReceiptTokens: boolean;
@@ -87,10 +88,16 @@ const EarnTokenList = () => {
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { includeStakingTokens, includeLendingTokens, includeReceiptTokens } =
-    params?.tokenFilter ?? {};
+  const {
+    includeNativeTokens,
+    includeStakingTokens,
+    includeLendingTokens,
+    includeReceiptTokens,
+  } = params?.tokenFilter ?? {};
 
   const supportedEarnTokens = useEarnTokens({
+    // TODO: This SHOULD include pool-staked Ethereum and NOT Ethereum
+    includeNativeTokens,
     includeStakingTokens,
     includeLendingTokens,
     includeReceiptTokens,

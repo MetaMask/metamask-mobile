@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { formatEther } from 'ethers/lib/utils';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -50,7 +50,6 @@ import {
   getErc20SpendingLimit,
 } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
-import { isSupportedLendingTokenByChainId } from '../../utils';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 
 const EarnInputView = () => {
@@ -392,35 +391,18 @@ const EarnInputView = () => {
   const navBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
-  const title = useMemo(() => {
-    if (
-      isStablecoinLendingEnabled &&
-      token?.chainId &&
-      isSupportedLendingTokenByChainId(token.symbol, token.chainId)
-    ) {
-      return strings('earn.deposit');
-    }
-    return strings('stake.stake');
-  }, [isStablecoinLendingEnabled, token.chainId, token.symbol]);
 
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
-        title,
+        strings('earn.deposit'),
         navigation,
         theme.colors,
         navBarOptions,
         navBarEventOptions,
       ),
     );
-  }, [
-    navigation,
-    token,
-    theme.colors,
-    navBarEventOptions,
-    navBarOptions,
-    title,
-  ]);
+  }, [navigation, token, theme.colors, navBarEventOptions, navBarOptions]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
@@ -441,7 +423,7 @@ const EarnInputView = () => {
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
-        ticker={token.ticker ?? token.symbol}
+        asset={token}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,

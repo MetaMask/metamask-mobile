@@ -7,6 +7,9 @@ import {
 import { ethers, BigNumber as EthersBigNumber } from 'ethers';
 import Engine from '../../../../core/Engine';
 import { EarnTokenDetails } from '../hooks/useEarnTokenDetails';
+import { TokenI } from '../../Tokens/types';
+import BigNumber from 'bignumber.js';
+import { isEmpty } from 'lodash';
 
 const { parseUnits, formatUnits } = ethers.utils;
 /**
@@ -218,15 +221,14 @@ export const generateLendingAllowanceIncreaseTransaction = (
   };
 };
 
+/**
+ * returns the lending pool's liquidity in the token's lowest denomination
+ */
 export const getLendingPoolLiquidity = async (
   tokenAddress: string, // e.g. DAI
   receiptTokenAddress: string, // e.g. ADAI
   chainId: string,
 ): Promise<string> => {
-  console.log('tokenAddress: ', tokenAddress);
-  console.log('receiptTokenAddress: ', receiptTokenAddress);
-  console.log('chainId: ', chainId);
-
   const infuraUrl = CHAIN_ID_TO_INFURA_URL_MAPPING[chainId];
 
   if (!infuraUrl) return '0';
@@ -241,10 +243,28 @@ export const getLendingPoolLiquidity = async (
 
   return liquidityLowestDenomination.toString() ?? '0';
 };
+interface AaveV3UserAccountData {
+  raw: {
+    totalCollateralBase: ethers.BigNumber;
+    totalDebtBase: ethers.BigNumber;
+    availableBorrowsBase: ethers.BigNumber;
+    currentLiquidationThreshold: ethers.BigNumber;
+    ltv: ethers.BigNumber;
+    healthFactor: ethers.BigNumber;
+  };
+  formatted: {
+    totalCollateralBase: string;
+    totalDebtBase: string;
+    availableBorrowsBase: string;
+    liquidationThreshold: string;
+    ltv: string;
+    healthFactor: string;
+  };
+}
 
 const parseGetUserAccountData = (
   rawUserAccountDataResponse: EthersBigNumber[],
-) => {
+): AaveV3UserAccountData => {
   const [
     totalCollateralBase,
     totalDebtBase,
@@ -302,16 +322,20 @@ export const getAaveUserAccountData = async (
 };
 
 // Might be good for this to be configurable by the user or via remote feature flag eventually.
-const DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR = 1.2;
+const DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR = 2.0;
 
-// Get the max safe withdraw in the token's lowest denomination
-export const getAaveV3MaxSafeWithdrawal = async (
-  activeAccountAddress: string,
+/**
+ * Get the max safe withdraw in the token's lowest denomination.
+ * This should be treated as an estimate given variations in exchange rates.
+ */
+const getAaveV3MaxSafeWithdrawal = async (
+  userData: AaveV3UserAccountData,
   lendingToken: EarnTokenDetails,
   minHealthFactor = DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR,
 ) => {
   if (!lendingToken?.chainId || !lendingToken?.tokenUsdExchangeRate) return '0';
 
+  // Correct
   const tokenDecimals = lendingToken.decimals;
 
   // Asset price in USD with 8 decimals
@@ -321,18 +345,24 @@ export const getAaveV3MaxSafeWithdrawal = async (
   );
 
   try {
-    // Get user data
-    const userData = await getAaveUserAccountData(
-      activeAccountAddress,
-      lendingToken.chainId,
-    );
-
     // Extract values for calculations
     const {
       totalCollateralBase,
       totalDebtBase,
       currentLiquidationThreshold: liquidationThreshold,
     } = userData.raw;
+
+    // If no debt, can withdraw everything
+    if (totalDebtBase.isZero()) {
+      // totalCollateralBase is in USD with 8 decimals
+      // assetPrice is in USD with 8 decimals
+      // We want result in token decimals
+      const maxTokenAmount = totalCollateralBase
+        .mul(parseUnits('1', tokenDecimals)) // Scale up to token decimals
+        .div(assetPrice); // Divide by price (removes the 8 decimals from price)
+
+      return maxTokenAmount.toString();
+    }
 
     // Calculate current health factor
     const decimalMultiplier = 100; // Use 100 to get 2 decimal places
@@ -352,17 +382,6 @@ export const getAaveV3MaxSafeWithdrawal = async (
     const scaledCurrentHF = currentHealthFactorCalc.mul(decimalMultiplier);
     if (scaledCurrentHF.lt(minHealthFactorWhole)) {
       return '0';
-    }
-
-    // If no debt, can withdraw everything
-    if (totalDebtBase.isZero()) {
-      // Calculate max withdrawal in token units
-      // Convert from USD (8 decimals) to token units (token decimals)
-      const maxTokenAmount = totalCollateralBase
-        .mul(parseUnits('1', tokenDecimals - 8)) // Scale to token decimals
-        .div(assetPrice);
-
-      return maxTokenAmount.toString();
     }
 
     // Calculate required collateral to maintain min health factor
@@ -455,6 +474,33 @@ export const generateLendingWithdrawalTransaction = (
   };
 };
 
+// Users with no debt are considered to have an infinite health factor.
+export const AAVE_V3_INFINITE_HEALTH_FACTOR = 'INFINITE';
+
+export enum AAVE_WITHDRAWAL_RISKS {
+  VERY_HIGH = 'VERY_HIGH',
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
+  // Default used in case of failures (e.g. network request fails)
+  UNKNOWN = 'UNKNOWN',
+}
+
+const getWithdrawalRiskLabel = (
+  postWithdrawalHealthFactor: string | ethers.BigNumber,
+) => {
+  if (postWithdrawalHealthFactor === AAVE_V3_INFINITE_HEALTH_FACTOR)
+    return AAVE_WITHDRAWAL_RISKS.LOW;
+
+  const healthFactor = Number(formatUnits(postWithdrawalHealthFactor, 18));
+
+  if (healthFactor >= 2.0) return AAVE_WITHDRAWAL_RISKS.LOW;
+  else if (healthFactor >= 1.5) return AAVE_WITHDRAWAL_RISKS.MEDIUM;
+  else if (healthFactor >= 1.25) return AAVE_WITHDRAWAL_RISKS.HIGH;
+  // Will most likely be auto-reverted by AAVE since resulting Health Factor is below 1
+  return AAVE_WITHDRAWAL_RISKS.VERY_HIGH;
+};
+
 // TEMP: Debugging tool
 export const getAaveReceiptTokenBalance = async (
   receiptToken: EarnTokenDetails,
@@ -478,4 +524,122 @@ export const getAaveReceiptTokenBalance = async (
     .catch(() => '0');
 
   return aTokenBalance.toString() ?? '0';
+};
+
+export interface SimulatedAaveV3HealthFactorAfterWithdrawal {
+  before: string;
+  after: string;
+  risk: AAVE_WITHDRAWAL_RISKS;
+}
+
+/**
+ * This is an estimate and should be treated as such.
+ * It may differ from AAVE's calculation by 0.1-0.2
+ */
+export const calculateAaveV3HealthFactorAfterWithdrawal = async (
+  activeAccountAddress: string,
+  withdrawalAmountTokenMinimalUnit: string | ethers.BigNumber,
+  lendingToken: EarnTokenDetails,
+): Promise<SimulatedAaveV3HealthFactorAfterWithdrawal> => {
+  const result = {
+    before: '0',
+    after: '0',
+    risk: AAVE_WITHDRAWAL_RISKS.UNKNOWN,
+  };
+
+  if (!lendingToken?.chainId) return result;
+
+  const userData = await getAaveUserAccountData(
+    activeAccountAddress,
+    lendingToken.chainId,
+  );
+
+  result.before = userData.formatted.healthFactor;
+
+  const { totalCollateralBase, totalDebtBase, currentLiquidationThreshold } =
+    userData.raw;
+
+  // Convert withdrawal amount to BigNumber
+  const withdrawalAmountTokenMinimalUnitBN = ethers.BigNumber.from(
+    withdrawalAmountTokenMinimalUnit,
+  );
+
+  const assetPrice = parseUnits(
+    lendingToken.tokenUsdExchangeRate.toFixed(8),
+    8,
+  );
+
+  // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
+  const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
+    .mul(assetPrice)
+    .div(ethers.BigNumber.from(10).pow(lendingToken.decimals));
+
+  // New collateral after withdrawal
+  const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
+
+  // Health factor formula: (collateral * liquidationThreshold) / (debt * 10000)
+  // If debt is zero, health factor is "infinite" (return a very large number)
+  if (totalDebtBase.isZero()) {
+    result.before = AAVE_V3_INFINITE_HEALTH_FACTOR;
+    result.after = AAVE_V3_INFINITE_HEALTH_FACTOR;
+    result.risk = AAVE_WITHDRAWAL_RISKS.LOW;
+
+    return result;
+  }
+
+  const numerator = newTotalCollateralBase.mul(currentLiquidationThreshold);
+  const denominator = totalDebtBase.mul(10000);
+
+  // Health factor is a fixed-point number with 18 decimals (WAD)
+  const healthFactor = numerator
+    .mul(ethers.BigNumber.from(10).pow(18))
+    .div(denominator);
+
+  const healthFactorParsed = formatUnits(healthFactor, 18);
+
+  result.after = healthFactorParsed;
+  result.risk = getWithdrawalRiskLabel(healthFactor);
+
+  return result;
+};
+/**
+ * Returns the maximum value a user can withdraw given the following constraints:
+ * - Pool has available liquidity
+ * - User has receipt (aToken) balance available
+ * - User won't accidentally lower their Aave health factor below a threshold (accidental liquidation)
+ */
+export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
+  activeAccountAddress: string,
+  lendingToken: EarnTokenDetails,
+  receiptToken: EarnTokenDetails,
+) => {
+  if (
+    !lendingToken?.address ||
+    !receiptToken?.address ||
+    !lendingToken?.chainId ||
+    !receiptToken?.chainId ||
+    !receiptToken?.balanceMinimalUnit
+  )
+    return '0';
+
+  const userData = await getAaveUserAccountData(
+    activeAccountAddress,
+    lendingToken.chainId,
+  );
+
+  const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
+    await Promise.all([
+      getLendingPoolLiquidity(
+        lendingToken.address,
+        receiptToken.address,
+        receiptToken.chainId,
+      ),
+      getAaveV3MaxSafeWithdrawal(userData, lendingToken as EarnTokenDetails),
+    ]).catch((_e) => '0');
+
+  return BigNumber.min(
+    poolLiquidityInTokens,
+    maxHealthFactorWithdrawalInTokens,
+    receiptToken.balanceMinimalUnit,
+  ).toString();
 };
