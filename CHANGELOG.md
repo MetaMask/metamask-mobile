@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): show "Auto" slippage for Solana swaps
 - fix(bridge): add insufficient balance check for Solana swaps
 - fix(bridge): disable Solana as destination network if no Solana account exists
+- fix(swap): fix default swap destination token when USDC is the source token
 
 ### Added
 
