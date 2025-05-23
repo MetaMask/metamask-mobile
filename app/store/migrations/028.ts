@@ -125,7 +125,6 @@ export default async function migrate(state: unknown) {
     await FilesystemStorage.setItem(
       rootKey,
       JSON.stringify(state),
-      // @ts-expect-error - FilesystemStorage.setItem doesn't accept a boolean, but a callback as it's third parameter
       Device.isIos(),
     );
     // Root file successfully populated with controller data - Can safely delete persisted controller files
