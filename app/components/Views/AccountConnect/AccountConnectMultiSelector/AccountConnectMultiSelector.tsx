@@ -259,20 +259,6 @@ const AccountConnectMultiSelector = ({
               </Text>
             </View>
           )}
-          <View style={styles.addAccountButtonContainer}>
-            <Button
-              variant={ButtonVariants.Link}
-              label={strings('account_actions.add_account_or_hardware_wallet')}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-              onPress={() =>
-                setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
-              }
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-            />
-          </View>
           <View style={styles.body}>{renderCtaButtons()}</View>
         </View>
       </SafeAreaView>
