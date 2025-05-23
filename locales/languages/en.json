@@ -24,7 +24,7 @@
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
     "review_alert": "Review alert",
-    "upgarde_account": {
+    "upgrade_account": {
       "title": "Updating your account",
       "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
       "learn_more": "Learn more"
@@ -3928,7 +3928,21 @@
     "7702_functionality": {
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
-      "switch": "Switch"
+      "switch": "Switch",
+      "splashpage": {
+        "accept": "Yes",
+        "betterTransaction": "Faster transactions, lower fees",
+        "betterTransactionDescription": "Save time and money by processing transactions together.",
+        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
+        "payToken": "Pay with any token, any time",
+        "payTokenDescription": "Use the tokens you already have to cover network fees.",
+        "reject": "No",
+        "requestFor": "Request for",
+        "sameAccount": "Same account, smarter features.",
+        "splashTitle": "Use smart account?",
+        "upgradeBannerDescription": "Same address. Smarter features.",
+        "upgradeBannerTitle": "Switch to smart account"
+      }
     },
     "unlimited": "Unlimited",
     "none": "None",
