@@ -110,9 +110,8 @@ class Matchers {
    * @param {string} selector - CSS selector to locate the element
    * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
-
   static async getElementByCSS(webviewID, selector) {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.cssSelector(selector)).atIndex(0);
   }
 

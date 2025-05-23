@@ -19,6 +19,10 @@ const createStaticServer = function (rootDirectory) {
       request.url = request.url.slice('/test-dapp-multichain'.length);
     }
 
+    if (request.url.startsWith('/solana-test-dapp/')) {
+      request.url = request.url.slice('/solana-test-dapp'.length);
+    }
+
     return serveHandler(request, response, {
       directoryListing: false,
       public: rootDirectory,

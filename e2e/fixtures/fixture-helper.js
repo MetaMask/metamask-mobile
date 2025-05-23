@@ -22,6 +22,7 @@ import { AnvilSeeder } from '../seeder/anvil-seeder';
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 export const DEFAULT_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp', 'dist');
 export const DEFAULT_MULTICHAIN_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-multichain', 'build');
+export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-solana', 'dist');
 
 // While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
 const getFixturesPort =
@@ -185,7 +186,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {string} [options.localNodeOptions='ganache'] - The local node options to use.
  * @param {Object} [options.dappOptions] - The dapp options to use.
  * @param {string} [options.dappPath] - The dapp path to use.
- * @param {string[]} [options.dappPaths] - The dapp paths to use.
+ * @param {string[]} [options.dappPaths=undefined] - The dapp paths to use.
  * @param {Object} [options.testSpecificMock] - The test specific mock to use.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
