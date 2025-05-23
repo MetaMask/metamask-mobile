@@ -21,6 +21,7 @@ const styleSheet = (params: {
       height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
+      marginTop: 16,
       paddingHorizontal: 16,
     },
     description: {

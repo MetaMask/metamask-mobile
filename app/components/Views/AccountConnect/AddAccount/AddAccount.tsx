@@ -5,11 +5,12 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../UI/Box/box.types';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, TouchableWithoutFeedback } from 'react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import styleSheet from './AddAccount.styles';
 import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -26,7 +27,8 @@ interface AddAccountProps {
 }
 
 const AddAccountSelection = ({ onBack, onCreateAccount }: AddAccountProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors } = theme;
 
   return (
     <SafeAreaView>
@@ -43,34 +45,53 @@ const AddAccountSelection = ({ onBack, onCreateAccount }: AddAccountProps) => {
           <Text style={styles.title}>
             {strings('accounts.create_new_account')}
           </Text>
-          <ButtonLink
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-              >
-                <Icon name={IconName.Add} size={IconSize.Md} />
-                <Text>{strings('account_actions.add_new_account')}</Text>
-              </Box>
-            }
+          <TouchableWithoutFeedback
             onPress={() => {
               onCreateAccount();
             }}
-          />
-          <ButtonLink
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
+          >
+            <Box
+              style={styles.linkContainer}
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={10}
+            >
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Md}
+                color={colors.primary.default}
+              />
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={colors.primary.default}
               >
-                <Icon name={IconName.Add} size={IconSize.Md} />
-                <Text>{strings('account_actions.add_solana_account')}</Text>
-              </Box>
-            }
+                {strings('account_actions.add_new_account')}
+              </Text>
+            </Box>
+          </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback
             onPress={() => {
               onCreateAccount(WalletClientType.Solana, SolScope.Mainnet);
             }}
-          />
+          >
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={10}
+            >
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Md}
+                color={colors.primary.default}
+              />
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={colors.primary.default}
+              >
+                {strings('account_actions.add_solana_account')}
+              </Text>
+            </Box>
+          </TouchableWithoutFeedback>
         </Box>
       </Box>
     </SafeAreaView>

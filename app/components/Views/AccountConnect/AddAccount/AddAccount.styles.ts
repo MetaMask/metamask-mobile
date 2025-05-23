@@ -23,6 +23,9 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
       marginBottom: 16,
     },
+    linkContainer: {
+      marginBottom: 16,
+    },
   });
 };
 
