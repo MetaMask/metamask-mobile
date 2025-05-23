@@ -53,12 +53,7 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import {
-  trace,
-  endTrace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -66,8 +61,6 @@ import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
@@ -96,13 +89,7 @@ import FOX_LOGO from '../../../images/branding/fox.png';
  */
 const Login: React.FC = () => {
   const fieldRef = useRef<TextInput>(null);
-  const parentSpanRef = useRef(
-    trace({
-      name: TraceName.Login,
-      op: TraceOperation.Login,
-      tags: getTraceTags(store.getState()),
-    }),
-  );
+
   const [password, setPassword] = useState('');
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
@@ -134,12 +121,6 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    trace({
-      name: TraceName.LoginUserInteraction,
-      op: TraceOperation.Login,
-      parentContext: parentSpanRef.current,
-    });
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED).build(),
     );
@@ -240,8 +221,6 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
-
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
@@ -261,7 +240,6 @@ const Login: React.FC = () => {
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
         },
         async () => {
           await Authentication.userEntryAuth(password, authType);
@@ -326,19 +304,15 @@ const Login: React.FC = () => {
       }
       Logger.error(loginError, 'Failed to unlock');
     }
-    endTrace({ name: TraceName.Login });
   };
 
   const tryBiometric = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
-
     fieldRef.current?.blur();
     try {
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
           op: TraceOperation.Login,
-          parentContext: parentSpanRef.current,
         },
         async () => {
           await Authentication.appTriggeredAuth();
