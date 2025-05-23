@@ -20,16 +20,10 @@ import { Messenger } from '@metamask/base-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 
 import ppomUtil from '../../lib/ppom/ppom-util';
+import { EIP5792ErrorCode } from '../../constants/transaction';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
-
-enum EIP5792ErrorCode {
-  UnsupportedNonOptionalCapability = 5700,
-  UnsupportedChainId = 5710,
-  UnknownBundleId = 5730,
-  RejectedUpgrade = 5750,
-}
 
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;

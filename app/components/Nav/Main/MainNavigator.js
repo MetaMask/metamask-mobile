@@ -97,6 +97,7 @@ import { EarnScreenStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
+import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -898,6 +899,13 @@ const MainNavigator = () => (
       name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
       component={TurnOnBackupAndSync}
       options={TurnOnBackupAndSync.navigationOptions}
+    />
+    <Stack.Screen
+      name="DeFiProtocolPositionDetails"
+      component={DeFiProtocolPositionDetails}
+      options={{
+        headerShown: true,
+      }}
     />
   </Stack.Navigator>
 );

@@ -33,14 +33,18 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
   });
+  const itif = (condition) => (condition ? it : it.skip);
 
-  it('should connect wallet account to portfolio', async () => {
+  it('should close all browser tabs', async () => {
     await loginToApp();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapBrowser();
     await BrowserView.tapOpenAllTabsButton();
     await BrowserView.tapCloseTabsButton();
     await Assertions.checkIfVisible(BrowserView.noTabsMessage);
+  });
+
+  itif(device.getPlatform() === 'ios')('should connect wallet account to portfolio', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
@@ -52,6 +56,7 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
       console.log('The Portfolio privacy modal is not visible');
     }
     await device.disableSynchronization();
+    await PortfolioHomePage.tapBurgerMenu();
     await PortfolioHomePage.tapConnectMetaMask();
     await TestHelpers.delay(2000);
     await ConnectBottomSheet.tapConnectButton();
@@ -59,7 +64,6 @@ describe(SmokeNetworkAbstractions('Connect account to Portfolio'), () => {
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
-    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();

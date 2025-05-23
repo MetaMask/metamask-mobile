@@ -38,6 +38,7 @@ import {
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectIsSolanaToEvm,
+  selectDestAddress,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -106,6 +107,7 @@ const BridgeView = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
+  const destAddress = useSelector(selectDestAddress);
   const {
     activeQuote,
     isLoading,
@@ -154,7 +156,12 @@ const BridgeView = () => {
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
-    isValidSourceAmount && !!sourceToken && !!destToken;
+    isValidSourceAmount && 
+    !!sourceToken && 
+    !!destToken && 
+    // Prevent quote fetching when destination address is not set
+    // Destinations address is only needed for EVM <> Solana bridges
+    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
