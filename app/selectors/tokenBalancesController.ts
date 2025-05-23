@@ -18,6 +18,19 @@ export const selectTokensBalances = createSelector(
     tokenBalancesControllerState.tokenBalances,
 );
 
+export const selectHasAnyBalance = createSelector(
+  (state: RootState) => {
+    const tokenBalancesControllerState =
+      selectTokenBalancesControllerState(state);
+    const balances = tokenBalancesControllerState.tokenBalances ?? {};
+    const res = Object.values(balances).flatMap((level2) =>
+      Object.values(level2).flatMap((level3) => Object.values(level3)),
+    );
+    return res.length > 0;
+  },
+  (value) => value,
+);
+
 export const makeSelectSingleTokenBalance = (
   accountAddress: Hex,
   chainId: Hex,

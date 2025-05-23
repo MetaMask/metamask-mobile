@@ -13,7 +13,7 @@ import {
 } from '../../../reducers/user';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
+import { selectHasAnyBalance } from '../../../selectors/tokenBalancesController';
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectAllNfts } from '../../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
@@ -21,6 +21,16 @@ import { selectSelectedInternalAccountAddress } from '../../../selectors/account
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+
+// const useLogDep = (key: string, val: unknown, showVal = false) => {
+//   useEffect(() => {
+//     if (showVal) {
+//       console.log(`ProtectWalletMandatoryModal - ${key} changed`, val);
+//     } else {
+//       console.log(`ProtectWalletMandatoryModal - ${key} changed`);
+//     }
+//   }, [key, showVal, val]);
+// };
 
 const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
@@ -30,10 +40,16 @@ const ProtectWalletMandatoryModal = () => {
 
   const metrics = useMetrics();
 
-  const tokenBalances = useSelector(selectTokensBalances);
+  // const tokenBalances = useSelector(selectTokensBalances);
+  const hasAnyTokenBalance = useSelector(selectHasAnyBalance);
   const allTokens = useSelector(selectAllTokens);
   const nfts = useSelector(selectAllNfts);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+
+  // useLogDep('metrics', metrics);
+  // useLogDep('tokenBalances', hasAnyTokenBalance);
+  // useLogDep('allTokens', allTokens);
+  // useLogDep('nfts', nfts);
 
   const { navigate, dangerouslyGetState } = useNavigation();
 
@@ -80,14 +96,14 @@ const ProtectWalletMandatoryModal = () => {
     } else {
       setShowProtectWalletModal(false);
     }
-    // We need to add the dependencies to trigger the effect when the wallet have ballance
+    // We need to add the dependencies to trigger the effect when the wallet have balance
     // Dependencies added: tokenBalances, allTokens, nfts, selectedAddress
   }, [
     metrics,
     passwordSet,
     seedphraseBackedUp,
     dangerouslyGetState,
-    tokenBalances,
+    hasAnyTokenBalance,
     allTokens,
     nfts,
     selectedAddress,
