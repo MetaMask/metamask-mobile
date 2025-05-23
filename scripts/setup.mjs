@@ -246,9 +246,32 @@ const patchPackageTask = {
 
 const installFoundryTask = {
   title: 'Install Foundry',
-  task: async () => {
-    await $`yarn install:foundryup`;
-  },
+  task: (_, task) =>
+    task.newListr(
+      [
+        {
+          title: 'Install Foundry binary',
+          task: async () => {
+            await $`yarn install:foundryup`;
+          },
+        },
+        {
+          title: 'Verify installation',
+          task: async () => {
+            const anvilPath = 'node_modules/.bin/anvil';
+            if (!fs.existsSync(anvilPath)) {
+              await $`rm -rf .metamask/cache`;
+              await $`yarn install:foundryup`;
+            }
+          },
+        },
+      ],
+      {
+        concurrent: false,
+        exitOnError: true,
+        rendererOptions,
+      },
+    ),
 };
 
 const expoBuildLinks = {
