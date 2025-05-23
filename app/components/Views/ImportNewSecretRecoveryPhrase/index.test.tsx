@@ -9,10 +9,14 @@ import {
   MOCK_HD_KEYRING_METADATA,
 } from '../../../selectors/keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -33,6 +37,10 @@ jest.mock('../../../actions/multiSrp', () => ({
 
 jest.mock('../../../core/ClipboardManager', () => ({
   getString: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
 }));
 
 const valid12WordMnemonic =
@@ -85,6 +93,11 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('imports valid manually entered 12-word SRP', async () => {
@@ -208,6 +221,21 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       valid24WordMnemonic,
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+  });
+
+  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+      ).build(),
+    );
   });
 
   describe('errors', () => {
