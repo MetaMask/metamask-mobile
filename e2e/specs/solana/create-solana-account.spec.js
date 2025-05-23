@@ -92,7 +92,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_TWO_TEXT, 2);
   });
 
-  it('should should be able to switch between solana accounts', async () => {
+  it('should be able to switch between solana accounts', async () => {
     //Switch back to first solana account
     await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();

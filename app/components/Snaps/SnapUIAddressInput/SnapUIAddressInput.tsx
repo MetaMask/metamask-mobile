@@ -240,7 +240,7 @@ export const SnapUIAddressInput = ({
         value={value}
         isDisabled={disabled}
         onChangeText={handleChange}
-        testID="input"
+        testID={`${name}-snap-address-input`}
         startAccessory={
           displayAvatar && value && isCaipAccountId(`${chainId}:${value}`) ? (
             <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />

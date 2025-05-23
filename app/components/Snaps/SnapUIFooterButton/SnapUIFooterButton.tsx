@@ -137,7 +137,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       size={ButtonSize.Lg}
       style={customButtonStyles.button}
       isDanger={snapVariant === 'destructive'}
-      testID={testID ?? (name ? `snap-footer-button-${name}` : undefined)}
+      testID={testID ?? `${name}-snap-footer-button`}
     />
   );
 };

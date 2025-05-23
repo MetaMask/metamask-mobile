@@ -64,8 +64,6 @@ export const SnapUIInput = ({
   const handleFocus = () => setCurrentFocusedInput(name);
   const handleBlur = () => setCurrentFocusedInput(null);
 
-  // Compact testID assignment
-  const inputTestID = testID ?? (name.includes('amount') ? 'send-amount-input' : name.includes('send-to') ? 'snap-input-send-to' : 'input');
 
   return (
     <Box style={style}>
@@ -78,7 +76,7 @@ export const SnapUIInput = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         id={name}
-        testID={inputTestID}
+        testID={testID ?? `${name}-snap-ui-input`}
         value={value}
         onChangeText={handleChange}
         autoCapitalize="none"
