@@ -423,10 +423,10 @@ describe('BackgroundBridge', () => {
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: EthAccountType.Eoa,
         address: 'someaddress'
-      })
+      });
 
-      expect(sendNotificationSpy).not.toHaveBeenCalled()
-    })
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
 
     it('emits nothing if the selected account did not change from the last seen solana account', () => {
       const url = 'https:www.mock.io';
@@ -449,28 +449,28 @@ describe('BackgroundBridge', () => {
           }
         }
       });
-      bridge.lastSelectedSolanaAccountAddress = 'someaddress'
+      bridge.lastSelectedSolanaAccountAddress = 'someaddress';
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
         address: 'someaddress'
-      })
+      });
 
-      expect(sendNotificationSpy).not.toHaveBeenCalled()
-    })
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
 
     it('emits nothing if there is no CAIP-25 permission' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
-      PermissionController.getCaveat.mockReturnValue()
+      PermissionController.getCaveat.mockReturnValue();
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
         address: 'someaddress'
-      })
+      });
 
-      expect(sendNotificationSpy).not.toHaveBeenCalled()
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
     it('emits nothing if the `solana_accountChanged_notifications` session property is not set' , () => {
@@ -496,9 +496,9 @@ describe('BackgroundBridge', () => {
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
         address: 'someaddress'
-      })
+      });
 
-      expect(sendNotificationSpy).not.toHaveBeenCalled()
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
     it('emits nothing if the selected account does not match a permitted solana account' , () => {
@@ -526,9 +526,9 @@ describe('BackgroundBridge', () => {
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
         address: 'differentaddress'
-      })
+      });
 
-      expect(sendNotificationSpy).not.toHaveBeenCalled()
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
     it('emits a solana accountChanged event for the selected account if it does match a permitted solana account', () => {
@@ -556,20 +556,20 @@ describe('BackgroundBridge', () => {
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
         address: 'someaddress'
-      })
+      });
 
       expect(sendNotificationSpy).toHaveBeenCalledWith({
-          "method": "wallet_notify",
-          "params": {
-          "notification": {
-          "method": "metamask_accountsChanged",
-          "params": [
-          "someaddress",
+          'method': 'wallet_notify',
+          'params': {
+          'notification': {
+          'method': 'metamask_accountsChanged',
+          'params': [
+          'someaddress',
           ],
           },
-          "scope": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          'scope': 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
-      })
+      });
     });
-  })
+  });
 });
