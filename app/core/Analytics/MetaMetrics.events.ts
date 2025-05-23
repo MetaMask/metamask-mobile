@@ -432,6 +432,10 @@ enum EVENT_NAME {
   TOKEN_SEARCH_DISCOVERY_SITE_OPENED = 'Token Search and Discovery Site Opened',
   TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED = 'Token Search and Discovery Token Details Opened',
   TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED = 'Token Search and Discovery Token Swap Opened',
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
+  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -1041,6 +1045,10 @@ const events = {
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
+  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
 };
 
 /**

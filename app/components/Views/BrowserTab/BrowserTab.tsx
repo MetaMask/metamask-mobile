@@ -53,7 +53,8 @@ import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getCaip25Caveat,
-  getPermittedAccountsByHostname,
+  getPermittedCaipAccountIdsByHostname,
+  getPermittedEvmAddressesByHostname,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -120,6 +121,7 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 
 /**
@@ -193,10 +195,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
-  const permittedAccountsList = useSelector((state: RootState) => {
+  const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
+    const permittedAcc = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -451,7 +453,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URLParse(urlToTrigger).hostname;
-    const connectedAccounts = getPermittedAccountsByHostname(
+    const connectedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -637,6 +639,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   const checkTabPermissions = useCallback(() => {
+    if (isPerDappSelectedNetworkEnabled()) {
+      return;
+    }
+
     if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
@@ -644,7 +650,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
+    const permittedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -681,7 +687,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
+  }, [
+    activeChainId,
+    navigation,
+    isFocused,
+    isInTabsView,
+    isTabActive,
+  ]);
 
   /**
    * Handles state changes for when the url changes
@@ -725,7 +737,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
       });
 
-      checkTabPermissions();
+      if (!isPerDappSelectedNetworkEnabled()) {
+        checkTabPermissions();
+      }
     },
     [
       isUrlBarFocused,
@@ -944,10 +958,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsList,
+      params: permittedEvmAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedEvmAccountsList]);
 
   /**
    * Website started to load
@@ -995,7 +1009,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   useEffect(() => {
     sendActiveAccount();
-  }, [sendActiveAccount, permittedAccountsList]);
+  }, [sendActiveAccount, permittedEvmAccountsList]);
 
   /**
    * Check when the ipfs gateway is enabled to hide the banner
@@ -1051,8 +1065,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   useEffect(() => {
-    checkTabPermissions();
-  }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
+    if (!isPerDappSelectedNetworkEnabled()) {
+      checkTabPermissions();
+    }
+  }, [
+    checkTabPermissions,
+    isFocused,
+    isInTabsView,
+    isTabActive,
+  ]);
 
   const handleEnsUrl = useCallback(
     async (ens: string) => {
@@ -1394,7 +1415,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedAccountsList}
+            connectedAccounts={permittedEvmAccountsList}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}

@@ -379,8 +379,8 @@
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
-    "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false,
+    "isBackupAndSyncEnabled": true,
+    "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
@@ -514,5 +514,8 @@
         }
       ]
     }
+  },
+  "DeFiPositionsController": {
+    "allDeFiPositions": {}
   }
 }

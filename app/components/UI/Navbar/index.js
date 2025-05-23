@@ -66,6 +66,9 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1025,6 +1028,11 @@ export function getWalletNavbarOptions(
           accountName={accountName}
           accountAvatarType={accountAvatarType}
           onPress={() => {
+            trace({
+              name: TraceName.AccountList,
+              tags: getTraceTags(store.getState()),
+              op: TraceOperation.AccountList,
+            });
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
           accountTypeLabel={
@@ -1310,7 +1318,7 @@ export function getNetworkNavbarOptions(
           />
         }
         endAccessory={
-          onRightPress && (
+          onRightPress ? (
             <ButtonIcon
               style={styles.headerRightButton}
               onPress={onRightPress}
@@ -1318,6 +1326,9 @@ export function getNetworkNavbarOptions(
               iconName={IconName.MoreVertical}
               iconColor={IconColor.Default}
             />
+          ) : (
+            // Empty View to maintain layout spacing without showing a button
+            <View style={styles.headerRightButton} />
           )
         }
       >
@@ -2043,5 +2054,27 @@ export function getStakingNavbar(
       ) : (
         <></>
       ),
+  };
+}
+
+/**
+ * Function that returns the navigation options for the DeFi Protocol Positions Details screen
+ *
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options
+ */
+export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
+  return {
+    headerTitle: () => null,
+    headerLeft: () => (
+      <ButtonIcon
+        style={styles.headerLeftButton}
+        onPress={() => navigation.pop()}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+        size={ButtonIconSizes.Lg}
+        iconName={IconName.ArrowLeft}
+        iconColor={IconColor.Default}
+      />
+    ),
   };
 }

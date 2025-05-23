@@ -42,9 +42,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   isHDOrFirstPartySnapAccount,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,9 +55,8 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -76,6 +73,9 @@ const AccountActions = () => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { networkSupporting7702Present } = useEIP7702Networks(
+    selectedAccount.address,
+  );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -84,7 +84,6 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
@@ -93,7 +92,6 @@ const AccountActions = () => {
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
-  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -229,7 +227,6 @@ const AccountActions = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -238,7 +235,6 @@ const AccountActions = () => {
       });
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -468,7 +464,6 @@ const AccountActions = () => {
           />
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
           selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
             <AccountAction
               actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
@@ -479,7 +474,6 @@ const AccountActions = () => {
               }
             />
           )
-          ///: END:ONLY_INCLUDE_IF
         }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
@@ -503,13 +497,14 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
-          <AccountAction
-            actionTitle={strings('account_actions.switch_to_smart_account')}
-            iconName={IconName.SwapHorizontal}
-            onPress={goToSwitchAccountType}
-          />
-        )}
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
+          networkSupporting7702Present && (
+            <AccountAction
+              actionTitle={strings('account_actions.switch_to_smart_account')}
+              iconName={IconName.SwapHorizontal}
+              onPress={goToSwitchAccountType}
+            />
+          )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

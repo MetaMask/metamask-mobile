@@ -2,6 +2,7 @@ import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-c
 import {
   GetCallsStatusCode,
   GetCallsStatusResult,
+  GetCapabilitiesResult,
   SendCalls,
   SendCallsResult,
 } from '@metamask/eth-json-rpc-middleware';
@@ -19,16 +20,10 @@ import { Messenger } from '@metamask/base-controller';
 import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 
 import ppomUtil from '../../lib/ppom/ppom-util';
+import { EIP5792ErrorCode } from '../../constants/transaction';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
-
-enum EIP5792ErrorCode {
-  UnsupportedNonOptionalCapability = 5700,
-  UnsupportedChainId = 5710,
-  UnknownBundleId = 5730,
-  RejectedUpgrade = 5750,
-}
 
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;
@@ -221,4 +216,42 @@ export async function getCallsStatus(id: Hex): Promise<GetCallsStatusResult> {
     status,
     receipts,
   };
+}
+
+export enum AtomicCapabilityStatus {
+  Supported = 'supported',
+  Ready = 'ready',
+  Unsupported = 'unsupported',
+}
+
+export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
+  const { TransactionController } = Engine.context;
+  const batchSupport = await TransactionController.isAtomicBatchSupported({
+    address,
+    chainIds,
+  });
+  return batchSupport.reduce<GetCapabilitiesResult>(
+    (acc, chainBatchSupport) => {
+      const {
+        chainId,
+        delegationAddress,
+        isSupported,
+        upgradeContractAddress,
+      } = chainBatchSupport;
+      const canUpgrade = upgradeContractAddress && !delegationAddress;
+      if (!isSupported && !canUpgrade) {
+        return acc;
+      }
+      const status = isSupported
+        ? AtomicCapabilityStatus.Supported
+        : AtomicCapabilityStatus.Ready;
+      acc[chainId] = {
+        atomic: {
+          status,
+        },
+      };
+      return acc;
+    },
+    {},
+  );
 }

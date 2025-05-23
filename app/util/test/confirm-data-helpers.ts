@@ -889,7 +889,7 @@ const mockApprovalRequest = {
   expectsResult: true,
 } as unknown as ApprovalRequest<TransactionMeta>;
 
-const mockTransaction = {
+export const mockTransaction = {
   id: mockTxId,
   type: TransactionType.contractInteraction,
   txParams: {
@@ -1012,6 +1012,7 @@ export const upgradeAccountConfirmation = {
   ...switchAccountConfirmation,
   batchId: '0x6046131032d748a6bfac42fd5117479f',
   id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
+  origin: 'metamask.github.io',
   nestedTransactions: [
     {
       to: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
@@ -1065,6 +1066,16 @@ export const upgradeAccountConfirmation = {
       isDecrease: true,
     },
     tokenBalanceChanges: [],
+  },
+} as unknown as TransactionMeta;
+
+export const upgradeOnlyAccountConfirmation = {
+  ...upgradeAccountConfirmation,
+  origin: 'metamask',
+  nestedTransactions: [],
+  txParams: {
+    ...upgradeAccountConfirmation.txParams,
+    data: '0x',
   },
 } as unknown as TransactionMeta;
 
