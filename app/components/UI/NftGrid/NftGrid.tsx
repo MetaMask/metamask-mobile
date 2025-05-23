@@ -12,7 +12,6 @@ import {
   RefreshControl,
   Platform,
   Image,
-  Text,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -49,6 +48,7 @@ import { TokenListControlBar } from '../Tokens/TokenListControlBar';
 import { toHex } from '@metamask/controller-utils';
 import { MasonryFlashList } from '@shopify/flash-list';
 import AppConstants from '../../../core/AppConstants';
+import Text from '../../../component-library/components/Texts/Text';
 
 export const RefreshTestId = 'refreshControl';
 export const SpinnerTestId = 'spinner';
@@ -309,15 +309,14 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
-        <Text center style={styles.emptyTitleText} bold>
+        <Text style={styles.emptyTitleText}>
           {strings('wallet.no_nfts_yet')}
         </Text>
-        <Text center big link onPress={goToLearnMore}>
-          {strings('wallet.learn_more')}
-        </Text>
+        <Text onPress={goToLearnMore}>{strings('wallet.learn_more')}</Text>
       </View>
     ),
     [goToLearnMore, styles],

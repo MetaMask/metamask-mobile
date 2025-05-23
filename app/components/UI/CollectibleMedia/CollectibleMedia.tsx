@@ -54,8 +54,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     backgroundColor: collectible.backgroundColor,
   });
 
-  const fallback = useCallback(() => setSourceUri(null), []);
-
   useEffect(() => {
     const { image, imageOriginal, imagePreview, address } = collectible;
     if (address) {

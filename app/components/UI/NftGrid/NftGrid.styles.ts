@@ -49,6 +49,10 @@ const styleSheet = (colors: Colors) =>
       marginBottom: 8,
       fontSize: 14,
     },
+    emptyTitleText: {
+      textAlign: 'center',
+      fontWeight: 'bold',
+    },
   });
 
 export default styleSheet;

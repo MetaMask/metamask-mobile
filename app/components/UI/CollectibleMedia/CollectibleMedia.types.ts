@@ -22,6 +22,7 @@ export interface Collectible {
 
 type NFTData = Omit<Nft, 'image'> & {
   image: Nft['image'] | string[];
+  error?: string;
 };
 
 export interface CollectibleMediaProps {

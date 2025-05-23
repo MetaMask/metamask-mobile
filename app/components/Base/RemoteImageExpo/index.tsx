@@ -12,6 +12,7 @@ import {
   View,
   ImageStyle,
   ImageSourcePropType,
+  ImageErrorEventData as RNImageErrorEventData,
 } from 'react-native';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
@@ -36,7 +37,7 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Image as ExpoImage, ImageErrorEventData } from 'expo-image';
+import { Image as ExpoImage } from 'expo-image';
 import Identicon from '../../UI/Identicon';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import { toHex } from '@metamask/controller-utils';
@@ -54,7 +55,7 @@ interface Props {
   // Image Props
   source: { uri: string } | ImageSourcePropType;
   style?: StyleProp<ViewStyle>;
-  placeholderSyle?: string;
+  placeholderStyle?: StyleProp<ViewStyle>;
   errorCallback?: (error: unknown) => void;
 
   /**
@@ -77,6 +78,9 @@ interface Props {
    */
   chainId?: string;
 }
+
+// Define ImageErrorEventData type
+type ImageErrorEventData = RNImageErrorEventData;
 
 const isImageSourcePropType = (
   source: Props['source'],
@@ -187,7 +191,7 @@ function useNetworkBadgeProps(chainId: string) {
 function useCaptureErrorAndFallback(props: {
   errorCallback?: (error: unknown) => void;
   address?: string;
-  style: unknown;
+  style: StyleProp<ViewStyle>;
 }) {
   const [error, setError] = useState<string | undefined>(undefined);
   const onError = useCallback(
@@ -218,7 +222,7 @@ function useCaptureErrorAndFallback(props: {
 export default function RemoteImageExpo(props: Props) {
   const {
     testID,
-    placeholderSyle,
+    placeholderStyle,
     fadeIn,
     showNetworkBadge,
     style,
@@ -242,7 +246,9 @@ export default function RemoteImageExpo(props: Props) {
       if (fadeIn) {
         return (
           <FadeIn
-            placeholderStyle={placeholderSyle ?? styles.defaultPlaceholderStyle}
+            placeholderStyle={
+              placeholderStyle ?? styles.defaultPlaceholderStyle
+            }
           >
             {children}
           </FadeIn>
@@ -251,7 +257,7 @@ export default function RemoteImageExpo(props: Props) {
 
       return <>{children}</>;
     },
-    [fadeIn, placeholderSyle, styles.defaultPlaceholderStyle],
+    [fadeIn, placeholderStyle, styles.defaultPlaceholderStyle],
   );
 
   const BadgeContainer = useCallback(
@@ -305,6 +311,7 @@ export default function RemoteImageExpo(props: Props) {
               contentFit="contain"
               style={styles.imageStyle}
               onError={errorProps.onError}
+              transition={0}
             />
           </View>
         </BadgeContainer>
