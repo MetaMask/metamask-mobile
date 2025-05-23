@@ -37,7 +37,7 @@ describe('rpc-domain-utils', () => {
   });
 
   describe('getSafeChainsListFromCacheOnly', () => {
-    it('should return cached chains data when available', async () => {
+    it('returns cached chains data when available', async () => {
       const mockChains: SafeChain[] = [
         {
           chainId: '1',
@@ -52,14 +52,14 @@ describe('rpc-domain-utils', () => {
       expect(result).toEqual(mockChains);
     });
 
-    it('should return empty array when cache is empty', async () => {
+    it('returns empty array when cache is empty', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
       const result = await getSafeChainsListFromCacheOnly();
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when cache parsing fails', async () => {
+    it('returns empty array when cache parsing fails', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue('invalid json');
 
       const result = await getSafeChainsListFromCacheOnly();
@@ -128,24 +128,24 @@ describe('rpc-domain-utils', () => {
   });
 
   describe('isKnownDomain', () => {
-    it('should return true for known domains', () => {
+    it('returns true for known domains', () => {
       const testDomains = new Set(['test.com']);
       setKnownDomains(testDomains);
       expect(isKnownDomain('test.com')).toBe(true);
     });
 
-    it('should return false for unknown domains', () => {
+    it('returns false for unknown domains', () => {
       const testDomains = new Set(['test.com']);
       setKnownDomains(testDomains);
       expect(isKnownDomain('unknown.com')).toBe(false);
     });
 
-    it('should handle null knownDomainsSet', () => {
+    it('handles null knownDomainsSet', () => {
       setKnownDomains(null);
       expect(isKnownDomain('test.com')).toBe(false);
     });
 
-    it('should handle case-insensitive domain matching', () => {
+    it('handles case-insensitive domain matching', () => {
       const testDomains = new Set(['test.com']);
       setKnownDomains(testDomains);
       expect(isKnownDomain('test.com')).toBe(true);
@@ -159,27 +159,27 @@ describe('rpc-domain-utils', () => {
       setKnownDomains(testDomains);
     });
 
-    it('should return domain for known domains', () => {
+    it('returns domain for known domains', () => {
       expect(extractRpcDomain('https://known-domain.com')).toBe('known-domain.com');
     });
 
-    it('should return Invalid for invalid URLs', () => {
+    it('returns Invalid for invalid URLs', () => {
       expect(extractRpcDomain(':::invalid-url')).toBe(RpcDomainStatus.Invalid);
     });
 
-    it('should return Private for unknown domains', () => {
+    it('returns Private for unknown domains', () => {
       expect(extractRpcDomain('https://unknown-domain.com')).toBe(RpcDomainStatus.Private);
     });
 
-    it('should return actual domain for Infura URLs', () => {
+    it('returns actual domain for Infura URLs', () => {
       expect(extractRpcDomain('https://mainnet.infura.io')).toBe('mainnet.infura.io');
     });
 
-    it('should return actual domain for Alchemy URLs', () => {
+    it('returns actual domain for Alchemy URLs', () => {
       expect(extractRpcDomain('https://eth-mainnet.alchemyapi.io')).toBe('eth-mainnet.alchemyapi.io');
     });
 
-    it('should return Private for localhost', () => {
+    it('returns Private for localhost', () => {
       expect(extractRpcDomain('http://localhost:8545')).toBe(RpcDomainStatus.Private);
       expect(extractRpcDomain('http://127.0.0.1:8545')).toBe(RpcDomainStatus.Private);
     });
@@ -200,7 +200,7 @@ describe('rpc-domain-utils', () => {
       (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
     });
 
-    it('should return RPC URL from legacy format', () => {
+    it('returns RPC URL from legacy format', () => {
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcUrl: 'https://legacy-rpc.com',
@@ -209,7 +209,7 @@ describe('rpc-domain-utils', () => {
       expect(getNetworkRpcUrl('0x1')).toBe('https://legacy-rpc.com');
     });
 
-    it('should return RPC URL from rpcEndpoints array', () => {
+    it('returns RPC URL from rpcEndpoints array', () => {
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
         rpcEndpoints: [
@@ -222,13 +222,13 @@ describe('rpc-domain-utils', () => {
       expect(getNetworkRpcUrl('0x1')).toBe('https://rpc2.com');
     });
 
-    it('should return unknown when network client ID not found', () => {
+    it('returns unknown when network client ID not found', () => {
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(null);
 
       expect(getNetworkRpcUrl('0x1')).toBe('unknown');
     });
 
-    it('should return unknown when network configuration not found', () => {
+    it('returns unknown when network configuration not found', () => {
       mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
       mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
 
