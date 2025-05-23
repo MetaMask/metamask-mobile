@@ -75,4 +75,19 @@ export type BalanceChange = Readonly<{
    * The amount of fiat currency that corresponds to the asset amount.
    */
   fiatAmount: FiatAmount;
+
+  /**
+   * Optional field, it is total balance in the account of the ERC20 token
+   */
+  balance?: BigNumber;
+
+  /**
+   * Optional field, number of decimals in the ERC20 token
+   */
+  decimals?: number;
+
+  /**
+   * Optional field, symbol of the ERC20 token
+   */
+  tokenSymbol?: string;
 }>;

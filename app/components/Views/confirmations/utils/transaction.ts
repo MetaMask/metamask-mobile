@@ -20,6 +20,20 @@ const erc721Interface = new Interface(abiERC721);
 const erc1155Interface = new Interface(abiERC1155);
 const USDCInterface = new Interface(abiFiatTokenV2);
 
+const ABI_PERMIT_2_APPROVE = {
+  inputs: [
+    { internalType: 'address', name: 'token', type: 'address' },
+    { internalType: 'address', name: 'spender', type: 'address' },
+    { internalType: 'uint160', name: 'amount', type: 'uint160' },
+    { internalType: 'uint48', name: 'expiration', type: 'uint48' },
+  ],
+  name: 'approve',
+  outputs: [],
+  stateMutability: 'nonpayable',
+  type: 'function',
+};
+const permit2Interface = new Interface([ABI_PERMIT_2_APPROVE]);
+
 export function parseStandardTokenTransactionData(data?: string) {
   if (!data) {
     return undefined;
@@ -45,6 +59,12 @@ export function parseStandardTokenTransactionData(data?: string) {
 
   try {
     return USDCInterface.parseTransaction({ data });
+  } catch {
+    // ignore and return undefined
+  }
+
+  try {
+    return permit2Interface.parseTransaction({ data });
   } catch {
     // ignore and return undefined
   }

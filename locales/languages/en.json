@@ -3893,7 +3893,12 @@
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
-      "unavailable": "Unavailable"
+      "unavailable": "Unavailable",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_balance_info": "Account balance:",
+      "cancel": "Cancel",
+      "save": "Save"
     },
     "7702_functionality": {
       "smartAccountLabel": "Smart Account",
