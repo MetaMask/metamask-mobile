@@ -130,11 +130,9 @@ export function generateEvent({
 export function generateRPCProperties(chainId: string) {
   const rpcUrl = getNetworkRpcUrl(chainId);
   const rpcDomain = extractRpcDomain(rpcUrl);
-
   const rpcMetrics = {
     properties: rpcDomain ? { rpc_domain: rpcDomain } : {},
     sensitiveProperties: {}
   };
-
   return rpcMetrics;
 }
