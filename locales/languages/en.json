@@ -102,7 +102,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet setup",
+    "title": "Let’s get started!",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -134,7 +134,8 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet"
+    "delete_current": "Deleting current wallet",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Congratulations!",
