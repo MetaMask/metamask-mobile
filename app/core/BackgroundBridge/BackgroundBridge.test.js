@@ -72,6 +72,20 @@ function setupBackgroundBridge(url, isMMSDK = false) {
   AccountsController.getSelectedAccount.mockReturnValue({
     address: mockAddress,
   });
+  AccountsController.listMultichainAccounts.mockReturnValue([
+    {
+      address: '123',
+      metadata: {
+        lastSelected: 1
+      }
+    },
+    {
+      address: '456',
+      metadata: {
+        lastSelected: 2
+      }
+    }
+  ]);
 
   // Setup permission controller mocks
   PermissionController.getPermissions.mockReturnValue({
@@ -391,9 +405,147 @@ describe('BackgroundBridge', () => {
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
 
-      expect(sendNotificationSpy).toHaveBeenCalledWith(
-        {'method': 'wallet_notify', 'params': {'notification': {'method': 'metamask_accountsChanged', 'params': ['someaddress']}, 'scope': 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'}}
-      );
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: [
+            'someaddress',
+            ],
+          },
+          scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      });
+    });
+  });
+
+  describe('handleSolanaAccountChangedFromScopeChanges', () => {
+    it('emits nothing if the current and previous permissions both did not have `solana_accountChanged_notifications` session property set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:456`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {}
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {}
+      };
+
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
+
+      expect(sendNotificationSpy).not.toHaveBeenCalledWith();
+    });
+
+    it('emits nothing if currently and previously selected solana accounts did not change', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          solana_accountChanged_notifications: true
+        }
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          solana_accountChanged_notifications: true
+        }
+      };
+
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
+
+      expect(sendNotificationSpy).not.toHaveBeenCalledWith();
+    });
+
+    it('emits the currently selected solana account if the currently selected solana accounts did change', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+
+      const currentValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:456`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          solana_accountChanged_notifications: true
+        }
+      };
+
+      const previousValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          [SolScope.Mainnet]: {
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {
+          solana_accountChanged_notifications: true
+        }
+      };
+
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+          params: {
+            notification: {
+              method: 'metamask_accountsChanged',
+              params: [
+                '456',
+              ],
+            },
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          },
+      });
     });
   });
 
@@ -559,15 +711,15 @@ describe('BackgroundBridge', () => {
       });
 
       expect(sendNotificationSpy).toHaveBeenCalledWith({
-          'method': 'wallet_notify',
-          'params': {
-          'notification': {
-          'method': 'metamask_accountsChanged',
-          'params': [
-          'someaddress',
-          ],
-          },
-          'scope': 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        method: 'wallet_notify',
+          params: {
+            notification: {
+              method: 'metamask_accountsChanged',
+              params: [
+                'someaddress',
+              ],
+            },
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
       });
     });
