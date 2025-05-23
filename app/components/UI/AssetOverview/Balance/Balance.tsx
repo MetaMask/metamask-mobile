@@ -6,7 +6,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId, selectNetworkClientId, selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   getDefaultNetworkByChainId,
@@ -33,6 +33,13 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { toHex } from 'viem';
+import { TransactionType, WalletDevice } from '@metamask/transaction-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface BalanceProps {
   asset: TokenI;
@@ -83,6 +90,10 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const networkClientId = useSelector(selectNetworkClientId);
+
+
   const tokenChainId = asset.chainId;
 
   const renderNetworkAvatar = useCallback(() => {
@@ -122,6 +133,40 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       }),
     [asset.address, asset.chainId, asset.isNative, navigation],
   );
+  const openStablecoinLendingConfirmation = useCallback(async function() {
+    const { batchId: id } = await addTransactionBatch({
+      from: activeAccount?.address as Hex || '0x',
+      networkClientId,
+      origin: ORIGIN_METAMASK,
+      transactions: [{
+        params: {
+          data: '0x',
+          gas: toHex(21000),
+          maxFeePerGas: toHex(5),
+          maxPriorityFeePerGas: toHex(1),
+          to: activeAccount?.address as Hex,
+          value: toHex(1),
+        },
+        type: TransactionType.contractInteraction
+      },
+      {
+        params: {
+          data: '0x',
+          gas: toHex(21000),
+          maxFeePerGas: toHex(5),
+          maxPriorityFeePerGas: toHex(1),
+          to: activeAccount?.address as Hex,
+          value: toHex(1),
+        },
+        type: TransactionType.contractInteraction
+      }],
+      useHook: true,
+      requireApproval: true,
+    });
+
+    navigation.navigate(Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT);
+  }, [activeAccount?.address, networkClientId]);
+
 
   return (
     <View style={styles.wrapper}>
@@ -153,6 +198,11 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         </Text>
       </AssetElement>
       {asset?.isETH && <StakingBalance asset={asset} />}
+      {!asset?.isETH && (
+        <TouchableOpacity onPress={openStablecoinLendingConfirmation}>
+          <Text>Open lending stablecoin confirmation</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
