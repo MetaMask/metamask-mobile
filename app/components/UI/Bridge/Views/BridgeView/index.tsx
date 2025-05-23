@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import Keypad from '../../../../Base/Keypad';
 import {
+  MAX_INPUT_LENGTH,
   TokenInputArea,
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
@@ -260,6 +261,9 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
+    if (value.length >= MAX_INPUT_LENGTH) {
+      return;
+    }
     dispatch(setSourceAmount(value || undefined));
   };
 
