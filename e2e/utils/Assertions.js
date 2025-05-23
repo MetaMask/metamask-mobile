@@ -24,7 +24,6 @@ class Assertions {
     }
   }
 
-
   /**
    * Check if an element with the specified web selector exists.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.
@@ -221,9 +220,52 @@ class Assertions {
    */
   static async checkIfValueIsPresent(value) {
     if (value === null || value === undefined || value === '') {
-      throw new Error('Value is not present (null, undefined, or empty string)');
+      throw new Error(
+        'Value is not present (null, undefined, or empty string)',
+      );
     }
-    return true;
+  }
+
+  /**
+   * Checks if the actual object contains all key/value pairs from the partial object.
+   * Throws an error if the assertion fails, listing all issues found.
+   * @param {Object} actual - The object to check against
+   * @param {Object} partial - The partial object with expected key/value pairs
+   * @param {boolean} deep - Whether to perform deep comparison for nested objects (default: true)
+   */
+  static checkIfObjectContains(actual, partial, deep = true) {
+    const errors = [];
+
+    function check(actualObj, partialObj, path = '') {
+      if (typeof actualObj !== 'object' || typeof partialObj !== 'object' || actualObj === null || partialObj === null) {
+        if (actualObj !== partialObj) {
+          errors.push(`Value mismatch at "${path || 'root'}": expected ${JSON.stringify(partialObj)}, got ${JSON.stringify(actualObj)}`);
+        }
+        return;
+      }
+
+      for (const key in partialObj) {
+        const currentPath = path ? `${path}.${key}` : key;
+        if (!Object.prototype.hasOwnProperty.call(actualObj, key)) {
+          errors.push(`Missing key at "${currentPath}" in actual object`);
+          continue;
+        }
+
+        if (deep && typeof partialObj[key] === 'object' && partialObj[key] !== null) {
+          check(actualObj[key], partialObj[key], currentPath);
+        } else if (actualObj[key] !== partialObj[key]) {
+          errors.push(
+            `Value mismatch at "${currentPath}": expected ${JSON.stringify(partialObj[key])}, got ${JSON.stringify(actualObj[key])}`
+          );
+        }
+      }
+    }
+
+    check(actual, partial);
+
+    if (errors.length > 0) {
+      throw new Error('Object contains assertion failed:\n' + errors.join('\n'));
+    }
   }
 }
 

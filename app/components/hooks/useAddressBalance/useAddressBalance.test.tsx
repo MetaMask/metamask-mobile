@@ -1,7 +1,7 @@
 import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
@@ -18,6 +18,14 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 ]);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addToken: jest.fn(),
+    },
+  },
+}));
 
 const mockStore = configureMockStore();
 const mockInitialState = {
@@ -99,7 +107,7 @@ describe('useAddressBalance', () => {
     };
   });
 
-  it('should render balance from AccountTrackerController.accounts for ETH', () => {
+  it('render balance from AccountTrackerController.accounts for ETH', () => {
     let res = renderHook(
       () => useAddressBalance({ isETH: true } as Asset, MOCK_ADDRESS_1),
       {
@@ -116,19 +124,30 @@ describe('useAddressBalance', () => {
     expect(res.result.current.addressBalance).toStrictEqual('< 0.00001 ETH');
   });
 
-  it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', () => {
+  it('render balance from AssetsContractController.getERC20BalanceOf if balance from TokenBalancesController.contractBalances is not available', async () => {
     const asset = {
-      address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-      symbol: 'TST',
+      // Different asset
+      address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136123',
+      symbol: 'TST2',
       decimals: 4,
     };
+
+    (mockGetERC20BalanceOf as jest.Mock).mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve(0x0186a0), 50))
+    );
+
     renderHook(() => useAddressBalance(asset, MOCK_ADDRESS_2), {
       wrapper: Wrapper,
     });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
     expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
   });
 
-  it('should render balance if asset is undefined', () => {
+  it('render balance if asset is undefined', () => {
     let asset: Asset;
     let res = renderHook(() => useAddressBalance(asset, MOCK_ADDRESS_1), {
       wrapper: Wrapper,
@@ -143,7 +162,7 @@ describe('useAddressBalance', () => {
     expect(res.result.current.addressBalance).toStrictEqual('< 0.00001 ETH');
   });
 
-  it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', () => {
+  it('render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', () => {
     const res = renderHook(
       () =>
         useAddressBalance(
