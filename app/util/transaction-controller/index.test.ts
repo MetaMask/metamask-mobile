@@ -1,7 +1,9 @@
 import {
   WalletDevice,
   type TransactionMeta,
+  TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
+import { cloneDeep } from 'lodash';
 //eslint-disable-next-line import/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
@@ -26,21 +28,21 @@ jest.mock('../../store', () => ({
 
 const ID_MOCK = 'testId';
 const EIP_1559_TRANSACTION_PARAMS_MOCK = {
-  from: '0x0',
-  to: '0x1',
-  value: '0x2',
-  type: '0x2',
-  gas: '0x3',
-  maxFeePerGas: '0x4',
-  maxPriorityFeePerGas: '0x5',
+  from: '0x1559From',
+  to: '0x1559To',
+  value: '0x1559Value',
+  type: TransactionEnvelopeType.feeMarket,
+  gas: '0x1559Gas',
+  maxFeePerGas: '0x1559MaxFeePerGas',
+  maxPriorityFeePerGas: '0x1559MaxPriorityFeePerGas',
 };
-const TRANSACTION_PARAMS_LEGACY_MOCK = {
-  from: '0x9',
-  to: '0x8',
-  value: '0x7',
-  type: '0x0',
-  gas: '0x6',
-  gasPrice: '0x5',
+const LEGACY_TRANSACTION_PARAMS_MOCK = {
+  from: '0xlegacyFrom',
+  to: '0xlegacyTo',
+  value: '0xlegacyValue',
+  type: TransactionEnvelopeType.legacy,
+  gas: '0xlegacyGas',
+  gasPrice: '0xlegacyGasPrice',
 };
 const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
 const EIP1559_TRANSACTION_META_MOCK = {
@@ -49,7 +51,7 @@ const EIP1559_TRANSACTION_META_MOCK = {
 } as TransactionMeta;
 const LEGACY_TRANSACTION_META_MOCK = {
   id: ID_MOCK,
-  txParams: TRANSACTION_PARAMS_LEGACY_MOCK,
+  txParams: LEGACY_TRANSACTION_PARAMS_MOCK,
 } as TransactionMeta;
 
 const TRANSACTION_OPTIONS_MOCK = {
@@ -263,25 +265,120 @@ describe('Transaction Controller Util', () => {
       paramToSanitize?: string[];
     }) {
       it(testName, () => {
-        jest
-          .spyOn(Engine.context.TransactionController, 'getTransactions')
-          .mockReturnValue([transactionMock]);
+        const clonedUpdaterFunctionParams = cloneDeep(updaterFunctionParams);
 
-        updaterFunction(...updaterFunctionParams);
+        mockGetTransactions([transactionMock]);
 
-        const calledArguments = (
+        updaterFunction(...clonedUpdaterFunctionParams);
+
+        const calledTxParams = (
           Engine.context.TransactionController?.[
             updaterFunctionName as keyof typeof Engine.context.TransactionController
           ] as jest.Mock
-        ).mock.calls[0];
+        ).mock.calls[0][expectedCallArgumentIndex];
+
+        // Either check txParams or the whole object
+        const calledTxParamsArguments =
+          calledTxParams?.txParams || calledTxParams;
 
         paramToSanitize.forEach((param: string) => {
-          expect(
-            calledArguments[expectedCallArgumentIndex][param],
-          ).not.toBeDefined();
+          expect(calledTxParamsArguments[param]).not.toBeDefined();
         });
+
+        expect(calledTxParamsArguments.type).toBe(
+          transactionMock.txParams.type,
+        );
       });
     }
+
+    function mockGetTransactions(transactions: TransactionMeta[]) {
+      jest
+        .spyOn(Engine.context.TransactionController, 'getTransactions')
+        .mockReturnValue(transactions);
+    }
+
+    describe('does not modify transaction params', () => {
+      it('when transaction is not exist', () => {
+        mockGetTransactions([]);
+
+        TransactionControllerUtils.updateTransaction(
+          EIP1559_TRANSACTION_META_MOCK,
+          'testNote',
+        );
+
+        expect(
+          Engine.context.TransactionController.updateTransaction,
+        ).toHaveBeenCalledWith(EIP1559_TRANSACTION_META_MOCK, 'testNote');
+
+        TransactionControllerUtils.updateEditableParams(
+          ID_MOCK,
+          EIP_1559_TRANSACTION_PARAMS_MOCK,
+        );
+
+        expect(
+          Engine.context.TransactionController.updateEditableParams,
+        ).toHaveBeenCalledWith(ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK);
+      });
+
+      it('when requuested transaction param changes is not exist', () => {
+        mockGetTransactions([EIP1559_TRANSACTION_META_MOCK]);
+
+        TransactionControllerUtils.updateTransaction(
+          { id: ID_MOCK } as TransactionMeta,
+          'testNote',
+        );
+
+        expect(
+          Engine.context.TransactionController.updateTransaction,
+        ).toHaveBeenCalledWith({ id: ID_MOCK } as TransactionMeta, 'testNote');
+
+        TransactionControllerUtils.updateEditableParams(
+          ID_MOCK,
+          undefined as unknown as Parameters<
+            typeof TransactionControllerUtils.updateEditableParams
+          >[1],
+        );
+
+        expect(
+          Engine.context.TransactionController.updateEditableParams,
+        ).toHaveBeenCalledWith(
+          ID_MOCK,
+          undefined as unknown as Parameters<
+            typeof TransactionControllerUtils.updateEditableParams
+          >[1],
+        );
+      });
+
+      it('when transaction type is not legacy or feeMarket', () => {
+        mockGetTransactions([
+          {
+            ...EIP1559_TRANSACTION_META_MOCK,
+            txParams: {
+              ...EIP_1559_TRANSACTION_PARAMS_MOCK,
+              type: '0x4',
+            },
+          },
+        ]);
+
+        TransactionControllerUtils.updateTransaction(
+          EIP1559_TRANSACTION_META_MOCK,
+          'testNote',
+        );
+
+        expect(
+          Engine.context.TransactionController.updateTransaction,
+        ).toHaveBeenCalledWith(EIP1559_TRANSACTION_META_MOCK, 'testNote');
+
+        TransactionControllerUtils.updateEditableParams(
+          ID_MOCK,
+          EIP_1559_TRANSACTION_PARAMS_MOCK,
+        );
+
+        expect(
+          Engine.context.TransactionController.updateEditableParams,
+        ).toHaveBeenCalledWith(ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK);
+      });
+    });
 
     testSanitization({
       testName:
