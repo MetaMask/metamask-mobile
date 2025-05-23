@@ -12,18 +12,15 @@ import {
   resetModuleState,
 } from './rpc-domain-utils';
 
-// Create module object for spying
 const rpcDomainModule = {
   getSafeChainsListFromCacheOnly,
   getKnownDomains,
 };
 
-// Mock dependencies
 jest.mock('../store/storage-wrapper');
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
-// Define types for NetworkController mock
 interface NetworkConfiguration {
   rpcUrl?: string;
   rpcEndpoints?: { url: string }[];
