@@ -27,6 +27,7 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
 import { Messenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
+import { isPerDappSelectedNetworkEnabled } from '../networks';
 
 export type AllowedActions = never;
 
@@ -261,7 +262,7 @@ class SmartTransactionHook {
         `${LOG_PREFIX}: A list of transactions are required for batch submissions`,
       );
     }
-  }
+  };
 
   async submitBatch() {
     this.#validateSubmitBatch();
@@ -347,6 +348,7 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
+        isPerDappSelectedNetworkEnabled() ? { networkClientId: this.#transactionMeta.networkClientId } : undefined,
       );
     } catch (error) {
       return undefined;

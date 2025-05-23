@@ -14,7 +14,9 @@ import {
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView, {
+  ChangeTabProperties,
+} from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
@@ -54,7 +56,6 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -63,20 +64,12 @@ import {
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
-  selectTokens,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectTransformedTokens,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
@@ -109,7 +102,6 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -181,6 +173,77 @@ interface WalletProps {
   hideNftFetchingLoadingIndicator: () => void;
 }
 
+const WalletTokensTabView = React.memo(
+  (props: {
+    navigation: WalletProps['navigation'];
+    onChangeTab: (value: ChangeTabProperties) => void;
+    defiEnabled: boolean;
+    collectiblesEnabled: boolean;
+  }) => {
+    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+
+    const theme = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { colors } = theme;
+
+    const renderTabBar = useCallback(
+      (tabBarProps: Record<string, unknown>) => (
+        <View style={styles.base}>
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyle}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            tabPadding={16}
+            style={styles.tabBar}
+            {...tabBarProps}
+          />
+        </View>
+      ),
+      [styles, colors],
+    );
+
+    const tokensTabProps = useMemo(
+      () => ({
+        key: 'tokens-tab',
+        tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const defiPositionsTabProps = useMemo(
+      () => ({
+        key: 'defi-tab',
+        tabLabel: strings('wallet.defi'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const collectibleContractsTabProps = useMemo(
+      () => ({
+        key: 'nfts-tab',
+        tabLabel: strings('wallet.collectibles'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    return (
+      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
+        <Tokens {...tokensTabProps} />
+        {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+        {collectiblesEnabled && (
+          <CollectibleContracts {...collectibleContractsTabProps} />
+        )}
+      </ScrollableTabView>
+    );
+  },
+);
+
 /**
  * Main view for the wallet
  */
@@ -211,32 +274,10 @@ const Wallet = ({
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
-   * ETH to current currency conversion rate
-   */
-  const conversionRate = useSelector(selectConversionRate);
-  const contractBalances = useSelector(selectContractBalances);
-  /**
-   * Currency code of the currently-active currency
-   */
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  /**
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  /**
-   * An array that represents the user tokens
-   */
-  const tokens = useSelector(selectTokens);
-  /**
-   * An array that represents the user tokens by chainId and address
-   */
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
-  ///: END:ONLY_INCLUDE_IF
-  /**
-   * Current provider ticker
-   */
-  const ticker = useSelector(selectEvmTicker);
+
   /**
    * Current onboarding wizard step
    */
@@ -263,6 +304,12 @@ const Wallet = ({
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
+
+  const assetsDefiPositionsEnabled = useSelector(
+    selectAssetsDefiPositionsEnabled,
+  );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -350,7 +397,6 @@ const Wallet = ({
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const name = useSelector(selectNetworkName);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
@@ -372,10 +418,6 @@ const Wallet = ({
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
-
-  const assetsDefiPositionsEnabled = useSelector(
-    selectAssetsDefiPositionsEnabled,
-  );
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -612,25 +654,6 @@ const Wallet = ({
     selectedNetworkClientId,
   ]);
 
-  const renderTabBar = useCallback(
-    (props: Record<string, unknown>) => (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.default}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          tabPadding={16}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
-    ),
-    [styles, colors],
-  );
-
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
     try {
       return {
@@ -644,7 +667,7 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj: { ref: { props: { tabLabel: string } } }) => {
+    async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
@@ -705,49 +728,21 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const tokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-      navigation,
-    }),
-    [navigation],
+  const defiEnabled = useMemo(
+    () =>
+      isEvmSelected &&
+      !isTestNet(chainId) &&
+      basicFunctionalityEnabled &&
+      assetsDefiPositionsEnabled,
+    [
+      isEvmSelected,
+      chainId,
+      basicFunctionalityEnabled,
+      assetsDefiPositionsEnabled,
+    ],
   );
 
-  const defiPositionsTabProps = useMemo(
-    () => ({
-      key: 'defi-tab',
-      tabLabel: strings('wallet.defi'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const collectibleContractsTabProps = useMemo(
-    () => ({
-      key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  function renderTokensContent() {
-    return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {isEvmSelected &&
-          !isTestNet(chainId) &&
-          basicFunctionalityEnabled &&
-          assetsDefiPositionsEnabled && (
-            <DeFiPositionsList {...defiPositionsTabProps} />
-          )}
-        {isEvmSelected && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
-    );
-  }
+  const collectiblesEnabled = useMemo(() => isEvmSelected, [isEvmSelected]);
 
   const renderContent = useCallback(
     () => (
@@ -771,7 +766,12 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
-          {renderTokensContent()}
+          <WalletTokensTabView
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+          />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             <SolanaNewFeatureContent />
@@ -780,24 +780,16 @@ const Wallet = ({
         </>
       </View>
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      tokens,
-      accountBalanceByChainId,
-      styles,
-      colors,
+      styles.banner,
+      styles.carouselContainer,
+      styles.wrapper,
       basicFunctionalityEnabled,
+      defiEnabled,
+      collectiblesEnabled,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-      ticker,
-      conversionRate,
-      currentCurrency,
-      contractBalances,
-      isEvmSelected,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      tokensByChainIdAndAddress,
-      ///: END:ONLY_INCLUDE_IF
     ],
   );
   const renderLoader = useCallback(

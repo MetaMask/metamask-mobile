@@ -150,8 +150,6 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
@@ -300,13 +298,11 @@ type SnapsGlobalActions =
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
-  | SnapsAllowedActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
-  | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
