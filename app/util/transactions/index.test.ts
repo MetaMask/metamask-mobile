@@ -38,6 +38,7 @@ import {
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
+  getTransactionById,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -1203,5 +1204,55 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
+  });
+});
+
+describe('Transactions utils :: getTransactionById', () => {
+  it('returns the correct transaction when given a valid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('tx2', mockTransactionController);
+    
+    expect(result).toEqual(mockTransactions[1]);
+  });
+
+  it('returns undefined when given an invalid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+    
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('nonexistent', mockTransactionController);
+    
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the transactions array is empty', () => {
+    const mockTransactionController = {
+      state: {
+        transactions: [],
+      },
+    };
+
+    const result = getTransactionById('tx1', mockTransactionController);
+    
+    expect(result).toBeUndefined();
   });
 });

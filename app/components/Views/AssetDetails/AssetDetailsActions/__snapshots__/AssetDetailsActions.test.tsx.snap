@@ -63,6 +63,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="Add"
           style={
@@ -171,6 +172,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="SwapHorizontal"
           style={
@@ -279,6 +281,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="Bridge"
           style={
@@ -387,8 +390,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
-          name="Arrow2Upright"
+          name="Arrow2UpRight"
           style={
             {
               "height": 24,
@@ -493,6 +497,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="QrCode"
           style={

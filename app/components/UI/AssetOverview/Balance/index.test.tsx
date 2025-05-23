@@ -125,9 +125,22 @@ describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
 
-  Image.getSize = jest.fn((_uri, success) => {
-    success(100, 100); // Mock successful response for ETH native Icon Image
-  });
+  interface ImageSize {
+    width: number;
+    height: number;
+  }
+  Image.getSize = jest.fn(
+    (
+      _uri: string,
+      success?: (width: number, height: number) => void,
+      _failure?: (error: Error) => void,
+    ) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+    },
+  );
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -165,10 +178,10 @@ describe('Balance', () => {
   });
 
   it('should fire navigation event for non native tokens', () => {
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
     );
-    const assetElement = queryByTestId('asset-DAI');
+    const assetElement = getByTestId('asset-DAI');
     fireEvent.press(assetElement);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

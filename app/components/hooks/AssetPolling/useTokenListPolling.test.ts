@@ -168,4 +168,27 @@ describe('useTokenListPolling', () => {
       mockedTokenListController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('Should not poll when evm is not selected', async () => {
+    renderHookWithProvider(() => useTokenListPolling(), {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            MultichainNetworkController: {
+              ...state.engine.backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+      },
+    });
+
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(0);
+  });
 });

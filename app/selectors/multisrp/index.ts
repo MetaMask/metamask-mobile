@@ -1,7 +1,10 @@
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../reducers';
-import { selectSelectedInternalAccount } from '../accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../accountsController';
 import { selectHDKeyrings, ExtendedKeyring } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 
@@ -62,3 +65,21 @@ export const getHdKeyringOfSelectedAccountOrPrimaryKeyring =
       return selectedKeyring;
     },
   );
+
+/**
+ * Selector that filters internal accounts by their associated keyring ID.
+ * This is used to get all accounts that were created by a specific Snap keyring.
+ *
+ * @param {RootState} state - The Redux state
+ * @param {string} keyringId - The ID of the keyring to filter accounts by
+ * @returns {InternalAccount[]} An array of internal accounts that belong to the specified keyring
+ */
+export const getSnapAccountsByKeyringId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (_state: RootState, keyringId: string) => keyringId,
+  (accounts: InternalAccount[], keyringId: string) =>
+    accounts.filter(
+      (account: InternalAccount) =>
+        account.options?.entropySource === keyringId,
+    ),
+);

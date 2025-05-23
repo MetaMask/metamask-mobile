@@ -5,6 +5,12 @@ import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  setEthAccounts,
+  setPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -50,6 +56,18 @@ class FixtureBuilder {
    */
   withState(state) {
     this.fixture.state = state;
+    return this;
+  }
+
+  /**
+   * Ensures that the Solana feature modal is suppressed by adding the appropriate flag to asyncState.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureSolanaModalSuppressed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
     return this;
   }
 
@@ -641,6 +659,7 @@ class FixtureBuilder {
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+        '@MetaMask:solanaFeatureModalShown': 'true',
       },
     };
     return this;
@@ -703,24 +722,34 @@ class FixtureBuilder {
   /**
    * Private helper method to create permission controller configuration
    * @private
-   * @param {Object} additionalPermissions - Additional permissions to merge with eth_accounts
+   * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
   createPermissionControllerConfig(additionalPermissions = {}) {
+    const caip25CaveatValue = additionalPermissions?.[
+      Caip25EndowmentPermissionName
+    ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
+      optionalScopes: {
+        'eip155:1': { accounts: [] },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
     const basePermissions = {
-      eth_accounts: {
+      [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
-        parentCapability: 'eth_accounts',
+        parentCapability: Caip25EndowmentPermissionName,
         invoker: DAPP_URL,
         caveats: [
           {
-            type: 'restrictReturnedAccounts',
-            value: [DEFAULT_FIXTURE_ACCOUNT],
+            type: Caip25CaveatType,
+            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
           },
         ],
         date: 1664388714636,
       },
-      ...additionalPermissions,
     };
 
     return {
@@ -735,11 +764,16 @@ class FixtureBuilder {
 
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp() {
-    this.withPermissionController(this.createPermissionControllerConfig());
-    return this;
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+    this.withPermissionController(
+      this.createPermissionControllerConfig(additionalPermissions),
+    );
+    
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withRampsSelectedRegion(region = null) {
@@ -772,15 +806,28 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withChainPermission(chainIds = ['0x1']) {
+    const optionalScopes = chainIds
+      .map((id) => ({
+        [`eip155:${parseInt(id)}`]: { accounts: [] },
+      }))
+      .reduce(((acc, obj) => ({ ...acc, ...obj })));
+
+    const defaultCaip25CaveatValue = {
+      optionalScopes,
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
     const chainPermission = {
-      'endowment:permitted-chains': {
+      [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
-        parentCapability: 'endowment:permitted-chains',
+        parentCapability: Caip25EndowmentPermissionName,
         invoker: 'localhost',
         caveats: [
           {
-            type: 'restrictNetworkSwitching',
-            value: chainIds,
+            type: Caip25CaveatType,
+            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
           },
         ],
         date: 1732715918637,
@@ -838,7 +885,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withSepoliaNetwork() {
@@ -878,7 +926,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPopularNetworks() {
@@ -929,7 +978,8 @@ class FixtureBuilder {
       networkConfigurationsByChainId,
     };
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPreferencesController(data) {
@@ -944,8 +994,8 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
           type: 'HD Key Tree',
-          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
         },
         { type: 'QR Hardware Wallet Device', accounts: [] },
       ],

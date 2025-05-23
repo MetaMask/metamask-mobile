@@ -35,8 +35,6 @@ jest.mock('@react-navigation/compat', () => {
 jest.mock('../QRScanner', () => jest.fn(() => null));
 jest.mock('../../UI/ReceiveRequest', () => jest.fn(() => null));
 
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 describe('QRTabSwitcher', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -48,7 +46,7 @@ describe('QRTabSwitcher', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('renders QRScanner by default', () => {

@@ -8,8 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      display: 'flex',
-      width: '100%',
+      position: 'relative',
+      paddingHorizontal: 8,
+    },
+    icon: {
+      position: 'absolute',
+      top: 4,
+      right: 8,
     },
     message: {
       marginTop: 8,
@@ -17,12 +22,10 @@ const styleSheet = (params: { theme: Theme }) => {
     title: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
-      fontSize: 14,
     },
     description: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     messageContainer: {
       backgroundColor: theme.colors.background.default,
@@ -36,7 +39,6 @@ const styleSheet = (params: { theme: Theme }) => {
     messageExpanded: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     copyButtonContainer: {
       position: 'absolute',

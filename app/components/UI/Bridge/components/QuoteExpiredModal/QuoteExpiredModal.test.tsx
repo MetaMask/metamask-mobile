@@ -24,6 +24,10 @@ jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: () => mockUpdateQuoteParams,
 }));
 
+jest.mock('../../utils/quoteUtils', () => ({
+  getQuoteRefreshRate: jest.fn(() => 15000),
+}));
+
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },

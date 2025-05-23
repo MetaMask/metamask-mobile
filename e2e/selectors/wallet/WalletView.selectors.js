@@ -79,6 +79,12 @@ export const WalletViewSelectorsIDs = {
   CAROUSEL_FIFTH_SLIDE: 'carousel-fifth-slide',
   CAROUSEL_FIFTH_SLIDE_TITLE: 'carousel-fifth-slide-title',
   CAROUSEL_FIFTH_SLIDE_CLOSE_BUTTON: 'carousel-fifth-slide-close-button',
+  CAROUSEL_SIXTH_SLIDE: 'carousel-sixth-slide',
+  CAROUSEL_SIXTH_SLIDE_TITLE: 'carousel-sixth-slide-title',
+  CAROUSEL_SIXTH_SLIDE_CLOSE_BUTTON: 'carousel-sixth-slide-close-button',
+  CAROUSEL_SEVENTH_SLIDE: 'carousel-seventh-slide',
+  CAROUSEL_SEVENTH_SLIDE_TITLE: 'carousel-seventh-slide-title',
+  CAROUSEL_SEVENTH_SLIDE_CLOSE_BUTTON: 'carousel-seventh-slide-close-button',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: 'carousel-slide',
 };

@@ -159,6 +159,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -292,6 +293,7 @@ exports[`SendTo Component render matches snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {

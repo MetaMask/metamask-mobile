@@ -174,16 +174,6 @@ describe('Migration #63', () => {
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { SmartTransactionsController: null },
-        },
-      }),
-      errorMessage:
-        "Migration 63: Invalid SmartTransactionsController state: 'null'",
-      scenario: 'smartTransactionsController is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
           backgroundState: {
             SmartTransactionsController: {
               smartTransactionsState: { smartTransactions: null },
@@ -209,6 +199,19 @@ describe('Migration #63', () => {
       );
     },
   );
+
+  it('returns state unchanged when SmartTransactionsController is undefined (fresh install)', () => {
+    const state = merge({}, initialRootState, {
+      engine: {
+        backgroundState: { SmartTransactionsController: null },
+      },
+    });
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
 
   it('applies migration, changes transaction status to failed if a smart transaction was cancelled or unknown', () => {
     const oldState = {

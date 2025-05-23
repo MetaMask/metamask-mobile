@@ -38,7 +38,7 @@ const mockProps: {
   comparePrice: number;
   isLoading: boolean;
   timePeriod: TimePeriod;
-  isEvmNetworkSelected: boolean;
+  isEvmAssetSelected: boolean;
   multichainAssetsRates: Record<CaipAssetId, AssetConversion>;
 } = {
   asset: mockAsset,
@@ -49,7 +49,7 @@ const mockProps: {
   comparePrice: 100,
   isLoading: false,
   timePeriod: '1d',
-  isEvmNetworkSelected: true,
+  isEvmAssetSelected: true,
   multichainAssetsRates: {},
 };
 

@@ -208,7 +208,7 @@ export const handleConnectionMessage = async ({
     // wait for accounts to be loaded
     await waitForAsyncCondition({
       fn: async () => {
-        const accounts = await getPermittedAccounts(connection.channelId);
+        const accounts = getPermittedAccounts(connection.channelId);
         DevLogger.log(
           `handleConnectionMessage::waitForAsyncCondition channelId=${connection.channelId} accounts`,
           accounts,

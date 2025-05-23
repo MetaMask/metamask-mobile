@@ -39,6 +39,7 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './AccountSelectorList.constants';
+import { toHex } from '@metamask/controller-utils';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -167,10 +168,10 @@ const AccountSelectorList = ({
                   removedAddress: address,
                   nextActiveAddress,
                 });
-                await Engine.context.KeyringController.removeAccount(address);
                 // Revocation of accounts from PermissionController is needed whenever accounts are removed.
                 // If there is an instance where this is not the case, this logic will need to be updated.
-                removeAccountsFromPermissions([address]);
+                removeAccountsFromPermissions([toHex(address)]);
+                await Engine.context.KeyringController.removeAccount(address);
               });
             },
           },
@@ -178,8 +179,6 @@ const AccountSelectorList = ({
         { cancelable: false },
       );
     },
-    // TODO: Please update this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       accounts,
       onRemoveImportedAccount,
@@ -201,8 +200,6 @@ const AccountSelectorList = ({
         params: { selectedAccount: account },
       });
     },
-    // TODO: Please update this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate],
   );
 

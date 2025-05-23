@@ -122,8 +122,6 @@ import {
   selectConfirmationMetrics,
   updateConfirmationMetric,
 } from '../../../../../../core/redux/slices/confirmationMetrics';
-import SimulationDetails from '../../../../../UI/SimulationDetails/SimulationDetails';
-import { selectUseTransactionSimulations } from '../../../../../../selectors/preferencesController';
 import {
   validateSufficientTokenBalance,
   validateSufficientBalance,
@@ -287,10 +285,6 @@ class Confirm extends PureComponent {
      */
     updateConfirmationMetric: PropTypes.func,
     /**
-     * Indicates whether the transaction simulations feature is enabled
-     */
-    useTransactionSimulations: PropTypes.bool,
-    /**
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
@@ -443,7 +437,10 @@ class Confirm extends PureComponent {
 
     const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
-      await TokensController.ignoreTokens([selectedAsset.address]);
+      await TokensController.ignoreTokens(
+        [selectedAsset.address],
+        this.props.networkClientId,
+      );
     }
   };
 
@@ -788,6 +785,7 @@ class Confirm extends PureComponent {
           decimals,
           image,
           name,
+          networkClientId: this.props.networkClientId,
         });
       }
 
@@ -1215,7 +1213,7 @@ class Confirm extends PureComponent {
             onPress={this.toggleHexDataModal}
           >
             <IonicIcon
-              name={'ios-close'}
+              name={'close'}
               size={28}
               color={colors.text.default}
             />
@@ -1379,9 +1377,6 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
-      transactionMetadata,
-      transactionState,
-      useTransactionSimulations,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1412,7 +1407,6 @@ class Confirm extends PureComponent {
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
-    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1486,16 +1480,6 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations &&
-            transactionState?.id &&
-            transactionMetadata && (
-              <View style={styles.simulationWrapper}>
-                <SimulationDetails
-                  transaction={transactionMetadata}
-                  enableMetrics
-                />
-              </View>
-            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1612,7 +1596,8 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = selectEvmChainId(state);
+  const chainId = transaction?.chainId || selectEvmChainId(state);
+
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
@@ -1640,10 +1625,9 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
-    useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     maxValueMode: state.transaction.maxValueMode,
   };

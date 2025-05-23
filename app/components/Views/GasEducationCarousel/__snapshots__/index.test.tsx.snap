@@ -81,7 +81,6 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               scrollEventThrottle={16}
               scrollsToTop={false}
               showsHorizontalScrollIndicator={false}
-              style={{}}
             >
               <View>
                 <View

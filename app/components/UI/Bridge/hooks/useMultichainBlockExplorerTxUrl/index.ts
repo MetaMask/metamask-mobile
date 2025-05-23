@@ -85,7 +85,6 @@ export const useMultichainBlockExplorerTxUrl = ({
   }
 
   // Get network image source
-  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
   const networkImageSource = getNetworkImageSource({
     chainId: formattedChainId as string,
   });

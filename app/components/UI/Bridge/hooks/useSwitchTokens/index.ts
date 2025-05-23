@@ -10,6 +10,7 @@ import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNe
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import Engine from '../../../../../core/Engine';
 
 export const useSwitchTokens = () => {
   const dispatch = useDispatch();
@@ -36,6 +37,11 @@ export const useSwitchTokens = () => {
   );
 
   const handleSwitchTokens = async () => {
+    // Reset BridgeController state to prevent stale quotes
+    if (Engine.context.BridgeController?.resetState) {
+      Engine.context.BridgeController.resetState();
+    }
+
     // Switch tokens
     if (sourceToken && destToken) {
       dispatch(setSourceToken(destToken));

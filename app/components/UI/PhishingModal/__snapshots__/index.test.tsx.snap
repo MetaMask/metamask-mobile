@@ -21,6 +21,7 @@ exports[`PhishingModal should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -119,6 +120,7 @@ exports[`PhishingModal should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -178,6 +180,7 @@ exports[`PhishingModal should render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {

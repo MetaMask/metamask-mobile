@@ -104,6 +104,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     setScreen(AccountSelectorScreens.AddAccountActions);
   }, []);
 
+  // Handler for returning from add accounts screen
+  const handleBackToSelector = useCallback(() => {
+    setScreen(AccountSelectorScreens.AccountSelector);
+  }, []);
+
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
@@ -150,12 +155,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
-    [],
+    () => <AddAccountActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
   );
 
   const renderAccountScreens = useCallback(() => {

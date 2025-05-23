@@ -102,9 +102,10 @@ describe('useHandleOptInClick', () => {
 
     const mockEnableNotifications = jest.fn().mockImplementation(jest.fn());
 
-    const mockSelectIsProfileSyncingEnabled = jest
-      .spyOn(Selectors, 'selectIsProfileSyncingEnabled')
-      .mockReturnValue(true);
+    const mockSelectIsBackupAndSyncEnabled = jest.spyOn(
+      Selectors,
+      'selectIsBackupAndSyncEnabled',
+    );
 
     const hook = renderHookWithProvider(
       () =>
@@ -128,7 +129,7 @@ describe('useHandleOptInClick', () => {
       mockTrackEvent,
       mockCreateEventBuilder,
       mockEnableNotifications,
-      mockSelectIsProfileSyncingEnabled,
+      mockSelectIsBackupAndSyncEnabled,
     };
   };
 
@@ -188,9 +189,10 @@ describe('useHandleOptInCancel', () => {
       createEventBuilder: mockCreateEventBuilder,
     } as unknown as IUseMetricsHook;
 
-    const mockSelectIsProfileSyncingEnabled = jest
-      .spyOn(Selectors, 'selectIsProfileSyncingEnabled')
-      .mockReturnValue(true);
+    const mockSelectIsBackupAndSyncEnabled = jest.spyOn(
+      Selectors,
+      'selectIsBackupAndSyncEnabled',
+    );
 
     const hook = renderHookWithProvider(() =>
       useHandleOptInCancel({
@@ -205,7 +207,7 @@ describe('useHandleOptInCancel', () => {
       mockNavigate,
       mockTrackEvent,
       mockCreateEventBuilder,
-      mockSelectIsProfileSyncingEnabled,
+      mockSelectIsBackupAndSyncEnabled,
     };
   };
 

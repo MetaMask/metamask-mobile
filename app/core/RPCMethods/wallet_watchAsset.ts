@@ -15,8 +15,9 @@ import {
 } from '../../selectors/networkController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
-const wallet_watchAsset = async ({
+export const wallet_watchAsset = async ({
   req,
   res,
   hostname,
@@ -71,7 +72,7 @@ const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }
 
-  const permittedAccounts = await getPermittedAccounts(hostname);
+  const permittedAccounts = getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
   const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
     Engine.context.AccountsController.getSelectedAccount().address,
@@ -111,4 +112,10 @@ const wallet_watchAsset = async ({
   res.result = true;
 };
 
-export default wallet_watchAsset;
+export const watchAssetHandler = {
+  methodNames: [MESSAGE_TYPE.WATCH_ASSET],
+  implementation: wallet_watchAsset,
+  hookNames: {
+    handleWatchAssetRequest: true,
+  },
+};

@@ -2,6 +2,14 @@ import { useTokenValues } from './useTokenValues';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 describe('useTokenValues', () => {
   describe('staking deposit', () => {
     it('returns token and fiat values if from transaction metadata', () => {

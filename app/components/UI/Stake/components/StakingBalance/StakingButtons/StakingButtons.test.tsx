@@ -17,10 +17,19 @@ import {
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+
+type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
+  typeof selectPooledStakingEnabledFlag
+>;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../Earn/selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -80,6 +89,10 @@ describe('StakingButtons', () => {
       setOptions: jest.fn(),
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
+
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(true);
   });
 
   it('should render the stake and unstake buttons', () => {
@@ -94,6 +107,30 @@ describe('StakingButtons', () => {
     });
     expect(getByText('Unstake')).toBeDefined();
     expect(getByText('Stake more')).toBeDefined();
+  });
+
+  it('should not render stake/stake more button if pooled staking is disabled', () => {
+    (
+      selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
+    ).mockReturnValue(false);
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
+    };
+    const { getByText, queryByText } = renderWithProvider(
+      <StakingButtons {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    // Don't prevent users from unstaking
+    expect(getByText('Unstake')).toBeDefined();
+    expect(queryByText('Stake more')).toBeNull();
+    expect(queryByText('Stake')).toBeNull();
   });
 
   it('should switch to mainnet if the chain is not supported on press of stake button', async () => {

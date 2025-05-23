@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StakeConfirmationView from './StakeConfirmationView';
-import { Image } from 'react-native';
+import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
@@ -11,10 +11,18 @@ import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
-Image.getSize = jest.fn((_uri, success) => {
-  success(100, 100); // Mock successful response for ETH native Icon Image
-});
-
+Image.getSize = jest.fn(
+  (
+    _uri: string,
+    success?: (width: number, height: number) => void,
+    _failure?: (error: Error) => void,
+  ) => {
+    if (success) {
+      success(100, 100);
+    }
+    return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+  },
+);
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 

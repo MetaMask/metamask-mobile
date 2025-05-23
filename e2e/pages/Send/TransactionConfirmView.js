@@ -9,6 +9,7 @@ import {
   TransactionConfirmViewSelectorsIDs,
 } from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
 import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
+import TestHelpers from '../../helpers';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -73,9 +74,7 @@ class TransactionConfirmationView {
   }
 
   get editPriorityLegacyModal() {
-    return Matchers.getElementByID(
-      EditGasViewSelectorsIDs.LEGACY_CONTAINER,
-    );
+    return Matchers.getElementByID(EditGasViewSelectorsIDs.LEGACY_CONTAINER);
   }
 
   get securityAlertBanner() {
@@ -100,6 +99,7 @@ class TransactionConfirmationView {
 
   async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
+    await TestHelpers.delay(1000);
     await Gestures.TapAtIndex(this.estimatedGasLink, index);
   }
 

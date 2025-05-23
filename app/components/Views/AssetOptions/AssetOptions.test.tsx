@@ -191,7 +191,7 @@ describe('AssetOptions Component', () => {
       return {};
     });
     jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
     jest.useFakeTimers();
   });
 

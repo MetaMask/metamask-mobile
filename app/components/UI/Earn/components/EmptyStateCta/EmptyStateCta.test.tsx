@@ -11,9 +11,8 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
-import * as StakeConstants from '../../../Stake/constants';
-// eslint-disable-next-line import/no-namespace
 import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -30,6 +29,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
+
 const initialState = {
   ...initialRootState,
   engine: {
@@ -41,12 +44,10 @@ const initialState = {
   },
 };
 
-const renderComponent = (token: TokenI) =>
+const renderComponent = (token: TokenI, state = initialState) =>
   renderWithProvider(<EarnEmptyStateCta token={token} />, {
-    state: initialState,
+    state,
   });
-
-let isStablecoinLendingFeatureEnabledSpy: jest.SpyInstance;
 
 describe('EmptyStateCta', () => {
   beforeEach(() => {
@@ -66,10 +67,6 @@ describe('EmptyStateCta', () => {
       getMetaMetricsId: jest.fn(),
     });
 
-    isStablecoinLendingFeatureEnabledSpy = jest
-      .spyOn(StakeConstants, 'isStablecoinLendingFeatureEnabled')
-      .mockReturnValue(true);
-
     jest.spyOn(useEarnTokenDetails, 'useEarnTokenDetails').mockReturnValue({
       getTokenWithBalanceAndApr: () => ({
         ...MOCK_USDC_MAINNET_ASSET,
@@ -81,6 +78,14 @@ describe('EmptyStateCta', () => {
         balanceFiatNumber: 100,
       }),
     });
+  });
+
+  beforeEach(() => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
   });
 
   it('renders correctly', () => {
@@ -155,9 +160,13 @@ describe('EmptyStateCta', () => {
   });
 
   it('does not render if stablecoin lending feature flag disabled', () => {
-    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(false);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
 
-    const { toJSON } = renderComponent({} as TokenI);
+    const { toJSON } = renderComponent(MOCK_USDC_MAINNET_ASSET);
     expect(toJSON()).toBeNull();
   });
 });

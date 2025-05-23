@@ -365,8 +365,8 @@ describe('exchange-rates', () => {
           '0x456': 2.5,
         };
         (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(mockResponse);
-        (toChecksumHexAddress as jest.Mock).mockResolvedValue(mockResponse)
-
+        (toChecksumHexAddress as jest.Mock).mockResolvedValue(mockResponse);
+        
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,

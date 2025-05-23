@@ -187,7 +187,7 @@ function getNonEvmState(
           multichainNetworkConfigurationsByChainId: {
             [SolScope.Mainnet]: {
               chainId: SolScope.Mainnet,
-              name: 'Solana Mainnet',
+              name: 'Solana',
               nativeCurrency: 'SOL',
               isEvm: false,
               blockExplorers: {
@@ -199,7 +199,7 @@ function getNonEvmState(
             },
             [BtcScope.Mainnet]: {
               chainId: BtcScope.Mainnet,
-              name: 'Bitcoin Mainnet',
+              name: 'Bitcoin',
               nativeCurrency: 'BTC',
               isEvm: false,
               blockExplorers: {
