@@ -12,10 +12,14 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
+import {
+  AllowedBridgeChainIds,
+  NETWORK_TO_SHORT_NETWORK_NAME_MAP,
+} from '../../../constants/bridge';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { RootState } from '../../../reducers';
 import { getNonEvmNetworkImageSourceByChainId } from '../../../util/networks/customNetworks';
+import { useMemo } from 'react';
 
 /**
  * An asset for the SnapUIAssetSelector.
@@ -78,7 +82,7 @@ export const useSnapAssetSelectorData = ({
   const networks = useSelector(selectNetworkConfigurations);
 
   const assets = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, account?.id)
+    selectMultichainTokenListForAccountId(state, account?.id),
   ) as TokenWithFiatAmount[];
 
   /**
@@ -125,7 +129,9 @@ export const useSnapAssetSelectorData = ({
       name: asset.name,
       balance: formatAssetBalance(asset.balance),
       networkName,
-      networkIcon: getNonEvmNetworkImageSourceByChainId(asset.chainId as CaipChainId),
+      networkIcon: getNonEvmNetworkImageSourceByChainId(
+        asset.chainId as CaipChainId,
+      ),
       fiat: formatFiatBalance(Number(asset.secondary)),
       chainId: asset.chainId as CaipChainId,
       address: asset.address as CaipAssetType,
@@ -137,21 +143,25 @@ export const useSnapAssetSelectorData = ({
     .map((chainId) => chainId)
     .filter(({ chainId }) => (chainIds ? chainIds?.includes(chainId) : true));
 
-  // Format the assets
-  const formattedAssets: SnapUIAsset[] = assets.map(formatAsset);
+  const formattedAssets = useMemo(() => {
+    // Filter the assets by the requested chain IDs
+    const filteredAssets = assets.filter((asset) =>
+      requestedChainIds.some(({ chainId, chain: { namespace, reference } }) => {
+        // Handles the "eip155:0" case
+        if (namespace === KnownCaipNamespace.Eip155 && reference === '0') {
+          const { namespace: assetNamepace } = parseCaipChainId(asset.chainId);
+          return assetNamepace === namespace;
+        }
 
-  // Filter the assets by the requested chain IDs
-  const filteredAssets = formattedAssets.filter((asset) =>
-    requestedChainIds.some(({ chainId, chain: { namespace, reference } }) => {
-      // Handles the "eip155:0" case
-      if (namespace === KnownCaipNamespace.Eip155 && reference === '0') {
-        const { namespace: assetNamepace } = parseCaipChainId(asset.chainId);
-        return assetNamepace === namespace;
-      }
+        return chainId === asset.chainId;
+      }),
+    );
 
-      return chainId === asset.chainId;
-    }),
-  );
+    // Format the assets
+    const formatted: SnapUIAsset[] = filteredAssets.map(formatAsset);
 
-  return filteredAssets;
+    return formatted;
+  }, [assets]);
+
+  return formattedAssets;
 };
