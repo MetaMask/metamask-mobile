@@ -22,6 +22,7 @@ import { AnvilSeeder } from '../seeder/anvil-seeder';
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 export const DEFAULT_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp', 'dist');
 export const DEFAULT_MULTICHAIN_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-multichain', 'build');
+export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-solana', 'dist');
 
 // While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
 const getFixturesPort =
@@ -182,6 +183,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
  * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
+ * @param {string} [options.dappPath=undefined] - Build folder path for the dapp to test.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
