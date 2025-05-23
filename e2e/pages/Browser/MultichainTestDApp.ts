@@ -7,6 +7,7 @@ import { MultichainTestDappSelectorsWebIDs } from '../../selectors/Browser/Multi
 import Browser from './BrowserView';
 import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
+import ConnectBottomSheet from './ConnectBottomSheet';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -25,6 +26,7 @@ interface SessionResponse {
   sessionScopes?: {
     [chainId: string]: {
       accounts: string[];
+      methods?: string[];
     };
   };
 }
@@ -278,6 +280,7 @@ class MultichainTestDApp {
         try {
           await autoConnectButton.tap();
         } catch (e2) {
+          console.error('❌ Auto-connect failed:', e2);
           return false;
         }
       }
@@ -286,6 +289,7 @@ class MultichainTestDApp {
       await TestHelpers.delay(2000);
       return true;
     } catch (error) {
+      console.error('❌ Auto-connect failed:', error);
       return false;
     }
   }
@@ -296,7 +300,9 @@ class MultichainTestDApp {
   async selectNetwork(chainId: string): Promise<boolean> {
     try {
       const webview = this.getWebView();
-      const networkCheckbox = webview.element(by.web.id(`network-checkbox-eip155-${chainId}`));
+      // Escape colons in chain ID to match the dapp's escapeHtmlId function
+      const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+      const networkCheckbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
       
       await networkCheckbox.scrollToView();
       await networkCheckbox.runScript('(el) => { if(!el.checked) { el.click(); } return el.checked; }');
@@ -322,6 +328,7 @@ class MultichainTestDApp {
       await TestHelpers.delay(2000);
       return true;
     } catch (e) {
+      console.error('❌ Failed to click create session button:', e);
       return false;
     }
   }
@@ -341,6 +348,7 @@ class MultichainTestDApp {
       await TestHelpers.delay(1000);
       return true;
     } catch (e) {
+      console.error('❌ Failed to click get session button:', e);
       return false;
     }
   }
@@ -361,6 +369,51 @@ class MultichainTestDApp {
       return true;
     } catch (e) {
       return false;
+    }
+  }
+
+  /**
+   * Revoke session and get the result data
+   * Similar to the web extension's revokeSession method
+   */
+  async revokeSessionWithData(): Promise<SessionResponse> {
+    try {
+      // Click revoke session button first
+      const revokeClicked = await this.clickRevokeSessionButton();
+      if (!revokeClicked) {
+        console.error('❌ Failed to click revoke session button');
+        return { success: false };
+      }
+
+      // Wait for result to be populated
+      await TestHelpers.delay(2000);
+
+      // Click to expand the first result (which should be the revoke result)
+      await this.clickFirstResultSummary();
+
+      // Get the revoke result content
+      const webview = this.getWebView();
+      const revokeResult = webview.element(by.web.id('session-method-result-0'));
+      
+      const resultData = await revokeResult.runScript('(el) => el.textContent');
+      
+      if (resultData) {
+        try {
+          const parsedResult = JSON.parse(resultData);
+          return {
+            success: true,
+            sessionScopes: parsedResult.sessionScopes || {}
+          };
+        } catch (parseError) {
+          console.error('❌ Failed to parse revoke result:', parseError);
+          return { success: false };
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Error revoking session:', error);
+      return { success: false };
     }
   }
 
@@ -390,6 +443,207 @@ class MultichainTestDApp {
       return await this.clickGetSessionButton();
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Click the first result summary to expand session details
+   */
+  async clickFirstResultSummary(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const firstResult = webview.element(by.web.id('session-method-details-0'));
+      
+      await firstResult.scrollToView();
+      await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
+      
+      await TestHelpers.delay(500);
+      return true;
+    } catch (e) {
+      console.error('❌ Failed to click first result summary:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Get session data by parsing the result from the dapp
+   * Similar to the web extension's getSession method
+   */
+  async getSessionData(): Promise<SessionResponse> {
+    try {
+      // Click get session button first
+      const sessionRetrieved = await this.clickGetSessionButton();
+      if (!sessionRetrieved) {
+        console.error('❌ Failed to click get session button');
+        return { success: false };
+      }
+
+      // Wait for result to be populated
+      await TestHelpers.delay(2000);
+
+      // Click to expand the first result
+      await this.clickFirstResultSummary();
+
+      // Get the session result content
+      const webview = this.getWebView();
+      const sessionResult = webview.element(by.web.id('session-method-result-0'));
+      
+      const sessionData = await sessionResult.runScript('(el) => el.textContent');
+      
+      if (sessionData) {
+        try {
+          const parsedSession = JSON.parse(sessionData);
+          return {
+            success: true,
+            sessionScopes: parsedSession.sessionScopes || {}
+          };
+        } catch (parseError) {
+          console.error('❌ Failed to parse session data:', parseError);
+          console.error('❌ Raw data was:', sessionData);
+          return { success: false };
+        }
+      }
+
+      console.error('❌ No session data found');
+      return { success: false };
+    } catch (error) {
+      console.error('❌ Error getting session data:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Verify session contains specific chain IDs
+   */
+  async verifySessionContainsChains(expectedChainIds: string[]): Promise<boolean> {
+    try {
+      const sessionData = await this.getSessionData();
+      
+      if (!sessionData.success || !sessionData.sessionScopes) {
+        return false;
+      }
+
+      for (const chainId of expectedChainIds) {
+        const fullChainId = chainId.startsWith('eip155:') ? chainId : `eip155:${chainId}`;
+        if (!sessionData.sessionScopes[fullChainId]) {
+          console.log(`❌ Missing expected chain: ${fullChainId}`);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error verifying session chains:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the number of chains in the current session
+   */
+  async getSessionChainCount(): Promise<number> {
+    try {
+      const sessionData = await this.getSessionData();
+      
+      if (!sessionData.success || !sessionData.sessionScopes) {
+        return 0;
+      }
+
+      return Object.keys(sessionData.sessionScopes).length;
+    } catch (error) {
+      console.error('❌ Error getting session chain count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Select specific networks by chain IDs
+   */
+  async selectNetworks(chainIds: string[]): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      
+      // First uncheck all networks
+      const allNetworks = ['1', '59144', '42161', '43114', '56', '10', '137', '324', '8453', '1337'];
+      for (const chainId of allNetworks) {
+        try {
+          // Escape colons in chain ID to match the dapp's escapeHtmlId function
+          const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+          const checkbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
+          await checkbox.runScript('(el) => { if(el.checked) { el.click(); } }');
+        } catch (e) {
+          // Network might not be available, continue
+        }
+      }
+
+      // Then select the requested networks
+      for (const chainId of chainIds) {
+        try {
+          // Escape colons in chain ID to match the dapp's escapeHtmlId function
+          const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+          const checkbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
+          await checkbox.runScript('(el) => { if(!el.checked) { el.click(); } }');
+        } catch (e) {
+          console.error(`❌ Failed to select network eip155:${chainId}:`, e);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error selecting networks:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Complete a full create session flow with specific networks
+   */
+  async createSessionWithNetworks(chainIds: string[]): Promise<SessionResponse> {
+    try {
+      // Scroll to top
+      await this.scrollToPageTop();
+      
+      // Connect
+      const connected = await this.useAutoConnectButton();
+      if (!connected) {
+        console.error('❌ Failed to connect to dapp');
+        return { success: false };
+      }
+      
+      // Select specific networks
+      const networksSelected = await this.selectNetworks(chainIds);
+      if (!networksSelected) {
+        console.error('❌ Failed to select networks');
+        return { success: false };
+      }
+      
+      // Create session
+      const sessionCreated = await this.clickCreateSessionButton();
+      if (!sessionCreated) {
+        console.error('❌ Failed to create session');
+        return { success: false };
+      }
+      
+      // Handle the connect modal that appears after creating session
+      try {
+        // Wait for the connect bottom sheet to appear
+        await TestHelpers.delay(2000);
+        await ConnectBottomSheet.tapConnectButton();
+        
+        // Wait for the connection to be established
+        await TestHelpers.delay(2000);
+      } catch (connectError) {
+        // Connect modal may not have appeared or already handled
+      }
+      
+      // Get and return session data
+      const sessionData = await this.getSessionData();
+      
+      return sessionData;
+    } catch (error) {
+      console.error('❌ Error in createSessionWithNetworks:', error);
+      return { success: false };
     }
   }
 }
