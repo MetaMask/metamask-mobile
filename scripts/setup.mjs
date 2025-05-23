@@ -244,6 +244,36 @@ const patchPackageTask = {
   },
 };
 
+const installFoundryTask = {
+  title: 'Install Foundry',
+  task: (_, task) =>
+    task.newListr(
+      [
+        {
+          title: 'Install Foundry binary',
+          task: async () => {
+            await $`yarn install:foundryup`;
+          },
+        },
+        {
+          title: 'Verify installation',
+          task: async () => {
+            const anvilPath = 'node_modules/.bin/anvil';
+            if (!fs.existsSync(anvilPath)) {
+              await $`rm -rf .metamask/cache`;
+              await $`yarn install:foundryup`;
+            }
+          },
+        },
+      ],
+      {
+        concurrent: false,
+        exitOnError: true,
+        rendererOptions,
+      },
+    ),
+};
+
 const expoBuildLinks = {
   title: 'Try EXPO!',
   task: async () => {
@@ -349,6 +379,7 @@ const prepareDependenciesTask = {
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        installFoundryTask,
         expoBuildLinks,
       ],
       {
