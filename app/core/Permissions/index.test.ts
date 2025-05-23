@@ -27,6 +27,7 @@ import {
   removeAccountsFromPermissions,
   updatePermittedChains,
   sortEvmAccountsByLastSelected,
+  sortMultichainAccountsByLastSelected,
   getPermittedAccounts,
   removePermittedChain,
 } from '.';
@@ -52,6 +53,8 @@ const mockGetCaveat = Engine.context.PermissionController
   .getCaveat as jest.Mock;
 const mockListAccounts = Engine.context.AccountsController
   .listAccounts as jest.Mock;
+const mockListMultichainAccounts = Engine.context.AccountsController
+  .listMultichainAccounts as jest.Mock;
 const mockGetAccountByAddress = Engine.context.AccountsController
   .getAccountByAddress as jest.Mock;
 const mockIsUnlocked = Engine.context.KeyringController.isUnlocked as jest.Mock;
@@ -924,6 +927,129 @@ describe('Permission Utility Functions', () => {
       mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortEvmAccountsByLastSelected(accounts);
+      expect(result).toEqual(['0x2', '0x3', '0x1']);
+    });
+  });
+
+  describe('sortMultichainAccountsByLastSelected', () => {
+    it('should sort accounts by lastSelected timestamp', () => {
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          metadata: { lastSelected: 300 },
+        },
+        {
+          address: '0x3',
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      expect(result).toEqual(['0x2', '0x3', '0x1']);
+    });
+
+    it('should handle accounts with undefined lastSelected', () => {
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          metadata: { lastSelected: undefined },
+        },
+        {
+          address: '0x3',
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      expect(result).toEqual(['0x3', '0x1', '0x2']);
+    });
+
+    it('should handle accounts with same lastSelected value', () => {
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x3',
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      // We don't assert the exact order for accounts with the same lastSelected value
+      expect(result).toContain('0x1');
+      expect(result).toContain('0x2');
+      expect(result).toContain('0x3');
+      expect(result[0]).toBe('0x3'); // The one with highest lastSelected should be first
+    });
+
+    it('should throw error if account is missing from identities', () => {
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          metadata: { lastSelected: 100 },
+        },
+        // 0x2 is missing
+        {
+          address: '0x3',
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+      (
+        Engine.context.KeyringController.getAccountKeyringType as jest.Mock
+      ).mockResolvedValue('Simple Key Pair');
+
+      expect(() => sortMultichainAccountsByLastSelected(accounts)).toThrow(
+        'Missing identity for address: "0x2".',
+      );
+      expect(captureException).toHaveBeenCalled();
+    });
+
+    it('should handle case insensitive address comparison', () => {
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const internalAccounts = [
+        {
+          address: '0X1', // Uppercase
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          metadata: { lastSelected: 300 },
+        },
+        {
+          address: '0x3',
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
     });
   });
