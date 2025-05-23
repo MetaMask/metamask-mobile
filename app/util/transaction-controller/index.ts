@@ -1,4 +1,5 @@
 import {
+  GasFeeEstimateType,
   TransactionParams,
   TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
@@ -166,6 +167,22 @@ function sanitizeTransactionParamsGasValues(
     delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
   } else if (envelopeType === TransactionEnvelopeType.feeMarket) {
     requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.feeMarket;
+    if (
+      transactionMeta?.gasFeeEstimates?.type === GasFeeEstimateType.GasPrice
+    ) {
+      // Try picking 1559 gas properties in order to ensure legacy transaction confirmations is setting expected gas properties
+      // 1. Requested change
+      // 2. Existing txParams
+      // 3. Existing gasFeeEstimates
+      requestedTransactionParamsToUpdate.maxFeePerGas =
+        requestedTransactionParamsToUpdate?.maxFeePerGas ||
+        transactionMeta?.txParams?.maxFeePerGas ||
+        transactionMeta?.gasFeeEstimates?.gasPrice;
+      requestedTransactionParamsToUpdate.maxPriorityFeePerGas =
+        requestedTransactionParamsToUpdate?.maxPriorityFeePerGas ||
+        transactionMeta?.txParams?.maxPriorityFeePerGas ||
+        transactionMeta?.gasFeeEstimates?.gasPrice;
+    }
     delete requestedTransactionParamsToUpdate.gasPrice;
   }
 }
