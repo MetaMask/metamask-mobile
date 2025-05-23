@@ -22,14 +22,7 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
-import compareVersions from 'compare-versions';
-import { getVersion } from 'react-native-device-info';
-
-const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined) => {
-  if (!minRequiredVersion) return false;
-  const currentVersion = getVersion();
-  return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
-};
+import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -190,10 +183,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(featureFlags.minimumVersion) &&
-      process.env.BRIDGE_ENABLED === 'true'
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion)) {
       return featureFlags;
     }
 
