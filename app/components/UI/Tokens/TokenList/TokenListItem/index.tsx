@@ -13,9 +13,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import {
+  makeSelectPricePercentChange1d,
+  makeSelectSingleTokenPriceMarketData,
+} from '../../../../../selectors/tokenRatesController';
+import { makeSelectSingleTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
@@ -24,7 +26,7 @@ import {
 } from '../../../../../selectors/accountsController';
 import {
   selectCurrentCurrency,
-  selectCurrencyRates,
+  makeSelectCurrencyRateForChainId,
 } from '../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../reducers';
 import {
@@ -71,13 +73,14 @@ import {
   selectMultichainAssetsRates,
 } from '../../../../../selectors/multichain/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
+import { useGetIsSupportedStablecoin } from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
 import { FlashListAssetKey } from '..';
+
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
@@ -85,6 +88,18 @@ interface TokenListItemProps {
   privacyMode: boolean;
   showPercentageChange?: boolean;
 }
+
+// const useLogDep = (key: string, val: unknown, showVal = false) => {
+//   useEffect(() => {
+//     if (key.includes('0xc748673057861a797275CD8A068AbB95A902e8de')) {
+//       if (showVal) {
+//         console.log(`TokenListItem - ${key} changed`, val);
+//       } else {
+//         console.log(`TokenListItem - ${key} changed`);
+//       }
+//     }
+//   }, [key, showVal, val]);
+// };
 
 export const TokenListItem = React.memo(
   ({
@@ -132,15 +147,53 @@ export const TokenListItem = React.memo(
       (state: RootState) => state.settings.primaryCurrency,
     );
     const currentCurrency = useSelector(selectCurrentCurrency);
-    const networkConfigurations = useSelector(selectNetworkConfigurations);
+    // const networkConfigurations = useSelector(selectNetworkConfigurations);
     const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
     // multi chain
-    const multiChainTokenBalance = useSelector(selectTokensBalances);
-    const multiChainMarketData = useSelector(selectTokenMarketData);
-    const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+    // const multiChainTokenBalance = useSelector(selectTokensBalances);
+    const selectSingleTokenBalance = useMemo(
+      () =>
+        makeSelectSingleTokenBalance(
+          selectedInternalAccountAddress as Hex,
+          chainId,
+          asset?.address as Hex,
+        ),
+      [asset?.address, chainId, selectedInternalAccountAddress],
+    );
+    const tokenBalances = useSelector(selectSingleTokenBalance);
+    const selectPricePercentChange1d = useMemo(() => {
+      const address = asset?.isNative
+        ? getNativeTokenAddress(chainId)
+        : asset?.address;
+      return makeSelectPricePercentChange1d(chainId, address as Hex);
+    }, [asset?.address, asset?.isNative, chainId]);
+    const evmPricePercentChange1d = useSelector(selectPricePercentChange1d);
+    const selectExchangeRates = useMemo(
+      () =>
+        makeSelectSingleTokenPriceMarketData(chainId, asset?.address as Hex),
+      [asset?.address, chainId],
+    );
+    const exchangeRates = useSelector(selectExchangeRates);
+    const selectConversionRate = useMemo(
+      () => makeSelectCurrencyRateForChainId(chainId),
+      [chainId],
+    );
+    const conversionRate = useSelector(selectConversionRate);
 
-    const earnTokens = useEarnTokens();
+    const getIsSupportedStablecoin = useGetIsSupportedStablecoin(
+      asset?.chainId as Hex,
+      asset?.symbol,
+      asset?.isStaked,
+    );
+
+    // useLogDep(`tokenBalances ${asset?.address}`, tokenBalances);
+    // useLogDep(
+    //   `evmPricePercentChange1d ${asset?.address}`,
+    //   evmPricePercentChange1d,
+    // );
+    // useLogDep(`exchangeRates ${asset?.address}`, exchangeRates);
+    // useLogDep(`conversionRate ${asset?.address}`, conversionRate);
 
     // Earn feature flags
     const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
@@ -152,19 +205,6 @@ export const TokenListItem = React.memo(
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-    // Choose values based on multichain or legacy
-    const exchangeRates = multiChainMarketData?.[chainId as Hex];
-    const tokenBalances =
-      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-        chainId as Hex
-      ];
-
-    const nativeCurrency =
-      networkConfigurations?.[chainId as Hex]?.nativeCurrency;
-
-    const conversionRate =
-      multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
     const oneHundredths = 0.01;
     const oneHundredThousandths = 0.00001;
@@ -208,15 +248,6 @@ export const TokenListItem = React.memo(
     );
 
     const getPricePercentChange1d = () => {
-      const tokenPercentageChange = asset?.address
-        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
-            ?.pricePercentChange1d
-        : undefined;
-      const evmPricePercentChange1d = asset?.isNative
-        ? multiChainMarketData?.[chainId as Hex]?.[
-            getNativeTokenAddress(chainId as Hex) as Hex
-          ]?.pricePercentChange1d
-        : tokenPercentageChange;
       if (isEvmNetworkSelected) {
         return evmPricePercentChange1d;
       }
@@ -378,12 +409,7 @@ export const TokenListItem = React.memo(
       const shouldShowPooledStakingCta =
         isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
-      const isAssetSupportedStablecoin = earnTokens.find(
-        (token) =>
-          token.symbol === asset.symbol &&
-          asset.chainId === token?.chainId &&
-          !asset?.isStaked,
-      );
+      const isAssetSupportedStablecoin = getIsSupportedStablecoin();
       const shouldShowStablecoinLendingCta =
         isAssetSupportedStablecoin && isStablecoinLendingEnabled;
 
@@ -393,7 +419,7 @@ export const TokenListItem = React.memo(
       }
     }, [
       asset,
-      earnTokens,
+      getIsSupportedStablecoin,
       evmAsset?.isETH,
       evmAsset?.isStaked,
       isPooledStakingEnabled,
