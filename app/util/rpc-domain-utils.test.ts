@@ -55,8 +55,10 @@ describe('rpc-domain-utils', () => {
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+
         // Exercise
         const result = await getSafeChainsListFromCacheOnly();
+
         // Verify
         expect(result).toEqual(mockChains);
       });
@@ -79,18 +81,22 @@ describe('rpc-domain-utils', () => {
       it('returns an empty array', async () => {
         // Setup
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue('invalid json');
+
         // Exercise
         const result = await getSafeChainsListFromCacheOnly();
+
         // Verify
         expect(result).toEqual([]);
       });
     });
+
     it('handles JSON parse errors gracefully', async () => {
       // Mock StorageWrapper to return invalid JSON
       (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce('invalid-json');
       const result = await getSafeChainsListFromCacheOnly();
       expect(result).toEqual([]);
     });
+
     it('handles storage errors gracefully', async () => {
       // Mock StorageWrapper to throw an error
       (StorageWrapper.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
@@ -113,8 +119,10 @@ describe('rpc-domain-utils', () => {
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+
         // Exercise
         await initializeRpcProviderDomains();
+
         // Verify
         const knownDomains = getKnownDomains();
         expect(knownDomains).toBeInstanceOf(Set);
@@ -136,8 +144,10 @@ describe('rpc-domain-utils', () => {
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+
         // Exercise
         await initializeRpcProviderDomains();
+
         // Verify
         const knownDomains = getKnownDomains();
         expect(knownDomains).toBeInstanceOf(Set);
@@ -151,14 +161,17 @@ describe('rpc-domain-utils', () => {
         // Setup
         resetModuleState(); // Explicitly reset state
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify([]));
+
         // Exercise
         await initializeRpcProviderDomains();
+
         // Verify
         const knownDomains = getKnownDomains();
         expect(knownDomains).toBeInstanceOf(Set);
         expect(knownDomains?.size).toBe(0);
       });
     });
+
     it('initializes with empty set on error', async () => {
       // Mock getSafeChainsListFromCacheOnly to throw
       const spy = jest.spyOn(require('./rpc-domain-utils'), 'getSafeChainsListFromCacheOnly');
@@ -175,16 +188,21 @@ describe('rpc-domain-utils', () => {
         // Setup
         const testDomains = new Set(['test.com']);
         jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValue(testDomains);
+
         // Exercise
         const result = getKnownDomains();
+
         // Verify
         expect(result).toBe(testDomains);
       });
+
       it('handles null domains', () => {
         // Setup
         jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValue(null);
+
         // Exercise
         const result = getKnownDomains();
+
         // Verify
         expect(result).toBeNull();
       });
@@ -206,28 +224,36 @@ describe('rpc-domain-utils', () => {
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
         await initializeRpcProviderDomains();
       });
+
       it('returns true for known domains', () => {
         // Execute
         const result = isKnownDomain('known-domain.com');
+
         // Verify
         expect(result).toBe(true);
       });
+
       it('returns false for unknown domains', () => {
         // Execute
         const result = isKnownDomain('unknown-domain.com');
+
         // Verify
         expect(result).toBe(false);
       });
+
       it('handles null knownDomainsSet', async () => {
         // Setup
         resetModuleState();
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
         await initializeRpcProviderDomains();
+
         // Execute
         const result = isKnownDomain('any-domain.com');
+
         // Verify
         expect(result).toBe(false);
       });
+
       it('performs case-insensitive domain matching', async () => {
         // Setup
         resetModuleState();
@@ -266,18 +292,23 @@ describe('rpc-domain-utils', () => {
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
         await initializeRpcProviderDomains();
       });
+
       it('returns domain for known domains', () => {
         // Execute
         const result = extractRpcDomain('https://known-domain.com/api');
+
         // Verify
         expect(result).toBe('known-domain.com');
       });
+
       it('returns Invalid for invalid URLs', () => {
         // Execute
         const result = extractRpcDomain(':::invalid-url');
+
         // Verify
         expect(result).toBe(RpcDomainStatus.Invalid);
       });
+
       it('returns Private for unknown domains', () => {
         // Execute
         const result = extractRpcDomain('https://unknown-domain.com');
@@ -285,6 +316,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe(RpcDomainStatus.Private);
       });
+
       it('returns actual domain for Infura URLs', () => {
         // Execute
         const result = extractRpcDomain('https://mainnet.infura.io');
@@ -292,6 +324,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe('mainnet.infura.io');
       });
+
       it('returns actual domain for Alchemy URLs', () => {
         // Execute
         const result = extractRpcDomain('https://eth-mainnet.alchemyapi.io');
@@ -299,14 +332,17 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe('eth-mainnet.alchemyapi.io');
       });
+
       it('returns Private for localhost', () => {
         // Execute
         const result1 = extractRpcDomain('http://localhost:8545');
         const result2 = extractRpcDomain('http://127.0.0.1:8545');
+
         // Verify
         expect(result1).toBe(RpcDomainStatus.Private);
         expect(result2).toBe(RpcDomainStatus.Private);
       });
+
       it('handles URLs without protocol', () => {
         // Execute
         const result = extractRpcDomain('known-domain.com/api');
@@ -326,11 +362,14 @@ describe('rpc-domain-utils', () => {
           rpcUrl: 'https://legacy-rpc.com',
         });
         (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
         // Exercise
         const result = getNetworkRpcUrl('0x1');
+
         // Verify
         expect(result).toBe('https://legacy-rpc.com');
       });
+
       it('returns RPC URL from rpcEndpoints array', () => {
         // Setup
         const { mockNetworkController } = setupTestEnvironment();
@@ -343,11 +382,14 @@ describe('rpc-domain-utils', () => {
           defaultRpcEndpointIndex: 1,
         });
         (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
         // Exercise
         const result = getNetworkRpcUrl('0x1');
+
         // Verify
         expect(result).toBe('https://rpc2.com');
       });
+
       it('returns unknown when network client ID not found', () => {
         // Setup
         const { mockNetworkController } = setupTestEnvironment();
@@ -360,17 +402,21 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe('unknown');
       });
+
       it('returns unknown when network configuration not found', () => {
         // Setup
         const { mockNetworkController } = setupTestEnvironment();
         mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
         mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
         (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
         // Exercise
         const result = getNetworkRpcUrl('0x1');
+
         // Verify
         expect(result).toBe('unknown');
       });
+
       it('handles errors gracefully', () => {
         // Setup
         const { mockNetworkController } = setupTestEnvironment();
@@ -378,11 +424,14 @@ describe('rpc-domain-utils', () => {
           throw new Error('Test error');
         });
         (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
         // Exercise
         const result = getNetworkRpcUrl('0x1');
+
         // Verify
         expect(result).toBe('unknown');
       });
+
       it('handles missing rpcEndpoints gracefully', () => {
         const mockNetworkConfig = {
           rpcEndpoints: undefined,
@@ -391,6 +440,7 @@ describe('rpc-domain-utils', () => {
         const result = getNetworkRpcUrl('0x1');
         expect(result).toBe('unknown');
       });
+
       it('handles invalid rpcEndpoints array', () => {
         const mockNetworkConfig = {
           rpcEndpoints: [{ url: '' }], // Empty url property
@@ -399,6 +449,7 @@ describe('rpc-domain-utils', () => {
         const result = getNetworkRpcUrl('0x1');
         expect(result).toBe('unknown');
       });
+
       it('handles empty rpcEndpoints array', () => {
         const mockNetworkConfig = {
           rpcEndpoints: [], // Empty array
