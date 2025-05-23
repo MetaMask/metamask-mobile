@@ -38,10 +38,3 @@ export const STANDALONE_TRANSACTION_CONFIRMATIONS = [
   TransactionType.stakingUnstake,
   TransactionType.stakingClaim,
 ];
-
-export enum EIP5792ErrorCode {
-  UnsupportedNonOptionalCapability = 5700,
-  UnsupportedChainId = 5710,
-  UnknownBundleId = 5730,
-  RejectedUpgrade = 5750,
-}
