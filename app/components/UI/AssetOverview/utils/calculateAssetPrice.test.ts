@@ -26,7 +26,7 @@ describe('calculateAssetPrice', () => {
   it('should calculate EVM asset price correctly', () => {
     const result = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: true,
+      isEvmAssetSelected: true,
       exchangeRate: 2000,
       tickerConversionRate: 1.5,
       prices: mockPrices,
@@ -44,7 +44,7 @@ describe('calculateAssetPrice', () => {
   it('should calculate non-EVM asset price correctly with price percent change', () => {
     const result = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
       prices: mockPrices,
       timePeriod: '1d',
       multichainAssetRates: {
@@ -70,7 +70,7 @@ describe('calculateAssetPrice', () => {
   it('should handle missing rates', () => {
     const result = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: true,
+      isEvmAssetSelected: true,
       prices: mockPrices,
       timePeriod: '1d',
     });
@@ -86,7 +86,7 @@ describe('calculateAssetPrice', () => {
   it('should handle missing multichain rates', () => {
     const result = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
       prices: mockPrices,
       timePeriod: '1d',
     });
@@ -115,7 +115,7 @@ describe('calculateAssetPrice', () => {
 
     const result1d = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
       prices: mockPrices,
       timePeriod: '1d',
       multichainAssetRates,
@@ -123,7 +123,7 @@ describe('calculateAssetPrice', () => {
 
     const result1w = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
       prices: mockPrices,
       timePeriod: '1w',
       multichainAssetRates,
@@ -131,7 +131,7 @@ describe('calculateAssetPrice', () => {
 
     const result1m = calculateAssetPrice({
       _asset: mockAsset,
-      isEvmNetworkSelected: false,
+      isEvmAssetSelected: false,
       prices: mockPrices,
       timePeriod: '1m',
       multichainAssetRates,
