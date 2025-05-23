@@ -19,6 +19,7 @@ import {
   AVATARGROUP_OVERFLOWCOUNTER_TESTID,
   SPACEBETWEENAVATARS_BY_AVATARSIZE,
   TEXTVARIANT_BY_AVATARSIZE,
+  AVATARGROUP_CONTAINER_TESTID,
 } from './AvatarGroup.constants';
 
 const AvatarGroup = ({
@@ -30,6 +31,9 @@ const AvatarGroup = ({
   renderOverflowCounter = true,
   style,
 }: AvatarGroupProps) => {
+  console.log('===================================================');
+  console.log('avatarPropsList', avatarPropsList);
+  console.log('===================================================');
   const overflowCounter = avatarPropsList.length - maxStackedAvatars;
   const avatarNegativeSpacing =
     spaceBetweenAvatars || SPACEBETWEENAVATARS_BY_AVATARSIZE[size];
@@ -73,7 +77,7 @@ const AvatarGroup = ({
   ]);
 
   return (
-    <View style={styles.base}>
+    <View testID={AVATARGROUP_CONTAINER_TESTID} style={styles.base}>
       {renderAvatarList()}
       {renderOverflowCounter && doesOverflowCountExist && (
         <Text

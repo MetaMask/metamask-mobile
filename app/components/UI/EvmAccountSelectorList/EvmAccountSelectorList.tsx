@@ -33,7 +33,10 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { getNetworkImageSource } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  isRemoveGnsEnabled,
+} from '../../../util/networks';
 import { selectNetworksWithActivity } from '../../../selectors/multichainNetworkController';
 
 // Internal dependencies.
@@ -45,8 +48,6 @@ import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import { AvatarNetworkProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
-
-const REMOVE_GNS = true;
 
 interface AvatarNetworksInfoProps extends AvatarNetworkProps {
   name: string;
@@ -96,6 +97,7 @@ const EvmAccountSelectorList = ({
   const networksWithTransactionActivity = useSelector(
     selectNetworksWithActivity,
   );
+
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -131,8 +133,11 @@ const EvmAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          {REMOVE_GNS && networksInfo && (
-            <View style={styles.networkTokensContainer}>
+          {isRemoveGnsEnabled() && networksInfo && networksInfo.length > 0 && (
+            <View
+              testID="network-avatar-group-container"
+              style={styles.networkTokensContainer}
+            >
               <AvatarGroup
                 avatarPropsList={networksInfo
                   .slice()
@@ -145,7 +150,7 @@ const EvmAccountSelectorList = ({
                       ...networksWithActivity,
                       variant: AvatarVariant.Network,
                       imageSource: networksWithActivity.imageSource,
-                      testID: `avatar-group-${index}`,
+                      testID: `network-avatar-group-${index}`,
                     }),
                   )}
                 maxStackedAvatars={4}
@@ -154,7 +159,7 @@ const EvmAccountSelectorList = ({
             </View>
           )}
 
-          {!REMOVE_GNS && (
+          {!isRemoveGnsEnabled() && (
             <>
               <SensitiveText
                 length={SensitiveTextLength.Short}
@@ -191,7 +196,7 @@ const EvmAccountSelectorList = ({
     }
 
     return accounts.map((account) => {
-      const currentAccount = account?.address.toLowerCase() || '';
+      const currentAccount = account?.address.toLowerCase();
 
       if (!currentAccount) {
         return { ...account, networksWithActivity: [] };
@@ -442,7 +447,11 @@ const EvmAccountSelectorList = ({
   }, []);
 
   useEffect(() => {
-    if (REMOVE_GNS && accounts.length > 0 && isBasicFunctionalityEnabled) {
+    if (
+      isRemoveGnsEnabled() &&
+      accounts.length > 0 &&
+      isBasicFunctionalityEnabled
+    ) {
       fetchAccountsWithActivity();
     }
   }, [fetchAccountsWithActivity, accounts, isBasicFunctionalityEnabled]);

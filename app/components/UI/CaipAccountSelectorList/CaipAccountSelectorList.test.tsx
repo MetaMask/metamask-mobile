@@ -75,7 +75,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
         name: 'Account 2',
@@ -157,6 +157,18 @@ const initialState = {
           },
         },
       },
+      MultichainNetworkController: {
+        networksWithTransactionActivity: {
+          [BUSINESS_ACCOUNT]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '59144'],
+          },
+          [PERSONAL_ACCOUNT]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '137', '404', '107', '187'],
+          },
+        },
+      },
     },
   },
   settings: {
@@ -191,7 +203,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
   },
   {
     name: 'Account 2',
@@ -204,13 +216,13 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
+    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
   },
 ];
 
-const CaipAccountSelectorListUseAccounts: React.FC<CaipAccountSelectorListProps> = ({
-  privacyMode = false,
-}) => {
+const CaipAccountSelectorListUseAccounts: React.FC<
+  CaipAccountSelectorListProps
+> = ({ privacyMode = false }) => {
   // Set the mock implementation for this specific component render
   if (privacyMode) {
     setAccountsMock(defaultAccountsMock);
@@ -350,7 +362,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
@@ -452,7 +464,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -537,7 +549,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
       {
         name: 'Snap Account 2',
@@ -550,7 +562,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
       },
     ];
 
@@ -619,7 +631,7 @@ describe('CaipAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
-      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
     // Create a component that explicitly verifies the account data
@@ -637,11 +649,15 @@ describe('CaipAccountSelectorList', () => {
       testAccounts = accounts;
 
       return (
-        <CaipAccountSelectorList selectedAddresses={[]} accounts={accounts} ensByAccountAddress={{}} />
+        <CaipAccountSelectorList
+          selectedAddresses={[]}
+          accounts={accounts}
+          ensByAccountAddress={{}}
+        />
       );
     };
 
-    renderComponent({}, CaipAccountSelectorListBalanceErrorTest);
+    renderComponent(initialState, CaipAccountSelectorListBalanceErrorTest);
 
     // Verify the account data has the balance error
     expect(testAccounts[0].balanceError).toBe('Balance error message');
@@ -662,7 +678,7 @@ describe('CaipAccountSelectorList', () => {
             yOffset: 0,
             isSelected: true,
             balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
           },
         ],
         evmAccounts: [],
@@ -683,7 +699,7 @@ describe('CaipAccountSelectorList', () => {
 
     // Modified test to not check props directly
     const { getByTestId } = renderComponent(
-      {},
+      initialState,
       CaipAccountSelectorListMultiSelectTest,
     );
 
@@ -798,7 +814,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -923,7 +939,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -987,7 +1003,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1025,7 +1041,7 @@ describe('CaipAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1059,7 +1075,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1072,13 +1088,13 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockMultipleAccounts);
 
-    const { getAllByTestId } = renderComponent();
+    const { getAllByTestId } = renderComponent(initialState);
 
     // Use the SELECT_WITH_MENU test ID instead of CELL_SELECT
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
@@ -1087,7 +1103,10 @@ describe('CaipAccountSelectorList', () => {
     fireEvent.press(cells[1]);
 
     // Verify the onSelectAccount was called with the correct address
-    expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${MOCK_ADDRESS_1}`, false);
+    expect(onSelectAccount).toHaveBeenCalledWith(
+      `eip155:0:${MOCK_ADDRESS_1}`,
+      false,
+    );
   });
 
   it('navigates to account details when a balance error is tapped', () => {
@@ -1104,7 +1123,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: true, // Account has balance error
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -1138,7 +1157,7 @@ describe('CaipAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1152,13 +1171,13 @@ describe('CaipAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockAccountsForScroll);
 
-    renderComponent();
+    renderComponent(initialState);
 
     // Skip the actual test and mark it as passing
     expect(true).toBe(true);
@@ -1177,7 +1196,10 @@ describe('CaipAccountSelectorList', () => {
 
     await waitFor(() => {
       // Verify onSelectAccount was called with correct parameters
-      expect(onSelectAccount).toHaveBeenCalledWith(`eip155:0:${PERSONAL_ACCOUNT}`, false);
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        `eip155:0:${PERSONAL_ACCOUNT}`,
+        false,
+      );
     });
   });
 });
