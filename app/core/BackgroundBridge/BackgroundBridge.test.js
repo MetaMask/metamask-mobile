@@ -6,6 +6,9 @@ import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMe
 import { getPermittedAccounts } from '../Permissions';
 import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
 import AppConstants from '../../core/AppConstants';
+import { PermissionController } from '@metamask/permission-controller';
+import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
+import { SolScope } from '@metamask/keyring-api';
 jest.mock('../../util/permissions', () => ({
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
 }));
@@ -123,10 +126,11 @@ function setupBackgroundBridge(url, isMMSDK = false) {
 }
 
 describe('BackgroundBridge', () => {
-  beforeEach(() => jest.clearAllMocks());
-  describe('constructor', () => {
-    const { KeyringController, PermissionController } = Engine.context;
+  const { KeyringController, PermissionController } = Engine.context;
 
+  beforeEach(() => jest.clearAllMocks());
+
+  describe('constructor', () => {
     it('creates Eip1193MethodMiddleware with expected hooks', async () => {
       const url = 'https:www.mock.io';
       const origin = new URL(url).hostname;
@@ -272,6 +276,124 @@ describe('BackgroundBridge', () => {
         method: AppConstants.NOTIFICATION_NAMES.chainChanged,
         params: oldMockNetworkState
       });
+    });
+  });
+
+  describe('notifySolanaAccountChangedForCurrentAccount', () => {
+    it('emits nothing if there is no CAIP-25 permission' , () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+
+    });
+
+    it('emits nothing if there are no permitted solana scopes and `solana_accountChanged_notifications` session property is set' , () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: []
+            }
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            solana_accountChanged_notifications: true
+          }
+        }
+      });
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing if there are permitted solana accounts, but the `solana_accountChanged_notifications` session property is not set' , () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [SolScope.Mainnet]: {
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {}
+        }
+      });
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('nothing if there are permitted solana scopes but no accounts and the `solana_accountChanged_notifications` session property is set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [SolScope.Mainnet]: {
+              accounts: [
+              ]
+            }
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            solana_accountChanged_notifications: true
+          }
+        }
+      });
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits a solana accountChanged event when there are permitted solana accounts and the `solana_accountChanged_notifications` session property is set', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [SolScope.Mainnet]: {
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            solana_accountChanged_notifications: true
+          }
+        }
+      });
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith(
+        {'method': 'wallet_notify', 'params': {'notification': {'method': 'metamask_accountsChanged', 'params': ['someaddress']}, 'scope': 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'}}
+      );
     });
   });
 });

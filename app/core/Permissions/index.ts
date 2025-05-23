@@ -121,7 +121,7 @@ const captureKeyringTypesWithMissingIdentities = (
   export const sortEvmAccountsByLastSelected = (addresses: Hex[]): Hex[] => {
     const internalAccounts = Engine.context.AccountsController.listAccounts();
     return sortAddressesWithInternalAccounts(addresses, internalAccounts);
-  }
+  };
 
   /**
    * Sorts a list of multichain account addresses by most recently selected by using
@@ -130,7 +130,7 @@ const captureKeyringTypesWithMissingIdentities = (
   export const sortMultichainAccountsByLastSelected = (addresses: string[]) => {
     const internalAccounts = Engine.context.AccountsController.listMultichainAccounts();
     return sortAddressesWithInternalAccounts(addresses, internalAccounts);
-  }
+  };
 
 
 
