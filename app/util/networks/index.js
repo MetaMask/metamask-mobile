@@ -10,6 +10,7 @@ import {
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
   MONAD_TESTNET,
+  HOODI,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import {
@@ -30,6 +31,7 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
 const monadTestnetLogo = require('../../images/monad-testnet-logo.png');
+const hoodiLogo = require('../../images/hoodi-logo.png');
 
 /* eslint-enable */
 import {
@@ -51,6 +53,7 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
+  HOODI_BLOCK_EXPLORER,
 } from '../../constants/urls';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
@@ -122,6 +125,19 @@ export const NetworkList = {
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
+  },
+  [HOODI]: {
+    name: 'Hoodi',
+    shortName: 'Hoodi',
+    networkId: 560048,
+    chainId: toHex('560048'),
+    ticker: 'HoodiETH',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#cfb5f0',
+    networkType: 'hoodi',
+    imageSource: hoodiLogo,
+    blockExplorerUrl: HOODI_BLOCK_EXPLORER,
   },
   [MEGAETH_TESTNET]: {
     name: 'Mega Testnet',
@@ -263,6 +279,9 @@ export const getTestNetImageByChainId = (chainId) => {
   }
   if (NETWORKS_CHAIN_ID.MONAD_TESTNET === chainId) {
     return networksWithImages?.['MONAD-TESTNET'];
+  }
+  if (NETWORKS_CHAIN_ID.HOODI === chainId) {
+    return networksWithImages?.['HOODI'];
   }
 };
 
@@ -645,6 +664,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
+  [ChainId['hoodi']]: 'Hoodi Testnet',
 };
 
 /**
