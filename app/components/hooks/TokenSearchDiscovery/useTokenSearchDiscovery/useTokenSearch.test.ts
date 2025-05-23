@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react-hooks';
-import Engine from '../../../core/Engine';
-import useTokenSearchDiscovery, { MAX_RESULTS } from './useTokenSearchDiscovery';
-import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
+import Engine from '../../../../core/Engine';
+import useTokenSearchDiscovery, { MAX_RESULTS } from './useTokenSearch';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
   context: {

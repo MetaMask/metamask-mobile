@@ -34,7 +34,8 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+
+import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -48,6 +49,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { useFocusEffect } from '@react-navigation/native';
+import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
@@ -100,6 +102,18 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+  const newTab = useCallback((url, linkType) => {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else if (isTokenDiscoveryBrowserEnabled()) {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url, linkType);
+    } else {
+      createNewTab(url || homePageUrl(), linkType);
+    }
+  }, [tabs, navigation, createNewTab, homePageUrl]);
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // TODO remove after we release Solana dapp connectivity
   useFocusEffect(
@@ -126,19 +140,6 @@ export const Browser = (props) => {
     }, [toastRef, currentSelectedAccount]),
   );
   ///: END:ONLY_INCLUDE_IF
-
-  const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
-      if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-      } else {
-        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(url || homePageUrl(), linkType);
-      }
-    },
-    [tabs, navigation, homePageUrl, createNewTab],
-  );
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -423,9 +424,10 @@ export const Browser = (props) => {
       tabs
         .filter((tab) => !tab.isArchived)
         .map((tab) => (
+          (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
           <BrowserTab
-            id={tab.id}
             key={`tab_${tab.id}`}
+            id={tab.id}
             initialUrl={tab.url}
             linkType={tab.linkType}
             updateTabInfo={updateTabInfo}
@@ -433,7 +435,15 @@ export const Browser = (props) => {
             newTab={newTab}
             isInTabsView={route.params?.showTabs}
             homePageUrl={homePageUrl()}
-          />
+          />) : (
+            <DiscoveryTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              showTabs={showTabs}
+              newTab={newTab}
+              updateTabInfo={updateTabInfo}
+            />
+          )
         )),
     [
       tabs,
