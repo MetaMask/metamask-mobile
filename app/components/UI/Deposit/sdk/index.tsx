@@ -3,6 +3,8 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useState,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -12,9 +14,10 @@ import {
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 export interface DepositSDK {
-  sdk: NativeRampsSdk;
-  providerApiKey: string;
-  providerFrontendAuth: string;
+  sdk?: NativeRampsSdk;
+  sdkError?: Error;
+  providerApiKey: string | null;
+  providerFrontendAuth: string | null;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -27,23 +30,35 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+  const [sdk, setSdk] = useState<NativeRampsSdk>();
+  const [sdkError, setSdkError] = useState<Error>();
 
-  const contextValue = useMemo((): DepositSDK => {
-    if (!providerApiKey || !providerFrontendAuth) {
-      throw new Error('Deposit SDK requires valid API key and frontend auth');
+  useEffect(() => {
+    try {
+      if (!providerApiKey || !providerFrontendAuth) {
+        throw new Error('Deposit SDK requires valid API key and frontend auth');
+      }
+
+      const sdkInstance = new NativeRampsSdk({
+        partnerApiKey: providerApiKey,
+        frontendAuth: providerFrontendAuth,
+      });
+
+      setSdk(sdkInstance);
+    } catch (error) {
+      setSdkError(error as Error);
     }
+  }, [providerApiKey, providerFrontendAuth]);
 
-    const sdk = new NativeRampsSdk({
-      partnerApiKey: providerApiKey,
-      frontendAuth: providerFrontendAuth,
-    });
-
-    return {
+  const contextValue = useMemo(
+    (): DepositSDK => ({
       sdk,
+      sdkError,
       providerApiKey,
       providerFrontendAuth,
-    };
-  }, [providerApiKey, providerFrontendAuth]);
+    }),
+    [sdk, sdkError, providerApiKey, providerFrontendAuth],
+  );
 
   return (
     <DepositSDKContext.Provider value={value ?? contextValue} {...props} />
