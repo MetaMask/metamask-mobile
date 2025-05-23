@@ -2266,9 +2266,6 @@ app:
       PORTFOLIO_VIEW: true
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: true
-    - opts:
-        is_expand: false
       MM_CHAIN_PERMISSIONS: true
     - opts:
         is_expand: false
