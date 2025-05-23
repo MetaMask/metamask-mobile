@@ -41,6 +41,7 @@ export interface MultichainWalletSnapOptions {
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
+  ///: END:ONLY_INCLUDE_IF
   derivationPath?: string;
 }
 
