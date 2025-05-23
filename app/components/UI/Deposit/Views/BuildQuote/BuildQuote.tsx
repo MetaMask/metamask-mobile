@@ -7,21 +7,22 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 
-export const createEmailAuthNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.EMAIL_AUTH,
+export const createEnterEmailNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ENTER_EMAIL,
 );
 
 const BuildQuote = () => {
   const navigation = useNavigation();
 
   const handleOnPressContinue = useCallback(() => {
-    navigation.navigate(...createEmailAuthNavDetails());
+    navigation.navigate(...createEnterEmailNavDetails());
   }, [navigation]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
+          {/* eslint-disable-next-line react-native/no-inline-styles */}
           <Text style={{ textAlign: 'center', marginTop: 40 }}>
             Build Quote Page Placeholder
           </Text>

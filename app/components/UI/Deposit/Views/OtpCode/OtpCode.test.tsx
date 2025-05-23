@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import EmailAuth from './EmailAuth';
+import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -20,7 +20,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.DEPOSIT.EMAIL_AUTH,
+      name: Routes.DEPOSIT.OTP_CODE,
     },
     {
       state: {
@@ -32,13 +32,13 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('EmailAuth Component', () => {
+describe('OtpCode Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
   });
 
-  it('renders the EnterEmail view correctly', () => {
-    render(EmailAuth);
+  it('renders the OtpCode view correctly', () => {
+    render(OtpCode);
     expect(
       screen.getByText(
         "We'll send a six-digit code to your email to check it's you.",

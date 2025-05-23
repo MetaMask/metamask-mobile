@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EmailAuth View Crypto Currency Data renders a special error page if crypto currencies are not available 1`] = `
+exports[`OtpCode View Crypto Currency Data renders a special error page if crypto currencies are not available 1`] = `
 <View
   style={
     {
@@ -664,7 +664,7 @@ exports[`EmailAuth View Crypto Currency Data renders a special error page if cry
 </View>
 `;
 
-exports[`EmailAuth View Crypto Currency Data renders a special error page if crypto currencies are not available 2`] = `
+exports[`OtpCode View Crypto Currency Data renders a special error page if crypto currencies are not available 2`] = `
 <View
   style={
     {
@@ -1328,7 +1328,7 @@ exports[`EmailAuth View Crypto Currency Data renders a special error page if cry
 </View>
 `;
 
-exports[`EmailAuth View Crypto Currency Data renders an error page when there is a cryptos error 1`] = `
+exports[`OtpCode View Crypto Currency Data renders an error page when there is a cryptos error 1`] = `
 <View
   style={
     {
@@ -1992,7 +1992,7 @@ exports[`EmailAuth View Crypto Currency Data renders an error page when there is
 </View>
 `;
 
-exports[`EmailAuth View Crypto Currency Data renders the loading page when cryptos are loading 1`] = `
+exports[`OtpCode View Crypto Currency Data renders the loading page when cryptos are loading 1`] = `
 <View
   style={
     {
@@ -2931,7 +2931,7 @@ exports[`EmailAuth View Crypto Currency Data renders the loading page when crypt
 </View>
 `;
 
-exports[`EmailAuth View Fiat Currency Data renders an error page when there is a fiat error 1`] = `
+exports[`OtpCode View Fiat Currency Data renders an error page when there is a fiat error 1`] = `
 <View
   style={
     {
@@ -3595,7 +3595,7 @@ exports[`EmailAuth View Fiat Currency Data renders an error page when there is a
 </View>
 `;
 
-exports[`EmailAuth View Fiat Currency Data renders the loading page when fiats are loading 1`] = `
+exports[`OtpCode View Fiat Currency Data renders the loading page when fiats are loading 1`] = `
 <View
   style={
     {
@@ -4534,7 +4534,7 @@ exports[`EmailAuth View Fiat Currency Data renders the loading page when fiats a
 </View>
 `;
 
-exports[`EmailAuth View Payment Method Data renders an error page when there is a payment method error 1`] = `
+exports[`OtpCode View Payment Method Data renders an error page when there is a payment method error 1`] = `
 <View
   style={
     {
@@ -5198,7 +5198,7 @@ exports[`EmailAuth View Payment Method Data renders an error page when there is 
 </View>
 `;
 
-exports[`EmailAuth View Payment Method Data renders no icons if there are no payment methods 1`] = `
+exports[`OtpCode View Payment Method Data renders no icons if there are no payment methods 1`] = `
 <View
   style={
     {
@@ -8168,7 +8168,7 @@ exports[`EmailAuth View Payment Method Data renders no icons if there are no pay
 </View>
 `;
 
-exports[`EmailAuth View Payment Method Data renders the loading page when payment methods are loading 1`] = `
+exports[`OtpCode View Payment Method Data renders the loading page when payment methods are loading 1`] = `
 <View
   style={
     {
@@ -9107,7 +9107,7 @@ exports[`EmailAuth View Payment Method Data renders the loading page when paymen
 </View>
 `;
 
-exports[`EmailAuth View Regions data renders an error page when there is a region error 1`] = `
+exports[`OtpCode View Regions data renders an error page when there is a region error 1`] = `
 <View
   style={
     {
@@ -9771,7 +9771,7 @@ exports[`EmailAuth View Regions data renders an error page when there is a regio
 </View>
 `;
 
-exports[`EmailAuth View Regions data renders the loading page when regions are loading 1`] = `
+exports[`OtpCode View Regions data renders the loading page when regions are loading 1`] = `
 <View
   style={
     {
@@ -10710,7 +10710,7 @@ exports[`EmailAuth View Regions data renders the loading page when regions are l
 </View>
 `;
 
-exports[`EmailAuth View renders correctly 1`] = `
+exports[`OtpCode View renders correctly 1`] = `
 <View
   style={
     {
@@ -13726,7 +13726,7 @@ exports[`EmailAuth View renders correctly 1`] = `
 </View>
 `;
 
-exports[`EmailAuth View renders correctly 2`] = `
+exports[`OtpCode View renders correctly 2`] = `
 <View
   style={
     {
@@ -16721,7 +16721,7 @@ exports[`EmailAuth View renders correctly 2`] = `
 </View>
 `;
 
-exports[`EmailAuth View renders correctly when sdkError is present 1`] = `
+exports[`OtpCode View renders correctly when sdkError is present 1`] = `
 <View
   style={
     {
@@ -17385,7 +17385,7 @@ exports[`EmailAuth View renders correctly when sdkError is present 1`] = `
 </View>
 `;
 
-exports[`EmailAuth View renders correctly when sdkError is present 2`] = `
+exports[`OtpCode View renders correctly when sdkError is present 2`] = `
 <View
   style={
     {

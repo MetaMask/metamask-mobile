@@ -25,7 +25,8 @@ const Routes = {
     ID: 'Deposit',
     ROOT: 'DepositRoot',
     BUILD_QUOTE: 'BuildQuote',
-    EMAIL_AUTH: 'EmailAuth',
+    ENTER_EMAIL: 'EnterEmail',
+    OTP_CODE: 'OtpCode',
     ID_VERIFY: 'IdVerify',
   },
   HW: {

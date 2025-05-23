@@ -273,7 +273,7 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-describe('EmailAuth View', () => {
+describe('OtpCode View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();

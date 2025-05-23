@@ -1,7 +1,7 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import BuildQuote from './BuildQuote';
+import EnterEmail from './EnterEmail.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -20,7 +20,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.DEPOSIT.BUILD_QUOTE,
+      name: Routes.DEPOSIT.ENTER_EMAIL,
     },
     {
       state: {
@@ -32,22 +32,17 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('BuildQuote Component', () => {
+describe('OtpCode Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
   });
 
-  it('renders correctly', () => {
-    render(BuildQuote);
-    expect(screen.getByText('Build Quote Page')).toBeTruthy();
-  });
-
-  it('navigates to OtpCode screen on "Continue" button press', () => {
-    render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.DEPOSIT.ENTER_EMAIL,
-      undefined,
-    );
+  it('renders the OtpCode view correctly', () => {
+    render(EnterEmail);
+    expect(
+      screen.getByText(
+        "We'll send a six-digit code to your email to check it's you.",
+      ),
+    ).toBeTruthy();
   });
 });
