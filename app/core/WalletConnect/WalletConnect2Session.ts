@@ -537,19 +537,13 @@ class WalletConnect2Session {
       return;
     }
 
-    if (this.networkChanged(caip2ChainId)) {
+    if (isPerDappSelectedNetworkEnabled() && this.networkChanged(caip2ChainId)) {
       const chainId = parseInt(caip2ChainId.split(':')[1])
       const networkClientId = this.getNetworkClientIdForChainId(chainId);
-      if (isPerDappSelectedNetworkEnabled()) {
-        Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
-          this.hostname,
-          networkClientId
-        )
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          networkClientId,
-        );
-      }
+      Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+        this.hostname,
+        networkClientId
+      )
     }
 
     if (METHODS_TO_REDIRECT[method]) {
