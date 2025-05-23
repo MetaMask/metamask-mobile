@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   CaipAccountId,
   CaipAssetType,
@@ -19,7 +20,6 @@ import {
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { RootState } from '../../../reducers';
 import { getNonEvmNetworkImageSourceByChainId } from '../../../util/networks/customNetworks';
-import { useMemo } from 'react';
 
 /**
  * An asset for the SnapUIAssetSelector.
@@ -161,6 +161,7 @@ export const useSnapAssetSelectorData = ({
     const formatted: SnapUIAsset[] = filteredAssets.map(formatAsset);
 
     return formatted;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assets]);
 
   return formattedAssets;
