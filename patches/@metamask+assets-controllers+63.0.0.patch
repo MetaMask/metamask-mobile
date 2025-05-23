@@ -1,3 +1,47 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+index 53f4bef..a721111 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.cjs
+@@ -136,9 +136,12 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+      * Fetches historical prices for the current account
+      *
+      * @param asset - The asset to fetch historical prices for.
++     * Remove once https://github.com/MetaMask/core/pull/5833 is released
++     * @param account - optional account to fetch historical prices for
+      * @returns The historical prices.
+      */
+-    async fetchHistoricalPricesForAsset(asset) {
++    // Remove once https://github.com/MetaMask/core/pull/5833 is released
++    async fetchHistoricalPricesForAsset(asset, account) {
+         const releaseLock = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_mutex, "f").acquire();
+         return (async () => {
+             const currentCaipCurrency = constant_1.MAP_CAIP_CURRENCIES[__classPrivateFieldGet(this, _MultichainAssetsRatesController_currentCurrency, "f")] ?? constant_1.MAP_CAIP_CURRENCIES.usd;
+@@ -150,7 +153,9 @@ class MultichainAssetsRatesController extends (0, polling_controller_1.StaticInt
+             if (historicalPriceHasExpired === false) {
+                 return;
+             }
+-            const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
++            // Remove once https://github.com/MetaMask/core/pull/5833 is released
++            const selectedAccount = account ??
++                this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
+             try {
+                 const historicalPricesResponse = await __classPrivateFieldGet(this, _MultichainAssetsRatesController_instances, "m", _MultichainAssetsRatesController_handleSnapRequest).call(this, {
+                     snapId: selectedAccount?.metadata.snap?.id,
+diff --git a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+index 4bf9a94..0ddf819 100644
+--- a/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/MultichainAssetsRatesController/MultichainAssetsRatesController.d.cts
+@@ -131,7 +131,8 @@ export declare class MultichainAssetsRatesController extends MultichainAssetsRat
+      * @param asset - The asset to fetch historical prices for.
+      * @returns The historical prices.
+      */
+-    fetchHistoricalPricesForAsset(asset: CaipAssetType): Promise<void>;
++    // Remove once https://github.com/MetaMask/core/pull/5833 is released
++    fetchHistoricalPricesForAsset(asset: CaipAssetType, account?: InternalAccount): Promise<void>;
+ }
+ export {};
+ //# sourceMappingURL=MultichainAssetsRatesController.d.cts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 0f15eb6..322f5c5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
@@ -7,7 +51,7 @@ index 0f15eb6..322f5c5 100644
      return (mod && mod.__esModule) ? mod : { "default": mod };
  };
 -var _NftController_instances, _NftController_mutex, _NftController_selectedAccountId, _NftController_chainId, _NftController_ipfsGateway, _NftController_openSeaEnabled, _NftController_useIpfsSubdomains, _NftController_isIpfsGatewayEnabled, _NftController_onNftAdded, _NftController_onNetworkControllerNetworkDidChange, _NftController_onPreferencesControllerStateChange, _NftController_onSelectedAccountChange, _NftController_updateNestedNftState, _NftController_getNftCollectionApi, _NftController_getNftInformationFromApi, _NftController_getNftInformationFromTokenURI, _NftController_getNftURIAndStandard, _NftController_getNftInformation, _NftController_getNftContractInformationFromContract, _NftController_getNftContractInformation, _NftController_addIndividualNft, _NftController_addNftContract, _NftController_removeAndIgnoreIndividualNft, _NftController_removeIndividualNft, _NftController_removeNftContract, _NftController_validateWatchNft, _NftController_getCorrectChainId, _NftController_getAddressOrSelectedAddress, _NftController_updateNftUpdateForAccount;
-+// Remove once https://github.com/MetaMask/core/pull/4774 is merged
++// Remove once https://github.com/MetaMask/core/pull/4774 is released
 +var _NftController_instances, _NftController_mutex, _NftController_selectedAccountId, _NftController_chainId, _NftController_ipfsGateway, _NftController_displayNftMedia, _NftController_useIpfsSubdomains, _NftController_isIpfsGatewayEnabled, _NftController_onNftAdded, _NftController_onNetworkControllerNetworkDidChange, _NftController_onPreferencesControllerStateChange, _NftController_onSelectedAccountChange, _NftController_updateNestedNftState, _NftController_getNftCollectionApi, _NftController_getNftInformationFromApi, _NftController_getNftInformationFromTokenURI, _NftController_getNftURIAndStandard, _NftController_getNftInformation, _NftController_getNftContractInformationFromContract, _NftController_getNftContractInformation, _NftController_addIndividualNft, _NftController_addNftContract, _NftController_removeAndIgnoreIndividualNft, _NftController_removeIndividualNft, _NftController_removeNftContract, _NftController_validateWatchNft, _NftController_getCorrectChainId, _NftController_getAddressOrSelectedAddress, _NftController_updateNftUpdateForAccount;
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.NftController = exports.getDefaultNftControllerState = void 0;
@@ -17,7 +61,7 @@ index 0f15eb6..322f5c5 100644
       * @param options.chainId - The chain ID of the current network.
       * @param options.ipfsGateway - The configured IPFS gateway.
 -     * @param options.openSeaEnabled - Controls whether the OpenSea API is used.
-+     * Remove once https://github.com/MetaMask/core/pull/4774 is merged
++     * Remove once https://github.com/MetaMask/core/pull/4774 is released
 +     * @param options.displayNftMedia - Controls whether the NFT API is used.
       * @param options.useIpfsSubdomains - Controls whether IPFS subdomains are used.
       * @param options.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
@@ -27,7 +71,7 @@ index 0f15eb6..322f5c5 100644
       * @param options.state - Initial state to set on this controller.
       */
 -    constructor({ chainId: initialChainId, ipfsGateway = controller_utils_1.IPFS_DEFAULT_GATEWAY_URL, openSeaEnabled = false, useIpfsSubdomains = true, isIpfsGatewayEnabled = true, onNftAdded, messenger, state = {}, }) {
-+    // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++    // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +    constructor({ chainId: initialChainId, ipfsGateway = controller_utils_1.IPFS_DEFAULT_GATEWAY_URL, displayNftMedia = false, useIpfsSubdomains = true, isIpfsGatewayEnabled = true, onNftAdded, messenger, state = {}, }) {
          super({
              name: controllerName,
@@ -37,7 +81,7 @@ index 0f15eb6..322f5c5 100644
          _NftController_chainId.set(this, void 0);
          _NftController_ipfsGateway.set(this, void 0);
 -        _NftController_openSeaEnabled.set(this, void 0);
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        _NftController_displayNftMedia.set(this, void 0);
          _NftController_useIpfsSubdomains.set(this, void 0);
          _NftController_isIpfsGatewayEnabled.set(this, void 0);
@@ -46,7 +90,7 @@ index 0f15eb6..322f5c5 100644
          __classPrivateFieldSet(this, _NftController_chainId, initialChainId, "f");
          __classPrivateFieldSet(this, _NftController_ipfsGateway, ipfsGateway, "f");
 -        __classPrivateFieldSet(this, _NftController_openSeaEnabled, openSeaEnabled, "f");
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        __classPrivateFieldSet(this, _NftController_displayNftMedia, displayNftMedia, "f");
          __classPrivateFieldSet(this, _NftController_useIpfsSubdomains, useIpfsSubdomains, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
@@ -56,7 +100,7 @@ index 0f15eb6..322f5c5 100644
  }
  exports.NftController = NftController;
 -_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_openSeaEnabled = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
-+// Remove once https://github.com/MetaMask/core/pull/4774 is merged
++// Remove once https://github.com/MetaMask/core/pull/4774 is released
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
@@ -66,28 +110,28 @@ index 0f15eb6..322f5c5 100644
   * @param preferencesState - The new state of the preference controller.
   * @param preferencesState.ipfsGateway - The configured IPFS gateway.
 - * @param preferencesState.openSeaEnabled - Controls whether the OpenSea API is used.
-+ * Remove once https://github.com/MetaMask/core/pull/4774 is merged
++ * Remove once https://github.com/MetaMask/core/pull/4774 is released
 + * @param preferencesState.displayNftMedia - Controls whether the NFT API is used.
   * @param preferencesState.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
   */
 -async function _NftController_onPreferencesControllerStateChange({ ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled, }) {
-+// Remove once https://github.com/MetaMask/core/pull/4774 is merged
++// Remove once https://github.com/MetaMask/core/pull/4774 is released
 +async function _NftController_onPreferencesControllerStateChange({ ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) {
      const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
      __classPrivateFieldSet(this, _NftController_selectedAccountId, selectedAccount.id, "f");
      // Get current state values
      if (__classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== ipfsGateway ||
 -        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f") !== openSeaEnabled ||
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        __classPrivateFieldGet(this, _NftController_displayNftMedia, "f") !== displayNftMedia ||
          __classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") !== isIpfsGatewayEnabled) {
          __classPrivateFieldSet(this, _NftController_ipfsGateway, ipfsGateway, "f");
 -        __classPrivateFieldSet(this, _NftController_openSeaEnabled, openSeaEnabled, "f");
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        __classPrivateFieldSet(this, _NftController_displayNftMedia, displayNftMedia, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
 -        const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || openSeaEnabled;
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || displayNftMedia;
          if (needsUpdateNftMetadata && selectedAccount) {
              await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
@@ -97,7 +141,7 @@ index 0f15eb6..322f5c5 100644
      __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
      const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
 -        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f")) &&
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        __classPrivateFieldGet(this, _NftController_displayNftMedia, "f")) &&
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
@@ -106,7 +150,7 @@ index 0f15eb6..322f5c5 100644
              description: null,
              image: null,
              standard: null,
-+            // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++            // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +            error: 'Opensea import error',
          };
      }
@@ -115,12 +159,12 @@ index 0f15eb6..322f5c5 100644
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
-+            // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++            // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +            error: 'URI import error',
          };
      }
 -    const isDisplayNFTMediaToggleEnabled = __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f");
-+    // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++    // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +    const isDisplayNFTMediaToggleEnabled = __classPrivateFieldGet(this, _NftController_displayNftMedia, "f");
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
@@ -129,7 +173,7 @@ index 0f15eb6..322f5c5 100644
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
-+            // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++            // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +            error: 'URI import error',
          };
      }
@@ -139,12 +183,12 @@ index 0f15eb6..322f5c5 100644
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
 -        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f") && chainId === '0x1'
-+        // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++        // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +        __classPrivateFieldGet(this, _NftController_displayNftMedia, "f") && chainId === '0x1'
              ? (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromApi).call(this, contractAddress, tokenId))
              : undefined,
      ]);
-+    // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++    // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +    if (blockchainMetadata?.error && nftApiMetadata?.error) {
 +        return {
 +            image: null,
@@ -163,7 +207,7 @@ index 0f15eb6..322f5c5 100644
                  tokenId: tokenId.toString(),
                  standard: nftMetadata.standard,
                  source,
-+                // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++                // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +                tokenURI: nftMetadata.tokenURI
              });
          }
@@ -176,7 +220,7 @@ index 4384784..60bc29a 100644
      creator?: string;
      transactionId?: string;
      tokenURI?: string | null;
-+    // Remove once https://github.com/MetaMask/core/pull/4774 is merged
++    // Remove once https://github.com/MetaMask/core/pull/4774 is released
 +    error?: string;
      collection?: Collection;
      address?: string;
