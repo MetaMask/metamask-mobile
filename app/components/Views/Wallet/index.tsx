@@ -728,21 +728,13 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const defiEnabled = useMemo(
-    () =>
-      isEvmSelected &&
-      !isTestNet(chainId) &&
-      basicFunctionalityEnabled &&
-      assetsDefiPositionsEnabled,
-    [
-      isEvmSelected,
-      chainId,
-      basicFunctionalityEnabled,
-      assetsDefiPositionsEnabled,
-    ],
-  );
+  const defiEnabled =
+    isEvmSelected &&
+    !isTestNet(chainId) &&
+    basicFunctionalityEnabled &&
+    assetsDefiPositionsEnabled;
 
-  const collectiblesEnabled = useMemo(() => isEvmSelected, [isEvmSelected]);
+  const collectiblesEnabled = isEvmSelected;
 
   const renderContent = useCallback(
     () => (
