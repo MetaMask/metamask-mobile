@@ -125,7 +125,6 @@ const createStyles = (colors) =>
  */
 class TransactionDetails extends PureComponent {
   static propTypes = {
-    
     /**
     /* navigation object required to push new views
     */
@@ -165,7 +164,7 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
- 
+
     /**
      * Boolean that indicates if smart transaction should be used
      */
@@ -235,7 +234,9 @@ class TransactionDetails extends PureComponent {
       transactions,
     } = this.props;
 
-    const chainId = isPerDappSelectedNetworkEnabled() ? transactionObject.chainId : this.props.chainId;
+    const chainId = isPerDappSelectedNetworkEnabled()
+      ? transactionObject.chainId
+      : this.props.chainId;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -371,10 +372,13 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
+      transactionObject,
       transactionObject: { status, time, txParams, chainId: txChainId },
       shouldUseSmartTransaction,
     } = this.props;
-    const chainId = isPerDappSelectedNetworkEnabled() ? txChainId : this.props.chainId;
+    const chainId = isPerDappSelectedNetworkEnabled()
+      ? txChainId
+      : this.props.chainId;
     const hasNestedTransactions = Boolean(
       transactionObject?.nestedTransactions?.length,
     );
@@ -538,11 +542,15 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = (state, ownProps) => ({
   chainId: selectChainId(state),
-  providerConfig: isPerDappSelectedNetworkEnabled() ? selectProviderConfig(state) : undefined,
+  providerConfig: isPerDappSelectedNetworkEnabled()
+    ? selectProviderConfig(state)
+    : undefined,
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, ownProps.transactionObject.chainId) : selectEvmTicker(state),
+  ticker: isPerDappSelectedNetworkEnabled()
+    ? selectTickerByChainId(state, ownProps.transactionObject.chainId)
+    : selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
