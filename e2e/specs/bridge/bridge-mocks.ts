@@ -4,15 +4,25 @@ import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
 
+interface MockEvent {
+  urlEndpoint: string;
+  responseCode: number;
+  response: any;
+}
+
+interface MockEvents {
+  [key: string]: MockEvent[];
+}
+
 /**
  * Utility function to handle direct fetch requests
  * @param {string} url - The URL to fetch from
  * @param {string} method - The HTTP method
  * @param {Headers} headers - Request headers
- * @param {Object} requestBody - The request body object
+ * @param {string | undefined} requestBody - The request body as string
  * @returns {Promise<{statusCode: number, body: string}>} Response object
  */
-const handleDirectFetch = async (url, method, headers, requestBody) => {
+const handleDirectFetch = async (url: string, method: string, headers: Headers, requestBody: string | undefined) => {
   try {
     const response = await global.fetch(url, {
       method,
@@ -37,11 +47,11 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
 /**
  * Starts the mock server and sets up mock events.
  *
- * @param {Object} events - The events to mock, organised by method.
+ * @param {MockEvents} events - The events to mock, organised by method.
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port) => {
+export const startMockServer = async (events: MockEvents, port: number) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
@@ -57,7 +67,14 @@ export const startMockServer = async (events, port) => {
     .forAnyRequest()
     .matching((request) => request.path.startsWith('/proxy'))
     .thenCallback(async (request) => {
-      let urlEndpoint = new URL(request.url).searchParams.get('url');
+      const urlParam = new URL(request.url).searchParams.get('url');
+      if (!urlParam) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Missing url parameter' }),
+        };
+      }
+      let urlEndpoint: string = urlParam;
       const method = request.method;
 
       // Mocking the getTxStatus on the destination transaction
@@ -87,7 +104,7 @@ export const startMockServer = async (events, port) => {
       // Find matching mock event
       const methodEvents = events[method] || [];
       const matchingEvent = methodEvents.find(
-        (event) => event.urlEndpoint === urlEndpoint,
+        (event: MockEvent) => event.urlEndpoint === urlEndpoint,
       );
 
       if (matchingEvent) {
@@ -114,25 +131,41 @@ export const startMockServer = async (events, port) => {
           ? urlEndpoint.replace('localhost', '127.0.0.1')
           : urlEndpoint;
 
+      const requestBody = method === 'POST' ? await request.body.getText() : undefined;
+      const headerEntries = Object.entries(request.headers)
+        .filter((entry): entry is [string, string] => {
+          const value = entry[1];
+          return value !== undefined && typeof value === 'string';
+        })
+        .map(([key, value]) => [key, value] as [string, string]);
+      const headers = new Headers(headerEntries);
+
       return handleDirectFetch(
         updatedUrl,
         method,
-        request.headers,
-        method === 'POST' ? await request.body.getText() : undefined,
+        headers,
+        requestBody,
       );
     });
 
   // In case any other requests are made, pass them through to the actual endpoint
   await mockServer
     .forUnmatchedRequest()
-    .thenCallback(async (request) =>
-      handleDirectFetch(
+    .thenCallback(async (request) => {
+      const headerEntries = Object.entries(request.headers)
+        .filter((entry): entry is [string, string] => {
+          const value = entry[1];
+          return value !== undefined && typeof value === 'string';
+        })
+        .map(([key, value]) => [key, value] as [string, string]);
+      const headers = new Headers(headerEntries);
+      return handleDirectFetch(
         request.url,
         request.method,
-        request.headers,
+        headers,
         await request.body.getText(),
-      ),
-    );
+      );
+    });
 
   return mockServer;
 };

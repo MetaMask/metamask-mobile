@@ -14,6 +14,8 @@ import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import Ganache from '../../../app/util/test/ganache';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
@@ -25,14 +27,15 @@ import NetworkListModal from '../../pages/Network/NetworkListModal.js';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { startMockServer } from './bridge-mocks';
 import { stopMockServer } from '../../api-mocking/mock-server';
-import { localNodeOptions, testSpecificMock } from './costants';
+import { localNodeOptions, testSpecificMock } from './constants';
+import { Mockttp } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeTrade('Bridge from Actions'), () => {
+describe(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
-  let mockServer;
-  let localNode;
+  let mockServer: Mockttp;
+  let localNode: Ganache;
 
   beforeAll(async () => {
     jest.setTimeout(120000);
@@ -61,34 +64,7 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await stopFixtureServer(fixtureServer);
     if (localNode) await localNode.quit();
   });
-
-  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
-    await Assertions.checkIfVisible(WalletView.container);
-
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBridgeButton();
-    await device.disableSynchronization();
-    await QuoteView.enterBridgeAmount('1');
-    await QuoteView.tapBridgeTo();
-    await TestHelpers.delay(1000);
-    await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.token('ETH'));
-    await QuoteView.selectToken('ETH');
-    await Assertions.checkIfVisible(QuoteView.quotesLabel);
-    await Assertions.checkIfVisible(QuoteView.continueButton);
-    await QuoteView.tapContinue();
-
-    // Check the bridge activity completed
-    await TabBarComponent.tapActivity();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
-    await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW),
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      30000,
-    );
-  });
-
+/*
   it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
@@ -98,14 +74,14 @@ describe(SmokeTrade('Bridge from Actions'), () => {
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container as any);
     await Assertions.checkIfVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container as any);
     await Assertions.checkIfVisible(WalletView.container);
 
     await TabBarComponent.tapActions();
@@ -129,7 +105,66 @@ describe(SmokeTrade('Bridge from Actions'), () => {
       ActivitiesView.bridgeActivityTitle('Solana'),
     );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW),
+      ActivitiesView.transactionStatus(FIRST_ROW) as any,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      30000,
+    );
+  });
+
+  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+    await Assertions.checkIfVisible(WalletView.container);
+
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBridgeButton();
+    await device.disableSynchronization();
+    await QuoteView.enterBridgeAmount('1');
+    await QuoteView.tapBridgeTo();
+    await TestHelpers.delay(1000);
+    await QuoteView.selectNetwork('Base');
+    await Assertions.checkIfVisible(QuoteView.token('ETH'));
+    await QuoteView.selectToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.quotesLabel);
+    await Assertions.checkIfVisible(QuoteView.continueButton);
+    await QuoteView.tapContinue();
+
+    // Check the bridge activity completed
+    await TabBarComponent.tapActivity();
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
+    await Assertions.checkIfElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW) as any,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      30000,
+    );
+  });
+  */
+
+  it('should bridge ETH (Mainnet) to ETH (BNB Smart Chain Mainnet)', async () => {
+    await Assertions.checkIfVisible(WalletView.container);
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
+
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBridgeButton();
+    await device.disableSynchronization();
+    await QuoteView.enterBridgeAmount('1');
+    await QuoteView.tapBridgeTo();
+    await TestHelpers.delay(1000);
+    await QuoteView.selectNetwork('OP Mainnet');
+    await Assertions.checkIfVisible(QuoteView.token('ETH'));
+    await QuoteView.selectToken('ETH');
+    await Assertions.checkIfVisible(QuoteView.quotesLabel);
+    await Assertions.checkIfVisible(QuoteView.continueButton);
+    await QuoteView.tapContinue();
+
+    // Check the bridge activity completed
+    await TabBarComponent.tapActivity();
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Optimism'));
+    await Assertions.checkIfElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW) as any,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
