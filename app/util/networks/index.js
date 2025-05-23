@@ -639,8 +639,6 @@ export const isPerDappSelectedNetworkEnabled = () =>
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
-
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',

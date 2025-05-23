@@ -72,7 +72,7 @@ import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   getDecimalChainId,
   isTestNet,
-  isMultichainV1Enabled,
+  isPerDappSelectedNetworkEnabled,
 } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
@@ -912,11 +912,11 @@ export class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: isMultichainV1Enabled(),
+      useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
         listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: isMultichainV1Enabled() }),
+      ) => listener({ useRequestQueue: isPerDappSelectedNetworkEnabled() }),
       domainProxyMap: new DomainProxyMap(),
     });
 
