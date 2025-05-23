@@ -24,7 +24,7 @@
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
     "review_alert": "Review alert",
-    "upgarde_account": {
+    "upgrade_account": {
       "title": "Updating your account",
       "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
       "learn_more": "Learn more"
@@ -470,6 +470,7 @@
     "tokens": "Tokens",
     "collectible": "Collectible",
     "collectibles": "NFTs",
+    "defi": "DeFi",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -633,6 +634,19 @@
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security Tips"
     }
+  },
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
+    "single_token": "{{symbol}} only",
+    "two_tokens": "{{symbol}} +1 other",
+    "multiple_tokens": "{{symbol}} +{{count}} others",
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
   },
   "terms_and_conditions": {
     "title": "Terms and Conditions",
@@ -3928,7 +3942,21 @@
     "7702_functionality": {
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
-      "switch": "Switch"
+      "switch": "Switch",
+      "splashpage": {
+        "accept": "Yes",
+        "betterTransaction": "Faster transactions, lower fees",
+        "betterTransactionDescription": "Save time and money by processing transactions together.",
+        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
+        "payToken": "Pay with any token, any time",
+        "payTokenDescription": "Use the tokens you already have to cover network fees.",
+        "reject": "No",
+        "requestFor": "Request for",
+        "sameAccount": "Same account, smarter features.",
+        "splashTitle": "Use smart account?",
+        "upgradeBannerDescription": "Same address. Smarter features.",
+        "upgradeBannerTitle": "Switch to smart account"
+      }
     },
     "unlimited": "Unlimited",
     "none": "None",
