@@ -22,4 +22,15 @@ export const UINT256_HEX_MAX_VALUE =
 export const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const PREFIX_HEX_STRING = '0x';
 
-export const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM, ORIGIN_METAMASK];
+export const INTERNAL_ORIGINS = [
+  process.env.MM_FOX_CODE,
+  TransactionTypes.MMM,
+  ORIGIN_METAMASK,
+];
+
+export enum EIP5792ErrorCode {
+  UnsupportedNonOptionalCapability = 5700,
+  UnsupportedChainId = 5710,
+  UnknownBundleId = 5730,
+  RejectedUpgrade = 5750,
+}
