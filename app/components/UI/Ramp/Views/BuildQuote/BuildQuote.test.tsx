@@ -273,7 +273,7 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-describe('OtpCode View', () => {
+describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();

@@ -10,7 +10,6 @@ import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import { colors } from './../../../../styles/common';
-
 const Stack = createStackNavigator();
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
