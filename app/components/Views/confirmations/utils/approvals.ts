@@ -1,5 +1,5 @@
-import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
+import { Hex, add0x } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 
 import { parseStandardTokenTransactionData } from './transaction';
@@ -8,6 +8,7 @@ const SIGNATURE_LEGACY = 'function approve(address,uint256)';
 const SIGNATURE_PERMIT2 = 'function approve(address,address,uint160,uint48)';
 const SIGNATURE_INCREASE_ALLOWANCE =
   'function increaseAllowance(address,uint256)';
+
 export function parseApprovalTransactionData(data: Hex):
   | {
       amountOrTokenId?: BigNumber;

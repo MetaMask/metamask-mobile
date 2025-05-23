@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import {
   BatchTransactionParams,
   SimulationTokenBalanceChange,
@@ -19,6 +18,7 @@ import { parseApprovalTransactionData } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
+  tokenSymbol?: string;
   isAll: boolean;
   isUnlimited: boolean;
   nestedTransactionIndex: number;
@@ -151,8 +151,9 @@ async function buildSimulationTokenBalanceChanges({
       isUnlimited,
       newBalance: '0x0',
       nestedTransactionIndex: i,
-      previousBalance: (tokenData as TokenDetailsERC20).balance,
+      previousBalance: (tokenData as TokenDetailsERC20).balance ?? '0x0',
       standard,
+      tokenSymbol: tokenData.symbol,
     };
 
     balanceChanges.push(balanceChange);

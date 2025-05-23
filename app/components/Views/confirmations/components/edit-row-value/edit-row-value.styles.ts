@@ -5,20 +5,20 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    buttons: {
+      width: '48%',
+    },
     buttonSection: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
     },
-    buttons: {
-      width: '48%',
+    input: {
+      marginBottom: 8,
     },
     text: {
       marginBottom: 24,
-    },
-    input: {
-      marginBottom: 8,
     },
     title: {
       alignSelf: 'center',

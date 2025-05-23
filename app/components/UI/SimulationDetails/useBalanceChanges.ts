@@ -195,7 +195,18 @@ function getTokenBalanceChanges(
       ? amount.times(fiatRate).toNumber()
       : FIAT_UNAVAILABLE;
 
-    return { asset, amount, fiatAmount, balance, decimals };
+    const tokenSymbol = (
+      tokenBc as SimulationTokenBalanceChange & { tokenSymbol: string }
+    ).tokenSymbol;
+
+    return {
+      asset,
+      amount,
+      fiatAmount,
+      balance,
+      decimals,
+      tokenSymbol,
+    };
   });
 }
 
