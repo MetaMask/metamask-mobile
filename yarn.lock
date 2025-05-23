@@ -5895,7 +5895,7 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/transaction-controller@55.0.0":
+"@metamask/transaction-controller@55.0.0", "@metamask/transaction-controller@55.0.0@npm:@metamask-previews/transaction-controller@56.2.0-preview-6aac6e71":
   version "55.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-55.0.0.tgz#f464a930ad0ad0cb33aa5371f9b5a9c2729c1c87"
   integrity sha512-1Y+p7+4GiYSMwLwN27JE2NxsI3yBsDcdQLtOBYBdQKGRVmcfRUs1xINw6JvgYugLg4jVJWv2BRfEbYCGmjDx6Q==
