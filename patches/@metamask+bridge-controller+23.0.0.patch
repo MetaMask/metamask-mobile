@@ -10,27 +10,53 @@ index 79396e7..3a4a57c 100644
      refreshRate: exports.REFRESH_INTERVAL_MS,
      maxRefreshCount: exports.DEFAULT_MAX_REFRESH_COUNT,
      support: false,
+diff --git a/node_modules/@metamask/bridge-controller/dist/constants/bridge.d.cts b/node_modules/@metamask/bridge-controller/dist/constants/bridge.d.cts
+index 6658490..bb049e4 100644
+--- a/node_modules/@metamask/bridge-controller/dist/constants/bridge.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/constants/bridge.d.cts
+@@ -20,6 +20,7 @@ export declare const REFRESH_INTERVAL_MS: number;
+ export declare const DEFAULT_MAX_REFRESH_COUNT = 5;
+ export declare const BRIDGE_CONTROLLER_NAME = "BridgeController";
+ export declare const DEFAULT_FEATURE_FLAG_CONFIG: {
++    minimumVersion: string;
+     refreshRate: number;
+     maxRefreshCount: number;
+     support: boolean;
 diff --git a/node_modules/@metamask/bridge-controller/dist/index.cjs b/node_modules/@metamask/bridge-controller/dist/index.cjs
-index 5a9d0a5..3d967d2 100644
+index 5a9d0a5..fb79436 100644
 --- a/node_modules/@metamask/bridge-controller/dist/index.cjs
 +++ b/node_modules/@metamask/bridge-controller/dist/index.cjs
 @@ -1,7 +1,7 @@
  "use strict";
  Object.defineProperty(exports, "__esModule", { value: true });
- exports.selectIsQuoteExpired = exports.selectExchangeRateByChainIdAndAddress = exports.selectBridgeQuotes = exports.formatAddressToCaipReference = exports.formatChainIdToHex = exports.formatChainIdToCaip = exports.fetchBridgeTokens = exports.calcLatestSrcBalance = exports.formatEtaInMinutes = exports.isValidQuoteRequest = exports.getDefaultBridgeControllerState = exports.getNativeAssetForChainId = exports.isSolanaChainId = exports.isNativeAddress = exports.isEthUsdt = exports.getEthUsdtResetData = exports.SWAPS_API_V2_BASE_URL = exports.SWAPS_CHAINID_DEFAULT_TOKEN_MAP = exports.BRIDGE_PROD_API_BASE_URL = exports.BRIDGE_DEV_API_BASE_URL = exports.METABRIDGE_CHAIN_TO_ADDRESS_MAP = exports.DEFAULT_BRIDGE_CONTROLLER_STATE = exports.DEFAULT_MAX_REFRESH_COUNT = exports.REFRESH_INTERVAL_MS = exports.BRIDGE_MM_FEE_RATE = exports.BRIDGE_DEFAULT_SLIPPAGE = exports.BRIDGE_PREFERRED_GAS_ESTIMATE = exports.BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE = exports.BRIDGE_QUOTE_MAX_ETA_SECONDS = exports.BRIDGE_CONTROLLER_NAME = exports.BridgeClientId = exports.ALLOWED_BRIDGE_CHAIN_IDS = exports.FeeType = exports.BridgeBackgroundAction = exports.BridgeUserAction = exports.RequestStatus = exports.ChainId = exports.ActionTypes = exports.SortOrder = exports.AssetType = exports.StatusTypes = exports.isCustomSlippage = exports.isHardwareWallet = exports.getSwapType = exports.getActionType = exports.getRequestParams = exports.formatProviderLabel = exports.UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY = exports.UnifiedSwapBridgeEventName = exports.BridgeController = void 0;
+-exports.selectIsQuoteExpired = exports.selectExchangeRateByChainIdAndAddress = exports.selectBridgeQuotes = exports.formatAddressToCaipReference = exports.formatChainIdToHex = exports.formatChainIdToCaip = exports.fetchBridgeTokens = exports.calcLatestSrcBalance = exports.formatEtaInMinutes = exports.isValidQuoteRequest = exports.getDefaultBridgeControllerState = exports.getNativeAssetForChainId = exports.isSolanaChainId = exports.isNativeAddress = exports.isEthUsdt = exports.getEthUsdtResetData = exports.SWAPS_API_V2_BASE_URL = exports.SWAPS_CHAINID_DEFAULT_TOKEN_MAP = exports.BRIDGE_PROD_API_BASE_URL = exports.BRIDGE_DEV_API_BASE_URL = exports.METABRIDGE_CHAIN_TO_ADDRESS_MAP = exports.DEFAULT_BRIDGE_CONTROLLER_STATE = exports.DEFAULT_MAX_REFRESH_COUNT = exports.REFRESH_INTERVAL_MS = exports.BRIDGE_MM_FEE_RATE = exports.BRIDGE_DEFAULT_SLIPPAGE = exports.BRIDGE_PREFERRED_GAS_ESTIMATE = exports.BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE = exports.BRIDGE_QUOTE_MAX_ETA_SECONDS = exports.BRIDGE_CONTROLLER_NAME = exports.BridgeClientId = exports.ALLOWED_BRIDGE_CHAIN_IDS = exports.FeeType = exports.BridgeBackgroundAction = exports.BridgeUserAction = exports.RequestStatus = exports.ChainId = exports.ActionTypes = exports.SortOrder = exports.AssetType = exports.StatusTypes = exports.isCustomSlippage = exports.isHardwareWallet = exports.getSwapType = exports.getActionType = exports.getRequestParams = exports.formatProviderLabel = exports.UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY = exports.UnifiedSwapBridgeEventName = exports.BridgeController = void 0;
 -exports.selectBridgeFeatureFlags = void 0;
-+exports.DEFAULT_FEATURE_FLAG_CONFIG = exports.selectBridgeFeatureFlags = void 0;
++exports.selectExchangeRateByChainIdAndAddress = exports.selectBridgeQuotes = exports.formatAddressToCaipReference = exports.formatChainIdToHex = exports.formatChainIdToCaip = exports.fetchBridgeTokens = exports.calcLatestSrcBalance = exports.formatEtaInMinutes = exports.isValidQuoteRequest = exports.getDefaultBridgeControllerState = exports.getNativeAssetForChainId = exports.isSolanaChainId = exports.isNativeAddress = exports.isEthUsdt = exports.getEthUsdtResetData = exports.SWAPS_API_V2_BASE_URL = exports.SWAPS_CHAINID_DEFAULT_TOKEN_MAP = exports.DEFAULT_FEATURE_FLAG_CONFIG = exports.BRIDGE_PROD_API_BASE_URL = exports.BRIDGE_DEV_API_BASE_URL = exports.METABRIDGE_CHAIN_TO_ADDRESS_MAP = exports.DEFAULT_BRIDGE_CONTROLLER_STATE = exports.DEFAULT_MAX_REFRESH_COUNT = exports.REFRESH_INTERVAL_MS = exports.BRIDGE_MM_FEE_RATE = exports.BRIDGE_DEFAULT_SLIPPAGE = exports.BRIDGE_PREFERRED_GAS_ESTIMATE = exports.BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE = exports.BRIDGE_QUOTE_MAX_ETA_SECONDS = exports.BRIDGE_CONTROLLER_NAME = exports.BridgeClientId = exports.ALLOWED_BRIDGE_CHAIN_IDS = exports.FeeType = exports.BridgeBackgroundAction = exports.BridgeUserAction = exports.RequestStatus = exports.ChainId = exports.ActionTypes = exports.SortOrder = exports.AssetType = exports.StatusTypes = exports.isCustomSlippage = exports.isHardwareWallet = exports.getSwapType = exports.getActionType = exports.getRequestParams = exports.formatProviderLabel = exports.UNIFIED_SWAP_BRIDGE_EVENT_CATEGORY = exports.UnifiedSwapBridgeEventName = exports.BridgeController = void 0;
++exports.selectBridgeFeatureFlags = exports.selectIsQuoteExpired = void 0;
  var bridge_controller_1 = require("./bridge-controller.cjs");
  Object.defineProperty(exports, "BridgeController", { enumerable: true, get: function () { return bridge_controller_1.BridgeController; } });
  var constants_1 = require("./utils/metrics/constants.cjs");
-@@ -77,4 +77,6 @@ Object.defineProperty(exports, "selectExchangeRateByChainIdAndAddress", { enumer
-  */
- Object.defineProperty(exports, "selectIsQuoteExpired", { enumerable: true, get: function () { return selectors_1.selectIsQuoteExpired; } });
- Object.defineProperty(exports, "selectBridgeFeatureFlags", { enumerable: true, get: function () { return selectors_1.selectBridgeFeatureFlags; } });
-+var bridge_3 = require("./constants/bridge.cjs");
-+Object.defineProperty(exports, "DEFAULT_FEATURE_FLAG_CONFIG", { enumerable: true, get: function () { return bridge_3.DEFAULT_FEATURE_FLAG_CONFIG; } });
- //# sourceMappingURL=index.cjs.map
-\ No newline at end of file
+@@ -40,6 +40,7 @@ Object.defineProperty(exports, "DEFAULT_BRIDGE_CONTROLLER_STATE", { enumerable:
+ Object.defineProperty(exports, "METABRIDGE_CHAIN_TO_ADDRESS_MAP", { enumerable: true, get: function () { return bridge_1.METABRIDGE_CHAIN_TO_ADDRESS_MAP; } });
+ Object.defineProperty(exports, "BRIDGE_DEV_API_BASE_URL", { enumerable: true, get: function () { return bridge_1.BRIDGE_DEV_API_BASE_URL; } });
+ Object.defineProperty(exports, "BRIDGE_PROD_API_BASE_URL", { enumerable: true, get: function () { return bridge_1.BRIDGE_PROD_API_BASE_URL; } });
++Object.defineProperty(exports, "DEFAULT_FEATURE_FLAG_CONFIG", { enumerable: true, get: function () { return bridge_1.DEFAULT_FEATURE_FLAG_CONFIG; } });
+ var tokens_1 = require("./constants/tokens.cjs");
+ /**
+  * @deprecated This map should not be used. Use getNativeAssetForChainId" } instead.
+diff --git a/node_modules/@metamask/bridge-controller/dist/index.d.cts b/node_modules/@metamask/bridge-controller/dist/index.d.cts
+index d3a7dec..bad302b 100644
+--- a/node_modules/@metamask/bridge-controller/dist/index.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/index.d.cts
+@@ -5,7 +5,7 @@ export { formatProviderLabel, getRequestParams, getActionType, getSwapType, isHa
+ export type { ChainConfiguration, L1GasFees, SolanaFees, QuoteMetadata, BridgeToken, GasMultiplierByChainId, FeatureFlagResponse, BridgeAsset, GenericQuoteRequest, Protocol, TokenAmountValues, Step, RefuelData, Quote, QuoteResponse, FeeData, TxData, BridgeControllerState, BridgeControllerAction, BridgeControllerActions, BridgeControllerEvents, BridgeControllerMessenger, FeatureFlagsPlatformConfig, } from "./types.cjs";
+ export { StatusTypes } from "./types.cjs";
+ export { AssetType, SortOrder, ActionTypes, ChainId, RequestStatus, BridgeUserAction, BridgeBackgroundAction, FeeType, } from "./types.cjs";
+-export { ALLOWED_BRIDGE_CHAIN_IDS, BridgeClientId, BRIDGE_CONTROLLER_NAME, BRIDGE_QUOTE_MAX_ETA_SECONDS, BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE, BRIDGE_PREFERRED_GAS_ESTIMATE, BRIDGE_DEFAULT_SLIPPAGE, BRIDGE_MM_FEE_RATE, REFRESH_INTERVAL_MS, DEFAULT_MAX_REFRESH_COUNT, DEFAULT_BRIDGE_CONTROLLER_STATE, METABRIDGE_CHAIN_TO_ADDRESS_MAP, BRIDGE_DEV_API_BASE_URL, BRIDGE_PROD_API_BASE_URL, } from "./constants/bridge.cjs";
++export { ALLOWED_BRIDGE_CHAIN_IDS, BridgeClientId, BRIDGE_CONTROLLER_NAME, BRIDGE_QUOTE_MAX_ETA_SECONDS, BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE, BRIDGE_PREFERRED_GAS_ESTIMATE, BRIDGE_DEFAULT_SLIPPAGE, BRIDGE_MM_FEE_RATE, REFRESH_INTERVAL_MS, DEFAULT_MAX_REFRESH_COUNT, DEFAULT_BRIDGE_CONTROLLER_STATE, METABRIDGE_CHAIN_TO_ADDRESS_MAP, BRIDGE_DEV_API_BASE_URL, BRIDGE_PROD_API_BASE_URL, DEFAULT_FEATURE_FLAG_CONFIG, } from "./constants/bridge.cjs";
+ export type { AllowedBridgeChainIds } from "./constants/bridge.cjs";
+ export { 
+ /**
 diff --git a/node_modules/@metamask/bridge-controller/dist/types.d.cts b/node_modules/@metamask/bridge-controller/dist/types.d.cts
 index 60f7310..66d0023 100644
 --- a/node_modules/@metamask/bridge-controller/dist/types.d.cts
@@ -65,6 +91,18 @@ index c2efdfd..84309ec 100644
  exports.getBridgeFeatureFlags = getBridgeFeatureFlags;
  //# sourceMappingURL=feature-flags.cjs.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.d.cts b/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.d.cts
+index 92e5c48..53673ea 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/utils/feature-flags.d.cts
+@@ -1,6 +1,7 @@
+ import type { FeatureFlagsPlatformConfig, BridgeControllerMessenger } from "../types.cjs";
+ export declare const formatFeatureFlags: (bridgeFeatureFlags: FeatureFlagsPlatformConfig) => {
+     chains: {};
++    minimumVersion: string;
+     refreshRate: number;
+     maxRefreshCount: number;
+     support: boolean;
 diff --git a/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs b/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs
 index 569b1d3..56bc7ec 100644
 --- a/node_modules/@metamask/bridge-controller/dist/utils/validators.cjs
