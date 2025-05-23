@@ -30,217 +30,409 @@ interface MockNetworkController {
   getNetworkConfigurationByNetworkClientId: jest.Mock<NetworkConfiguration | null, [string]>;
 }
 
+function setupTestEnvironment() {
+  jest.clearAllMocks();
+  resetModuleState();
+  return {
+    mockNetworkController: {
+      findNetworkClientIdByChainId: jest.fn(),
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    } as MockNetworkController,
+  };
+}
+
 describe('rpc-domain-utils', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetModuleState();
-  });
-
   describe('getSafeChainsListFromCacheOnly', () => {
-    it('returns cached chains data when available', async () => {
-      const mockChains: SafeChain[] = [
-        {
-          chainId: '1',
-          name: 'Ethereum',
-          nativeCurrency: { symbol: 'ETH' },
-          rpc: ['https://mainnet.infura.io'],
-        },
-      ];
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+    describe('when cache contains valid chains data', () => {
+      it('returns the cached chains data', async () => {
+        // Setup
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: ['https://mainnet.infura.io'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
 
-      const result = await getSafeChainsListFromCacheOnly();
-      expect(result).toEqual(mockChains);
+        // Exercise
+        const result = await getSafeChainsListFromCacheOnly();
+
+        // Verify
+        expect(result).toEqual(mockChains);
+      });
     });
 
-    it('returns empty array when cache is empty', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    describe('when cache is empty', () => {
+      it('returns an empty array', async () => {
+        // Setup
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
+        // Exercise
+        const result = await getSafeChainsListFromCacheOnly();
+
+        // Verify
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('when cache contains invalid data', () => {
+      it('returns an empty array', async () => {
+        // Setup
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue('invalid json');
+
+        // Exercise
+        const result = await getSafeChainsListFromCacheOnly();
+
+        // Verify
+        expect(result).toEqual([]);
+      });
+    });
+
+    it('handles JSON parse errors gracefully', async () => {
+      // Mock StorageWrapper to return invalid JSON
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce('invalid-json');
       const result = await getSafeChainsListFromCacheOnly();
       expect(result).toEqual([]);
     });
 
-    it('returns empty array when cache parsing fails', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('invalid json');
-
+    it('handles storage errors gracefully', async () => {
+      // Mock StorageWrapper to throw an error
+      (StorageWrapper.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
       const result = await getSafeChainsListFromCacheOnly();
       expect(result).toEqual([]);
     });
   });
 
   describe('initializeRpcProviderDomains', () => {
-    it('should initialize known domains from chains list', async () => {
-      const mockChains: SafeChain[] = [
-        {
-          chainId: '1',
-          name: 'Ethereum',
-          nativeCurrency: { symbol: 'ETH' },
-          rpc: ['https://mainnet.infura.io', 'https://eth-mainnet.alchemyapi.io'],
-        },
-      ];
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+    describe('when chains list contains valid RPC URLs', () => {
+      it('initializes known domains from the chains list', async () => {
+        // Setup
+        resetModuleState(); // Explicitly reset state
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: ['https://mainnet.infura.io', 'https://eth-mainnet.alchemyapi.io'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
 
-      await initializeRpcProviderDomains();
-      const knownDomains = getKnownDomains();
-      expect(knownDomains).toBeInstanceOf(Set);
-      expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
-      expect(knownDomains?.has('eth-mainnet.alchemyapi.io')).toBe(true);
+        // Exercise
+        await initializeRpcProviderDomains();
+
+        // Verify
+        const knownDomains = getKnownDomains();
+        expect(knownDomains).toBeInstanceOf(Set);
+        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
+        expect(knownDomains?.has('eth-mainnet.alchemyapi.io')).toBe(true);
+      });
     });
 
-    it('should handle invalid RPC URLs gracefully', async () => {
-      const mockChains: SafeChain[] = [
-        {
-          chainId: '1',
-          name: 'Ethereum',
-          nativeCurrency: { symbol: 'ETH' },
-          rpc: ['invalid-url', 'https://mainnet.infura.io'],
-        },
-      ];
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
+    describe('when chains list contains invalid RPC URLs', () => {
+      it('handles invalid URLs gracefully', async () => {
+        // Setup
+        resetModuleState(); // Explicitly reset state
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Ethereum',
+            nativeCurrency: { symbol: 'ETH' },
+            rpc: ['invalid-url', 'https://mainnet.infura.io'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
 
-      await initializeRpcProviderDomains();
-      const knownDomains = getKnownDomains();
-      expect(knownDomains).toBeInstanceOf(Set);
-      expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
-      expect(knownDomains?.size).toBe(1);
+        // Exercise
+        await initializeRpcProviderDomains();
+
+        // Verify
+        const knownDomains = getKnownDomains();
+        expect(knownDomains).toBeInstanceOf(Set);
+        expect(knownDomains?.has('mainnet.infura.io')).toBe(true);
+        expect(knownDomains?.size).toBe(1);
+      });
     });
 
-    it('should handle empty chains list', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify([]));
+    describe('when chains list is empty', () => {
+      it('initializes with an empty set of domains', async () => {
+        // Setup
+        resetModuleState(); // Explicitly reset state
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify([]));
 
+        // Exercise
+        await initializeRpcProviderDomains();
+
+        // Verify
+        const knownDomains = getKnownDomains();
+        expect(knownDomains).toBeInstanceOf(Set);
+        expect(knownDomains?.size).toBe(0);
+      });
+    });
+
+    it('initializes with empty set on error', async () => {
+      // Mock getSafeChainsListFromCacheOnly to throw
+      const spy = jest.spyOn(require('./rpc-domain-utils'), 'getSafeChainsListFromCacheOnly');
+      spy.mockRejectedValueOnce(new Error('Test error'));
       await initializeRpcProviderDomains();
-      const knownDomains = getKnownDomains();
-      expect(knownDomains).toBeInstanceOf(Set);
-      expect(knownDomains?.size).toBe(0);
+      expect(getKnownDomains()).toEqual(new Set());
+      spy.mockRestore();
     });
   });
 
   describe('getKnownDomains and setKnownDomains', () => {
-    it('should get and set known domains correctly', () => {
-      const testDomains = new Set(['test.com']);
-      setKnownDomains(testDomains);
-      expect(getKnownDomains()).toBe(testDomains);
-    });
+    describe('when setting known domains', () => {
+      it('correctly stores and retrieves the domains', () => {
+        // Setup
+        const testDomains = new Set(['test.com']);
 
-    it('should handle null domains', () => {
-      setKnownDomains(null);
-      expect(getKnownDomains()).toBeNull();
+        // Exercise
+        setKnownDomains(testDomains);
+        const result = getKnownDomains();
+
+        // Verify
+        expect(result).toBe(testDomains);
+      });
+
+      it('handles null domains', () => {
+        // Exercise
+        setKnownDomains(null);
+        const result = getKnownDomains();
+
+        // Verify
+        expect(result).toBeNull();
+      });
     });
   });
 
   describe('isKnownDomain', () => {
-    it('returns true for known domains', () => {
-      const testDomains = new Set(['test.com']);
-      setKnownDomains(testDomains);
-      expect(isKnownDomain('test.com')).toBe(true);
-    });
+    describe('when checking domain existence', () => {
+      it('returns true for known domains', () => {
+        // Setup
+        const testDomains = new Set(['test.com']);
+        setKnownDomains(testDomains);
 
-    it('returns false for unknown domains', () => {
-      const testDomains = new Set(['test.com']);
-      setKnownDomains(testDomains);
-      expect(isKnownDomain('unknown.com')).toBe(false);
-    });
+        // Exercise
+        const result = isKnownDomain('test.com');
 
-    it('handles null knownDomainsSet', () => {
-      setKnownDomains(null);
-      expect(isKnownDomain('test.com')).toBe(false);
-    });
+        // Verify
+        expect(result).toBe(true);
+      });
 
-    it('handles case-insensitive domain matching', () => {
-      const testDomains = new Set(['test.com']);
-      setKnownDomains(testDomains);
-      expect(isKnownDomain('test.com')).toBe(true);
-      expect(isKnownDomain('TEST.COM')).toBe(true);
+      it('returns false for unknown domains', () => {
+        // Setup
+        const testDomains = new Set(['test.com']);
+        setKnownDomains(testDomains);
+
+        // Exercise
+        const result = isKnownDomain('unknown.com');
+
+        // Verify
+        expect(result).toBe(false);
+      });
+
+      it('handles null knownDomainsSet', () => {
+        // Setup
+        setKnownDomains(null);
+
+        // Exercise
+        const result = isKnownDomain('test.com');
+
+        // Verify
+        expect(result).toBe(false);
+      });
+
+      it('performs case-insensitive domain matching', () => {
+        // Setup
+        const testDomains = new Set(['test.com']);
+        setKnownDomains(testDomains);
+
+        // Exercise
+        const result1 = isKnownDomain('test.com');
+        const result2 = isKnownDomain('TEST.COM');
+
+        // Verify
+        expect(result1).toBe(true);
+        expect(result2).toBe(true);
+      });
     });
   });
 
   describe('extractRpcDomain', () => {
-    beforeEach(() => {
-      const testDomains = new Set(['known-domain.com']);
-      setKnownDomains(testDomains);
-    });
+    describe('when processing URLs', () => {
+      beforeEach(() => {
+        const testDomains = new Set(['known-domain.com']);
+        setKnownDomains(testDomains);
+      });
 
-    it('returns domain for known domains', () => {
-      expect(extractRpcDomain('https://known-domain.com')).toBe('known-domain.com');
-    });
+      it('returns domain for known domains', () => {
+        // Exercise
+        const result = extractRpcDomain('https://known-domain.com');
 
-    it('returns Invalid for invalid URLs', () => {
-      expect(extractRpcDomain(':::invalid-url')).toBe(RpcDomainStatus.Invalid);
-    });
+        // Verify
+        expect(result).toBe('known-domain.com');
+      });
 
-    it('returns Private for unknown domains', () => {
-      expect(extractRpcDomain('https://unknown-domain.com')).toBe(RpcDomainStatus.Private);
-    });
+      it('returns Invalid for invalid URLs', () => {
+        // Exercise
+        const result = extractRpcDomain(':::invalid-url');
 
-    it('returns actual domain for Infura URLs', () => {
-      expect(extractRpcDomain('https://mainnet.infura.io')).toBe('mainnet.infura.io');
-    });
+        // Verify
+        expect(result).toBe(RpcDomainStatus.Invalid);
+      });
 
-    it('returns actual domain for Alchemy URLs', () => {
-      expect(extractRpcDomain('https://eth-mainnet.alchemyapi.io')).toBe('eth-mainnet.alchemyapi.io');
-    });
+      it('returns Private for unknown domains', () => {
+        // Exercise
+        const result = extractRpcDomain('https://unknown-domain.com');
 
-    it('returns Private for localhost', () => {
-      expect(extractRpcDomain('http://localhost:8545')).toBe(RpcDomainStatus.Private);
-      expect(extractRpcDomain('http://127.0.0.1:8545')).toBe(RpcDomainStatus.Private);
-    });
+        // Verify
+        expect(result).toBe(RpcDomainStatus.Private);
+      });
 
-    it('should handle URLs without protocol', () => {
-      expect(extractRpcDomain('known-domain.com')).toBe('known-domain.com');
+      it('returns actual domain for Infura URLs', () => {
+        // Exercise
+        const result = extractRpcDomain('https://mainnet.infura.io');
+
+        // Verify
+        expect(result).toBe('mainnet.infura.io');
+      });
+
+      it('returns actual domain for Alchemy URLs', () => {
+        // Exercise
+        const result = extractRpcDomain('https://eth-mainnet.alchemyapi.io');
+
+        // Verify
+        expect(result).toBe('eth-mainnet.alchemyapi.io');
+      });
+
+      it('returns Private for localhost', () => {
+        // Exercise
+        const result1 = extractRpcDomain('http://localhost:8545');
+        const result2 = extractRpcDomain('http://127.0.0.1:8545');
+
+        // Verify
+        expect(result1).toBe(RpcDomainStatus.Private);
+        expect(result2).toBe(RpcDomainStatus.Private);
+      });
+
+      it('handles URLs without protocol', () => {
+        // Exercise
+        const result = extractRpcDomain('known-domain.com');
+
+        // Verify
+        expect(result).toBe('known-domain.com');
+      });
     });
   });
 
   describe('getNetworkRpcUrl', () => {
-    let mockNetworkController: MockNetworkController;
+    describe('when retrieving RPC URLs', () => {
+      it('returns RPC URL from legacy format', () => {
+        // Setup
+        const { mockNetworkController } = setupTestEnvironment();
+        mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
+        mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
+          rpcUrl: 'https://legacy-rpc.com',
+        });
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
 
-    beforeEach(() => {
-      mockNetworkController = {
-        findNetworkClientIdByChainId: jest.fn(),
-        getNetworkConfigurationByNetworkClientId: jest.fn(),
-      };
-      (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
-    });
+        // Exercise
+        const result = getNetworkRpcUrl('0x1');
 
-    it('returns RPC URL from legacy format', () => {
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
-      mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
-        rpcUrl: 'https://legacy-rpc.com',
+        // Verify
+        expect(result).toBe('https://legacy-rpc.com');
       });
 
-      expect(getNetworkRpcUrl('0x1')).toBe('https://legacy-rpc.com');
-    });
+      it('returns RPC URL from rpcEndpoints array', () => {
+        // Setup
+        const { mockNetworkController } = setupTestEnvironment();
+        mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
+        mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
+          rpcEndpoints: [
+            { url: 'https://rpc1.com' },
+            { url: 'https://rpc2.com' },
+          ],
+          defaultRpcEndpointIndex: 1,
+        });
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
 
-    it('returns RPC URL from rpcEndpoints array', () => {
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
-      mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
-        rpcEndpoints: [
-          { url: 'https://rpc1.com' },
-          { url: 'https://rpc2.com' },
-        ],
-        defaultRpcEndpointIndex: 1,
+        // Exercise
+        const result = getNetworkRpcUrl('0x1');
+
+        // Verify
+        expect(result).toBe('https://rpc2.com');
       });
 
-      expect(getNetworkRpcUrl('0x1')).toBe('https://rpc2.com');
-    });
+      it('returns unknown when network client ID not found', () => {
+        // Setup
+        const { mockNetworkController } = setupTestEnvironment();
+        mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(null);
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
 
-    it('returns unknown when network client ID not found', () => {
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(null);
+        // Exercise
+        const result = getNetworkRpcUrl('0x1');
 
-      expect(getNetworkRpcUrl('0x1')).toBe('unknown');
-    });
-
-    it('returns unknown when network configuration not found', () => {
-      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
-      mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
-
-      expect(getNetworkRpcUrl('0x1')).toBe('unknown');
-    });
-
-    it('should handle errors gracefully', () => {
-      mockNetworkController.findNetworkClientIdByChainId.mockImplementation(() => {
-        throw new Error('Test error');
+        // Verify
+        expect(result).toBe('unknown');
       });
 
-      expect(getNetworkRpcUrl('0x1')).toBe('unknown');
+      it('returns unknown when network configuration not found', () => {
+        // Setup
+        const { mockNetworkController } = setupTestEnvironment();
+        mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
+        mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(null);
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
+        // Exercise
+        const result = getNetworkRpcUrl('0x1');
+
+        // Verify
+        expect(result).toBe('unknown');
+      });
+
+      it('handles errors gracefully', () => {
+        // Setup
+        const { mockNetworkController } = setupTestEnvironment();
+        mockNetworkController.findNetworkClientIdByChainId.mockImplementation(() => {
+          throw new Error('Test error');
+        });
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController = mockNetworkController;
+
+        // Exercise
+        const result = getNetworkRpcUrl('0x1');
+
+        // Verify
+        expect(result).toBe('unknown');
+      });
+
+      it('handles missing rpcEndpoints gracefully', () => {
+        const mockNetworkConfig = {
+          rpcEndpoints: undefined,
+        };
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValueOnce(mockNetworkConfig);
+        const result = getNetworkRpcUrl('0x1');
+        expect(result).toBe('unknown');
+      });
+
+      it('handles invalid rpcEndpoints array', () => {
+        const mockNetworkConfig = {
+          rpcEndpoints: [{ url: '' }], // Empty url property
+        };
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValueOnce(mockNetworkConfig);
+        const result = getNetworkRpcUrl('0x1');
+        expect(result).toBe('unknown');
+      });
+
+      it('handles empty rpcEndpoints array', () => {
+        const mockNetworkConfig = {
+          rpcEndpoints: [], // Empty array
+        };
+        (Engine.context as unknown as { NetworkController: MockNetworkController }).NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValueOnce(mockNetworkConfig);
+        const result = getNetworkRpcUrl('0x1');
+        expect(result).toBe('unknown');
+      });
     });
   });
 });
