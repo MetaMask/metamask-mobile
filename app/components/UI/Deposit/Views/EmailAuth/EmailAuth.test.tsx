@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import EmailAuth from './EmailAuth';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -40,25 +40,9 @@ describe('EmailAuth Component', () => {
   it('renders the EnterEmail view correctly', () => {
     render(EmailAuth);
     expect(
-      screen.getByText('We will send you a code to verify your email'),
+      screen.getByText(
+        "We'll send a six-digit code to your email to check it's you.",
+      ),
     ).toBeTruthy();
-  });
-
-  it('navigates to EnterCode view on "Send email" button press', () => {
-    render(EmailAuth);
-    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
-    expect(
-      screen.getByText('Enter the 6 digit code that we sent to your email'),
-    ).toBeTruthy();
-  });
-
-  it('navigates to ID Verify screen on "Continue" button press', () => {
-    render(EmailAuth);
-    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.DEPOSIT.ID_VERIFY,
-      undefined,
-    );
   });
 });

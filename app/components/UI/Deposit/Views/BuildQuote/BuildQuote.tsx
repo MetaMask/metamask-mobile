@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
 import Text from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './BuildQuote.styles';
 import StyledButton from '../../../StyledButton';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import Row from '../../../Ramp/components/Row';
@@ -14,7 +12,6 @@ export const createEmailAuthNavDetails = createNavigationDetails(
 );
 
 const BuildQuote = () => {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const handleOnPressContinue = useCallback(() => {
@@ -25,12 +22,14 @@ const BuildQuote = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <Text>Build Quote Page</Text>
+          <Text style={{ textAlign: 'center', marginTop: 40 }}>
+            Build Quote Page Placeholder
+          </Text>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <Row style={styles.cta}>
+          <Row>
             <StyledButton
               type="confirm"
               onPress={handleOnPressContinue}

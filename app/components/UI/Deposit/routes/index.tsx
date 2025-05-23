@@ -13,7 +13,9 @@ const Stack = createStackNavigator();
 // TODO: Implement VerifyIdentity component
 const VerifyIdentity = () => (
   <View>
-    <Text>Verify your identity</Text>
+    <Text style={{ textAlign: 'center', marginTop: 40 }}>
+      Verify your identity placeholder
+    </Text>
   </View>
 );
 
