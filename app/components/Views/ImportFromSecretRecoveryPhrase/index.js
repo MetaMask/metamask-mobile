@@ -14,7 +14,6 @@ import {
   Platform,
   FlatList,
   TouchableOpacity,
-  Keyboard,
 } from 'react-native';
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -96,6 +95,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const IOS_REJECTED_BIOMETRICS_ERROR =
   'Error: The user name or passphrase you entered is not correct.';
 
+const SPACE_CHAR = ' ';
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -131,7 +131,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
-    useState(-1);
+    useState(0);
+  const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
+    useState(0);
   const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
@@ -160,6 +162,66 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build());
   };
 
+  const checkValidSeedWord = useCallback((text) => wordlist.includes(text), []);
+
+  const [isAnyWordError, setIsAnyNewWordError] = useState(false);
+
+  const handleClear = useCallback(() => {
+    setSeedPhrase([]);
+    setShowAllSeedPhrase(false);
+    setError('');
+  }, []);
+
+  const handleSeedPhraseChange = useCallback(
+    (text, index) => {
+      if (error) setError('');
+
+      if (text.includes(SPACE_CHAR)) {
+        const isEndWithSpace = text.at(-1) === SPACE_CHAR;
+        // handle use pasting multiple words / whole seed phrase separated by spaces
+        const splitArray = text.trim().split(' ');
+
+        if (splitArray.length > 1) {
+          const isAllValid = splitArray.reduce(
+            (acc, item) => acc && checkValidSeedWord(item),
+            true,
+          );
+
+          if (!isAllValid) {
+            setIsAnyNewWordError(true);
+          }
+        }
+
+        let totalLength = seedPhrase.length + splitArray.length;
+        setSeedPhrase((prev) => {
+          const endSlices = prev.slice(index + 1);
+          if (endSlices.length === 0 && isEndWithSpace) {
+            endSlices.push('');
+            totalLength++;
+          }
+          return [...prev.slice(0, index), ...splitArray, ...endSlices];
+          // input the array into the correct index
+        });
+
+        setNextSeedPhraseInputFocusedIndex(totalLength - 1);
+      } else {
+        setSeedPhrase((prev) => {
+          // update the word at the correct index
+          const newSeedPhrase = [...prev];
+          newSeedPhrase[index] = text.trim();
+          return newSeedPhrase;
+        });
+      }
+    },
+    [
+      error,
+      seedPhrase,
+      setSeedPhrase,
+      setNextSeedPhraseInputFocusedIndex,
+      checkValidSeedWord,
+    ],
+  );
+
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
     if (!hideSeedPhraseInput) {
@@ -172,7 +234,8 @@ const ImportFromSecretRecoveryPhrase = ({
       disableTabber: true,
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
-          setSeedPhrase(seed);
+          handleClear();
+          handleSeedPhraseChange(seed, 0);
         } else {
           Alert.alert(
             strings('import_from_seed.invalid_qr_code_title'),
@@ -185,7 +248,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setHideSeedPhraseInput(shouldHideSRP);
       },
     });
-  }, [hideSeedPhraseInput, navigation]);
+  }, [hideSeedPhraseInput, navigation, handleClear, handleSeedPhraseChange]);
 
   const onBackPress = () => {
     if (currentStep === 0) {
@@ -359,86 +422,30 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const handleSeedPhraseChange = (text, index) => {
-    setError('');
-    if (text.includes(' ')) {
-      setSeedPhrase((prev) => {
-        // handle use pasting multiple words / whole seed phrase separated by spaces
-        const splitArray = text.trim().split(/\s+/); // split by any spaces
-        return [
-          ...prev.slice(0, index),
-          ...splitArray,
-          ...prev.slice(index + 1),
-        ]; // input the array into the correct index
-      });
-    } else {
-      setSeedPhrase((prev) => {
-        // update the word at the correct index
-        const newSeedPhrase = [...prev];
-        newSeedPhrase[index] = text.trim();
-        return newSeedPhrase;
-      });
-    }
-  };
-
   const handleKeyPress = (e, index, enterPressed = false) => {
-    setError('');
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
-      if (index === 0 && seedPhrase.length === 1) {
-        setSeedPhrase(['']);
-      } else if (seedPhrase[index] === '') {
+      if (seedPhrase[index] === '') {
         const newData = seedPhrase.filter((_, idx) => idx !== index);
         setSeedPhrase(newData);
-        seedPhraseInputRefs.current[index - 1]?.focus();
-      } else {
-        const newData = [...seedPhrase];
-        newData[index] = '';
-        setSeedPhrase(newData);
-        seedPhraseInputRefs.current[index]?.focus();
+        setNextSeedPhraseInputFocusedIndex(newData.length - 1);
       }
       return;
     }
-    if (
-      (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
-      index === seedPhrase.length - 1 &&
-      seedPhrase[index] !== ''
-    ) {
-      setSeedPhrase([...seedPhrase, '']);
-      seedPhraseInputRefs.current[index + 1]?.focus();
-      return;
-    }
-    if (
-      (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
-      seedPhrase[index] !== ''
-    ) {
-      const firstList = seedPhrase.slice(0, index + 1);
-      const secondList = seedPhrase.slice(index + 1);
-      setSeedPhrase([...firstList, ' ', ...secondList]);
-      seedPhraseInputRefs.current[index + 1]?.focus();
-      return;
-    }
   };
 
-  const handlePaste = async () => {
-    setError('');
-    const text = await Clipboard.getString(); // Get copied text
-    if (text.trim() !== '') {
-      const pastedData = text.split(' '); // Split by spaces
-      setSeedPhrase([...pastedData].filter((item) => item !== ''));
-      Keyboard.dismiss();
-      seedPhraseInputRefs.current[seedPhrase.length]?.focus();
-    }
-  };
+  const handlePaste = useCallback(
+    async (focusedIndex) => {
+      const text = await Clipboard.getString(); // Get copied text
+      if (text.trim() !== '') {
+        handleSeedPhraseChange(text, focusedIndex);
+      }
+    },
+    [handleSeedPhraseChange],
+  );
 
   const toggleShowAllSeedPhrase = () => {
     setShowAllSeedPhrase((prev) => !prev);
-  };
-
-  const handleClear = () => {
-    setSeedPhrase([]);
-    setShowAllSeedPhrase(false);
-    setError('');
   };
 
   const validateSeedPhrase = () => {
@@ -610,14 +617,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const isError =
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
 
-  const isValidSeed = (text) => {
-    const isValid = wordlist.includes(text);
-    if (!isValid) {
-      setError(strings('import_from_seed.spellcheck_error'));
-    }
-    return isValid;
-  };
-
   const showWhatIsSeedPhrase = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
@@ -633,6 +632,57 @@ const ImportFromSecretRecoveryPhrase = ({
       },
     });
   };
+
+  const getSecureWord = useCallback(
+    (word, index, focusedIndex) => {
+      const isFocusedWord =
+        focusedIndex === index &&
+        focusedIndex !== nextSeedPhraseInputFocusedIndex;
+      const isValidSeedWord = checkValidSeedWord(word);
+
+      return word &&
+        (showAllSeedPhrase ? false : seedPhraseInputFocusedIndex !== index) &&
+        isValidSeedWord
+        ? '***'
+        : word;
+    },
+    [
+      seedPhraseInputFocusedIndex,
+      nextSeedPhraseInputFocusedIndex,
+      showAllSeedPhrase,
+      checkValidSeedWord,
+    ],
+  );
+
+  useEffect(() => {
+    seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
+  }, [nextSeedPhraseInputFocusedIndex]);
+
+  const handleOnFocus = useCallback(
+    (index) => {
+      if (seedPhraseInputFocusedIndex !== index) {
+        setError('');
+        const focusOutWord = seedPhrase[seedPhraseInputFocusedIndex];
+
+        if (
+          isAnyWordError ||
+          (focusOutWord && !checkValidSeedWord(focusOutWord))
+        ) {
+          setIsAnyNewWordError(false);
+          setError(strings('import_from_seed.spellcheck_error'));
+        }
+      }
+      setSeedPhraseInputFocusedIndex(index);
+    },
+    [
+      seedPhrase,
+      seedPhraseInputFocusedIndex,
+      setError,
+      isAnyWordError,
+      checkValidSeedWord,
+      setSeedPhraseInputFocusedIndex,
+    ],
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -679,6 +729,9 @@ const ImportFromSecretRecoveryPhrase = ({
                     <View style={styles.seedPhraseInnerContainer}>
                       {seedPhrase.length <= 1 ? (
                         <TextInput
+                          ref={(ref) => {
+                            seedPhraseInputRefs.current[0] = ref;
+                          }}
                           textAlignVertical="top"
                           label={strings('import_from_seed.srp')}
                           placeholder={strings(
@@ -719,6 +772,9 @@ const ImportFromSecretRecoveryPhrase = ({
                                 ]}
                               >
                                 <TextField
+                                  ref={(ref) => {
+                                    seedPhraseInputRefs.current[index] = ref;
+                                  }}
                                   startAccessory={
                                     <Text
                                       variant={TextVariant.BodyMD}
@@ -728,25 +784,20 @@ const ImportFromSecretRecoveryPhrase = ({
                                       {index + 1}.
                                     </Text>
                                   }
-                                  value={
-                                    item &&
-                                    (showAllSeedPhrase
-                                      ? false
-                                      : seedPhraseInputFocusedIndex !==
-                                        index) &&
-                                    isValidSeed(item)
-                                      ? '***'
-                                      : item
-                                  }
+                                  value={getSecureWord(
+                                    item,
+                                    index,
+                                    seedPhraseInputFocusedIndex,
+                                  )}
                                   secureTextEntry={
-                                    isValidSeed(item) &&
+                                    checkValidSeedWord(item) &&
                                     (showAllSeedPhrase
                                       ? false
                                       : seedPhraseInputFocusedIndex !== index)
                                   }
-                                  onFocus={() =>
-                                    setSeedPhraseInputFocusedIndex(index)
-                                  }
+                                  onFocus={() => {
+                                    handleOnFocus(index);
+                                  }}
                                   onChangeText={(text) =>
                                     handleSeedPhraseChange(text, index)
                                   }
@@ -766,7 +817,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   textAlignVertical="center"
                                   showSoftInputOnFocus
                                   blurOnSubmit={false}
-                                  isError={!isValidSeed(item)}
+                                  isError={!checkValidSeedWord(item)}
                                   autoCapitalize="none"
                                   numberOfLines={1}
                                 />
@@ -800,7 +851,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           if (seedPhrase.length > 1) {
                             handleClear();
                           } else {
-                            handlePaste();
+                            handlePaste(seedPhraseInputFocusedIndex);
                           }
                         }}
                         width={ButtonWidthTypes.Full}
