@@ -1,6 +1,7 @@
 import { SafeChain } from '../components/UI/NetworkModal';
 import StorageWrapper from '../store/storage-wrapper';
 import Engine from '../core/Engine';
+import * as rpcDomainUtils from './rpc-domain-utils';
 import {
   getSafeChainsListFromCacheOnly,
   initializeRpcProviderDomains,
@@ -173,7 +174,7 @@ describe('rpc-domain-utils', () => {
       it('correctly stores and retrieves the domains', () => {
         // Setup
         const testDomains = new Set(['test.com']);
-        jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains').mockReturnValue(testDomains);
+        jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValue(testDomains);
         // Exercise
         const result = getKnownDomains();
         // Verify
@@ -181,7 +182,7 @@ describe('rpc-domain-utils', () => {
       });
       it('handles null domains', () => {
         // Setup
-        jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains').mockReturnValue(null);
+        jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValue(null);
         // Exercise
         const result = getKnownDomains();
         // Verify
