@@ -14,6 +14,7 @@ import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import MultichainUtilities from '../../utils/MultichainUtilities';
 
 describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
   beforeEach(() => {
@@ -100,8 +101,10 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
           const connected = await MultichainTestDApp.useAutoConnectButton();
           expect(connected).toBe(true);
           
-          // Select only Ethereum Mainnet
-          const networkSelected = await MultichainTestDApp.selectNetwork('1');
+          // Select only Ethereum Mainnet using constant
+          const networkSelected = await MultichainTestDApp.selectNetwork(
+            MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET
+          );
           expect(networkSelected).toBe(true);
           
           // Create and get session
