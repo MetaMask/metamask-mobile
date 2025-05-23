@@ -320,7 +320,7 @@ describe('Transaction Controller Util', () => {
         ).toHaveBeenCalledWith(ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK);
       });
 
-      it('when requuested transaction param changes is not exist', () => {
+      it('when requested transaction params changes does not exist', () => {
         mockGetTransactions([EIP1559_TRANSACTION_META_MOCK]);
 
         TransactionControllerUtils.updateTransaction(
