@@ -67,4 +67,17 @@ describe('BalanceChangeList', () => {
 
     expect(container).toBeNull();
   });
+
+  it('EditRowValue component is included if enableEdit is true and onUpdate is defined', () => {
+    const { getByTestId } = render(
+      <BalanceChangeRow
+        showFiat={false}
+        balanceChange={balanceChangeMock}
+        enableEdit
+        onUpdate={() => undefined}
+      />,
+    );
+
+    expect(getByTestId('edit-amount-button-icon')).toBeTruthy();
+  });
 });

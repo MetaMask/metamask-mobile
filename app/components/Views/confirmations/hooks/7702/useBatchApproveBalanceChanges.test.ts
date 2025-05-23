@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import BN from 'bn.js';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { waitFor } from '@testing-library/react-native';
 
@@ -39,11 +40,13 @@ const mockApprovalRow = [
       tokenId: undefined,
       type: 'ERC20',
     },
+    balance: new BigNumber('100'),
     fiatAmount: null,
     isAllApproval: false,
     isApproval: true,
     isUnlimitedApproval: false,
     nestedTransactionIndex: -1,
+    tokenSymbol: 'DIA',
   },
 ];
 
@@ -67,6 +70,7 @@ describe('useBatchApproveBalanceChanges', () => {
         decimals: '18',
         standard: 'ERC20',
         symbol: 'DAI',
+        balance: '0x5' as unknown as BN,
       } as TokenUtils.TokenDetailsERC20);
   });
 
@@ -84,6 +88,8 @@ describe('useBatchApproveBalanceChanges', () => {
             type: AssetType.ERC20,
           },
           fiatAmount: null,
+          balance: new BigNumber(100),
+          tokenSymbol: 'DIA',
         },
       ],
     });

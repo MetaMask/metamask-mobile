@@ -11,7 +11,10 @@ import {
   abiFiatTokenV2,
 } from '@metamask/metamask-eth-abis';
 
-import { upgradeAccountConfirmation } from '../../../../util/test/confirm-data-helpers';
+import {
+  buildPermit2ApproveTransactionData,
+  upgradeAccountConfirmation,
+} from '../../../../util/test/confirm-data-helpers';
 import Engine from '../../../../core/Engine';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 
@@ -112,6 +115,23 @@ describe('parseStandardTokenTransactionData', () => {
     expect(result?.args[1].toString()).toBe(amount);
   });
 
+  it('parses permit 2 approval data correctly', () => {
+    const SPENDER_MOCK = '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb';
+    const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
+    const AMOUNT_MOCK = 123;
+    const EXPIRATION_MOCK = 456;
+    const permit2Data = buildPermit2ApproveTransactionData(
+      SPENDER_MOCK,
+      TOKEN_ADDRESS_MOCK,
+      AMOUNT_MOCK,
+      EXPIRATION_MOCK,
+    );
+    const result = parseStandardTokenTransactionData(permit2Data);
+
+    expect(result).toBeDefined();
+    expect(result?.name).toBe('approve');
+    expect(result?.signature).toBe('approve(address,address,uint160,uint48)');
+  });
   it('returns undefined for invalid transaction data', () => {
     const invalidData = '0xinvaliddata';
     expect(parseStandardTokenTransactionData(invalidData)).toBeUndefined();

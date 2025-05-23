@@ -60,6 +60,7 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
         iconName={IconName.Edit}
         size={ButtonIconSizes.Md}
         onPress={openModal}
+        testID="edit-amount-button-icon"
       />
       {isModalVisible && (
         <BottomModal onClose={closeModal}>
@@ -84,7 +85,7 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
               color={TextColor.Alternative}
               variant={TextVariant.BodyMD}
             >
-              {strings('edit_approval_limit_balance_info')}{' '}
+              {strings('confirm.simulation.edit_approval_limit_balance_info')}{' '}
               {balanceChange.balance?.toString()} {balanceChange.tokenSymbol}
             </Text>
             <View style={styles.buttonSection}>
@@ -92,14 +93,14 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 style={styles.buttons}
-                label={strings('cancel')}
+                label={strings('confirm.simulation.cancel')}
                 onPress={closeModal}
               />
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 style={styles.buttons}
-                label={strings('save')}
+                label={strings('confirm.simulation.save')}
                 onPress={onUpdateConfirm}
               />
             </View>

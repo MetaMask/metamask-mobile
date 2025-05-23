@@ -12,7 +12,6 @@ import {
   fetchTokenContractExchangeRates,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
-import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../core/Engine';
 import {
@@ -184,7 +183,7 @@ function getTokenBalanceChanges(
     const amount = getAssetAmount(tokenBc, decimals);
     const balance = getAssetAmount(
       {
-        difference: toHex(tokenBc.previousBalance),
+        difference: tokenBc.previousBalance,
         isDecrease: false,
       } as SimulationBalanceChange,
       decimals,

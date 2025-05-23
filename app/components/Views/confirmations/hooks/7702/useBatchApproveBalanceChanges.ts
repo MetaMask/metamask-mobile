@@ -16,6 +16,7 @@ import {
 } from '../../utils/token';
 import { parseApprovalTransactionData } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { toHex } from '@metamask/controller-utils';
 
 type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
   tokenSymbol?: string;
@@ -151,7 +152,7 @@ async function buildSimulationTokenBalanceChanges({
       isUnlimited,
       newBalance: '0x0',
       nestedTransactionIndex: i,
-      previousBalance: (tokenData as TokenDetailsERC20).balance ?? '0x0',
+      previousBalance: toHex((tokenData as TokenDetailsERC20).balance ?? '0x0'),
       standard,
       tokenSymbol: tokenData.symbol,
     };
