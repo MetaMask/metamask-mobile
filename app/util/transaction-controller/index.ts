@@ -168,4 +168,6 @@ function sanitizeTransactionParamsGasValues(
     requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.feeMarket;
     delete requestedTransactionParamsToUpdate.gasPrice;
   }
+
+  // console.log('requestedTransactionParamsToUpdate', requestedTransactionParamsToUpdate);
 }
