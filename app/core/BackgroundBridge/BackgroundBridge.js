@@ -498,6 +498,16 @@ export class BackgroundBridge extends EventEmitter {
       engine: this.multichainEngine,
     });
 
+    // solana account changed notifications
+    // This delay is needed because it's possible for a dapp to not have listeners
+    // setup in time right after a connection is established.
+    // This can be resolved if we amend the caip standards to include a liveliness
+    // handshake as part of the initial connection.
+    setTimeout(
+      () => this.notifySolanaAccountChangedForCurrentAccount(),
+      500,
+    );
+
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.multichainEngine.destroy();
