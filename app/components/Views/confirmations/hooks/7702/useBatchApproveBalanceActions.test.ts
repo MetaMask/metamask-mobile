@@ -1,9 +1,9 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { waitFor } from '@testing-library/react-native';
 
 import Engine from '../../../../../core/Engine';
 import {
   batchApprovalConfirmation,
+  downgradeAccountConfirmation,
   getAppStateForConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -55,11 +55,11 @@ describe('useBatchApproveBalanceActions', () => {
     expect(mockUpdateAtomicBatchData).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call TransactionController.updateAtomicBatchData to update approval data if nestedTransactionIndex is not >= 0', async () => {
+  it('does not call TransactionController.updateAtomicBatchData to update approval data if there are no nested transactions', async () => {
     const mockUpdateAtomicBatchData = jest.fn().mockResolvedValue(undefined);
     Engine.context.TransactionController.updateAtomicBatchData =
       mockUpdateAtomicBatchData;
-    const { result } = runHook();
+    const { result } = runHook(downgradeAccountConfirmation);
     result.onApprovalAmountUpdate(
       {
         nestedTransactionIndex: -1,
