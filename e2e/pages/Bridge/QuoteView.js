@@ -52,7 +52,7 @@ class QuoteView {
   }
 
   async selectToken(symbol) {
-    const element = await this.token(symbol)
+    const element = await this.token(symbol);
     await Gestures.waitAndTap(element);
   }
 

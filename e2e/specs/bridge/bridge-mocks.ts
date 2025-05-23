@@ -1,13 +1,11 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
-import _ from 'lodash';
-import { device } from 'detox';
 
 interface MockEvent {
   urlEndpoint: string;
   responseCode: number;
-  response: any;
+  response: unknown;
 }
 
 interface MockEvents {
