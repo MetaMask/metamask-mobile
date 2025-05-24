@@ -23,15 +23,24 @@ const LendingMaxWithdrawalModal = () => {
     <BottomSheet ref={sheetRef}>
       <View>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
+          <Text variant={TextVariant.HeadingMD}>
             {`Why can't I withdraw my full balance?`}
           </Text>
         </BottomSheetHeader>
         <View style={styles.bodyTextContainer}>
-          <Text>{`This wallet has active borrow positions made outside of this app, such as through Aave’s website.`}</Text>
-          <Text>{`To keep your position safe, we limit withdrawals to avoid lowering your health factor too much, which could put your assets at risk of liquidation.`}</Text>
+          <Text>{`There are a few reasons why you might not be able to withdraw everything right now:
+`}</Text>
+          <Text variant={TextVariant.HeadingMD}>{`Not enough liquidity`}</Text>
+          <Text>{`The lending pool doesn't have enough available funds for your withdrawal amount. Try withdrawing a smaller amount or wait for more liquidity.`}</Text>
+          <Text variant={TextVariant.HeadingMD}>{`Insufficient balance`}</Text>
           <Text>
-            {`To unlock more withdrawals, repay some of your borrowed assets or increase your collateral.`}
+            {`You're trying to withdraw more than you actually have deposited. Double-check your available balance.`}
+          </Text>
+          <Text
+            variant={TextVariant.HeadingMD}
+          >{`Health factor protection`}</Text>
+          <Text>
+            {`Withdrawing too much would put your borrowed assets at risk of liquidation. This safety check protects you from losing your collateral. If you have borrowed assets, consider repaying your debt to increase the amount withdrawable.`}
           </Text>
         </View>
       </View>
