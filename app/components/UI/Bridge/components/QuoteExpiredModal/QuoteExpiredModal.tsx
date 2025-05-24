@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
@@ -52,6 +52,13 @@ const QuoteExpiredModal = () => {
     // Close the modal
     navigation.goBack();
   };
+
+  useEffect(() => {
+    // Stop polling when modal opens
+    if (Engine.context.BridgeController?.stopAllPolling) {
+      Engine.context.BridgeController.stopAllPolling();
+    }
+  }, []);
 
   const footerButtonProps = [
     {
