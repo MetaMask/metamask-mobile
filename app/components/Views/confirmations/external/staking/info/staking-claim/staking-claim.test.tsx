@@ -26,6 +26,11 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
+jest.mock('../../../../components/UI/animated-pulse', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 jest.mock('../../../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));

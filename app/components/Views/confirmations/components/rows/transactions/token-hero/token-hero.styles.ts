@@ -15,18 +15,12 @@ const styleSheet = (params: {
     assetAmountText: {
       textAlign: 'center',
     },
+    assetTextUnknown: {
+      color: theme.colors.text.alternative,
+    },
     assetFiatConversionText: {
       textAlign: 'center',
       color: theme.colors.text.alternative,
-    },
-    networkAndTokenContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    networkLogo: {
-      width: 48,
-      height: 48,
     },
     container: {
       paddingBottom: 16,
