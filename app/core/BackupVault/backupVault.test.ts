@@ -130,7 +130,6 @@ describe('backupVault file', () => {
         vault: undefined,
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       };
 
       const response = await backupVault(keyringState);
@@ -151,7 +150,6 @@ describe('backupVault file', () => {
         vault: undefined,
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       };
 
       const response = await backupVault(keyringState);
@@ -173,7 +171,6 @@ describe('backupVault file', () => {
         vault: undefined,
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       };
 
       const response = await backupVault(keyringState);
@@ -203,7 +200,6 @@ describe('backupVault file', () => {
         vault: undefined,
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       };
 
       const response = await backupVault(keyringState);

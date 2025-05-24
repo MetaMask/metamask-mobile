@@ -118,8 +118,7 @@ describe('Engine', () => {
         vault: 'vault',
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
-      } as KeyringControllerState,
+      },
       [],
     );
     expect(backupVault).toHaveBeenCalled();
@@ -137,7 +136,6 @@ describe('Engine', () => {
         vault: undefined,
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
       } as KeyringControllerState,
       [],
     );

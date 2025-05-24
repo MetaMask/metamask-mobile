@@ -209,26 +209,22 @@ describe('ProtectYourWallet', () => {
       );
     });
     it('opens opens SrpList if there are multiple HD keyrings', async () => {
-      const mockKeyringMetadata1 = {
-        id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
-        name: '',
-      };
-
-      const mockKeyringMetadata2 = {
-        id: '01JKZ56KRVYEEHC601HSNW28T2',
-        name: '',
-      };
-
       const mockKeyring1 = {
         type: KeyringTypes.hd,
         accounts: [internalAccount1.address],
-        metadata: mockKeyringMetadata1,
+        metadata: {
+          id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+          name: '',
+        },
       };
 
       const mockKeyring2 = {
         type: KeyringTypes.hd,
         accounts: [internalAccount2.address],
-        metadata: mockKeyringMetadata2,
+        metadata: {
+          id: '01JKZ56KRVYEEHC601HSNW28T2',
+          name: '',
+        },
       };
 
       const stateWithMultipleHdKeyrings = {
@@ -238,7 +234,6 @@ describe('ProtectYourWallet', () => {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             KeyringController: {
               keyrings: [mockKeyring1, mockKeyring2],
-              keyringsMetadata: [mockKeyringMetadata1, mockKeyringMetadata2],
             },
           },
         },

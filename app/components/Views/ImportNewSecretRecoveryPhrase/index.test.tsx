@@ -52,8 +52,13 @@ const initialState = {
   engine: {
     backgroundState: {
       KeyringController: {
-        keyrings: [{ type: KeyringTypes.hd, accounts: MOCK_HD_ACCOUNTS }],
-        keyringsMetadata: [MOCK_HD_KEYRING_METADATA],
+        keyrings: [
+          {
+            type: KeyringTypes.hd,
+            accounts: MOCK_HD_ACCOUNTS,
+            metadata: MOCK_HD_KEYRING_METADATA,
+          },
+        ],
       },
     },
   },

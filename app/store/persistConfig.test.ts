@@ -285,7 +285,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -313,7 +312,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -327,7 +325,6 @@ describe('persistConfig', () => {
               vault: 'encrypted-vault-data',
               isUnlocked: true,
               keyrings: ['keyring1', 'keyring2'],
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
               encryptionKey: 'secret-key',
               encryptionSalt: 'salt-value',
             },
@@ -339,7 +336,6 @@ describe('persistConfig', () => {
           backgroundState: {
             KeyringController: {
               vault: 'encrypted-vault-data',
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
             },
           },
         });
@@ -352,7 +348,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -389,7 +384,6 @@ describe('persistConfig', () => {
               vault: 'encrypted-vault-data',
               isUnlocked: true,
               keyrings: ['keyring1', 'keyring2'],
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
               encryptionKey: 'secret-key',
               encryptionSalt: 'salt-value',
             },
@@ -419,7 +413,6 @@ describe('persistConfig', () => {
           backgroundState: {
             KeyringController: {
               vault: 'encrypted-vault-data',
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
             },
             PreferencesController: {
               selectedAddress: '0x123',
