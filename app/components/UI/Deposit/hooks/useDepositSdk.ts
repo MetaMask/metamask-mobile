@@ -6,20 +6,10 @@ export interface DepositSdk {
   loading: boolean;
   error: string | null;
 }
-/**
- * Custom hook to manage the state and behavior of a deposit SDK.
- * This hook provides methods to submit data and handles loading and error states.
- * Currently, it is a mock implementation and should be replaced with actual SDK methods.
- *
- * @returns {DepositSdk} An object containing the SDK data, method, loading state, and error message.
- */
 export const useDepositSdk = (): DepositSdk => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Mock async SDK functions
-  // TODO: Replace with actual SDK functions to submit email and code to Transak
   const sdkMethod = (value: string) =>
     new Promise((resolve) => {
       setLoading(true);
@@ -36,7 +26,6 @@ export const useDepositSdk = (): DepositSdk => {
         setError(err.message);
         setLoading(false);
       });
-
   return {
     data,
     sdkMethod,
