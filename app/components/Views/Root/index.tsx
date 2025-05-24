@@ -18,11 +18,17 @@ import { isTest } from '../../../util/test/utils';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { AnalyticsProvider, createClient } from '../../../core/Analytics/typewriter/segment';
 
 /**
  * Top level of the component hierarchy
  * App component is wrapped by the provider from react-redux
  */
+
+export const segmentClient = createClient({
+  writeKey: 'DUMMY_KEY'
+});
+
 const Root = ({ foxCode }: RootProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -75,7 +81,9 @@ const Root = ({ foxCode }: RootProps) => {
                 <ToastContextWrapper>
                   <ErrorBoundary view="Root">
                     <ReducedMotionConfig mode={ReduceMotion.Never} />
-                    <App />
+                    <AnalyticsProvider client={segmentClient}>
+                      <App />
+                    </AnalyticsProvider>
                   </ErrorBoundary>
                 </ToastContextWrapper>
               </ControllersGate>

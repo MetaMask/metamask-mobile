@@ -34,6 +34,8 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
+import { segmentClient } from '../Root';
+import { Role } from '../../../core/Analytics/typewriter/segment';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -202,6 +204,13 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
         MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
       ).build(),
     );
+
+    segmentClient.sendButtonClickedTEST({
+      account_name: 'test',
+      device_id: 'test',
+      role: Role.Admin,
+    });
+
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
   }, [updateNavBar, track]);

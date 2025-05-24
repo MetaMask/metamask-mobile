@@ -1,0 +1,321 @@
+{
+	"createdAt": "2023-03-31T06:32:31.000Z",
+	"description": "A Demo Tracking Plan including libraries and custom properties and more and even more",
+	"id": "tp_2Nlh0KY5PSm8tOaeq8bBFAwgRjv",
+	"name": "Demo Test",
+	"resourceSchemaId": "rs_2Nlh0HZUe7bVra0NOR85dYxZ9G8",
+	"rules": [
+		{
+			"createdAt": "2023-03-31T06:32:32.000Z",
+			"deprecatedAt": "0001-01-01T00:00:00.000Z",
+			"jsonSchema": {
+				"$id": "Send_Button_Clicked_(TEST)",
+				"$schema": "http://json-schema.org/draft-07/schema#",
+				"description": "signing a transaction",
+				"eventMetadata": {
+					"name": "Send Button Clicked (TEST)",
+					"type": "TRACK"
+				},
+				"properties": {
+					"account_name": {
+						"description": "The account name",
+						"type": [
+							"string"
+						]
+					},
+					"device_id": {
+						"description": "The mobile device ID",
+						"type": [
+							"string"
+						]
+					},
+					"object_ref": {
+						"description": "object ref of click event",
+						"type": [
+							"string"
+						]
+					},
+					"os": {
+						"description": "Mobile Operating System",
+						"type": [
+							"string"
+						]
+					},
+					"os_version": {
+						"description": "the version of the mobile operating system",
+						"type": [
+							"string"
+						]
+					},
+					"referred_by": {
+						"description": "referred by user",
+						"type": [
+							"string"
+						]
+					},
+					"role": {
+						"description": "Permission group for the user",
+						"type": [
+							"string"
+						]
+					},
+					"source": {
+						"description": "not a real prop for this event, but example to show using ENUM over PATTERN for lists. We should trim whitespace. Should NULL be considered a special string and converted from string?",
+						"enum": [
+							"sidebar",
+							"home"
+						],
+						"type": [
+							"string"
+						]
+					},
+					"testing_pr_comment": {
+						"description": "this is just to create a new PR",
+						"type": [
+							"string"
+						]
+					}
+				},
+				"required": [
+					"account_name",
+					"device_id"
+				],
+				"type": "object"
+			},
+			"key": "Send Button Clicked (TEST)",
+			"type": "TRACK",
+			"updatedAt": "2023-06-05T04:35:10.000Z",
+			"version": 1
+		},
+		{
+			"createdAt": "2023-04-06T18:07:22.000Z",
+			"deprecatedAt": "0001-01-01T00:00:00.000Z",
+			"jsonSchema": {
+				"$id": "Signature_Approved_(TEST)",
+				"$schema": "http://json-schema.org/draft-07/schema#",
+				"description": "signing a lovely transaction",
+				"eventMetadata": {
+					"name": "Signature Approved (TEST)",
+					"type": "TRACK"
+				},
+				"properties": {
+					"account_name": {
+						"description": "The account name",
+						"type": [
+							"string"
+						]
+					},
+					"browser": {
+						"description": "The browser the extension is installed to",
+						"type": [
+							"string"
+						]
+					},
+					"browser_locale": {
+						"description": "The locale of the browser",
+						"type": [
+							"string"
+						]
+					},
+					"browser_version": {
+						"description": "The browser version",
+						"type": [
+							"string"
+						]
+					},
+					"is_third_party": {
+						"description": "is the signer an authorized third party",
+						"type": [
+							"boolean"
+						]
+					},
+					"method": {
+						"description": "old prop name representing signature type",
+						"pattern": "personal_sign|eth_signedTypeData",
+						"type": [
+							"string"
+						]
+					},
+					"os": {
+						"description": "The operating system",
+						"type": [
+							"string"
+						]
+					},
+					"referred_by": {
+						"description": "referred by user",
+						"type": [
+							"string"
+						]
+					},
+					"role": {
+						"description": "Permission group for the user to demo enum",
+						"enum": [
+							"User",
+							"Power User",
+							"Admin",
+							"Guest"
+						],
+						"type": [
+							"string"
+						]
+					},
+					"signature_type": {
+						"description": "new prop name representing signature type. only works if the source sets context.protocols.event_version as defined here https://segment.com/docs/protocols/tracking-plan/create/#dynamically-validate-track-events-against-an-event-version",
+						"pattern": "personal_sign|eth_signedTypeData",
+						"type": [
+							"string"
+						]
+					},
+					"signed_by": {
+						"description": "signed by user",
+						"type": [
+							"string"
+						]
+					},
+					"source": {
+						"description": "not a real prop for this event, but example to show using ENUM over PATTERN for lists. We should trim whitespace. Should NULL be considered a special string and converted from string?",
+						"enum": [
+							"sidebar",
+							"home"
+						],
+						"type": [
+							"string"
+						]
+					},
+					"user_agent": {
+						"description": "The user agent for the browser",
+						"type": [
+							"string"
+						]
+					}
+				},
+				"required": [
+					"signature_type",
+					"signed_by",
+					"method",
+					"is_third_party",
+					"account_name",
+					"browser"
+				],
+				"type": "object"
+			},
+			"key": "Signature Approved (TEST)",
+			"type": "TRACK",
+			"updatedAt": "2023-06-05T04:35:10.000Z",
+			"version": 1
+		},
+		{
+			"createdAt": "2023-03-31T06:32:32.000Z",
+			"deprecatedAt": "0001-01-01T00:00:00.000Z",
+			"jsonSchema": {
+				"$id": "Signature_Requested_(TEST)",
+				"$schema": "http://json-schema.org/draft-07/schema#",
+				"description": "signing a transaction. this event description has been modified",
+				"eventMetadata": {
+					"name": "Signature Requested (TEST)",
+					"type": "TRACK"
+				},
+				"properties": {
+					"account_name": {
+						"description": "The account name",
+						"type": [
+							"string"
+						]
+					},
+					"browser": {
+						"description": "The browser the extension is installed to",
+						"type": [
+							"string"
+						]
+					},
+					"browser_locale": {
+						"description": "The locale of the browser",
+						"type": [
+							"string"
+						]
+					},
+					"browser_version": {
+						"description": "The browser version",
+						"type": [
+							"string"
+						]
+					},
+					"is_third_party": {
+						"description": "is the signer an authorized third party",
+						"type": [
+							"boolean"
+						]
+					},
+					"os": {
+						"description": "The operating system",
+						"type": [
+							"string"
+						]
+					},
+					"referred_by": {
+						"description": "referred by user",
+						"type": [
+							"string"
+						]
+					},
+					"role": {
+						"description": "Permission group for the user to demo enum",
+						"enum": [
+							"User",
+							"Power User",
+							"Admin",
+							"Guest"
+						],
+						"type": [
+							"string"
+						]
+					},
+					"signature_type": {
+						"description": "new prop name representing signature type. only works if the source sets context.protocols.event_version as defined here https://segment.com/docs/protocols/tracking-plan/create/#dynamically-validate-track-events-against-an-event-version",
+						"pattern": "personal_sign|eth_signedTypeData|eth_signedTypeData_v4",
+						"type": [
+							"string"
+						]
+					},
+					"signed_by": {
+						"description": "signed by user. this property description has been modified.",
+						"type": [
+							"integer"
+						]
+					},
+					"source": {
+						"description": "not a real prop for this event, but example to show using ENUM over PATTERN for lists. We should trim whitespace. Should NULL be considered a special string and converted from string?",
+						"enum": [
+							"sidebar",
+							"home"
+						],
+						"type": [
+							"string"
+						]
+					},
+					"user_agent": {
+						"description": "The user agent for the browser",
+						"type": [
+							"string"
+						]
+					}
+				},
+				"required": [
+					"signed_by",
+					"is_third_party",
+					"account_name",
+					"browser"
+				],
+				"type": "object"
+			},
+			"key": "Signature Requested (TEST)",
+			"type": "TRACK",
+			"updatedAt": "2023-06-05T04:35:10.000Z",
+			"version": 1
+		}
+	],
+	"slug": "",
+	"type": "LIVE",
+	"updatedAt": "2025-03-26T22:00:46.000Z"
+}
