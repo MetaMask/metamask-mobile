@@ -52,6 +52,10 @@ class WalletActionsBottomSheet {
   async tapSellButton() {
     await Gestures.waitAndTap(this.sellButton);
   }
+
+  async swipeDownActionsBottomSheet() {
+    await Gestures.swipe(this.sendButton, 'down', 'fast');
+  }
 }
 
 export default new WalletActionsBottomSheet();

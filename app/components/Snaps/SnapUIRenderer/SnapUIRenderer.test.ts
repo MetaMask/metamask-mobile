@@ -103,7 +103,7 @@ describe('SnapUIRenderer', () => {
       Box({ children: Input({ name: 'input' }) }),
     );
 
-    const input = getByTestId('input');
+    const input = getByTestId('input-snap-ui-input');
     fireEvent.changeText(input, 'a');
 
     expect(
@@ -137,7 +137,7 @@ describe('SnapUIRenderer', () => {
       { state: { input: 'bar' } },
     );
 
-    const input = getByTestId('input');
+    const input = getByTestId('input-snap-ui-input');
     expect(input).toBeDefined();
     expect(input.props.value).toStrictEqual('bar');
 
@@ -150,7 +150,7 @@ describe('SnapUIRenderer', () => {
         Box({ children: Input({ name: 'input', type: 'number' }) }),
       );
 
-    const inputs = getAllByTestId('input');
+    const inputs = getAllByTestId('input-snap-ui-input');
     expect(inputs).toHaveLength(1);
 
     updateInterface(
@@ -162,7 +162,8 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    const inputsAfterRerender = getAllByTestId('input');
+    const input2AfterRerender = getAllByTestId('input2-snap-ui-input');
+    const inputsAfterRerender = [...input2AfterRerender, ...inputs];
     expect(inputsAfterRerender).toHaveLength(2);
 
     expect(getRenderCount()).toBe(2);
@@ -179,10 +180,12 @@ describe('SnapUIRenderer', () => {
       { input: 'bar', input2: 'foo' },
     );
 
-    const inputsAfterRerender = getAllByTestId('input');
-    expect(inputsAfterRerender).toHaveLength(2);
-    expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
-    expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
+    const input1AfterRerender = getAllByTestId('input-snap-ui-input');
+    const input2AfterRerender = getAllByTestId('input2-snap-ui-input');
+    expect(input1AfterRerender).toHaveLength(1);
+    expect(input2AfterRerender).toHaveLength(1);
+    expect(input1AfterRerender[0].props.value).toStrictEqual('bar');
+    expect(input2AfterRerender[0].props.value).toStrictEqual('foo');
 
     expect(getRenderCount()).toBe(2);
 
