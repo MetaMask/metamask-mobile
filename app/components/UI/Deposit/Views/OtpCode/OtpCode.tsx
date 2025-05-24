@@ -17,6 +17,7 @@ import {
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdk } from '../../hooks/useDepositSdk';
+import DepositProgressBar from '../../components/DepositProgressBar';
 
 // TODO: Move this to the ID Verify component when it is implemented
 export const createIdVerifyNavDetails = createNavigationDetails(
@@ -70,6 +71,7 @@ const OtpCode = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={1} />
           <Text>Enter the 6 digit code that we sent to your email</Text>
           <CodeField
             ref={ref as React.RefObject<TextInput>}

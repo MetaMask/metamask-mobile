@@ -19,6 +19,7 @@ import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdk } from '../../hooks/useDepositSdk';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
+import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_EMAIL,
@@ -53,6 +54,7 @@ const EnterEmail = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={0} />
           <Row style={styles.subtitle}>
             <Text>{strings('deposit.email_auth.email.description')}</Text>
           </Row>
