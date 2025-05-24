@@ -1,1 +1,1 @@
-export { TokenListControlBar } from './TokenListControlBar';
+export { default as TokenListControlBar } from './TokenListControlBar';

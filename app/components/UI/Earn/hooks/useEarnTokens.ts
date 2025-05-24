@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
 import { TokenI } from '../../Tokens/types';
@@ -69,6 +70,27 @@ const useEarnTokens = () => {
   ]);
 
   return supportedStablecoins;
+};
+
+export const useGetIsSupportedStablecoin = (
+  tokenChainId: Hex,
+  tokenSymbol?: string,
+  isStaked?: boolean,
+) => {
+  const tokens = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChains(state),
+  );
+
+  const getIsSupportedStablecoin = useCallback(() => {
+    const tokensByChainId = tokens?.[tokenChainId] as TokenI[] | undefined;
+    return (
+      tokensByChainId?.some(
+        (t) => t?.chainId === tokenChainId && t?.symbol === tokenSymbol,
+      ) && isStaked
+    );
+  }, [isStaked, tokenChainId, tokenSymbol, tokens]);
+
+  return getIsSupportedStablecoin;
 };
 
 export default useEarnTokens;

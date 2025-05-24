@@ -1,10 +1,12 @@
 import { createSelector } from 'reselect';
+import { Hex } from '@metamask/utils';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectEvmTicker,
+  selectNetworkConfigurationByChainId,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
 import { createDeepEqualSelector } from './util';
@@ -37,6 +39,16 @@ export const selectCurrencyRates = createSelector(
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,
 );
+
+export const makeSelectCurrencyRateForChainId = (chainId: Hex) =>
+  createSelector(
+    [
+      (state) => selectCurrencyRates(state),
+      (state) => selectNetworkConfigurationByChainId(state, chainId),
+    ],
+    (currencyRates, networkConfig) =>
+      currencyRates?.[networkConfig?.nativeCurrency]?.conversionRate || 0,
+  );
 
 export const selectCurrentCurrency = createDeepEqualSelector(
   selectCurrencyRateControllerState,
@@ -82,5 +94,6 @@ export const selectConversionRateByChainId = createSelector(
 export const selectUsdConversionRate = createSelector(
   selectCurrencyRates,
   selectCurrentCurrency,
-  (currencyRates, currentCurrency) => currencyRates?.[currentCurrency]?.usdConversionRate,
+  (currencyRates, currentCurrency) =>
+    currencyRates?.[currentCurrency]?.usdConversionRate,
 );

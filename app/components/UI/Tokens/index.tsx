@@ -9,6 +9,7 @@ import React, {
 import { View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -55,6 +56,27 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
+// const useLogDep = (key: string, val: unknown, showVal = false) => {
+//   useEffect(() => {
+//     if (showVal) {
+//       console.log(`Tokens - ${key} changed`, val);
+//     } else {
+//       console.log(`Tokens - ${key} changed`);
+//     }
+//   }, [key, showVal, val]);
+// };
+
+const useStableReference = <T,>(value: T) => {
+  const ref = useRef<T>(value);
+  return useMemo(() => {
+    if (isEqual(ref.current, value)) {
+      return ref.current;
+    }
+    ref.current = value;
+    return value;
+  }, [value]);
+};
+
 const Tokens = memo(() => {
   const navigation =
     useNavigation<
@@ -72,13 +94,18 @@ const Tokens = memo(() => {
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const evmTokens = useSelector(selectEvmTokens);
-  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
+  const tokenFiatBalances = useStableReference(
+    useSelector(selectEvmTokenFiatBalances),
+  );
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+
+  // useLogDep('evmTokens', evmTokens);
+  // useLogDep('tokenFiatBalances', tokenFiatBalances);
 
   // non-evm
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -91,9 +118,9 @@ const Tokens = memo(() => {
 
   const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
 
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const sortedTokenKeys = useMemo(() => {
+  const _sortedTokenKeys = useMemo(() => {
     trace({
       name: TraceName.Tokens,
       tags: getTraceTags(store.getState()),
@@ -116,6 +143,9 @@ const Tokens = memo(() => {
         isStaked,
       }));
   }, [tokenListData, tokenFiatBalances, isEvmSelected, tokenSortConfig]);
+  const sortedTokenKeys = useStableReference(_sortedTokenKeys);
+
+  // useLogDep('sortedTokenKeys', sortedTokenKeys);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
@@ -195,9 +225,9 @@ const Tokens = memo(() => {
     [removeToken],
   );
 
-  const handleScamWarningModal = () => {
+  const handleScamWarningModal = useCallback(() => {
     setShowScamWarningModal(!showScamWarningModal);
-  };
+  }, [showScamWarningModal]);
 
   return (
     <View
