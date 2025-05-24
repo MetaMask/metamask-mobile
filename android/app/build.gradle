@@ -252,7 +252,7 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
-            minifyEnabled false
+            minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
             testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
@@ -298,12 +298,6 @@ android {
     }
 }
 
-// Disable minification for the specific androidTest variant that's failing
-tasks.whenTaskAdded { task ->
-    if (task.name == 'minifyQaReleaseAndroidTestWithR8') {
-        task.enabled = false
-    }
-}
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
