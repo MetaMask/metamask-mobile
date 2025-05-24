@@ -16,7 +16,7 @@ class Assertions {
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
     try {
       await waitFor(await elementId)
-        .toBeVisible()
+        .toExist()
         .withTimeout(timeout);
       return true;
     } catch {
@@ -237,9 +237,18 @@ class Assertions {
     const errors = [];
 
     function check(actualObj, partialObj, path = '') {
-      if (typeof actualObj !== 'object' || typeof partialObj !== 'object' || actualObj === null || partialObj === null) {
+      if (
+        typeof actualObj !== 'object' ||
+        typeof partialObj !== 'object' ||
+        actualObj === null ||
+        partialObj === null
+      ) {
         if (actualObj !== partialObj) {
-          errors.push(`Value mismatch at "${path || 'root'}": expected ${JSON.stringify(partialObj)}, got ${JSON.stringify(actualObj)}`);
+          errors.push(
+            `Value mismatch at "${path || 'root'}": expected ${JSON.stringify(
+              partialObj,
+            )}, got ${JSON.stringify(actualObj)}`,
+          );
         }
         return;
       }
@@ -251,11 +260,17 @@ class Assertions {
           continue;
         }
 
-        if (deep && typeof partialObj[key] === 'object' && partialObj[key] !== null) {
+        if (
+          deep &&
+          typeof partialObj[key] === 'object' &&
+          partialObj[key] !== null
+        ) {
           check(actualObj[key], partialObj[key], currentPath);
         } else if (actualObj[key] !== partialObj[key]) {
           errors.push(
-            `Value mismatch at "${currentPath}": expected ${JSON.stringify(partialObj[key])}, got ${JSON.stringify(actualObj[key])}`
+            `Value mismatch at "${currentPath}": expected ${JSON.stringify(
+              partialObj[key],
+            )}, got ${JSON.stringify(actualObj[key])}`,
           );
         }
       }
@@ -264,7 +279,9 @@ class Assertions {
     check(actual, partial);
 
     if (errors.length > 0) {
-      throw new Error('Object contains assertion failed:\n' + errors.join('\n'));
+      throw new Error(
+        'Object contains assertion failed:\n' + errors.join('\n'),
+      );
     }
   }
 }

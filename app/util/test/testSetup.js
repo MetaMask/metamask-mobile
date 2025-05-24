@@ -257,8 +257,38 @@ NativeModules.RNGestureHandlerModule = {
   dropGestureHandler: jest.fn(),
   updateGestureHandler: jest.fn(),
   forceTouchAvailable: jest.fn(),
-  State: {},
-  Directions: {},
+  install: jest.fn(),
+  flushOperations: jest.fn(),
+  State: {
+    UNDETERMINED: 0,
+    FAILED: 1,
+    BEGAN: 2,
+    CANCELLED: 3,
+    ACTIVE: 4,
+    END: 5,
+  },
+  Directions: {
+    RIGHT: 1,
+    LEFT: 2,
+    UP: 4,
+    DOWN: 8,
+  },
+  getConstants: jest.fn(() => ({
+    State: {
+      UNDETERMINED: 0,
+      FAILED: 1,
+      BEGAN: 2,
+      CANCELLED: 3,
+      ACTIVE: 4,
+      END: 5,
+    },
+    Directions: {
+      RIGHT: 1,
+      LEFT: 2,
+      UP: 4,
+      DOWN: 8,
+    },
+  })),
 };
 
 NativeModules.RNCNetInfo = {
@@ -465,6 +495,102 @@ jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
       getInstance: jest.fn().mockReturnValue({
         trackEvent: jest.fn(),
       }),
+    },
+  };
+});
+
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
+  const originalModule = jest.requireActual(
+    'react-native/Libraries/TurboModule/TurboModuleRegistry',
+  );
+  return {
+    getEnforcing: (name) => {
+      if (name === 'RNGestureHandlerModule') {
+        return {
+          attachGestureHandler: jest.fn(),
+          createGestureHandler: jest.fn(),
+          dropGestureHandler: jest.fn(),
+          updateGestureHandler: jest.fn(),
+          forceTouchAvailable: jest.fn(),
+          install: jest.fn(),
+          flushOperations: jest.fn(),
+          State: {
+            UNDETERMINED: 0,
+            FAILED: 1,
+            BEGAN: 2,
+            CANCELLED: 3,
+            ACTIVE: 4,
+            END: 5,
+          },
+          Directions: {
+            RIGHT: 1,
+            LEFT: 2,
+            UP: 4,
+            DOWN: 8,
+          },
+          getConstants: () => ({
+            State: {
+              UNDETERMINED: 0,
+              FAILED: 1,
+              BEGAN: 2,
+              CANCELLED: 3,
+              ACTIVE: 4,
+              END: 5,
+            },
+            Directions: {
+              RIGHT: 1,
+              LEFT: 2,
+              UP: 4,
+              DOWN: 8,
+            },
+          }),
+        };
+      }
+      return originalModule.getEnforcing(name);
+    },
+    get: (name) => {
+      if (name === 'RNGestureHandlerModule') {
+        return {
+          attachGestureHandler: jest.fn(),
+          createGestureHandler: jest.fn(),
+          dropGestureHandler: jest.fn(),
+          updateGestureHandler: jest.fn(),
+          forceTouchAvailable: jest.fn(),
+          install: jest.fn(),
+          flushOperations: jest.fn(),
+          State: {
+            UNDETERMINED: 0,
+            FAILED: 1,
+            BEGAN: 2,
+            CANCELLED: 3,
+            ACTIVE: 4,
+            END: 5,
+          },
+          Directions: {
+            RIGHT: 1,
+            LEFT: 2,
+            UP: 4,
+            DOWN: 8,
+          },
+          getConstants: () => ({
+            State: {
+              UNDETERMINED: 0,
+              FAILED: 1,
+              BEGAN: 2,
+              CANCELLED: 3,
+              ACTIVE: 4,
+              END: 5,
+            },
+            Directions: {
+              RIGHT: 1,
+              LEFT: 2,
+              UP: 4,
+              DOWN: 8,
+            },
+          }),
+        };
+      }
+      return originalModule.get?.(name);
     },
   };
 });

@@ -206,6 +206,8 @@ exports[`NetworkDetails renders correctly 1`] = `
             </View>
             <RCTScrollView
               collapsable={false}
+              handlerTag={2}
+              handlerType="NativeViewGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -318,6 +320,8 @@ exports[`NetworkDetails renders correctly 1`] = `
                 </Text>
                 <RCTScrollView
                   collapsable={false}
+                  handlerTag={1}
+                  handlerType="NativeViewGestureHandler"
                   nestedScrollEnabled={true}
                   onGestureHandlerEvent={[Function]}
                   onGestureHandlerStateChange={[Function]}

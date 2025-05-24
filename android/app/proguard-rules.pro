@@ -52,6 +52,7 @@
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
 
+
 # Ignore missing Java desktop classes referenced by JNA
 -dontwarn java.awt.**
 -dontwarn javax.swing.**
