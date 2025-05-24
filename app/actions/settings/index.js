@@ -74,3 +74,10 @@ export function setTokenSortConfig(tokenSortConfig) {
     tokenSortConfig,
   };
 }
+
+export function togglePasswordResetInProgress(passwordResetInProgress) {
+  return {
+    type: 'TOGGLE_PASSWORD_RESET_IN_PROGRESS',
+    passwordResetInProgress,
+  };
+}

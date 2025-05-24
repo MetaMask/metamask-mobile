@@ -244,6 +244,9 @@ const Main = (props) => {
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const passwordResetInProgress = useSelector(
+    (state) => state.settings.passwordResetInProgress,
+  );
 
   const hasNetworkChanged = useCallback(
     (chainId, previousConfig, isEvmSelected) => {
@@ -260,7 +263,7 @@ const Main = (props) => {
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
+      !passwordResetInProgress && hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
       //set here token network filter if portfolio view is enabled
       if (isPortfolioViewEnabled()) {
@@ -301,6 +304,7 @@ const Main = (props) => {
     hasNetworkChanged,
     isAllNetworks,
     tokenNetworkFilter,
+    passwordResetInProgress,
   ]);
 
   // Show add network confirmation.
