@@ -52,7 +52,7 @@ const OtpCode = () => {
   });
 
   const {
-    data,
+    response,
     error,
     sdkMethod: submitCode,
     loading,
@@ -68,7 +68,7 @@ const OtpCode = () => {
 
   const handleSubmit = async () => {
     await submitCode();
-    if (data) {
+    if (response && !error) {
       navigation.navigate(...createIdVerifyNavDetails());
     }
   };
@@ -77,7 +77,7 @@ const OtpCode = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
-          <Text>Enter the 6 digit code that we sent to your email</Text>
+          <Text>{strings('deposit.email_auth.code.description')}</Text>
           <CodeField
             ref={ref as React.RefObject<TextInput>}
             {...props}

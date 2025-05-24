@@ -409,10 +409,11 @@
         "input_label": "Email",
         "input_placeholder": "name@domain.com",
         "submit_button": "Send email",
-        "loading": "Sending email..."
+        "loading": "Sending email...",
+        "validation_error": "Please enter a valid email address"
       },
       "code": {
-        "description": "Enter the code we sent to your email",
+        "description": "Enter the 6-digit code we sent to your email.",
         "submit_button": "Submit",
         "loading": "Verifying code...",
         "invalid_code_error": "Invalid code"

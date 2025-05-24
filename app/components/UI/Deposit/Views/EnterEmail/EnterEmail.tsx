@@ -19,6 +19,7 @@ import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
+import { validateEmail } from '../../utils';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_EMAIL,
@@ -27,6 +28,7 @@ export const createEnterEmailNavDetails = createNavigationDetails(
 const EnterEmail = () => {
   const navigation = useNavigation();
   const [value, setValue] = useState('');
+  const [validationError, setValidationError] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -37,6 +39,7 @@ const EnterEmail = () => {
   }, [navigation, theme]);
 
   const {
+    response,
     error,
     sdkMethod: submitEmail,
     loading,
@@ -46,8 +49,16 @@ const EnterEmail = () => {
 
   const handleSubmit = async () => {
     try {
-      await submitEmail(value);
-      navigation.navigate(...createOtpCodeNavDetails());
+      if (validateEmail(value)) {
+        setValidationError(false);
+        await submitEmail();
+
+        if (response && !error) {
+          navigation.navigate(...createOtpCodeNavDetails());
+        }
+      } else {
+        setValidationError(true);
+      }
     } catch (e) {
       console.error('Error submitting email');
     }
@@ -78,6 +89,12 @@ const EnterEmail = () => {
               value={value}
               keyboardAppearance={theme.themeAppearance}
             />
+            {validationError && (
+              <Text style={{ color: theme.colors.error.default }}>
+                {strings('deposit.email_auth.email.validation_error')}
+              </Text>
+            )}
+
             {error && (
               <Text style={{ color: theme.colors.error.default }}>{error}</Text>
             )}
