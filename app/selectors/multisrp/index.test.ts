@@ -2,129 +2,125 @@ import {
   selectHdKeyringIndexByIdOrDefault,
   getHdKeyringOfSelectedAccountOrPrimaryKeyring,
   getSnapAccountsByKeyringId,
+  selectHdEntropyIndex,
 } from './index';
 import { RootState } from '../../reducers';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import {
-  KeyringMetadata,
-  KeyringObject,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { ExtendedKeyring } from '../keyringController';
-import { SOLANA_WALLET_SNAP_ID } from '../../core/SnapKeyring/SolanaWalletSnap';
 
-const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
-const MOCK_ADDRESS_2 = '0xeE94464eFCa6F3fb77AC3A77Ca995234c0c1f7fC';
-const MOCK_ADDRESS_3 = '0xc7E40ffA6026f7b9c53f5eD5A20a9D0EDFBFbF28';
+describe('multisrp selectors', () => {
+  const mockAddress1 = '0x1111111111111111111111111111111111111111';
+  const mockAddress2 = '0x2222222222222222222222222222222222222222';
+  const mockAddress3 = '0x3333333333333333333333333333333333333333';
+  const mockAddress4 = '0x4444444444444444444444444444444444444444';
 
-const mockAccount1 = createMockInternalAccount(
-  MOCK_ADDRESS_1,
-  'Account 1',
-  KeyringTypes.hd,
-);
-const mockAccount2 = createMockInternalAccount(
-  MOCK_ADDRESS_2,
-  'Account 2',
-  KeyringTypes.hd,
-);
-const mockAccount3 = createMockInternalAccount(
-  MOCK_ADDRESS_3,
-  'Account 3',
-  KeyringTypes.simple,
-);
+  const mockHdKeyring1 = {
+    accounts: [mockAddress1],
+    type: KeyringTypes.hd,
+    metadata: { id: 'hd-1', name: '' },
+  };
 
-// This is an account with the same address as mockAccount1, but a different keyring type
-const mockAccount4 = createMockInternalAccount(
-  MOCK_ADDRESS_1,
-  'Account 4',
-  KeyringTypes.simple,
-);
+  const mockHdKeyring2 = {
+    accounts: [mockAddress2],
+    type: KeyringTypes.hd,
+    metadata: { id: 'hd-2', name: '' },
+  };
 
-const mockHDKeyring = {
-  accounts: [mockAccount1.address],
-  type: KeyringTypes.hd,
-};
+  const mockSimpleKeyring = {
+    accounts: [mockAddress3],
+    type: KeyringTypes.simple,
+    metadata: { id: 'simple-1', name: '' },
+  };
 
-const mockHDKeyring2 = {
-  accounts: [mockAccount2.address],
-  type: KeyringTypes.hd,
-};
+  const mockSnapKeyring = {
+    accounts: [mockAddress4],
+    type: KeyringTypes.snap,
+    metadata: { id: 'snap-1', name: '' },
+  };
 
-const mockSimpleKeyring = {
-  accounts: [mockAccount3.address],
-  type: KeyringTypes.simple,
-};
+  const mockAccount1 = createMockInternalAccount(
+    mockAddress1,
+    'HD Account 1',
+    KeyringTypes.hd,
+  );
 
-const mockSimpleKeyring2 = {
-  accounts: [mockAccount4.address],
-  type: KeyringTypes.simple,
-};
+  const mockAccount2 = createMockInternalAccount(
+    mockAddress2,
+    'HD Account 2',
+    KeyringTypes.hd,
+  );
 
-const mockHDKeyringMetadata = {
-  id: '01JREC6GSZQJPCDJF921FT2A82',
-  name: '',
-};
+  const mockAccount3 = createMockInternalAccount(
+    mockAddress3,
+    'Simple Account',
+    KeyringTypes.simple,
+  );
 
-const mockHDKeyring2Metadata = {
-  id: '01JREC6R2ZCCZKQTEYMJ7P0GGT',
-  name: '',
-};
+  const mockSnapAccountWithValidSource = {
+    ...createMockInternalAccount(
+      mockAddress4,
+      'Snap Account',
+      KeyringTypes.snap,
+    ),
+    options: {
+      entropySource: 'hd-1',
+    },
+  };
 
-const mockSimpleKeyringMetadata = {
-  id: '01JREC6W64RRX0Y9C15Y8QW3DH',
-  name: '',
-};
+  const mockSnapAccountWithInvalidSource = {
+    ...createMockInternalAccount(
+      mockAddress4,
+      'Snap Account',
+      KeyringTypes.snap,
+    ),
+    options: {
+      entropySource: 'non-existent',
+    },
+  };
 
-const mockSimpleKeyring2Metadata = {
-  id: '01JREC70MCJJNQT13ENMNVYBKM',
-  name: '',
-};
+  const mockSnapAccountWithNoSource = {
+    ...createMockInternalAccount(
+      mockAddress4,
+      'Snap Account',
+      KeyringTypes.snap,
+    ),
+    options: {},
+  };
 
-const mockSnapKeyringMetadata = {
-  id: '01JREC70MCJJNQT13ENMNVYBKK',
-  name: '',
-};
+  const createMockState = (
+    selectedAccount: InternalAccount,
+    keyrings: ExtendedKeyring[],
+  ) =>
+    ({
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            keyrings,
+            keyringsMetadata: keyrings.map((k) => k.metadata),
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [selectedAccount.id]: selectedAccount,
+              },
+              selectedAccount: selectedAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState);
 
-const mockSnapAccount = {
-  ...createMockInternalAccount(
-    MOCK_ADDRESS_1,
-    'Solana Account',
-    KeyringTypes.snap,
-  ),
-  snap: {
-    id: SOLANA_WALLET_SNAP_ID,
-    name: 'Solana',
-    enabled: true,
-  },
-  options: {
-    entropySource: mockHDKeyringMetadata.id,
-  },
-};
-
-const mockSnapKeyring = {
-  accounts: [mockSnapAccount.address],
-  type: KeyringTypes.snap,
-};
-
-const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
-  ({
+  const mockStateWithNoSelectedAccount = {
     engine: {
       backgroundState: {
         KeyringController: {
-          keyrings: [
-            mockHDKeyring,
-            mockHDKeyring2,
-            mockSimpleKeyring,
-            mockSimpleKeyring2,
-            mockSnapKeyring,
-          ],
+          keyrings: [mockHdKeyring1, mockHdKeyring2, mockSimpleKeyring],
           keyringsMetadata: [
-            mockHDKeyringMetadata,
-            mockHDKeyring2Metadata,
-            mockSimpleKeyringMetadata,
-            mockSimpleKeyring2Metadata,
-            mockSnapKeyringMetadata,
+            mockHdKeyring1.metadata,
+            mockHdKeyring2.metadata,
+            mockSimpleKeyring.metadata,
           ],
         },
         AccountsController: {
@@ -133,68 +129,41 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
               [mockAccount1.id]: mockAccount1,
               [mockAccount2.id]: mockAccount2,
               [mockAccount3.id]: mockAccount3,
-              [mockAccount4.id]: mockAccount4,
-              [mockSnapAccount.id]: mockSnapAccount,
             },
-            selectedAccount: selectedAccount.id,
+            selectedAccount: undefined,
           },
         },
       },
     },
-  } as unknown as RootState);
+  } as unknown as RootState;
 
-const mockStateWithNoSelectedAccount = {
-  engine: {
-    backgroundState: {
-      KeyringController: {
-        keyrings: [mockHDKeyring, mockHDKeyring2, mockSimpleKeyring],
-        keyringsMetadata: [
-          mockHDKeyringMetadata,
-          mockHDKeyring2Metadata,
-          mockSimpleKeyringMetadata,
-        ],
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            [mockAccount1.id]: mockAccount1,
-            [mockAccount2.id]: mockAccount2,
-            [mockAccount3.id]: mockAccount3,
-          },
-          selectedAccount: undefined,
-        },
-      },
-    },
-  },
-} as unknown as RootState;
-
-const expectedKeyringWithMetadata = (
-  keyring: KeyringObject,
-  metadata: KeyringMetadata,
-): ExtendedKeyring => ({
-  ...keyring,
-  metadata,
-});
-
-describe('multisrp selectors', () => {
   describe('selectHdKeyringIndexByIdOrDefault', () => {
     it('returns 0 when no keyringId is provided', () => {
-      const result = selectHdKeyringIndexByIdOrDefault(mockState());
+      const state = createMockState(mockAccount1, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = selectHdKeyringIndexByIdOrDefault(state);
       expect(result).toBe(0);
     });
 
     it('returns 0 when keyring is not found', () => {
-      const result = selectHdKeyringIndexByIdOrDefault(
-        mockState(),
-        'non-existent',
-      );
+      const state = createMockState(mockAccount1, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = selectHdKeyringIndexByIdOrDefault(state, 'non-existent');
       expect(result).toBe(0);
     });
 
     it('returns correct index when keyring is found', () => {
+      const state = createMockState(mockAccount1, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
       const result = selectHdKeyringIndexByIdOrDefault(
-        mockState(),
-        mockHDKeyringMetadata.id,
+        state,
+        mockHdKeyring1.metadata.id,
       );
       expect(result).toBe(0);
     });
@@ -210,49 +179,155 @@ describe('multisrp selectors', () => {
     });
 
     it('returns correct HD keyring when the selected account is from the second HD keyring', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount2),
-      );
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring2, mockHDKeyring2Metadata),
-      );
+      const state = createMockState(mockAccount2, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(state);
+      expect(result).toStrictEqual(mockHdKeyring2);
     });
 
     it('returns selected account keyring when it is HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(mockState());
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
-      );
+      const state = createMockState(mockAccount1, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(state);
+      expect(result).toStrictEqual(mockHdKeyring1);
     });
 
     it('returns first HD keyring when selected account keyring is not HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount3),
-      );
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
-      );
+      const state = createMockState(mockAccount3, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSimpleKeyring,
+      ]);
+      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(state);
+      expect(result).toStrictEqual(mockHdKeyring1);
     });
   });
 
   describe('getSnapAccountsByKeyringId', () => {
     it('returns snap accounts along with hd accounts', () => {
+      const state = createMockState(mockSnapAccountWithValidSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
       const result = getSnapAccountsByKeyringId(
-        mockState(),
-        mockHDKeyringMetadata.id,
+        state,
+        mockHdKeyring1.metadata.id,
       );
-      expect(result).toEqual([mockSnapAccount]);
+      expect(result).toEqual([mockSnapAccountWithValidSource]);
     });
 
     it('returns empty array when no keyringId is provided', () => {
+      const state = createMockState(mockSnapAccountWithValidSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
       // @ts-expect-error - This is a test for the null case
-      const result = getSnapAccountsByKeyringId(mockState(), null);
+      const result = getSnapAccountsByKeyringId(state, null);
       expect(result).toEqual([]);
     });
 
     it('returns empty array when keyringId is not found', () => {
-      const result = getSnapAccountsByKeyringId(mockState(), 'non-existent');
+      const state = createMockState(mockSnapAccountWithValidSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
+      const result = getSnapAccountsByKeyringId(state, 'non-existent');
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectHdEntropyIndex', () => {
+    it('returns undefined when no account is selected', () => {
+      const result = selectHdEntropyIndex(mockStateWithNoSelectedAccount);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when no HD keyrings exist', () => {
+      const state = createMockState(mockAccount3, [
+        mockSimpleKeyring,
+        mockSnapKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns correct index when account is found in first HD keyring', () => {
+      const state = createMockState(mockAccount1, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBe(0);
+    });
+
+    it('returns correct index when account is found in second HD keyring', () => {
+      const state = createMockState(mockAccount2, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBe(1);
+    });
+
+    it('returns undefined when account is in simple keyring and has no entropySource', () => {
+      const state = createMockState(mockAccount3, [
+        mockHdKeyring1,
+        mockSimpleKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns correct index when snap account has valid entropySource matching HD keyring', () => {
+      const state = createMockState(mockSnapAccountWithValidSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBe(0);
+    });
+
+    it('returns undefined when snap account has invalid entropySource', () => {
+      const state = createMockState(mockSnapAccountWithInvalidSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when account has no options or entropySource', () => {
+      const state = createMockState(mockSnapAccountWithNoSource, [
+        mockHdKeyring1,
+        mockHdKeyring2,
+        mockSnapKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when no HD keyrings exist but entropySource matches non-HD keyring', () => {
+      const snapAccountWithSimpleSource = {
+        ...mockSnapAccountWithValidSource,
+        options: {
+          entropySource: 'simple-1',
+        },
+      };
+      const state = createMockState(snapAccountWithSimpleSource, [
+        mockSimpleKeyring,
+        mockSnapKeyring,
+      ]);
+      const result = selectHdEntropyIndex(state);
+      expect(result).toBeUndefined();
     });
   });
 });

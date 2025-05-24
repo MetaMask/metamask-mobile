@@ -71,6 +71,7 @@ import {
   /* eslint-enable no-restricted-syntax */
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
+import { selectHdEntropyIndex } from '../../../../../selectors/keyringController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -171,6 +172,10 @@ class Send extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Hd entropy index
+     */
+    hdEntropyIndex: PropTypes.string,
   };
 
   state = {
@@ -707,12 +712,16 @@ class Send extends PureComponent {
    * Call Analytics to track confirm pressed
    */
   trackOnConfirm = () => {
+    const { hdEntropyIndex } = this.props;
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(
           MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
         )
-        .addProperties(this.getTrackingParams())
+        .addProperties({
+          ...this.getTrackingParams(),
+          hd_entropy_index: hdEntropyIndex,
+        })
         .build(),
     );
   };
@@ -806,6 +815,7 @@ class Send extends PureComponent {
 
 const mapStateToProps = (state) => {
   const globalChainId = selectEvmChainId(state);
+  const hdEntropyIndex = selectHdEntropyIndex(state);
 
   return {
     addressBook: selectAddressBook(state),
@@ -824,6 +834,7 @@ const mapStateToProps = (state) => {
       state,
       state.transaction?.chainId,
     ),
+    hdEntropyIndex,
   };
 };
 

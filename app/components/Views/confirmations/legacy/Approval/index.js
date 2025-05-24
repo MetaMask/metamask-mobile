@@ -60,6 +60,8 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../../core/WalletConnect/WalletConnectV2';
 import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { store } from '../../../../../store';
+import { selectHdKeyringIndexByIdOrDefault } from '../../../../../selectors/multisrp';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -648,6 +650,7 @@ class Approval extends PureComponent {
           }),
           ...this.getBlockaidMetricsParams(),
           ...this.getTransactionMetrics(),
+          hd_entropy_index: selectHdKeyringIndexByIdOrDefault(store.getState(), this.props.transaction?.selectedAccount?.metadata?.keyring?.id),
         })
         .build(),
     );

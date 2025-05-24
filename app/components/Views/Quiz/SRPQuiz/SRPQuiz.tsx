@@ -13,6 +13,7 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../constants/urls';
+import { selectHdEntropyIndex } from '../../../../selectors/multisrp';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
@@ -27,6 +28,7 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
@@ -38,9 +40,7 @@ export interface SRPQuizProps {
   };
 }
 
-const SRPQuiz = (
-  props: SRPQuizProps,
-) => {
+const SRPQuiz = (props: SRPQuizProps) => {
   // It has be destructured like this because of prettier
   // shifting the fence to the ending curly brace.
   const {
@@ -54,6 +54,8 @@ const SRPQuiz = (
   const { colors } = theme;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const hdEntropyIndex = useSelector(selectHdEntropyIndex);
 
   const dismissModal = (): void => {
     modalRef.current?.dismissModal();
@@ -94,20 +96,25 @@ const SRPQuiz = (
 
   const goToRevealPrivateCredential = useCallback((): void => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED)
+        .addProperties({
+          hd_entropy_index: hdEntropyIndex,
+        })
+        .build(),
     );
-    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA)
+        .addProperties({
+          hd_entropy_index: hdEntropyIndex,
+        })
+        .build(),
+    );
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
       keyringId,
     });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    keyringId,
-  ]);
+  }, [trackEvent, createEventBuilder, hdEntropyIndex, navigation, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(

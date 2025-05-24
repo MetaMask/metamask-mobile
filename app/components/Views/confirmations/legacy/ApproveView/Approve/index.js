@@ -85,6 +85,8 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { buildTransactionParams } from '../../../../../../util/confirmation/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
+import { store } from '../../../../../../store';
+import { selectHdKeyringIndexByIdOrDefault } from '../../../../../../selectors/multisrp';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -632,7 +634,10 @@ class Approve extends PureComponent {
       metrics.trackEvent(
         metrics
           .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
-          .addProperties(this.getAnalyticsParams())
+          .addProperties({
+            ...this.getAnalyticsParams(),
+            hd_entropy_index: selectHdKeyringIndexByIdOrDefault(store.getState(), this.props.transaction?.selectedAccount?.metadata?.keyring?.id),
+          })
           .build(),
       );
     } catch (error) {

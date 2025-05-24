@@ -83,3 +83,40 @@ export const getSnapAccountsByKeyringId = createDeepEqualSelector(
         account.options?.entropySource === keyringId,
     ),
 );
+
+/**
+ * A memoized selector that returns the HD entropy index for the currently selected account.
+ * Returns undefined if the account is not associated with an HD keyring.
+ */
+export const selectHdEntropyIndex = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectHDKeyrings,
+  (
+    selectedAccount: InternalAccount | undefined,
+    hdKeyrings: ExtendedKeyring[],
+  ) => {
+    if (!selectedAccount) return undefined;
+
+    // Try to find the account in HD keyrings
+    const hdIndex = hdKeyrings.findIndex((keyring) =>
+      keyring.accounts.some((account) =>
+        isEqualCaseInsensitive(account, selectedAccount.address),
+      ),
+    );
+
+    if (hdIndex !== -1) {
+      return hdIndex;
+    }
+
+    // If not found, check if account's entropySource matches an HD keyring
+    const entropySource = selectedAccount.options?.entropySource;
+    if (entropySource) {
+      const sourceIndex = hdKeyrings.findIndex(
+        (keyring) => keyring.metadata.id === entropySource,
+      );
+      return sourceIndex !== -1 ? sourceIndex : undefined;
+    }
+
+    return undefined;
+  },
+);

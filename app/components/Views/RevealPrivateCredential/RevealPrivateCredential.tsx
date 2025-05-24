@@ -61,6 +61,7 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectHdEntropyIndex } from '../../../selectors/multisrp';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -126,6 +127,8 @@ const RevealPrivateCredential = ({
     route?.params?.selectedAccount?.address || checkSummedAddress;
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
+  const hdEntropyIndex = useSelector(selectHdEntropyIndex);
+
   const updateNavBar = () => {
     if (!hasNavigation || !shouldUpdateNav) {
       return;
@@ -184,10 +187,7 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [
-      selectedAddress,
-      keyringId,
-    ],
+    [selectedAddress, keyringId],
   );
 
   useEffect(() => {
@@ -265,7 +265,11 @@ const RevealPrivateCredential = ({
       const currentDate = new Date();
       dispatch(recordSRPRevealTimestamp(currentDate.toString()));
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA).build(),
+        createEventBuilder(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA)
+          .addProperties({
+            hd_entropy_index: hdEntropyIndex,
+          })
+          .build(),
       );
     }
     setIsModalVisible(true);
@@ -278,7 +282,13 @@ const RevealPrivateCredential = ({
 
   const done = () => {
     if (!isPrivateKey)
-      trackEvent(createEventBuilder(MetaMetricsEvents.SRP_DONE_CTA).build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SRP_DONE_CTA)
+          .addProperties({
+            hd_entropy_index: hdEntropyIndex,
+          })
+          .build(),
+      );
     navigateBack();
   };
 
@@ -293,12 +303,19 @@ const RevealPrivateCredential = ({
       )
         .addProperties({
           action: 'copied to clipboard',
+          hd_entropy_index: hdEntropyIndex,
         })
         .build(),
     );
 
     if (!isPrivateKey)
-      trackEvent(createEventBuilder(MetaMetricsEvents.COPY_SRP).build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.COPY_SRP)
+          .addProperties({
+            hd_entropy_index: hdEntropyIndex,
+          })
+          .build(),
+      );
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 

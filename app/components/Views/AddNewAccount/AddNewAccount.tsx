@@ -44,6 +44,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -64,6 +66,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { keyringToDisplay, keyringIndex } = useMemo(() => {
     const keyring =
@@ -192,6 +195,15 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                         'accounts.secret_recovery_phrase',
                       )} ${keyringIndex}`}
                       onActionComplete={() => {
+                        trackEvent(
+                          createEventBuilder(
+                            MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+                          )
+                            .addProperties({
+                              button_type: 'picker',
+                            })
+                            .build(),
+                        );
                         setShowSRPList(true);
                       }}
                       testID={AddNewAccountIds.SRP_SELECTOR}
