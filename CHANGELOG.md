@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
 - feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
