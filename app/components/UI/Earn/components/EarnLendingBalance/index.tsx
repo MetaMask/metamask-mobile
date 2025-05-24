@@ -38,6 +38,10 @@ import {
   TOKEN_ADDRESSES,
 } from '../../utils';
 import { isEmpty } from 'lodash';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Icon, {
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -72,6 +76,12 @@ const EarnLendingBalance = ({
   const { openTooltipModal } = useTooltipModal();
 
   const { lendingToken, receiptToken } = useLendingTokenPair(asset);
+
+  const copyToClipboard = (tokenAddress: string) => {
+    Clipboard.setString(tokenAddress);
+    // eslint-disable-next-line no-alert
+    alert('Token address copied to clipboard');
+  };
 
   const onNavigateToTooltipModal = useCallback(() => {
     let tokenToAddType = '';
@@ -114,8 +124,13 @@ const EarnLendingBalance = ({
         <View>
           <Text selectable>
             {`Found matching ${tokenToAddType} token with address: `}
-            <Text variant={TextVariant.BodyMDBold} selectable>
+            <Text
+              variant={TextVariant.BodyMDBold}
+              selectable
+              onPress={() => copyToClipboard(tokenToAddAddress)}
+            >
               {tokenToAddAddress}
+              <Icon name={IconName.Copy} />
             </Text>
             <Text>{` (You can highlight and copy this address)`}</Text>
           </Text>
