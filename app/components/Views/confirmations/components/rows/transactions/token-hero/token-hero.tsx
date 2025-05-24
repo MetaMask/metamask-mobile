@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
@@ -99,6 +100,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     <AnimatedPulse
       isPulsing={isTransactionValueUpdating}
       preventPulse={!maxValueMode}
+      testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
       <View style={styles.container}>
         <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />

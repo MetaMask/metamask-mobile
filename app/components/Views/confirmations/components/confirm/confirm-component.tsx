@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
+import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
@@ -71,7 +72,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   if (isFlatConfirmation) {
     return (
-      <View style={styles.flatContainer} testID="flat-confirmation-container">
+      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     );
@@ -82,7 +83,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
       onClose={() => onReject()}
       shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
-      testID="modal-confirmation-container"
+      testID={ConfirmationUIType.MODAL}
     >
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
