@@ -4,20 +4,24 @@ import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
-import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
+import {
+  validateCustomCollectibleAddress as validateAddress,
+  validateCollectibleOwnership as validateOwnership,
+  validateCustomCollectibleTokenId as validateTokenId,
+} from './util';
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
+import { NetworkSelectorDropdown } from '../AddCustomToken/NetworkSelectorDropdown';
+import { Hex } from '@metamask/utils';
 import { TraceName, endTrace, trace } from '../../../util/trace';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,11 +67,17 @@ interface AddCustomCollectibleProps {
   collectibleContract?: {
     address: string;
   };
+  setOpenNetworkSelector: (val: boolean) => void;
+  selectedNetwork: NetworkConfiguration | null;
+  chainId: string | null;
 }
 
 const AddCustomCollectible = ({
   navigation,
   collectibleContract,
+  setOpenNetworkSelector,
+  selectedNetwork,
+  chainId,
 }: AddCustomCollectibleProps) => {
   const [mounted, setMounted] = useState<boolean>(true);
   const [address, setAddress] = useState<string>('');
@@ -88,7 +98,8 @@ const AddCustomCollectible = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const chainId = useSelector(selectChainId);
+
+  const defaultRpcIndex = selectedNetwork?.defaultRpcEndpointIndex || 0;
 
   useEffect(() => {
     setMounted(true);
@@ -116,32 +127,15 @@ const AddCustomCollectible = ({
   }, [chainId]);
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
-    let validated = true;
-    const isValidEthAddress = isValidAddress(address);
-    if (address.length === 0) {
-      setWarningAddress(strings('collectible.address_cant_be_empty'));
-      validated = false;
-    } else if (!isValidEthAddress) {
-      setWarningAddress(strings('collectible.address_must_be_valid'));
-      validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId))) {
-      setWarningAddress(strings('collectible.address_must_be_smart_contract'));
-      validated = false;
-    } else {
-      setWarningAddress(``);
-    }
-    return validated;
+    const result = await validateAddress(address, chainId);
+    setWarningAddress(result.warningMessage);
+    return result.isValid;
   };
 
   const validateCustomCollectibleTokenId = (): boolean => {
-    let validated = false;
-    if (tokenId.length === 0) {
-      setWarningTokenId(strings('collectible.token_id_cant_be_empty'));
-    } else {
-      setWarningTokenId(``);
-      validated = true;
-    }
-    return validated;
+    const result = validateTokenId(tokenId);
+    setWarningTokenId(result.warningMessage);
+    return result.isValid;
   };
 
   const validateCustomCollectible = async (): Promise<boolean> => {
@@ -150,37 +144,18 @@ const AddCustomCollectible = ({
     return validatedAddress && validatedTokenId;
   };
 
-  /**
-   * Method to validate collectible ownership.
-   *
-   * @returns Promise that resolves ownershio as a boolean.
-   */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
-    try {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { NftController } = Engine.context as any;
-      const isOwner = await NftController.isNftOwner(
-        selectedAddress,
-        address,
-        tokenId,
-      );
-
-      if (!isOwner)
-        Alert.alert(
-          strings('collectible.not_owner_error_title'),
-          strings('collectible.not_owner_error'),
-        );
-
-      return isOwner;
-    } catch {
-      Alert.alert(
-        strings('collectible.ownership_verification_error_title'),
-        strings('collectible.ownership_verification_error'),
-      );
-
-      return false;
+    if (!address) return false;
+    const result = await validateOwnership(
+      selectedAddress ?? '',
+      address,
+      tokenId,
+      selectedNetwork?.rpcEndpoints[defaultRpcIndex].networkClientId,
+    );
+    if (!result.isOwner && result.error) {
+      Alert.alert(result.error.title, result.error.message);
     }
+    return result.isOwner;
   };
 
   const addNft = async (): Promise<void> => {
@@ -200,7 +175,11 @@ const AddCustomCollectible = ({
 
     trace({ name: TraceName.ImportNfts });
 
-    await NftController.addNft(address, tokenId);
+    NftController.addNft(address, tokenId, {
+      networkClientId:
+        selectedNetwork?.rpcEndpoints[defaultRpcIndex].networkClientId,
+      userAddress: selectedAddress,
+    });
 
     endTrace({ name: TraceName.ImportNfts });
 
@@ -240,10 +219,17 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId}
+        confirmDisabled={!address || !tokenId || !selectedNetwork}
         loading={loading}
       >
         <View>
+          <View style={styles.rowWrapper}>
+            <NetworkSelectorDropdown
+              setOpenNetworkSelector={setOpenNetworkSelector}
+              selectedNetwork={selectedNetwork?.name ?? ''}
+              chainId={chainId as Hex}
+            />
+          </View>
           <View style={styles.rowWrapper}>
             <Text style={styles.rowTitleText}>
               {strings('collectible.collectible_address')}

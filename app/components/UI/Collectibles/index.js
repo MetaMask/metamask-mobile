@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert,
   ScrollView,
   RefreshControl,
   FlatList,
@@ -12,10 +11,10 @@ import {
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { refreshMetadata, removeNft } from './util';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -63,6 +62,14 @@ const createStyles = (colors) =>
  */
 export default class Collectibles extends PureComponent {
   static propTypes = {
+    /**
+     * Selected address
+     */
+    selectedAddress: PropTypes.string,
+    /**
+     * Network configurations
+     */
+    networkConfigurations: PropTypes.object,
     /**
      * Navigation object required to push
      * the Asset detail view
@@ -131,32 +138,27 @@ export default class Collectibles extends PureComponent {
     this.actionSheet.show();
   };
 
-  refreshMetadata = () => {
-    const { NftController } = Engine.context;
-
-    NftController.addNft(
-      this.longPressedCollectible.current.address,
-      this.longPressedCollectible.current.tokenId,
+  handleRefreshMetadata = () => {
+    refreshMetadata(
+      this.longPressedCollectible.current,
+      this.props.networkConfigurations,
+      this.props.selectedAddress,
     );
   };
 
   handleMenuAction = (index) => {
     if (index === 1) {
-      this.removeNft();
+      this.handleRemoveNft();
     } else if (index === 0) {
-      this.refreshMetadata();
+      this.handleRefreshMetadata();
     }
   };
 
-  removeNft = () => {
-    const { NftController } = Engine.context;
-    NftController.removeAndIgnoreNft(
-      this.longPressedCollectible.address,
-      this.longPressedCollectible.tokenId,
-    );
-    Alert.alert(
-      strings('wallet.collectible_removed_title'),
-      strings('wallet.collectible_removed_desc'),
+  handleRemoveNft = () => {
+    removeNft(
+      this.longPressedCollectible.current,
+      this.props.networkConfigurations,
+      this.props.selectedAddress,
     );
   };
 
