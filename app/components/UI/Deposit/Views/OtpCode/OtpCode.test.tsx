@@ -4,7 +4,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { DepositSdk } from '../../hooks/useDepositSdk';
+import { DepositSdk } from '../../hooks/useDepositSdkMethod';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -21,8 +21,8 @@ let mockUseDepositSdkValues: DepositSdk = {
   ...mockUseDepositSdkInitialValues,
 };
 
-jest.mock('../../hooks/useDepositSdk', () => ({
-  useDepositSdk: () => mockUseDepositSdkValues,
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: () => mockUseDepositSdkValues,
 }));
 
 jest.mock('@react-navigation/native', () => {

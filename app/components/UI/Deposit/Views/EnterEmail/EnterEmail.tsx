@@ -17,7 +17,7 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
-import { useDepositSdk } from '../../hooks/useDepositSdk';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 
@@ -37,7 +37,7 @@ const EnterEmail = () => {
     );
   }, [navigation, theme]);
 
-  const { error, sdkMethod: submitEmail, loading } = useDepositSdk();
+  const { error, sdkMethod: submitEmail, loading } = useDepositSdkMethod();
 
   const emailInputRef = useRef<TextInput>(null);
 

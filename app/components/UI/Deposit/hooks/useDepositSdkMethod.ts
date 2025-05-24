@@ -6,7 +6,7 @@ export interface DepositSdk {
   loading: boolean;
   error: string | null;
 }
-export const useDepositSdk = (): DepositSdk => {
+export const useDepositSdkMethod = (): DepositSdk => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
