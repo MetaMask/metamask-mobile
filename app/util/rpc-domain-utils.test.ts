@@ -7,18 +7,15 @@ import {
   initializeRpcProviderDomains,
   getKnownDomains,
   isKnownDomain,
-  RpcDomainStatus,
   extractRpcDomain,
   getNetworkRpcUrl,
   resetModuleState,
 } from './rpc-domain-utils';
 
-// Mock dependencies
 jest.mock('../store/storage-wrapper');
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
-// Define types for NetworkController mock
 interface NetworkConfiguration {
   rpcUrl?: string;
   rpcEndpoints?: { url: string }[];
@@ -154,8 +151,7 @@ describe('rpc-domain-utils', () => {
     });
     it('initializes with empty set on error', async () => {
       // Mock getSafeChainsListFromCacheOnly to throw
-      const spy = jest.spyOn(rpcDomainUtils, 'getSafeChainsListFromCacheOnly');
-      spy.mockRejectedValueOnce(new Error('Test error'));
+      const spy = jest.spyOn(rpcDomainUtils, 'getSafeChainsListFromCacheOnly').mockRejectedValueOnce(new Error('Test error'));
       await initializeRpcProviderDomains();
       expect(getKnownDomains()).toEqual(new Set());
       spy.mockRestore();
@@ -166,8 +162,7 @@ describe('rpc-domain-utils', () => {
       it('correctly stores and retrieves the domains', () => {
         // Setup
         const testDomains = new Set(['test.com']);
-        const spy = jest.spyOn(rpcDomainUtils, 'getKnownDomains');
-        spy.mockReturnValueOnce(testDomains);
+        const spy = jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValueOnce(testDomains);
         // Exercise
         const result = getKnownDomains();
         // Verify
@@ -176,8 +171,7 @@ describe('rpc-domain-utils', () => {
       });
       it('handles null domains', () => {
         // Setup
-        const spy = jest.spyOn(rpcDomainUtils, 'getKnownDomains');
-        spy.mockReturnValueOnce(null);
+        const spy = jest.spyOn(rpcDomainUtils, 'getKnownDomains').mockReturnValueOnce(null);
         // Exercise
         const result = getKnownDomains();
         // Verify
