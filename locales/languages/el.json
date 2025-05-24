@@ -24,6 +24,11 @@
     "inline_alert_label": "Ειδοποίηση",
     "review_alerts": "Έλεγχος ειδοποιήσεων",
     "review_alert": "Έλεγχος ειδοποίησης",
+    "upgrade_account": {
+      "title": "Updating your account",
+      "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
+      "learn_more": "Learn more"
+    },
     "domain_mismatch": {
       "title": "Ύποπτο αίτημα σύνδεσης",
       "message": "Ο ιστότοπος που υποβάλλει το αίτημα δεν είναι ο ιστότοπος στον οποίο συνδέεστε. Ενδέχεται να πρόκειται για απόπειρα κλοπής των στοιχείων σύνδεσής σας."
@@ -446,6 +451,14 @@
     "multisrp": {
       "title": "Προσθήκη πολλαπλών Φράσεων Μυστικής Ανάκτησης",
       "subtitle": "Εισαγωγή και χρήση πολλαπλών πορτοφολιών στο MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Εισαγωγή στην δημιουργία αντιγράφων ασφαλείας και συγχρονισμού",
+      "subtitle": "Δημιουργήστε αντίγραφα ασφαλείας των λογαριασμών και των ρυθμίσεων συγχρονισμού."
+    },
+    "solana": {
+      "title": "Υποστηρίζουμε τώρα την Solana",
+      "subtitle": "Δημιουργήστε λογαριασμό στην Solana για να ξεκινήσετε"
     }
   },
   "wallet": {
@@ -453,6 +466,7 @@
     "tokens": "Tokens",
     "collectible": "Συλλεκτικά",
     "collectibles": "NFT",
+    "defi": "DeFi",
     "transactions": "ΣΥΝΑΛΛΑΓΈΣ",
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
@@ -483,6 +497,7 @@
     "sort_by": "Ταξινόμηση κατά",
     "filter_by": "Φιλτράρισμα κατά",
     "current_network": "Τρέχον δίκτυο",
+    "popular_networks": "Δημοφιλή δίκτυα",
     "all_networks": "Όλα τα δίκτυα",
     "declining_balance": "Μειούμενο υπόλοιπο ({{currency}} υψηλό-χαμηλό)",
     "alphabetically": "Αλφαβητικά (Α-Ω)",
@@ -534,7 +549,7 @@
     "logout_to_import_seed": "Πρέπει να αποσυνδεθείτε πρώτα για να εισαγάγετε μια Μυστική Φράση Ανάκτησης.",
     "ready_to_explore": "Έτοιμοι να εξερευνήσετε τις εφαρμογές του blockchain;",
     "unable_to_load": "Δεν είναι δυνατή η φόρτωση του υπολοίπου",
-    "unable_to_find_conversion_rate": "δεν είναι δυνατή η εύρεση της τιμής μετατροπής",
+    "unable_to_find_conversion_rate": "χωρίς ποσοστά μετατροπής",
     "display_nft_media_desc": "Για να εισαγάγετε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων των NFT» στις Ρυθμίσεις > Ασφάλεια και απόρρητο.",
     "display_nft_media_cta": "Ενεργοποιήστε την «Προβολή μέσων των NFT»",
     "display_media_nft_warning": "Η εμφάνιση μέσων και δεδομένων των NFT ενδέχεται να εκθέσει τη διεύθυνση IP σας σε κεντρικούς διακομιστές. Εισαγάγετε ένα NFT μόνο αν κατανοείτε τους κινδύνους που συνεπάγονται.",
@@ -615,6 +630,19 @@
       "custom_info_link": "απάτες σχετικα με token και κινδύνους για την ασφάλεια.",
       "custom_security_tips": "Συμβουλές Ασφαλείας"
     }
+  },
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
+    "single_token": "{{symbol}} only",
+    "two_tokens": "{{symbol}} +1 other",
+    "multiple_tokens": "{{symbol}} +{{count}} others",
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
   },
   "terms_and_conditions": {
     "title": "Όρους και Προϋποθέσεις",
@@ -730,6 +758,7 @@
     "receive": "ΛΗΨΗ"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Δημιουργία νέου λογαριασμού",
     "import_account": "Εισαγωγή λογαριασμού",
@@ -860,8 +889,6 @@
     "reset_notifications_description": "Η επαναφορά των ειδοποιήσεων σημαίνει ότι διαγράφετε τα κλειδιά αποθήκευσης ειδοποιήσεων και επαναφέρετε όλο το ιστορικό ειδοποιήσεων. Είστε σίγουροι ότι θέλετε να προχωρήσετε;",
     "reset_notifications": "Επαναφορά ειδοποιήσεων",
     "reset_notifications_success": "Διαγραφή/δημιουργία εκ νέου κλειδιού αποθήκευσης ειδοποιήσεων και επαναφορά ιστορικού ειδοποιήσεων.",
-    "enabling_profile_sync": "Ενεργοποίηση συγχρονισμού του προφίλ...",
-    "disabling_profile_sync": "Απενεργοποίηση συγχρονισμού του προφίλ...",
     "notifications_dismiss_modal": "Απόρριψη",
     "select_rpc_url": "Επιλέξτε την διεύθυνση URL του RPC",
     "title": "Ρυθμίσεις",
@@ -1194,7 +1221,13 @@
           "endowment:caveat:transaction-origin": "Δείτε την προέλευση των ιστότοπων που προτείνουν συναλλαγές",
           "endowment:extend-runtime": "Επέκταση του χρόνου εκτέλεσης",
           "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων",
-          "snap_manageAccounts": "Προσθήκη και έλεγχος λογαριασμών του Ethereum"
+          "snap_manageAccounts": "Προσθήκη και έλεγχος λογαριασμών του Ethereum",
+          "endowment:signature-insight": "Εμφάνιση πληροφοριών υπογραφής συσκευής",
+          "endowment:protocol": "Παροχή δεδομένων πρωτοκόλλου για μία ή περισσότερες αλυσίδες",
+          "snap_getPreferences": "Δείτε πληροφορίες όπως η γλώσσα προτίμησής σας και τα παραστατικά νομίσματα",
+          "endowment:lifecycle-hooks": "Χρησιμοποιήστε προκαθορισμένους μεθόδους (lifecycle hooks)",
+          "endowment:name-lookup": "Παροχή αναζήτησης τομέων και διευθύνσεων",
+          "endowment:page-home": "Εμφάνιση μιας προσαρμοσμένης οθόνης"
         }
       }
     },
@@ -1359,7 +1392,7 @@
     "token_marketplace": "Χώρος αγοράς των tokens",
     "sell_button": "Πώληση",
     "receive_button": "Λήψη",
-    "portfolio_button": "Χαρτοφυλάκιο",
+    "portfolio_button": "Portfolio",
     "earn_button": "Κερδίστε",
     "add_collectible_button": "Προσθήκη",
     "info": "Πληροφορίες",
@@ -1729,7 +1762,13 @@
       "generic": "Αυτός ο ιστότοπος έχει αποκλειστεί από το αυτόματο άνοιγμα μιας εξωτερικής εφαρμογής"
     },
     "ipfs_gateway_off_title": "Η πύλη IPFS είναι απενεργοποιημένη",
-    "ipfs_gateway_off_content": "Για να δείτε αυτόν τον ιστότοπο, ενεργοποιήστε την πύλη IPFS στις Ρυθμίσεις Απορρήτου και Ασφάλειας."
+    "ipfs_gateway_off_content": "Για να δείτε αυτόν τον ιστότοπο, ενεργοποιήστε την πύλη IPFS στις Ρυθμίσεις Απορρήτου και Ασφάλειας.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Σύντομα θα μπορείτε να συνδεθείτε στις αποκεντρώμενες εφαρμόγες της Solana",
+        "message": "Μπορείτε να συνδεθείτε στις αποκεντρωμένες εφαρμογές της Solana στην επέκταση ή να κάνετε συναλλαγές με tokens στη Solana εντός της εφαρμογής."
+      }
+    }
   },
   "backup_alert": {
     "title": "Προστατέψτε το πορτοφόλι σας",
@@ -1829,6 +1868,8 @@
     "sign_description_2": "πατήστε στην επιλογή «Λήψη υπογραφής»",
     "sign_get_signature": "Λήψη Υπογραφής",
     "transaction_id": "Αναγνωριστικό συναλλαγής",
+    "network": "Δίκτυο",
+    "request_from": "Ζητήθηκε από",
     "network_fee": "Τέλη Δικτύου",
     "network_fee_tooltip": "Ποσό που καταβλήθηκε για τη διεκπεραίωση της συναλλαγής στο δίκτυο."
   },
@@ -1980,6 +2021,9 @@
     "edit_permissions": "Επεξεργασία αδειών",
     "permitted_networks_info_sheet_description": "Αυτή είναι μια λίστα με τα δίκτυα που έχετε προηγουμένως παραχωρήσει άδειες χρήσης σε αυτόν τον ιστότοπο. Επιλέξτε ένα από τη λίστα ή επεξεργαστείτε τις άδειες χρήσης δικτύου για αυτόν τον ιστότοπο.",
     "connect_an_account": "Σύνδεση λογαριασμού"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
   },
   "select": {
     "cancel": "Άκυρο",
@@ -3294,15 +3338,6 @@
     "enable_remember_me": "Ενεργοποιήστε την λειτουργία «Να με θυμάστε»",
     "enable_remember_me_description": "Όταν η λειτουργία «Να με θυμάστε» είναι ενεργοποιημένη, οποιοσδήποτε έχει πρόσβαση στο τηλέφωνό σας μπορεί να αποκτήσει πρόσβαση στον λογαριασμό σας στο MetaMask."
   },
-  "profile_sync": {
-    "title": "Συγχρονισμός του προφίλ",
-    "disable_warning": "Εάν απενεργοποιήσετε τον συγχρονισμό του προφίλ, δεν θα μπορείτε να λαμβάνετε ειδοποιήσεις.",
-    "enable_description": "Δημιουργεί ένα προφίλ που χρησιμοποιεί το MetaMask για να συγχρονίσει ορισμένες ρυθμίσεις μεταξύ των συσκευών σας. Αυτό είναι απαραίτητο για να λαμβάνετε ειδοποιήσεις. ",
-    "enable_description2": " για να μάθετε περισσότερα.",
-    "enable_privacy_link": "Μάθετε πώς προστατεύουμε το απόρρητό σας",
-    "bottomSheetTurnOn": "Ενεργοποίηση συγχρονισμού του προφίλ",
-    "bottomSheetTurnOff": "Απενεργοποίηση συγχρονισμού του προφίλ"
-  },
   "turn_off_remember_me": {
     "title": "Εισαγάγετε τον κωδικό πρόσβασής σας για να απενεργοποιήσετε την λειτουργία «Να με θυμάστε»",
     "placeholder": "Κωδικός πρόσβασης",
@@ -3505,6 +3540,7 @@
     "connect_hardware_wallet": "Σύνδεση ενός λογαριασμού",
     "import_wallet_or_account": "Εισαγωγή πορτοφολιού ή λογαριασμού",
     "add_account": "Δημιουργία νέου λογαριασμού",
+    "add_multichain_account": "Δημιουργία νέου λογαριασμού για {{networkName}}",
     "create_an_account": "Δημιουργία νέου λογαριασμού",
     "add_new_account": "Λογαριασμός στο Ethereum",
     "import_srp": "Μυστική Φράση Ανάκτησης",
@@ -3512,7 +3548,12 @@
     "import_account": "Ιδιωτικό κλειδί",
     "add_bitcoin_account_testnet": "Λογαριασμός στο Bitcoin testnet",
     "add_bitcoin_account_mainnet": "Λογαριασμός στο Bitcoin",
-    "add_solana_account": "Λογαριασμός στο Solana"
+    "add_solana_account": "Λογαριασμός στο Solana",
+    "switch_to_smart_account": "Αλλαγή σε Έξυπνο λογαριασμό",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Εμφάνιση των NFT",
@@ -3535,13 +3576,14 @@
     "title": "Η Solana στο MetaMask",
     "create_solana_account": "Δημιουργία λογαριασμού στη Solana",
     "not_now": "Όχι τώρα",
-    "got_it": "Εντάξει",
+    "view_solana_account": "Προβολή λογαριασμού στην Solana",
     "feature_1_title": "Αποστολή, λήψη και ανταλλαγή tokens",
     "feature_1_description": "Μεταφέρετε και πραγματοποιήστε συναλλαγές με tokens όπως SOL, USDC και άλλα.",
     "feature_2_title": "Εισαγωγή λογαριασμών στη Solana",
     "feature_2_description": "Εισάγετε την Μυστική Φράση Ανάκτησης για να μεταφέρετε τον λογαριασμό σας στη Solana από άλλο πορτοφόλι.",
     "feature_3_title": "Περισσότερες λειτουργίες έρχονται σύντομα",
-    "feature_3_description": "Εφαρμογές στη Solana, NFT, υποστήριξη πορτοφολιού υλικού και πολλά άλλα σύντομα."
+    "feature_3_description": "Εφαρμογές στη Solana, NFT, υποστήριξη πορτοφολιού υλικού και πολλά άλλα σύντομα.",
+    "learn_more": "Μάθετε περισσότερα για τους λογαριασμούς στην Solana"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Πύλη IPFS",
@@ -3575,6 +3617,32 @@
       "body_prefix": "Μπορείτε να κερδίσετε έως και",
       "body_suffix": "ανά έτος δανείζοντας τα {{tokenSymbol}} σας.",
       "start_earning": "Ξεκινήστε να κερδίζετε"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Είμαστε εκτός λειτουργίας για συντήρηση. Θα επανέλθουμε σύντομα!"
+    },
+    "deposit": "Κατάθεση",
+    "approve": "Εγκρίνετε",
+    "approval": "Έγκριση",
+    "confirm": "Επιβεβαίωση",
+    "cancel": "Άκυρο",
+    "transaction_submitted": "Η συναλλαγή υποβλήθηκε",
+    "every_minute": "Κάθε λεπτό",
+    "immediate": "Άμεσα",
+    "apr": "APR",
+    "protocol": "Πρωτόκολλο",
+    "receive_tooltip": "λήψη βοηθητικού κειμένου (tooltip)",
+    "button": "κουμπί",
+    "receive": "Λήψη",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Αναμένεται ετήσια αύξηση της αξίας της κατάθεσής σας, με βάση το ποσοστό ανταμοιβής κατά την τελευταία εβδομάδα.",
+        "part_two": "Σημείωση: Το APR μεταβάλλεται με την πάροδο του χρόνου."
+      },
+      "protocol": "Ένα πρωτόκολλο δανεισμού είναι ένα έξυπνο συμβόλαιο που σας επιτρέπει να δανείζετε tokens για να κερδίζετε ανταμοιβές. Επιτρέπει επίσης στους χρήστες να δανείζονται tokens βάζοντας άλλα tokens ως εγγύηση, έναντι μιας χρέωσης που καταβάλλεται στους δανειστές.",
+      "reward_frequency": "Συχνότητα με την οποία υπολογίζονται οι ανταμοιβές σας.",
+      "withdrawal_time": "Ο χρόνος που χρειάζεται για να αποσύρετε το token σας από το πρωτόκολλο και να το λάβετε πίσω στο πορτοφόλι σας",
+      "receive": "Αυτό το token χρησιμοποιείται για την παρακολούθηση των περιουσιακών στοιχείων και των ανταμοιβών σας. Μην το μεταφέρετε ή το ανταλλάξετε, διαφορετικά δεν θα μπορείτε να κάνετε ανάληψη στα περιουσιακά σας στοιχεία."
     }
   },
   "stake": {
@@ -3709,12 +3777,17 @@
     "basic_functionality": "Βασικές λειτουργίες",
     "manage_networks": "Επιλέξτε το δίκτυό σας",
     "manage_networks_body": "Χρησιμοποιούμε το Infura ως πάροχο κλήσεων απομακρυσμένης διαδικασίας (RPC) για να προσφέρουμε την πιο αξιόπιστη και ιδιωτική πρόσβαση στα δεδομένα του Ethereum που διαθέτουμε. Μπορείτε να επιλέξετε το δικό σας RPC, αλλά να θυμάστε ότι οποιοδήποτε RPC θα λαμβάνει τη διεύθυνση IP και το πορτοφόλι σας στο Ethereum για να πραγματοποιεί συναλλαγές. Διαβάστε το ",
-    "manage_networks_body2": " για να μάθετε περισσότερα σχετικά με τον τρόπο με τον οποίο η Infura χειρίζεται τα δεδομένα.",
+    "manage_networks_body2": " για να μάθετε περισσότερα σχετικά με το πώς η Infura χειρίζεται τα δεδομένα για λογαριασμούς EVM και για λογαριασμούς Solana ",
+    "manage_networks_body3": "κάντε κλικ εδώ.",
     "functionality_body": "Το MetaMask παρέχει βασικές λειτουργίες, όπως λεπτομέρειες για τα tokens και ρυθμίσεις τελών συναλλαγών μέσω υπηρεσιών διαδικτύου. Όταν χρησιμοποιείτε υπηρεσίες διαδικτύου, η διεύθυνση IP σας κοινοποιείται, σε αυτή την περίπτωση με το MetaMask. Αυτό συμβαίνει ακριβώς όπως όταν επισκέπτεστε οποιονδήποτε ιστότοπο. Το MetaMask χρησιμοποιεί αυτά τα δεδομένα προσωρινά και δεν πωλεί ποτέ τα δεδομένα σας. Μπορείτε να χρησιμοποιήσετε ένα VPN ή να απενεργοποιήσετε αυτές τις υπηρεσίες, αλλά αυτό μπορεί να επηρεάσει την εμπειρία σας στο MetaMask. Διαβάστε την ",
     "functionality_body2": " για να μάθετε περισσότερα.",
     "sheet": {
       "title_off": "Απενεργοποίηση βασικών λειτουργιών",
       "description_off": "Αυτό σημαίνει ότι δεν θα βελτιστοποιήσετε πλήρως το χρόνο σας στο MetaMask. Βασικές λειτουργίες (όπως λεπτομέρειες των tokens, βέλτιστες ρυθμίσεις τελών συναλλαγών και άλλα) δεν θα είναι διαθέσιμες σε εσάς.",
+      "description_off2": "Επιπρόσθετα, εάν απενεργοποιήσετε αυτή την επιλογή, δεν θα μπορείτε να χρησιμοποιήσετε όλες τις λειτουργίες",
+      "description_off2_related_features1": "που αφορούν την ασφάλεια και το απόρρητο, τη δημιουργία αντιγράφων ασφαλείας, τον συγχρονισμό",
+      "description_off2_related_features1_and": "και",
+      "description_off2_related_features2": "τις ειδοποιήσεις.",
       "title_on": "Ενεργοποίηση βασικών λειτουργιών",
       "description_on": "Για να βελτιστοποιήσετε το χρόνο σας στο MetaMask, θα πρέπει να ενεργοποιήσετε αυτή τη λειτουργία. Οι βασικές λειτουργίες (όπως οι λεπτομέρειες του token, οι βέλτιστες ρυθμίσεις τελών συναλλαγών, οι ειδοποιήσεις και άλλες) είναι σημαντικές για την εμπειρία στο web3.",
       "checkbox_label": "Το κατανοώ και θέλω να συνεχίσω",
@@ -3796,7 +3869,9 @@
       "primary_type": "Πρωτεύων τύπος",
       "request_from": "Ζητήθηκε από",
       "signing_in_with": "Σύνδεση με",
-      "spender": "Επενδυτής"
+      "spender": "Επενδυτής",
+      "now": "Τώρα",
+      "switching_to": "Αλλαγή σε"
     },
     "title": {
       "signature": "Αίτημα υπογραφής",
@@ -3804,14 +3879,18 @@
       "permit_revoke": "Κατάργηση άδειας",
       "permit_NFTs": "Αίτημα ανάληψης",
       "signature_siwe": "Αίτημα σύνδεσης",
-      "contract_interaction": "Αίτημα συναλλαγής"
+      "contract_interaction": "Αίτημα συναλλαγής",
+      "transfer": "Αίτημα μεταφοράς",
+      "switch_account_type": "Ενημέρωση λογαριασμού"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
       "permit_NFTs": "Αυτός ο ιστότοπος θέλει άδεια για την ανάληψη των NFT σας.",
       "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
       "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού.",
-      "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε."
+      "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε.",
+      "switch_to_smart_account": "Θα αλλάξετε σε έξυπνο λογαριασμό.",
+      "switch_to_standard_account": "Θα επιστρέψετε σε βασικό λογαριασμό (EOA)."
     },
     "request_from": "Ζητήθηκε από",
     "staking_from": "Ποντάρισμα από",
@@ -3823,6 +3902,9 @@
     "qr_get_sign": "Λήψη υπογραφής",
     "qr_scan_text": "Σαρώστε με το πορτοφόλι υλικού σας",
     "sign_with_ledger": "Είσοδος με το Ledger",
+    "smart_account": "Έξυπνος λογαριασμός",
+    "smart_contract": "Έξυπνο συμβόλαιο",
+    "standard_account": "Βασικός λογαριασμός",
     "siwe_message": {
       "url": "Διεύθυνση URL",
       "network": "Δίκτυο",
@@ -3852,11 +3934,31 @@
       "tooltip": "Οι εκτιμώμενες αλλαγές είναι αυτό που μπορεί να συμβεί αν προχωρήσετε σε αυτή τη συναλλαγή. Πρόκειται απλώς για μια πρόβλεψη, δεν αποτελεί εγγύηση.",
       "unavailable": "Μη διαθέσιμο"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Έξυπνος λογαριασμός",
+      "standardAccountLabel": "Βασικός λογαριασμός",
+      "switch": "Αλλαγή",
+      "splashpage": {
+        "accept": "Yes",
+        "betterTransaction": "Faster transactions, lower fees",
+        "betterTransactionDescription": "Save time and money by processing transactions together.",
+        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
+        "payToken": "Pay with any token, any time",
+        "payTokenDescription": "Use the tokens you already have to cover network fees.",
+        "reject": "No",
+        "requestFor": "Request for",
+        "sameAccount": "Same account, smarter features.",
+        "splashTitle": "Use smart account?",
+        "upgradeBannerDescription": "Same address. Smarter features.",
+        "upgradeBannerTitle": "Switch to smart account"
+      }
+    },
     "unlimited": "Απεριόριστα",
     "none": "Τίποτα",
     "advanced_details": "Λεπτομέρειες για προχωρημένους",
     "interacting_with": "Αλληλεπίδραση με",
-    "review": "Review"
+    "review": "Επισκόπηση",
+    "transferRequest": "Αίτημα μεταφοράς"
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
@@ -3905,12 +4007,13 @@
     "bridge_to": "Διασύνδεση προς",
     "title": "Διασύνδεση",
     "submitting_transaction": "Υποβολή",
-    "fetching_quote": "Λήψη προσφοράς"
+    "fetching_quote": "Λήψη προσφοράς",
+    "fee_disclaimer": "Περιλαμβάνει προμήθεια 0,875% MM"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Υπάρχουν διαθέσιμες νέες προσφορές",
+    "description": "Οι τιμές ενημερώνονται κάθε {{refreshRate}} δευτερόλεπτα, οπότε πατήστε \"Ζητήστε νέα προσφορά\" όταν είστε έτοιμοι.",
+    "get_new_quote": "Ζητήστε νέα προσφορά"
   },
   "bridge_transaction_details": {
     "status": "Κατάσταση",
@@ -3926,5 +4029,42 @@
     "transaction_details": "Λεπτομέρειες συναλλαγής",
     "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
     "recipient": "Αποδέκτης"
+  },
+  "backupAndSync": {
+    "title": "Δημιουργία αντιγράφων ασφαλείας και συγχρονισμός",
+    "description": "Δημιουργήστε αντίγραφα ασφαλείας των λογαριασμών και των ρυθμίσεων συγχρονισμού.",
+    "enabling": "Ενεργοποίηση αντιγράφων ασφαλείας και συγχρονισμού",
+    "disabling": "Απενεργοποίηση αντιγράφων ασφαλείας και συγχρονισμού",
+    "enable": {
+      "title": "Ενεργοποίηση αντιγράφων ασφαλείας και συγχρονισμού",
+      "confirmation": "Όταν ενεργοποιείτε τη δημιουργία αντιγράφων ασφαλείας και τον συγχρονισμό, ενεργοποιείτε επίσης βασικές λειτουργίες. Θέλετε να συνεχίσετε;",
+      "description": "Η δημιουργία αντιγράφων ασφαλείας και ο συγχρονισμός μας επιτρέπει να αποθηκεύουμε κρυπτογραφημένα δεδομένα για τις προσαρμοσμένες ρυθμίσεις και τις λειτουργίες σας. Έτσι, η εμπειρία σας με το MetaMask παραμένει ίδια σε όλες τις συσκευές και επαναφέρει τις ρυθμίσεις και τις λειτουργίες εάν χρειαστεί κάποτε να επανεγκαταστήσετε το MetaMask.",
+      "updatePreferences": "Μπορείτε να ενημερώσετε τις προτιμήσεις σας ανά πάσα στιγμή στις",
+      "settingsPath": "Ρυθμίσεις > Δημιουργία αντιγράφων ασφαλείας και συγχρονισμός."
+    },
+    "privacyLink": "Μάθετε πώς προστατεύουμε το απόρρητό σας",
+    "features": {
+      "accounts": "Λογαριασμοί"
+    },
+    "manageWhatYouSync": {
+      "title": "Διαχειριστείτε αυτά που συγχρονίζετε",
+      "description": "Ενεργοποιήστε τον συγχρονισμό μεταξύ των συσκευών σας."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Επιλέξτε ένα περιουσιακό στοιχείο"
+    },
+    "hideSentitiveInfo": {
+      "message": "Απόκρυψη ευαίσθητων πληροφοριών"
+    },
+    "doNotShare": {
+      "message": "Μην το κοινοποιήσετε σε κανέναν"
+    },
+    "revealSensitiveContent": {
+      "message": "Αποκάλυψη ευαίσθητου περιεχομένου"
+    },
+    "show_more": "περισσότερα",
+    "show_less": "λιγότερα"
   }
 }
