@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`UpdateNeeded should render correctly 1`] = `
+exports[`UpdateNeeded should render snapshot correctly 1`] = `
 <View
   style={
     {
@@ -383,6 +383,98 @@ exports[`UpdateNeeded should render correctly 1`] = `
                             }
                           }
                         />
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "flexDirection": "row",
+                              },
+                              {
+                                "marginTop": 0,
+                              },
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View
+                            style={
+                              {
+                                "width": undefined,
+                              }
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "marginHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Image
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 67,
+                                }
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "width": undefined,
+                              }
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <TouchableOpacity
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderRadius": 8,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 24,
+                                  }
+                                }
+                                testID="update-needed-modal-close-button"
+                              >
+                                <SvgMock
+                                  color="#121314"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="Close"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
                         <RCTScrollView
                           collapsable={false}
                           contentContainerStyle={
@@ -400,11 +492,20 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
+                                  "marginBottom": 40,
                                 }
                               }
                             >
                               <Image
+                                resizeMethod="auto"
+                                resizeMode="contain"
                                 source={1}
+                                style={
+                                  {
+                                    "height": 140,
+                                    "width": 140,
+                                  }
+                                }
                               />
                             </View>
                             <Text
@@ -413,16 +514,16 @@ exports[`UpdateNeeded should render correctly 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Bold",
-                                  "fontSize": 32,
+                                  "fontSize": 24,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
-                                  "lineHeight": 40,
+                                  "lineHeight": 32,
                                   "paddingBottom": 16,
                                   "textAlign": "center",
                                 }
                               }
                             >
-                              Updates needed
+                              Get the newest features
                             </Text>
                             <Text
                               accessibilityRole="text"
@@ -438,7 +539,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                                 }
                               }
                             >
-                              We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.
+                              We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.
                             </Text>
                           </View>
                         </RCTScrollView>
@@ -486,42 +587,6 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               }
                             >
                               Update to latest version
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 40,
-                                "justifyContent": "center",
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Remind me later
                             </Text>
                           </TouchableOpacity>
                         </View>
