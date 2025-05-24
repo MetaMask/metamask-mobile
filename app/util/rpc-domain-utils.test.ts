@@ -12,15 +12,12 @@ import {
   resetModuleState,
 } from './rpc-domain-utils';
 
-const rpcDomainModule = {
-  getSafeChainsListFromCacheOnly,
-  getKnownDomains,
-};
-
+// Mock dependencies
 jest.mock('../store/storage-wrapper');
 jest.mock('../core/Engine');
 jest.mock('./Logger');
 
+// Define types for NetworkController mock
 interface NetworkConfiguration {
   rpcUrl?: string;
   rpcEndpoints?: { url: string }[];
@@ -63,7 +60,6 @@ describe('rpc-domain-utils', () => {
         expect(result).toEqual(mockChains);
       });
     });
-
     describe('when cache is empty', () => {
       it('returns an empty array', async () => {
         // Setup
@@ -74,7 +70,6 @@ describe('rpc-domain-utils', () => {
         expect(result).toEqual([]);
       });
     });
-
     describe('when cache contains invalid data', () => {
       it('returns an empty array', async () => {
         // Setup
@@ -98,7 +93,6 @@ describe('rpc-domain-utils', () => {
       expect(result).toEqual([]);
     });
   });
-
   describe('initializeRpcProviderDomains', () => {
     describe('when chains list contains valid RPC URLs', () => {
       it('initializes known domains from the chains list', async () => {
@@ -122,7 +116,6 @@ describe('rpc-domain-utils', () => {
         expect(knownDomains?.has('eth-mainnet.alchemyapi.io')).toBe(true);
       });
     });
-
     describe('when chains list contains invalid RPC URLs', () => {
       it('handles invalid URLs gracefully', async () => {
         // Setup
@@ -145,7 +138,6 @@ describe('rpc-domain-utils', () => {
         expect(knownDomains?.size).toBe(1);
       });
     });
-
     describe('when chains list is empty', () => {
       it('initializes with an empty set of domains', async () => {
         // Setup
@@ -161,36 +153,38 @@ describe('rpc-domain-utils', () => {
     });
     it('initializes with empty set on error', async () => {
       // Mock getSafeChainsListFromCacheOnly to throw
-      const spy = jest.spyOn(rpcDomainModule, 'getSafeChainsListFromCacheOnly');
+      const spy = jest.spyOn(require('./rpc-domain-utils'), 'getSafeChainsListFromCacheOnly');
       spy.mockRejectedValueOnce(new Error('Test error'));
       await initializeRpcProviderDomains();
       expect(getKnownDomains()).toEqual(new Set());
       spy.mockRestore();
     });
   });
-
   describe('getKnownDomains and setKnownDomains', () => {
     describe('when setting known domains', () => {
       it('correctly stores and retrieves the domains', () => {
         // Setup
         const testDomains = new Set(['test.com']);
-        jest.spyOn(rpcDomainModule, 'getKnownDomains').mockReturnValue(testDomains);
+        const spy = jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains');
+        spy.mockReturnValueOnce(testDomains);
         // Exercise
         const result = getKnownDomains();
         // Verify
         expect(result).toBe(testDomains);
+        spy.mockRestore();
       });
       it('handles null domains', () => {
         // Setup
-        jest.spyOn(rpcDomainModule, 'getKnownDomains').mockReturnValue(null);
+        const spy = jest.spyOn(require('./rpc-domain-utils'), 'getKnownDomains');
+        spy.mockReturnValueOnce(null);
         // Exercise
         const result = getKnownDomains();
         // Verify
         expect(result).toBeNull();
+        spy.mockRestore();
       });
     });
   });
-
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
@@ -250,7 +244,6 @@ describe('rpc-domain-utils', () => {
       });
     });
   });
-
   describe('extractRpcDomain', () => {
     describe('when processing URLs', () => {
       beforeEach(async () => {
@@ -276,13 +269,13 @@ describe('rpc-domain-utils', () => {
         // Execute
         const result = extractRpcDomain(':::invalid-url');
         // Verify
-        expect(result).toBe(RpcDomainStatus.Invalid);
+        expect(result).toBe('invalid');
       });
       it('returns Private for unknown domains', () => {
         // Execute
         const result = extractRpcDomain('https://unknown-domain.com');
         // Verify
-        expect(result).toBe(RpcDomainStatus.Private);
+        expect(result).toBe('private');
       });
       it('returns actual domain for Infura URLs', () => {
         // Execute
@@ -302,8 +295,8 @@ describe('rpc-domain-utils', () => {
         const result2 = extractRpcDomain('http://127.0.0.1:8545');
 
         // Verify
-        expect(result1).toBe(RpcDomainStatus.Private);
-        expect(result2).toBe(RpcDomainStatus.Private);
+        expect(result1).toBe('private');
+        expect(result2).toBe('private');
       });
       it('handles URLs without protocol', () => {
         // Execute
@@ -313,7 +306,6 @@ describe('rpc-domain-utils', () => {
       });
     });
   });
-
   describe('getNetworkRpcUrl', () => {
     describe('when retrieving RPC URLs', () => {
       it('returns RPC URL from legacy format', () => {
