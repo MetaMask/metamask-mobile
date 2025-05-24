@@ -28,7 +28,7 @@ const styleSheet = (params: {
         borderWidth: 1,
       }
     : {
-        borderRadius: 8,
+        borderRadius: size === AvatarSize.Xs ? 4 : 8,
       };
   return StyleSheet.create({
     base: Object.assign(
