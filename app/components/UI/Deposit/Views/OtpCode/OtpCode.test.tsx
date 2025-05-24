@@ -22,7 +22,7 @@ let mockUseDepositSdkValues: DepositSdk = {
 };
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdk: () => mockUseDepositSdkValues,
+  useDepositSdkMethod: () => mockUseDepositSdkValues,
 }));
 
 jest.mock('@react-navigation/native', () => {

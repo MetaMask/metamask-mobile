@@ -10,19 +10,19 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkInitialValues: DepositSdk = {
+const mockUseDepositSdkMethodInitialValues: DepositSdk = {
   error: null,
   loading: false,
   sdkMethod: jest.fn().mockResolvedValue('Success'),
   data: null,
 };
 
-let mockUseDepositSdkValues: DepositSdk = {
-  ...mockUseDepositSdkInitialValues,
+let mockUseDepositSdkMethodValues: DepositSdk = {
+  ...mockUseDepositSdkMethodInitialValues,
 };
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdk: () => mockUseDepositSdkValues,
+  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -64,8 +64,8 @@ function render(Component: React.ComponentType) {
 describe('EnterEmail Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
     };
   });
 
@@ -88,8 +88,8 @@ describe('EnterEmail Component', () => {
   });
 
   it('displays loading state', async () => {
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
       loading: true,
     };
     render(EnterEmail);
@@ -108,7 +108,7 @@ describe('EnterEmail Component', () => {
   });
 
   it('displays error message when API call fails', async () => {
-    mockUseDepositSdkValues.error = 'Invalid email address';
+    mockUseDepositSdkMethodValues.error = 'Invalid email address';
     render(EnterEmail);
     expect(screen.getByText('Invalid email address')).toBeTruthy();
   });
