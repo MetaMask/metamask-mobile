@@ -59,10 +59,11 @@ const UrlAutocomplete = forwardRef<
 >(({ onSelect, onDismiss }, ref) => {
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
-  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([
+  const initialFuseResults = useMemo(() => [
     ...browserHistory,
     ...bookmarks,
-  ]);
+  ], [browserHistory, bookmarks]);
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>(initialFuseResults);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchResult[] = useMemo(
@@ -133,15 +134,16 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
+  const reset = useCallback(() => {
+    setFuseResults(initialFuseResults);
+    resetTokenSearch();
+  }, [initialFuseResults, resetTokenSearch]);
+
   const latestSearchTerm = useRef<string | null>(null);
   const search = useCallback((text: string) => {
     latestSearchTerm.current = text;
     if (!text) {
-      setFuseResults([
-        ...browserHistory,
-        ...bookmarks,
-      ]);
-      resetTokenSearch();
+      reset();
       return;
     }
     const fuseSearchResult = fuseRef.current?.search(text);
@@ -153,7 +155,7 @@ const UrlAutocomplete = forwardRef<
 
     searchTokens(text);
 
-  }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
+  }, [searchTokens, reset]);
 
   /**
    * Debounce the search function
@@ -167,9 +169,7 @@ const UrlAutocomplete = forwardRef<
     // Cancel the search
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setFuseResults([]);
-    resetTokenSearch();
-  }, [debouncedSearch, resetTokenSearch]);
+  }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -181,6 +181,7 @@ const UrlAutocomplete = forwardRef<
     search: debouncedSearch,
     hide,
     show,
+    reset,
   }));
 
   useEffect(() => {

@@ -104,6 +104,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
 
   const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
+    urlBarRef.current?.setNativeProps({ text: '' });
   }, [hideAutocomplete]);
 
   const onFocusUrlBar = useCallback(() => {
