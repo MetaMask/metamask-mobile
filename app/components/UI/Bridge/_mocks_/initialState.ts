@@ -4,6 +4,12 @@ import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
+// If we want to mock things by importing initialState.ts
+// The import needs to be at the top of the file
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '1.0.0',
+}));
+
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
 
@@ -37,6 +43,7 @@ export const initialState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           bridgeConfig: {
+            minimumVersion: '0.0.0',
             maxRefreshCount: 5,
             refreshRate: 30000,
             support: true,

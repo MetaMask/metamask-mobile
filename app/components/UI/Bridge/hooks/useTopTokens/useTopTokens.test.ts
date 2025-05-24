@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTopTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
@@ -8,7 +9,6 @@ import {
   fetchBridgeTokens,
 } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
 
 // Mock dependencies

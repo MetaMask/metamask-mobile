@@ -12,6 +12,7 @@ import {
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
+  DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -21,6 +22,14 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import compareVersions from 'compare-versions';
+import { getVersion } from 'react-native-device-info';
+
+const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined) => {
+  if (!minRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
+};
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -172,12 +181,28 @@ export const selectAllBridgeableNetworks = createSelector(
 
 export const selectBridgeFeatureFlags = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    selectBridgeFeatureFlagsBase({
+  (remoteFeatureFlags) => {
+    const bridgeConfig = remoteFeatureFlags.bridgeConfigV2;
+
+    const featureFlags = selectBridgeFeatureFlagsBase({
       remoteFeatureFlags: {
-        bridgeConfig: remoteFeatureFlags.bridgeConfig,
+        bridgeConfig,
       },
-    }),
+    });
+
+    if (
+      hasMinimumRequiredVersion(featureFlags.minimumVersion) &&
+      process.env.BRIDGE_ENABLED === 'true'
+    ) {
+      return featureFlags;
+    }
+
+    return selectBridgeFeatureFlagsBase({
+      remoteFeatureFlags: {
+        bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
+      },
+    });
+  },
 );
 
 export const selectIsBridgeEnabledSource = createSelector(
