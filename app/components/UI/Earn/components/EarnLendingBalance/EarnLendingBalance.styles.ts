@@ -28,6 +28,9 @@ const styleSheet = () =>
       borderRadius: 16,
       overflow: 'hidden',
     },
+    tempAddTokenContent: {
+      gap: 8,
+    },
   });
 
 export default styleSheet;

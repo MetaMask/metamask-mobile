@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -29,6 +29,15 @@ import { Hex } from '@metamask/utils';
 import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
+import {
+  isSupportedLendingReceiptTokenByChainId,
+  isSupportedLendingTokenByChainId,
+  LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP,
+  RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP,
+  TOKEN_ADDRESSES,
+} from '../../utils';
+import { isEmpty } from 'lodash';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -60,7 +69,102 @@ const EarnLendingBalance = ({
 
   const navigation = useNavigation();
 
-  const { receiptToken } = useLendingTokenPair(asset);
+  const { openTooltipModal } = useTooltipModal();
+
+  const { lendingToken, receiptToken } = useLendingTokenPair(asset);
+
+  const onNavigateToTooltipModal = useCallback(() => {
+    let tokenToAddType = '';
+    let tokenToAddAddress = '';
+
+    if (
+      isSupportedLendingTokenByChainId(asset.symbol, asset.chainId as string)
+    ) {
+      tokenToAddType = 'receipt';
+      const matchingReceiptSymbol =
+        LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP?.[lendingToken?.chainId as string]?.[
+          lendingToken?.symbol as string
+        ];
+      tokenToAddAddress =
+        TOKEN_ADDRESSES?.[lendingToken?.chainId as string]?.[
+          matchingReceiptSymbol
+        ];
+    } else if (
+      isSupportedLendingReceiptTokenByChainId(
+        asset.symbol,
+        asset.chainId as string,
+      )
+    ) {
+      tokenToAddType = 'lending';
+      const matchingLendingSymbol =
+        RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP?.[receiptToken?.chainId as string]?.[
+          receiptToken?.symbol as string
+        ];
+      tokenToAddAddress =
+        TOKEN_ADDRESSES?.[receiptToken?.chainId as string]?.[
+          matchingLendingSymbol as string
+        ];
+    } else {
+      return;
+    }
+
+    openTooltipModal(
+      'Potential Token Match Found',
+      <View style={styles.tempAddTokenContent}>
+        <View>
+          <Text selectable>
+            {`Found matching ${tokenToAddType} token with address: `}
+            <Text variant={TextVariant.BodyMDBold} selectable>
+              {tokenToAddAddress}
+            </Text>
+            <Text>{` (You can highlight and copy this address)`}</Text>
+          </Text>
+        </View>
+        <Text>{`For the lending flow to work properly, you'll need to add this token`}</Text>
+        <View>
+          <Text
+            variant={TextVariant.HeadingMD}
+          >{`How to add custom token?`}</Text>
+          <Text>{`1. From the token list (home screen), click the "+" button in the top-right.`}</Text>
+          <Text>{`2. On the "import tokens" screen, click the "Custom token" tab.`}</Text>
+          <Text>{`3. Select the network that this token is on.`}</Text>
+          <Text>{`4. Paste the token address mentioned above.`}</Text>
+        </View>
+      </View>,
+    );
+  }, [
+    asset.chainId,
+    asset.symbol,
+    lendingToken?.chainId,
+    lendingToken?.symbol,
+    openTooltipModal,
+    receiptToken?.chainId,
+    receiptToken?.symbol,
+    styles.tempAddTokenContent,
+  ]);
+
+  useEffect(() => {
+    const assetType = isSupportedLendingTokenByChainId(
+      asset.symbol,
+      asset.chainId as string,
+    )
+      ? 'LENDING'
+      : 'RECEIPT';
+
+    if (assetType === 'LENDING' && isEmpty(receiptToken)) {
+      onNavigateToTooltipModal();
+    }
+
+    if (assetType === 'RECEIPT' && isEmpty(lendingToken)) {
+      onNavigateToTooltipModal();
+    }
+  }, [
+    asset.chainId,
+    asset.symbol,
+    lendingToken,
+    onNavigateToTooltipModal,
+    receiptToken,
+  ]);
 
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {

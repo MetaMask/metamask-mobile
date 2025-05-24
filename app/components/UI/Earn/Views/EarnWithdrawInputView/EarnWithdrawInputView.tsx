@@ -117,8 +117,9 @@ const EarnWithdrawInputView = () => {
       !lendingToken?.address ||
       !receiptToken?.address ||
       !receiptToken?.chainId
-    )
+    ) {
       return;
+    }
 
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
@@ -228,11 +229,6 @@ const EarnWithdrawInputView = () => {
         amountTokenMinimalUnit.toString(),
         lendingToken as EarnTokenDetails,
       );
-
-    console.log(
-      'simulatedHealthFactorAfterWithdrawal: ',
-      simulatedHealthFactorAfterWithdrawal,
-    );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
 
