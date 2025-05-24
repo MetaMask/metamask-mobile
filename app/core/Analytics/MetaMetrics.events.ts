@@ -428,6 +428,11 @@ enum EVENT_NAME {
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
 
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_SITE_OPENED = 'Token Search and Discovery Site Opened',
+  TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED = 'Token Search and Discovery Token Details Opened',
+  TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED = 'Token Search and Discovery Token Swap Opened',
+
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
   RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
@@ -1025,6 +1030,17 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // Token Search and Discovery
+  TOKEN_SEARCH_DISCOVERY_SITE_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_SITE_OPENED,
+  ),
+  TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED,
+  ),
+  TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_SEARCH_DISCOVERY_TOKEN_SWAP_OPENED,
+  ),
 
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),

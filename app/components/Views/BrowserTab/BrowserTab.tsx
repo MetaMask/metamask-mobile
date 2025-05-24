@@ -114,6 +114,7 @@ import UrlAutocomplete, {
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
   getPhishingTestResult,
@@ -168,6 +169,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   // Track if webview is loaded for the first time
   const isWebViewReadyToLoad = useRef(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);
+  const urlBarText = useRef('');
   const autocompleteRef = useRef<UrlAutocompleteRef>(null);
   const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
     async () => {
@@ -1233,15 +1235,38 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       urlBarRef.current?.hide();
 
       if (item.category === 'tokens') {
+        let properties: JsonMap;
+        if (urlBarText.current.startsWith('0x')) {
+          properties = {
+            token_address: urlBarText.current,
+          };
+        } else {
+          properties = {
+            token_symbol: item.symbol,
+          };
+        }
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_TOKEN_DETAILS_OPENED)
+          .addProperties(properties)
+          .build()
+        );
+
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
           address: item.address,
         });
       } else {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_SEARCH_DISCOVERY_SITE_OPENED)
+          .addProperties({
+            url: item.url,
+          })
+          .build()
+        );
         onSubmitEditing(item.url);
       }
     },
-    [onSubmitEditing, navigation],
+    [onSubmitEditing, navigation, trackEvent, createEventBuilder]
   );
 
   /**
@@ -1280,6 +1305,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onChangeUrlBar = useCallback((text: string) => {
     // Search the autocomplete results
     autocompleteRef.current?.search(text);
+    urlBarText.current = text;
   }, []);
 
   const handleWebviewNavigationChange = useCallback(
