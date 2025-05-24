@@ -22,6 +22,9 @@ const MOCK_STORE_STATE = {
       AuthenticationController: {
         isSignedIn: true,
       },
+      KeyringController: {
+        keyrings: [],
+      },
     },
   },
   settings: {

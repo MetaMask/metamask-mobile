@@ -29,6 +29,7 @@ const arrangeMockState = (
     backgroundState: {
       KeyringController: {
         isUnlocked: stateOverrides.isUnlocked,
+        keyrings: [],
       },
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
