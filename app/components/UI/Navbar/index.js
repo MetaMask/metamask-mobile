@@ -358,9 +358,8 @@ export function getPaymentRequestOptionsTitle(
   const goBack = route.params?.dispatch;
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -370,11 +369,18 @@ export function getPaymentRequestOptionsTitle(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    headerCloseButton: {
+      marginRight: 16,
+    },
   });
 
   return {
-    title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitleAlign: 'center',
+    headerTitle: () => (
+      <View>
+        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
+      </View>
+    ),
     headerLeft: () =>
       goBack ? (
         // eslint-disable-next-line react/jsx-no-bind
@@ -393,17 +399,13 @@ export function getPaymentRequestOptionsTitle(
         <View />
       ),
     headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
-        style={styles.closeButton}
-      >
-        <IonicIcon
-          name={'close'}
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
+        style={innerStyles.headerCloseButton}
+        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
