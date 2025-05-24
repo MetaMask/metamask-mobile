@@ -32,5 +32,8 @@ export default (params: { theme: Theme }) => {
       width: 24,
       height: 24,
     },
+    tokenBalance: {
+      textAlign: 'right',
+    },
   });
 };

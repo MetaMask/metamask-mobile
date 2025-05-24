@@ -119,7 +119,11 @@ const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
         {`${earnToken.apr}% APR`}
       </Text>
       {earnToken.balanceFormatted !== undefined && (
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          style={styles.tokenBalance}
+        >
           {earnToken.balanceFormatted}
         </Text>
       )}

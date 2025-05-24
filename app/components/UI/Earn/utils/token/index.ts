@@ -19,9 +19,9 @@ const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 // Temporary: Will be replaced with supported markets from API request
 export const SUPPORTED_LENDING_RECEIPT_TOKENS = new Set([
   // Ethereum mainnet
-  'ADAI',
+  'aEthDAI',
   'AETHUSDC',
-  'AUSDT',
+  'aEthUSDT',
   // Base
   'aBasUSDC',
   // Linea
@@ -39,7 +39,7 @@ export const TOKEN_ADDRESSES: Record<string, Record<string, string>> = {
     DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    aEthDai: '0x018008bfb33d285247A21d44E50697654f754e63',
+    aEthDAI: '0x018008bfb33d285247A21d44E50697654f754e63',
     AETHUSDC: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
     aEthUSDT: '0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a',
   },
@@ -72,9 +72,9 @@ export const LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP: Record<
   Record<string, string>
 > = {
   [CHAIN_IDS.MAINNET]: {
-    DAI: 'ADAI',
+    DAI: 'aEthDAI',
     USDC: 'AETHUSDC',
-    USDT: 'AUSDT',
+    USDT: 'aEthUSDT',
   },
   [CHAIN_IDS.BASE]: {
     USDC: 'aBasUSDC',
@@ -95,9 +95,9 @@ export const RECEIPT_TOKEN_TO_LENDING_TOKEN_MAP: Record<
   Record<string, string>
 > = {
   [CHAIN_IDS.MAINNET]: {
-    ADAI: 'DAI',
+    aEthDAI: 'DAI',
     AETHUSDC: 'USDC',
-    AUSDT: 'USDT',
+    aEthUSDT: 'USDT',
   },
   [CHAIN_IDS.BASE]: {
     aBasUSDC: 'USDC',
