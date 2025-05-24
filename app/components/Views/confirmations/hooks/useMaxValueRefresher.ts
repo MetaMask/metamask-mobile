@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-
 import { useSelector } from 'react-redux';
-import { add0x } from '@metamask/utils';
+import { add0x, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import {
   TransactionType,
@@ -36,7 +35,7 @@ export function useMaxValueRefresher() {
     }
 
     const balance = new BigNumber(balanceWeiInHex);
-    const fee = new BigNumber(preciseNativeFeeInHex);
+    const fee = new BigNumber(preciseNativeFeeInHex as Hex);
     const maxValue = balance.minus(fee);
     const maxValueHex = add0x(maxValue.toString(16));
     const shouldUpdate = maxValueHex !== txParams.value;

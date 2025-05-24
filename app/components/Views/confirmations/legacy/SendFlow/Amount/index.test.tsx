@@ -1267,7 +1267,7 @@ describe('Amount', () => {
         data: '0x',
       }),
       {
-        origin: 'Metamask Mobile',
+        origin: 'metamask',
         networkClientId: 'sepolia',
       },
     );
