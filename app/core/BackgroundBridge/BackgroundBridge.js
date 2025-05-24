@@ -714,7 +714,7 @@ export class BackgroundBridge extends EventEmitter {
 
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger.controllerMessenger,
+          Engine.controllerMessenger,
           'MultichainRouter:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (params) =>
