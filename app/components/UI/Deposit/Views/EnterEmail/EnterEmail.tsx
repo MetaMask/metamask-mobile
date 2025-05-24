@@ -17,23 +17,11 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
+import { useDepositSdk } from '../../hooks/useDepositSdk';
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
 );
-
-// Mock async SDK functions
-// TODO: Replace with actual SDK functions to submit email and code to Transak
-const submitEmail = (email: string): Promise<void> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email.includes('@')) {
-        resolve();
-      } else {
-        reject(new Error('Invalid email address'));
-      }
-    }, 2000);
-  });
 
 const EnterEmail = () => {
   const navigation = useNavigation();
@@ -47,24 +35,16 @@ const EnterEmail = () => {
     );
   }, [navigation, theme]);
 
+  const { error, sdkMethod: submitEmail, loading } = useDepositSdk();
+
   const emailInputRef = useRef<TextInput>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
     try {
       await submitEmail(value);
       navigation.navigate(...createOtpCodeNavDetails());
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error('Error submitting email');
     }
   };
 

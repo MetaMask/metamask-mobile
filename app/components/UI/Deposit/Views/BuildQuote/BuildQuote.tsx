@@ -6,7 +6,7 @@ import Row from '../../../Ramp/components/Row';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { getDepositNavbarOptions } from 'app/components/UI/Navbar';
+import { getDepositNavbarOptions } from '../../../Navbar';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 

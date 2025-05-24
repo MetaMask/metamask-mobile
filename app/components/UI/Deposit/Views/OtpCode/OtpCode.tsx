@@ -16,23 +16,11 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
+import { useDepositSdk } from '../../hooks/useDepositSdk';
 
 export const createIdVerifyNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ID_VERIFY,
 );
-
-// Mock async SDK functions
-// TODO: Replace with actual SDK functions to submit email and code to Transak
-const submitCode = (code: string): Promise<void> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (code.length === 6) {
-        resolve();
-      } else {
-        reject(new Error('Invalid code'));
-      }
-    }, 2000);
-  });
 
 const CELL_COUNT = 6;
 
@@ -42,7 +30,7 @@ const OtpCode = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Enter email' }, theme),
+      getDepositNavbarOptions(navigation, { title: 'Enter OTP Code' }, theme),
     );
   }, [navigation, theme]);
 
@@ -53,27 +41,19 @@ const OtpCode = () => {
     value,
     setValue,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { error, sdkMethod: submitCode, loading } = useDepositSdk();
 
   useEffect(() => {
     ref.current?.focus();
   }, [ref]);
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
     try {
       await submitCode(value);
       navigation.navigate(...createIdVerifyNavDetails());
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error('Error submitting OTP code');
     }
   };
 
@@ -117,6 +97,7 @@ const OtpCode = () => {
             onPress={handleSubmit}
             accessibilityRole="button"
             accessible
+            disabled={loading}
           >
             {loading
               ? strings('deposit.email_auth.code.loading')
