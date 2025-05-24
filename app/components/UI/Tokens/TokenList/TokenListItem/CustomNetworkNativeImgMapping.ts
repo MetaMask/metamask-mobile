@@ -21,4 +21,5 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: ethImg,
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: XrpLevmImg,
+  [NETWORK_CHAIN_ID.XRPLEVM]: XrpLevmImg,
 };
