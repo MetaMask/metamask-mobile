@@ -187,7 +187,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const backgroundBridgeRef = useRef<{
     url: string;
     hostname: string;
-    sendNotification: (payload: unknown) => void;
+    sendNotificationEip1193: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
   }>();
@@ -248,7 +248,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const notifyAllConnections = useCallback((payload: unknown) => {
-    backgroundBridgeRef.current?.sendNotification(payload);
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
   }, []);
 
   /**

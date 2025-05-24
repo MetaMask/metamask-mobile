@@ -30,6 +30,7 @@ export const mockedEngine = {
   context: {
     AccountsController: {
       listAccounts: jest.fn(),
+      listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
       getAccountByAddress: jest.fn(),
     },
