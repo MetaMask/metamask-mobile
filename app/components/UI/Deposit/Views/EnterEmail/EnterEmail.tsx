@@ -36,7 +36,11 @@ const EnterEmail = () => {
     );
   }, [navigation, theme]);
 
-  const { error, sdkMethod: submitEmail, loading } = useDepositSdkMethod();
+  const {
+    error,
+    sdkMethod: submitEmail,
+    loading,
+  } = useDepositSdkMethod('sendUserOtp', [value]);
 
   const emailInputRef = useRef<TextInput>(null);
 

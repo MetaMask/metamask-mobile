@@ -51,18 +51,25 @@ const OtpCode = () => {
     setValue,
   });
 
-  const { error, sdkMethod: submitCode, loading } = useDepositSdkMethod();
+  const {
+    data,
+    error,
+    sdkMethod: submitCode,
+    loading,
+    // TODO: the email state must be hoisted so it can be accessed here
+  } = useDepositSdkMethod('verifyUserOtp', [
+    value,
+    'george.weiler@consensys.net',
+  ]);
 
   useEffect(() => {
     ref.current?.focus();
   }, [ref]);
 
   const handleSubmit = async () => {
-    try {
-      await submitCode(value);
+    await submitCode();
+    if (data) {
       navigation.navigate(...createIdVerifyNavDetails());
-    } catch (e) {
-      console.error('Error submitting OTP code');
     }
   };
 
