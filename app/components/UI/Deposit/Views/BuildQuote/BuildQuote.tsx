@@ -3,16 +3,11 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../StyledButton';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import Row from '../../../Ramp/components/Row';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-
-export const createEnterEmailNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_EMAIL,
-);
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
 const BuildQuote = () => {
   const navigation = useNavigation();

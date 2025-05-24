@@ -18,9 +18,10 @@ import TextField, {
 import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdk } from '../../hooks/useDepositSdk';
+import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 
-export const createOtpCodeNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.OTP_CODE,
+export const createEnterEmailNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ENTER_EMAIL,
 );
 
 const EnterEmail = () => {

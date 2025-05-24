@@ -18,8 +18,13 @@ import {
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdk } from '../../hooks/useDepositSdk';
 
+// TODO: Move this to the ID Verify component when it is implemented
 export const createIdVerifyNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ID_VERIFY,
+);
+
+export const createOtpCodeNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.OTP_CODE,
 );
 
 const CELL_COUNT = 6;
@@ -30,7 +35,11 @@ const OtpCode = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Enter OTP Code' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: 'Enter six-digit code' },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 

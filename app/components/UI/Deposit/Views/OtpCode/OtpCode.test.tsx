@@ -41,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter OTP Code',
+    title: 'Enter six-digit code',
   }),
 }));
 
@@ -80,7 +80,7 @@ describe('OtpCode Component', () => {
     render(OtpCode);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter OTP Code',
+        title: 'Enter six-digit code',
       }),
     );
   });

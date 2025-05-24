@@ -21,7 +21,6 @@ export const useDepositSdk = (): DepositSdk => {
   // Mock async SDK functions
   // TODO: Replace with actual SDK functions to submit email and code to Transak
   const sdkMethod = (value: string) =>
-    // simulate an SDK method that returns data and may throw an error and has loading states
     new Promise((resolve) => {
       setLoading(true);
       setTimeout(() => {
