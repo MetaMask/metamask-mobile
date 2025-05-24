@@ -15,6 +15,7 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
+import { getDepositNavbarOptions } from '../../../Navbar';
 
 export const createIdVerifyNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ID_VERIFY,
@@ -37,10 +38,13 @@ const CELL_COUNT = 6;
 
 const OtpCode = () => {
   const navigation = useNavigation();
-  const {
-    styles,
-    theme: { colors },
-  } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(navigation, { title: 'Enter email' }, theme),
+    );
+  }, [navigation, theme]);
 
   const [value, setValue] = useState('');
 
@@ -101,7 +105,7 @@ const OtpCode = () => {
           />
 
           {error && (
-            <Text style={{ color: colors.error.default }}>{error}</Text>
+            <Text style={{ color: theme.colors.error.default }}>{error}</Text>
           )}
         </ScreenLayout.Content>
       </ScreenLayout.Body>

@@ -49,40 +49,19 @@ const DepositRoutes = () => {
         initialRouteName={Routes.DEPOSIT.ROOT}
         screenOptions={headerStyles}
       >
-        <Stack.Screen
-          name={Routes.DEPOSIT.ROOT}
-          component={Root}
-          options={{
-            title: 'Deposit',
-          }}
-        />
+        <Stack.Screen name={Routes.DEPOSIT.ROOT} component={Root} />
         <Stack.Screen
           name={Routes.DEPOSIT.BUILD_QUOTE}
           component={BuildQuote}
-          options={{
-            title: 'Build Quote',
-          }}
         />
         <Stack.Screen
           name={Routes.DEPOSIT.ENTER_EMAIL}
           component={EnterEmail}
-          options={{
-            title: 'Enter your email',
-          }}
         />
-        <Stack.Screen
-          name={Routes.DEPOSIT.OTP_CODE}
-          component={OtpCode}
-          options={{
-            title: 'Enter 6 digit code',
-          }}
-        />
+        <Stack.Screen name={Routes.DEPOSIT.OTP_CODE} component={OtpCode} />
         <Stack.Screen
           name={Routes.DEPOSIT.ID_VERIFY}
           component={VerifyIdentity}
-          options={{
-            title: 'Verify your identity',
-          }}
         />
       </Stack.Navigator>
     </DepositSDKProvider>

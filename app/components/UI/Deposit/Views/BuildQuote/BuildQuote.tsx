@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import Text from '../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../StyledButton';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
@@ -6,6 +6,9 @@ import Row from '../../../Ramp/components/Row';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { getDepositNavbarOptions } from 'app/components/UI/Navbar';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './BuildQuote.styles';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_EMAIL,
@@ -13,6 +16,13 @@ export const createEnterEmailNavDetails = createNavigationDetails(
 
 const BuildQuote = () => {
   const navigation = useNavigation();
+  const { theme } = useStyles(styleSheet, {});
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
+    );
+  }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(() => {
     navigation.navigate(...createEnterEmailNavDetails());

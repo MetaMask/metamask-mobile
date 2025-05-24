@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import Text, {
   TextVariant,
@@ -16,6 +16,7 @@ import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
 import Row from '../../..//Ramp/components/Row';
+import { getDepositNavbarOptions } from '../../../Navbar';
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
@@ -38,10 +39,14 @@ const EnterEmail = () => {
   const navigation = useNavigation();
   const [value, setValue] = useState('');
 
-  const {
-    styles,
-    theme: { colors, themeAppearance },
-  } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(navigation, { title: 'Enter email' }, theme),
+    );
+  }, [navigation, theme]);
+
   const emailInputRef = useRef<TextInput>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,16 +85,16 @@ const EnterEmail = () => {
               placeholder={strings(
                 'deposit.email_auth.email.input_placeholder',
               )}
-              placeholderTextColor={colors.text.muted}
+              placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
               autoCapitalize="none"
               ref={emailInputRef}
               onChangeText={setValue}
               value={value}
-              keyboardAppearance={themeAppearance}
+              keyboardAppearance={theme.themeAppearance}
             />
             {error && (
-              <Text style={{ color: colors.error.default }}>{error}</Text>
+              <Text style={{ color: theme.colors.error.default }}>{error}</Text>
             )}
           </View>
         </ScreenLayout.Content>
