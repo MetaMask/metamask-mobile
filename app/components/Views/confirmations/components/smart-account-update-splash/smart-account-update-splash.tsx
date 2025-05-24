@@ -8,16 +8,15 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
+import { useTheme } from '../../../../../util/theme';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -39,17 +38,24 @@ const ListItem = ({
   title: string;
   description: ReactElement;
   styles: ReturnType<typeof styleSheet>;
-}) => (
-  <View style={styles.listWrapper}>
-    <Icon name={iconName} color={IconColor.Primary} />
-    <View style={styles.textSection}>
-      <Text variant={TextVariant.BodyMDBold}>{title}</Text>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-        {description}
-      </Text>
+}) => {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.listWrapper}>
+      <AvatarIcon
+        name={iconName}
+        iconColor={colors.primary.default}
+        backgroundColor={colors.primary.muted}
+      />
+      <View style={styles.textSection}>
+        <Text variant={TextVariant.BodyMDBold}>{title}</Text>
+        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          {description}
+        </Text>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 export const SmartAccountUpdateSplash = () => {
   const [acknowledged, setAcknowledged] = useState(false);
@@ -89,7 +95,7 @@ export const SmartAccountUpdateSplash = () => {
         />
       </View>
       <ListItem
-        iconName={IconName.SpeedometerFilled}
+        iconName={IconName.Speedometer}
         title={strings(
           'confirm.7702_functionality.splashpage.betterTransaction',
         )}
@@ -99,7 +105,7 @@ export const SmartAccountUpdateSplash = () => {
         styles={styles}
       />
       <ListItem
-        iconName={IconName.PetrolPump}
+        iconName={IconName.Gas}
         title={strings('confirm.7702_functionality.splashpage.payToken')}
         description={strings(
           'confirm.7702_functionality.splashpage.payTokenDescription',
@@ -107,7 +113,7 @@ export const SmartAccountUpdateSplash = () => {
         styles={styles}
       />
       <ListItem
-        iconName={IconName.SparkleFilled}
+        iconName={IconName.Sparkle}
         title={strings('confirm.7702_functionality.splashpage.sameAccount')}
         description={
           <>
