@@ -16,7 +16,7 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
-import { useDepositSdk } from '../../hooks/useDepositSdk';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 
 // TODO: Move this to the ID Verify component when it is implemented
 export const createIdVerifyNavDetails = createNavigationDetails(
@@ -51,7 +51,7 @@ const OtpCode = () => {
     setValue,
   });
 
-  const { error, sdkMethod: submitCode, loading } = useDepositSdk();
+  const { error, sdkMethod: submitCode, loading } = useDepositSdkMethod();
 
   useEffect(() => {
     ref.current?.focus();

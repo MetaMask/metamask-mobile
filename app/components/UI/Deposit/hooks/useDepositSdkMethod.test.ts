@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useDepositSdk } from './useDepositSdk';
+import { useDepositSdkMethod } from './useDepositSdkMethod';
 
 describe('useDepositSdk', () => {
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('useDepositSdk', () => {
   });
 
   it('should initialize with default values', () => {
-    const { result } = renderHook(() => useDepositSdk());
+    const { result } = renderHook(() => useDepositSdkMethod());
 
     expect(result.current.data).toBeNull();
     expect(result.current.loading).toBe(false);
@@ -20,7 +20,7 @@ describe('useDepositSdk', () => {
   });
 
   it('should set loading to true when sdkMethod is called', () => {
-    const { result } = renderHook(() => useDepositSdk());
+    const { result } = renderHook(() => useDepositSdkMethod());
 
     act(() => {
       result.current.sdkMethod('test value');
@@ -30,7 +30,7 @@ describe('useDepositSdk', () => {
   });
 
   it('should set data and reset loading when sdkMethod resolves', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useDepositSdk());
+    const { result, waitForNextUpdate } = renderHook(() => useDepositSdkMethod());
 
     act(() => {
       result.current.sdkMethod('test value');
