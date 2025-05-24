@@ -679,7 +679,6 @@ export function getOnboardingNavbarOptions(
           </View>
         )
       : null,
-    // headerBackTitle: strings('navigation.back'),
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
@@ -694,12 +693,12 @@ export function getOnboardingNavbarOptions(
 export function getTransparentOnboardingNavbarOptions(
   themeColors,
   showLogo = true,
-  color,
+  headerBgColor,
   darkColor = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: color || themeColors.background.default,
+      backgroundColor: headerBgColor || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -807,10 +806,13 @@ export function getOnboardingCarouselNavbarOptions(
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
  */
-export function getTransparentBackOnboardingNavbarOptions(themeColors, color) {
+export function getTransparentBackOnboardingNavbarOptions(
+  themeColors,
+  headerBgColor,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: color || themeColors.background.default,
+      backgroundColor: headerBgColor || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
