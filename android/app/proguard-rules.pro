@@ -52,7 +52,6 @@
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
 
--dontwarn com.facebook.react.bridge.JavaOnlyMap$Companion
 
 # Ignore missing Java desktop classes referenced by JNA
 -dontwarn java.awt.**
