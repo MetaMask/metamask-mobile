@@ -1259,7 +1259,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Hide the autocomplete results
    */
   const hideAutocomplete = useCallback(
-    () => autocompleteRef.current?.hide(),
+    () => {
+      autocompleteRef.current?.hide();
+      autocompleteRef.current?.reset();
+    },
     [],
   );
 

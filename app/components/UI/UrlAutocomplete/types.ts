@@ -42,6 +42,10 @@ export type UrlAutocompleteRef = {
    * Show the autocomplete results
    */
   show: () => void;
+  /**
+   * Reset the autocomplete results
+   */
+  reset: () => void;
 };
 
 /**

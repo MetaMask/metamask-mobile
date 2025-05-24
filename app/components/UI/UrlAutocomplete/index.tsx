@@ -33,7 +33,7 @@ import { strings } from '../../../../locales/i18n';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
-import useTokenSearchDiscovery from '../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery';
+import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearchDiscovery/useTokenSearch';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
@@ -57,7 +57,13 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
+  const browserHistory = useSelector(selectBrowserHistoryWithType);
+  const bookmarks = useSelector(selectBrowserBookmarksWithType);
+  const initialFuseResults = useMemo(() => [
+    ...browserHistory,
+    ...bookmarks,
+  ], [browserHistory, bookmarks]);
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>(initialFuseResults);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchResult[] = useMemo(
@@ -117,8 +123,6 @@ const UrlAutocomplete = forwardRef<
     })
   ), [fuseResults, tokenResults, isTokenSearchLoading]);
 
-  const browserHistory = useSelector(selectBrowserHistoryWithType);
-  const bookmarks = useSelector(selectBrowserBookmarksWithType);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -130,15 +134,16 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
+  const reset = useCallback(() => {
+    setFuseResults(initialFuseResults);
+    resetTokenSearch();
+  }, [initialFuseResults, resetTokenSearch]);
+
   const latestSearchTerm = useRef<string | null>(null);
   const search = useCallback((text: string) => {
     latestSearchTerm.current = text;
     if (!text) {
-      setFuseResults([
-        ...browserHistory,
-        ...bookmarks,
-      ]);
-      resetTokenSearch();
+      reset();
       return;
     }
     const fuseSearchResult = fuseRef.current?.search(text);
@@ -150,7 +155,7 @@ const UrlAutocomplete = forwardRef<
 
     searchTokens(text);
 
-  }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
+  }, [searchTokens, reset]);
 
   /**
    * Debounce the search function
@@ -164,9 +169,7 @@ const UrlAutocomplete = forwardRef<
     // Cancel the search
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setFuseResults([]);
-    resetTokenSearch();
-  }, [debouncedSearch, resetTokenSearch]);
+  }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -178,6 +181,7 @@ const UrlAutocomplete = forwardRef<
     search: debouncedSearch,
     hide,
     show,
+    reset,
   }));
 
   useEffect(() => {
@@ -217,9 +221,7 @@ const UrlAutocomplete = forwardRef<
     } catch (error) {
       return;
     }
-    hide();
-    onDismiss();
-  }, [hide, onDismiss, goToSwapsHook]);
+  }, [goToSwapsHook]);
 
   const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
     <View style={styles.categoryWrapper}>
@@ -234,7 +236,9 @@ const UrlAutocomplete = forwardRef<
     <Result
       result={item}
       onPress={() => {
-        hide();
+        if (item.category !== UrlAutocompleteCategory.Tokens) {
+            hide();
+        }
         onSelect(item);
       }}
       onSwapPress={goToSwaps}
