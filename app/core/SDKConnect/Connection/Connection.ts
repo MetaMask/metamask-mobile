@@ -197,6 +197,7 @@ export class Connection extends EventEmitter2 {
     }
 
     this.remote = new RemoteCommunication({
+      anonId: '', // Note: this can be safely set to an empty string as this is coming from the dApp
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       relayPersistence,
       protocolVersion: this.protocolVersion,
