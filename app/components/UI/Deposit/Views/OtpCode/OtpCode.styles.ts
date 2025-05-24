@@ -1,25 +1,10 @@
 import { Theme } from '../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
-import Device from '../../../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    subtitle: {
-      marginBottom: 20,
-    },
-    field: {
-      flex: 1,
-      marginBottom: Device.isAndroid() ? 0 : 10,
-      flexDirection: 'column',
-    },
-    label: {
-      marginBottom: 6,
-    },
-    ctaWrapper: {
-      marginTop: 20,
-    },
     codeFieldRoot: {
       marginTop: 40,
       marginLeft: 'auto',
