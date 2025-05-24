@@ -8351,7 +8351,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -8992,7 +8992,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -9633,7 +9633,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
