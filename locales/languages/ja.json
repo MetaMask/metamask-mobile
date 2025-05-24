@@ -24,6 +24,11 @@
     "inline_alert_label": "アラート",
     "review_alerts": "アラートを確認",
     "review_alert": "アラートを確認",
+    "upgrade_account": {
+      "title": "Updating your account",
+      "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
+      "learn_more": "Learn more"
+    },
     "domain_mismatch": {
       "title": "不審なサインイン要求",
       "message": "要求を行っているサイトはサインインしようとしているサイトではありません。これはログイン情報を盗む試みかもしれません。"
@@ -446,6 +451,14 @@
     "multisrp": {
       "title": "複数のシークレットリカバリーフレーズの追加",
       "subtitle": "MetaMaskで複数のウォレットをインポートして使用します"
+    },
+    "backupAndSync": {
+      "title": "バックアップと同期のご紹介",
+      "subtitle": "アカウントをバックアップして設定を同期します。"
+    },
+    "solana": {
+      "title": "Solanaのサポート開始",
+      "subtitle": "さっそくSolanaアカウントを作成しましょう"
     }
   },
   "wallet": {
@@ -453,6 +466,7 @@
     "tokens": "トークン",
     "collectible": "コレクティブル",
     "collectibles": "NFT",
+    "defi": "DeFi",
     "transactions": "トランザクション",
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
@@ -483,6 +497,7 @@
     "sort_by": "並べ替え基準",
     "filter_by": "絞り込み条件：",
     "current_network": "現在のネットワーク",
+    "popular_networks": "人気のネットワーク",
     "all_networks": "すべてのネットワーク",
     "declining_balance": "残高降順 ({{currency}} 高→低)",
     "alphabetically": "アルファベット順 (A～Z)",
@@ -534,7 +549,7 @@
     "logout_to_import_seed": "シークレットリカバリーフレーズをインポートするには、まずログアウトが必要です。",
     "ready_to_explore": "ブロックチェーンアプリケーションを使い始める準備は整いましたか？",
     "unable_to_load": "残高を読み込めません",
-    "unable_to_find_conversion_rate": "換算レートが見つかりません",
+    "unable_to_find_conversion_rate": "換算レートがありません",
     "display_nft_media_desc": "NFTをインポートするには、「設定」>「セキュリティとプライバシー」で「NFTメディアの表示」 をオンにします。",
     "display_nft_media_cta": "NFTメディアの表示をオンにする",
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
@@ -615,6 +630,19 @@
       "custom_info_link": "トークン関連の詐欺やセキュリティのリスクに関する詳細をご覧ください。",
       "custom_security_tips": "セキュリティに関するアドバイス"
     }
+  },
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
+    "single_token": "{{symbol}} only",
+    "two_tokens": "{{symbol}} +1 other",
+    "multiple_tokens": "{{symbol}} +{{count}} others",
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
   },
   "terms_and_conditions": {
     "title": "利用規約",
@@ -730,6 +758,7 @@
     "receive": "受取"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap (ベータ)",
     "create_new_account": "新規アカウントの作成",
     "import_account": "アカウントのインポート",
@@ -860,8 +889,6 @@
     "reset_notifications_description": "通知をリセットすると、通知ストレージキーが削除され、通知履歴がすべてリセットされます。よろしいですか？",
     "reset_notifications": "通知をリセット",
     "reset_notifications_success": "通知ストレージキーが削除/再作成され、通知履歴がリセットされました。",
-    "enabling_profile_sync": "プロファイルの同期を有効にしています...",
-    "disabling_profile_sync": "プロファイルの同期を無効にしています...",
     "notifications_dismiss_modal": "閉じる",
     "select_rpc_url": "RPC URLを選択",
     "title": "設定",
@@ -1194,7 +1221,13 @@
           "endowment:caveat:transaction-origin": "トランザクションを提案しているWebサイトの提供元の確認",
           "endowment:extend-runtime": "ランタイムの延長",
           "snap_dialog": "カスタムダイアログの表示",
-          "snap_manageAccounts": "イーサリアムアカウントの追加と制御"
+          "snap_manageAccounts": "イーサリアムアカウントの追加と制御",
+          "endowment:signature-insight": "署名情報モーダルを表示",
+          "endowment:protocol": "1つまたは複数のチェーンのプロトコルデータを提供",
+          "snap_getPreferences": "優先言語や法定通貨などの情報を表示",
+          "endowment:lifecycle-hooks": "ライフサイクルフックを使用",
+          "endowment:name-lookup": "ドメインとアドレスの検索を提供",
+          "endowment:page-home": "カスタム画面を表示"
         }
       }
     },
@@ -1729,7 +1762,13 @@
       "generic": "このWebサイトは自動的に外部アプリケーションを開けないようブロックされています"
     },
     "ipfs_gateway_off_title": "IPFSゲートウェイが無効です",
-    "ipfs_gateway_off_content": "このサイトを見るには、プライバシーとセキュリティの設定でIPFSゲートウェイを有効にしてください。"
+    "ipfs_gateway_off_content": "このサイトを見るには、プライバシーとセキュリティの設定でIPFSゲートウェイを有効にしてください。",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "SolanaのDApp接続が近日追加されます",
+        "message": "拡張機能でSolana DAppに接続したり、アプリ内でSolanaトークンを取引したりできます。"
+      }
+    }
   },
   "backup_alert": {
     "title": "ウォレットを保護",
@@ -1829,6 +1868,8 @@
     "sign_description_2": "「署名を取得」をタップします",
     "sign_get_signature": "署名を取得",
     "transaction_id": "トランザクションID",
+    "network": "ネットワーク",
+    "request_from": "要求元",
     "network_fee": "ネットワーク手数料",
     "network_fee_tooltip": "ネットワーク上でのトランザクションの処理に支払われた金額です。"
   },
@@ -1980,6 +2021,9 @@
     "edit_permissions": "アクセス許可を編集",
     "permitted_networks_info_sheet_description": "これは、以前このサイトで使用するためにアクセス許可を与えたネットワークのリストです。このリストから1つ選択するか、このサイトへのネットワークのアクセス許可を編集してください。",
     "connect_an_account": "アカウントを接続"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
   },
   "select": {
     "cancel": "キャンセル",
@@ -3294,15 +3338,6 @@
     "enable_remember_me": "認証情報の保存を有効にする",
     "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でもMetaMaskアカウントにアクセスできるようになります。"
   },
-  "profile_sync": {
-    "title": "プロファイルの同期",
-    "disable_warning": "プロファイルの同期をオフにすると、通知を受け取ることができなくなります。",
-    "enable_description": "MetaMaskが一部の設定をデバイス間で同期するために使用するプロファイルを作成します。これは通知の受取に必要です。",
-    "enable_description2": "をお読みください。",
-    "enable_privacy_link": "当社がどのようにユーザーのプライバシーを保護するのか、ご覧ください",
-    "bottomSheetTurnOn": "プロファイルの同期をオンにしています",
-    "bottomSheetTurnOff": "プロファイルの同期をオフにしています"
-  },
   "turn_off_remember_me": {
     "title": "認証情報の保存を無効にするには、パスワードを入力してください",
     "placeholder": "パスワード",
@@ -3505,6 +3540,7 @@
     "connect_hardware_wallet": "アカウントを接続",
     "import_wallet_or_account": "ウォレットまたはアカウントをインポート",
     "add_account": "新規アカウントを作成",
+    "add_multichain_account": "新規{{networkName}}アカウントを作成",
     "create_an_account": "新規アカウントを作成",
     "add_new_account": "イーサリアムアカウント",
     "import_srp": "シークレットリカバリーフレーズ",
@@ -3512,7 +3548,12 @@
     "import_account": "秘密鍵",
     "add_bitcoin_account_testnet": "ビットコインテストネットアカウント",
     "add_bitcoin_account_mainnet": "ビットコインアカウント",
-    "add_solana_account": "Solanaアカウント"
+    "add_solana_account": "Solanaアカウント",
+    "switch_to_smart_account": "スマートアカウントに切り替える",
+    "headers": {
+      "bitcoin": "ビットコイン",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFTを表示",
@@ -3535,13 +3576,14 @@
     "title": "MetaMaskでSolana",
     "create_solana_account": "Solanaアカウントを作成",
     "not_now": "後で",
-    "got_it": "了解",
+    "view_solana_account": "Solanaアカウントを表示",
     "feature_1_title": "トークンの送金、受取、スワップ",
     "feature_1_description": "SOLやUSDCなどのトークンの送金や取引を行います。",
     "feature_2_title": "Solanaアカウントのインポート",
     "feature_2_description": "シークレットリカバリーフレーズをインポートして、他のウォレットからSolanaアカウントを移行します。",
     "feature_3_title": "他の機能も近日追加予定",
-    "feature_3_description": "Solana DApp、NFT、ハードウェアウォレットのサポート、その他機能も近日追加予定。"
+    "feature_3_description": "Solana DApp、NFT、ハードウェアウォレットのサポート、その他機能も近日追加予定。",
+    "learn_more": "Solanaアカウントの詳細"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFSゲートウェイ",
@@ -3575,6 +3617,32 @@
       "body_prefix": "{{tokenSymbol}}を貸して年間最大",
       "body_suffix": "の収入を獲得できます。",
       "start_earning": "収益化を開始"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "メンテナンス中のためご利用いただけません。再開まで今しばらくお待ちください。"
+    },
+    "deposit": "デポジット",
+    "approve": "承認",
+    "approval": "承認",
+    "confirm": "確定",
+    "cancel": "キャンセル",
+    "transaction_submitted": "トランザクションが送信されました",
+    "every_minute": "毎分",
+    "immediate": "即時",
+    "apr": "APR",
+    "protocol": "プロトコル",
+    "receive_tooltip": "ツールヒントを受け取る",
+    "button": "ボタン",
+    "receive": "受取",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "この1週間の報酬率に基づいた、デポジットの価値の年間予想増加額です。",
+        "part_two": "注: APRは時が経つにつれ変動します。"
+      },
+      "protocol": "貸出プロトコルは、トークンを貸し出して報酬が得られるスマートコントラクトです。ユーザーは他のトークンを担保にし、貸し手に料金を支払ってトークンを借りることもできます。",
+      "reward_frequency": "報酬が計算される頻度です。",
+      "withdrawal_time": "プロトコルからトークンを引き出してウォレットに戻すのにかかる時間です",
+      "receive": "このトークンは資産と報酬を追跡するのに使用されます。資産が引き出せなくなるため、このトークンを送金したり取引したりしないでください。"
     }
   },
   "stake": {
@@ -3709,12 +3777,17 @@
     "basic_functionality": "基本機能",
     "manage_networks": "ネットワークを選択してください",
     "manage_networks_body": "当社では、遠隔手続き呼び出し (RPC) プロバイダーにInfuraを使用して、イーサリアムデータにできるだけ信頼性の高いプライベートな形でアクセスできるようにしています。独自のRPCをお選びいただくこともできますが、どのRPCもトランザクションを実行するために、ユーザーのIPアドレスとイーサリアムウォレットを取得する点にご注意ください。",
-    "manage_networks_body2": "で、Infuraによるデータの取扱いに関する詳細をご覧ください。",
+    "manage_networks_body2": "InfuraがEVMアカウントのデータの取り扱い方の詳細をご覧ください。Solanaアカウントの場合は、",
+    "manage_networks_body3": "こちらをクリックしてください。",
     "functionality_body": "MetaMaskは、インターネットサービスを通じてトークンの詳細やガス設定などの基本的な機能を提供します。インターネットサービスを使用すると、この場合はMetaMaskに、ユーザーのIPアドレスが共有されます。これは他のどのWebサイトにアクセスした場合も同様で、MetaMaskはこのデータを一時的に使用し、ユーザーのデータを販売することは一切ありません。VPNを使用したりこのようなサービスをオフにできますが、MetaMaskでのエクスペリエンスに影響を与える可能性があります。詳細は",
     "functionality_body2": "をお読みください。",
     "sheet": {
       "title_off": "基本機能をオフにする",
       "description_off": "これは、MetaMaskでの時間が完全に最適化されないことを意味します。基本機能 (トークンの詳細、最適なガス設定など) は利用できません。",
+      "description_off2": "これをオフにすると、セキュリティとプライバシー、",
+      "description_off2_related_features1": "バックアップと同期、",
+      "description_off2_related_features1_and": "通知の",
+      "description_off2_related_features2": "すべての機能も無効になります。",
       "title_on": "基本機能をオンにする",
       "description_on": "MetaMaskでの時間を最適化するには、この機能をオンにする必要があります。基本機能 (トークンの詳細、最適なガス設定、通知など) は、Web3エクスペリエンスに重要です。",
       "checkbox_label": "理解したうえで続行します",
@@ -3796,7 +3869,9 @@
       "primary_type": "主要な型",
       "request_from": "要求元",
       "signing_in_with": "サインイン方法",
-      "spender": "使用者"
+      "spender": "使用者",
+      "now": "現在",
+      "switching_to": "切り替え先"
     },
     "title": {
       "signature": "署名要求",
@@ -3804,14 +3879,18 @@
       "permit_revoke": "アクセス許可を取り消す",
       "permit_NFTs": "出金リクエスト",
       "signature_siwe": "サインイン要求",
-      "contract_interaction": "トランザクション要求"
+      "contract_interaction": "トランザクション要求",
+      "transfer": "送金リクエスト",
+      "switch_account_type": "アカウントのアップデート"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
       "permit_NFTs": "このサイトがNFTの引き出し許可を求めています。",
       "signature": "確定する前にリクエストの詳細を確認してください。",
       "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。",
-      "contract_interaction": "確定する前に要求の詳細を確認してください。"
+      "contract_interaction": "確定する前に要求の詳細を確認してください。",
+      "switch_to_smart_account": "スマートアカウントに切り替えようとしています。",
+      "switch_to_standard_account": "スタンダードアカウント (EOA) に戻そうとしています。"
     },
     "request_from": "要求元",
     "staking_from": "ステーキング元",
@@ -3823,6 +3902,9 @@
     "qr_get_sign": "署名を取得",
     "qr_scan_text": "ハードウェアウォレットでスキャン",
     "sign_with_ledger": "Ledgerで署名",
+    "smart_account": "スマートアカウント",
+    "smart_contract": "スマートコントラクト",
+    "standard_account": "スタンダードアカウント",
     "siwe_message": {
       "url": "URL",
       "network": "ネットワーク",
@@ -3852,11 +3934,31 @@
       "tooltip": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。",
       "unavailable": "利用不可"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "スマートアカウント",
+      "standardAccountLabel": "スタンダードアカウント",
+      "switch": "切り替える",
+      "splashpage": {
+        "accept": "Yes",
+        "betterTransaction": "Faster transactions, lower fees",
+        "betterTransactionDescription": "Save time and money by processing transactions together.",
+        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
+        "payToken": "Pay with any token, any time",
+        "payTokenDescription": "Use the tokens you already have to cover network fees.",
+        "reject": "No",
+        "requestFor": "Request for",
+        "sameAccount": "Same account, smarter features.",
+        "splashTitle": "Use smart account?",
+        "upgradeBannerDescription": "Same address. Smarter features.",
+        "upgradeBannerTitle": "Switch to smart account"
+      }
+    },
     "unlimited": "無制限",
     "none": "なし",
     "advanced_details": "高度な詳細",
     "interacting_with": "相手",
-    "review": "Review"
+    "review": "確認",
+    "transferRequest": "送金リクエスト"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -3905,12 +4007,13 @@
     "bridge_to": "ブリッジ先:",
     "title": "ブリッジ",
     "submitting_transaction": "送信中",
-    "fetching_quote": "クォートを取得中"
+    "fetching_quote": "クォートを取得中",
+    "fee_disclaimer": "0.875% のMM手数料込み"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "新しい価格が利用可能です",
+    "description": "レートは{{refreshRate}}秒ごとに更新されます。準備ができたら「新しいクォートを取得」をタップしてください。",
+    "get_new_quote": "新しい価格を取得"
   },
   "bridge_transaction_details": {
     "status": "ステータス",
@@ -3926,5 +4029,42 @@
     "transaction_details": "トランザクションの詳細",
     "bridge_to_chain": "{{chainName}}へのブリッジ",
     "recipient": "受取人"
+  },
+  "backupAndSync": {
+    "title": "バックアップと同期",
+    "description": "アカウントをバックアップして設定を同期します。",
+    "enabling": "バックアップと同期を有効にしています",
+    "disabling": "バックアップと同期を無効にしています",
+    "enable": {
+      "title": "バックアップと同期をオンにする",
+      "confirmation": "バックアップと同期をオンにすると、基本機能もオンになります。続行しますか？",
+      "description": "バックアップと同期を使用すると、MetaMaskによるカスタム設定と機能の暗号化されたデータの保管が可能になります。これにより、他のデバイスでもMetaMaskのエクスペリエンスを統一し、MetaMaskの再インストールが必要になったときに設定と機能を復元できるようになります。",
+      "updatePreferences": "設定はいつでも",
+      "settingsPath": "[設定] > [バックアップと同期] で更新できます。"
+    },
+    "privacyLink": "当社がどのようにユーザーのプライバシーを保護するのか、ご覧ください",
+    "features": {
+      "accounts": "アカウント"
+    },
+    "manageWhatYouSync": {
+      "title": "同期する項目の管理",
+      "description": "デバイス間で同期する項目をオンにします。"
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "資産の選択"
+    },
+    "hideSentitiveInfo": {
+      "message": "機密情報を非表示"
+    },
+    "doNotShare": {
+      "message": "これは誰とも共有しないでください"
+    },
+    "revealSensitiveContent": {
+      "message": "機密コンテンツを確認"
+    },
+    "show_more": "さらに表示",
+    "show_less": "表示量を減らす"
   }
 }
