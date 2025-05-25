@@ -213,6 +213,13 @@ class Browser {
       `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
+
+  async searchForUrl(url) {
+    await this.tapUrlInputBox();
+    await device.disableSynchronization(); // because animations makes typing into the browser slow
+    await Gestures.replaceTextInField(this.urlInputBoxID, url);
+    await device.enableSynchronization(); // re-enabling synchronization
+  }
 }
 
 export default new Browser();
