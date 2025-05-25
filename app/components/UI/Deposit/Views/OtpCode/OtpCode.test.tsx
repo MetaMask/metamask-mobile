@@ -118,7 +118,6 @@ describe('OtpCode Component', () => {
     expect(screen.getByText('Invalid code')).toBeTruthy();
   });
 
-  // TODO: get these tests to pass
   it('disables submit button and shows loading state when loading', () => {
     mockUseDepositSdkMethodValues = {
       ...mockUseDepositSdkMethodInitialValues,
