@@ -549,6 +549,11 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            {
+              metadata: {
+                isEip1193Request: true,
+              },
+            },
           ),
         revokePermissionsForOrigin: (permissionKeys) => {
           try {

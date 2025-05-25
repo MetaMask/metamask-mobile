@@ -150,12 +150,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
   );
 
-  const shouldDefaultToEVMAvailableNetworks = useMemo(
-    () =>
-      requestedCaipChainIds.length === 1 &&
-      requestedCaipChainIds[0].includes(KnownCaipNamespace.Wallet),
-    [requestedCaipChainIds],
-  );
+  const { isEip1193Request } = hostInfo.metadata;
 
   const fallbackNetworks = useMemo(
     () =>
@@ -167,12 +162,12 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const defaultSelectedChainIds = useMemo(
     () =>
-      shouldDefaultToEVMAvailableNetworks
+      isEip1193Request
         ? allNetworksList.filter((chain) =>
             chain.includes(KnownCaipNamespace.Eip155),
           )
         : fallbackNetworks,
-    [shouldDefaultToEVMAvailableNetworks, allNetworksList, fallbackNetworks],
+    [isEip1193Request, allNetworksList, fallbackNetworks],
   );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
