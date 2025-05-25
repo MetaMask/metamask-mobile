@@ -38,13 +38,12 @@ const OtpCode = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.opt_code.title') },
+        { title: strings('deposit.otp_code.title') },
         theme,
       ),
     );
   }, [navigation, theme]);
 
-  const [validationError, setValidationError] = useState(false);
   const [value, setValue] = useState('');
   const { email } = useDepositSDK();
 
@@ -65,16 +64,11 @@ const OtpCode = () => {
   }, [ref]);
 
   const handleSubmit = useCallback(async () => {
-    if (value.length !== CELL_COUNT) {
-      setValidationError(true);
-      return;
-    }
-    setValidationError(false);
     await submitCode();
     if (!error) {
       navigation.navigate(...createIdVerifyNavDetails());
     }
-  }, [error, navigation, submitCode, value.length]);
+  }, [error, navigation, submitCode]);
 
   return (
     <ScreenLayout>
@@ -102,11 +96,6 @@ const OtpCode = () => {
               </View>
             )}
           />
-          {validationError && (
-            <Text style={{ color: theme.colors.error.default }}>
-              {strings('deposit.otp_code.validation_error')}
-            </Text>
-          )}
           {error && (
             <Text style={{ color: theme.colors.error.default }}>{error}</Text>
           )}
@@ -120,7 +109,7 @@ const OtpCode = () => {
             onPress={handleSubmit}
             accessibilityRole="button"
             accessible
-            disabled={loading}
+            disabled={loading || value.length !== CELL_COUNT}
           >
             {loading
               ? strings('deposit.otp_code.loading')

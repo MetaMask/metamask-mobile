@@ -4,25 +4,26 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { DepositSdk } from '../../hooks/useDepositSdkMethod';
+import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkInitialValues: DepositSdk = {
+const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'success'> = {
   error: null,
   loading: false,
   sdkMethod: jest.fn().mockResolvedValue('Success'),
-  data: null,
+  response: null,
 };
 
-let mockUseDepositSdkValues: DepositSdk = {
-  ...mockUseDepositSdkInitialValues,
+let mockUseDepositSdkMethodValues: DepositSdkResult<'success'> = {
+  ...mockUseDepositSdkMethodInitialValues,
 };
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: () => mockUseDepositSdkValues,
+  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -46,26 +47,14 @@ jest.mock('../../../Navbar', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.OTP_CODE,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.OTP_CODE);
 }
 
 describe('OtpCode Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
     };
   });
 
@@ -86,8 +75,8 @@ describe('OtpCode Component', () => {
   });
 
   it('displays loading state', async () => {
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
       loading: true,
     };
     render(OtpCode);
@@ -110,8 +99,27 @@ describe('OtpCode Component', () => {
   });
 
   it('displays error message when API call fails', async () => {
-    mockUseDepositSdkValues.error = 'Invalid code';
+    mockUseDepositSdkMethodValues.error = 'Invalid code';
     render(OtpCode);
     expect(screen.getByText('Invalid code')).toBeTruthy();
+  });
+
+  it('disables submit button when loading or code is invalid', () => {
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
+      loading: true,
+    };
+    render(OtpCode);
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
+      loading: false,
+    };
+    fireEvent.changeText(screen.getByPlaceholderText('Enter code'), '12345');
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+
+    fireEvent.changeText(screen.getByPlaceholderText('Enter code'), '123456');
+    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeDisabled();
   });
 });

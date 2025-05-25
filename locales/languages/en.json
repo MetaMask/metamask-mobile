@@ -403,6 +403,7 @@
   "deposit": {
     "title": "Deposit",
     "enter_email": {
+      "title": "Enter your email",
       "description": "We'll send a six-digit code to your email to check it's you.",
       "input_label": "Email",
       "input_placeholder": "name@domain.com",
