@@ -417,6 +417,12 @@
         "loading": "Verifying code...",
         "invalid_code_error": "Invalid code"
       }
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
+      "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
+      "button": "Get started"
     }
   },
   "receive": {

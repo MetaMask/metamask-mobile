@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import OtpCode from './OtpCode';
+import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { DepositSdk } from '../../hooks/useDepositSdkMethod';
@@ -10,19 +10,19 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkInitialValues: DepositSdk = {
+const mockUseDepositSdkMethodInitialValues: DepositSdk = {
   error: null,
   loading: false,
   sdkMethod: jest.fn().mockResolvedValue('Success'),
   data: null,
 };
 
-let mockUseDepositSdkValues: DepositSdk = {
-  ...mockUseDepositSdkInitialValues,
+let mockUseDepositSdkMethodValues: DepositSdk = {
+  ...mockUseDepositSdkMethodInitialValues,
 };
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: () => mockUseDepositSdkValues,
+  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -41,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter six-digit code',
+    title: 'Verify your identity',
   }),
 }));
 
@@ -49,7 +49,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.DEPOSIT.OTP_CODE,
+      name: Routes.DEPOSIT.VERIFY_IDENTITY,
     },
     {
       state: {
@@ -61,57 +61,40 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('OtpCode Component', () => {
+describe('VerifyIdentity Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
     };
   });
 
   it('renders correctly', () => {
-    render(OtpCode);
+    render(VerifyIdentity);
     expect(
-      screen.getByText('Enter the 6 digit code that we sent to your email'),
+      screen.getByText(
+        'To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.',
+      ),
     ).toBeTruthy();
   });
 
   it('calls setOptions when the component mounts', () => {
-    render(OtpCode);
+    render(VerifyIdentity);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter six-digit code',
+        title: 'Verify your identity',
       }),
     );
   });
 
-  it('displays loading state', async () => {
-    mockUseDepositSdkValues = {
-      ...mockUseDepositSdkInitialValues,
-      loading: true,
-    };
-    render(OtpCode);
-    expect(screen.getByText('Verifying code...')).toBeTruthy();
-  });
-
-  it('navigates to next screen on submit button press', async () => {
-    render(OtpCode);
-    fireEvent.press(
-      screen.getByRole('button', {
-        name: 'Submit',
-      }),
-    );
+  it('navigates to next screen on "Get started" button press', async () => {
+    render(VerifyIdentity);
+    fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.VERIFY_IDENTITY,
+        Routes.DEPOSIT.BASIC_INFO,
         undefined,
       );
     });
-  });
-
-  it('displays error message when API call fails', async () => {
-    mockUseDepositSdkValues.error = 'Invalid code';
-    render(OtpCode);
-    expect(screen.getByText('Invalid code')).toBeTruthy();
   });
 });

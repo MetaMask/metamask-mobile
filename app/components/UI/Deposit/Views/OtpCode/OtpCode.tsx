@@ -17,11 +17,7 @@ import {
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-
-// TODO: Move this to the ID Verify component when it is implemented
-export const createIdVerifyNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ID_VERIFY,
-);
+import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
@@ -60,7 +56,7 @@ const OtpCode = () => {
   const handleSubmit = async () => {
     try {
       await submitCode(value);
-      navigation.navigate(...createIdVerifyNavDetails());
+      navigation.navigate(...createVerifyIdentityNavDetails());
     } catch (e) {
       console.error('Error submitting OTP code');
     }
