@@ -64,11 +64,13 @@ const OtpCode = () => {
   }, [ref]);
 
   const handleSubmit = useCallback(async () => {
-    await submitCode();
-    if (!error) {
-      navigation.navigate(...createIdVerifyNavDetails());
+    if (!loading && value.length === CELL_COUNT) {
+      await submitCode();
+      if (!error) {
+        navigation.navigate(...createIdVerifyNavDetails());
+      }
     }
-  }, [error, navigation, submitCode]);
+  }, [error, loading, navigation, submitCode, value.length]);
 
   return (
     <ScreenLayout>

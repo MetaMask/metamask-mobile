@@ -8,7 +8,6 @@ function renderDepositTestComponent(
   route: string,
 ) {
   return renderScreen(
-    // Wrap your component with DepositSDKProvider
     (props) => (
       <DepositSDKProvider>
         <Component {...props} />

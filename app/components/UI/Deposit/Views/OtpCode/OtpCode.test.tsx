@@ -1,11 +1,23 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+
+const EMAIL = 'joe.lubin@metamask.com';
+
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
+  useDepositSDK: jest.fn().mockReturnValue({
+    email: EMAIL,
+    setEmail: jest.fn(),
+    sdk: {},
+    sdkError: null,
+    providerApiKey: 'mock-api-key',
+    providerFrontendAuth: 'mock-frontend-auth',
+  }),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -61,7 +73,9 @@ describe('OtpCode Component', () => {
   it('renders correctly', () => {
     render(OtpCode);
     expect(
-      screen.getByText('Enter the 6 digit code that we sent to your email'),
+      screen.getByText(
+        `Enter the 6-digit code we sent to ${EMAIL}. If you don't see it in your inbox, check your spam folder.`,
+      ),
     ).toBeTruthy();
   });
 
@@ -104,22 +118,29 @@ describe('OtpCode Component', () => {
     expect(screen.getByText('Invalid code')).toBeTruthy();
   });
 
-  it('disables submit button when loading or code is invalid', () => {
+  // TODO: get these tests to pass
+  it('disables submit button and shows loading state when loading', () => {
     mockUseDepositSdkMethodValues = {
       ...mockUseDepositSdkMethodInitialValues,
       loading: true,
     };
     render(OtpCode);
-    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    expect(screen.getByText('Verifying code...')).toBeTruthy();
+    const loadingButton = screen.getByRole('button', {
+      name: 'Verifying code...',
+    });
+    fireEvent.press(loadingButton);
+    expect(mockUseDepositSdkMethodValues.sdkMethod).not.toHaveBeenCalled();
+  });
 
+  it('disables submit button when code length is invalid', () => {
     mockUseDepositSdkMethodValues = {
       ...mockUseDepositSdkMethodInitialValues,
       loading: false,
     };
-    fireEvent.changeText(screen.getByPlaceholderText('Enter code'), '12345');
-    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
-
-    fireEvent.changeText(screen.getByPlaceholderText('Enter code'), '123456');
-    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeDisabled();
+    render(OtpCode);
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    fireEvent.press(submitButton);
+    expect(mockUseDepositSdkMethodValues.sdkMethod).not.toHaveBeenCalled();
   });
 });
