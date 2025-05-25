@@ -47,7 +47,7 @@ const OtpCode = () => {
   const [value, setValue] = useState('');
   const { email } = useDepositSDK();
 
-  const ref = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
+  const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value,
     setValue,
@@ -60,8 +60,8 @@ const OtpCode = () => {
   } = useDepositSdkMethod('verifyUserOtp', [value, email]);
 
   useEffect(() => {
-    ref.current?.focus();
-  }, [ref]);
+    inputRef.current?.focus();
+  }, [inputRef]);
 
   const handleSubmit = useCallback(async () => {
     if (!loading && value.length === CELL_COUNT) {
@@ -78,7 +78,8 @@ const OtpCode = () => {
         <ScreenLayout.Content grow>
           <Text>{strings('deposit.otp_code.description', { email })}</Text>
           <CodeField
-            ref={ref as React.RefObject<TextInput>}
+            testID="otp-code-input"
+            ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
             onChangeText={setValue}

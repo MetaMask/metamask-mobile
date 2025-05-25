@@ -97,14 +97,21 @@ describe('OtpCode Component', () => {
     expect(screen.getByText('Verifying code...')).toBeTruthy();
   });
 
-  it('navigates to next screen on submit button press', async () => {
-    render(OtpCode);
+  it('navigates to next screen on submit button press when valid code is entered', async () => {
+    const { getByTestId } = render(OtpCode);
+
+    const codeInput = getByTestId('otp-code-input');
+
+    fireEvent.changeText(codeInput, '123456');
+
     fireEvent.press(
       screen.getByRole('button', {
         name: 'Submit',
       }),
     );
+
     await waitFor(() => {
+      expect(mockUseDepositSdkMethodValues.sdkMethod).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.ID_VERIFY,
         undefined,
