@@ -1,3 +1,4 @@
+import '../_mocks_/initialState';
 import {
   getQuoteRefreshRate,
   shouldRefreshQuote,

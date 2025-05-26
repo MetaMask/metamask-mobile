@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
@@ -33,12 +34,6 @@ jest.mock('react-redux', () => {
 const initialMetrics: Metrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
-};
-
-const initialState = {
-  bridge: {
-    slippage: '0.5',
-  },
 };
 
 const renderSlippageModal = () =>

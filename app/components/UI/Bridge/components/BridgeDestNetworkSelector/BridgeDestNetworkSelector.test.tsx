@@ -100,6 +100,23 @@ describe('BridgeDestNetworkSelector', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               bridgeConfig: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  [formatChainIdToCaip(mockChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: false,
+                  }, // Set Ethereum to inactive as dest
+                  [formatChainIdToCaip(optimismChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                },
+              },
+              bridgeConfigV2: {
+                minimumVersion: '0.0.0',
                 maxRefreshCount: 5,
                 refreshRate: 30000,
                 support: true,
