@@ -1299,7 +1299,7 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
-          'AccountsController:accountRemoved',
+          'KeyringController:accountRemoved',
         ],
       }),
     });
@@ -1359,6 +1359,7 @@ export class Engine {
             'TokenListController:stateChange',
             'TokensController:stateChange',
             'AccountsController:selectedEvmAccountChange',
+            'TransactionController:transactionConfirmed',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1421,7 +1422,7 @@ export class Engine {
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
-            'AccountsController:accountRemoved',
+            'KeyringController:accountRemoved',
           ],
         }),
         // TODO: This is long, can we decrease it?
