@@ -10,9 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): show "Auto" slippage for Solana swaps
 - fix(bridge): add insufficient balance check for Solana swaps
 - fix(bridge): disable Solana as destination network if no Solana account exists
+- fix(swap): fix default swap destination token when USDC is the source token
+- fix(bridge): prevent quote error during bridge destination account selection
 
 ### Added
 
+- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
 - feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
@@ -41,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))
 - fix(multi-srp): display multichain accounts in SRP list ([#14724](https://github.com/MetaMask/metamask-mobile/pull/14724))
 - fix(confirmations): remove transaction simulations from wallet initiated send flow ([#14994](https://github.com/MetaMask/metamask-mobile/pull/14994))
 - fix(bridge): add auto slippage option and improve slippage selection UI ([#15159](https://github.com/MetaMask/metamask-mobile/pull/15159))
