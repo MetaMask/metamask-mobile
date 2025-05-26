@@ -125,16 +125,25 @@ describe('getSwapsIsLive', () => {
 
     it('should return false for Solana chain when bridge is not enabled', () => {
       const newState = deepClone(mockState);
-      const remoteFeatureFlags = newState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags;
+      const remoteFeatureFlags =
+        newState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags;
       // @ts-expect-error - It's defined in the mock
-      remoteFeatureFlags.bridgeConfig.chains[1151111081099710] =
-        {
-          minimumVersion: '0.0.0',
-          isActiveDest: false,
-          isActiveSrc: false,
-          refreshRate: 10000,
-          topAssets: [],
-        };
+      remoteFeatureFlags.bridgeConfig.chains[1151111081099710] = {
+        minimumVersion: '0.0.0',
+        isActiveDest: false,
+        isActiveSrc: false,
+        refreshRate: 10000,
+        topAssets: [],
+      };
+      // @ts-expect-error - It's defined in the mock
+      remoteFeatureFlags.bridgeConfigV2.chains[1151111081099710] = {
+        minimumVersion: '0.0.0',
+        isActiveDest: false,
+        isActiveSrc: false,
+        refreshRate: 10000,
+        topAssets: [],
+      };
       const result = getSwapsIsLive(newState, SolScope.Mainnet);
       expect(result).toBe(false);
     });
@@ -157,10 +166,7 @@ describe('getIsSwapsAssetAllowed', () => {
     '0xtoken2': { symbol: 'TOKEN2' },
   };
 
-  const mockSearchDiscoverySwapsTokens = [
-    '0xtoken3',
-    '0xtoken4',
-  ];
+  const mockSearchDiscoverySwapsTokens = ['0xtoken3', '0xtoken4'];
 
   describe('EVM assets', () => {
     it('should return true for ETH assets', () => {
