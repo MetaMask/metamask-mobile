@@ -15,7 +15,7 @@ import {
 import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -26,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectBridgeControllerState,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -35,10 +34,24 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { parseUnits } from 'ethers/lib/utils';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import parseAmount from '../../../Ramp/utils/parseAmount';
 
-const createStyles = () =>
+const MAX_DECIMALS = 5;
+export const MAX_INPUT_LENGTH = 18;
+
+/**
+ * Calculates font size based on input length
+ */
+export const calculateFontSize = (length: number): number => {
+  if (length <= 10) return 40;
+  if (length <= 15) return 35;
+  if (length <= 20) return 30;
+  if (length <= 25) return 25;
+  return 20;
+};
+
+const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
   StyleSheet.create({
     content: {
       paddingVertical: 16,
@@ -52,20 +65,33 @@ const createStyles = () =>
       flex: 1,
     },
     input: {
-      fontSize: 40,
       borderWidth: 0,
       lineHeight: 50,
       height: 50,
+      fontSize: vars.fontSize,
     },
   });
-
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 export enum TokenInputAreaType {
   Source = 'source',
   Destination = 'destination',
 }
+
+const formatAddress = (address?: string) =>
+  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+
+export const getDisplayAmount = (
+  amount?: string,
+  tokenType?: TokenInputAreaType,
+) => {
+  if (amount === undefined) return amount;
+
+  const displayAmount = tokenType === TokenInputAreaType.Source
+    ? amount
+    : parseAmount(amount, MAX_DECIMALS);
+
+  return displayAmount;
+};
 
 export interface TokenInputAreaRef {
   blur: () => void;
@@ -129,7 +155,6 @@ export const TokenInputArea = forwardRef<
       },
     }));
 
-    const { styles } = useStyles(createStyles, {});
     const navigation = useNavigation();
 
     const navigateToDestNetworkSelector = () => {
@@ -147,24 +172,8 @@ export const TokenInputArea = forwardRef<
     const networkConfigurationsByChainId = useSelector(
       selectNetworkConfigurations,
     );
-    const { quoteRequest } = useSelector(selectBridgeControllerState);
 
-    const latestBalance = useLatestBalance({
-      address: token?.address,
-      decimals: token?.decimals,
-      chainId: token?.chainId,
-      balance: token?.balance,
-    });
-    const isValidAmount =
-    amount !== undefined && amount !== '.' && token?.decimals;
-
-    // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
-    const isInsufficientBalance =
-    quoteRequest?.insufficientBal ||
-    (isValidAmount &&
-      parseUnits(amount, token.decimals).gt(
-        latestBalance?.atomicBalance ?? BigNumber.from(0),
-      ));
+    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -196,17 +205,21 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
+    const displayedAmount = getDisplayAmount(amount, tokenType);
+    const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
+    const { styles } = useStyles(createStyles, { fontSize });
+
     return (
       <Box>
         <Box style={styles.content} gap={4}>
           <Box style={styles.row}>
             <Box style={styles.amountContainer}>
               {isLoading ? (
-                <Skeleton width={100} height={40} style={styles.input} />
+                <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Input
                   ref={inputRef}
-                  value={amount}
+                  value={displayedAmount}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -222,6 +235,13 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
+                  selection={
+                    tokenType === TokenInputAreaType.Destination
+                      ? { start: 0, end: 0 }
+                      : undefined
+                  }
                 />
               )}
             </Box>
@@ -244,7 +264,7 @@ export const TokenInputArea = forwardRef<
           </Box>
           <Box style={styles.row}>
             {isLoading ? (
-              <Skeleton width={100} height={10} />
+              <Skeleton width={80} height={24} />
             ) : (
               <>
                 {token && currencyValue ? (
