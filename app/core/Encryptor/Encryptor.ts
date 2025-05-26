@@ -77,7 +77,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
 
   /**
    * The encryption library used for encryption and decryption operations.
-   * This library provides methods forIV generation, key derivation, encryption, and decryption.
+   * This library provides methods for IV generation, key derivation, encryption, and decryption.
    * It is set during the construction of the Encryptor instance and can be used to perform encryption and decryption tasks.
    *
    * @property encryptionLib - The encryption library used for encryption and decryption operations.
