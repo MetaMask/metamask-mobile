@@ -4703,10 +4703,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^62.0.0":
-  version "62.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-62.0.0.tgz#6fba18e4082f35624e0d22a2c903bc56dd5b9c77"
-  integrity sha512-yNH4ikXVBbAcaSsGNba/2tKK7bjq4IFqkVMR9oa6APCiwrQl7enulFKnyylsL89TvF1dv/kovNFG1uiieDMGtA==
+"@metamask/assets-controllers@^63.1.0":
+  version "63.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-63.1.0.tgz#0b13d857c2035248b8e20b1e1af35197a25fd491"
+  integrity sha512-I9fzHH3m6d/nwlttD27hHzv74UiRnRiD47IYDVoMyLN1caG2685ycabpz4IvTFIPxYSxW4XGEH9r4Wga2x98lA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4717,7 +4717,7 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.0.1"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.8.0"
+    "@metamask/controller-utils" "^11.9.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^17.4.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
