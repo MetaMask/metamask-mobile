@@ -21,6 +21,6 @@ exports[`Input should render correctly 1`] = `
       "paddingVertical": 0,
     }
   }
-  testID="testAddress-snap-address-input"
+  testID="input"
 />
 `;
