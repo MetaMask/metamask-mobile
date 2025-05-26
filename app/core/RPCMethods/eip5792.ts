@@ -24,6 +24,7 @@ import { EIP5792ErrorCode } from '../../constants/transaction';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
+const SUPPORTED_KEYRING_TYPES = ['HD Key Tree', 'Simple Key Pair'];
 
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;
@@ -111,10 +112,24 @@ function validateCapabilities(sendCalls: SendCalls) {
   }
 }
 
-async function validateSendCalls(sendCalls: SendCalls, req: JSONRPCRequest) {
+function validateUpgrade(keyringType: string) {
+  if (!SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
+    throw new JsonRpcError(
+      EIP5792ErrorCode.RejectedUpgrade,
+      'EIP-7702 upgrade not supported on account',
+    );
+  }
+}
+
+async function validateSendCalls(
+  sendCalls: SendCalls,
+  req: JSONRPCRequest,
+  keyringType: string,
+) {
   validateSendCallsVersion(sendCalls);
   await validateSendCallsChainId(sendCalls, req);
   validateCapabilities(sendCalls);
+  validateUpgrade(keyringType);
 }
 
 export async function processSendCalls(
@@ -128,11 +143,13 @@ export async function processSendCalls(
     origin?: string;
   };
   const transactions = calls.map((call) => ({ params: call }));
-
-  await validateSendCalls(params, req as JSONRPCRequest);
-
   const from =
     paramFrom ?? (AccountsController.getSelectedAccount()?.address as Hex);
+
+  const keyringType = getAccountKeyringType(from) ?? '';
+
+  await validateSendCalls(params, req as JSONRPCRequest, keyringType);
+
   const securityAlertId = uuidv4();
 
   const { batchId: id } = await TransactionController.addTransactionBatch({
@@ -238,7 +255,13 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
         isSupported,
         upgradeContractAddress,
       } = chainBatchSupport;
-      const canUpgrade = upgradeContractAddress && !delegationAddress;
+
+      const keyringType = getAccountKeyringType(address) ?? '';
+
+      const isSupportedAccount = SUPPORTED_KEYRING_TYPES.includes(keyringType);
+
+      const canUpgrade =
+        upgradeContractAddress && !delegationAddress && isSupportedAccount;
       if (!isSupported && !canUpgrade) {
         return acc;
       }
@@ -254,4 +277,15 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
     },
     {},
   );
+}
+
+function getAccountKeyringType(accountAddress: Hex) {
+  const { accounts } = Engine.controllerMessenger.call(
+    'AccountsController:getState',
+  ).internalAccounts;
+  const account = Object.values(accounts).find(
+    (acc) => acc.address === accountAddress.toLowerCase(),
+  );
+
+  return account?.metadata?.keyring?.type;
 }
