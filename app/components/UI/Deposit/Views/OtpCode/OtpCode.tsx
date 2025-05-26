@@ -16,6 +16,7 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 
@@ -66,6 +67,7 @@ const OtpCode = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={1} />
           <Text>Enter the 6 digit code that we sent to your email</Text>
           <CodeField
             ref={ref as React.RefObject<TextInput>}
