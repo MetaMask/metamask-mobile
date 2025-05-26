@@ -5,6 +5,7 @@ import { useAccounts } from '../../../hooks/useAccounts';
 import { RootState } from '../../../../reducers';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
+import { toFormattedAddress } from '../../../../util/address';
 
 export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
@@ -19,10 +20,10 @@ export function useNotificationAccountListProps(addresses: string[]) {
   }, [addresses, update]);
 
   const isAccountLoading = (address: string) =>
-    accountsBeingUpdated.includes(address.toLowerCase());
+    accountsBeingUpdated.includes(toFormattedAddress(address));
 
   const isAccountEnabled = (address: string) =>
-    data?.[address.toLowerCase()] ?? false;
+    data?.[toFormattedAddress(address)] ?? false;
 
   return {
     isAnyAccountLoading,
@@ -46,7 +47,7 @@ export function useAccountProps() {
       accountAddresses
         .map((addr) => {
           const account = allAccounts.find(
-            (a) => a.address.toLowerCase() === addr.toLowerCase(),
+            (a) => toFormattedAddress(a.address) === toFormattedAddress(addr),
           );
           return account;
         })
