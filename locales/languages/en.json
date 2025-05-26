@@ -401,7 +401,23 @@
     "network_missing_id": "Missing chain id."
   },
   "deposit": {
-    "title": "Deposit"
+    "title": "Deposit",
+    "email_auth": {
+      "title": "Enter your email",
+      "email": {
+        "description": "We'll send a six-digit code to your email to check it's you.",
+        "input_label": "Email",
+        "input_placeholder": "name@domain.com",
+        "submit_button": "Send email",
+        "loading": "Sending email..."
+      },
+      "code": {
+        "description": "Enter the code we sent to your email",
+        "submit_button": "Submit",
+        "loading": "Verifying code...",
+        "invalid_code_error": "Invalid code"
+      }
+    }
   },
   "receive": {
     "title": "Receive"
@@ -1875,7 +1891,10 @@
     "network": "Network",
     "request_from": "Request from",
     "network_fee": "Network Fee",
-    "network_fee_tooltip": "Amount paid to process the transaction on network."
+    "network_fee_tooltip": "Amount paid to process the transaction on network.",
+    "smart_account_upgrade": "Upgrade to smart account",
+    "smart_account_downgrade": "Switch to standard account",
+    "batched_transactions": "Batched transactions"
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
