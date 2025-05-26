@@ -20,7 +20,7 @@ describe('useDepositSdkMethod', () => {
 
   it('should initialize with default values', () => {
     const { result } = renderHook(() =>
-      useDepositSdkMethod('sendUserOtp', ['test@email.com']),
+      useDepositSdkMethod('sendUserOtp', 'test@email.com'),
     );
 
     expect(result.current.response).toBeNull();
@@ -33,12 +33,14 @@ describe('useDepositSdkMethod', () => {
     mockSdk.sdk.sendUserOtp.mockResolvedValue('mock response');
 
     const { result } = renderHook(() =>
-      useDepositSdkMethod('sendUserOtp', ['test@email.com']),
+      useDepositSdkMethod('sendUserOtp', 'test@email.com'),
     );
 
     act(() => {
       result.current.sdkMethod();
     });
+
+    console.log(result.current);
 
     expect(result.current.loading).toBe(true);
   });
@@ -47,7 +49,7 @@ describe('useDepositSdkMethod', () => {
     mockSdk.sdk.sendUserOtp.mockResolvedValue('mock response');
 
     const { result, waitForNextUpdate } = renderHook(() =>
-      useDepositSdkMethod('sendUserOtp', ['test@email.com']),
+      useDepositSdkMethod('sendUserOtp', 'test@email.com'),
     );
 
     act(() => {
@@ -69,7 +71,7 @@ describe('useDepositSdkMethod', () => {
     mockSdk.sdk.sendUserOtp.mockRejectedValue(new Error(errorMessage));
 
     const { result, waitForNextUpdate } = renderHook(() =>
-      useDepositSdkMethod('sendUserOtp', ['test@email.com']),
+      useDepositSdkMethod('sendUserOtp', 'test@email.com'),
     );
 
     act(() => {
@@ -87,7 +89,7 @@ describe('useDepositSdkMethod', () => {
     (useDepositSDK as jest.Mock).mockReturnValue({ sdk: null });
 
     const { result } = renderHook(() =>
-      useDepositSdkMethod('sendUserOtp', ['test@email.com']),
+      useDepositSdkMethod('sendUserOtp', 'test@email.com'),
     );
 
     act(() => {

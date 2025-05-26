@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDepositSDK } from '../sdk';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
@@ -11,36 +11,38 @@ export interface DepositSdkResult<T> {
 
 export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   method: T,
-  params: Parameters<NativeRampsSdk[T]>,
+  ...params: Parameters<NativeRampsSdk[T]>
 ): DepositSdkResult<Awaited<ReturnType<NativeRampsSdk[T]>>> {
-  const [response, setResult] = useState<Awaited<
+  const [response, setResponse] = useState<Awaited<
     ReturnType<NativeRampsSdk[T]>
   > | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const sdk = useDepositSDK();
+  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+  const { sdk } = useDepositSDK();
 
   const sdkMethod = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    if (!sdk?.sdk) {
+    if (!sdk) {
       setError('Deposit SDK is not initialized');
       setLoading(false);
       return;
     }
 
     try {
-      // @ts-expect-error todo - fix type error
-      const r = await sdk.sdk[method](...params);
-      setResult(r);
+      // @ts-expect-error TODO: fix type error
+      const r = await sdk[method](...params);
+      setResponse(r);
       return r;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [method, params, sdk.sdk]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stringifiedParams, method, sdk]);
 
   return {
     response,

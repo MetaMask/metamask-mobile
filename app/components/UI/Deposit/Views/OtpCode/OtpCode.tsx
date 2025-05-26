@@ -57,7 +57,7 @@ const OtpCode = () => {
     error,
     sdkMethod: submitCode,
     loading,
-  } = useDepositSdkMethod('verifyUserOtp', [value, email]);
+  } = useDepositSdkMethod('verifyUserOtp', value, email);
 
   useEffect(() => {
     inputRef.current?.focus();
