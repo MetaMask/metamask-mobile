@@ -444,7 +444,7 @@ exports[`NftDetails should render correctly 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
                                                   "borderColor": "#ffffff",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 4,
                                                   "borderWidth": 1,
                                                   "height": 16,
                                                   "justifyContent": "center",
