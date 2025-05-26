@@ -1,7 +1,6 @@
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
-  ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import type {
@@ -9,6 +8,7 @@ import type {
   EncryptionKey,
   EncryptionResult,
   KeyDerivationOptions,
+  EncryptionLibrary,
 } from './types';
 import { QuickCryptoLib } from './lib';
 import { getRandomBytes } from './bytes';
@@ -51,6 +51,9 @@ const isEncryptionKey = (key: unknown): key is EncryptionKey =>
   hasProperty(key, 'keyMetadata') &&
   isKeyDerivationOptions(key.keyMetadata);
 
+
+export const getPreferredEncryptionLibrary = () => QuickCryptoLib;
+
 /**
  * The Encryptor class provides methods for encrypting and
  * decrypting data objects using AES encryption with native libraries.
@@ -65,7 +68,16 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    *
    * @property derivationParams - The key derivation options.
    */
-  private keyDerivationOptions: KeyDerivationOptions;
+  private readonly keyDerivationOptions: KeyDerivationOptions;
+
+  /**
+   * The encryption library used for encryption and decryption operations.
+   * This library provides methods forIV generation, key derivation, encryption, and decryption.
+   * It is set during the construction of the Encryptor instance and can be used to perform encryption and decryption tasks.
+   *
+   * @property encryptionLib - The encryption library used for encryption and decryption operations.
+   */
+  private readonly encryptionLib: EncryptionLibrary;
 
   /**
    * Constructs an instance of the Encryptor class.
@@ -79,6 +91,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     keyDerivationOptions: KeyDerivationOptions;
   }) {
     this.keyDerivationOptions = keyDerivationOptions;
+    this.encryptionLib = getPreferredEncryptionLibrary();
   }
 
   /**
@@ -110,16 +123,16 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   keyFromPassword = async (
     password: string,
     salt: string,
+    encryptionLibType: string,
     exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
-    lib = ENCRYPTION_LIBRARY.quickCrypto,
   ): Promise<EncryptionKey> => {
-    const derivedKey = await QuickCryptoLib.deriveKey(password, salt, opts);
+    const derivedKey = await this.encryptionLib.deriveKey(password, salt, opts);
     return {
       key: derivedKey,
       keyMetadata: opts,
       exportable,
-      lib,
+      lib: encryptionLibType,
     };
   };
 
@@ -137,8 +150,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const iv = await QuickCryptoLib.generateIv(16);
-    const result = await QuickCryptoLib.encrypt(text, key.key, iv);
+    const iv = await this.encryptionLib.generateIv(16);
+    const result = await this.encryptionLib.encrypt(text, key.key, iv);
 
     return {
       cipher: result,
@@ -160,7 +173,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    const result = await QuickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
+    const result = await this.encryptionLib.decrypt(payload.cipher, key.key, payload.iv);
 
     return JSON.parse(result);
   };
@@ -180,9 +193,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       salt,
+      this.encryptionLib.type,
       false,
       this.keyDerivationOptions,
-      ENCRYPTION_LIBRARY.original,
     );
 
     // NOTE: When re-encrypting, we always use the original library and the KDF parameters from
@@ -215,9 +228,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       payload.salt,
+      payload.lib,
       false,
       payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
     );
 
     return await this.decryptWithKey(key, payload);
@@ -295,7 +308,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const payload = JSON.parse(text);
 
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
+    const key = await this.keyFromPassword(password, salt, payload.lib, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS);
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 
@@ -322,7 +335,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
-    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions, ENCRYPTION_LIBRARY.original);
+    const key = await this.keyFromPassword(password, salt, this.encryptionLib.type, true, keyDerivationOptions);
     const exportedKeyString = await this.exportKey(key);
 
     const result = await this.encryptWithKey(key, dataObj);

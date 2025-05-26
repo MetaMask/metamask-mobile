@@ -1,6 +1,7 @@
 import { NativeModules } from 'react-native';
 import {
   KDF_ALGORITHM,
+  ENCRYPTION_LIBRARY,
   SHA256_DIGEST_LENGTH,
   LEGACY_DERIVATION_OPTIONS,
 } from './../constants';
@@ -45,6 +46,8 @@ export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is ty
  * Please use `QuickCryptoEncryptionLibrary` instead.
  */
 class AesEncryptionLibrary implements EncryptionLibrary {
+  type: string =  ENCRYPTION_LIBRARY.original;
+
   deriveKey = async (
     password: string,
     salt: string,
@@ -84,6 +87,8 @@ class AesEncryptionLibrary implements EncryptionLibrary {
  * Please use `QuickCryptoEncryptionLibrary` instead.
  */
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
+  type: string = ENCRYPTION_LIBRARY.forked;
+
   deriveKey = async (
     password: string,
     salt: string,

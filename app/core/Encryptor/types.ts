@@ -10,6 +10,12 @@ export type { KeyDerivationOptions };
  */
 export interface EncryptionLibrary {
   /**
+   * Encryption library type. This must be unique identifier to be able to
+   * differentiate all encryption library implementations.
+   */
+  type: string;
+
+  /**
    * Derive a key based on a password and some other parameters (KDF).
    *
    * @param password - The password used to generate the key.

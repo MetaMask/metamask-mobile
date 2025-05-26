@@ -1,9 +1,16 @@
-import { Encryptor } from './Encryptor';
+import { getPreferredEncryptionLibrary, Encryptor } from './Encryptor';
 import { QuickCryptoLib } from './lib';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
+
+describe('getPreferredEncryptionLibrary', () => {
+  it('returns the QuickCrypto library as the default', () => {
+    const library = getPreferredEncryptionLibrary();
+    expect(library.type).toBe(ENCRYPTION_LIBRARY.quickCrypto);
+  });
+});
 
 describe('Encryptor', () => {
   let encryptor: Encryptor;
@@ -28,7 +35,7 @@ describe('Encryptor', () => {
       expect(encryptedObject).toHaveProperty('cipher');
       expect(encryptedObject).toHaveProperty('iv');
       expect(encryptedObject).toHaveProperty('salt');
-      expect(encryptedObject).toHaveProperty('lib', 'original');
+      expect(encryptedObject).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
     });
   });
 
@@ -120,9 +127,9 @@ describe('Encryptor', () => {
         const key = await encryptor.keyFromPassword(
           'mockPassword',
           encryptor.generateSalt(),
+          lib,
           exportable,
           keyMetadata,
-          lib,
         );
 
         expect(key.key).not.toBe(undefined);
@@ -138,6 +145,7 @@ describe('Encryptor', () => {
       const key = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
+        ENCRYPTION_LIBRARY.quickCrypto,
         true,
       );
 
@@ -149,6 +157,7 @@ describe('Encryptor', () => {
       const key = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
+        ENCRYPTION_LIBRARY.quickCrypto,
         false,
       );
 
@@ -166,6 +175,7 @@ describe('Encryptor', () => {
       const testKey = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
+        ENCRYPTION_LIBRARY.quickCrypto,
         true,
       );
       const exportedKey = await encryptor.exportKey(testKey);
@@ -249,12 +259,12 @@ describe('Encryptor', () => {
       expect(vaultObj).toHaveProperty('cipher');
       expect(vaultObj).toHaveProperty('iv');
       expect(vaultObj).toHaveProperty('salt', mockSalt);
-      expect(vaultObj).toHaveProperty('lib', 'original');
+      expect(vaultObj).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(vaultObj).toHaveProperty('keyMetadata', LEGACY_DERIVATION_OPTIONS);
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(importedKey).toHaveProperty(
         'keyMetadata',
         LEGACY_DERIVATION_OPTIONS,
@@ -294,7 +304,7 @@ describe('Encryptor', () => {
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(importedKey).toHaveProperty('keyMetadata');
     });
 
