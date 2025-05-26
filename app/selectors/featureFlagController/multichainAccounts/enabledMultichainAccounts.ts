@@ -19,7 +19,7 @@ const MINIMUM_SUPPORTED_VERSION = null;
 const FEATURE_VERSION_1 = '1';
 const FEATURE_VERSION_2 = '2';
 
-const isMultichainAccountsFeatureEnabled = (
+export const isMultichainAccountsFeatureEnabled = (
   enabledMultichainAccounts: MultichainAccountsFeatureFlag | undefined,
   featureVersionToCheck: string
 ): boolean => {
