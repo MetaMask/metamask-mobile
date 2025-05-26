@@ -8,6 +8,7 @@ import {
 } from '@metamask/eth-json-rpc-middleware';
 import { Hex, JsonRpcRequest } from '@metamask/utils';
 import { JsonRpcError, rpcErrors } from '@metamask/rpc-errors';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Log,
@@ -24,7 +25,7 @@ import { EIP5792ErrorCode } from '../../constants/transaction';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
-const SUPPORTED_KEYRING_TYPES = ['HD Key Tree', 'Simple Key Pair'];
+const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
 
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;
@@ -112,8 +113,8 @@ function validateCapabilities(sendCalls: SendCalls) {
   }
 }
 
-function validateUpgrade(keyringType: string) {
-  if (!SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
+function validateUpgrade(keyringType?: KeyringTypes) {
+  if (keyringType && !SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
     throw new JsonRpcError(
       EIP5792ErrorCode.RejectedUpgrade,
       'EIP-7702 upgrade not supported on account',
@@ -124,7 +125,7 @@ function validateUpgrade(keyringType: string) {
 async function validateSendCalls(
   sendCalls: SendCalls,
   req: JSONRPCRequest,
-  keyringType: string,
+  keyringType?: KeyringTypes,
 ) {
   validateSendCallsVersion(sendCalls);
   await validateSendCallsChainId(sendCalls, req);
@@ -146,7 +147,7 @@ export async function processSendCalls(
   const from =
     paramFrom ?? (AccountsController.getSelectedAccount()?.address as Hex);
 
-  const keyringType = getAccountKeyringType(from) ?? '';
+  const keyringType = getAccountKeyringType(from);
 
   await validateSendCalls(params, req as JSONRPCRequest, keyringType);
 
@@ -256,9 +257,13 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
         upgradeContractAddress,
       } = chainBatchSupport;
 
-      const keyringType = getAccountKeyringType(address) ?? '';
-
-      const isSupportedAccount = SUPPORTED_KEYRING_TYPES.includes(keyringType);
+      let isSupportedAccount = false;
+      try {
+        const keyringType = getAccountKeyringType(address) ?? '';
+        isSupportedAccount = SUPPORTED_KEYRING_TYPES.includes(keyringType);
+      } catch (error) {
+        // Intentionally empty
+      }
 
       const canUpgrade =
         upgradeContractAddress && !delegationAddress && isSupportedAccount;
@@ -279,7 +284,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
   );
 }
 
-function getAccountKeyringType(accountAddress: Hex) {
+function getAccountKeyringType(accountAddress: Hex): KeyringTypes {
   const { accounts } = Engine.controllerMessenger.call(
     'AccountsController:getState',
   ).internalAccounts;
@@ -287,5 +292,5 @@ function getAccountKeyringType(accountAddress: Hex) {
     (acc) => acc.address === accountAddress.toLowerCase(),
   );
 
-  return account?.metadata?.keyring?.type;
+  return account?.metadata?.keyring?.type as KeyringTypes;
 }
