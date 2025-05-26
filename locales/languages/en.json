@@ -1875,7 +1875,10 @@
     "network": "Network",
     "request_from": "Request from",
     "network_fee": "Network Fee",
-    "network_fee_tooltip": "Amount paid to process the transaction on network."
+    "network_fee_tooltip": "Amount paid to process the transaction on network.",
+    "smart_account_upgrade": "Upgrade to smart account",
+    "smart_account_downgrade": "Switch to standard account",
+    "batched_transactions": "Batched transactions"
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
