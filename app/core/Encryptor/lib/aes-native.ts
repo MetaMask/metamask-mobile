@@ -10,7 +10,7 @@ import { EncryptionLibrary, KeyDerivationOptions } from './../types';
 /**
  * Supported SHA algorithms in react-native-aes v3.0.3
  */
-enum HashAlgorithmAesCrypto {
+export enum HashAlgorithmAesCrypto {
   Sha256 = 'sha256',
   Sha512 = 'sha512',
 }
@@ -26,7 +26,7 @@ enum HashAlgorithmAesCrypto {
  * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
  * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
  */
-enum CipherAlgorithmAesCrypto {
+export enum CipherAlgorithmAesCrypto {
   Cbc = 'aes-cbc-pkcs7padding',
   Ctr = 'aes-ctr-pkcs5padding',
 }
