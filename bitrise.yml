@@ -2266,6 +2266,9 @@ app:
       PORTFOLIO_VIEW: true
     - opts:
         is_expand: false
+      MM_PER_DAPP_SELECTED_NETWORK: false
+    - opts:
+        is_expand: false
       MM_CHAIN_PERMISSIONS: true
     - opts:
         is_expand: false
