@@ -5,7 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
-const EMAIL = 'joe.lubin@metamask.com';
+const EMAIL = 'test@email.com';
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
