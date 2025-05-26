@@ -425,12 +425,6 @@ class Onboarding extends PureComponent {
     if (result.type === 'success') {
       if (createWallet) {
         if (result.existingUser) {
-          bufferedTrace({
-            name: TraceName.OnboardingNewSocialAccountExists,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: this.onboardingTraceCtx,
-          });
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
@@ -465,12 +459,6 @@ class Onboarding extends PureComponent {
           });
           this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
-          bufferedTrace({
-            name: TraceName.OnboardingExistingSocialAccountNotFound,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: this.onboardingTraceCtx,
-          });
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
             oauthLoginSuccess: true,

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -61,11 +61,6 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     ?.onboardingTraceCtx;
 
   useLayoutEffect(() => {
-    const traceToEnd = type === 'found'
-      ? TraceName.OnboardingNewSocialAccountExists
-      : TraceName.OnboardingExistingSocialAccountNotFound;
-    bufferedEndTrace({ name: traceToEnd });
-
     const marginLeft = 16;
     const headerLeft = () => (
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -91,7 +86,23 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
         false,
       ),
     );
-  }, [navigation, colors, route, type]);
+  }, [navigation, colors, route]);
+
+  useEffect(() => {
+    const traceName = type === 'found'
+      ? TraceName.OnboardingNewSocialAccountExists
+      : TraceName.OnboardingExistingSocialAccountNotFound;
+
+    bufferedTrace({
+      name: traceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+      parentContext: onboardingTraceCtx,
+    });
+    return () => {
+      bufferedEndTrace({ name: traceName });
+    };
+  }, [onboardingTraceCtx, type]);
 
   const track = (event: IMetaMetricsEvent) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
