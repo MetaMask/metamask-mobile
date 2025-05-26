@@ -308,9 +308,7 @@ interface RootModalFlowProps {
     params: Record<string, unknown>;
   };
 }
-const RootModalFlow = (
-  props: RootModalFlowProps,
-) => (
+const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -955,12 +953,13 @@ const App: React.FC = () => {
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+
         if (currentVersion !== savedVersion) {
           if (savedVersion)
             await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
           await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
         }
-
+        // Ensure last version is set
         const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
         if (!lastVersion) {
           if (existingUser) {
@@ -972,7 +971,7 @@ const App: React.FC = () => {
           }
         }
       } catch (error) {
-        Logger.error(error as Error);
+        Logger.error(error as Error, 'Error in startApp');
       }
     }
 
