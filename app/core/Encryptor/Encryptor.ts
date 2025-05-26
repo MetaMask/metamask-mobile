@@ -51,7 +51,12 @@ const isEncryptionKey = (key: unknown): key is EncryptionKey =>
   hasProperty(key, 'keyMetadata') &&
   isKeyDerivationOptions(key.keyMetadata);
 
-
+/**
+ * Returns the preferred encryption library to use.
+ * This function currently defaults the QuickCrypto library.
+ *
+ * @returns The preferred encryption library to use.
+ */
 export const getPreferredEncryptionLibrary = () => QuickCryptoLib;
 
 /**
