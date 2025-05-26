@@ -139,8 +139,8 @@ export function renderAccountName(
 ) {
   const chainId = selectChainId(store.getState());
   address = toFormattedAddress(address);
-  const account = internalAccounts.find((acc) =>
-    toLowerCaseEquals(acc.address, address),
+  const account = internalAccounts.find(
+    (acc) => toFormattedAddress(acc.address) === address,
   );
   if (account) {
     const identityName = account.metadata.name;
@@ -215,10 +215,10 @@ export function isQRHardwareAccount(address: string) {
   let qrAccounts: string[] = [];
   for (const qrKeyring of qrKeyrings) {
     qrAccounts = qrAccounts.concat(
-      qrKeyring.accounts.map((account) => account.toLowerCase()),
+      qrKeyring.accounts.map((account) => toFormattedAddress(account)),
     );
   }
-  return qrAccounts.includes(address.toLowerCase());
+  return qrAccounts.includes(toFormattedAddress(address));
 }
 
 /**
@@ -235,8 +235,8 @@ export function getKeyringByAddress(address: string) {
   const { keyrings } = KeyringController.state;
   return keyrings.find((keyring) =>
     keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
+      .map((account) => toFormattedAddress(account))
+      .includes(toFormattedAddress(address)),
   );
 }
 
@@ -308,7 +308,8 @@ export function getInternalAccountByAddress(
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
   return Object.values(accounts).find(
-    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
+    (a: InternalAccount) =>
+      toFormattedAddress(a.address) === toFormattedAddress(address),
   );
 }
 
@@ -400,8 +401,8 @@ export function getAddressAccountType(address: string) {
   const { keyrings } = KeyringController.state;
   const targetKeyring = keyrings.find((keyring) =>
     keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
+      .map((account) => toFormattedAddress(account))
+      .includes(toFormattedAddress(address)),
   );
   if (targetKeyring) {
     switch (targetKeyring.type) {

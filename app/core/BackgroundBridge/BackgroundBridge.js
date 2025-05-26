@@ -85,6 +85,7 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { uniq } from 'lodash';
 import { parseCaipAccountId } from '@metamask/utils';
+import { toFormattedAddress } from '../../util/address';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -160,8 +161,9 @@ export class BackgroundBridge extends EventEmitter {
     ).toString();
 
     // This will only be used for WalletConnect for now
-    this.addressSent =
-      Engine.context.AccountsController.getSelectedAccount().address.toLowerCase();
+    this.addressSent = toFormattedAddress(
+      Engine.context.AccountsController.getSelectedAccount().address,
+    );
 
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
@@ -359,15 +361,16 @@ export class BackgroundBridge extends EventEmitter {
       }
       // Check if selectedAddress is approved
       const found = approvedAccounts
-        .map((addr) => addr.toLowerCase())
-        .includes(selectedAddress.toLowerCase());
+        .map((addr) => toFormattedAddress(addr))
+        .includes(toFormattedAddress(selectedAddress));
 
       if (found) {
         // Set selectedAddress as first value in array
         approvedAccounts = [
           selectedAddress,
           ...approvedAccounts.filter(
-            (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
+            (addr) =>
+              toFormattedAddress(addr) !== toFormattedAddress(selectedAddress),
           ),
         ];
 
@@ -408,8 +411,8 @@ export class BackgroundBridge extends EventEmitter {
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
       if (
-        this.addressSent?.toLowerCase() !==
-        memState.selectedAddress?.toLowerCase()
+        toFormattedAddress(this.addressSent) !==
+        toFormattedAddress(memState.selectedAddress)
       ) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);

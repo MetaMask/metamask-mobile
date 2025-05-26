@@ -144,7 +144,7 @@ export default function migrate(state: unknown) {
         Object.entries(identities).forEach(([identityAddress, identity]) => {
           if (
             identityAddress.toLowerCase() ===
-            (account.address as string).toLowerCase()
+            (account.address as string).toLowerCase() // should this be lowercase?
           ) {
             if (
               isObject(identity) &&

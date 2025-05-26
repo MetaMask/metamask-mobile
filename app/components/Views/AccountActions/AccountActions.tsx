@@ -37,6 +37,7 @@ import {
   isHDOrFirstPartySnapAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
+  toFormattedAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
