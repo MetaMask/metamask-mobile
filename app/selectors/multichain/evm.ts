@@ -138,7 +138,6 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
         'SepoliaETH',
         'LineaETH',
         'MegaETH',
-        'HoodiETH',
       ].includes(token.nativeCurrency || '');
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
