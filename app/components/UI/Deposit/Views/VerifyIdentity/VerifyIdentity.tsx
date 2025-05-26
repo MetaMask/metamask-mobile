@@ -11,11 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import VerifyIdentityImage from './illustration.png';
-
-// TODO: Move this to the Basic Info component when it is implemented
-export const createBasicInfoNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.BASIC_INFO,
-);
+import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 
 export const createVerifyIdentityNavDetails = createNavigationDetails(
   Routes.DEPOSIT.VERIFY_IDENTITY,
