@@ -12,7 +12,7 @@ import {
   MOCK_USDT_MAINNET_ASSET,
   MOCK_DAI_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
-} from '../../Stake/__mocks__/mockData';
+} from '../../Stake/__mocks__/stakeMockData';
 import { EarnControllerState } from '@metamask/earn-controller';
 import {
   selectPooledStakingEnabledFlag,

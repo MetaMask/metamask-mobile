@@ -1,14 +1,14 @@
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { PortfolioPageSelectorsXpath } from '../../selectors/Browser/PortfolioPage.selectors';
+import { PortfolioPageSelectorsXpath, PortfolioPageSelectorsWebID } from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import TestHelpers from '../../helpers';
 
 class PortfolioHomePage {
   get connectWalletButton() {
-    return Matchers.getElementByXPath(
+    return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      PortfolioPageSelectorsXpath.CONNECT_WALLET_BUTTON,
+      PortfolioPageSelectorsWebID.CONNECT_WALLET_BUTTON,
     );
   }
 
@@ -26,8 +26,14 @@ class PortfolioHomePage {
     );
   }
 
+  get burgerMenu() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      PortfolioPageSelectorsWebID.BURGER_MENU_BUTTON,
+    );
+  }
+
   async tapConnectMetaMask() {
-    await TestHelpers.delay(1000);
     await Gestures.tapWebElement(this.connectWalletButton);
   }
 
@@ -38,6 +44,10 @@ class PortfolioHomePage {
 
   async tapAccountButton() {
     await Gestures.tapWebElement(this.accountButton);
+  }
+
+  async tapBurgerMenu() {
+    await Gestures.tapWebElement(this.burgerMenu);
   }
 }
 
