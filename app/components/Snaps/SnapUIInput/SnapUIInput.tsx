@@ -59,17 +59,17 @@ export const SnapUIInput = ({
   const getInputValue = (text: string) => {
     if (keyboardType === 'numeric') {
       // Mimic browser behaviour where commas are replaced.
-      return text.replace(/,/g, ".");
+      return text.replace(/,/g, '.');
     }
 
     return text;
   };
 
   const handleChange = (text: string) => {
-    const value = getInputValue(text);
+    const textValue = getInputValue(text);
 
-    setValue(value);
-    handleInputChange(name, value, form);
+    setValue(textValue);
+    handleInputChange(name, textValue, form);
   };
 
   const handleFocus = () => setCurrentFocusedInput(name);
