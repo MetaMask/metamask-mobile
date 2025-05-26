@@ -7,7 +7,7 @@ import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 import { InputProps } from './Input.types';
 
 // Test IDs
-export const INPUT_TEST_ID = 'testAddress-snap-address-input';
+export const INPUT_TEST_ID = 'input';
 
 // Sample consts
 export const SAMPLE_INPUT_PROPS: InputProps = {

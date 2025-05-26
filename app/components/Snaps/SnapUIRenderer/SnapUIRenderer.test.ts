@@ -145,13 +145,13 @@ describe('SnapUIRenderer', () => {
   });
 
   it('re-renders when the interface changes', () => {
-    const { toJSON, getAllByTestId, updateInterface, getRenderCount } =
+    const { toJSON, getByTestId, updateInterface, getRenderCount } =
       renderInterface(
         Box({ children: Input({ name: 'input', type: 'number' }) }),
       );
 
-    const inputs = getAllByTestId('input-snap-ui-input');
-    expect(inputs).toHaveLength(1);
+    const inputs = getByTestId('input-snap-ui-input');
+    expect(inputs).toBeTruthy();
 
     updateInterface(
       Box({
@@ -162,9 +162,10 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    const input2AfterRerender = getAllByTestId('input2-snap-ui-input');
-    const inputsAfterRerender = [...input2AfterRerender, ...inputs];
-    expect(inputsAfterRerender).toHaveLength(2);
+    const input1AfterRerender= getByTestId('input-snap-ui-input');
+    const input2AfterRerender= getByTestId('input2-snap-ui-input');
+    expect(input1AfterRerender).toBeDefined();
+    expect(input2AfterRerender).toBeDefined();
 
     expect(getRenderCount()).toBe(2);
 
@@ -172,21 +173,19 @@ describe('SnapUIRenderer', () => {
   });
 
   it('re-syncs state when the interface changes', () => {
-    const { toJSON, getAllByTestId, getRenderCount, updateInterface } =
+    const { toJSON, getByTestId, getRenderCount, updateInterface } =
       renderInterface(Box({ children: Input({ name: 'input' }) }));
 
     updateInterface(
       Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
       { input: 'bar', input2: 'foo' },
     );
-
-    const input1AfterRerender = getAllByTestId('input-snap-ui-input');
-    const input2AfterRerender = getAllByTestId('input2-snap-ui-input');
-    expect(input1AfterRerender).toHaveLength(1);
-    expect(input2AfterRerender).toHaveLength(1);
-    expect(input1AfterRerender[0].props.value).toStrictEqual('bar');
-    expect(input2AfterRerender[0].props.value).toStrictEqual('foo');
-
+    const input1AfterRerender= getByTestId('input-snap-ui-input');
+    const input2AfterRerender= getByTestId('input2-snap-ui-input');
+    expect(input1AfterRerender).toBeDefined();
+    expect(input2AfterRerender).toBeDefined();
+    expect(input1AfterRerender.props.value).toStrictEqual('bar');
+    expect(input2AfterRerender.props.value).toStrictEqual('foo');
     expect(getRenderCount()).toBe(2);
 
     expect(toJSON()).toMatchSnapshot();
