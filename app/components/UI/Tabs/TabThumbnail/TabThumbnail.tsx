@@ -99,7 +99,7 @@ const TabThumbnail = ({
         <View style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
-        {selectedAccount && (
+        {!!selectedAccount && (
           <View testID="footer-container" style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper

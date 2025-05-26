@@ -124,4 +124,24 @@ describe('TabThumbnail', () => {
 
     expect(queryByTestId('footer-container')).toBeNull();
   });
+
+  it('should render footer when there is a selectedAccount', () => {
+    const { queryByTestId } = renderWithProvider(
+      <TabThumbnail
+        tab={mockTab}
+        isActiveTab={false}
+        onClose={mockOnClose}
+        onSwitch={mockOnSwitch}
+      />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(queryByTestId('footer-container')).not.toBeNull();
+  });
 });
