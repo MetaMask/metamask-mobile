@@ -719,14 +719,13 @@ describe('MultichainNonEvm Selectors', () => {
         lastUpdated: Date.now(),
       };
 
-      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
-        {
-          [MOCK_SOLANA_ACCOUNT.id]: mockTransactionData,
-        };
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions = {
+        [MOCK_SOLANA_ACCOUNT.id]: {
+          [SolScope.Mainnet]: mockTransactionData,
+        },
+      };
 
-      expect(selectSolanaAccountTransactions(state)).toEqual(
-        mockTransactionData,
-      );
+      expect(selectSolanaAccountTransactions(state)).toEqual(mockTransactionData);
     });
 
     it('returns empty array when no Solana account is selected', () => {
@@ -741,11 +740,18 @@ describe('MultichainNonEvm Selectors', () => {
     it('returns empty array when Solana account has no transactions', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
 
-      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
-        {};
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions = {
+        [MOCK_SOLANA_ACCOUNT.id]: {
+          [SolScope.Mainnet]: {
+            transactions: [],
+            next: null,
+            lastUpdated: Date.now(),
+          },
+        },
+      };
 
       expect(selectSolanaAccountTransactions(state)).toEqual({
-        lastUpdated: 0,
+        lastUpdated: undefined,
         next: null,
         transactions: [],
       });
