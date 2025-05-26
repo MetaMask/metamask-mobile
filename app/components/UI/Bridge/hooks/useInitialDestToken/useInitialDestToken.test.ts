@@ -18,7 +18,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
+    __esModule: true,
     ...actual,
+    default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
   };
 });
@@ -30,6 +32,16 @@ jest.mock('../../../../../selectors/networkController', () => {
     selectChainId: jest.fn(actual.selectChainId),
   };
 });
+
+jest.mock('../useInitialSourceToken', () => ({
+  getNativeSourceToken: jest.fn().mockReturnValue({
+    address: '0x456',
+    symbol: 'NATIVE',
+    decimals: 18,
+    name: 'Native Token',
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  }),
+}));
 
 describe('useInitialDestToken', () => {
   const mockSourceToken: BridgeToken = {
@@ -107,6 +119,12 @@ describe('useInitialDestToken', () => {
       state: initialState,
     });
 
-    expect(setDestToken).not.toHaveBeenCalled();
+    expect(setDestToken).toHaveBeenCalledWith({
+      address: '0x456',
+      symbol: 'NATIVE',
+      decimals: 18,
+      name: 'Native Token',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
   });
 });

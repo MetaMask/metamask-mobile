@@ -3,7 +3,7 @@ import { ORIGIN_METAMASK } from '@metamask/approval-controller';
 
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
-import { SmartAccountUpdate } from './smart-account-update';
+import { SmartAccountUpdateSplash } from '../smart-account-update-splash';
 
 export function Splash() {
   const { approvalRequest } = useApprovalRequest();
@@ -13,5 +13,5 @@ export function Splash() {
     return null;
   }
 
-  return <SmartAccountUpdate />;
+  return <SmartAccountUpdateSplash />;
 }
