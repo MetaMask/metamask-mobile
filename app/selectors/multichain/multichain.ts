@@ -437,17 +437,19 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectSelectedNonEvmNetworkChainId,
   (nonEvmTransactions, selectedAccount, selectedNonEvmNetworkChainId) => {
-
     if (!selectedAccount) {
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
-    
+
     const accountTransactions = nonEvmTransactions[selectedAccount.id];
     if (!accountTransactions) {
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
-    return accountTransactions[selectedNonEvmNetworkChainId] ?? DEFAULT_TRANSACTION_STATE_ENTRY;
+    return (
+      accountTransactions[selectedNonEvmNetworkChainId] ??
+      DEFAULT_TRANSACTION_STATE_ENTRY
+    );
   },
 );
 
