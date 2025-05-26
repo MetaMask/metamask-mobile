@@ -53,11 +53,7 @@ const VerifyIdentity = () => {
             {strings('deposit.verify_identity.description')}
           </Text>
 
-          <TouchableOpacity
-            onPress={() => {
-              console.log('privacy policy link pressed');
-            }}
-          >
+          <TouchableOpacity>
             <Text style={styles.privacyPolicyLink}>
               {strings('deposit.verify_identity.privacy_policy_link')}
             </Text>
