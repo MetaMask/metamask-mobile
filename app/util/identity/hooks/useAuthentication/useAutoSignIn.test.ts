@@ -8,7 +8,6 @@ interface ArrangeMocksMetamaskStateOverrides {
   isUnlocked: boolean;
   useExternalServices: boolean;
   isSignedIn: boolean;
-  completedOnboarding: boolean;
   isBackupAndSyncEnabled: boolean;
   participateInMetaMetrics: boolean;
   isNotificationServicesEnabled: boolean;
@@ -42,9 +41,6 @@ const arrangeMockState = (
       },
     },
   },
-  onboarding: {
-    completedOnboarding: stateOverrides.completedOnboarding,
-  },
   settings: {
     basicFunctionalityEnabled: stateOverrides.useExternalServices,
   },
@@ -67,7 +63,6 @@ const prerequisitesStateKeys = [
   'isUnlocked',
   'useExternalServices',
   'isSignedIn',
-  'completedOnboarding',
 ];
 
 const authDependentFeaturesStateKeys = [
@@ -109,7 +104,6 @@ prerequisiteCombinations.forEach((prerequisiteState) => {
     if (
       combinedState.isUnlocked &&
       combinedState.useExternalServices &&
-      combinedState.completedOnboarding &&
       !combinedState.isSignedIn &&
       authDependentFeaturesStateKeys.some(
         (key) => combinedState[key as keyof ArrangeMocksMetamaskStateOverrides],
@@ -128,7 +122,6 @@ describe('useAutoSignIn', () => {
       isUnlocked: false,
       isBackupAndSyncEnabled: false,
       isSignedIn: false,
-      completedOnboarding: false,
       participateInMetaMetrics: false,
       useExternalServices: false,
       isNotificationServicesEnabled: false,

@@ -13,7 +13,6 @@ interface ArrangeMocksMetamaskStateOverrides {
   isAccountSyncingEnabled: boolean;
   isUnlocked: boolean;
   useExternalServices: boolean;
-  completedOnboarding: boolean;
   isAccountSyncingReadyToBeDispatched: boolean;
 }
 
@@ -40,9 +39,6 @@ const arrangeMockState = (
     settings: {
       basicFunctionalityEnabled: stateOverrides.useExternalServices,
     },
-    onboarding: {
-      completedOnboarding: stateOverrides.completedOnboarding,
-    },
   };
 
   return { state };
@@ -56,7 +52,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       'isAccountSyncingEnabled',
       'isUnlocked',
       'useExternalServices',
-      'completedOnboarding',
       'isAccountSyncingReadyToBeDispatched',
     ] as const;
     const baseState = {
@@ -65,7 +60,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       isAccountSyncingEnabled: true,
       isUnlocked: true,
       useExternalServices: true,
-      completedOnboarding: true,
       isAccountSyncingReadyToBeDispatched: true,
     };
 
@@ -140,7 +134,6 @@ describe('useAccountSyncing', () => {
   it('should dispatch if conditions are met', async () => {
     const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       arrangeAndAct({
-        completedOnboarding: true,
         isAccountSyncingReadyToBeDispatched: true,
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: true,
@@ -158,7 +151,6 @@ describe('useAccountSyncing', () => {
   it('should not dispatch conditions are not met', async () => {
     const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       arrangeAndAct({
-        completedOnboarding: true,
         isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: true,

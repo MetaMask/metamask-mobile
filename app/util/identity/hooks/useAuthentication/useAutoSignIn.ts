@@ -9,7 +9,6 @@ import {
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 /**
@@ -32,16 +31,11 @@ export function useAutoSignIn(): {
     useSelector(selectBasicFunctionalityEnabled),
   );
 
-  const completedOnboarding = useSelector(selectCompletedOnboarding);
   const isSignedIn = useSelector(selectIsSignedIn);
 
   const areBasePrerequisitesMet = useMemo(
-    () =>
-      !isSignedIn &&
-      isUnlocked &&
-      isBasicFunctionalityEnabled &&
-      completedOnboarding,
-    [isSignedIn, isUnlocked, isBasicFunctionalityEnabled, completedOnboarding],
+    () => !isSignedIn && isUnlocked && isBasicFunctionalityEnabled,
+    [isSignedIn, isUnlocked, isBasicFunctionalityEnabled],
   );
 
   // Auth dependent features
