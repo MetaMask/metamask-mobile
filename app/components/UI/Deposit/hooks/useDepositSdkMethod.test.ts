@@ -40,8 +40,6 @@ describe('useDepositSdkMethod', () => {
       result.current.sdkMethod();
     });
 
-    console.log(result.current);
-
     expect(result.current.loading).toBe(true);
   });
 
