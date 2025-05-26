@@ -202,7 +202,7 @@ export function useSwitchNetworks({
           ].networkClientId ?? type;
 
         setTokenNetworkFilter(networkConfiguration.chainId);
-        await MultichainNetworkController.setActiveNetwork(clientId).catch(e => { console.error("$$$$$$"); console.error(e) });
+        await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);

@@ -11,7 +11,6 @@ export const LINEA_SEPOLIA = 'linea-sepolia';
 export const LINEA_MAINNET = 'linea-mainnet';
 export const MEGAETH_TESTNET = 'megaeth-testnet';
 export const MONAD_TESTNET = 'monad-testnet';
-export const HOODI = 'hoodi';
 
 export const RPC = NetworkType.rpc;
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
@@ -48,7 +47,6 @@ export const NETWORKS_CHAIN_ID = {
   METACHAIN_ONE: toHex('112358'),
   MEGAETH_TESTNET: toHex('6342'),
   MONAD_TESTNET: toHex('10143'),
-  HOODI: toHex('560048'),
 };
 
 // To add a deprecation warning to a network, add it to the array
@@ -79,7 +77,6 @@ export const CHAINLIST_CURRENCY_SYMBOLS_MAP = {
   ZKSYNC_ERA: 'ETH',
   MEGAETH_TESTNET: 'MegaETH',
   MONAD_TESTNET: 'MON',
-  HOODI: 'HoodiETH',
 };
 
 export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
@@ -103,8 +100,6 @@ export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
   [NETWORKS_CHAIN_ID.ZKSYNC_ERA]: CHAINLIST_CURRENCY_SYMBOLS_MAP.ZKSYNC_ERA,
   [NETWORKS_CHAIN_ID.MEGAETH_TESTNET]: CHAINLIST_CURRENCY_SYMBOLS_MAP.MEGAETH_TESTNET,
   [NETWORKS_CHAIN_ID.MONAD_TESTNET]: CHAINLIST_CURRENCY_SYMBOLS_MAP.MONAD_TESTNET,
-  [NETWORKS_CHAIN_ID.HOODI]:
-    CHAINLIST_CURRENCY_SYMBOLS_MAP.HOODI,
 };
 
 export const TEST_NETWORK_IDS = [
@@ -114,5 +109,4 @@ export const TEST_NETWORK_IDS = [
   NETWORKS_CHAIN_ID.LINEA_SEPOLIA,
   NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
   NETWORKS_CHAIN_ID.MONAD_TESTNET,
-  NETWORKS_CHAIN_ID.HOODI,
 ];
