@@ -11,7 +11,7 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,8 +39,9 @@ jest.mock('../../../core/ClipboardManager', () => ({
   getString: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const valid12WordMnemonic =
