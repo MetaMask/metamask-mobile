@@ -53,8 +53,13 @@ export function useAccountProps() {
     () =>
       accountAddresses
         .map((addr) => {
+<<<<<<< HEAD
           const account = allAccounts.find((a) =>
             areAddressesEqual(a.address, addr),
+=======
+          const account = allAccounts.find(
+            (a) => toFormattedAddress(a.address) === toFormattedAddress(addr),
+>>>>>>> 44e0a17af4 (fix do not lowercase account addresses)
           );
           return account;
         })

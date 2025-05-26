@@ -22,6 +22,7 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+import { toFormattedAddress } from '../../util/address';
 
 export interface PPOMRequest {
   method: string;
@@ -84,9 +85,10 @@ async function validateRequest(
       ?.params?.[0] as Partial<TransactionParams>;
 
     if (
+      toAddress &&
       internalAccounts.some(
         ({ address }: { address: string }) =>
-          address?.toLowerCase() === toAddress?.toLowerCase(),
+          toFormattedAddress(address) === toFormattedAddress(toAddress),
       ) &&
       toAddress !== fromAddress
     ) {

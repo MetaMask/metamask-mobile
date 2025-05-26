@@ -12,7 +12,11 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
+<<<<<<< HEAD
 import { toFormattedAddress, areAddressesEqual } from '../util/address';
+=======
+import { toFormattedAddress } from '../util/address';
+>>>>>>> 44e0a17af4 (fix do not lowercase account addresses)
 
 /**
  * Restore the given serialized QR keyring.

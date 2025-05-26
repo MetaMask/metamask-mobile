@@ -32,7 +32,11 @@ import {
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../../Permissions';
+<<<<<<< HEAD
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
+=======
+import { toFormattedAddress } from '../../../util/address';
+>>>>>>> 44e0a17af4 (fix do not lowercase account addresses)
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -604,10 +608,15 @@ export default class DeeplinkProtocolService {
         selectedInternalAccountFormattedAddress,
         ...connectedAddresses.filter(
           (address) =>
+<<<<<<< HEAD
             !areAddressesEqual(
               address,
               selectedInternalAccountFormattedAddress,
             ),
+=======
+            toFormattedAddress(address) !==
+            selectedInternalAccountFormattedAddress,
+>>>>>>> 44e0a17af4 (fix do not lowercase account addresses)
         ),
       ];
     }
