@@ -42,6 +42,9 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
+import Engine from '../../../../../core/Engine';
+import { toHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -83,7 +86,7 @@ const EarnLendingBalance = ({
     alert('Token address copied to clipboard');
   };
 
-  const onNavigateToTooltipModal = useCallback(() => {
+  const onNavigateToTooltipModal = useCallback(async () => {
     let tokenToAddType = '';
     let tokenToAddAddress = '';
 
@@ -118,44 +121,102 @@ const EarnLendingBalance = ({
       return;
     }
 
-    openTooltipModal(
-      'Potential Token Match Found',
-      <View style={styles.tempAddTokenContent}>
-        <View>
-          <Text selectable>
-            {`Found matching ${tokenToAddType} token with address: `}
-            <Text
-              variant={TextVariant.BodyMDBold}
-              selectable
-              onPress={() => copyToClipboard(tokenToAddAddress)}
-            >
-              {tokenToAddAddress}
-              <Icon name={IconName.Copy} />
-            </Text>
-            <Text>{` (You can highlight and copy this address)`}</Text>
-          </Text>
-        </View>
-        <Text>{`For the lending flow to work properly, you'll need to add this token`}</Text>
-        <View>
-          <Text
-            variant={TextVariant.HeadingMD}
-          >{`How to add custom token?`}</Text>
-          <Text>{`1. From the token list (home screen), click the "+" button in the top-right.`}</Text>
-          <Text>{`2. On the "import tokens" screen, click the "Custom token" tab.`}</Text>
-          <Text>{`3. Select the network that this token is on.`}</Text>
-          <Text>{`4. Paste the token address mentioned above.`}</Text>
-        </View>
-      </View>,
-    );
+    // TODO: Sanity test automatically adding token to TokensController
+    const { TokensController } = Engine.context;
+    // Need receiptToken's: address, symbol, decimals, name, and chainId
+    // Need networkClientId
+
+    if (!lendingToken?.decimals || !lendingToken?.chainId) {
+      console.log('FAILED TO ADD');
+      return;
+    }
+
+    const getAaveV3ReceiptTokenAddressByLendingToken = (
+      lendingTokenChainId: string,
+      lendingTokenSymbol: string,
+    ) => {
+      const prefix = 'a';
+      const suffix = lendingTokenSymbol;
+
+      const chainIdToAaveChaiAcronymnMap: Record<string, string> = {
+        [CHAIN_IDS.MAINNET]: 'Eth',
+        [CHAIN_IDS.ARBITRUM]: 'Arb',
+        [CHAIN_IDS.LINEA_MAINNET]: 'Lin',
+      };
+
+      const networkAcronym =
+        chainIdToAaveChaiAcronymnMap?.[lendingTokenChainId];
+
+      const receiptTokenName = `${prefix}${networkAcronym}${suffix}`;
+
+      return TOKEN_ADDRESSES?.[lendingTokenChainId]?.[receiptTokenName];
+    };
+
+    const addReceiptTokenPayload = {
+      address: getAaveV3ReceiptTokenAddressByLendingToken(
+        lendingToken?.chainId as string,
+        lendingToken?.symbol as string,
+      ),
+      symbol:
+        LENDING_TOKEN_TO_RECEIPT_TOKEN_MAP[lendingToken.chainId as string][
+          lendingToken.symbol as string
+        ],
+      decimals: lendingToken.decimals,
+      name: `Aave Ethereum ${lendingToken.symbol}`,
+      chainId: lendingToken?.chainId,
+    };
+
+    const networkClientId =
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        toHex(lendingToken.chainId),
+      );
+
+    console.log('add token payload: ', {
+      ...addReceiptTokenPayload,
+      networkClientId,
+    });
+
+    await TokensController.addToken({
+      ...addReceiptTokenPayload,
+      networkClientId,
+    }).catch((e) => console.log('ERROR ADDING: ', e));
+
+    // openTooltipModal(
+    //   'Potential Token Match Found',
+    //   <View style={styles.tempAddTokenContent}>
+    //     <View>
+    //       <Text selectable>
+    //         {`Found matching ${tokenToAddType} token with address: `}
+    //         <Text
+    //           variant={TextVariant.BodyMDBold}
+    //           selectable
+    //           onPress={() => copyToClipboard(tokenToAddAddress)}
+    //         >
+    //           {tokenToAddAddress}
+    //           <Icon name={IconName.Copy} />
+    //         </Text>
+    //         <Text>{` (You can highlight and copy this address)`}</Text>
+    //       </Text>
+    //     </View>
+    //     <Text>{`For the lending flow to work properly, you'll need to add this token`}</Text>
+    //     <View>
+    //       <Text
+    //         variant={TextVariant.HeadingMD}
+    //       >{`How to add custom token?`}</Text>
+    //       <Text>{`1. From the token list (home screen), click the "+" button in the top-right.`}</Text>
+    //       <Text>{`2. On the "import tokens" screen, click the "Custom token" tab.`}</Text>
+    //       <Text>{`3. Select the network that this token is on.`}</Text>
+    //       <Text>{`4. Paste the token address mentioned above.`}</Text>
+    //     </View>
+    //   </View>,
+    // );
   }, [
     asset.chainId,
     asset.symbol,
-    lendingToken?.chainId,
-    lendingToken?.symbol,
-    openTooltipModal,
-    receiptToken?.chainId,
-    receiptToken?.symbol,
-    styles.tempAddTokenContent,
+    lendingToken.chainId,
+    lendingToken.decimals,
+    lendingToken.symbol,
+    receiptToken,
   ]);
 
   useEffect(() => {
