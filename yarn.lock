@@ -5357,10 +5357,10 @@
     "@metamask/utils" "^11.2.0"
     "@solana/addresses" "^2.0.0"
 
-"@metamask/multichain-transactions-controller@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-0.10.0.tgz#db047cd0d2ce2a491a7ae291c3a179a697fbb206"
-  integrity sha512-nPFrz8mXnmmLpHKX3sbn/Msxgj6Zv7DD0dM0Mk3FDBmVAflnrrV3vzFz54YuWT4Utbj1nwdxfK9mnCIeEzN/QQ==
+"@metamask/multichain-transactions-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-1.0.0.tgz#698cc8a2ba5784c2a364461af23cc69873493f62"
+  integrity sha512-YODS4k9O88GuUqMyABD1OxRKZyuTxNEhDvP13uTUuDq/+TDIr4xWUbXYVvw8v74I5p3+93M9RlSqHM4wWg7KuA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^17.4.0"
