@@ -48,9 +48,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
-import { bufferedTrace, TraceName, TraceOperation, bufferedEndTrace } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
@@ -244,9 +241,6 @@ class Onboarding extends PureComponent {
   actionXAnimated = new Animated.Value(0);
   detailsAnimated = new Animated.Value(0);
 
-  onboardingTraceCtx = null;
-  socialLoginTraceCtx = null;
-
   animatedTimingStart = (animatedRef, toValue) => {
     Animated.timing(animatedRef, {
       toValue,
@@ -310,12 +304,6 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
-    this.onboardingTraceCtx = bufferedTrace({
-      name: TraceName.OnboardingJourneyOverall,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: getTraceTags(store.getState()),
-    });
-
     this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
@@ -376,15 +364,8 @@ class Onboarding extends PureComponent {
     OAuthLoginService.resetOauthState();
     ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = () => {
-      bufferedTrace({
-        name: TraceName.OnboardingNewSrpCreateWallet,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: getTraceTags(store.getState()),
-        parentContext: this.onboardingTraceCtx,
-      });
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: this.onboardingTraceCtx,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
     };
@@ -398,17 +379,8 @@ class Onboarding extends PureComponent {
     OAuthLoginService.resetOauthState();
     ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
     const action = async () => {
-      bufferedTrace({
-        name: TraceName.OnboardingExistingSrpImport,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: getTraceTags(store.getState()),
-        parentContext: this.onboardingTraceCtx,
-      });
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        {
-          onboardingTraceCtx: this.onboardingTraceCtx,
-        },
       );
       this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
     };
@@ -417,52 +389,31 @@ class Onboarding extends PureComponent {
 
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   handlePostSocialLogin = (result, createWallet) => {
-    if (this.socialLoginTraceCtx) {
-      bufferedEndTrace({ name: TraceName.OnboardingSocialLoginAttempt });
-      this.socialLoginTraceCtx = null;
-    }
-
     if (result.type === 'success') {
       if (createWallet) {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         } else {
-          bufferedTrace({
-            name: TraceName.OnboardingNewSocialCreateWallet,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: this.onboardingTraceCtx,
-          });
           this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
           });
           this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
       } else if (!createWallet) {
         if (result.existingUser) {
-          bufferedTrace({
-            name: TraceName.OnboardingExistingSocialLogin,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: this.onboardingTraceCtx,
-          });
           this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
           });
           this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
-            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         }
       }
@@ -473,12 +424,6 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithApple = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = bufferedTrace({
-      name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'apple' },
-      parentContext: this.onboardingTraceCtx,
-    });
     const action = async () => {
       const loginHandler = createLoginHandler(Platform.OS, 'apple');
       const result = await OAuthLoginService.handleOAuthLogin(
@@ -494,12 +439,6 @@ class Onboarding extends PureComponent {
 
   onPressContinueWithGoogle = async (createWallet) => {
     this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = bufferedTrace({
-      name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'google' },
-      parentContext: this.onboardingTraceCtx,
-    });
     const action = async () => {
       const loginHandler = createLoginHandler(Platform.OS, 'google');
       const result = await OAuthLoginService.handleOAuthLogin(

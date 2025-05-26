@@ -535,7 +535,7 @@ export function deriveSentryEnvironment(
 }
 
 // Setup sentry remote error reporting
-export async function setupSentry() {
+export function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
@@ -572,7 +572,7 @@ export async function setupSentry() {
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
     });
   };
-  await init();
+  init();
 }
 
 // eslint-disable-next-line no-empty-function

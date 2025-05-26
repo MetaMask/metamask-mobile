@@ -88,12 +88,6 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import {
-  TraceName,
-  bufferedEndTrace,
-  bufferedTrace,
-  TraceOperation,
-} from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
@@ -121,7 +115,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const seedPhraseInputRefs = useRef([]);
   const { toastRef } = useContext(ToastContext);
-  const passwordSetupAttemptTraceCtxRef = useRef(null);
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
@@ -272,13 +265,6 @@ const ImportFromSecretRecoveryPhrase = ({
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
-
-  useEffect(() => () => {
-    if (passwordSetupAttemptTraceCtxRef.current) {
-      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-      passwordSetupAttemptTraceCtxRef.current = null;
-    }
-  }, []);
 
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
@@ -497,15 +483,6 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     setCurrentStep(currentStep + 1);
-    // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-    if (onboardingTraceCtx) {
-      passwordSetupAttemptTraceCtxRef.current = bufferedTrace({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
-      });
-    }
   };
 
   const isContinueButtonDisabled = () =>
@@ -584,9 +561,6 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-
-        bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
-        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (isMetricsEnabled()) {
           navigation.reset({

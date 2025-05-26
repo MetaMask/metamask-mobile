@@ -1,12 +1,6 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
-import {
-  bufferedTrace,
-  bufferedEndTrace,
-  TraceName,
-  TraceOperation,
-} from '../../util/trace';
 
 import { UserActionType } from '../../actions/user';
 import {
@@ -140,43 +134,15 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      let result, data, handleCodeFlowResult;
-      let providerLoginSuccess = false;
-      try {
-        bufferedTrace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          op: TraceOperation.OnboardingSecurityOp,
-        });
-        result = await loginHandler.login();
-        providerLoginSuccess = true;
-      } finally {
-        bufferedEndTrace({
-          name: TraceName.OnboardingOAuthProviderLogin,
-          data: { success: providerLoginSuccess },
-        });
-      }
-
+      const result = await loginHandler.login();
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: result', result);
       if (result) {
-        let getAuthTokensSuccess = false;
-        try {
-          bufferedTrace({
-            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-            op: TraceOperation.OnboardingSecurityOp,
-          });
-          data = await loginHandler.getAuthTokens(
-            { ...result, web3AuthNetwork },
-            this.config.authServerUrl,
-          );
-          getAuthTokensSuccess = true;
-        } finally {
-          bufferedEndTrace({
-            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-            data: { success: getAuthTokensSuccess },
-          });
-        }
+        const data = await loginHandler.getAuthTokens(
+          { ...result, web3AuthNetwork },
+          this.config.authServerUrl,
+        );
 
         const audience = 'metamask';
 
@@ -194,25 +160,10 @@ export class OAuthService {
           userId,
           accountName,
         });
-
-        let seedlessAuthSuccess = false;
-        try {
-          bufferedTrace({
-            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-            op: TraceOperation.OnboardingSecurityOp,
-          });
-          handleCodeFlowResult = await this.handleSeedlessAuthenticate(
-            data,
-            authConnection,
-          );
-          seedlessAuthSuccess = true;
-        } finally {
-          bufferedEndTrace({
-            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-            data: { success: seedlessAuthSuccess },
-          });
-        }
-
+        const handleCodeFlowResult = await this.handleSeedlessAuthenticate(
+          data,
+          authConnection,
+        );
         this.#dispatchPostLogin(handleCodeFlowResult);
         return handleCodeFlowResult;
       }

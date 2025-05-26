@@ -40,8 +40,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { TraceName, bufferedEndTrace } from '../../../util/trace';
-import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -106,7 +104,6 @@ const AccountBackupStep1 = (props) => {
   const { navigation, route } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const styles = createStyles(colors);
 
   const track = (event, properties) => {
@@ -167,23 +164,13 @@ const AccountBackupStep1 = (props) => {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-
-    bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
-
-    if (isMetricsEnabled()) {
-      props.navigation.navigate('OnboardingSuccess', {
-        showPasswordHint: false,
-      });
-    } else {
-      props.navigation.navigate('OptinMetrics', {
-        onContinue: () => {
-          props.navigation.navigate('OnboardingSuccess', {
+    props.navigation.navigate('OptinMetrics', {
+      onContinue: () => {
+        props.navigation.navigate('OnboardingSuccess', {
           showPasswordHint: false,
         });
-        },
-      });
-    }
+      },
+    });
   };
 
   const showRemindLater = () => {
