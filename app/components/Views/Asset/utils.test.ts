@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import { deepClone } from '@metamask/snaps-utils';
 import { getSwapsIsLive, getIsSwapsAssetAllowed } from './utils';
 import { RootState } from '../../../reducers';
@@ -20,6 +21,35 @@ describe('getSwapsIsLive', () => {
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             bridgeConfig: {
+              minimumVersion: '0.0.0',
+              support: true,
+              chains: {
+                1: {
+                  isActiveDest: true,
+                  isActiveSrc: true,
+                },
+                1151111081099710: {
+                  isActiveDest: true,
+                  isActiveSrc: true,
+                  refreshRate: 10000,
+                  topAssets: [
+                    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                    '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
+                    'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
+                    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxsDx8F8k8k3uYw1PDC',
+                    '3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y',
+                    '9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u',
+                    'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+                    'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',
+                    '21AErpiB8uSb94oQKRcwuHqyHF93njAxBSbdUrpupump',
+                  ],
+                },
+              },
+              maxRefreshCount: 5,
+              refreshRate: 30000,
+            },
+            bridgeConfigV2: {
+              minimumVersion: '0.0.0',
               support: true,
               chains: {
                 1: {
