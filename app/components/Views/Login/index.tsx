@@ -240,10 +240,6 @@ const Login: React.FC = () => {
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-      if (passwordLoginAttemptTraceCtxRef.current) {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-        passwordLoginAttemptTraceCtxRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -389,6 +385,10 @@ const Login: React.FC = () => {
       if (oauthLoginSuccess) {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
+        }
+        if (passwordLoginAttemptTraceCtxRef.current) {
+          bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+          passwordLoginAttemptTraceCtxRef.current = null;
         }
         bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
         bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
