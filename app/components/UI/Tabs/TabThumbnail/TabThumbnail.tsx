@@ -30,6 +30,7 @@ import { selectPermissionControllerState } from '../../../../selectors/snaps/per
 import { getPermittedEvmAddressesByHostname } from '../../../../core/Permissions';
 import { useFavicon } from '../../../hooks/useFavicon';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { toFormattedAddress } from '../../../../util/address';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -58,7 +59,8 @@ const TabThumbnail = ({
   const activeAddress = permittedAccountsByHostname[0];
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedAccount = internalAccounts.find(
-    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+    (account) =>
+      toFormattedAddress(account.address) === toFormattedAddress(activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
@@ -127,7 +129,8 @@ const TabThumbnail = ({
               ellipsizeMode="tail"
             >
               {`${
-                selectedAccount.metadata?.name ?? strings('browser.undefined_account')
+                selectedAccount.metadata?.name ??
+                strings('browser.undefined_account')
               }${networkName ? ` - ${networkName}` : ''}`}
             </Text>
           </View>

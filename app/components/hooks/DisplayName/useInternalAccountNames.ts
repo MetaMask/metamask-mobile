@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { UseDisplayNameRequest } from './useDisplayName';
+import { toFormattedAddress } from '../../../util/address';
 
 export function useInternalAccountNames(requests: UseDisplayNameRequest[]) {
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -9,7 +10,8 @@ export function useInternalAccountNames(requests: UseDisplayNameRequest[]) {
   return requests.map((request) => {
     const { value } = request;
     const foundAccount = internalAccounts.find(
-      (account) => account.address.toLowerCase() === value.toLowerCase(),
+      (account) =>
+        toFormattedAddress(account.address) === toFormattedAddress(value),
     );
     return foundAccount?.metadata?.name;
   });

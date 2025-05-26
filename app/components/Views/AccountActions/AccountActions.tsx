@@ -39,6 +39,7 @@ import {
   isHDOrFirstPartySnapAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
+  toFormattedAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -82,7 +83,7 @@ const AccountActions = () => {
 
   const keyringId = useMemo(() => {
     const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(selectedAccount.address.toLowerCase()),
+      kr.accounts.includes(toFormattedAddress(selectedAccount.address)),
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
@@ -427,18 +428,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}

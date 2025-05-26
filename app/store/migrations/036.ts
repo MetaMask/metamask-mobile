@@ -146,7 +146,7 @@ function findInternalAccountByAddress(
     state.engine.backgroundState.AccountsController.internalAccounts.accounts,
   ).find(
     (account: InternalAccount) =>
-      account.address.toLowerCase() === address.toLowerCase(),
+      account.address.toLowerCase() === address.toLowerCase(), // Should this be lowercase?
   );
 }
 
