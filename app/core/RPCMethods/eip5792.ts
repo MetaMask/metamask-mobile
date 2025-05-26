@@ -22,6 +22,7 @@ import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-c
 
 import ppomUtil from '../../lib/ppom/ppom-util';
 import { EIP5792ErrorCode } from '../../constants/transaction';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
@@ -262,7 +263,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
         const keyringType = getAccountKeyringType(address) ?? '';
         isSupportedAccount = SUPPORTED_KEYRING_TYPES.includes(keyringType);
       } catch (error) {
-        // Intentionally empty
+        DevLogger.log(error);
       }
 
       const canUpgrade =
