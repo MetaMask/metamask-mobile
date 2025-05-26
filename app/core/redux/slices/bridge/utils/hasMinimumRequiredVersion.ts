@@ -7,6 +7,6 @@ export const hasMinimumRequiredVersion = (minRequiredVersion: string | undefined
   const currentVersion = getVersion();
   return (
     compareVersions.compare(currentVersion, minRequiredVersion, '>=') &&
-    process.env.BRIDGE_ENABLED === 'true'
+    process.env.MM_BRIDGE_ENABLED === 'true'
   );
 };
