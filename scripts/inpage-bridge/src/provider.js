@@ -39,7 +39,6 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-
 }
 
 // Functions
