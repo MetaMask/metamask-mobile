@@ -64,3 +64,6 @@
 -dontwarn com.google.common.util.concurrent.**
 -dontwarn org.objectweb.asm.**
 -dontwarn net.bytebuddy.**
+
+
+-dontwarn com.facebook.react.bridge.JavaOnlyMap$Companion
