@@ -58,7 +58,6 @@
 -dontwarn javax.swing.**
 -dontwarn java.lang.instrument.**
 -dontwarn sun.misc.**
--dontwarn org.mockito.**
 -dontwarn edu.umd.cs.findbugs.**
 -dontwarn com.huawei.hms.ads.**
 -dontwarn com.google.common.util.concurrent.**

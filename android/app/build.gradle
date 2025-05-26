@@ -211,7 +211,6 @@ android {
       }
       exclude 'META-INF/AL2.0'
       exclude 'META-INF/LGPL2.1'
-      exclude 'mockito-extensions/org.mockito.plugins.MockMaker'
 	  }
 
     androidResources {
@@ -305,7 +304,6 @@ dependencies {
     implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
-    androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
@@ -325,8 +323,4 @@ dependencies {
     androidTestImplementation "net.java.dev.jna:jna:5.12.1"
     androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
     androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
-    
-    // Make sure you have the proper Mockito dependencies
-    androidTestImplementation "org.mockito:mockito-core:4.8.0"
-    androidTestImplementation "org.mockito:mockito-inline:4.8.0"
 }
