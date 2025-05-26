@@ -996,7 +996,7 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - avd-manager@1:
           inputs:
-            - api_level: '33'
+            - api_level: '34'
             - abi: 'x86_64'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
