@@ -116,7 +116,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
 
   // Setup the engine property to support sendNotification
   bridge.engine = {
-    emit: jest.fn(),
+    emit: jest.fn()
   };
 
   return bridge;
@@ -210,7 +210,7 @@ describe('BackgroundBridge', () => {
     it('requests getProviderNetworkState from origin getter when network state is updated', async () => {
       const mockNetworkState = {
         chainId: '0x2',
-        networkVersion: '2',
+        networkVersion: '2'
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
@@ -229,50 +229,49 @@ describe('BackgroundBridge', () => {
       // Verify the spy was called with the correct URL
       expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
-    });
+    })
 
     it('notifies of chain changes when network state is updated', async () => {
-      // Create the new network state with a different chain
-      const mockNetworkState = {
+       // Create the new network state with a different chain
+       const mockNetworkState = {
         chainId: '0x2',
-        networkVersion: '2',
+        networkVersion: '2'
       };
-      // Create the new network state with a different chain
-      const oldMockNetworkState = {
+       // Create the new network state with a different chain
+       const oldMockNetworkState = {
         chainId: '0x1',
-        networkVersion: '1',
+        networkVersion: '1'
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(bridge, 'sendNotification');
-      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
+      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState')
 
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
-      expect(bridge.networkVersionSent).toBe(
-        oldMockNetworkState.networkVersion,
-      );
+      expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
 
       // Trigger emulated initial state update
       getProviderSpy.mockResolvedValue(mockNetworkState);
       await bridge.onStateUpdate();
 
+
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: AppConstants.NOTIFICATION_NAMES.chainChanged,
-        params: mockNetworkState,
+        params: mockNetworkState
       });
       expect(bridge.lastChainIdSent).toBe(mockNetworkState.chainId);
       expect(bridge.networkVersionSent).toBe(mockNetworkState.networkVersion);
 
+
       getProviderSpy.mockResolvedValue(oldMockNetworkState);
       await bridge.onStateUpdate();
 
+
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
-      expect(bridge.networkVersionSent).toBe(
-        oldMockNetworkState.networkVersion,
-      );
+      expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: AppConstants.NOTIFICATION_NAMES.chainChanged,
-        params: oldMockNetworkState,
+        params: oldMockNetworkState
       });
     });
   });
