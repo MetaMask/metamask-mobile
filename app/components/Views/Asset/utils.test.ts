@@ -129,6 +129,7 @@ describe('getSwapsIsLive', () => {
       // @ts-expect-error - It's defined in the mock
       remoteFeatureFlags.bridgeConfig.chains[1151111081099710] =
         {
+          minimumVersion: '0.0.0',
           isActiveDest: false,
           isActiveSrc: false,
           refreshRate: 10000,
