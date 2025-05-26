@@ -1,18 +1,30 @@
+import { Hex } from '@metamask/utils';
+import { ORIGIN_METAMASK } from '@metamask/approval-controller';
 import {
+  TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
+
 import type { RootState } from '../../../../reducers';
+import { EIP5792ErrorCode } from '../../../../components/Views/confirmations/constants/confirmations';
+import { getMethodData } from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
 } from '../../../Analytics/MetaMetrics.types';
+import Engine from '../../Engine';
 import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+
+const BATCHED_MESSAGE_TYPE = {
+  WALLET_SEND_CALLS: 'wallet_sendCalls',
+  ETH_SEND_TRANSACTION: 'eth_sendTransaction',
+};
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -77,12 +89,80 @@ const getConfirmationMetricProperties = (
     {}) as unknown as TransactionMetrics;
 };
 
-export function generateDefaultTransactionMetrics(
+async function getNestedMethodNames(
+  transactionMeta: TransactionMeta,
+): Promise<string[]> {
+  const { nestedTransactions: transactions = [], chainId } =
+    transactionMeta ?? {};
+  const networkClientId =
+    Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
+  const allData = transactions
+    .filter((tx) => tx.type === TransactionType.contractInteraction && tx.data)
+    .map((tx) => tx.data as Hex);
+
+  const results = await Promise.all(
+    allData.map((data) => getMethodData(data, networkClientId)),
+  );
+
+  const names = results
+    .map((result) => result?.name)
+    .filter((name) => name?.length) as string[];
+
+  return names;
+}
+
+async function getBatchProperties(transactionMeta: TransactionMeta) {
+  const properties: Record<string, unknown> = {};
+  const { delegationAddress, nestedTransactions, origin, txParams } =
+    transactionMeta;
+  const isExternal = origin && origin !== ORIGIN_METAMASK;
+  const { authorizationList } = txParams;
+  const isBatch = Boolean(nestedTransactions?.length);
+  const isUpgrade = Boolean(authorizationList?.length);
+
+  if (isExternal) {
+    properties.api_method = isBatch
+      ? BATCHED_MESSAGE_TYPE.WALLET_SEND_CALLS
+      : BATCHED_MESSAGE_TYPE.ETH_SEND_TRANSACTION;
+  }
+
+  if (isBatch) {
+    properties.batch_transaction_count = nestedTransactions?.length;
+    properties.batch_transaction_method = 'eip7702';
+
+    properties.transaction_contract_method = await getNestedMethodNames(
+      transactionMeta,
+    );
+
+    properties.transaction_contract_address = nestedTransactions
+      ?.filter(
+        (tx) =>
+          tx.type === TransactionType.contractInteraction && tx.to?.length,
+      )
+      .map((tx) => tx.to as string);
+  }
+
+  if (transactionMeta.status === TransactionStatus.rejected) {
+    const { error } = transactionMeta;
+
+    properties.eip7702_upgrade_rejection =
+      // @ts-expect-error Code has string type in controller
+      isUpgrade && error.code === EIP5792ErrorCode.RejectedUpgrade;
+  }
+  properties.eip7702_upgrade_transaction = isUpgrade;
+  properties.account_eip7702_upgraded = delegationAddress;
+
+  return properties;
+}
+
+export async function generateDefaultTransactionMetrics(
   metametricsEvent: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
   { getState }: TransactionEventHandlerRequest,
 ) {
   const { chainId, id, type, status } = transactionMeta;
+
+  const batchProperties = await getBatchProperties(transactionMeta);
 
   const mergedDefaultProperties = merge(
     {
@@ -92,6 +172,7 @@ export function generateDefaultTransactionMetrics(
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),
         status,
+        ...batchProperties,
       },
     },
     getConfirmationMetricProperties(getState, id),

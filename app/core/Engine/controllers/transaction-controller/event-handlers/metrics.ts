@@ -12,12 +12,12 @@ import type { TransactionEventHandlerRequest } from '../types';
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
   (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
-  (
+  async (
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
     const defaultTransactionMetricProperties =
-      generateDefaultTransactionMetrics(
+      await generateDefaultTransactionMetrics(
         eventType,
         transactionMeta,
         transactionEventHandlerRequest,
@@ -28,18 +28,14 @@ const createTransactionEventHandler =
   };
 
 // Simple handlers - no unique properties / actions
-export const handleTransactionAddedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_ADDED,
-);
-export const handleTransactionApprovedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_APPROVED,
-);
-export const handleTransactionRejectedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
-);
-export const handleTransactionSubmittedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-);
+export const handleTransactionAddedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
+export const handleTransactionApprovedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
+export const handleTransactionRejectedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
+export const handleTransactionSubmittedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
 
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.
@@ -51,15 +47,19 @@ export async function handleTransactionFinalizedEventForMetrics(
   const { getState, initMessenger, smartTransactionsController } =
     transactionEventHandlerRequest;
 
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionEventHandlerRequest,
-  );
+  const defaultTransactionMetricProperties =
+    await generateDefaultTransactionMetrics(
+      TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+      transactionMeta,
+      transactionEventHandlerRequest,
+    );
 
   let stxMetricsProperties = {};
 
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(getState(), transactionMeta.chainId);
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    getState(),
+    transactionMeta.chainId,
+  );
   if (shouldUseSmartTransaction) {
     stxMetricsProperties = await getSmartTransactionMetricsProperties(
       smartTransactionsController,
