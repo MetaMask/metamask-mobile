@@ -3980,7 +3980,8 @@
         "splashTitle": "Use smart account?",
         "upgradeBannerDescription": "Same address. Smarter features.",
         "upgradeBannerTitle": "Switch to smart account"
-      }
+      },
+      "includes_transaction": "Includes {{transactionCount}} transactions"
     },
     "unlimited": "Unlimited",
     "none": "None",
