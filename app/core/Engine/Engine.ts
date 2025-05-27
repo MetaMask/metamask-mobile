@@ -197,6 +197,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
@@ -1166,6 +1167,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         SnapController: snapControllerInit,
@@ -1289,6 +1291,7 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1296,6 +1299,7 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+          'KeyringController:accountRemoved',
         ],
       }),
     });
@@ -1355,6 +1359,7 @@ export class Engine {
             'TokenListController:stateChange',
             'TokensController:stateChange',
             'AccountsController:selectedEvmAccountChange',
+            'TransactionController:transactionConfirmed',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1411,11 +1416,13 @@ export class Engine {
             'TokensController:getState',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'AccountsController:listAccounts',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
+            'KeyringController:accountRemoved',
           ],
         }),
         // TODO: This is long, can we decrease it?
@@ -1534,6 +1541,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      DeFiPositionsController: controllersByName.DeFiPositionsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2164,6 +2172,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     } = instance.datamodel.state;
 
     return {
@@ -2214,6 +2223,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     };
   },
 

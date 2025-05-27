@@ -2,6 +2,7 @@
 
 exports[`AddChainApproval renders 1`] = `
 <ForwardRef
+  onClose={[Function]}
   shouldNavigateBack={false}
 >
   <View
