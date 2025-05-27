@@ -1361,12 +1361,7 @@
     pirates "^4.0.6"
     source-map-support "^0.5.16"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.8", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.13", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.1", "@babel/runtime@^7.25.0", "@babel/runtime@^7.26.9", "@babel/runtime@^7.6.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.9.2":
-  version "7.27.1"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.27.1.tgz#9fce313d12c9a77507f264de74626e87fd0dc541"
-  integrity sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==
-
-"@babel/runtime@^7.24.0":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.8", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.13", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.0", "@babel/runtime@^7.24.1", "@babel/runtime@^7.25.0", "@babel/runtime@^7.26.9", "@babel/runtime@^7.6.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.9.2":
   version "7.27.1"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.27.1.tgz#9fce313d12c9a77507f264de74626e87fd0dc541"
   integrity sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==
@@ -6017,10 +6012,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp-multichain/-/test-dapp-multichain-0.13.0.tgz#7834b5121131ed9cfdd69a968fb16c82dac0d485"
   integrity sha512-WIFxP3EdFXy8cF/yp2fzM5tdMdBUEhjgNX5aAxUBpYDXB/drPFSuwD9Q2ECFuP3DERZPsHko8gYXw5WjhadOHg==
 
-"@metamask/test-dapp-solana@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp-solana/-/test-dapp-solana-0.2.0.tgz#a5e391179bc8e9e7130ada4a4539ece48bc9bc39"
-  integrity sha512-4L7iRHp8cY/cIcke7CRGXs2jbhnMb1427tB+pwQBuH/vIk8mST/rzJqF7Np4DLoLDhvcnXAUP7gBF5up5Il7Bw==
+"@metamask/test-dapp-solana@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp-solana/-/test-dapp-solana-0.3.0.tgz#9a688ccf85faebff803cc9ae9a7db3838e3df56e"
+  integrity sha512-5dfM+gvci6OS5yIR7MYuwhvGOkSjhnXHfLSGtjXMTpH79lIjo8fcvHEdi5QYcVNFbpZQFBmO0cn97MdcoeuZ8Q==
   dependencies:
     "@solana/spl-token" "^0.4.13"
     "@solana/wallet-adapter-base" "^0.9.23"
