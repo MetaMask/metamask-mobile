@@ -2210,13 +2210,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.46.1
+      VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
       VERSION_NUMBER: 1891
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.46.1
+      FLASK_VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1891
