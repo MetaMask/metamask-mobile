@@ -261,7 +261,7 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && isSolanaAddress(address)),
+            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });
