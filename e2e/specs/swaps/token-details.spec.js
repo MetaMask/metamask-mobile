@@ -21,6 +21,7 @@ describe(SmokeTrade('Token Chart Tests'), () => {
   });
 
   it('should view the token chart', async () => {
+    await TestHelpers.delay(10000)
     await WalletView.tapOnToken();
     await Assertions.checkIfElementNotToHaveText(
       TokenOverview.tokenPrice,
