@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import UrlAutocomplete, { UrlAutocompleteRef } from './';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
