@@ -161,7 +161,7 @@ const PermissionsSummary = ({
 
     return isPerDappSelectedNetworkEnabled() &&
       isAlreadyConnected &&
-      !nonTabView ? (
+      !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
