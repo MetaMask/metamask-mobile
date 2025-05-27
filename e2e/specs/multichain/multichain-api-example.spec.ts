@@ -66,7 +66,7 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
         try {
           // Complete the entire multichain flow with default networks (Ethereum and Linea)
           const success = await MultichainTestDApp.completeMultichainFlow();
-          
+
           // Verify success
           expect(success).toBe(true);
         } catch (error) {
@@ -96,21 +96,21 @@ describe(SmokeNetworkExpansion('Multichain API Tests'), () => {
         try {
           // Scroll to page top
           await MultichainTestDApp.scrollToPageTop();
-          
+
           // Connect using auto-connect button
           const connected = await MultichainTestDApp.useAutoConnectButton();
           expect(connected).toBe(true);
-          
+
           // Select only Ethereum Mainnet using constant
           const networkSelected = await MultichainTestDApp.selectNetwork(
             MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET
           );
           expect(networkSelected).toBe(true);
-          
+
           // Create and get session
           const sessionCreated = await MultichainTestDApp.clickCreateSessionButton();
           expect(sessionCreated).toBe(true);
-          
+
           const sessionRetrieved = await MultichainTestDApp.clickGetSessionButton();
           expect(sessionRetrieved).toBe(true);
         } catch (error) {

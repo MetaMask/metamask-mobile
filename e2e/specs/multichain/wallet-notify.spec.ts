@@ -61,7 +61,7 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
 
                     // Check if notifications are being captured by the dapp
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     // Look for the wallet_notify container in the dapp
                     try {
                         const notifyContainer = webview.element(by.web.id('wallet-notify-container'));
@@ -75,19 +75,19 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
                     // This could be done by invoking a method that triggers events
                     const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
                     const scope = MultichainUtilities.getEIP155Scope(chainId);
-                    
+
                     // Try to invoke a method that might trigger notifications
                     try {
                         const escapedScopeForButton = scope.replace(/:/g, '-');
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-eth_blockNumber`;
-                        
+
                         const directButton = webview.element(by.web.id(directButtonId));
                         await directButton.tap();
                         console.log('✅ Triggered method that might generate notifications');
-                        
+
                         // Wait for potential notifications
                         await TestHelpers.delay(5000);
-                        
+
                     } catch (methodError) {
                         console.log('⚠️ Could not trigger notification-generating method:', methodError);
                     }
@@ -152,7 +152,7 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
 
                     // Verify that the notification system is ready
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         const notifyContainer = webview.element(by.web.id('wallet-notify-container'));
                         await Assertions.checkIfVisible(Promise.resolve(notifyContainer));
@@ -213,7 +213,7 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
 
                     // Verify notification infrastructure
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         const notifyContainer = webview.element(by.web.id('wallet-notify-container'));
                         await Assertions.checkIfVisible(Promise.resolve(notifyContainer));
@@ -241,4 +241,4 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
             },
         );
     });
-}); 
+});

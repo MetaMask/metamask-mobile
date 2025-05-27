@@ -39,7 +39,7 @@ describe(Regression('Transaction'), () => {
         await loginToApp();
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
-        
+
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
         await NetworkEducationModal.tapGotItButton();

@@ -61,7 +61,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
 
                     // Check for sessionChanged event infrastructure
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         // Look for wallet_sessionChanged container in the dapp
                         const sessionChangedContainer = webview.element(by.web.cssSelector('[id*="wallet-session-changed"]'));
@@ -74,7 +74,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
                     // Trigger a session modification by creating a new session
                     // This should trigger a sessionChanged event
                     console.log('🔄 Modifying session to trigger sessionChanged event...');
-                    
+
                     try {
                         // Create a new session with different/additional networks
                         const modifiedNetworks = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
@@ -155,7 +155,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
 
                     // Verify sessionChanged event infrastructure
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         const sessionChangedContainer = webview.element(by.web.cssSelector('[id*="wallet-session-changed"]'));
                         await Assertions.checkIfVisible(Promise.resolve(sessionChangedContainer));
@@ -216,7 +216,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
 
                     // Verify sessionChanged event infrastructure
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         const sessionChangedContainer = webview.element(by.web.cssSelector('[id*="wallet-session-changed"]'));
                         await Assertions.checkIfVisible(Promise.resolve(sessionChangedContainer));
@@ -287,7 +287,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
 
                     // Verify sessionChanged event infrastructure
                     const webview = MultichainTestDApp.getWebView();
-                    
+
                     try {
                         const sessionChangedContainer = webview.element(by.web.cssSelector('[id*="wallet-session-changed"]'));
                         await Assertions.checkIfVisible(Promise.resolve(sessionChangedContainer));
@@ -313,4 +313,4 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
             },
         );
     });
-}); 
+});

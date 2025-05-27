@@ -23,16 +23,16 @@ import MultichainUtilities from '../../utils/MultichainUtilities';
 async function attemptInvokeMethod(chainId: string): Promise<boolean> {
     try {
         const webview = MultichainTestDApp.getWebView();
-        
+
         // Try to find and click an invoke method button for the specific chain
         const scopeId = `eip155:${chainId}`;
         const invokeButtonId = `invoke-method-${scopeId}-btn`;
-        
+
         try {
             const invokeButton = webview.element(by.web.id(invokeButtonId));
             await invokeButton.scrollToView();
             await invokeButton.runScript('(el) => { el.click(); }');
-            
+
             // Wait for processing
             await TestHelpers.delay(1000);
             return true;
@@ -337,7 +337,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
 
                     // Try to revoke when no session exists
                     const revokeResult = await MultichainTestDApp.clickRevokeSessionButton();
-                    
+
                     // This should either succeed (no-op) or fail gracefully
 
                     await TestHelpers.delay(1000);
@@ -359,4 +359,4 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
             },
         );
     });
-}); 
+});
