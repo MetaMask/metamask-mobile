@@ -442,7 +442,7 @@
     "@metamask/providers": "^18.3.1",
     "@metamask/test-dapp": "^9.2.0",
     "@metamask/test-dapp-multichain": "^0.15.0",
-    "@metamask/test-dapp-solana": "^0.2.0",
+    "@metamask/test-dapp-solana": "^0.3.0",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",

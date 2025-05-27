@@ -49,7 +49,7 @@ class ConnectBottomSheet {
   }
 
   async tapCancelButton() {
-    await Gestures.waitAndTap(this.connectButton);
+    await Gestures.waitAndTap(this.cancelButton);
   }
 
   async tapConnectButton() {

@@ -119,7 +119,7 @@ class Matchers {
    * Get element by XPath.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
-   * @return {Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade>} - Resolves to the located element
+   * @return {Promise<Detox.IndexableMaybeSecuredWebElement & Detox.SecuredWebElementFacade>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath) {
     const myWebView = this.getWebViewByID(webviewID);
@@ -152,7 +152,6 @@ class Matchers {
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
   }
-
 
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
