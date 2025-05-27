@@ -6,8 +6,7 @@ import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
 import { BalanceChange } from '../types';
 
 const BatchApprovalRow = () => {
-  const { value: approveBalanceChanges } =
-    useBatchApproveBalanceChanges() ?? {};
+  const { value: approveBalanceChanges } = useBatchApproveBalanceChanges();
 
   if (!approveBalanceChanges?.length) {
     return null;
@@ -15,8 +14,9 @@ const BatchApprovalRow = () => {
 
   return (
     <>
-      {approveBalanceChanges.map((balanceChange) => (
+      {approveBalanceChanges.map((balanceChange, index) => (
         <BalanceChangeRow
+          key={`batch_balance_change-${index}-${balanceChange}`}
           label={strings('confirm.simulation.label_change_type_approve')}
           balanceChange={balanceChange as BalanceChange}
         />

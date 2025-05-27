@@ -25,7 +25,10 @@ export type ApprovalBalanceChange = BalanceChange & {
   nestedTransactionIndex: number;
 };
 
-export function useBatchApproveBalanceChanges() {
+export function useBatchApproveBalanceChanges(): {
+  pending: boolean;
+  value: ApprovalBalanceChange[];
+} {
   const transactionMeta = useTransactionMetadataRequest();
   const { chainId, nestedTransactions } = transactionMeta ?? {};
 
