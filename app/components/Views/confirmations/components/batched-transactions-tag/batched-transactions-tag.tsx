@@ -32,9 +32,11 @@ export const BatchedTransactionTag = () => {
       }
     >
       <Text color={TextColor.Alternative} variant={TextVariant.BodySMMedium}>
-        {`${strings('confirm.7702_functionality.includes')} ${
-          transactionMetadata?.nestedTransactions?.length
-        } ${strings('confirm.7702_functionality.transactions')}`}
+        {
+           strings('confirm.7702_functionality.includes_transaction', {
+               transactionCount: nestedTransactionCount
+           })
+        }
       </Text>
     </TagBase>
   );
