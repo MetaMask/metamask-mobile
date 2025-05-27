@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor, element, by } from 'detox';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -33,6 +33,7 @@ class Assertions {
     // rename this. We are checking if element is visible.
     return await expect(await elementId).toExist();
   }
+
 
   /**
    * Check if an element with the specified ID is not visible.
@@ -73,9 +74,11 @@ class Assertions {
       .withTimeout(timeout);
   }
 
+
   /**
    * Check if text is visible.
    * @param {string} text - The text to check if displayed.
+   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfTextIsDisplayed(text, timeout = TIMEOUT) {
@@ -86,6 +89,7 @@ class Assertions {
   /**
    * Check if text is not visible.
    * @param {string} text - The text to check if not displayed.
+   * @param {number} [index=0] - Index of the element if multiple elements match.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfTextIsNotDisplayed(text, timeout = TIMEOUT) {
@@ -224,6 +228,13 @@ class Assertions {
       throw new Error('Value is not present (null, undefined, or empty string)');
     }
     return true;
+  }
+
+  static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
+    const labelMatcher = element(by.label(new RegExp(text)));
+    return await waitFor(labelMatcher)
+      .toExist()
+      .withTimeout(timeout);
   }
 }
 
