@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,7 +9,6 @@ import {
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
-import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
@@ -462,11 +462,11 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Continue')).toBeTruthy();
+      expect(getByText('Confirm Bridge')).toBeTruthy();
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
-    it('should handle Continue button press', async () => {
+    it('should handle "Confirm Bridge" button press', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -491,8 +491,8 @@ describe('BridgeView', () => {
         },
       );
 
-      const continueButton = getByText('Continue');
-      fireEvent.press(continueButton);
+      const button = getByText('Confirm Bridge');
+      fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
