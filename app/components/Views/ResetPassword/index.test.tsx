@@ -1,5 +1,5 @@
 import React from 'react';
-import ResetPassword from './';
+import ChoosePassword from '../ChoosePassword';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -13,9 +13,9 @@ const initialState = {
   },
 };
 
-describe('ResetPassword', () => {
+describe('ChoosePassword', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<ResetPassword />, {
+    const { toJSON } = renderWithProvider(<ChoosePassword />, {
       state: initialState,
     }, false);
     expect(toJSON()).toMatchSnapshot();
