@@ -81,47 +81,6 @@ export function getTransactionTypeValue(
   }
 }
 
-export async function generateDefaultTransactionMetrics(
-  metametricsEvent: IMetaMetricsEvent,
-  transactionMeta: TransactionMeta,
-  { getState }: TransactionEventHandlerRequest,
-) {
-  const { chainId, id, type, status } = transactionMeta;
-
-  const batchProperties = await getBatchProperties(transactionMeta);
-
-  const mergedDefaultProperties = merge(
-    {
-      metametricsEvent,
-      properties: {
-        chain_id: chainId,
-        transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
-        status,
-        ...batchProperties,
-      },
-    },
-    getConfirmationMetricProperties(getState, id),
-  );
-
-  return mergedDefaultProperties;
-}
-
-export function generateEvent({
-  metametricsEvent,
-  properties,
-  sensitiveProperties,
-}: {
-  metametricsEvent: IMetaMetricsEvent;
-  properties?: JsonMap;
-  sensitiveProperties?: JsonMap;
-}) {
-  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
-    .addProperties(properties ?? {})
-    .addSensitiveProperties(sensitiveProperties ?? {})
-    .build();
-}
-
 const getConfirmationMetricProperties = (
   getState: () => RootState,
   transactionId: string,
@@ -195,4 +154,45 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
   properties.account_eip7702_upgraded = delegationAddress;
 
   return properties;
+}
+
+export async function generateDefaultTransactionMetrics(
+  metametricsEvent: IMetaMetricsEvent,
+  transactionMeta: TransactionMeta,
+  { getState }: TransactionEventHandlerRequest,
+) {
+  const { chainId, id, type, status } = transactionMeta;
+
+  const batchProperties = await getBatchProperties(transactionMeta);
+
+  const mergedDefaultProperties = merge(
+    {
+      metametricsEvent,
+      properties: {
+        chain_id: chainId,
+        transaction_internal_id: id,
+        transaction_type: getTransactionTypeValue(type),
+        status,
+        ...batchProperties,
+      },
+    },
+    getConfirmationMetricProperties(getState, id),
+  );
+
+  return mergedDefaultProperties;
+}
+
+export function generateEvent({
+  metametricsEvent,
+  properties,
+  sensitiveProperties,
+}: {
+  metametricsEvent: IMetaMetricsEvent;
+  properties?: JsonMap;
+  sensitiveProperties?: JsonMap;
+}) {
+  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
+    .addProperties(properties ?? {})
+    .addSensitiveProperties(sensitiveProperties ?? {})
+    .build();
 }
