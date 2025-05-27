@@ -11,10 +11,14 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 16,
+      flex: 1,
     },
     right: {
       alignItems: 'flex-end',
       justifyContent: 'center',
+    },
+    assetName: {
+      flex: 1,
     },
   });
 

@@ -31,9 +31,9 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { toHex } from '@metamask/controller-utils';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -55,9 +55,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const earnToken = getTokenWithBalanceAndApr(asset);
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -135,11 +134,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (earnToken?.experiences?.[0]?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      earnToken?.experiences?.[0]?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+    ) {
       return handleLendingRedirect();
     }
   };

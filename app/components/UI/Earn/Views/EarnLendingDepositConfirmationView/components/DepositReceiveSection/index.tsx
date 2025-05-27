@@ -38,6 +38,8 @@ const DepositReceiveSection = ({
 
   const { openTooltipModal } = useTooltipModal();
 
+  console.log('token name', token.symbol);
+  console.log('token image', token.image);
   return (
     <InfoSection testID={DEPOSIT_RECEIVE_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
@@ -63,9 +65,13 @@ const DepositReceiveSection = ({
           <View style={styles.receiptTokenRowLeft}>
             <AvatarToken
               name={token.symbol}
-              imageSource={{ uri: token.image }}
+              imageSource={{
+                // uri: token.image,
+                uri: 'https://cdn.pixabay.com/photo/2015/12/22/04/00/photo-1103594_1280.png',
+              }}
               size={AvatarSize.Xs}
               style={styles.receiveTokenIcon}
+              isIpfsGatewayCheckBypassed
             />
             <Text variant={TextVariant.BodyMD}>{receiptTokenName}</Text>
           </View>

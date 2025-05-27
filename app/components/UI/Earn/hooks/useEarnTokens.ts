@@ -1,93 +1,182 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
-import { TokenI } from '../../Tokens/types';
-import { getSupportedEarnTokens, filterEligibleTokens } from '../utils';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
-import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { useEarnTokenDetails } from './useEarnTokenDetails';
 import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../selectors/featureFlags';
+  LendingMarketWithPosition,
+  LendingPositionWithMarket,
+  selectLendingMarkets,
+  selectLendingPositionsWithMarket,
+} from '@metamask-previews/earn-controller';
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
+import { earnSelectors } from '../../../../selectors/earnController/earn';
+import { getDecimalChainId } from '../../../../util/networks';
+import { TokenI } from '../../Tokens/types';
+import { EarnTokenDetails } from '../types/lending.types';
 
-// Filters user's tokens to only return the supported and enabled earn tokens.
-const useEarnTokens = ({
-  includeNativeTokens = false, // ETH only for now
-  includeStakingTokens = false,
-  includeLendingTokens = false,
-  includeReceiptTokens = false,
-}: Partial<{
-  includeNativeTokens: boolean;
-  includeStakingTokens: boolean;
-  includeLendingTokens: boolean;
-  includeReceiptTokens: boolean;
-}> = {}) => {
-  const tokens = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChains(state),
+// TODO: move to earn-controller
+const selectLendingPositionsByProtocolChainIdMarketId = createSelector(
+  selectLendingPositionsWithMarket,
+  (positionsWithMarket) =>
+    positionsWithMarket.reduce((acc, position) => {
+      acc[position.protocol] ??= {};
+      acc[position.protocol][position.chainId] ??= {};
+      acc[position.protocol][position.chainId][position.marketId] = position;
+      return acc;
+    }, {} as Record<string, Record<string, Record<string, LendingPositionWithMarket>>>),
+);
+
+export const selectLendingMarketsWithPosition = createSelector(
+  selectLendingPositionsByProtocolChainIdMarketId,
+  selectLendingMarkets,
+  (positionsByProtocolChainIdMarketId, lendingMarkets) =>
+    lendingMarkets.map((market) => {
+      const position =
+        positionsByProtocolChainIdMarketId?.[market.protocol]?.[
+          market.chainId
+        ]?.[market.id];
+      return {
+        ...market,
+        position: position || null,
+      };
+    }),
+);
+
+export const selectLendingMarketsByChainIdAndOutputTokenAddress =
+  createSelector(selectLendingMarketsWithPosition, (marketsWithPosition) =>
+    marketsWithPosition.reduce((acc, market) => {
+      if (market.outputToken?.address) {
+        acc[market.chainId] = acc?.[market.chainId] || {};
+        acc[market.chainId][market.outputToken.address] =
+          acc?.[market.chainId]?.[market.outputToken.address] || [];
+        acc[market.chainId][market.outputToken.address].push(market);
+      }
+      return acc;
+    }, {} as Record<string, Record<string, LendingMarketWithPosition[]>>),
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+// we want a list of markets across protocols for chainId and token address
+export const selectLendingMarketsByChainIdAndTokenAddress = createSelector(
+  selectLendingMarketsWithPosition,
+  (marketsWithPosition) =>
+    marketsWithPosition.reduce((acc, market) => {
+      if (market.underlying?.address) {
+        acc[market.chainId] = acc?.[market.chainId] || {};
+        acc[market.chainId][market.underlying.address] =
+          acc?.[market.chainId]?.[market.underlying.address] || [];
+        acc[market.chainId][market.underlying.address].push(market);
+      }
+      return acc;
+    }, {} as Record<string, Record<string, LendingMarketWithPosition[]>>),
+);
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
+const useEarnTokens = () => {
+  const earnTokensData = useSelector(earnSelectors.selectEarnTokens);
+
+  const getEarnToken = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const earnToken =
+        earnTokensData.earnTokensByChainIdAndAddress?.[
+          getDecimalChainId(token.chainId)
+        ]?.[token.address.toLowerCase()];
+
+      if (token.isETH && token.isStaked !== earnToken?.isStaked) return;
+
+      return earnToken;
+    },
+    [earnTokensData.earnTokensByChainIdAndAddress],
   );
 
-  const {
-    isEligible: isEligibleToStake,
-    isLoadingEligibility: isLoadingStakingEligibility,
-  } = useStakingEligibility();
+  const getOutputToken = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const outputToken =
+        earnTokensData.earnOutputTokensByChainIdAndAddress?.[
+          getDecimalChainId(token.chainId)
+        ]?.[token.address.toLowerCase()];
 
-  const supportedEarnTokens = useMemo(() => {
-    if (isLoadingStakingEligibility || !isPortfolioViewEnabled()) return [];
+      if (token.isETH && token.isStaked !== outputToken?.isStaked) return;
 
-    const allTokens = Object.values(tokens).flat() as TokenI[];
+      return outputToken;
+    },
+    [earnTokensData.earnOutputTokensByChainIdAndAddress],
+  );
 
-    if (!allTokens.length) return [];
+  const getPairedEarnOutputToken = useCallback(
+    (underlyingToken: TokenI | EarnTokenDetails) => {
+      const pairedEarnOutputToken =
+        earnTokensData.earnTokenPairsByChainIdAndAddress?.[
+          Number(underlyingToken.chainId)
+        ]?.[underlyingToken.address.toLowerCase()]?.[0];
 
-    const supportedTokens = getSupportedEarnTokens(allTokens, {
-      nativeTokens: includeNativeTokens,
-      stakingTokens: includeStakingTokens,
-      lendingTokens: includeLendingTokens,
-      receiptTokens: includeReceiptTokens,
-    });
+      if (
+        underlyingToken.isETH &&
+        underlyingToken.isStaked === pairedEarnOutputToken?.isStaked
+      )
+        return;
 
-    const eligibleTokens = filterEligibleTokens(
-      supportedTokens,
-      // TODO: Add eligibility check for stablecoin lending before launch.
-      {
-        canStake: isEligibleToStake && isPooledStakingEnabled,
-        canLend: isStablecoinLendingEnabled,
-      },
-    );
+      return pairedEarnOutputToken;
+    },
 
-    const eligibleTokensWithBalances = eligibleTokens?.map((token) =>
-      getTokenWithBalanceAndApr(token),
-    );
+    [earnTokensData.earnTokenPairsByChainIdAndAddress],
+  );
 
-    // Tokens with a balance of 0 are placed at the end of the list.
-    return eligibleTokensWithBalances.sort((a, b) => {
-      const fiatBalanceA = parseFloat(a.balanceFormatted);
-      const fiatBalanceB = parseFloat(b.balanceFormatted);
+  const getPairedEarnTokenFromOutputToken = useCallback(
+    (outputToken: TokenI | EarnTokenDetails) => {
+      const pairedEarnToken =
+        earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
+          Number(outputToken.chainId)
+        ]?.[outputToken.address.toLowerCase()]?.[0];
 
-      return (fiatBalanceA === 0 ? 1 : 0) - (fiatBalanceB === 0 ? 1 : 0);
-    });
-  }, [
-    getTokenWithBalanceAndApr,
-    includeLendingTokens,
-    includeNativeTokens,
-    includeReceiptTokens,
-    includeStakingTokens,
-    isEligibleToStake,
-    isLoadingStakingEligibility,
-    isPooledStakingEnabled,
-    isStablecoinLendingEnabled,
-    tokens,
-  ]);
+      if (
+        outputToken.isETH &&
+        outputToken.isStaked === pairedEarnToken?.isStaked
+      )
+        return;
 
-  return supportedEarnTokens;
+      return pairedEarnToken;
+    },
+    [earnTokensData.earnOutputTokenPairsByChainIdAndAddress],
+  );
+
+  const getEarnExperience = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const tokenToUse = getEarnToken(token) || getOutputToken(token);
+      return tokenToUse?.experiences?.[0];
+    },
+    [getEarnToken, getOutputToken],
+  );
+
+  const getPairedEarnTokens = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      let earnTokenToUse;
+      let outputTokenToUse;
+      const earnToken = getEarnToken(token);
+      const outputToken = getOutputToken(token);
+      if (earnToken) {
+        earnTokenToUse = earnToken;
+        outputTokenToUse = getPairedEarnOutputToken(earnToken);
+      } else if (outputToken) {
+        outputTokenToUse = outputToken;
+        earnTokenToUse = getPairedEarnTokenFromOutputToken(outputToken);
+      }
+      return {
+        earnToken: earnTokenToUse,
+        outputToken: outputTokenToUse,
+      };
+    },
+    [
+      getEarnToken,
+      getOutputToken,
+      getPairedEarnOutputToken,
+      getPairedEarnTokenFromOutputToken,
+    ],
+  );
+
+  return {
+    ...earnTokensData,
+    getEarnToken,
+    getOutputToken,
+    getPairedEarnTokens,
+    getEarnExperience,
+  };
 };
 
 export default useEarnTokens;

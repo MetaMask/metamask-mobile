@@ -1,22 +1,22 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import SkeletonText from '../Ramp/components/SkeletonText';
-import { TokenI } from '../Tokens/types';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { fontStyles } from '../../../styles/common';
+import { useTheme } from '../../../util/theme';
+import { Colors } from '../../../util/theme/models';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
-import { Colors } from '../../../util/theme/models';
-import { fontStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../component-library/components/Texts/SensitiveText';
+import { TokenI } from '../Tokens/types';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 interface AssetElementProps {
@@ -25,7 +25,9 @@ interface AssetElementProps {
   onPress?: (asset: TokenI) => void;
   onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
+  balanceVariant?: TextVariant;
   secondaryBalance?: string;
+  secondaryBalanceVariant?: TextVariant;
   privacyMode?: boolean;
   disabled?: boolean;
 }
@@ -64,6 +66,8 @@ const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
   secondaryBalance,
+  balanceVariant = TextVariant.BodyLGMedium,
+  secondaryBalanceVariant = TextVariant.BodyMD,
   asset,
   onPress,
   onLongPress,
@@ -100,7 +104,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyLGMedium
+                : balanceVariant
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
@@ -116,7 +120,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
         )}
         {secondaryBalance ? (
           <SensitiveText
-            variant={TextVariant.BodyMD}
+            variant={secondaryBalanceVariant}
             style={styles.secondaryBalance}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}

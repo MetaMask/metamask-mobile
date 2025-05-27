@@ -1,27 +1,26 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
-import type { Colors } from '../../../../../util/theme/models';
-import CurrencyToggle from '../CurrencySwitch';
 import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { strings } from '../../../../../../locales/i18n';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { TokenI } from '../../../Tokens/types';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { isSupportedLendingReceiptTokenByChainId } from '../../utils';
-import { useNavigation } from '@react-navigation/native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../util/theme';
+import type { Colors } from '../../../../../util/theme/models';
+import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
 
 export interface InputDisplayProps {
@@ -119,23 +118,18 @@ const InputDisplay = ({
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const earnToken = getTokenWithBalanceAndApr(asset);
+  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const outputToken = getOutputToken(asset);
+  const earnToken = getEarnToken(asset);
 
   const shouldShowLendingMaxSafeWithdrawalMessage = useMemo(() => {
-    if (earnToken.experience !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (earnToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return false;
     }
 
     if (!earnToken?.chainId) return false;
 
-    if (
-      !isSupportedLendingReceiptTokenByChainId(
-        earnToken.symbol,
-        earnToken.chainId,
-      )
-    ) {
+    if (!outputToken) {
       return false;
     }
 
@@ -143,10 +137,10 @@ const InputDisplay = ({
 
     return true;
   }, [
-    earnToken.chainId,
-    earnToken.experience,
-    earnToken.symbol,
+    earnToken?.chainId,
+    earnToken?.experience?.type,
     maxWithdrawalAmount,
+    outputToken,
   ]);
 
   const styles = createStyles(colors, {

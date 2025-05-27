@@ -34,15 +34,13 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import {
   AAVE_V3_INFINITE_HEALTH_FACTOR,
   AAVE_WITHDRAWAL_RISKS,
-  generateLendingWithdrawalTransaction,
   SimulatedAaveV3HealthFactorAfterWithdrawal,
 } from '../../utils/tempLending';
-import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 import Routes from '../../../../../constants/navigation/Routes';
 import Toast, {
   ToastContext,
@@ -50,9 +48,16 @@ import Toast, {
 } from '../../../../../component-library/components/Toast';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { capitalize } from 'lodash';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
-  token: TokenI;
+  token: TokenI | EarnTokenDetails;
   amountTokenMinimalUnit: string;
   amountFiat: string;
   lendingProtocol: string;
@@ -86,7 +91,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
   // Get lending and receipt token using either lending or receipt token to find pair.
-  const { lendingToken } = useLendingTokenPair(token);
+  const { getPairedEarnTokens } = useEarnTokens();
+  const { earnToken: lendingToken } = getPairedEarnTokens(token);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
@@ -172,6 +178,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
       toHex(token.chainId),
     );
 
+  const networkClientId =
+    Engine.context.NetworkController.findNetworkClientIdByChainId(
+      toHex(lendingToken?.chainId as Hex),
+    );
+
   const handleCancel = () => {
     navigation.goBack();
   };
@@ -187,21 +198,30 @@ const EarnLendingWithdrawalConfirmationView = () => {
     try {
       setIsConfirmButtonDisabled(true);
 
-      const { txParams, txOptions } = generateLendingWithdrawalTransaction(
-        lendingToken.address,
-        amountTokenMinimalUnit.toString(),
-        activeAccount.address,
-        lendingToken.chainId,
-      );
-
-      const txRes = await Engine.context.TransactionController.addTransaction(
-        txParams,
-        txOptions,
-      );
+      const txRes = await Engine.context.EarnController.executeLendingWithdraw({
+        amount: amountTokenMinimalUnit.toString(),
+        protocol: lendingToken.experience?.market?.protocol,
+        underlyingTokenAddress:
+          lendingToken.experience?.market?.underlying?.address,
+        gasOptions: {},
+        txOptions: {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          type: 'lendingWithdraw' as TransactionType,
+        },
+      });
 
       const transactionId = txRes.transactionMeta.id;
 
       // Transaction Event Listeners
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
@@ -210,6 +230,13 @@ const EarnLendingWithdrawalConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
 
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          setIsConfirmButtonDisabled(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {

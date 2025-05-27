@@ -27,13 +27,16 @@ const generateUnstakeTxParams = (
 
 const attemptUnstakeTransaction =
   (
-    pooledStakingContract: PooledStakingContract,
+    pooledStakingContract: PooledStakingContract | null,
     stakedBalanceWei: string,
     networkClientId: NetworkClientId,
   ) =>
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
+      if (!pooledStakingContract)
+        throw new Error('Pooled staking contract not found');
+
       // STAKE-871: if we are unstaking the total assets we send the total shares
       // the user has in the vault through getShares contract method avoiding the
       // case where contract level rounding error causes 1 wei dust to be left

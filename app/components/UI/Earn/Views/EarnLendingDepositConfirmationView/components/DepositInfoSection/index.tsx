@@ -14,8 +14,8 @@ import ContractTag from '../../../../../Stake/components/StakingConfirmation/Con
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../../reducers';
 import { TokenI } from '../../../../../Tokens/types';
-import { useEarnTokenDetails } from '../../../../hooks/useEarnTokenDetails';
 import { strings } from '../../../../../../../../locales/i18n';
+import useEarnTokens from '../../../../hooks/useEarnTokens';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -46,8 +46,8 @@ const DepositInfoSection = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const earnToken = getTokenWithBalanceAndApr(token);
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(token);
 
   return (
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
@@ -71,7 +71,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: `${earnToken.apr}%`,
+              text: `${earnToken.experiences?.[0]?.apr}%`,
               variant: TextVariant.BodyMD,
               color: TextColor.Success,
             },

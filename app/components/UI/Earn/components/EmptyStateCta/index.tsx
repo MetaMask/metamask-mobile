@@ -19,13 +19,13 @@ import Button, {
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../Tokens/types';
-import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import _ from 'lodash';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import useEarnTokens from '../../hooks/useEarnTokens';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -44,11 +44,12 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(token);
 
-  const { apr, estimatedAnnualRewardsFormatted } =
-    getTokenWithBalanceAndApr(token);
-
+  const estimatedAnnualRewardsFormatted =
+    earnToken?.experiences?.[0]?.estimatedAnnualRewardsFormatted;
+  const apr = earnToken?.experiences?.[0]?.apr;
   const navigateToLendInputScreen = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED)
