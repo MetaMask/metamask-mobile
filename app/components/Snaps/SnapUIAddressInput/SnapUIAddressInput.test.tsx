@@ -219,7 +219,7 @@ describe('SnapUIAddressInput', () => {
       <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testAddress-snap-address-input');
     expect(input.props.editable).toBe(false);
     expect(input.props.value).toBe(testAddress);
 
