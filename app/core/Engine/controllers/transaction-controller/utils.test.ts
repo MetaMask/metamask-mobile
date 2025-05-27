@@ -4,7 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 
-import { EIP5792ErrorCode } from '../../../../components/Views/confirmations/constants/confirmations';
+import { EIP5792ErrorCode } from '../../../../constants/transaction';
 import {
   batchApprovalConfirmation,
   upgradeAccountConfirmation,

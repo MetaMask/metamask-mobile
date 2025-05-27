@@ -8,7 +8,7 @@ import {
 import { merge } from 'lodash';
 
 import type { RootState } from '../../../../reducers';
-import { EIP5792ErrorCode } from '../../../../components/Views/confirmations/constants/confirmations';
+import { EIP5792ErrorCode } from '../../../../constants/transaction';
 import { getMethodData } from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
