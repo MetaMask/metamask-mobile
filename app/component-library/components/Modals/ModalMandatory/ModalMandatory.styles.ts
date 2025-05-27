@@ -89,7 +89,7 @@ const styleSheet = (params: { theme: Theme }) => {
       fontFamily: getFontFamily(TextVariant.BodySM),
       marginBottom: Platform.select({
         ios: 8,
-        android: 16,
+        macos: 8,
         default: 16,
       }),
     },
