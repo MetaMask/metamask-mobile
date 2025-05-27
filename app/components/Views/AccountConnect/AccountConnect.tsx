@@ -240,9 +240,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname } = hostInfo.metadata as {
+  const { origin: channelIdOrHostname, promptToCreateSolanaAccount } = hostInfo.metadata as {
     id: string;
     origin: string;
+    promptToCreateSolanaAccount?: boolean;
   };
 
   const isChannelId = isUUID(channelIdOrHostname);
@@ -466,6 +467,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
+    
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
