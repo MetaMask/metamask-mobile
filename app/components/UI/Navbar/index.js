@@ -724,13 +724,9 @@ export function getTransparentOnboardingNavbarOptions(
  * Function that returns a Carousel navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
- * @param {Object} themeColors - The theme colors object
  * @param {string} currentTabColor - The color of the current tab
  */
-export function getOnboardingCarouselNavbarOptions(
-  themeColors,
-  currentTabColor,
-) {
+export function getOnboardingCarouselNavbarOptions(currentTabColor) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: currentTabColor,
@@ -1848,6 +1844,68 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
         <Icon name={IconName.ArrowLeft} />
       </TouchableOpacity>
     ),
+  };
+}
+
+/**
+ * Function that returns navigation options for deposit flow screens
+ *
+ * @param {string} title - Title to display in the header
+ * @param {Object} navigation - Navigation object required to navigate between screens
+ * @param {Object} theme - Theme object containing colors
+ * @param {Function} onClose - Optional custom close function
+ * @returns {Object} - Navigation options object
+ */
+export function getDepositNavbarOptions(
+  navigation,
+  { title, showBack = true, showClose = true },
+  theme,
+  onClose = undefined,
+) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    title,
+    headerStyle: {
+      backgroundColor: theme.colors.background.default,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTitleStyle: {
+      fontWeight: '600',
+      fontSize: 18,
+      color: theme.colors.text.default,
+    },
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: showBack
+      ? () => (
+          <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+            <Icon name={IconName.ArrowLeft} />
+          </TouchableOpacity>
+        )
+      : null,
+    headerRight: showClose
+      ? () => (
+          <TouchableOpacity style={styles.closeButton}>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              onPress={
+                onClose
+                  ? () => onClose()
+                  : () => navigation.navigate(Routes.WALLET.HOME)
+              }
+            />
+          </TouchableOpacity>
+        )
+      : null,
   };
 }
 
