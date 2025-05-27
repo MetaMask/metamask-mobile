@@ -11,12 +11,14 @@ import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
   MOCK_ADDRESS_1 as mockAddress1,
-  MOCK_ADDRESS_2 as mockAddress2
+  MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
-
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -42,6 +44,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -96,6 +106,7 @@ jest.mock('../../../core/Engine', () => {
       },
       AccountsController: {
         state: mockAccountsState,
+        getAccountByAddress: jest.fn(),
       },
       KeyringController: {
         state: {
@@ -139,12 +150,12 @@ jest.mock('../../hooks/useAccounts', () => ({
       {
         address: mockAddress1,
         name: 'Account 1',
-        caipAccountId: `eip155:0:${mockAddress1}`
+        caipAccountId: `eip155:0:${mockAddress1}`,
       },
       {
         address: mockAddress2,
         name: 'Account 2',
-        caipAccountId: `eip155:0:${mockAddress2}`
+        caipAccountId: `eip155:0:${mockAddress2}`,
       },
     ],
     ensByAccountAddress: {},
@@ -187,26 +198,29 @@ describe('AccountConnect', () => {
               metadata: {
                 id: 'mockId',
                 origin: 'mockOrigin',
+                isEip1193Request: true,
               },
               permissions: {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -232,21 +246,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'eip155:1': {
-                          accounts: [`eip155:1:${mockAddress1}`]
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [`eip155:1:${mockAddress1}`],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -272,21 +288,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'eip155:1': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -313,21 +331,23 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
-              }
+              },
             },
             permissionRequestId: 'test',
           },
@@ -356,19 +376,21 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
               },
             },
@@ -404,19 +426,21 @@ describe('AccountConnect', () => {
                     // @ts-expect-error partial object
                     [Caip25EndowmentPermissionName]: {
                       parentCapability: Caip25EndowmentPermissionName,
-                      caveats: [{
-                        type: Caip25CaveatType,
-                        value: {
-                          requiredScopes: {},
-                          optionalScopes: {
-                            'wallet:eip155': {
-                              accounts: []
-                            }
+                      caveats: [
+                        {
+                          type: Caip25CaveatType,
+                          value: {
+                            requiredScopes: {},
+                            optionalScopes: {
+                              'wallet:eip155': {
+                                accounts: [],
+                              },
+                            },
+                            isMultichainOrigin: false,
+                            sessionProperties: {},
                           },
-                          isMultichainOrigin: false,
-                          sessionProperties: {},
-                        }
-                      }]
+                        },
+                      ],
                     } as PermissionConstraint,
                   },
                 },
@@ -458,19 +482,21 @@ describe('AccountConnect', () => {
                 // @ts-expect-error partial object
                 [Caip25EndowmentPermissionName]: {
                   parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [{
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'wallet:eip155': {
-                          accounts: []
-                        }
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
                       },
-                      isMultichainOrigin: false,
-                      sessionProperties: {},
-                    }
-                  }]
+                    },
+                  ],
                 } as PermissionConstraint,
               },
             },
@@ -506,9 +532,7 @@ describe('AccountConnect', () => {
     const mockState = {
       browser: {
         activeTab: 1,
-        tabs: [
-          { id: 1, url: originalURL }
-        ]
+        tabs: [{ id: 1, url: originalURL }],
       },
       engine: {
         backgroundState: {
@@ -519,37 +543,41 @@ describe('AccountConnect', () => {
     };
 
     // Create a function for rendering that we can use in our test
-    const renderComponent = () => renderWithProvider(
-      <AccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: originalURL,
+    const renderComponent = () =>
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: originalURL,
+                },
+                permissions: {
+                  eth_accounts: { parentCapability: 'eth_accounts' },
+                },
               },
-              permissions: {
-                eth_accounts: { parentCapability: 'eth_accounts' },
-              },
+              permissionRequestId: 'test-id',
             },
-            permissionRequestId: 'test-id',
-          },
-        }}
-      />,
-      { state: mockState }
-    );
+          }}
+        />,
+        { state: mockState },
+      );
 
     // Execute the render function (may succeed or fail)
     let result = renderComponent();
 
     // check that component with testID 'permission-network-permissions-container' is rendered
     // with the correct origin
-    const permissionsRequestOriginWrap = result.getByTestId(PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER);
+    const permissionsRequestOriginWrap = result.getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
     // check if this wrap component includes the original URL
     expect(permissionsRequestOriginWrap).toBeDefined();
     // get inner text of permissionsRequestOriginWrap and check for original URL
-    // @ts-expect-error - This is a valid way to access the children of the permissionsRequestOriginWrap component
-    const permissionsRequestOriginText = permissionsRequestOriginWrap.children[0].children[0].props.children;
+    const permissionsRequestOriginText =
+      // @ts-expect-error - This is a valid way to access the children of the permissionsRequestOriginWrap component
+      permissionsRequestOriginWrap.children[0].children[0].props.children;
     expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
 
     // now change the mockState to have a different active tab URL
@@ -559,9 +587,15 @@ describe('AccountConnect', () => {
     result = renderComponent();
     // check that the component with testID 'permission-network-permissions-container' is rendered
     // with the correct origin
-    expect(result.getByTestId(PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER)).toBeDefined();
+    expect(
+      result.getByTestId(
+        PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+      ),
+    ).toBeDefined();
     expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
-    expect(permissionsRequestOriginText).not.toContain(new URL(newURL).hostname);
+    expect(permissionsRequestOriginText).not.toContain(
+      new URL(newURL).hostname,
+    );
   });
 
   describe('Phishing detection', () => {

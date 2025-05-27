@@ -92,6 +92,10 @@ pipelines:
     stages:
       - create_build_qa_and_expo: {}
       - app_launch_times_test_stage: {}
+  #Main expo pipeline
+  expo_main_pipeline:
+    stages:
+      - create_build_main_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -159,6 +163,11 @@ stages:
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
       - build_ios_qa: {}
+  create_build_main_expo:
+    workflows:
+      - build_android_devbuild: {}
+      - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -195,8 +204,7 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # TODO: Re-enable in a future commit
-      #- run_ios_api_specs: {}
+      - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
@@ -2388,13 +2396,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.45.2
+      VERSION_NAME: 7.46.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1810
+      VERSION_NUMBER: 1862
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.45.2
+      FLASK_VERSION_NAME: 7.46.1
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1810
