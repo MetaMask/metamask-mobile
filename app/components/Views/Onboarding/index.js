@@ -22,10 +22,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import {
-  getTransparentBackOnboardingNavbarOptions,
-  getTransparentOnboardingNavbarOptions,
-} from '../../UI/Navbar';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -278,17 +275,12 @@ class Onboarding extends PureComponent {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      route.params?.delete
-        ? getTransparentOnboardingNavbarOptions(
-            colors,
-            true,
-            importedColors.gettingStartedPageBackgroundColor,
-            true,
-          )
-        : getTransparentBackOnboardingNavbarOptions(
-            colors,
-            importedColors.gettingStartedPageBackgroundColor,
-          ),
+      getTransparentOnboardingNavbarOptions(
+        colors,
+        importedColors.gettingStartedPageBackgroundColor,
+        true,
+        true,
+      ),
     );
   };
 
@@ -435,7 +427,7 @@ class Onboarding extends PureComponent {
           />
           <Button
             variant={ButtonVariants.Secondary}
-            onPress={() => this.onPressImport()}
+            onPress={this.onPressImport}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
