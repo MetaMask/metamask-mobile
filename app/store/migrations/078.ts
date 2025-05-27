@@ -12,7 +12,7 @@ import { captureException } from '@sentry/react-native';
  */
 
 const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 77)) {
+  if (!ensureValidState(state, 78)) {
     return state;
   }
 
