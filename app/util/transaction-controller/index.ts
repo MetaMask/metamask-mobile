@@ -1,7 +1,5 @@
 import {
-  GasFeeEstimateType,
   TransactionParams,
-  TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -104,12 +102,6 @@ export function updateTransaction(
   ...args: Parameters<BaseTransactionController['updateTransaction']>
 ) {
   const { TransactionController } = Engine.context;
-  const { txParams, id } = args[0];
-
-  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
-  // Once redesign is complete, this can be removed
-  sanitizeTransactionParamsGasValues(id, txParams);
-
   return TransactionController.updateTransaction(...args);
 }
 
@@ -124,13 +116,6 @@ export function updateEditableParams(
   ...args: Parameters<BaseTransactionController['updateEditableParams']>
 ) {
   const { TransactionController } = Engine.context;
-  const id = args[0];
-  const txParams = args[1];
-
-  // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
-  // Once redesign is complete, this can be removed
-  sanitizeTransactionParamsGasValues(id, txParams);
-
   return TransactionController.updateEditableParams(...args);
 }
 
@@ -144,45 +129,3 @@ export const getNetworkNonce = async (
 
   return nextNonce;
 };
-
-function sanitizeTransactionParamsGasValues(
-  transactionId: string,
-  requestedTransactionParamsToUpdate: Partial<TransactionParams>,
-) {
-  const { TransactionController } = Engine.context;
-
-  const transactionMeta = TransactionController?.getTransactions({
-    searchCriteria: { id: transactionId },
-  })?.[0];
-
-  if (!transactionMeta || !requestedTransactionParamsToUpdate) {
-    return;
-  }
-
-  const envelopeType = transactionMeta.txParams.type;
-
-  if (envelopeType === TransactionEnvelopeType.legacy) {
-    requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.legacy;
-    delete requestedTransactionParamsToUpdate.maxFeePerGas;
-    delete requestedTransactionParamsToUpdate.maxPriorityFeePerGas;
-  } else if (envelopeType === TransactionEnvelopeType.feeMarket) {
-    requestedTransactionParamsToUpdate.type = TransactionEnvelopeType.feeMarket;
-    if (
-      transactionMeta?.gasFeeEstimates?.type === GasFeeEstimateType.GasPrice
-    ) {
-      // Try picking 1559 gas properties in order to ensure legacy transaction confirmations is setting expected gas properties
-      // 1. Requested change
-      // 2. Existing txParams
-      // 3. Existing gasFeeEstimates
-      requestedTransactionParamsToUpdate.maxFeePerGas =
-        requestedTransactionParamsToUpdate?.maxFeePerGas ||
-        transactionMeta?.txParams?.maxFeePerGas ||
-        transactionMeta?.gasFeeEstimates?.gasPrice;
-      requestedTransactionParamsToUpdate.maxPriorityFeePerGas =
-        requestedTransactionParamsToUpdate?.maxPriorityFeePerGas ||
-        transactionMeta?.txParams?.maxPriorityFeePerGas ||
-        transactionMeta?.gasFeeEstimates?.gasPrice;
-    }
-    delete requestedTransactionParamsToUpdate.gasPrice;
-  }
-}

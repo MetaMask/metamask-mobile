@@ -152,20 +152,23 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { isEip1193Request } = hostInfo.metadata;
 
-  const defaultSelectedChainIds = useMemo(() => {
-    // For EIP-1193 requests (injected Ethereum provider requests),
-    // we only want to show EIP-155 (Ethereum) compatible chains
-    if (isEip1193Request) {
-      return allNetworksList.filter((chain) =>
-        chain.includes(KnownCaipNamespace.Eip155),
-      );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
-    } else if (supportedRequestedCaipChainIds.length > 0) {
-      return supportedRequestedCaipChainIds;
-    }
-    // otherwise, use all available networks
-    return allNetworksList;
-  }, [isEip1193Request, allNetworksList, supportedRequestedCaipChainIds]);
+  const fallbackNetworks = useMemo(
+    () =>
+      supportedRequestedCaipChainIds.length > 0
+        ? supportedRequestedCaipChainIds
+        : allNetworksList,
+    [supportedRequestedCaipChainIds, allNetworksList],
+  );
+
+  const defaultSelectedChainIds = useMemo(
+    () =>
+      isEip1193Request
+        ? allNetworksList.filter((chain) =>
+            chain.includes(KnownCaipNamespace.Eip155),
+          )
+        : fallbackNetworks,
+    [isEip1193Request, allNetworksList, fallbackNetworks],
+  );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
     defaultSelectedChainIds,

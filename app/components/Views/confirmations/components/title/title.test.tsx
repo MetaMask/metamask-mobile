@@ -106,11 +106,4 @@ describe('Confirm Title', () => {
     });
     expect(getByText('Transaction request')).toBeTruthy();
   });
-
-  it('displays transaction count for batched confirmation', () => {
-    const { getByText } = renderWithProvider(<Title />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
-    });
-    expect(getByText('Includes 2 transactions')).toBeTruthy();
-  });
 });

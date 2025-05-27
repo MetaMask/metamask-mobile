@@ -8,7 +8,6 @@ import {
 } from '@metamask/eth-json-rpc-middleware';
 import { Hex, JsonRpcRequest } from '@metamask/utils';
 import { JsonRpcError, rpcErrors } from '@metamask/rpc-errors';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Log,
@@ -22,11 +21,9 @@ import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-c
 
 import ppomUtil from '../../lib/ppom/ppom-util';
 import { EIP5792ErrorCode } from '../../constants/transaction';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
 
 const VERSION = '2.0.0';
-const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
 
 type JSONRPCRequest = JsonRpcRequest & {
   networkClientId: string;
@@ -114,24 +111,10 @@ function validateCapabilities(sendCalls: SendCalls) {
   }
 }
 
-function validateUpgrade(keyringType?: KeyringTypes) {
-  if (keyringType && !SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
-    throw new JsonRpcError(
-      EIP5792ErrorCode.RejectedUpgrade,
-      'EIP-7702 upgrade not supported on account',
-    );
-  }
-}
-
-async function validateSendCalls(
-  sendCalls: SendCalls,
-  req: JSONRPCRequest,
-  keyringType?: KeyringTypes,
-) {
+async function validateSendCalls(sendCalls: SendCalls, req: JSONRPCRequest) {
   validateSendCallsVersion(sendCalls);
   await validateSendCallsChainId(sendCalls, req);
   validateCapabilities(sendCalls);
-  validateUpgrade(keyringType);
 }
 
 export async function processSendCalls(
@@ -145,13 +128,11 @@ export async function processSendCalls(
     origin?: string;
   };
   const transactions = calls.map((call) => ({ params: call }));
+
+  await validateSendCalls(params, req as JSONRPCRequest);
+
   const from =
     paramFrom ?? (AccountsController.getSelectedAccount()?.address as Hex);
-
-  const keyringType = getAccountKeyringType(from);
-
-  await validateSendCalls(params, req as JSONRPCRequest, keyringType);
-
   const securityAlertId = uuidv4();
 
   const { batchId: id } = await TransactionController.addTransactionBatch({
@@ -257,17 +238,7 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
         isSupported,
         upgradeContractAddress,
       } = chainBatchSupport;
-
-      let isSupportedAccount = false;
-      try {
-        const keyringType = getAccountKeyringType(address) ?? '';
-        isSupportedAccount = SUPPORTED_KEYRING_TYPES.includes(keyringType);
-      } catch (error) {
-        DevLogger.log(error);
-      }
-
-      const canUpgrade =
-        upgradeContractAddress && !delegationAddress && isSupportedAccount;
+      const canUpgrade = upgradeContractAddress && !delegationAddress;
       if (!isSupported && !canUpgrade) {
         return acc;
       }
@@ -283,15 +254,4 @@ export async function getCapabilities(address: Hex, chainIds?: Hex[]) {
     },
     {},
   );
-}
-
-function getAccountKeyringType(accountAddress: Hex): KeyringTypes {
-  const { accounts } = Engine.controllerMessenger.call(
-    'AccountsController:getState',
-  ).internalAccounts;
-  const account = Object.values(accounts).find(
-    (acc) => acc.address === accountAddress.toLowerCase(),
-  );
-
-  return account?.metadata?.keyring?.type as KeyringTypes;
 }

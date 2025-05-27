@@ -11,7 +11,6 @@ export enum UserProfileProperty {
   PRIMARY_CURRENCY = 'primary_currency',
   CURRENT_CURRENCY = 'current_currency',
   HAS_MARKETING_CONSENT = 'has_marketing_consent',
-  NUMBER_OF_HD_ENTROPIES = 'number_of_hd_entropies',
 }
 
 export interface UserProfileMetaData {
@@ -25,5 +24,4 @@ export interface UserProfileMetaData {
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: string;
-  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
 }

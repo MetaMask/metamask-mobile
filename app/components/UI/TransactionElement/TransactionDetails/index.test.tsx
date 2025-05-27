@@ -87,7 +87,6 @@ const renderComponent = ({
   txParams,
   status = 'confirmed',
   networkId = '0x1',
-  transactionObj = {},
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state?: any;
@@ -97,7 +96,6 @@ const renderComponent = ({
   status?: string;
   shouldUseSmartTransaction?: boolean;
   networkId?: string;
-  transactionObj?: Record<string, unknown>;
 }) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -112,7 +110,6 @@ const renderComponent = ({
               },
               chainId: networkId,
               ...(txParams ? { txParams } : {}),
-              ...transactionObj,
             }}
             transactionDetails={{
               renderFrom: '0x0',
@@ -377,14 +374,5 @@ describe('TransactionDetails', () => {
       fireEvent.press(speedUpButton);
       fireEvent.press(cancelButton);
     });
-  });
-
-  it('should render `Batched transactions` tag if there are nested transactions', async () => {
-    const { getByText } = renderComponent({
-      state: initialState,
-      transactionObj: { nestedTransactions: [{}, {}] },
-    });
-
-    expect(getByText('Batched transactions')).toBeTruthy();
   });
 });

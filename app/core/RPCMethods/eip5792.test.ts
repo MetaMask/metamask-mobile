@@ -48,21 +48,7 @@ jest.mock('../Engine', () => ({
     },
   },
   controllerMessenger: {
-    call: jest.fn().mockImplementation((type) => {
-      if (type === 'NetworkController:getNetworkClientById')
-        return { configuration: { chainId: '0xaa36a7' } };
-      if (type === 'AccountsController:getState')
-        return {
-          internalAccounts: {
-            accounts: [
-              {
-                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
-                metadata: { keyring: { type: 'HD Key Tree' } },
-              },
-            ],
-          },
-        };
-    }),
+    call: jest.fn().mockReturnValue({ configuration: { chainId: '0xaa36a7' } }),
   },
 }));
 
@@ -175,21 +161,9 @@ describe('processSendCalls', () => {
   });
 
   it('throw error if dappChainId is different from request chainId', async () => {
-    Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
-      if (type === 'NetworkController:getNetworkClientById')
-        return { configuration: { chainId: '0x1' } };
-      if (type === 'AccountsController:getState')
-        return {
-          internalAccounts: {
-            accounts: [
-              {
-                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
-                metadata: { keyring: { type: 'HD Key Tree' } },
-              },
-            ],
-          },
-        };
-    });
+    Engine.controllerMessenger.call = jest
+      .fn()
+      .mockReturnValue({ configuration: { chainId: '0x1' } });
     expect(async () => {
       await processSendCalls(MOCK_PARAMS, {
         ...MOCK_REQUEST,
@@ -198,30 +172,6 @@ describe('processSendCalls', () => {
     }).rejects.toThrow(
       'Chain ID must match the dApp selected network: Got 0xaa36a7, expected 0x1',
     );
-  });
-
-  it('throw error if keyring type of account is not supported', async () => {
-    Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
-      if (type === 'NetworkController:getNetworkClientById')
-        return { configuration: { chainId: '0xaa36a7' } };
-      if (type === 'AccountsController:getState')
-        return {
-          internalAccounts: {
-            accounts: [
-              {
-                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
-                metadata: { keyring: { type: 'un-supported' } },
-              },
-            ],
-          },
-        };
-    });
-    expect(async () => {
-      await processSendCalls(MOCK_PARAMS, {
-        ...MOCK_REQUEST,
-        networkClientId: 'linea',
-      } as JsonRpcRequest);
-    }).rejects.toThrow('EIP-7702 upgrade not supported on account');
   });
 
   describe('getCallsStatus', () => {
@@ -406,24 +356,6 @@ describe('processSendCalls', () => {
     const DELEGATION_ADDRESS_MOCK =
       '0x1234567890abcdef1234567890abcdef12345678';
 
-    beforeEach(() => {
-      Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
-        if (type === 'NetworkController:getNetworkClientById')
-          return { configuration: { chainId: CHAIN_ID_MOCK } };
-        if (type === 'AccountsController:getState')
-          return {
-            internalAccounts: {
-              accounts: [
-                {
-                  address: FROM_MOCK,
-                  metadata: { keyring: { type: 'HD Key Tree' } },
-                },
-              ],
-            },
-          };
-      });
-    });
-
     it('includes atomic capability if already upgraded', async () => {
       Engine.context.TransactionController.isAtomicBatchSupported = jest
         .fn()
@@ -470,31 +402,6 @@ describe('processSendCalls', () => {
     });
 
     it('does not include atomic capability if chain not supported', async () => {
-      Engine.context.TransactionController.isAtomicBatchSupported = jest
-        .fn()
-        .mockResolvedValueOnce([]);
-
-      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
-
-      expect(capabilities).toStrictEqual({});
-    });
-
-    it('does not include atomic capability if keyring type is not supported', async () => {
-      Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
-        if (type === 'NetworkController:getNetworkClientById')
-          return { configuration: { chainId: CHAIN_ID_MOCK } };
-        if (type === 'AccountsController:getState')
-          return {
-            internalAccounts: {
-              accounts: [
-                {
-                  address: FROM_MOCK,
-                  metadata: { keyring: { type: 'un-supported' } },
-                },
-              ],
-            },
-          };
-      });
       Engine.context.TransactionController.isAtomicBatchSupported = jest
         .fn()
         .mockResolvedValueOnce([]);

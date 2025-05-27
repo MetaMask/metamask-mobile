@@ -48,7 +48,7 @@ describe('use7702TransactionType', () => {
     expect(result.isDowngrade).toBe(false);
     expect(result.isUpgrade).toBe(true);
     expect(result.isUpgradeOnly).toBe(false);
-    expect(result.isBatched).toBe(true);
+    expect(result.isBatched).toBe(false);
     expect(result.isBatchedUpgrade).toBe(true);
   });
 
