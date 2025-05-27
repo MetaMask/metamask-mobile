@@ -418,6 +418,12 @@
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
       "validation_error": "Please enter a valid code"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
+      "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
+      "button": "Get started"
     }
   },
   "receive": {
@@ -3975,7 +3981,7 @@
         "upgradeBannerDescription": "Same address. Smarter features.",
         "upgradeBannerTitle": "Switch to smart account"
       },
-    "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions"
     },
     "unlimited": "Unlimited",
     "none": "None",
@@ -4003,6 +4009,8 @@
   },
   "bridge": {
     "continue": "Continue",
+    "confirm_bridge": "Confirm Bridge",
+    "confirm_swap": "Confirm Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
