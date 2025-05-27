@@ -426,7 +426,8 @@
       "button": "Get started"
     },
     "basic_info": {
-      "title": "Enter your basic info"
+      "title": "Enter your basic info",
+      "continue": "Continue"
     }
   },
   "receive": {

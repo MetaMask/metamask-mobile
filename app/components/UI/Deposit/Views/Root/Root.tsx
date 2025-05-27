@@ -8,7 +8,7 @@ const Root = () => {
   useEffect(() => {
     navigation.reset({
       index: 0,
-      routes: [{ name: Routes.DEPOSIT.BUILD_QUOTE }],
+      routes: [{ name: Routes.DEPOSIT.BASIC_INFO }],
     });
   });
 
