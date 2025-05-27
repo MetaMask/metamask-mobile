@@ -31,6 +31,8 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { getActiveTabUrl } from '../../../util/transactions';
 
 // Internal dependencies.
 import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
@@ -195,6 +197,11 @@ const EvmAccountSelectorList = ({
     ],
   );
 
+  const activeTabUrl = useSelector(getActiveTabUrl);
+  const hostname = activeTabUrl ? new URL(activeTabUrl).hostname : null;
+  
+  const { chainId: currentDappChainId } = useNetworkInfo(hostname ?? undefined);
+
   const onNavigateToAccountActions = useCallback(
     (selectedAccountAddress: string) => {
       const account = Engine.context.AccountsController.getAccountByAddress(
@@ -205,10 +212,13 @@ const EvmAccountSelectorList = ({
 
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ACCOUNT_ACTIONS,
-        params: { selectedAccount: account },
+        params: { 
+          selectedAccount: account,
+          dappChainId: currentDappChainId,
+        },
       });
     },
-    [navigate],
+    [navigate, hostname, currentDappChainId],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(

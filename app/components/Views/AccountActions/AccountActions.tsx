@@ -19,15 +19,13 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   findBlockExplorerForNonEvmAccount,
-  findBlockExplorerForRpc,
   getBlockExplorerName,
+  isLineaMainnetChainId,
+  isMainNet,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
+import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -59,14 +57,18 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { LINEA_MAINNET_BLOCK_EXPLORER, LINEA_SEPOLIA_BLOCK_EXPLORER, MAINNET_BLOCK_EXPLORER, SEPOLIA_BLOCK_EXPLORER } from '../../../constants/urls';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
+  dappChainId?: string;
 }
 
 const AccountActions = () => {
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  const { selectedAccount } = route.params as AccountActionsParams;
+  const { selectedAccount, dappChainId } = route.params as AccountActionsParams;
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -109,48 +111,50 @@ const AccountActions = () => {
     | undefined = useMemo(() => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
-        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-          const explorer = findBlockExplorerForRpc(
-            providerConfig.rpcUrl,
-            networkConfigurations,
-          );
+        if (dappChainId && !isNonEvmChainId(dappChainId)) {
 
-          if (!explorer) {
-            return undefined;
+          const networkConfig = networkConfigurations?.[dappChainId];
+          if (networkConfig && 'blockExplorerUrls' in networkConfig) {
+            let blockExplorer =
+            networkConfig?.blockExplorerUrls[
+              networkConfig?.defaultBlockExplorerUrlIndex
+            ] || NO_RPC_BLOCK_EXPLORER;
+                        
+            // Check for block explorers of built-in chains based on chain ID
+            if (isMainNet(dappChainId)) {
+              blockExplorer = MAINNET_BLOCK_EXPLORER;
+            } else if (isLineaMainnetChainId(dappChainId)) {
+              blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
+            } else if (dappChainId === CHAIN_IDS.LINEA_SEPOLIA) {
+              blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
+            } else if (dappChainId === CHAIN_IDS.SEPOLIA) {
+              blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+            }
+
+            if (blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+              return undefined;
+            }
+
+            return {
+              url: `${blockExplorer}/address/${selectedAccount.address}`,
+              title: new URL(blockExplorer).hostname,
+              blockExplorerName:
+                getBlockExplorerName(blockExplorer) ?? new URL(blockExplorer).hostname,
+              };
           }
-
-          return {
-            url: `${explorer}/address/${selectedAccount.address}`,
-            title: new URL(explorer).hostname,
-            blockExplorerName:
-              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-          };
         }
-
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAccount.address,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
-        return {
-          url,
-          title: etherscan_url,
-          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
-        };
-      }
-      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
-      if (explorer) {
-        return {
+      } else {
+        const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+        if (explorer) {
+          return {
           url: explorer,
           title: new URL(explorer).hostname,
           blockExplorerName:
             getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
         };
+        }
+        return undefined;
       }
-      return undefined;
     }
   }, [
     networkConfigurations,
