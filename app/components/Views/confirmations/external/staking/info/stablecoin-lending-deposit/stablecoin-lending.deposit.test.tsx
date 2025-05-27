@@ -78,7 +78,7 @@ describe('StablecoinLendingDeposit', () => {
       onReject: mockOnReject,
     }));
 
-    const { getByText } = renderWithProvider(<StablecoinLendingDeposit />, {
+    renderWithProvider(<StablecoinLendingDeposit />, {
       state: generateStablecoinLendingDepositConfirmationState,
     });
 

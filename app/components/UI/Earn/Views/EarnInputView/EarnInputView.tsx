@@ -178,7 +178,7 @@ const EarnInputView = () => {
           value: approveTxParams.txParams.value ? toHex(approveTxParams.txParams.value) : undefined,
         },
         type: TransactionType.tokenMethodApprove,
-      }
+      };
 
       const lendingDepositTxParams = generateLendingDepositTransaction(
         amountTokenMinimalUnit.toString(),
@@ -244,6 +244,7 @@ const EarnInputView = () => {
     earnToken?.address,
     earnToken?.chainId,
     navigation,
+    networkClientId,
     token,
   ]);
 

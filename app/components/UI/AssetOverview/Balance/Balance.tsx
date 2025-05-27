@@ -1,45 +1,38 @@
+import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './Balance.styles';
-import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
-import { selectEvmChainId, selectNetworkClientId, selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import {
-  getTestNetImageByChainId,
-  getDefaultNetworkByChainId,
-  isTestNet,
-} from '../../../../util/networks';
+import { strings } from '../../../../../locales/i18n';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge from '../../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import NetworkAssetLogo from '../../NetworkAssetLogo';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+import { useStyles } from '../../../../component-library/hooks';
+import { RootState } from '../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
-  PopularList,
-  UnpopularNetworkList,
+  getDefaultNetworkByChainId,
+  getTestNetImageByChainId,
+  isTestNet,
+} from '../../../../util/networks';
+import {
   CustomNetworkImgMapping,
   getNonEvmNetworkImageSourceByChainId,
+  PopularList,
+  UnpopularNetworkList,
 } from '../../../../util/networks/customNetworks';
-import { RootState } from '../../../../reducers';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import { toHex } from 'viem';
-import { TransactionType, WalletDevice } from '@metamask/transaction-controller';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import Routes from '../../../../constants/navigation/Routes';
+import AssetElement from '../../AssetElement';
+import NetworkAssetLogo from '../../NetworkAssetLogo';
+import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+import { TokenI } from '../../Tokens/types';
+import styleSheet from './Balance.styles';
 
 interface BalanceProps {
   asset: TokenI;
@@ -89,10 +82,6 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
-
-  const activeAccount = useSelector(selectSelectedInternalAccount);
-  const networkClientId = useSelector(selectNetworkClientId);
-
 
   const tokenChainId = asset.chainId;
 

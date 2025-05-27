@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import Text from "../../../../../../../component-library/components/Texts/Text";
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { strings } from '../../../../../../../../locales/i18n';
