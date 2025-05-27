@@ -1,12 +1,12 @@
+import {
+  initialState as initialStateBase,
+  ethToken2Address,
+} from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setDestToken } from '../../../../../core/redux/slices/bridge';
-import {
-  initialState as initialStateBase,
-  ethToken2Address,
-} from '../../_mocks_/initialState';
 import { cloneDeep } from 'lodash';
 import { useRoute } from '@react-navigation/native';
 
@@ -131,7 +131,7 @@ describe('BridgeDestTokenSelector', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         chainId: '0x1',
         decimals: 18,
         image: 'https://token2.com/logo.png',
@@ -170,7 +170,7 @@ describe('BridgeDestTokenSelector', () => {
       'Asset',
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         balanceFiat: '$200000',
         chainId: '0x1',
         decimals: 18,

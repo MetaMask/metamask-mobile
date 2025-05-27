@@ -22,14 +22,16 @@ import {
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
+import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
-import { useSmartAccountSwitchType } from '../../hooks/7702/useSmartAccountSwitchType';
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
   signatureRequest?: SignatureRequest,
   transactionMetadata?: TransactionMeta,
   isDowngrade: boolean = false,
+  isBatched: boolean = false,
   isUpgradeOnly: boolean = false,
 ) => {
   const type = approvalRequest?.type;
@@ -97,10 +99,15 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
-      if (transactionMetadata?.type === TransactionType.contractInteraction) {
+      if (
+        transactionMetadata?.type === TransactionType.contractInteraction ||
+        isBatched
+      ) {
         return {
           title: strings('confirm.title.contract_interaction'),
-          subTitle: strings('confirm.sub_title.contract_interaction'),
+          subTitle: isBatched
+            ? ''
+            : strings('confirm.sub_title.contract_interaction'),
         };
       }
       if (
@@ -125,7 +132,7 @@ const Title = () => {
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isDowngrade, isUpgradeOnly } = useSmartAccountSwitchType();
+  const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
 
   if (isStandaloneConfirmation) {
     return null;
@@ -136,6 +143,7 @@ const Title = () => {
     signatureRequest,
     transactionMetadata,
     isDowngrade,
+    isBatched,
     isUpgradeOnly,
   );
 
@@ -143,6 +151,7 @@ const Title = () => {
     <View style={styles.titleContainer}>
       <Text style={styles.title}>{title}</Text>
       {subTitle && <Text style={styles.subTitle}>{subTitle}</Text>}
+      <BatchedTransactionTag />
     </View>
   );
 };
