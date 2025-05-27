@@ -17,7 +17,8 @@ export const BatchedTransactionTag = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
 
-  if ((transactionMetadata?.nestedTransactions?.length ?? 0) <= 1) {
+  const nestedTransactionCount = transactionMetadata?.nestedTransactions?.length ?? 0;
+  if (nestedTransactionCount <= 1) {
     return null;
   }
 
