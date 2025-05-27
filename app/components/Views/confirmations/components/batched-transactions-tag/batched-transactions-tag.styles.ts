@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { FlexAlignType, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
