@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   Alert,
   InteractionManager,
@@ -129,7 +130,12 @@ const CaipAccountSelectorList = ({
       isSelected: boolean;
       caipAccountId: CaipAccountId;
     }) => {
-      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
+      if (
+        !isAccountRemoveable ||
+        !isRemoveAccountEnabled ||
+        isSolanaAddress(address)
+      ) return;
+
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),

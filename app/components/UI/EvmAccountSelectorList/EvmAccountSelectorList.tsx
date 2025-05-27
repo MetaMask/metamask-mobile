@@ -11,6 +11,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 // External dependencies.
 import Cell, {
@@ -141,7 +142,11 @@ const EvmAccountSelectorList = ({
       isSelected: boolean;
       index: number;
     }) => {
-      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
+      if (
+        !isAccountRemoveable ||
+        !isRemoveAccountEnabled ||
+        isSolanaAddress(address)
+      ) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
