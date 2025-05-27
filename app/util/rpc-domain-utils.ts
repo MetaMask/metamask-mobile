@@ -8,11 +8,15 @@ let knownDomainsSet: Set<string> | null = null;
 let initPromise: Promise<void> | null = null;
 
 /**
- * Reset the module state (for testing purposes)
+ * Get module state - encapsulates access to internal state
  */
-export function resetModuleState(): void {
-  knownDomainsSet = null;
-  initPromise = null;
+export function getModuleState() {
+  return {
+    knownDomainsSet,
+    initPromise,
+    setKnownDomainsSet: (value: Set<string> | null) => { knownDomainsSet = value; },
+    setInitPromise: (value: Promise<void> | null) => { initPromise = value; }
+  };
 }
 
 /**
@@ -41,32 +45,35 @@ export async function getSafeChainsListFromCacheOnly(): Promise<SafeChain[]> {
  * Initialize the set of known domains from the chains list
  */
 export async function initializeRpcProviderDomains(): Promise<void> {
-  if (initPromise) {
-    return initPromise;
+  const state = getModuleState();
+  if (state.initPromise) {
+    return state.initPromise;
   }
-  initPromise = (async () => {
+  const promise = (async () => {
     try {
       const chainsList = await getSafeChainsListFromCacheOnly();
-      knownDomainsSet = new Set<string>();
+      const newKnownDomainsSet = new Set<string>();
 
       for (const chain of chainsList) {
         if (chain.rpc && Array.isArray(chain.rpc)) {
           for (const rpcUrl of chain.rpc) {
             try {
               const url = new URL(rpcUrl);
-              knownDomainsSet.add(url.hostname.toLowerCase());
+              newKnownDomainsSet.add(url.hostname.toLowerCase());
             } catch (e) {
               continue; // Skip invalid URLs
             }
           }
         }
       }
+      state.setKnownDomainsSet(newKnownDomainsSet);
     } catch (error) {
-      knownDomainsSet = new Set<string>();
+      state.setKnownDomainsSet(new Set<string>());
     }
   })();
-
-  return initPromise;
+  
+  state.setInitPromise(promise);
+  return promise;
 }
 
 /**
@@ -74,7 +81,7 @@ export async function initializeRpcProviderDomains(): Promise<void> {
  * @returns The set of known domains or null if not initialized
  */
 export function getKnownDomains(): Set<string> | null {
-  return knownDomainsSet;
+  return getModuleState().knownDomainsSet;
 }
 
 /**
@@ -83,7 +90,8 @@ export function getKnownDomains(): Set<string> | null {
  * @param domain - The domain to check
  */
 export function isKnownDomain(domain: string): boolean {
-  return knownDomainsSet?.has(domain?.toLowerCase()) ?? false;
+  const state = getModuleState();
+  return state.knownDomainsSet?.has(domain?.toLowerCase()) ?? false;
 }
 
 export const RpcDomainStatus = {

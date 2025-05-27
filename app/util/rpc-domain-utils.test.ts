@@ -8,7 +8,7 @@ import {
   isKnownDomain,
   extractRpcDomain,
   getNetworkRpcUrl,
-  resetModuleState,
+  getModuleState,
 } from './rpc-domain-utils';
 
 // Mock dependencies
@@ -30,7 +30,10 @@ interface MockNetworkController {
 
 function setupTestEnvironment() {
   jest.clearAllMocks();
-  resetModuleState();
+  // Reset module state using the getter/setter approach
+  const state = getModuleState();
+  state.setKnownDomainsSet(null);
+  state.setInitPromise(null);
   return {
     mockNetworkController: {
       findNetworkClientIdByChainId: jest.fn(),
@@ -91,13 +94,13 @@ describe('rpc-domain-utils', () => {
     describe('when chains list contains valid RPC URLs', () => {
       it('initializes known domains from the chains list', async () => {
         // Setup
-        resetModuleState(); // Explicitly reset state
+        setupTestEnvironment(); // Reset state
         const mockChains: SafeChain[] = [
           {
             chainId: '1',
             name: 'Ethereum',
             nativeCurrency: { symbol: 'ETH' },
-            rpc: ['https://mainnet.infura.io', 'https://eth-mainnet.alchemyapi.io'],
+           rpc: ['https://mainnet.infura.io', 'https://eth-mainnet.alchemyapi.io'],
           },
         ];
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockChains));
@@ -113,7 +116,7 @@ describe('rpc-domain-utils', () => {
     describe('when chains list contains invalid RPC URLs', () => {
       it('does not add invalid URLs from knownDomains', async () => {
         // Setup
-        resetModuleState(); // Explicitly reset state
+        setupTestEnvironment(); // Reset state
         const mockChains: SafeChain[] = [
           {
             chainId: '1',
@@ -135,7 +138,7 @@ describe('rpc-domain-utils', () => {
     describe('when chains list is empty', () => {
       it('initializes with an empty set of domains', async () => {
         // Setup
-        resetModuleState(); // Explicitly reset state
+        setupTestEnvironment(); // Reset state
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(JSON.stringify([]));
         // Exercise
         await initializeRpcProviderDomains();
@@ -156,7 +159,7 @@ describe('rpc-domain-utils', () => {
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
-        resetModuleState();
+        setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
             chainId: '1',
@@ -182,7 +185,7 @@ describe('rpc-domain-utils', () => {
       });
       it('returns false for null knownDomainsSet', async () => {
         // Setup
-        resetModuleState();
+        setupTestEnvironment();
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
         await initializeRpcProviderDomains();
         // Execute
@@ -192,7 +195,7 @@ describe('rpc-domain-utils', () => {
       });
       it('matches domain ignoring case', async () => {
         // Setup
-        resetModuleState();
+        setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
             chainId: '1',
@@ -215,7 +218,7 @@ describe('rpc-domain-utils', () => {
   describe('extractRpcDomain', () => {
     describe('when processing URLs', () => {
       beforeEach(async () => {
-        resetModuleState();
+        setupTestEnvironment();
         const mockChains: SafeChain[] = [
           {
             chainId: '1',
@@ -295,7 +298,7 @@ describe('rpc-domain-utils', () => {
         mockNetworkController.findNetworkClientIdByChainId.mockReturnValue('network1');
         mockNetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue({
           rpcEndpoints: [
-            { url: 'https://rpc1.com' },
+           { url: 'https://rpc1.com' },
             { url: 'https://rpc2.com' },
           ],
           defaultRpcEndpointIndex: 1,
