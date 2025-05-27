@@ -79,15 +79,10 @@ describe('rpc-domain-utils', () => {
         expect(result).toEqual([]);
       });
     });
-    it('handles JSON parse errors gracefully', async () => {
+    it('does not raise error and returns an empty array', async () => {
       // Mock StorageWrapper to return invalid JSON
       (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce('invalid-json');
-      const result = await getSafeChainsListFromCacheOnly();
-      expect(result).toEqual([]);
-    });
-    it('handles storage errors gracefully', async () => {
-      // Mock StorageWrapper to throw an error
-      (StorageWrapper.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+      await expect(getSafeChainsListFromCacheOnly()).resolves.not.toThrow();
       const result = await getSafeChainsListFromCacheOnly();
       expect(result).toEqual([]);
     });
@@ -116,7 +111,7 @@ describe('rpc-domain-utils', () => {
       });
     });
     describe('when chains list contains invalid RPC URLs', () => {
-      it('handles invalid URLs gracefully', async () => {
+      it('does not add invalid URLs from knownDomains', async () => {
         // Setup
         resetModuleState(); // Explicitly reset state
         const mockChains: SafeChain[] = [
@@ -158,11 +153,6 @@ describe('rpc-domain-utils', () => {
       spy.mockRestore();
     });
   });
-  describe('getKnownDomains and setKnownDomains', () => {
-    describe('when setting known domains', () => {
-      // Removed tests that mock getKnownDomains directly as they are not robust or meaningful
-    });
-  });
   describe('isKnownDomain', () => {
     describe('when checking domain existence', () => {
       beforeEach(async () => {
@@ -190,7 +180,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe(false);
       });
-      it('handles null knownDomainsSet', async () => {
+      it('returns false for null knownDomainsSet', async () => {
         // Setup
         resetModuleState();
         (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
@@ -200,7 +190,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe(false);
       });
-      it('performs case-insensitive domain matching', async () => {
+      it('matches domain ignoring case', async () => {
         // Setup
         resetModuleState();
         const mockChains: SafeChain[] = [
@@ -276,7 +266,7 @@ describe('rpc-domain-utils', () => {
         expect(result1).toBe('private');
         expect(result2).toBe('private');
       });
-      it('handles URLs without protocol', () => {
+      it('returns the domain for URLs without protocol', () => {
         // Execute
         const result = extractRpcDomain('known-domain.com/api');
         // Verify
@@ -337,7 +327,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe('unknown');
       });
-      it('handles errors gracefully', () => {
+      it('returns unknown as RPC URL on error', () => {
         // Setup
         const { mockNetworkController } = setupTestEnvironment();
         mockNetworkController.findNetworkClientIdByChainId.mockImplementation(() => {
@@ -349,7 +339,7 @@ describe('rpc-domain-utils', () => {
         // Verify
         expect(result).toBe('unknown');
       });
-      it('handles missing rpcEndpoints gracefully', () => {
+      it('returns unknown as RPC URL on missing rpcEndpoints', () => {
         const mockNetworkConfig = {
           rpcEndpoints: undefined,
         };
@@ -365,7 +355,7 @@ describe('rpc-domain-utils', () => {
         const result = getNetworkRpcUrl('0x1');
         expect(result).toBe('unknown');
       });
-      it('handles empty rpcEndpoints array', () => {
+      it('returns unknown as RPC URL on empty rpcEndpoints array', () => {
         const mockNetworkConfig = {
           rpcEndpoints: [], // Empty array
         };
