@@ -337,10 +337,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             </View>
           </View>
         </ScrollView>
-        <View
-          style={styles.ctas}
-          testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-        >
+        <View style={styles.ctas}>
           <Button
             variant={ButtonVariants.Primary}
             label={strings('onboarding_carousel.get_started')}
@@ -348,6 +345,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             style={styles.gettingStartedButton}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
+            testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
           />
         </View>
       </OnboardingScreenWithBg>
