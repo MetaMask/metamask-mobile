@@ -16,7 +16,7 @@ class Assertions {
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
     try {
       await waitFor(await elementId)
-        .toExist()
+        .toBeVisible() // Do a ternary to use toExist in IOS
         .withTimeout(timeout);
       return true;
     } catch {
