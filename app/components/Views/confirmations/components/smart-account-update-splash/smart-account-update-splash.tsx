@@ -21,10 +21,10 @@ import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import { useStyles } from '../../../../hooks/useStyles';
+import { selectUpgradeSplashPageAcknowledgedForAccounts } from '../../selectors/confirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './smart-account-update-splash.styles';
-import { selectUpgradeSplashPageAcknowledgedForAccounts } from '../../selectors/confirmation';
 
 const ACCOUNT_UPGRADE_URL =
   'https://support.metamask.io/configure/accounts/what-is-a-smart-account';
