@@ -24,8 +24,8 @@ describe(SmokeConfirmations('Search for a website with broken SVG and open it'),
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.navigateToURL("https://app.ens.domains");
-        await Browser.searchForUrl("app.ens.domains");
+        await Browser.navigateToURL('https://app.ens.domains');
+        await Browser.searchForUrl('app.ens.domains');
         await TestHelpers.delay(5000); // Wait for SVG images to load and not crash
         await expect(element(by.text('E'))).not.toExist(); // Validate that SVG is loaded and text placeholder logo is not displayed
       },
