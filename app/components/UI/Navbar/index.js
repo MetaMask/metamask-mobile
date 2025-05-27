@@ -774,6 +774,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
     metamaskName: {
       width: 70,
       height: 35,
+      tintColor: themeColors.text.default,
     },
   });
   return {
