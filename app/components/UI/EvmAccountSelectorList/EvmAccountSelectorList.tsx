@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
+
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -142,11 +143,7 @@ const EvmAccountSelectorList = ({
       isSelected: boolean;
       index: number;
     }) => {
-      if (
-        !isAccountRemoveable ||
-        !isRemoveAccountEnabled ||
-        isSolanaAddress(address)
-      ) return;
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
@@ -250,7 +247,7 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || type === KeyringTypes.snap,
+            type === KeyringTypes.simple || (type === KeyringTypes.snap && isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
