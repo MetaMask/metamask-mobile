@@ -166,6 +166,7 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -297,12 +298,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -353,6 +354,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | AppMetadataControllerActions
+  | MultichainRouterActions
   | DeFiPositionsControllerActions;
 
 type GlobalEvents =
