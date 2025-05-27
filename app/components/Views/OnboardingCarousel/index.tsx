@@ -215,7 +215,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
-  const getCurrentTabKey = useMemo(
+  const currentTabKey = useMemo(
     () => (currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three'),
     [currentTab],
   );
@@ -223,10 +223,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingCarouselNavbarOptions(
-        onboardingCarouselColors[getCurrentTabKey].background,
+        onboardingCarouselColors[currentTabKey].background,
       ),
     );
-  }, [navigation, getCurrentTabKey]);
+  }, [navigation, currentTabKey]);
 
   const initialize = useCallback(async () => {
     updateNavBar();
@@ -247,7 +247,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     updateNavBar();
   }, [colors, updateNavBar]);
 
-  const getBackgroundColor = useMemo(() => {
+  const backgroundColor = useMemo(() => {
     const key = currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three';
     return onboardingCarouselColors[key].background;
   }, [currentTab]);
@@ -259,7 +259,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     >
       <OnboardingScreenWithBg
         screen={'carousel'}
-        backgroundColor={getBackgroundColor}
+        backgroundColor={backgroundColor}
       >
         <ScrollView
           style={baseStyles.flexGrow}
