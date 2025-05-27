@@ -4,7 +4,7 @@
  * E2E tests for wallet_invokeMethod API
  * Tests invoking RPC methods on specific chains, including read/write operations
  * Adapted from MetaMask extension multichain tests
- * 
+ *
  * Uses native Detox selectors for reliable WebView interaction
  */
 import TestHelpers from '../../helpers';
@@ -87,7 +87,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         try {
                             // Try to find the result element using native selector
                             const resultElement = webview.element(by.web.id(resultElementId));
-                            
+
                             // Check if element exists by trying to tap it (will fail if not found)
                             await Assertions.checkIfVisible(Promise.resolve(resultElement));
                             console.log('✅ Result element found and visible');
@@ -101,7 +101,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         } catch (resultError) {
                             // If result element not found, try alternative verification
                             console.log('⚠️ Result element not immediately visible, trying alternatives...');
-                            
+
                             // Try looking for any result elements with partial ID match
                             try {
                                 const anyResultElement = webview.element(by.web.cssSelector(`[id*="invoke-method-${escapedScopeForButton}"]`));
@@ -174,7 +174,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                         // Verify result element exists
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                        
+
                         try {
                             const resultElement = webview.element(by.web.id(resultElementId));
                             await Assertions.checkIfVisible(Promise.resolve(resultElement));
@@ -249,7 +249,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                         // Verify result element exists
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                        
+
                         try {
                             const resultElement = webview.element(by.web.id(resultElementId));
                             await Assertions.checkIfVisible(Promise.resolve(resultElement));
@@ -342,7 +342,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                                 // Verify result element exists
                                 const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                                
+
                                 try {
                                     const resultElement = webview.element(by.web.id(resultElementId));
                                     await Assertions.checkIfVisible(Promise.resolve(resultElement));
@@ -413,12 +413,12 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                         // Test that write operations require user confirmation
                         const writeOperations = ['eth_sendTransaction'];
-                        
+
                         for (const method of writeOperations) {
                             console.log(`🔄 Testing confirmation requirement for: ${method}`);
-                            
+
                             const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-                            
+
                             try {
                                 // Click the method button
                                 const directButton = webview.element(by.web.id(directButtonId));
@@ -433,7 +433,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                                     const confirmButton = element(by.id('txn-confirm-send-button'));
                                     await Assertions.checkIfVisible(Promise.resolve(confirmButton));
                                     console.log(`✅ ${method} triggered confirmation dialog as expected`);
-                                    
+
                                     // Cancel the transaction to avoid side effects
                                     try {
                                         const cancelButton = element(by.text('Cancel'));
@@ -442,7 +442,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                                     } catch (cancelError) {
                                         console.log(`⚠️ Could not find cancel button for ${method}`);
                                     }
-                                    
+
                                 } catch (confirmError) {
                                     console.log(`⚠️ ${method} confirmation dialog not found - may use different UI pattern`);
                                 }
@@ -506,12 +506,12 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
 
                         // Test multiple methods in sequence
                         const methodsToTest = ['eth_chainId', 'eth_getBalance', 'eth_gasPrice'];
-                        
+
                         for (const method of methodsToTest) {
                             console.log(`🔄 Testing method: ${method}`);
-                            
+
                             const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-                            
+
                             // Click the direct method button
                             const directButton = webview.element(by.web.id(directButtonId));
                             await directButton.tap();
@@ -544,4 +544,4 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
             );
         });
     });
-}); 
+});

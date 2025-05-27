@@ -118,15 +118,15 @@ class MultichainTestDApp {
 
       // Tap the input field to focus it
       await this.tapButton(inputElement);
-      
+
       // Try a reliable direct approach - the dapp might set this to window.postMessage by default
-      
+
       // 1. Double tap to select all text
       await Gestures.tapWebElement(Promise.resolve(inputElement as Detox.IndexableWebElement));
-      
+
       // 2. For iOS, try to select and delete text
       await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).clearText();
-      
+
       // Tap the connect button
       await this.tapButton(connectBtn);
 
@@ -305,10 +305,10 @@ class MultichainTestDApp {
       // Escape colons in chain ID to match the dapp's escapeHtmlId function
       const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
       const networkCheckbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
-      
+
       await networkCheckbox.scrollToView();
       await networkCheckbox.runScript('(el) => { if(!el.checked) { el.click(); } return el.checked; }');
-      
+
       return true;
     } catch (e) {
       return false;
@@ -325,7 +325,7 @@ class MultichainTestDApp {
 
       await createSessionButton.scrollToView();
       await createSessionButton.runScript('(el) => { el.click(); }');
-      
+
       // Wait for session creation
       await TestHelpers.delay(2000);
       return true;
@@ -345,7 +345,7 @@ class MultichainTestDApp {
 
       await getSessionButton.scrollToView();
       await getSessionButton.runScript('(el) => { el.click(); }');
-      
+
       // Wait for processing
       await TestHelpers.delay(1000);
       return true;
@@ -365,7 +365,7 @@ class MultichainTestDApp {
 
       await revokeSessionButton.scrollToView();
       await revokeSessionButton.runScript('(el) => { el.click(); }');
-      
+
       // Wait for processing
       await TestHelpers.delay(1500);
       return true;
@@ -396,9 +396,9 @@ class MultichainTestDApp {
       // Get the revoke result content
       const webview = this.getWebView();
       const revokeResult = webview.element(by.web.id('session-method-result-0'));
-      
+
       const resultData = await revokeResult.runScript('(el) => el.textContent');
-      
+
       if (resultData) {
         try {
           const parsedResult = JSON.parse(resultData);
@@ -426,21 +426,21 @@ class MultichainTestDApp {
     try {
       // Scroll to top
       await this.scrollToPageTop();
-      
+
       // Auto connect
       const connected = await this.useAutoConnectButton();
       if (!connected) return false;
-      
+
       // Select networks
       for (const chainId of chainIds) {
         const selected = await this.selectNetwork(chainId);
         if (!selected) return false;
       }
-      
+
       // Create session
       const sessionCreated = await this.clickCreateSessionButton();
       if (!sessionCreated) return false;
-      
+
       // Get session
       return await this.clickGetSessionButton();
     } catch (error) {
@@ -455,10 +455,10 @@ class MultichainTestDApp {
     try {
       const webview = this.getWebView();
       const firstResult = webview.element(by.web.id('session-method-details-0'));
-      
+
       await firstResult.scrollToView();
       await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
-      
+
       await TestHelpers.delay(500);
       return true;
     } catch (e) {
@@ -489,9 +489,9 @@ class MultichainTestDApp {
       // Get the session result content
       const webview = this.getWebView();
       const sessionResult = webview.element(by.web.id('session-method-result-0'));
-      
+
       const sessionData = await sessionResult.runScript('(el) => el.textContent');
-      
+
       if (sessionData) {
         try {
           const parsedSession = JSON.parse(sessionData);
@@ -520,7 +520,7 @@ class MultichainTestDApp {
   async verifySessionContainsChains(expectedChainIds: string[]): Promise<boolean> {
     try {
       const sessionData = await this.getSessionData();
-      
+
       if (!sessionData.success || !sessionData.sessionScopes) {
         return false;
       }
@@ -546,7 +546,7 @@ class MultichainTestDApp {
   async getSessionChainCount(): Promise<number> {
     try {
       const sessionData = await this.getSessionData();
-      
+
       if (!sessionData.success || !sessionData.sessionScopes) {
         return 0;
       }
@@ -564,7 +564,7 @@ class MultichainTestDApp {
   async selectNetworks(chainIds: string[]): Promise<boolean> {
     try {
       const webview = this.getWebView();
-      
+
       // First uncheck all networks
       const allNetworks = ['1', '59144', '42161', '43114', '56', '10', '137', '324', '8453', '1337'];
       for (const chainId of allNetworks) {
@@ -605,43 +605,43 @@ class MultichainTestDApp {
     try {
       // Scroll to top
       await this.scrollToPageTop();
-      
+
       // Connect
       const connected = await this.useAutoConnectButton();
       if (!connected) {
         console.error('❌ Failed to connect to dapp');
         return { success: false };
       }
-      
+
       // Select specific networks
       const networksSelected = await this.selectNetworks(chainIds);
       if (!networksSelected) {
         console.error('❌ Failed to select networks');
         return { success: false };
       }
-      
+
       // Create session
       const sessionCreated = await this.clickCreateSessionButton();
       if (!sessionCreated) {
         console.error('❌ Failed to create session');
         return { success: false };
       }
-      
+
       // Handle the connect modal that appears after creating session
       try {
         // Wait for the connect bottom sheet to appear
         await TestHelpers.delay(2000);
         await ConnectBottomSheet.tapConnectButton();
-        
+
         // Wait for the connection to be established
         await TestHelpers.delay(2000);
       } catch (connectError) {
         // Connect modal may not have appeared or already handled
       }
-      
+
       // Get and return session data
       const sessionData = await this.getSessionData();
-      
+
       return sessionData;
     } catch (error) {
       console.error('❌ Error in createSessionWithNetworks:', error);

@@ -25,4 +25,4 @@ export const MultichainTestDappSelectorsWebIDs: MultichainTestDappWebIDs = {
   CLEAR_EXTENSION_BUTTON: 'clear-extension-button',
   INVOKE_ALL_METHODS_BUTTON: 'invoke-all-methods-button',
   CLEAR_RESULTS_BUTTON: 'clear-results-button'
-}; 
+};

@@ -279,7 +279,7 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                         MultichainUtilities.CHAIN_IDS.LINEA_MAINNET,
                         MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE
                     ];
-                    
+
                     const createResult2 = await MultichainTestDApp.createSessionWithNetworks(newNetworks);
                     const createAssertions2 = MultichainUtilities.generateSessionAssertions(createResult2, newNetworks);
 
@@ -322,4 +322,4 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
             },
         );
     });
-}); 
+});
