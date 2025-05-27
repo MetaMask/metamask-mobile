@@ -87,7 +87,11 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
       ...(typography.sBodySM as TextStyle),
       fontFamily: getFontFamily(TextVariant.BodySM),
-      marginBottom: Platform.OS === 'ios' ? 8 : 16,
+      marginBottom: Platform.select({
+        ios: 8,
+        android: 16,
+        default: 16,
+      }),
     },
   });
 };

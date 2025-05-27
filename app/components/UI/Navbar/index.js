@@ -718,13 +718,9 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
  * Function that returns a Carousel navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
- * @param {Object} themeColors - The theme colors object
  * @param {string} currentTabColor - The color of the current tab
  */
-export function getOnboardingCarouselNavbarOptions(
-  themeColors,
-  currentTabColor,
-) {
+export function getOnboardingCarouselNavbarOptions(currentTabColor) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: currentTabColor,

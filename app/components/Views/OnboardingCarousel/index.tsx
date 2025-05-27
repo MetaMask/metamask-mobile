@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   ScrollView,
@@ -209,7 +215,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
-  const getCurrentTabKey = useCallback(
+  const getCurrentTabKey = useMemo(
     () => (currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three'),
     [currentTab],
   );
@@ -217,11 +223,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingCarouselNavbarOptions(
-        colors,
-        onboardingCarouselColors[getCurrentTabKey()].background,
+        onboardingCarouselColors[getCurrentTabKey].background,
       ),
     );
-  }, [navigation, colors, getCurrentTabKey]);
+  }, [navigation, getCurrentTabKey]);
 
   const initialize = useCallback(async () => {
     updateNavBar();
@@ -242,10 +247,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     updateNavBar();
   }, [colors, updateNavBar]);
 
-  const getBackgroundColor = () => {
+  const getBackgroundColor = useMemo(() => {
     const key = currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three';
     return onboardingCarouselColors[key].background;
-  };
+  }, [currentTab]);
 
   return (
     <View
@@ -254,7 +259,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     >
       <OnboardingScreenWithBg
         screen={'carousel'}
-        backgroundColor={getBackgroundColor()}
+        backgroundColor={getBackgroundColor}
       >
         <ScrollView
           style={baseStyles.flexGrow}
