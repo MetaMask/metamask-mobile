@@ -90,6 +90,9 @@ jest.mock('../../../../../core/Engine', () => ({
     TokenListController: {
       fetchTokenList: jest.fn(),
     },
+    TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
