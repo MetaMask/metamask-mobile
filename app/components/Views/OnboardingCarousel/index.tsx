@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   ScrollView,
@@ -209,7 +215,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
-  const getCurrentTabKey = useCallback(
+  const currentTabKey = useMemo(
     () => (currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three'),
     [currentTab],
   );
@@ -217,11 +223,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingCarouselNavbarOptions(
-        colors,
-        onboardingCarouselColors[getCurrentTabKey()].background,
+        onboardingCarouselColors[currentTabKey].background,
       ),
     );
-  }, [navigation, colors, getCurrentTabKey]);
+  }, [navigation, currentTabKey]);
 
   const initialize = useCallback(async () => {
     updateNavBar();
@@ -242,10 +247,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     updateNavBar();
   }, [colors, updateNavBar]);
 
-  const getBackgroundColor = () => {
+  const backgroundColor = useMemo(() => {
     const key = currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three';
     return onboardingCarouselColors[key].background;
-  };
+  }, [currentTab]);
 
   return (
     <View
@@ -254,7 +259,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     >
       <OnboardingScreenWithBg
         screen={'carousel'}
-        backgroundColor={getBackgroundColor()}
+        backgroundColor={backgroundColor}
       >
         <ScrollView
           style={baseStyles.flexGrow}
@@ -332,10 +337,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             </View>
           </View>
         </ScrollView>
-        <View
-          style={styles.ctas}
-          testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-        >
+        <View style={styles.ctas}>
           <Button
             variant={ButtonVariants.Primary}
             label={strings('onboarding_carousel.get_started')}
@@ -343,6 +345,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             style={styles.gettingStartedButton}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
+            testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
           />
         </View>
       </OnboardingScreenWithBg>

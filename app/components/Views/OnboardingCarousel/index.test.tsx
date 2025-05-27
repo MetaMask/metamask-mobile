@@ -1,10 +1,11 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import OnboardingCarousel from './';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Device from '../../../util/device';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 jest.mock('../../../util/test/utils', () => ({
@@ -70,6 +71,18 @@ describe('OnboardingCarousel', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
+    it('should use iPhone 5s padding', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(false);
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.isIphone5S as jest.Mock).mockReturnValue(true);
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
     it('should use iPhone 5S padding', () => {
       (Device.isAndroid as jest.Mock).mockReturnValue(false);
       (Device.isIphoneX as jest.Mock).mockReturnValue(false);
@@ -79,6 +92,43 @@ describe('OnboardingCarousel', () => {
       const { toJSON } = renderWithProvider(
         <OnboardingCarousel navigation={mockNavigation} />,
       );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should use android padding', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should call getStarted button', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+
+      const navigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      const { toJSON, getByTestId } = renderWithProvider(
+        <OnboardingCarousel navigation={navigation} />,
+      );
+
+      const getStartedButton = getByTestId(
+        OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+      );
+
+      expect(getStartedButton).toBeOnTheScreen();
+      fireEvent.press(getStartedButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Onboarding');
+      });
+
       expect(toJSON()).toMatchSnapshot();
     });
   });

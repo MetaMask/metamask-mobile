@@ -160,7 +160,7 @@
     "title2": "Manage your digital assets",
     "title3": "Your gateway to web3",
     "subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
-    "subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
     "get_started": "Get started"
   },
@@ -426,7 +426,23 @@
     "network_missing_id": "Missing chain id."
   },
   "deposit": {
-    "title": "Deposit"
+    "title": "Deposit",
+    "email_auth": {
+      "title": "Enter your email",
+      "email": {
+        "description": "We'll send a six-digit code to your email to check it's you.",
+        "input_label": "Email",
+        "input_placeholder": "name@domain.com",
+        "submit_button": "Send email",
+        "loading": "Sending email..."
+      },
+      "code": {
+        "description": "Enter the code we sent to your email",
+        "submit_button": "Submit",
+        "loading": "Verifying code...",
+        "invalid_code_error": "Invalid code"
+      }
+    }
   },
   "receive": {
     "title": "Receive"
@@ -813,7 +829,7 @@
     "select_accounts_description": "Select the account(s) to use on this site:",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
-    "add":"Add",
+    "add": "Add",
     "cancel": "Cancel",
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
@@ -1900,7 +1916,10 @@
     "network": "Network",
     "request_from": "Request from",
     "network_fee": "Network Fee",
-    "network_fee_tooltip": "Amount paid to process the transaction on network."
+    "network_fee_tooltip": "Amount paid to process the transaction on network.",
+    "smart_account_upgrade": "Upgrade to smart account",
+    "smart_account_downgrade": "Switch to standard account",
+    "batched_transactions": "Batched transactions"
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -2144,7 +2163,7 @@
     "description_one": "You'll now be able to view your account in MetaMask."
   },
   "import_new_secret_recovery_phrase": {
-    "title":"Import Secret Recovery Phrase",
+    "title": "Import Secret Recovery Phrase",
     "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
     "subtitle": "Paste your secret recovery phrase",
     "cta_text": "Continue",
@@ -2155,9 +2174,9 @@
     "24_word_option": "I have a 24 word phrase",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
-    "error_empty_message":"You need to enter your secret recovery phrase.",
+    "error_empty_message": "You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
-    "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
+    "error_srp_is_case_sensitive": "Invalid input! Secret Recovery Phrase is case sensitive.",
     "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
@@ -2167,7 +2186,6 @@
     "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"
-
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
@@ -3393,10 +3411,9 @@
     "agree_cta": "Agree"
   },
   "update_needed": {
-    "title": "Updates needed",
-    "description": "We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.",
-    "primary_action": "Update to latest version",
-    "secondary_action": "Remind me later"
+    "title": "Get the newest features",
+    "description": "We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.",
+    "primary_action": "Update to latest version"
   },
   "enable_automatic_security_check_modal": {
     "title": "Automatically check for security updates?",
@@ -3574,7 +3591,7 @@
     "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
-    "import_srp":"Secret Recovery Phrase",
+    "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
@@ -3650,7 +3667,7 @@
       "start_earning": "Start earning"
     },
     "service_interruption_banner": {
-        "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
     "deposit": "Deposit",
     "approve": "Approve",
@@ -3982,7 +3999,8 @@
         "splashTitle": "Use smart account?",
         "upgradeBannerDescription": "Same address. Smarter features.",
         "upgradeBannerTitle": "Switch to smart account"
-      }
+      },
+    "includes_transaction": "Includes {{transactionCount}} transactions"
     },
     "unlimited": "Unlimited",
     "none": "None",
@@ -4087,10 +4105,10 @@
       "title": "Select an asset"
     },
     "hideSentitiveInfo": {
-        "message": "Hide sensitive information"
-      },
+      "message": "Hide sensitive information"
+    },
     "doNotShare": {
-        "message": "Do not share this with anyone"
+      "message": "Do not share this with anyone"
     },
     "revealSensitiveContent": {
       "message": "Reveal sensitive content"

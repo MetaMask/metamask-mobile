@@ -22,10 +22,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import {
-  getTransparentBackOnboardingNavbarOptions,
-  getTransparentOnboardingNavbarOptions,
-} from '../../UI/Navbar';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -51,6 +48,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 
 import fox from '../../../animations/Searching_Fox.json';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -224,6 +222,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Function to save onboarding event prior to metrics being enabled
+     */
+    dispatchSaveOnboardingEvent: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -278,17 +280,12 @@ class Onboarding extends PureComponent {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      route.params?.delete
-        ? getTransparentOnboardingNavbarOptions(
-            colors,
-            true,
-            importedColors.gettingStartedPageBackgroundColor,
-            true,
-          )
-        : getTransparentBackOnboardingNavbarOptions(
-            colors,
-            importedColors.gettingStartedPageBackgroundColor,
-          ),
+      getTransparentOnboardingNavbarOptions(
+        colors,
+        importedColors.gettingStartedPageBackgroundColor,
+        true,
+        importedColors.btnBlack,
+      ),
     );
   };
 
@@ -369,7 +366,9 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build(), [
+      this.props.dispatchSaveOnboardingEvent,
+    ]);
   };
 
   alertExistingUser = (callback) => {
@@ -435,7 +434,7 @@ class Onboarding extends PureComponent {
           />
           <Button
             variant={ButtonVariants.Secondary}
-            onPress={() => this.onPressImport()}
+            onPress={this.onPressImport}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
@@ -548,6 +547,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(
