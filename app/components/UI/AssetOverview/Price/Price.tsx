@@ -164,6 +164,7 @@ const Price = ({
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
+                testID="price-label"
                 color={TextColor.Alternative}
                 variant={TextVariant.BodyMDMedium}
               >
