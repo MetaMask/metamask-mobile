@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import Keypad from '../../../../Base/Keypad';
