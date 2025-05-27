@@ -25,7 +25,6 @@ const mockNavigation = {
   navigate: mockNavigate,
   setOptions: mockSetOptions,
 } as unknown as NavigationProp<ParamListBase>;
-const mockTrack = jest.fn();
 
 describe('OnboardingCarousel', () => {
   beforeEach(() => {

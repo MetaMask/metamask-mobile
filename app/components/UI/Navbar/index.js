@@ -687,13 +687,13 @@ export function getOnboardingNavbarOptions(
  * @param {Object} themeColors - The theme colors object
  * @param {string} backgroundColor - The color to overwrite the background color
  * @param {boolean} showLogo - Whether to show the logo
- * @param {boolean} darkMode - Whether to use dark color for the logo
+ * @param {string} logoColor - The color to overwrite the logo color
  */
 export function getTransparentOnboardingNavbarOptions(
   themeColors,
   backgroundColor = undefined,
   showLogo = true,
-  darkMode = false,
+  logoColor = undefined,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -704,7 +704,7 @@ export function getTransparentOnboardingNavbarOptions(
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: darkMode ? importedColors.btnBlack : themeColors.text.default,
+      tintColor: logoColor || themeColors.text.default,
     },
   });
   return {

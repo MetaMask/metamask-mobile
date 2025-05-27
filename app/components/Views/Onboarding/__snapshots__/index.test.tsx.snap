@@ -143,6 +143,7 @@ exports[`Onboarding should render correctly 1`] = `
                   style={
                     {
                       "height": 35,
+                      "tintColor": "#1C1E21",
                       "width": 70,
                     }
                   }

@@ -48,6 +48,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 
 import fox from '../../../animations/Searching_Fox.json';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -221,6 +222,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Function to save onboarding event prior to metrics being enabled
+     */
+    dispatchSaveOnboardingEvent: PropTypes.func,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -279,7 +284,7 @@ class Onboarding extends PureComponent {
         colors,
         importedColors.gettingStartedPageBackgroundColor,
         true,
-        true,
+        importedColors.btnBlack,
       ),
     );
   };
@@ -361,7 +366,9 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build(), [
+      this.props.dispatchSaveOnboardingEvent,
+    ]);
   };
 
   alertExistingUser = (callback) => {
@@ -540,6 +547,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(
