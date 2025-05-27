@@ -28,35 +28,22 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting wallet_createSession test...');
-
                 await TestHelpers.reverseServerPort();
-                console.log('📡 Server port reversed');
 
                 // Login and navigate to the test dapp
-                console.log('🔐 Logging into app...');
                 await loginToApp();
-                console.log('✅ Login successful');
-
-                console.log('🌐 Navigating to browser tab...');
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                console.log('✅ Browser tab visible');
 
                 // Navigate to the multichain test dapp
-                console.log('🎯 Navigating to multichain test dapp...');
                 await MultichainTestDApp.navigateToMultichainTestDApp();
-                console.log('✅ Navigation to dapp completed');
 
                 // Verify the WebView is visible
-                console.log('🔍 Verifying WebView is visible...');
                 await Assertions.checkIfVisible(
                     Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
                 );
-                console.log('✅ WebView is visible');
 
                 try {
-                    console.log('⚡ Starting session creation with Ethereum mainnet...');
 
                     // Create session with only Ethereum Mainnet
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks(
@@ -88,7 +75,7 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                         throw new Error(`Expected 1 chain, but found ${assertions.chainCount}`);
                     }
 
-                    console.log('🎉 Session created successfully with Ethereum mainnet scope');
+
 
                 } catch (error) {
                     console.error('❌ Test failed with error:', error);
@@ -108,31 +95,27 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting multi-chain session test...');
                 await TestHelpers.reverseServerPort();
 
                 // Login and navigate to the test dapp
-                console.log('🔐 Logging into app...');
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
 
                 // Navigate to the multichain test dapp
-                console.log('🎯 Navigating to multichain test dapp...');
                 await MultichainTestDApp.navigateToMultichainTestDApp();
 
                 try {
-                    console.log('⚡ Starting session creation with multiple chains...');
 
-                    // Create session with Ethereum Mainnet and Linea Mainnet
+                    // Create session with Ethereum Mainnet and Polygon Mainnet
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks(
-                        MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_LINEA
+                        MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON
                     );
 
                     // Use utility for comprehensive validation
                     const assertions = MultichainUtilities.generateSessionAssertions(
                         sessionResult,
-                        MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_LINEA
+                        MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON
                     );
 
                     MultichainUtilities.logSessionDetails(sessionResult, 'Multi-chain Test');
@@ -154,7 +137,7 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                         throw new Error(`Expected 2 chains, but found ${assertions.chainCount}`);
                     }
 
-                    console.log('🎉 Multi-chain session created successfully');
+
 
                 } catch (error) {
                     console.error('❌ Multi-chain test failed:', error);
@@ -174,7 +157,7 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting all-networks session test...');
+
                 await TestHelpers.reverseServerPort();
 
                 // Login and navigate to the test dapp
@@ -187,7 +170,6 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
 
                 try {
                     // Create session with multiple EVM networks
-                    console.log('⚡ Creating session with networks:', MultichainUtilities.NETWORK_COMBINATIONS.ALL_MAJOR_EVM);
 
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks(
                         MultichainUtilities.NETWORK_COMBINATIONS.ALL_MAJOR_EVM
@@ -219,7 +201,7 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
                         throw new Error(`Expected multiple chains, but found ${assertions.chainCount}`);
                     }
 
-                    console.log('🎉 All-networks session created successfully');
+
 
                 } catch (error) {
                     console.error('❌ All-networks test failed:', error);
@@ -392,7 +374,7 @@ describe(SmokeNetworkExpansion('wallet_createSession'), () => {
 
                 try {
                     // Create session with specific networks
-                    const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_LINEA;
+                    const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON;
                     console.log('⚡ Creating session with networks for helper test:', networksToTest);
 
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);

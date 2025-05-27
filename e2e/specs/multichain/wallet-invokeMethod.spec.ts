@@ -18,6 +18,7 @@ import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
     beforeEach(() => {
@@ -78,7 +79,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         console.log('✅ Direct method button clicked');
 
                         // Wait for method execution
-                        await TestHelpers.delay(5000);
+                        await TestHelpers.delay(2000);
 
                         // Verify result using native selectors (avoid JavaScript queries)
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
@@ -170,7 +171,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         console.log('✅ Direct method button clicked');
 
                         // Wait for method execution
-                        await TestHelpers.delay(5000);
+                        await TestHelpers.delay(2000);
 
                         // Verify result element exists
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
@@ -245,7 +246,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         console.log('✅ Direct method button clicked');
 
                         // Wait for method execution
-                        await TestHelpers.delay(5000);
+                        await TestHelpers.delay(2000);
 
                         // Verify result element exists
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
@@ -274,7 +275,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
     });
 
     describe('Write operations: transaction methods with confirmation dialogs', () => {
-        it('should handle eth_sendTransaction with confirmation dialog', async () => {
+        it('should trigger eth_sendTransaction confirmation dialog and reject transaction', async () => {
             await withFixtures(
                 {
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -312,57 +313,45 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         const scope = MultichainUtilities.getEIP155Scope(chainId);
                         const method = 'eth_sendTransaction';
                         const escapedScopeForButton = scope.replace(/:/g, '-');
-                        const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
+                        const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
                         console.log(`🎯 Targeting transaction button: ${directButtonId}`);
 
-                        // Check if eth_sendTransaction button exists
+                        // Use the same approach as the working read-only tests
                         try {
                             const directButton = webview.element(by.web.id(directButtonId));
                             await directButton.tap();
                             console.log('✅ Transaction method button clicked');
 
-                            // Wait for transaction confirmation dialog to appear
-                            await TestHelpers.delay(5000);
+                            // Wait for transaction confirmation screen to appear
+                            console.log('🔄 Waiting for transaction confirmation screen...');
 
-                            // Look for transaction confirmation dialog
-                            // Based on the mobile e2e patterns, look for confirmation elements
+                            // Look for the transaction confirmation screen using what actually works
                             try {
-                                // Try to find the transaction confirmation screen
-                                const confirmButton = element(by.id('txn-confirm-send-button'));
-                                await Assertions.checkIfVisible(Promise.resolve(confirmButton));
-                                console.log('✅ Transaction confirmation dialog appeared');
+                                // Wait for the confirm button to appear (this is what actually works)
+                                console.log('🔍 Waiting for transaction confirmation button...');
+                                await Assertions.checkIfVisible(TransactionConfirmationView.confirmButton);
+                                console.log('✅ Transaction confirmation screen appeared - confirm button found');
 
-                                // Tap the confirm button to complete the transaction
-                                await confirmButton.tap();
-                                console.log('✅ Transaction confirmed');
+                                // Reject the transaction using text "Reject" (not "Cancel")
+                                const rejectButton = element(by.text('Reject'));
+                                await rejectButton.tap();
+                                console.log('✅ Transaction rejected successfully using "Reject" button');
 
-                                // Wait for transaction to be processed
-                                await TestHelpers.delay(8000);
-
-                                // Verify result element exists
-                                const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-
-                                try {
-                                    const resultElement = webview.element(by.web.id(resultElementId));
-                                    await Assertions.checkIfVisible(Promise.resolve(resultElement));
-                                    console.log('✅ Transaction result element found');
-                                    console.log('🎉 eth_sendTransaction method invocation test PASSED');
-                                } catch (resultError) {
-                                    console.log('⚠️ Transaction result element not immediately visible');
-                                    console.log('🎉 eth_sendTransaction test PASSED - confirmation dialog handled');
-                                }
+                                // Verify we're back in the WebView
+                                await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
+                                console.log('✅ Returned to dapp after transaction rejection');
+                                console.log('🎉 eth_sendTransaction confirmation dialog test PASSED - transaction screen appeared and was properly rejected');
 
                             } catch (confirmError) {
-                                console.log('⚠️ Transaction confirmation dialog not found or different UI pattern');
-                                console.log('✅ But transaction method button was successfully clicked');
-                                console.log('🎉 eth_sendTransaction test PASSED - method invocation initiated');
+                                console.log('❌ Transaction confirmation screen not found:', confirmError);
+                                console.log('⚠️ This indicates the transaction confirmation flow failed');
+                                throw new Error('Transaction confirmation screen did not appear - this is a test failure');
                             }
 
                         } catch (buttonError) {
-                            console.log('⚠️ eth_sendTransaction button not available in current session');
-                            console.log('ℹ️ This may be expected if the method is not in the session scope');
-                            console.log('🎉 eth_sendTransaction test PASSED - method availability verified');
+                            console.log('❌ eth_sendTransaction button click failed:', buttonError);
+                            throw new Error('eth_sendTransaction method invocation failed - this is a test failure');
                         }
 
                     } catch (error) {
@@ -412,7 +401,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                         const escapedScopeForButton = scope.replace(/:/g, '-');
 
                         // Test that write operations require user confirmation
-                        const writeOperations = ['eth_sendTransaction'];
+                        const writeOperations = ['eth_sendTransaction', 'personal_sign'];
 
                         for (const method of writeOperations) {
                             console.log(`🔄 Testing confirmation requirement for: ${method}`);
@@ -425,34 +414,40 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                                 await directButton.tap();
                                 console.log(`✅ ${method} button clicked`);
 
-                                // Wait for confirmation dialog
-                                await TestHelpers.delay(3000);
-
-                                // Look for confirmation UI elements
+                                // Look for confirmation screen elements based on method type
                                 try {
-                                    const confirmButton = element(by.id('txn-confirm-send-button'));
-                                    await Assertions.checkIfVisible(Promise.resolve(confirmButton));
-                                    console.log(`✅ ${method} triggered confirmation dialog as expected`);
+                                    if (method === 'eth_sendTransaction') {
+                                        // Transaction confirmation screen
+                                        await Assertions.checkIfVisible(TransactionConfirmationView.confirmButton);
+                                        console.log(`✅ ${method} triggered transaction confirmation screen`);
 
-                                    // Cancel the transaction to avoid side effects
-                                    try {
+                                        const rejectButton = element(by.text('Reject'));
+                                        await rejectButton.tap();
+                                        console.log(`✅ ${method} transaction rejected`);
+                                    } else {
+                                        // Signature confirmation screen (personal_sign, eth_signTypedData_v4)
+                                        // Look for signature confirmation elements
+                                        const signButton = element(by.text('Sign'));
+                                        await waitFor(signButton).toBeVisible().withTimeout(10000);
+                                        console.log(`✅ ${method} triggered signature confirmation screen`);
+
                                         const cancelButton = element(by.text('Cancel'));
                                         await cancelButton.tap();
-                                        console.log(`✅ ${method} transaction cancelled`);
-                                    } catch (cancelError) {
-                                        console.log(`⚠️ Could not find cancel button for ${method}`);
+                                        console.log(`✅ ${method} signature cancelled`);
                                     }
 
                                 } catch (confirmError) {
-                                    console.log(`⚠️ ${method} confirmation dialog not found - may use different UI pattern`);
+                                    console.log(`❌ ${method} confirmation screen not found:`, confirmError);
+                                    throw new Error(`${method} should have triggered confirmation screen but didn't`);
                                 }
 
                             } catch (methodError) {
-                                console.log(`⚠️ ${method} button not available - may not be in session scope`);
+                                console.log(`❌ ${method} button click failed:`, methodError);
+                                throw new Error(`${method} method invocation failed - this is a test failure`);
                             }
 
-                            // Small delay between methods
-                            await TestHelpers.delay(1000);
+                            // Wait for return to dapp before next method
+                            await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
                         }
 
                         console.log('🎉 Transaction confirmation requirement test PASSED');
@@ -518,7 +513,7 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
                             console.log(`✅ ${method} button clicked`);
 
                             // Wait for method execution
-                            await TestHelpers.delay(3000);
+                            await TestHelpers.delay(2000);
 
                             // Verify result element exists (basic verification)
                             try {
@@ -545,3 +540,4 @@ describe(SmokeNetworkExpansion('wallet_invokeMethod'), () => {
         });
     });
 });
+

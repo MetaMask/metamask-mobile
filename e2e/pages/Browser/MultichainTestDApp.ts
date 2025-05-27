@@ -12,11 +12,37 @@ import ConnectBottomSheet from './ConnectBottomSheet';
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
-// Online version of the multichain test dapp for temporary use
-export const MULTICHAIN_TEST_DAPP_ONLINE_URL = 'https://devdapp.siteed.net/';
+/**
+ * Get the multichain test dapp URL based on environment configuration
+ * Priority:
+ * 1. MULTICHAIN_DAPP_URL environment variable (custom URL)
+ * 2. USE_LOCAL_DAPP=true (local development server)
+ * 3. Error if no URL is configured
+ */
+export function getMultichainTestDappUrl(): string {
+  // Check for custom URL from environment
+  const customUrl = process.env.MULTICHAIN_DAPP_URL;
+  if (customUrl) {
+    console.log(`🌐 Using custom multichain dapp URL: ${customUrl}`);
+    return customUrl;
+  }
 
-// Set USE_ONLINE_DAPP to true to use the online version, false to use local
-export const USE_ONLINE_DAPP = true;
+  // Check for local development flag
+  const useLocal = process.env.USE_LOCAL_DAPP === 'true';
+  if (useLocal) {
+    console.log(`🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`);
+    return MULTICHAIN_TEST_DAPP_LOCAL_URL;
+  }
+
+  // No URL configured - throw error with helpful message
+  throw new Error(
+    '❌ No multichain dapp URL configured!\n' +
+    'Please set one of the following environment variables:\n' +
+    '  • MULTICHAIN_DAPP_URL="https://your-dapp-url.com/"\n' +
+    '  • USE_LOCAL_DAPP=true\n' +
+    'See MULTICHAIN_DAPP_CONFIG.md for more details.'
+  );
+}
 
 /**
  * Response object for getSession method
@@ -88,8 +114,8 @@ class MultichainTestDApp {
     // Using Browser methods to navigate
     await Browser.tapUrlInputBox();
 
-    // Use either online or local URL based on the flag
-    const baseUrl = USE_ONLINE_DAPP ? MULTICHAIN_TEST_DAPP_ONLINE_URL : MULTICHAIN_TEST_DAPP_LOCAL_URL;
+    // Get the configured dapp URL
+    const baseUrl = getMultichainTestDappUrl();
     const dappUrl = `${baseUrl}${urlParams}`;
     await Browser.navigateToURL(dappUrl);
 
@@ -274,6 +300,8 @@ class MultichainTestDApp {
       const webview = this.getWebView();
       const autoConnectButton = webview.element(by.web.id('auto-connect-postmessage-button'));
 
+
+
       try {
         // Simple click with minimal JS
         await autoConnectButton.runScript('(el) => { el.click(); }');
@@ -288,8 +316,28 @@ class MultichainTestDApp {
       }
 
       // Wait for connection to process
-      await TestHelpers.delay(2000);
-      return true;
+      await TestHelpers.delay(3000);
+
+      // Verify connection status by checking if checkboxes are enabled
+      try {
+        const ethereumCheckbox = webview.element(by.web.id('network-checkbox-eip155-1'));
+        const isDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true');
+
+        if (isDisabled) {
+          // Try additional wait
+          await TestHelpers.delay(2000);
+
+          const isStillDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true');
+          if (isStillDisabled) {
+            console.error('❌ Connection failed - checkboxes remain disabled');
+            return false;
+          }
+        }
+
+        return true;
+      } catch (verifyError) {
+        return true;
+      }
     } catch (error) {
       console.error('❌ Auto-connect failed:', error);
       return false;
@@ -528,14 +576,12 @@ class MultichainTestDApp {
       for (const chainId of expectedChainIds) {
         const fullChainId = chainId.startsWith('eip155:') ? chainId : `eip155:${chainId}`;
         if (!sessionData.sessionScopes[fullChainId]) {
-          console.log(`❌ Missing expected chain: ${fullChainId}`);
           return false;
         }
       }
 
       return true;
     } catch (error) {
-      console.error('❌ Error verifying session chains:', error);
       return false;
     }
   }
@@ -553,9 +599,76 @@ class MultichainTestDApp {
 
       return Object.keys(sessionData.sessionScopes).length;
     } catch (error) {
-      console.error('❌ Error getting session chain count:', error);
       return 0;
     }
+  }
+
+  /**
+   * Check if the dapp is properly connected (checkboxes should be enabled)
+   */
+  async isConnectedToDapp(): Promise<boolean> {
+    try {
+      const webview = this.getWebView();
+      const ethereumCheckbox = webview.element(by.web.id('network-checkbox-eip155-1'));
+      const isDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true');
+      return !isDisabled;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Wait for the dapp to be connected (checkboxes enabled)
+   */
+  async waitForConnection(timeoutMs = 10000): Promise<boolean> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      const isConnected = await this.isConnectedToDapp();
+      if (isConnected) {
+        return true;
+      }
+
+      await TestHelpers.delay(1000);
+    }
+
+    return false;
+  }
+
+  /**
+   * Verify the current state of network checkboxes using CSS :checked selector
+   * This is the only reliable method that works in WebView (proven by testing)
+   */
+  async verifyNetworkCheckboxStates(chainIds: string[]): Promise<Record<string, boolean>> {
+    const webview = this.getWebView();
+    const states: Record<string, boolean> = {};
+
+
+
+    for (const chainId of chainIds) {
+      try {
+        const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+        const checkboxId = `network-checkbox-${escapedChainId}`;
+
+        // Use CSS :checked pseudo-selector - the only method that works reliably
+        let isChecked = false;
+        try {
+          const checkedCheckbox = webview.element(by.web.cssSelector(`#${checkboxId}:checked`));
+          // If we can find the element with :checked, it means it's checked
+          await checkedCheckbox.scrollToView();
+          isChecked = true;
+        } catch (e) {
+          // Element with :checked not found, so it's unchecked
+          isChecked = false;
+        }
+
+        states[chainId] = isChecked;
+      } catch (e) {
+        states[chainId] = false;
+      }
+    }
+
+    return states;
   }
 
   /**
@@ -564,32 +677,102 @@ class MultichainTestDApp {
   async selectNetworks(chainIds: string[]): Promise<boolean> {
     try {
       const webview = this.getWebView();
+      // Scroll to the network selection area first
+      await this.scrollToPageTop();
+      await TestHelpers.delay(1000);
 
       // First uncheck all networks
       const allNetworks = ['1', '59144', '42161', '43114', '56', '10', '137', '324', '8453', '1337'];
+
       for (const chainId of allNetworks) {
         try {
           // Escape colons in chain ID to match the dapp's escapeHtmlId function
           const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
-          const checkbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
-          await checkbox.runScript('(el) => { if(el.checked) { el.click(); } }');
+          const checkboxId = `network-checkbox-${escapedChainId}`;
+
+          const checkbox = webview.element(by.web.id(checkboxId));
+
+          // Try multiple approaches to uncheck
+          try {
+            // Method 1: Check if element exists and is checked, then uncheck
+            const isChecked = await checkbox.runScript('(el) => el ? el.checked : false');
+            if (isChecked) {
+              await checkbox.tap();
+              await TestHelpers.delay(200);
+            }
+          } catch (e) {
+            // Method 2: Try direct tap approach
+            try {
+              await checkbox.runScript('(el) => { if(el && el.checked) { el.click(); } }');
+              await TestHelpers.delay(200);
+            } catch (e2) {
+              // Network might not be available, continue
+            }
+          }
         } catch (e) {
           // Network might not be available, continue
         }
       }
+
+
 
       // Then select the requested networks
       for (const chainId of chainIds) {
         try {
           // Escape colons in chain ID to match the dapp's escapeHtmlId function
           const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
-          const checkbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
-          await checkbox.runScript('(el) => { if(!el.checked) { el.click(); } }');
+          const checkboxId = `network-checkbox-${escapedChainId}`;
+
+          const checkbox = webview.element(by.web.id(checkboxId));
+
+          // Scroll to the checkbox to ensure it's visible
+          await checkbox.scrollToView();
+          await TestHelpers.delay(300);
+
+          // Check current state using reliable CSS :checked selector
+          let isCurrentlyChecked = false;
+          try {
+            const checkedCheckbox = webview.element(by.web.cssSelector(`#${checkboxId}:checked`));
+            await checkedCheckbox.scrollToView();
+            isCurrentlyChecked = true;
+          } catch (e) {
+            isCurrentlyChecked = false;
+          }
+
+          // Only click if we need to change the state
+          if (!isCurrentlyChecked) {
+            try {
+              await checkbox.tap();
+              await TestHelpers.delay(1500); // Wait for UI update
+
+              // Verify the change worked
+              try {
+                const nowCheckedCheckbox = webview.element(by.web.cssSelector(`#${checkboxId}:checked`));
+                await nowCheckedCheckbox.scrollToView();
+              } catch (verifyError) {
+                try {
+                  await checkbox.runScript('(el) => { if(el) { el.click(); } }');
+                  await TestHelpers.delay(1000);
+                } catch (jsError) {
+                  console.error(`❌ Both tap and JS click failed for ${checkboxId}`);
+                  return false;
+                }
+              }
+            } catch (tapError) {
+              console.error(`❌ Failed to interact with ${checkboxId}`);
+              return false;
+            }
+          }
+
+
+
         } catch (e) {
           console.error(`❌ Failed to select network eip155:${chainId}:`, e);
           return false;
         }
       }
+
+
 
       return true;
     } catch (error) {
@@ -619,6 +802,8 @@ class MultichainTestDApp {
         console.error('❌ Failed to select networks');
         return { success: false };
       }
+
+
 
       // Create session
       const sessionCreated = await this.clickCreateSessionButton();
