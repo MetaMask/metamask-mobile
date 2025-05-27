@@ -102,6 +102,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
+    await NetworkEducationModal.tapGotItButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
   });

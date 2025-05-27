@@ -28,6 +28,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 const fixtureServer = new FixtureServer();
 
@@ -78,6 +79,7 @@ describe(Regression('Swap from Token view'), () => {
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
+    await NetworkEducationModal.tapGotItButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
   });
