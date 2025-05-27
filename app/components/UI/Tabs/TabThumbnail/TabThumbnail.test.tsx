@@ -139,6 +139,9 @@ describe('TabThumbnail', () => {
       scopes: ['eip155:1'],
     };
 
+    //  mock state is a bit complex because we need accounts
+    // and specifically for them to have permission on the
+    // specific website
     const mockState: DeepPartial<RootState> = {
       engine: {
         backgroundState: {
@@ -185,7 +188,7 @@ describe('TabThumbnail', () => {
           },
         },
       },
-    } as any;
+    } as unknown as RootState;
 
     const { getByTestId } = renderWithProvider(
       <TabThumbnail
