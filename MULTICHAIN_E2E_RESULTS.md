@@ -118,12 +118,70 @@ Success Rate: 100%
 ## 🚀 **Running the Tests**
 
 ```bash
-# Run all multichain tests
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts e2e/specs/multichain/wallet-getSession.spec.ts e2e/specs/multichain/wallet-invokeMethod.spec.ts e2e/specs/multichain/wallet-notify.spec.ts e2e/specs/multichain/wallet-revokeSession.spec.ts e2e/specs/multichain/wallet-sessionChanged.spec.ts
+# Load environment and run all multichain tests
+source .e2e.env && MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts e2e/specs/multichain/wallet-getSession.spec.ts e2e/specs/multichain/wallet-invokeMethod.spec.ts e2e/specs/multichain/wallet-notify.spec.ts e2e/specs/multichain/wallet-revokeSession.spec.ts e2e/specs/multichain/wallet-sessionChanged.spec.ts
 
 # Run individual test files
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts
+source .e2e.env && MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts
 ```
+
+## 🔧 **Multichain Test DApp Configuration**
+
+### **🎯 Overview**
+The multichain E2E tests can connect to different dapp instances based on your development needs:
+- **Custom URL**: Any remote or local dapp instance
+- **Local Development**: Local development server
+- **Required Configuration**: No hardcoded URLs - must be explicitly configured
+
+### **Configuration Options**
+
+#### **Option 1: Official MetaMask Test Dapp (Recommended)**
+```bash
+# Official MetaMask test dapp (recommended)
+export MULTICHAIN_DAPP_URL="https://metamask.github.io/test-dapp-multichain/latest/"
+
+# Run tests with official dapp
+MULTICHAIN_DAPP_URL="https://metamask.github.io/test-dapp-multichain/latest/" MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts
+```
+
+#### **Option 2: Custom URL**
+```bash
+# Custom remote instance
+export MULTICHAIN_DAPP_URL="https://my-custom-dapp.example.com/"
+
+# Local custom port
+export MULTICHAIN_DAPP_URL="http://localhost:3000/"
+```
+
+#### **Option 3: Local Development Server**
+```bash
+# Use local development server
+export USE_LOCAL_DAPP=true
+
+# Run tests with local dapp
+USE_LOCAL_DAPP=true MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts
+```
+
+#### **Option 4: Environment File Configuration**
+```bash
+# .e2e.env file (uses official MetaMask dapp by default)
+export MULTICHAIN_DAPP_URL="https://metamask.github.io/test-dapp-multichain/latest/"
+
+# Run tests (will use URL from .e2e.env)
+source .e2e.env && MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-createSession.spec.ts
+```
+
+### **URL Resolution Priority**
+1. **`MULTICHAIN_DAPP_URL`** - Custom URL (highest priority)
+2. **`USE_LOCAL_DAPP=true`** - Local development server
+3. **Error** - No configuration found (prevents accidental usage)
+
+### **Development Benefits**
+- **🔄 Rapid Development**: Test against local dapp changes instantly
+- **🌐 Remote Testing**: Test against any deployed dapp instance  
+- **🚀 CI/CD Flexibility**: Different URLs for different environments
+- **🔧 Debugging**: Easy switching between dapp versions
+- **👥 Team Collaboration**: Each developer can use their preferred setup
 
 ## 📝 **Next Steps**
 
