@@ -467,7 +467,7 @@ describe('Permission Utility Functions', () => {
         // The updated accounts would be here in the real implementation
       });
 
-      addPermittedAccounts('https://example.com', newAccounts);
+      addPermittedAccounts('https://example.com', newAccounts, {}, {});
 
       expect(setNonSCACaipAccountIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
@@ -487,7 +487,7 @@ describe('Permission Utility Functions', () => {
       mockGetCaveat.mockReturnValue(undefined);
 
       expect(() =>
-        addPermittedAccounts('https://example.com', ['eip155:0:0x1']),
+        addPermittedAccounts('https://example.com', ['eip155:0:0x1'], {}, {}),
       ).toThrow(
         'Cannot add account permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
