@@ -899,10 +899,6 @@ const MainNavigator = () => (
       component={TurnOnBackupAndSync}
       options={TurnOnBackupAndSync.navigationOptions}
     />
-    <Stack.Screen
-      name={Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT}
-      component={RedesignedConfirm}
-    />
   </Stack.Navigator>
 );
 
