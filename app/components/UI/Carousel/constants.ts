@@ -101,7 +101,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
   },
 ];
 
-export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
+export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   card: cardImage,
   fund: fundImage,
   cashout: cashoutImage,

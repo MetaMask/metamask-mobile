@@ -291,6 +291,7 @@
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
+    "contentful": "^11.5.22",
     "cross-spawn": "7.0.6",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
