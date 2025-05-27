@@ -43,7 +43,7 @@ function handleUniversalLink({
   // action is the first part of the pathname
   const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
 
-  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
+  if (urlObj.hostname !== MM_UNIVERSAL_LINK_HOST) {
     if (action === ACTIONS.ANDROID_SDK) {
       DevLogger.log(
         `DeeplinkManager:: metamask launched via android sdk universal link`,
