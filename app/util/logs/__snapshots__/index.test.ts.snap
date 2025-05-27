@@ -21,8 +21,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "addressBook": {},
       },
       "AppMetadataController": {
-        "currentAppVersion": "",
-        "currentMigrationVersion": 0,
+        "currentAppVersion": "7.44.0",
+        "currentMigrationVersion": 80,
         "previousAppVersion": "",
         "previousMigrationVersion": 0,
       },
