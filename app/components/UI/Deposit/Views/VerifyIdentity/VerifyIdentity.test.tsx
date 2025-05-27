@@ -4,20 +4,20 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { DepositSdk } from '../../hooks/useDepositSdkMethod';
+import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkMethodInitialValues: DepositSdk = {
+const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'success'> = {
   error: null,
   loading: false,
   sdkMethod: jest.fn().mockResolvedValue('Success'),
-  data: null,
+  response: null,
 };
 
-let mockUseDepositSdkMethodValues: DepositSdk = {
+let mockUseDepositSdkMethodValues: DepositSdkResult<'success'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { TextInput, View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -16,8 +16,10 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { getDepositNavbarOptions } from '../../../Navbar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
+import { useDepositSDK } from '../../sdk';
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
@@ -33,42 +35,49 @@ const OtpCode = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: 'Enter six-digit code' },
+        { title: strings('deposit.otp_code.title') },
         theme,
       ),
     );
   }, [navigation, theme]);
 
   const [value, setValue] = useState('');
+  const { email } = useDepositSDK();
 
-  const ref = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
+  const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value,
     setValue,
   });
 
-  const { error, sdkMethod: submitCode, loading } = useDepositSdkMethod();
+  const {
+    error,
+    sdkMethod: submitCode,
+    loading,
+  } = useDepositSdkMethod('verifyUserOtp', value, email);
 
   useEffect(() => {
-    ref.current?.focus();
-  }, [ref]);
+    inputRef.current?.focus();
+  }, [inputRef]);
 
-  const handleSubmit = async () => {
-    try {
-      await submitCode(value);
-      navigation.navigate(...createVerifyIdentityNavDetails());
-    } catch (e) {
-      console.error('Error submitting OTP code');
+  const handleSubmit = useCallback(async () => {
+    if (!loading && value.length === CELL_COUNT) {
+      await submitCode();
+      if (!error) {
+        navigation.navigate(...createVerifyIdentityNavDetails());
+      }
     }
-  };
+  }, [error, loading, navigation, submitCode, value.length]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
-          <Text>Enter the 6 digit code that we sent to your email</Text>
+          <DepositProgressBar steps={4} currentStep={1} />
+          <Text>{strings('deposit.otp_code.description', { email })}</Text>
           <CodeField
-            ref={ref as React.RefObject<TextInput>}
+            testID="otp-code-input"
+            ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
             onChangeText={setValue}
@@ -102,11 +111,11 @@ const OtpCode = () => {
             onPress={handleSubmit}
             accessibilityRole="button"
             accessible
-            disabled={loading}
+            disabled={loading || value.length !== CELL_COUNT}
           >
             {loading
-              ? strings('deposit.email_auth.code.loading')
-              : strings('deposit.email_auth.code.submit_button')}
+              ? strings('deposit.otp_code.loading')
+              : strings('deposit.otp_code.submit_button')}
           </StyledButton>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

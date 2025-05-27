@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,7 +9,6 @@ import {
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
-import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
