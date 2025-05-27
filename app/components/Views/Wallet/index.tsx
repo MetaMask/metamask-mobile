@@ -46,6 +46,7 @@ import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -117,6 +118,8 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -174,9 +177,10 @@ const WalletTokensTabView = React.memo(
   (props: {
     navigation: WalletProps['navigation'];
     onChangeTab: (value: ChangeTabProperties) => void;
+    defiEnabled: boolean;
+    collectiblesEnabled: boolean;
   }) => {
-    const { navigation, onChangeTab } = props;
-    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -210,6 +214,15 @@ const WalletTokensTabView = React.memo(
       [navigation],
     );
 
+    const defiPositionsTabProps = useMemo(
+      () => ({
+        key: 'defi-tab',
+        tabLabel: strings('wallet.defi'),
+        navigation,
+      }),
+      [navigation],
+    );
+
     const collectibleContractsTabProps = useMemo(
       () => ({
         key: 'nfts-tab',
@@ -222,7 +235,8 @@ const WalletTokensTabView = React.memo(
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        {isEvmSelected && (
+        {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+        {collectiblesEnabled && (
           <CollectibleContracts {...collectibleContractsTabProps} />
         )}
       </ScrollableTabView>
@@ -290,6 +304,12 @@ const Wallet = ({
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
+
+  const assetsDefiPositionsEnabled = useSelector(
+    selectAssetsDefiPositionsEnabled,
+  );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -708,6 +728,12 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  const defiEnabled =
+    isEvmSelected &&
+    !isTestNet(chainId) &&
+    basicFunctionalityEnabled &&
+    assetsDefiPositionsEnabled;
+
   const renderContent = useCallback(
     () => (
       <View
@@ -733,6 +759,8 @@ const Wallet = ({
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={isEvmSelected}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -747,6 +775,8 @@ const Wallet = ({
       styles.carouselContainer,
       styles.wrapper,
       basicFunctionalityEnabled,
+      defiEnabled,
+      isEvmSelected,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
