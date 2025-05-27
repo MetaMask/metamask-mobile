@@ -300,5 +300,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
   [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
-  [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.svg'),
+  [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
 };

@@ -25,8 +25,8 @@ import MONAD_TESTNET from './monad-testnet-logo.png';
 import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
-import PLUME from './plume.png';
-import KATANA from './katana.svg';
+import PLUME from './plume-native.png';
+import KATANA from './katana.png';
 
 export default {
   PALM,
