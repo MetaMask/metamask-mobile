@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useSelector, shallowEqual } from 'react-redux';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
