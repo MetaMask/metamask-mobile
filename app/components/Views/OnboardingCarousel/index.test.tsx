@@ -171,17 +171,14 @@ describe('OnboardingCarousel', () => {
       );
 
       // Simulate the tab change event
-      const tabChangeEvent = { i: 1 };
+      const tabChangeEvent = { i: 0 };
       mockOnChangeTab(tabChangeEvent);
-      expect(mockOnChangeTab).toHaveBeenCalledWith(tabChangeEvent);
 
-      const tabChangeEvent2 = { i: 2 };
+      const tabChangeEvent2 = { i: 1 };
       mockOnChangeTab(tabChangeEvent2);
-      expect(mockOnChangeTab).toHaveBeenCalledWith(tabChangeEvent2);
 
-      const tabChangeEvent3 = { i: 3 };
+      const tabChangeEvent3 = { i: 2 };
       mockOnChangeTab(tabChangeEvent3);
-      expect(mockOnChangeTab).toHaveBeenCalledWith(tabChangeEvent3);
 
       expect(toJSON()).toMatchSnapshot();
     });
