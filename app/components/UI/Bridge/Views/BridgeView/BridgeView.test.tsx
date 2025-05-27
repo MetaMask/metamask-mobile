@@ -462,11 +462,11 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Continue')).toBeTruthy();
+      expect(getByText('Confirm Bridge')).toBeTruthy();
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
-    it('should handle Continue button press', async () => {
+    it('should handle "Confirm Bridge" button press', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -491,8 +491,8 @@ describe('BridgeView', () => {
         },
       );
 
-      const continueButton = getByText('Continue');
-      fireEvent.press(continueButton);
+      const button = getByText('Confirm Bridge');
+      fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
