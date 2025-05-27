@@ -109,14 +109,13 @@ export default class MultichainUtilities {
             L2_NETWORKS: [chainIds.LINEA_MAINNET, chainIds.ARBITRUM_ONE, chainIds.OPTIMISM, chainIds.BASE],
             ALL_MAJOR_EVM: [
                 chainIds.ETHEREUM_MAINNET,
-                chainIds.LINEA_MAINNET,
                 chainIds.ARBITRUM_ONE,
                 chainIds.OPTIMISM,
                 chainIds.POLYGON,
+                chainIds.BASE,
             ],
             ALL_EVM_NETWORKS: [
                 chainIds.ETHEREUM_MAINNET,
-                chainIds.LINEA_MAINNET,
                 chainIds.ARBITRUM_ONE,
                 chainIds.OPTIMISM,
                 chainIds.POLYGON,
