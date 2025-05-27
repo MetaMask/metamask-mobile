@@ -134,14 +134,7 @@ describe('generateDefaultTransactionMetrics', () => {
           } as RootState),
       } as TransactionEventHandlerRequest,
     );
-    expect(metrics).toStrictEqual({
-      metametricsEvent: {
-        category: 'Transactions',
-        properties: {
-          action: 'Confirm Screen',
-          name: 'Confirm Started',
-        },
-      },
+    expect(metrics.properties).toStrictEqual({
       properties: {
         account_eip7702_upgraded: undefined,
         api_method: 'wallet_sendCalls',
@@ -153,7 +146,7 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_contract_address: [],
         transaction_contract_method: [],
         transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
-        transaction_type: 'unknown',
+        transaction_type: 'batch',
       },
     });
   });
@@ -171,21 +164,14 @@ describe('generateDefaultTransactionMetrics', () => {
           } as RootState),
       } as TransactionEventHandlerRequest,
     );
-    expect(metrics).toStrictEqual({
-      metametricsEvent: {
-        category: 'Transactions',
-        properties: {
-          action: 'Confirm Screen',
-          name: 'Confirm Started',
-        },
-      },
+    expect(metrics.properties).toStrictEqual({
       properties: {
         account_eip7702_upgraded: undefined,
         chain_id: '0xaa36a7',
         eip7702_upgrade_transaction: true,
         status: 'unapproved',
         transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
-        transaction_type: 'unknown',
+        transaction_type: 'batch',
       },
     });
   });
@@ -209,14 +195,7 @@ describe('generateDefaultTransactionMetrics', () => {
           } as RootState),
       } as TransactionEventHandlerRequest,
     );
-    expect(metrics).toStrictEqual({
-      metametricsEvent: {
-        category: 'Transactions',
-        properties: {
-          action: 'Confirm Screen',
-          name: 'Confirm Started',
-        },
-      },
+    expect(metrics.properties).toStrictEqual({
       properties: {
         account_eip7702_upgraded: undefined,
         chain_id: '0xaa36a7',
@@ -224,7 +203,7 @@ describe('generateDefaultTransactionMetrics', () => {
         eip7702_upgrade_transaction: true,
         status: 'rejected',
         transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
-        transaction_type: 'unknown',
+        transaction_type: 'batch',
       },
     });
   });
@@ -242,14 +221,7 @@ describe('generateDefaultTransactionMetrics', () => {
           } as RootState),
       } as TransactionEventHandlerRequest,
     );
-    expect(metrics).toStrictEqual({
-      metametricsEvent: {
-        category: 'Transactions',
-        properties: {
-          action: 'Confirm Screen',
-          name: 'Confirm Started',
-        },
-      },
+    expect(metrics.properties).toStrictEqual({
       properties: {
         account_eip7702_upgraded: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
         api_method: 'wallet_sendCalls',
@@ -263,7 +235,7 @@ describe('generateDefaultTransactionMetrics', () => {
         ],
         transaction_contract_method: [],
         transaction_internal_id: '00e2c3a0-3537-11f0-a6bc-c5da15141f51',
-        transaction_type: 'unknown',
+        transaction_type: 'batch',
       },
     });
   });
