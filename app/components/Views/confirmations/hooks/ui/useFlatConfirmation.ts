@@ -12,7 +12,7 @@ export const useFlatConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
 
-  let isFlatConfirmation;
+  let isFlatConfirmation = false;
   if (approvalRequest?.type === ApprovalType.Transaction) {
     isFlatConfirmation = FLAT_TRANSACTION_CONFIRMATIONS.includes(
       transactionMetadata?.type as TransactionType,
