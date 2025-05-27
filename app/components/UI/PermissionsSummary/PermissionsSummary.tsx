@@ -99,11 +99,13 @@ const PermissionsSummary = ({
   showPermissionsOnly = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
+  const fullNonTabView = showAccountsOnly && showPermissionsOnly;
 
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {
     isRenderedAsBottomSheet,
     nonTabView,
+    fullNonTabView,
   });
   const navigation = useNavigation();
   const { navigate } = navigation;
@@ -157,7 +159,9 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() && isAlreadyConnected ? (
+    return isPerDappSelectedNetworkEnabled() &&
+      isAlreadyConnected &&
+      !nonTabView ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}

@@ -10,13 +10,14 @@ const createStyles = (params: {
   vars: {
     isRenderedAsBottomSheet: boolean | undefined;
     nonTabView: boolean | undefined;
+    fullNonTabView: boolean | undefined;
   };
 }) => {
   const { theme, vars } = params;
   const { colors, typography } = theme;
-  const { isRenderedAsBottomSheet, nonTabView } = vars;
+  const { isRenderedAsBottomSheet, nonTabView, fullNonTabView } = vars;
 
-  const tabHeight = nonTabView ? 400 : undefined;
+  const tabHeight = fullNonTabView ? 400 : 325;
   const bottomSheetHeight = isRenderedAsBottomSheet ? undefined : '100%';
   const height = nonTabView ? tabHeight : bottomSheetHeight;
 
