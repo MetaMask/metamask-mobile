@@ -4703,10 +4703,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^63.1.0":
-  version "63.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-63.1.0.tgz#0b13d857c2035248b8e20b1e1af35197a25fd491"
-  integrity sha512-I9fzHH3m6d/nwlttD27hHzv74UiRnRiD47IYDVoMyLN1caG2685ycabpz4IvTFIPxYSxW4XGEH9r4Wga2x98lA==
+"@metamask/assets-controllers@^65.0.0":
+  version "65.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-65.0.0.tgz#a70de0846dc36877596ef3c269c758eb5ff9e8bf"
+  integrity sha512-0kVHFElU/m2ka4ZQ6CXkupc/SZukjCgVsWl2uy8Eq/XjWfw1gRO2GBAXMAzY7e49mdoQf4LRqNx9UQOYTMUFAg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4779,9 +4779,9 @@
     reselect "^5.1.1"
 
 "@metamask/bridge-status-controller@^20.0.0":
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-20.0.0.tgz#d6c4b1041cebeb328190924359d1f5a13b8b0fbd"
-  integrity sha512-GJaHJsynTe7nwI2Kv3cVSSWzvPGp5izp0GMVpzLkfiZOfDe15x3D+Ps54EYcRWq/h3LJ2RgbWHedy0aG/tJaEA==
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-20.1.0.tgz#524e7a157b1a7b7d4833b0be32a9ad2bbb3ba6df"
+  integrity sha512-DbXsoQKCLk0RD4HGkj3pjYzsfJMTIb/o3Iw+NQ2OeOVYW0c4F3rDorG9GFU//DfRyzfpjAY6v2k4oEcUzHjE3w==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.8.0"
@@ -5673,11 +5673,19 @@
     "@noble/hashes" "~1.3.2"
     "@scure/base" "~1.1.3"
 
-"@metamask/sdk-communication-layer@0.29.0-wallet":
-  version "0.29.0-wallet"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.29.0-wallet.tgz#05b8589fc731e5a92e22607c8b63dd7f71d58081"
-  integrity sha512-GgBzSNijpu+Utm5/joiI+uzzCgB0CpK7ZBFkQvn7NGguWGJKiHPexDNDLGlwViw3X5QpFHmY7hNBMWoDIby2HA==
+"@metamask/sdk-analytics@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-analytics/-/sdk-analytics-0.0.5.tgz#ea10b15730d015af1da2225c8fe4fcf85b3fa77b"
+  integrity sha512-fDah+keS1RjSUlC8GmYXvx6Y26s3Ax1U9hGpWb6GSY5SAdmTSIqp2CvYy6yW0WgLhnYhW+6xERuD0eVqV63QIQ==
   dependencies:
+    openapi-fetch "^0.13.5"
+
+"@metamask/sdk-communication-layer@0.33.0":
+  version "0.33.0"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.33.0.tgz#b0e503d03bd351d82489fccd99fbd0a04313f7a1"
+  integrity sha512-d0Jvk6V+plhF/3cy+5apJG16z6rmcJOy5B86PTUgghuzkBzrN7+7Ovzpp0JBr0EUuuoFXjEqc7Y6KakQ5WXv1Q==
+  dependencies:
+    "@metamask/sdk-analytics" "0.0.5"
     bufferutil "^4.0.8"
     date-fns "^2.29.3"
     debug "^4.3.4"
@@ -23196,6 +23204,18 @@ open@^8.0.4, open@^8.2.0, open@^8.4.0, open@^8.4.2:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
+openapi-fetch@^0.13.5:
+  version "0.13.7"
+  resolved "https://registry.yarnpkg.com/openapi-fetch/-/openapi-fetch-0.13.7.tgz#131ea929fad16b8cc9898d8fcea9750317b4fe97"
+  integrity sha512-3QdcAgvLFZ4j9Rcja7/Tq1j0qyv/LPqnHzwtMz5gKj6iddTdP48r+FZd8rmb+6xL9CdnJ5OmgdM0CpgGBi6Fgg==
+  dependencies:
+    openapi-typescript-helpers "^0.0.15"
+
+openapi-typescript-helpers@^0.0.15:
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/openapi-typescript-helpers/-/openapi-typescript-helpers-0.0.15.tgz#96ffa762a5e01ef66a661b163d5f1109ed1967ed"
+  integrity sha512-opyTPaunsklCBpTK8JGef6mfPhLSnyy5a0IN9vKtx3+4aExf+KxEqYwIy3hqkedXIB97u357uLMJsOnm3GVjsw==
+
 opencollective-postinstall@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz#7a0fff978f6dbfa4d006238fbac98ed4198c3259"
@@ -24718,6 +24738,11 @@ react-native-confetti@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/react-native-confetti/-/react-native-confetti-0.1.0.tgz#9ec93c07f845de5ebeaed700043fd5218792b6f1"
   integrity sha512-+cXJvnPXKc0i/eTQcuzcjrlfIxmn/xFw4UyuVKQOWNK6BfWABvO6Ms6Zp6ivF1E8Vxt2vJkzJlNyoBvMh9FxKA==
+
+react-native-confirmation-code-field@^7.6.1:
+  version "7.6.1"
+  resolved "https://registry.yarnpkg.com/react-native-confirmation-code-field/-/react-native-confirmation-code-field-7.6.1.tgz#ac07d3f63e1df2d99731df2ebf2dc57e26278a85"
+  integrity sha512-ki65sUbGHdLF+dl5+qvXolhhKceIR6G0uJrFyCfoOqJUyWrE3bIcE+gZ/FsvYfkIBwKZmnF0KHQ09T4/SnE0AQ==
 
 react-native-crypto@2.1.2:
   version "2.1.2"
@@ -26333,9 +26358,9 @@ semver@^6.0.0, semver@^6.3.0, semver@^6.3.1:
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
 semver@^7.0.0, semver@^7.1.1, semver@^7.1.3, semver@^7.3.5, semver@^7.3.7, semver@^7.3.8, semver@^7.5.0, semver@^7.5.2, semver@^7.5.3, semver@^7.5.4, semver@^7.6.0, semver@^7.6.3:
-  version "7.7.1"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.1.tgz#abd5098d82b18c6c81f6074ff2647fd3e7220c9f"
-  integrity sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==
+  version "7.7.2"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
+  integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 send@0.19.0, send@^0.19.0:
   version "0.19.0"
