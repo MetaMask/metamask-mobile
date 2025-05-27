@@ -30,6 +30,7 @@ const initialState = {
   nonce: undefined,
   securityAlertResponses: {},
   useMax: false,
+  upgradeSplashPageAcknowledgedForAccounts: [],
 };
 
 const getAssetType = (selectedAsset) => {
@@ -159,6 +160,15 @@ const transactionReducer = (state = initialState, action) => {
       return {
         ...state,
         transaction: { ...state.transaction, value: action.value },
+      };
+    }
+    case 'UPGRADE_SPLASH_PAGE_ACKNOWLEDGED_FOR_ACCOUNT': {
+      return {
+        ...state,
+        upgradeSplashPageAcknowledgedForAccounts: [
+          ...state.upgradeSplashPageAcknowledgedForAccounts,
+          action.account,
+        ],
       };
     }
     default:

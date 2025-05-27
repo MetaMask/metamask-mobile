@@ -171,3 +171,10 @@ export function setTransactionValue(value) {
     value,
   };
 }
+
+export function upgradeSplashPageAcknowledgedForAccount(account) {
+  return {
+    type: 'UPGRADE_SPLASH_PAGE_ACKNOWLEDGED_FOR_ACCOUNT',
+    account,
+  };
+}
