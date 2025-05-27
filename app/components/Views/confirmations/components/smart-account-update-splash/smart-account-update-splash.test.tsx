@@ -7,7 +7,7 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionActions from '../../../../../actions/transaction';
+import * as ConfirmationReducerActions from '../../../../../actions/confirmations';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
@@ -50,7 +50,7 @@ describe('SmartContractWithLogo', () => {
     const mockDispatch = jest.fn();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     const spyUpgradeSplashPageAcknowledgedForAccount = jest.spyOn(
-      TransactionActions,
+      ConfirmationReducerActions,
       'upgradeSplashPageAcknowledgedForAccount',
     );
 

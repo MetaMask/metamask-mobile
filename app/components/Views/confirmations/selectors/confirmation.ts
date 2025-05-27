@@ -2,4 +2,4 @@ import { RootState } from '../../../../reducers';
 
 export const selectUpgradeSplashPageAcknowledgedForAccounts = (
   rootState: RootState,
-): string[] => rootState.transaction.upgradeSplashPageAcknowledgedForAccounts;
+): string[] => rootState.confirmation.upgradeSplashPageAcknowledgedForAccounts;

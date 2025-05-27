@@ -17,7 +17,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/transaction';
+import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -79,6 +79,9 @@ export const SmartAccountUpdateSplash = () => {
   }, [onReject]);
 
   const onConfirm = useCallback(() => {
+    if (!from) {
+      return;
+    }
     dispatch(upgradeSplashPageAcknowledgedForAccount(from));
     setAcknowledged(true);
   }, [dispatch, from, setAcknowledged]);
