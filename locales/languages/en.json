@@ -402,21 +402,22 @@
   },
   "deposit": {
     "title": "Deposit",
-    "email_auth": {
+    "enter_email": {
       "title": "Enter your email",
-      "email": {
-        "description": "We'll send a six-digit code to your email to check it's you.",
-        "input_label": "Email",
-        "input_placeholder": "name@domain.com",
-        "submit_button": "Send email",
-        "loading": "Sending email..."
-      },
-      "code": {
-        "description": "Enter the code we sent to your email",
-        "submit_button": "Submit",
-        "loading": "Verifying code...",
-        "invalid_code_error": "Invalid code"
-      }
+      "description": "We'll send a six-digit code to your email to check it's you.",
+      "input_label": "Email",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Send email",
+      "loading": "Sending email...",
+      "validation_error": "Please enter a valid email address"
+    },
+    "otp_code": {
+      "title": "Enter six-digit code",
+      "description": "Enter the 6-digit code we sent to {{email}}. If you don't see it in your inbox, check your spam folder.",
+      "submit_button": "Submit",
+      "loading": "Verifying code...",
+      "invalid_code_error": "Invalid code",
+      "validation_error": "Please enter a valid code"
     }
   },
   "receive": {
