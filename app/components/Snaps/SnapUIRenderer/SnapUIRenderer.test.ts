@@ -162,10 +162,8 @@ describe('SnapUIRenderer', () => {
       }),
     );
 
-    const input1AfterRerender= getByTestId('input-snap-ui-input');
-    const input2AfterRerender= getByTestId('input2-snap-ui-input');
-    expect(input1AfterRerender).toBeDefined();
-    expect(input2AfterRerender).toBeDefined();
+    expect(getByTestId('input-snap-ui-input')).toBeDefined();
+    expect(getByTestId('input2-snap-ui-input')).toBeDefined();
 
     expect(getRenderCount()).toBe(2);
 
@@ -180,8 +178,8 @@ describe('SnapUIRenderer', () => {
       Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
       { input: 'bar', input2: 'foo' },
     );
-    const input1AfterRerender= getByTestId('input-snap-ui-input');
-    const input2AfterRerender= getByTestId('input2-snap-ui-input');
+    const input1AfterRerender = getByTestId('input-snap-ui-input');
+    const input2AfterRerender = getByTestId('input2-snap-ui-input');
     expect(input1AfterRerender).toBeDefined();
     expect(input2AfterRerender).toBeDefined();
     expect(input1AfterRerender.props.value).toStrictEqual('bar');
