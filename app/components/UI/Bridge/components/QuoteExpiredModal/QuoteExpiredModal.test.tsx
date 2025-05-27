@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';

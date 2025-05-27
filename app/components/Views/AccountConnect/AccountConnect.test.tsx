@@ -198,6 +198,7 @@ describe('AccountConnect', () => {
               metadata: {
                 id: 'mockId',
                 origin: 'mockOrigin',
+                isEip1193Request: true,
               },
               permissions: {
                 // @ts-expect-error partial object
