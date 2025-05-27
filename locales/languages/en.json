@@ -3966,7 +3966,9 @@
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
     "review": "Review",
-    "transferRequest": "Transfer request"
+    "transferRequest": "Transfer request",
+    "includes": "Includes",
+    "transactions": "transactions"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

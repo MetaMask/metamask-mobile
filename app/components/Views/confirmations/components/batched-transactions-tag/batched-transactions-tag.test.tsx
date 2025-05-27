@@ -4,11 +4,11 @@ import {
   downgradeAccountConfirmation,
   getAppStateForConfirmation,
   upgradeAccountConfirmation,
-} from '../../../../../../util/test/confirm-data-helpers';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+} from '../../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BatchedTransactionTag } from './batched-transactions-tag';
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     TokenListController: {
       fetchTokenList: jest.fn(),

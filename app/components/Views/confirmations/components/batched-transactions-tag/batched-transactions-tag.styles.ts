@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     tagBaseStyle: {
-      alignSelf: 'center' as FlexAlignType,
+      alignSelf: 'center',
       backgroundColor: theme.colors.background.alternative,
       borderColor: theme.colors.border.default,
       borderWidth: 1,
