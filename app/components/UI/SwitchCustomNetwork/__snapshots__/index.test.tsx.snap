@@ -190,11 +190,14 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
             }
           >
             <RCTScrollView
+              collapsable={false}
               data={[]}
               getItem={[Function]}
               getItemCount={[Function]}
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               onLayout={[Function]}
               onMomentumScrollBegin={[Function]}
               onMomentumScrollEnd={[Function]}
@@ -203,6 +206,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
               onScrollEndDrag={[Function]}
               removeClippedSubviews={false}
               renderItem={[Function]}
+              renderScrollComponent={[Function]}
               scrollEnabled={false}
               scrollEventThrottle={0.0001}
               stickyHeaderIndices={[]}

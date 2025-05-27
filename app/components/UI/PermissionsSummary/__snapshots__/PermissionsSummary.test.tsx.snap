@@ -190,6 +190,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           >
             <RCTScrollView
+              collapsable={false}
               data={
                 [
                   "eip155:0:0x2",
@@ -199,6 +200,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
               getItemCount={[Function]}
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               onLayout={[Function]}
               onMomentumScrollBegin={[Function]}
               onMomentumScrollEnd={[Function]}
@@ -207,6 +210,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               onScrollEndDrag={[Function]}
               removeClippedSubviews={false}
               renderItem={[Function]}
+              renderScrollComponent={[Function]}
               scrollEnabled={false}
               scrollEventThrottle={0.0001}
               stickyHeaderIndices={[]}
@@ -1347,11 +1351,14 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             }
           >
             <RCTScrollView
+              collapsable={false}
               data={[]}
               getItem={[Function]}
               getItemCount={[Function]}
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               onLayout={[Function]}
               onMomentumScrollBegin={[Function]}
               onMomentumScrollEnd={[Function]}
@@ -1360,6 +1367,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               onScrollEndDrag={[Function]}
               removeClippedSubviews={false}
               renderItem={[Function]}
+              renderScrollComponent={[Function]}
               scrollEnabled={false}
               scrollEventThrottle={0.0001}
               stickyHeaderIndices={[]}
