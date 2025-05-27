@@ -15,7 +15,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           "backgroundColor": "#f3f5f9",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
-          "height": 400,
+          "height": 325,
           "justifyContent": "flex-start",
           "paddingTop": 16,
         },
