@@ -113,7 +113,7 @@ describe('OtpCode Component', () => {
     await waitFor(() => {
       expect(mockUseDepositSdkMethodValues.sdkMethod).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.ID_VERIFY,
+        Routes.DEPOSIT.VERIFY_IDENTITY,
         undefined,
       );
     });
