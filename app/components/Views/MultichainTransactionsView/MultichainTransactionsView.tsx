@@ -74,7 +74,7 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item }: { item: Transaction }) => {
+  const renderTransactionItem = ({ item, index }: { item: Transaction, index: number }) => {
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
@@ -84,6 +84,7 @@ const MultichainTransactionsView = () => {
         bridgeHistoryItem={bridgeHistoryItem}
         selectedAddress={selectedAddress || ''}
         navigation={navigation}
+        index={index}
       />
     );
   };

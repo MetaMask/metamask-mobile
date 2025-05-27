@@ -505,7 +505,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "paddingVertical": 0,
                                       }
                                     }
-                                    testID="input"
                                     value=""
                                   />
                                 </View>
@@ -590,7 +589,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "paddingVertical": 0,
                                       }
                                     }
-                                    testID="input"
                                     value=""
                                   />
                                 </View>
