@@ -13,9 +13,10 @@ interface AccountDetailsProps {
 export const AccountDetails = (props: AccountDetailsProps) => {
   const { account } = props.route.params;
 
-  const renderAccountDetails = useMemo(() => {
-    return <BaseAccountDetails account={account} />;
-  }, [account]);
+  const renderAccountDetails = useMemo(
+    () => <BaseAccountDetails account={account} />,
+    [account],
+  );
 
   return renderAccountDetails;
 };
