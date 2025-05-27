@@ -1,12 +1,12 @@
+import {
+  initialState as initialStateBase,
+  ethToken2Address,
+} from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setDestToken } from '../../../../../core/redux/slices/bridge';
-import {
-  initialState as initialStateBase,
-  ethToken2Address,
-} from '../../_mocks_/initialState';
 import { cloneDeep } from 'lodash';
 import { useRoute } from '@react-navigation/native';
 

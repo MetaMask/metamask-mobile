@@ -1,7 +1,7 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useMultichainBlockExplorerTxUrl } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { initialState } from '../../_mocks_/initialState';
 import { ChainId } from '@metamask/bridge-controller';
 
 describe('useMultichainBlockExplorerTxUrl', () => {

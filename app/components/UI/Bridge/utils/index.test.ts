@@ -1,3 +1,4 @@
+import '../_mocks_/initialState';
 import { isBridgeAllowed } from './index';
 import AppConstants from '../../../../core/AppConstants';
 import {

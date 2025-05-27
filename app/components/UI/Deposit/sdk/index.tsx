@@ -18,6 +18,8 @@ export interface DepositSDK {
   sdkError?: Error;
   providerApiKey: string | null;
   providerFrontendAuth: string | null;
+  email: string;
+  setEmail: (email: string) => void;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -50,14 +52,18 @@ export const DepositSDKProvider = ({
     }
   }, [providerApiKey, providerFrontendAuth]);
 
+  const [email, setEmail] = useState<string>('');
+
   const contextValue = useMemo(
     (): DepositSDK => ({
       sdk,
       sdkError,
       providerApiKey,
       providerFrontendAuth,
+      email,
+      setEmail,
     }),
-    [sdk, sdkError, providerApiKey, providerFrontendAuth],
+    [sdk, sdkError, providerApiKey, providerFrontendAuth, email],
   );
 
   return (

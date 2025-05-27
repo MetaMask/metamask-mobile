@@ -1,5 +1,16 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { getTransactionTypeValue } from './utils';
+import { getTransactionTypeValue, generateRPCProperties } from './utils';
+import { getNetworkRpcUrl, extractRpcDomain, RpcDomainStatus } from '../../../../util/rpc-domain-utils';
+
+jest.mock('../../../../util/rpc-domain-utils', () => ({
+  getNetworkRpcUrl: jest.fn(),
+  extractRpcDomain: jest.fn(),
+  RpcDomainStatus: {
+    Invalid: 'invalid',
+    Private: 'private',
+    Unknown: 'unknown',
+  },
+}));
 
 describe('getTransactionTypeValue', () => {
   it('should return correct string value for snake case conversion cases', () => {
@@ -91,5 +102,38 @@ describe('getTransactionTypeValue', () => {
     expect(getTransactionTypeValue('nonexistentType' as TransactionType)).toBe(
       'unknown',
     );
+  });
+});
+
+describe('generateRPCProperties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns the correct shape for a known domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue('example.com');
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('https://example.com');
+    expect(generateRPCProperties('0x1')).toEqual({
+      properties: { rpc_domain: 'example.com' },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for an invalid domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue(RpcDomainStatus.Invalid);
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('invalid-url');
+    expect(generateRPCProperties('0x2')).toEqual({
+      properties: { rpc_domain: RpcDomainStatus.Invalid },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for a private domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue(RpcDomainStatus.Private);
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('http://localhost:8545');
+    expect(generateRPCProperties('0x3')).toEqual({
+      properties: { rpc_domain: RpcDomainStatus.Private },
+      sensitiveProperties: {},
+    });
   });
 });

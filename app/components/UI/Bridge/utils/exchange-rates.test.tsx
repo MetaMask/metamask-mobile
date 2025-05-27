@@ -1,3 +1,4 @@
+import '../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
