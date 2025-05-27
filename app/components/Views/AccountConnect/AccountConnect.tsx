@@ -240,11 +240,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname, promptToCreateSolanaAccount } = hostInfo.metadata as {
+  const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
     promptToCreateSolanaAccount?: boolean;
   };
+
+  // TODO: use this value to show Solana Opt In Flow
+  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
