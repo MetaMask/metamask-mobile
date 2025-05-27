@@ -4002,6 +4002,8 @@
   },
   "bridge": {
     "continue": "Continue",
+    "confirm_bridge": "Confirm Bridge",
+    "confirm_swap": "Confirm Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
