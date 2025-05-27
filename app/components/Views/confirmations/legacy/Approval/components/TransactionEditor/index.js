@@ -42,7 +42,7 @@ import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
@@ -561,12 +561,13 @@ class TransactionEditor extends PureComponent {
   validateTotal = (totalGas) => {
     let error = '';
     const {
+      chainId,
       ticker,
       transaction: { value, from, assetType },
     } = this.props;
 
     const checksummedFrom = safeToChecksumAddress(from) || '';
-    const fromAccount = this.props.accounts[checksummedFrom];
+    const fromAccount = this.props.accounts[chainId]?.[checksummedFrom] ?? {};
     const { balance } = fromAccount;
     const weiBalance = hexToBN(balance);
     const totalGasValue = hexToBN(totalGas);
@@ -968,7 +969,7 @@ const mapStateToProps = (state) => {
   const chainId = transaction?.chainId;
 
   return {
-    accounts: selectAccounts(state),
+    accounts: selectAccountsByChainId(state),
     contractBalances: selectContractBalances(state),
     networkType: selectProviderTypeByChainId(state, chainId),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
