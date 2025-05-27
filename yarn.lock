@@ -5553,6 +5553,14 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
+"@metamask/post-message-stream@^10.0.0":
+  version "10.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/post-message-stream/-/post-message-stream-10.0.0.tgz#ee0ea11092931df3b9f79a33c083340168f5706b"
+  integrity sha512-nFepq24aGQw81hkSgCIEBYFpNocnLZpIArCEICdT74pLTMXLgm4G8aHSszF+sOOvnMKW8zV56og9ImZSondIjA==
+  dependencies:
+    "@metamask/utils" "^11.4.0"
+    readable-stream "3.6.2"
+
 "@metamask/post-message-stream@^9.0.0":
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-9.0.0.tgz#1b1249eb7d378cc1eda8abe6b2f882f6dd923c46"
@@ -5619,6 +5627,23 @@
   version "22.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-22.0.1.tgz#eedb84ac13dd771d5d86e7a89968e3280f655be6"
   integrity sha512-RWB32NLL2DIgUII17UY7R3n2eU5fTrXXA0Z137VIO7pQeLcL9xiVqfqhtCDKfMW9K7Pw68U4Qme4lhLrhJcZBQ==
+  dependencies:
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/json-rpc-middleware-stream" "^8.0.6"
+    "@metamask/object-multiplex" "^2.0.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/safe-event-emitter" "^3.1.1"
+    "@metamask/utils" "^11.0.1"
+    detect-browser "^5.2.0"
+    extension-port-stream "^4.1.0"
+    fast-deep-equal "^3.1.3"
+    is-stream "^2.0.0"
+    readable-stream "^3.6.2"
+
+"@metamask/providers@^22.1.0":
+  version "22.1.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/providers/-/providers-22.1.0.tgz#13efe37debcdf4d2b3ef68daddbc35794453118a"
+  integrity sha512-lu639mkH78GLSLVUGW+XI6viHI5NAOwoJe+B9OmQm/rVmLuvy2ZSQVrsrT3n00Pt1WLeq1J6Ee/gML3RxVc4Aw==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.6"
@@ -5754,25 +5779,25 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^11.2.3":
-  version "11.2.3"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.2.3.tgz#b5ddcc2d8cec092b0a0cc3098c5b02a6950b0c7d"
-  integrity sha512-zNLA3JdRkcpiCRivo7qiwNpv79WSTYtVR29wy3Rp0oCs7WwsxRvicl8IlMp+AjWjfQ7jUXiSiMo0nwzvrgloFw==
+"@metamask/snaps-controllers@^12.0.1":
+  version "12.2.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-controllers/-/snaps-controllers-12.2.0.tgz#aabc81ff76bde3608509413c73b1574b13aef091"
+  integrity sha512-Vl20a5lvgeLAnT+p7CUrXhazObm8Td18TH0ppKgARiIeixR+RttxWovwmV5aQmqPf9Q4enyuhKzWmRtX2qKrDA==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
-    "@metamask/base-controller" "^8.0.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.7"
     "@metamask/key-tree" "^10.1.1"
     "@metamask/object-multiplex" "^2.1.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/phishing-controller" "^12.5.0"
-    "@metamask/post-message-stream" "^9.0.0"
+    "@metamask/post-message-stream" "^10.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-registry" "^3.2.3"
-    "@metamask/snaps-rpc-methods" "^12.1.0"
-    "@metamask/snaps-sdk" "^6.22.1"
-    "@metamask/snaps-utils" "^9.2.1"
+    "@metamask/snaps-rpc-methods" "^12.3.0"
+    "@metamask/snaps-sdk" "^6.24.0"
+    "@metamask/snaps-utils" "^9.3.0"
     "@metamask/utils" "^11.4.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
@@ -5788,21 +5813,20 @@
     semver "^7.5.4"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-execution-environments@^7.2.2":
-  version "7.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-7.2.2.tgz#872747ccbcb5bc79c395b434fe088e0daeca343a"
-  integrity sha512-AmyaHhOijmchcx29o1v9q5SpKLQPtJU+lEKwgGv0CzZscvE/UZATea32LtnAAJJumSvKRNioKWAF65ikeXG8yg==
+"@metamask/snaps-execution-environments@^8.0.1":
+  version "8.1.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-execution-environments/-/snaps-execution-environments-8.1.0.tgz#0410a220025e77170358b2d64925ef3240f53ab7"
+  integrity sha512-mzzZ//uNO4P/A2b7YDhXNnIvlQZXWO3hgbaTlKHrNldPpB3zgjrfFJnZBo7CCu2tE6cX4jd7F1vA63qRivq1ew==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/object-multiplex" "^2.1.0"
-    "@metamask/post-message-stream" "^9.0.0"
-    "@metamask/providers" "^22.0.1"
+    "@metamask/post-message-stream" "^10.0.0"
+    "@metamask/providers" "^22.1.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-sdk" "^6.22.1"
-    "@metamask/snaps-utils" "^9.2.1"
+    "@metamask/snaps-sdk" "^6.24.0"
+    "@metamask/snaps-utils" "^9.3.0"
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
-    nanoid "^3.3.10"
     readable-stream "^3.6.2"
 
 "@metamask/snaps-registry@^3.2.3":
@@ -5815,18 +5839,18 @@
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
 
-"@metamask/snaps-rpc-methods@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-12.1.0.tgz#ccaceb6c278a9ee30e094e830bc8cd945e12d712"
-  integrity sha512-cTjYwTQjXRWQgo9eji6cXrmkLYFHSLyUrw/s+VEjfWhyaiNEq8Os3Pm7sHF2JwpAN/Zg8W+UzyK9XxSoynLVDg==
+"@metamask/snaps-rpc-methods@^12.2.0", "@metamask/snaps-rpc-methods@^12.3.0":
+  version "12.3.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-12.3.0.tgz#fc3e4de536befe338edf6c44e00174df5956e9dd"
+  integrity sha512-qiWkeYudM0U9tBbuxDItAChTx0PFbKHiFIR5iWwzuRfbwuQo2ITgdZBZTiRrESlFbGpGkpTDfOPt+Bv79mdazA==
   dependencies:
     "@metamask/key-tree" "^10.1.1"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-sdk" "^6.22.0"
-    "@metamask/snaps-utils" "^9.2.0"
+    "@metamask/snaps-sdk" "^6.24.0"
+    "@metamask/snaps-utils" "^9.3.0"
     "@metamask/superstruct" "^3.2.1"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.0"
     "@noble/hashes" "^1.7.1"
     luxon "^3.5.0"
 
@@ -5841,7 +5865,18 @@
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
 
-"@metamask/snaps-utils@^9.2.0", "@metamask/snaps-utils@^9.2.1":
+"@metamask/snaps-sdk@^6.23.0", "@metamask/snaps-sdk@^6.24.0":
+  version "6.24.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-sdk/-/snaps-sdk-6.24.0.tgz#952b99463fa99d97e23f909ab535f408c75bc9a1"
+  integrity sha512-1MjfKt8fsKfNLs69xWD9XNtCFstth4mGvzkfXZdm37yZn8Hu4PHE56AFvTvTlYua3zRTuEHXn1PALDGnLs6jPw==
+  dependencies:
+    "@metamask/key-tree" "^10.1.1"
+    "@metamask/providers" "^22.1.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/superstruct" "^3.2.1"
+    "@metamask/utils" "^11.4.0"
+
+"@metamask/snaps-utils@^9.2.0":
   version "9.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-9.2.1.tgz#3c5bff8a7b5c486227133d0176929beb893d98b2"
   integrity sha512-Nt901AUu7KU5o/bo2giCvvrcflzWWXIc3xMoRE66ZKVlOYB/4DicTqcnSqK15VCeFgqYVrIRpfnNcEmfmA0uUA==
@@ -5855,6 +5890,36 @@
     "@metamask/slip44" "^4.1.0"
     "@metamask/snaps-registry" "^3.2.3"
     "@metamask/snaps-sdk" "^6.22.1"
+    "@metamask/superstruct" "^3.2.1"
+    "@metamask/utils" "^11.4.0"
+    "@noble/hashes" "^1.7.1"
+    "@scure/base" "^1.1.1"
+    chalk "^4.1.2"
+    cron-parser "^4.5.0"
+    fast-deep-equal "^3.1.3"
+    fast-json-stable-stringify "^2.1.0"
+    fast-xml-parser "^4.4.1"
+    luxon "^3.5.0"
+    marked "^12.0.1"
+    rfdc "^1.3.0"
+    semver "^7.5.4"
+    ses "^1.12.0"
+    validate-npm-package-name "^5.0.0"
+
+"@metamask/snaps-utils@^9.2.2", "@metamask/snaps-utils@^9.3.0":
+  version "9.3.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-utils/-/snaps-utils-9.3.0.tgz#e0802f42288aa1559a50b9fe38595537ace693bc"
+  integrity sha512-lIKb9lhz6PMj1D/AVpdozToGGXz5EmnOA0mJ19mpJYkwUIn77Vh/AMWILqlYqRK2lfvy7QTegOBgawQVne9zsQ==
+  dependencies:
+    "@babel/core" "^7.23.2"
+    "@babel/types" "^7.23.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/key-tree" "^10.1.1"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/slip44" "^4.1.0"
+    "@metamask/snaps-registry" "^3.2.3"
+    "@metamask/snaps-sdk" "^6.24.0"
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
     "@noble/hashes" "^1.7.1"
