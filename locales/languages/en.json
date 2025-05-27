@@ -4193,6 +4193,7 @@
     "bridge_to": "Bridge to",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
+    "submitting_transaction_hardware_wallet": "Confirm on hardware wallet",
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
