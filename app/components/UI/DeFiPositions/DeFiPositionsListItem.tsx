@@ -22,20 +22,24 @@ import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
+  protocolId: string;
   protocolAggregate: GroupedDeFiPositions['protocols'][number];
   privacyMode: boolean;
 }
 
 const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   chainId,
+  protocolId,
   protocolAggregate,
   privacyMode,
 }: DeFiPositionsListItemProps) => {
   const { styles } = useStyles(styleSheet, undefined);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
   const networkIconAvatar = useMemo(
@@ -106,6 +110,15 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   return (
     <TouchableOpacity
       onPress={() => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED)
+            .addProperties({
+              chain_id: chainId,
+              protocol_id: protocolId,
+            })
+            .build(),
+        );
+
         navigation.navigate('DeFiProtocolPositionDetails', {
           protocolAggregate,
           networkIconAvatar,

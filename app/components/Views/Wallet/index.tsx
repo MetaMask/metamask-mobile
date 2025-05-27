@@ -670,6 +670,10 @@ const Wallet = ({
     async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
+        );
       } else {
         // Return early if no address selected
         if (!selectedAddress) return;
