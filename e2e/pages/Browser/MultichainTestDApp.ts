@@ -82,13 +82,15 @@ class MultichainTestDApp {
 
   /**
    * Navigate to the multichain test dapp
+   * @param urlParams - Optional URL parameters to append (e.g., '?autoMode=true')
    */
-  async navigateToMultichainTestDApp(): Promise<void> {
+  async navigateToMultichainTestDApp(urlParams = ''): Promise<void> {
     // Using Browser methods to navigate
     await Browser.tapUrlInputBox();
 
     // Use either online or local URL based on the flag
-    const dappUrl = USE_ONLINE_DAPP ? MULTICHAIN_TEST_DAPP_ONLINE_URL : MULTICHAIN_TEST_DAPP_LOCAL_URL;
+    const baseUrl = USE_ONLINE_DAPP ? MULTICHAIN_TEST_DAPP_ONLINE_URL : MULTICHAIN_TEST_DAPP_LOCAL_URL;
+    const dappUrl = `${baseUrl}${urlParams}`;
     await Browser.navigateToURL(dappUrl);
 
     // Wait for WebView to be visible using native Detox waitFor

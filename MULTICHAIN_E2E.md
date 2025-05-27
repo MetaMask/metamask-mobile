@@ -180,17 +180,8 @@ MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMetho
 # Read operations - eth_gasPrice test
 MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should successfully call eth_gasPrice method and return gas price"
 
-# Write operations - eth_sendTransaction test
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should successfully initiate eth_sendTransaction and show confirmation dialog"
-
-# Multiple networks test
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should handle multiple method invocations across different networks"
-
-# Error handling - no session test
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should handle invoke method when no session exists"
-
-# Error handling - post revoke test
-MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should handle invoke method after session revoke"
+# Multiple method calls test
+MULTICHAIN=1 yarn test:e2e:ios:debug:run e2e/specs/multichain/wallet-invokeMethod.spec.ts --testNamePattern="should handle multiple method calls in sequence"
 ```
 
 ### Quick Test Commands (Short Patterns)
@@ -232,6 +223,77 @@ To revert to the local version:
    - `session-method-details-0` for expandable session details
    - `invoke-method-${scope}-${method}-result-0` for invoke method results
 5. Network checkboxes use IDs like `network-checkbox-eip155-1` for Ethereum mainnet
+
+## WebView Selector Challenges and Solutions
+
+### The CSS Selector Issue with Colons
+
+**Problem**: CAIP identifiers like `eip155:1` contain colons, which are special characters in CSS selectors. When using these as HTML IDs, they cause selector failures.
+
+**Example of the Issue**:
+```javascript
+// This fails because CSS treats the colon as a pseudo-selector
+const element = by.web.id('eip155:1'); // ❌ Fails
+const element = by.web.cssSelector('#eip155:1'); // ❌ Also fails
+```
+
+**Solution Implemented**: The test dapp now includes an `escapeHtmlId` helper function that converts colons to hyphens for HTML IDs:
+
+```javascript
+// In the test dapp
+const escapeHtmlId = (id) => id.replace(/:/g, '-');
+
+// Usage in HTML
+<button id={`network-checkbox-${escapeHtmlId('eip155:1')}`}>
+// Results in: id="network-checkbox-eip155-1"
+```
+
+**Test Implementation**:
+```javascript
+// In mobile tests, we escape the scope for selectors
+const chainId = '1';
+const scope = `eip155:${chainId}`;
+const escapedScope = scope.replace(/:/g, '-');
+const selector = `network-checkbox-${escapedScope}`;
+```
+
+### WebView JavaScript Execution Limitations
+
+**Problem**: JavaScript queries using `runScript` or `executeScript` fail in WebView environments, returning `undefined` instead of actual values.
+
+**Failed Approach**:
+```javascript
+// This doesn't work in mobile WebView
+const result = await webview.runScript(`
+  document.getElementById('session-result').textContent
+`); // Returns undefined
+```
+
+**Solution: Native Detox Selectors**:
+```javascript
+// This works reliably
+const webview = MultichainTestDApp.getWebView();
+const element = webview.element(by.web.id('session-result'));
+await Assertions.checkIfVisible(Promise.resolve(element));
+```
+
+**Key Insights**:
+- ✅ **Native selectors work**: `by.web.id()`, `by.web.cssSelector()`
+- ✅ **Element presence verification**: Can check if elements exist
+- ❌ **Content reading fails**: Cannot read text content via JavaScript
+- ✅ **Button clicking works**: Can interact with elements reliably
+
+### Auto-Mode for E2E Testing
+
+**Implementation**: The test dapp supports an `?autoMode=true` URL parameter that:
+- Enables direct method buttons for each available RPC method
+- Provides `data-testid` attributes for reliable element targeting
+- Simplifies the UI for automated testing scenarios
+
+**Usage**:
+```javascript
+await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
+```
 
 ## Troubleshooting
 
