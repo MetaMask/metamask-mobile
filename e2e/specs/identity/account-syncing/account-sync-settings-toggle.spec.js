@@ -23,6 +23,7 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 
 describe(
   SmokeWalletPlatform(
@@ -117,6 +118,7 @@ describe(
 
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
+      await NetworkEducationModal.tapGotItButton();
 
       await Assertions.checkIfElementToHaveText(
         WalletView.accountName,
