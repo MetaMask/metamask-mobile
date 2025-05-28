@@ -109,38 +109,13 @@ const AccountActions = () => {
     | undefined = useMemo(() => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
-        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-          const explorer = findBlockExplorerForRpc(
-            providerConfig.rpcUrl,
-            networkConfigurations,
-          );
-
-          if (!explorer) {
-            return undefined;
-          }
-
-          return {
-            url: `${explorer}/address/${selectedAccount.address}`,
-            title: new URL(explorer).hostname,
-            blockExplorerName:
-              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-          };
-        }
-
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAccount.address,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
         return {
-          url,
-          title: etherscan_url,
-          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
+          title: 'Etherscan',
+          blockExplorerName: 'Etherscan',
         };
       }
+      
       const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       if (explorer) {
         return {
