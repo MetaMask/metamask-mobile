@@ -463,18 +463,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
@@ -497,14 +495,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
-          networkSupporting7702Present && (
-            <AccountAction
-              actionTitle={strings('account_actions.switch_to_smart_account')}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwitchAccountType}
-            />
-          )}
+        {networkSupporting7702Present && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}
