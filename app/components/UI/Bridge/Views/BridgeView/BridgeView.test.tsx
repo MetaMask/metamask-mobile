@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,12 +9,13 @@ import {
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
-import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { strings } from '../../../../../../locales/i18n';
+import { isHardwareAccount } from '../../../../../util/address';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -69,6 +71,9 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         isSelected: true,
       },
     ],
+    ensByAccountAddress: {
+      '0x1234567890123456789012345678901234567890': '',
+    },
   }),
 }));
 
@@ -121,6 +126,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn().mockReturnValue(false),
+  formatAddress: jest.fn().mockImplementation((address) => address),
+  getLabelTextByAddress: jest.fn().mockReturnValue(''),
 }));
 
 describe('BridgeView', () => {
@@ -462,11 +473,11 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Continue')).toBeTruthy();
+      expect(getByText('Confirm Bridge')).toBeTruthy();
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
-    it('should handle Continue button press', async () => {
+    it('should handle "Confirm Bridge" button press', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -491,8 +502,8 @@ describe('BridgeView', () => {
         },
       );
 
-      const continueButton = getByText('Continue');
-      fireEvent.press(continueButton);
+      const button = getByText('Confirm Bridge');
+      fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
@@ -630,6 +641,47 @@ describe('BridgeView', () => {
 
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
+      // Mock isHardwareAccount to return true for this test only
+      const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
+      jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the banner text to appear
+      await waitFor(() => {
+        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+      });
+    });
   });
 
   describe('Error Banner Visibility', () => {
@@ -728,3 +780,4 @@ describe('BridgeView', () => {
     });
   });
 });
+
