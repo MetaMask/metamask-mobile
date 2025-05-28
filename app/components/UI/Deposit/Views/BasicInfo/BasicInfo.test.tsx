@@ -46,7 +46,7 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('EnterAddress Component', () => {
+describe('BasicInfo Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
