@@ -371,8 +371,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'etherscan.io',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
@@ -414,8 +414,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://custom-explorer.com/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'custom-explorer.com',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
