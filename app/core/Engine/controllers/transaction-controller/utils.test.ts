@@ -5,25 +5,32 @@ import {
 } from '@metamask/transaction-controller';
 
 import { EIP5792ErrorCode } from '../../../../constants/transaction';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { RootState } from '../../../../reducers';
 import {
   batchApprovalConfirmation,
   upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
 } from '../../../../util/test/confirm-data-helpers';
-import type { RootState } from '../../../../reducers';
-import { MetaMetricsEvents } from '../../../Analytics';
 import {
-  generateDefaultTransactionMetrics,
-  getTransactionTypeValue,
-} from './utils';
+  getNetworkRpcUrl,
+  extractRpcDomain,
+  RpcDomainStatus,
+} from '../../../../util/rpc-domain-utils';
 import { TransactionEventHandlerRequest } from './types';
+import {
+  getTransactionTypeValue,
+  generateRPCProperties,
+  generateDefaultTransactionMetrics,
+} from './utils';
 
-jest.mock('../../Engine', () => ({
-  resetState: jest.fn(),
-  context: {
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-    },
+jest.mock('../../../../util/rpc-domain-utils', () => ({
+  getNetworkRpcUrl: jest.fn(),
+  extractRpcDomain: jest.fn(),
+  RpcDomainStatus: {
+    Invalid: 'invalid',
+    Private: 'private',
+    Unknown: 'unknown',
   },
 }));
 
@@ -120,6 +127,39 @@ describe('getTransactionTypeValue', () => {
   });
 });
 
+describe('generateRPCProperties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns the correct shape for a known domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue('example.com');
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('https://example.com');
+    expect(generateRPCProperties('0x1')).toEqual({
+      properties: { rpc_domain: 'example.com' },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for an invalid domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue(RpcDomainStatus.Invalid);
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('invalid-url');
+    expect(generateRPCProperties('0x2')).toEqual({
+      properties: { rpc_domain: RpcDomainStatus.Invalid },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('returns the correct shape for a private domain', () => {
+    (extractRpcDomain as jest.Mock).mockReturnValue(RpcDomainStatus.Private);
+    (getNetworkRpcUrl as jest.Mock).mockReturnValue('http://localhost:8545');
+    expect(generateRPCProperties('0x3')).toEqual({
+      properties: { rpc_domain: RpcDomainStatus.Private },
+      sensitiveProperties: {},
+    });
+  });
+});
+
 describe('generateDefaultTransactionMetrics', () => {
   it('generate correct properties for batched confirmation', async () => {
     const metrics = await generateDefaultTransactionMetrics(
@@ -157,7 +197,7 @@ describe('generateDefaultTransactionMetrics', () => {
         getState: () =>
           ({
             confirmationMetrics: {
-              metricsById: { [upgradeAccountConfirmation.id]: {} },
+              metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
             },
           } as RootState),
       } as TransactionEventHandlerRequest,
@@ -186,7 +226,7 @@ describe('generateDefaultTransactionMetrics', () => {
         getState: () =>
           ({
             confirmationMetrics: {
-              metricsById: { [upgradeAccountConfirmation.id]: {} },
+              metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
             },
           } as RootState),
       } as TransactionEventHandlerRequest,
@@ -210,7 +250,7 @@ describe('generateDefaultTransactionMetrics', () => {
         getState: () =>
           ({
             confirmationMetrics: {
-              metricsById: { [upgradeAccountConfirmation.id]: {} },
+              metricsById: { [batchApprovalConfirmation.id]: {} },
             },
           } as RootState),
       } as TransactionEventHandlerRequest,

@@ -19,6 +19,10 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import {
+  getNetworkRpcUrl,
+  extractRpcDomain,
+} from '../../../../util/rpc-domain-utils';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -156,9 +160,9 @@ async function getBatchProperties(transactionMeta: TransactionMeta) {
 export async function generateDefaultTransactionMetrics(
   metametricsEvent: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
-  { getState }: TransactionEventHandlerRequest,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, id, type, status } = transactionMeta;
+  const { chainId, status, type, id } = transactionMeta;
 
   const batchProperties = await getBatchProperties(transactionMeta);
 
@@ -166,14 +170,24 @@ export async function generateDefaultTransactionMetrics(
     {
       metametricsEvent,
       properties: {
-        chain_id: chainId,
-        transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
-        status,
         ...batchProperties,
+        chain_id: chainId,
+        status,
+        source: 'MetaMask Mobile',
+        transaction_type: getTransactionTypeValue(type),
+        transaction_envelope_type: transactionMeta.txParams.type,
+        transaction_internal_id: id,
+      },
+      sensitiveProperties: {
+        value: transactionMeta.txParams.value,
+        to_address: transactionMeta.txParams.to,
+        from_address: transactionMeta.txParams.from,
       },
     },
-    getConfirmationMetricProperties(getState, id),
+    getConfirmationMetricProperties(
+      transactionEventHandlerRequest.getState,
+      id,
+    ),
   );
 
   return mergedDefaultProperties;
@@ -192,4 +206,14 @@ export function generateEvent({
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();
+}
+
+export function generateRPCProperties(chainId: string) {
+  const rpcUrl = getNetworkRpcUrl(chainId);
+  const rpcDomain = extractRpcDomain(rpcUrl);
+  const rpcMetrics = {
+    properties: rpcDomain ? { rpc_domain: rpcDomain } : {},
+    sensitiveProperties: {},
+  };
+  return rpcMetrics;
 }
