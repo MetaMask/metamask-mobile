@@ -440,27 +440,28 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onDisconnect = () => {
+    const { controllerMessenger, context: {AccountsController, PermissionController} } = Engine;
     this.disconnected = true;
-    Engine.controllerMessenger.tryUnsubscribe(
+    controllerMessenger.tryUnsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.controllerMessenger.tryUnsubscribe(
+    controllerMessenger.tryUnsubscribe(
       'PreferencesController:stateChange',
       this.sendStateUpdate,
     );
 
     if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
-      Engine.controllerMessenger.unsubscribe(
-        `${Engine.context.PermissionController.name}:stateChange`,
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
       );
-      Engine.controllerMessenger.unsubscribe(
-        `${Engine.context.PermissionController.name}:stateChange`,
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
         this.handleSolanaAccountChangedFromScopeChanges,
       );
-      Engine.controllerMessenger.unsubscribe(
-        `${Engine.context.AccountsController.name}:selectedAccountChange`,
+      controllerMessenger.unsubscribe(
+        `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges
       );
     }
@@ -845,12 +846,12 @@ export class BackgroundBridge extends EventEmitter {
    * This handles CAIP-25 authorization changes every time relevant permission state changes, for any reason.
    */
   setupCaipEventSubscriptions() {
-    const { controllerMessenger, context } = Engine;
+    const { controllerMessenger, context: {AccountsController, PermissionController} } = Engine;
 
     // this throws if there is no solana account... perhaps we should handle this better at the controller level
     try {
       this.lastSelectedSolanaAccountAddress =
-      context.AccountsController.getSelectedMultichainAccount(
+      AccountsController.getSelectedMultichainAccount(
           SolScope.Mainnet,
         )?.address;
     } catch {
@@ -859,21 +860,21 @@ export class BackgroundBridge extends EventEmitter {
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
-      `${context.PermissionController.name}:stateChange`,
+      `${PermissionController.name}:stateChange`,
       this.handleCaipSessionScopeChanges,
       getAuthorizedScopes(this.origin),
     );
 
     // wallet_notify for solana accountChanged when permission changes
     controllerMessenger.subscribe(
-      `${context.PermissionController.name}:stateChange`,
+      `${PermissionController.name}:stateChange`,
       this.handleSolanaAccountChangedFromScopeChanges,
       getAuthorizedScopes(this.origin),
     );
 
     // wallet_notify for solana accountChanged when selected account changes
     controllerMessenger.subscribe(
-      `${Engine.context.AccountsController.name}:selectedAccountChange`,
+      `${AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges
     );
   }
