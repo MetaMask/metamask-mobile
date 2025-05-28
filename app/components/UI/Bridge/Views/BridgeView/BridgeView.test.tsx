@@ -132,6 +132,7 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn().mockReturnValue(false),
   formatAddress: jest.fn().mockImplementation((address) => address),
   getLabelTextByAddress: jest.fn().mockReturnValue(''),
+  toFormattedAddress: jest.fn().mockImplementation((address) => address),
 }));
 
 describe('BridgeView', () => {
@@ -679,7 +680,9 @@ describe('BridgeView', () => {
 
       // Wait for the banner text to appear
       await waitFor(() => {
-        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+        expect(
+          getByText(strings('bridge.hardware_wallet_not_supported')),
+        ).toBeTruthy();
       });
     });
   });
@@ -780,4 +783,3 @@ describe('BridgeView', () => {
     });
   });
 });
-
