@@ -805,6 +805,18 @@ const Wallet = ({
     [navigation, wizardStep],
   );
 
+  const throwErrorInsideOfSetTimeout = () => {
+    // Throw error after timeout so that it is captured as a console error
+    // (and by Sentry) without interrupting state-related operations
+    setTimeout(() => {
+      throw new Error('Test error');
+    });
+  };
+
+  useEffect(() => {
+    throwErrorInsideOfSetTimeout();
+  }, []);
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
