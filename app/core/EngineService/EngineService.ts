@@ -17,7 +17,7 @@ import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
-import { InitializeEngineResult } from './types';
+import { VaultBackupResult } from './types';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
@@ -138,7 +138,7 @@ export class EngineService {
         error?: string;
       }
    */
-  async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
+  async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const keyringState = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState ?? {};
