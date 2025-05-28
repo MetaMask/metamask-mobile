@@ -41,7 +41,7 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
   const onUpdateConfirm = useCallback(async () => {
     onUpdate(balanceChange, updatedAmount);
     setModalVisibility(false);
-  }, [onUpdate, setModalVisibility, updatedAmount]);
+  }, [balanceChange, onUpdate, setModalVisibility, updatedAmount]);
 
   const openModal = useCallback(
     () => setModalVisibility(true),

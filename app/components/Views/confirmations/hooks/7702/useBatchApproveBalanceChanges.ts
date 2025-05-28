@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import {
   BatchTransactionParams,
   SimulationTokenBalanceChange,
@@ -44,6 +43,7 @@ export function useBatchApproveBalanceChanges(): {
 
   const { value: simulationBalanceChanges, pending: pendingSimulationChanges } =
     useBatchApproveSimulationBalanceChanges({
+      from: from as Hex,
       nestedTransactions,
     });
 
