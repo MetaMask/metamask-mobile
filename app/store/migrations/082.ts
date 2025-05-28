@@ -3,14 +3,14 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 79: Reset PhishingController phishingLists
+ * Migration 82: Reset PhishingController phishingLists
  *
  * This migration resets only the phishingLists array in the PhishingController state
  * while preserving all other state properties. This allows the app to rebuild the lists
  * while maintaining user preferences and configuration.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 79;
+  const migrationVersion = 82;
 
   if (!ensureValidState(state, migrationVersion)) {
     return state;
@@ -25,7 +25,7 @@ const migration = (state: unknown): unknown => {
     ) {
       captureException(
         new Error(
-          `Migration 079: Invalid engine state structure`,
+          `Migration 082: Invalid engine state structure`,
         ),
       );
       return state;
@@ -37,7 +37,7 @@ const migration = (state: unknown): unknown => {
     ) {
       captureException(
         new Error(
-          `Migration 079: Invalid PhishingController state: '${JSON.stringify(
+          `Migration 082: Invalid PhishingController state: '${JSON.stringify(
             state.engine.backgroundState.PhishingController,
           )}'`,
         ),
@@ -54,7 +54,7 @@ const migration = (state: unknown): unknown => {
   } catch (error) {
     captureException(
       new Error(
-        `Migration 079: cleaning PhishingController state failed with error: ${error}`,
+        `Migration 082: cleaning PhishingController state failed with error: ${error}`,
       ),
     );
     return state;
