@@ -5,6 +5,8 @@ import ModalMandatory from './ModalMandatory';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import { BodyWebViewUri } from './ModalMandatory.types';
 import { Text } from 'react-native';
+import styleSheet from './ModalMandatory.styles';
+import { mockTheme } from '../../../../util/theme';
 
 // Mock the WebView component
 jest.mock('@metamask/react-native-webview', () => ({
@@ -217,5 +219,18 @@ describe('ModalMandatory', () => {
 
     const { getByTestId } = render(<ModalMandatory route={htmlRoute} />);
     expect(getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW)).toBeTruthy();
+  });
+
+  describe('styleSheet', () => {
+    it('creates styles with theme colors', () => {
+      const styles = styleSheet({ theme: mockTheme });
+
+      expect(styles).toBeDefined();
+      expect(styles.screen).toBeDefined();
+      expect(styles.modal).toBeDefined();
+      expect(styles.modal.backgroundColor).toBe(
+        mockTheme.colors.background.default,
+      );
+    });
   });
 });
