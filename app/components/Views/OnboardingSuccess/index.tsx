@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
 import Button, {
   ButtonSize,
@@ -16,16 +10,11 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  getOnboardingNavbarOptions,
-  getTransparentOnboardingNavbarOptions,
-} from '../../UI/Navbar';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
@@ -34,11 +23,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
@@ -62,7 +46,7 @@ const OnboardingSuccess = ({
 
   const dispatch = useDispatch();
 
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useLayoutEffect(() => {

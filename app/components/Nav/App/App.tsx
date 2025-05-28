@@ -157,7 +157,12 @@ const Stack = createStackNavigator();
 const OnboardingSuccessComponent = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { backedUpSRP, noSRP } = route.params as {
+  const params = route.params ?? {
+    backedUpSRP: false,
+    noSRP: false,
+  };
+
+  const { backedUpSRP, noSRP } = params as {
     backedUpSRP: boolean;
     noSRP: boolean;
   };
@@ -167,20 +172,6 @@ const OnboardingSuccessComponent = () => {
       backedUpSRP={backedUpSRP}
       noSRP={noSRP}
       onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
-
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
     />
   );
 };
