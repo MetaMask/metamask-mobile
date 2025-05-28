@@ -12,6 +12,7 @@ interface UseFormReturn<T> {
   validateFormData: () => boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useForm = <T extends Record<string, any>>({
   initialFormData,
   validateForm,

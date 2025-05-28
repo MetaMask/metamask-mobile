@@ -22,10 +22,6 @@ export const createEnterAddressNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_ADDRESS,
 );
 
-export const createBasicInfoNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.BASIC_INFO,
-);
-
 interface FormData {
   firstName: string;
   lastName: string;
