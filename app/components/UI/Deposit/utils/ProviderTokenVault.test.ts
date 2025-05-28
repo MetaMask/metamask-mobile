@@ -192,6 +192,45 @@ describe('ProviderTokenVault', () => {
         error: errorMessage,
       });
     });
+
+    it('should return an error when token has expired', async () => {
+      const expiredToken = {
+        token: mockToken,
+        expiresAt: Date.now() - 1000,
+      };
+
+      (getInternetCredentials as jest.Mock).mockResolvedValue({
+        username: PROVIDER_TOKEN_KEY,
+        password: JSON.stringify(expiredToken),
+      });
+
+      const result = await getProviderToken();
+
+      expect(resetInternetCredentials).toHaveBeenCalledWith(PROVIDER_TOKEN_KEY);
+      expect(result).toEqual({
+        success: false,
+        error: 'Token has expired',
+      });
+    });
+
+    it('should return token when it has not expired', async () => {
+      const validToken = {
+        token: mockToken,
+        expiresAt: Date.now() + 1000,
+      };
+
+      (getInternetCredentials as jest.Mock).mockResolvedValue({
+        username: PROVIDER_TOKEN_KEY,
+        password: JSON.stringify(validToken),
+      });
+
+      const result = await getProviderToken();
+
+      expect(result).toEqual({
+        success: true,
+        token: mockToken,
+      });
+    });
   });
 
   describe('resetProviderToken', () => {
