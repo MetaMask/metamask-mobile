@@ -26,9 +26,19 @@ interface SetLivenessAction {
   payload: SetLivenessPayload;
 }
 
-interface SetHasOnboardedAction {
-  type: typeof SWAPS_SET_HAS_ONBOARDED;
-  payload: boolean;
+// Define a more flexible type for the swaps state that allows dynamic chain IDs
+interface SwapsState {
+  isLive: boolean;
+  hasOnboarded: boolean;
+  featureFlags?: {
+    smart_transactions?: unknown;
+    smartTransactions?: unknown;
+  };
+  '0x1': {
+    isLive: boolean;
+    featureFlags?: unknown;
+  };
+  [chainId: string]: unknown;
 }
 
 jest.mock('../../selectors/tokensController');
@@ -119,7 +129,8 @@ describe('swaps reducer', () => {
         },
       };
       // Note: Using 'as any' because the reducer is JavaScript without proper types
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(true);
     });
     it('should set isLive to false for iOS when flag is false', () => {
@@ -151,7 +162,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(false);
     });
     it('should set isLive to true for Android when flag is true', () => {
@@ -183,7 +195,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(true);
     });
     it('should set isLive to false for Android when flag is false', () => {
@@ -215,7 +228,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(false);
     });
 
@@ -228,7 +242,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState['0x1'].isLive).toBe(false);
       expect(liveState['0x1'].featureFlags).toBeUndefined();
       expect(liveState.featureFlags).toBeUndefined();
@@ -243,7 +258,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
       expect(liveState.featureFlags).toEqual({
         smart_transactions: DEFAULT_FEATURE_FLAGS.smart_transactions,
         smartTransactions: DEFAULT_FEATURE_FLAGS.smartTransactions,
@@ -259,17 +275,18 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
-      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
+
       // Should set flags for ethereum (0x1)
       expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
       // Should set flags for bsc (0x38)
-      expect((liveState as any)['0x38'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
+      expect((liveState['0x38'] as { featureFlags?: unknown }).featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
     });
 
     it('should handle testnet chain IDs in dev mode', () => {
-      const originalDev = (global as any).__DEV__;
-      (global as any).__DEV__ = true;
+      const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+      (global as { __DEV__?: boolean }).__DEV__ = true;
 
       const initalState = reducer(undefined, emptyAction);
       const action: SetLivenessAction = {
@@ -279,14 +296,15 @@ describe('swaps reducer', () => {
           chainId: '0xaa36a7', // Sepolia testnet
         },
       };
-      const liveState = reducer(initalState as any, action);
-      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
+
       // Should use mainnet feature flags for testnet
       expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
       // Should also set the testnet chain with mainnet flags
-      expect((liveState as any)['0xaa36a7'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
+      expect((liveState['0xaa36a7'] as { featureFlags?: unknown }).featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
 
-      (global as any).__DEV__ = originalDev;
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
     });
 
     it('should preserve existing state when updating feature flags', () => {
@@ -306,11 +324,12 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const newState = reducer(existingState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newState = reducer(existingState as any, action) as SwapsState;
 
       // Should update feature flags but preserve other properties
       expect(newState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
-      expect((newState['0x1'] as any).someOtherProperty).toBe('value');
+      expect((newState['0x1'] as { someOtherProperty?: string }).someOtherProperty).toBe('value');
     });
 
     it('should skip chains without valid chain IDs in name mapping', () => {
@@ -329,19 +348,20 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
 
       // Should process valid chains
       expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
       // Should not create entry for invalid chain
-      expect((liveState as any).invalidChain).toBeUndefined();
+      expect((liveState as Record<string, unknown>).invalidChain).toBeUndefined();
     });
 
     it('should skip non-object feature flag values', () => {
       const featureFlagsWithNonObject = {
         ...DEFAULT_FEATURE_FLAGS,
         ethereum: 'not-an-object', // Invalid value
-      } as any as FeatureFlags;
+      } as unknown as FeatureFlags;
 
       const initalState = reducer(undefined, emptyAction);
       const action: SetLivenessAction = {
@@ -351,7 +371,8 @@ describe('swaps reducer', () => {
           chainId: '0x1',
         },
       };
-      const liveState = reducer(initalState as any, action);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const liveState = reducer(initalState as any, action) as SwapsState;
 
       // Should skip the invalid ethereum entry
       expect(liveState['0x1'].featureFlags).toBeUndefined();
@@ -360,33 +381,33 @@ describe('swaps reducer', () => {
 
   describe('getFeatureFlagChainId', () => {
     it('should return mainnet chain ID for testnets in dev mode', () => {
-      const originalDev = (global as any).__DEV__;
-      (global as any).__DEV__ = true;
+      const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+      (global as { __DEV__?: boolean }).__DEV__ = true;
 
       const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
       expect(result).toBe(NETWORKS_CHAIN_ID.MAINNET);
 
-      (global as any).__DEV__ = originalDev;
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
     });
 
     it('should return original chain ID for non-testnets', () => {
-      const originalDev = (global as any).__DEV__;
-      (global as any).__DEV__ = true;
+      const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+      (global as { __DEV__?: boolean }).__DEV__ = true;
 
       const result = getFeatureFlagChainId('0x38'); // BSC
       expect(result).toBe('0x38');
 
-      (global as any).__DEV__ = originalDev;
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
     });
 
     it('should return original chain ID when not in dev mode', () => {
-      const originalDev = (global as any).__DEV__;
-      (global as any).__DEV__ = false;
+      const originalDev = (global as { __DEV__?: boolean }).__DEV__;
+      (global as { __DEV__?: boolean }).__DEV__ = false;
 
       const result = getFeatureFlagChainId('0xaa36a7'); // Sepolia
       expect(result).toBe('0xaa36a7');
 
-      (global as any).__DEV__ = originalDev;
+      (global as { __DEV__?: boolean }).__DEV__ = originalDev;
     });
   });
 
@@ -448,7 +469,7 @@ describe('swaps reducer', () => {
             },
           },
         },
-      } as any;
+      } as unknown as typeof rootState.swaps;
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
       expect(enabled).toEqual(true);
@@ -501,7 +522,7 @@ describe('swaps reducer', () => {
             },
           },
         },
-      } as any;
+      } as unknown as typeof rootState.swaps;
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
       expect(enabled).toEqual(false);
@@ -742,15 +763,17 @@ describe('swaps reducer', () => {
 
   it('should set has onboarded', () => {
     const initalState = reducer(undefined, emptyAction);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const notOnboardedState = reducer(initalState as any, {
       type: SWAPS_SET_HAS_ONBOARDED,
       payload: false,
-    });
+    }) as SwapsState;
     expect(notOnboardedState.hasOnboarded).toBe(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const liveState = reducer(initalState as any, {
       type: SWAPS_SET_HAS_ONBOARDED,
       payload: true,
-    });
+    }) as SwapsState;
     expect(liveState.hasOnboarded).toBe(true);
   });
 });
