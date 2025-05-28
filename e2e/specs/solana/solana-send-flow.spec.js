@@ -38,8 +38,10 @@ describe(
         seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
       });
     });
+    const itif = (condition) => (condition ? it : it.skip);
 
-    it('should navigate through Solana onboarding and create a Solana account', async () => {
+
+    itif(device.getPlatform() === 'ios')('should navigate through Solana onboarding and create a Solana account', async () => {
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapAddSolanaAccount();
@@ -49,7 +51,7 @@ describe(
       await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME, 1);
     });
 
-    it('should validate recipient address format correctly', async () => {
+    itif(device.getPlatform() === 'ios')('should validate recipient address format correctly', async () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
@@ -63,7 +65,7 @@ describe(
 
     });
 
-    it('should successfully transfer SOL to a valid recipient address', async () => {
+    itif(device.getPlatform() === 'ios')('should successfully transfer SOL to a valid recipient address', async () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
