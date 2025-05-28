@@ -155,7 +155,7 @@ function handleUniversalLink({
     switch (action) {
       case ACTIONS.HOME:
         instance._handleOpenHome();
-        break;
+        return;
       case ACTIONS.SWAP: {
         // TODO: perhaps update this when the new bridging UI is implemented
         // Expecting to only be a navigation change
@@ -163,7 +163,7 @@ function handleUniversalLink({
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
         instance._handleSwap(swapPath);
-        break;
+        return;
       }
       case ACTIONS.BUY:
       case ACTIONS.BUY_CRYPTO: {
@@ -171,10 +171,11 @@ function handleUniversalLink({
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY_CRYPTO}`, '')
           .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY}`, '');
         instance._handleBuyCrypto(rampPath);
-        break;
+        return;
       }
       default:
         instance._handleOpenHome();
+        return;
     }
   } else {
     // Normal links (same as dapp)
