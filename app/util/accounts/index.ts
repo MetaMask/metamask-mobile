@@ -25,9 +25,9 @@ export const getAccountNameWithENS = ({
   ensByAccountAddress: EnsByAccountAddress;
 }) => {
   const account = accounts.find(
-    (account) =>
+    (acc) =>
       isCaipAccountIdInPermittedAccountIds(
-        account.caipAccountId,
+        acc.caipAccountId,
         [caipAccountId]
       )
   );
