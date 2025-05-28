@@ -1,6 +1,28 @@
-import { TransactionType } from '@metamask/transaction-controller';
-import { getTransactionTypeValue, generateRPCProperties } from './utils';
-import { getNetworkRpcUrl, extractRpcDomain, RpcDomainStatus } from '../../../../util/rpc-domain-utils';
+import {
+  TransactionError,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+
+import { EIP5792ErrorCode } from '../../../../constants/transaction';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { RootState } from '../../../../reducers';
+import {
+  batchApprovalConfirmation,
+  upgradeAccountConfirmation,
+  upgradeOnlyAccountConfirmation,
+} from '../../../../util/test/confirm-data-helpers';
+import {
+  getNetworkRpcUrl,
+  extractRpcDomain,
+  RpcDomainStatus,
+} from '../../../../util/rpc-domain-utils';
+import { TransactionEventHandlerRequest } from './types';
+import {
+  getTransactionTypeValue,
+  generateRPCProperties,
+  generateDefaultTransactionMetrics,
+} from './utils';
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
   getNetworkRpcUrl: jest.fn(),
@@ -134,6 +156,127 @@ describe('generateRPCProperties', () => {
     expect(generateRPCProperties('0x3')).toEqual({
       properties: { rpc_domain: RpcDomainStatus.Private },
       sensitiveProperties: {},
+    });
+  });
+});
+
+describe('generateDefaultTransactionMetrics', () => {
+  it('generate correct properties for batched confirmation', async () => {
+    const metrics = await generateDefaultTransactionMetrics(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+      upgradeAccountConfirmation,
+      {
+        getState: () =>
+          ({
+            confirmationMetrics: {
+              metricsById: { [upgradeAccountConfirmation.id]: {} },
+            },
+          } as RootState),
+      } as TransactionEventHandlerRequest,
+    );
+    expect(metrics.properties).toStrictEqual({
+      account_eip7702_upgraded: undefined,
+      api_method: 'wallet_sendCalls',
+      batch_transaction_count: 2,
+      batch_transaction_method: 'eip7702',
+      chain_id: '0xaa36a7',
+      eip7702_upgrade_transaction: true,
+      source: 'MetaMask Mobile',
+      status: 'unapproved',
+      transaction_contract_address: [],
+      transaction_contract_method: [],
+      transaction_envelope_type: '0x4',
+      transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
+      transaction_type: 'batch',
+    });
+  });
+
+  it('generate correct properties for upgrade only request', async () => {
+    const metrics = await generateDefaultTransactionMetrics(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+      upgradeOnlyAccountConfirmation,
+      {
+        getState: () =>
+          ({
+            confirmationMetrics: {
+              metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
+            },
+          } as RootState),
+      } as TransactionEventHandlerRequest,
+    );
+    expect(metrics.properties).toStrictEqual({
+      account_eip7702_upgraded: undefined,
+      chain_id: '0xaa36a7',
+      eip7702_upgrade_transaction: true,
+      source: 'MetaMask Mobile',
+      status: 'unapproved',
+      transaction_envelope_type: '0x4',
+      transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
+      transaction_type: 'batch',
+    });
+  });
+
+  it('generate correct properties for rejected upgrade request', async () => {
+    const metrics = await generateDefaultTransactionMetrics(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+      {
+        ...upgradeOnlyAccountConfirmation,
+        status: TransactionStatus.rejected,
+        error: {
+          code: EIP5792ErrorCode.RejectedUpgrade as unknown as string,
+        } as TransactionError,
+      },
+      {
+        getState: () =>
+          ({
+            confirmationMetrics: {
+              metricsById: { [upgradeOnlyAccountConfirmation.id]: {} },
+            },
+          } as RootState),
+      } as TransactionEventHandlerRequest,
+    );
+    expect(metrics.properties).toStrictEqual({
+      account_eip7702_upgraded: undefined,
+      source: 'MetaMask Mobile',
+      chain_id: '0xaa36a7',
+      eip7702_upgrade_rejection: true,
+      eip7702_upgrade_transaction: true,
+      status: 'rejected',
+      transaction_envelope_type: '0x4',
+      transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
+      transaction_type: 'batch',
+    });
+  });
+
+  it('generate correct properties for batched approval request', async () => {
+    const metrics = await generateDefaultTransactionMetrics(
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+      batchApprovalConfirmation,
+      {
+        getState: () =>
+          ({
+            confirmationMetrics: {
+              metricsById: { [batchApprovalConfirmation.id]: {} },
+            },
+          } as RootState),
+      } as TransactionEventHandlerRequest,
+    );
+    expect(metrics.properties).toStrictEqual({
+      account_eip7702_upgraded: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+      source: 'MetaMask Mobile',
+      api_method: 'wallet_sendCalls',
+      batch_transaction_count: 2,
+      batch_transaction_method: 'eip7702',
+      chain_id: '0x1',
+      eip7702_upgrade_transaction: false,
+      status: 'unapproved',
+      transaction_envelope_type: '0x2',
+      transaction_contract_address: [
+        '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+      ],
+      transaction_contract_method: [],
+      transaction_internal_id: '00e2c3a0-3537-11f0-a6bc-c5da15141f51',
+      transaction_type: 'batch',
     });
   });
 });
