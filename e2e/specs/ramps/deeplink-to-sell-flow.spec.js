@@ -50,7 +50,8 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
       async () => {
         await loginToApp();
 
-        await device.openURL({
+        await device.sendToHome();
+        await device.launchApp({
           url: sellDeepLinkURL,
         });
         await Assertions.checkIfVisible(
