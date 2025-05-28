@@ -199,17 +199,12 @@ export default function useBalanceChanges({
 }: {
   chainId: Hex;
   simulationData?: SimulationData;
-  networkClientId?: string;
+  networkClientId: string;
 }): { pending: boolean; value: BalanceChange[] } {
   const nativeFiatRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId),
   ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const chainNetworkClientId =
-    networkClientId ??
-    Engine.context.NetworkController.findNetworkClientIdByChainId(
-      chainId as Hex,
-    );
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
@@ -223,7 +218,7 @@ export default function useBalanceChanges({
     .map((tbc: any) => tbc.address);
 
   const erc20Decimals = useAsyncResultOrThrow(
-    () => fetchAllErc20Decimals(erc20TokenAddresses, chainNetworkClientId),
+    () => fetchAllErc20Decimals(erc20TokenAddresses, networkClientId),
     [JSON.stringify(erc20TokenAddresses)],
   );
 

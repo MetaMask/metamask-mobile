@@ -30,7 +30,8 @@ export function useBatchApproveBalanceChanges(): {
   value: ApprovalBalanceChange[];
 } {
   const transactionMeta = useTransactionMetadataRequest();
-  const { chainId, nestedTransactions } = transactionMeta ?? {};
+  const { chainId, nestedTransactions, networkClientId } =
+    transactionMeta ?? {};
 
   const { value: simulationBalanceChanges, pending: pendingSimulationChanges } =
     useBatchApproveSimulationBalanceChanges({
@@ -43,6 +44,7 @@ export function useBatchApproveBalanceChanges(): {
       simulationData: {
         tokenBalanceChanges: simulationBalanceChanges ?? [],
       },
+      networkClientId: networkClientId as string,
     });
 
   const finalBalanceChanges = useMemo(
