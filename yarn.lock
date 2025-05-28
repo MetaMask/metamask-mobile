@@ -4686,6 +4686,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/api-specs/-/api-specs-0.10.17.tgz#e6974ac38e9ae80f67adfd3b4919322d926e5085"
   integrity sha512-NCUlmDBLL8Cif5cfYXOgKdU56ZSpWnsbNnCUJUehPnNOyWuADx9blYhb1jdN3gWQwCpCOLawpFRzXsfM0FebaQ==
 
+"@metamask/api-specs@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@metamask/api-specs/-/api-specs-0.14.0.tgz#806f8327d262001dca5e60946f45cc579164a3e2"
+  integrity sha512-pL3FADJcw/CA5Nsq6k4ePYxrNyscqVJh0XYXStvGPkw9yPdgIRAc+DuMuMMpaahYpKsmWWHpTAuvwVo9DuFXyg==
+
 "@metamask/app-metadata-controller@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/app-metadata-controller/-/app-metadata-controller-1.0.0.tgz#7d256d4227ed3ad6c58f0e96ea9989dcae081022"
@@ -4828,19 +4833,6 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
-"@metamask/chain-agnostic-permission@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.4.0.tgz#db4cf042edd21b70a6f974a56a3354c197186cfb"
-  integrity sha512-novE2rb5AV7Wdq/uTpItmv8qJTF5QYN8uXmSXEUbRw5Ac+qESdyhNjV0iGm16hdwznemq4lI3f8/shGiTPzk4A==
-  dependencies:
-    "@metamask/api-specs" "^0.10.12"
-    "@metamask/controller-utils" "^11.7.0"
-    "@metamask/network-controller" "^23.2.0"
-    "@metamask/permission-controller" "^11.0.6"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/utils" "^11.2.0"
-    lodash "^4.17.21"
-
 "@metamask/chain-agnostic-permission@^0.6.0":
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.6.0.tgz#3de97ffd5f60ae5e384e8f7663f53f38c819c855"
@@ -4849,6 +4841,19 @@
     "@metamask/api-specs" "^0.10.12"
     "@metamask/controller-utils" "^11.7.0"
     "@metamask/network-controller" "^23.3.0"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/utils" "^11.2.0"
+    lodash "^4.17.21"
+
+"@metamask/chain-agnostic-permission@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-0.7.0.tgz#6a34f213dee46234fab2d8dec760f63079243a1d"
+  integrity sha512-Encfd594BrKb4kk9nLczcz9zmFu3MXXgIOfwIPtguuttAUOrkoRIyVNPT4R9p67EAkwVvSy4+NZGv43f+iGH5Q==
+  dependencies:
+    "@metamask/api-specs" "^0.14.0"
+    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/network-controller" "^23.5.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.2.0"
@@ -5317,16 +5322,16 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-api-middleware@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-middleware/-/multichain-api-middleware-0.2.0.tgz#ae0473bb7f8cb44265a044812ddc12d86147a8b1"
-  integrity sha512-L8zNv16IM6HAHUKk+7VueLLyd0eHpi8c8E6M1pcKqnVTvvArDhcIgzk5tamkJgEysoOIsb5IPPwYGPPJeKvXQA==
+"@metamask/multichain-api-middleware@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-middleware/-/multichain-api-middleware-0.4.0.tgz#81c64322de53d4c61eb047b1f683c4e17c16194a"
+  integrity sha512-wMYu/xqVojsZkIod9ztby992M7nldUgA4KTrbfUvZ1WsbioggieBiGkL/XRbkune49fH3ywKlTvRRi0Yqtuapw==
   dependencies:
-    "@metamask/api-specs" "^0.10.12"
-    "@metamask/chain-agnostic-permission" "^0.4.0"
-    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/api-specs" "^0.14.0"
+    "@metamask/chain-agnostic-permission" "^0.7.0"
+    "@metamask/controller-utils" "^11.9.0"
     "@metamask/json-rpc-engine" "^10.0.3"
-    "@metamask/network-controller" "^23.2.0"
+    "@metamask/network-controller" "^23.5.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.2.0"
@@ -5398,7 +5403,7 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^23.2.0", "@metamask/network-controller@^23.3.0", "@metamask/network-controller@^23.5.0":
+"@metamask/network-controller@^23.3.0", "@metamask/network-controller@^23.5.0":
   version "23.5.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.5.0.tgz#fb9b0a91c512eb141423c9115a65f285e93b7e1b"
   integrity sha512-/42uOJlRU4sVsEw40qe0IcBY1qOhoeDKOQ0PJDZiiJviZZz8ziXLbqzHD7gBZXfwOKW38uc4OGM03+MGncDbNg==
