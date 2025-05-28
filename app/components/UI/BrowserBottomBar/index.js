@@ -13,6 +13,7 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { noop } from 'lodash';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
 // TODO: test on an android device
@@ -136,24 +137,27 @@ class BrowserBottomBar extends PureComponent {
     const styles = createStyles(colors);
 
     const onSearchPress = () => {
-      showUrlModal();
+      showUrlModal?.();
       this.trackSearchEvent();
     };
 
     const onBackPress = () => {
-      goBack();
+      goBack?.();
       this.trackNavigationEvent('Go Back');
     };
 
     const onForwardPress = () => {
-      goForward();
+      goForward?.();
       this.trackNavigationEvent('Go Forward');
     };
 
     const onHomePress = () => {
-      goHome();
+      goHome?.();
       this.trackNavigationEvent('Go Home');
     };
+
+    const homeDisabled = !goHome;
+    const optionsDisabled = !toggleOptions;
 
     return (
       <ElevatedView elevation={11} style={styles.bottomBar}>
@@ -200,16 +204,26 @@ class BrowserBottomBar extends PureComponent {
           onPress={onHomePress}
           style={styles.iconButton}
           testID={BrowserViewSelectorsIDs.HOME_BUTTON}
+          disabled={homeDisabled}
         >
-          <SimpleLineIcons name="home" size={22} style={styles.icon} />
+          <SimpleLineIcons
+            name="home"
+            size={22}
+            style={[styles.icon, homeDisabled && styles.disabledIcon]}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={toggleOptions}
           style={styles.iconButton}
           testID={BrowserViewSelectorsIDs.OPTIONS_BUTTON}
+          disabled={optionsDisabled}
         >
-          <MaterialIcon name="more-horiz" size={22} style={styles.icon} />
+          <MaterialIcon
+            name="more-horiz"
+            size={22}
+            style={[styles.icon, optionsDisabled && styles.disabledIcon]}
+          />
         </TouchableOpacity>
       </ElevatedView>
     );
