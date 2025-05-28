@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
+
 ### Fixed
 - fix(bridge): show "Auto" slippage for Solana swaps
 - fix(bridge): add insufficient balance check for Solana swaps
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): implement dynamic refresh rate in QuoteExpiredModal ([#15157](https://github.com/MetaMask/metamask-mobile/pull/15157))
 - fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
+
+### Changed
+- feat: update minimum version modal UI ([#15567](https://github.com/MetaMask/metamask-mobile/pull/15567))
 
 ### Added
 
