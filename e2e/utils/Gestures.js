@@ -70,9 +70,10 @@ class Gestures {
    * @param {number} index - Index of the element to tap
    * @param {number} timeout - Timeout for waiting (default: 15000ms)
    */
-  static async TapAtIndex(element, index, timeout = 15000) {
-    await waitFor(await element).atIndex(index).toBeVisible().withTimeout(timeout);
-    await (await element).atIndex(index).tap();
+  static async tapAtIndex(element, index, timeout = 15000) {
+    const itemElementAtIndex = (await element).atIndex(index);
+    await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
+    await itemElementAtIndex.tap();
   }
 
   /**
