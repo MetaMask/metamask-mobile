@@ -15,6 +15,7 @@ import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
+import { invert } from 'lodash';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -397,15 +398,10 @@ function swapsReducer(state = initialState, action) {
       };
 
       // Invert CHAIN_ID_TO_NAME_MAP to get chain name to ID mapping
-      const chainNameToIdMap = Object.entries(CHAIN_ID_TO_NAME_MAP).reduce(
-        (acc, [chainId, chainName]) => {
-          acc[chainName] = chainId;
-          return acc;
-        },
-        {},
-      );
+      // It will be e.g. { 'ethereum': '0x1', 'bsc': '0x38' }
+      const chainNameToIdMap = invert(CHAIN_ID_TO_NAME_MAP);
 
-      // Iterate through featureFlags and save chain-specific data
+      // Save chain-specific feature flags for each chain
       Object.keys(featureFlags).forEach((chainName) => {
         const chainIdForName = chainNameToIdMap[chainName];
 
@@ -414,12 +410,12 @@ function swapsReducer(state = initialState, action) {
           featureFlags[chainName] &&
           typeof featureFlags[chainName] === 'object'
         ) {
-          const chainData = featureFlags[chainName];
+          const chainFeatureFlags = featureFlags[chainName];
           const chainLiveness = getSwapsLiveness(featureFlags, chainIdForName);
 
           newState[chainIdForName] = {
             ...state[chainIdForName],
-            featureFlags: chainData,
+            featureFlags: chainFeatureFlags,
             isLive: chainLiveness,
           };
 
