@@ -790,6 +790,7 @@ class ChoosePassword extends PureComponent {
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
                   isDisabled={!canSubmit}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 />
               </View>
             </KeyboardAwareScrollView>
