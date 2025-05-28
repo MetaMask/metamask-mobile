@@ -271,7 +271,6 @@ const AccountConnectMultiSelector = ({
       onSelectAccount,
       renderCtaButtons,
       selectedAddresses,
-      styles.addAccountButtonContainer,
       styles.body,
       styles.description,
       connection,
