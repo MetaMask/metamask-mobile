@@ -71,6 +71,20 @@ class FixtureBuilder {
     return this;
   }
 
+  withSolanaFeatureSheetDisplayed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState = {
+      '@MetaMask:existingUser': 'true',
+      '@MetaMask:onboardingWizard': 'explored',
+      '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+      '@MetaMask:solanaFeatureModalShown': 'false'
+    };
+    return this;
+  }
+
   /**
    * Set the default fixture values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
@@ -1118,8 +1132,28 @@ class FixtureBuilder {
     return this;
   }
 
+/**
+   * Sets up a minimal Solana fixture with mainnet configuration
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSolanaFixture() {
+    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: SolScope.Mainnet,
+      multichainNetworkConfigurationsByChainId: {
+        [SolScope.Mainnet]: {
+          chainId: SolScope.Mainnet,
+          name: 'Solana Mainnet',
+          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
+          isEvm: false
+        }
+      },
+      isEvmSelected: false
+    };
 
+    return this;
+  }
 
   /**
    * Build and return the fixture object.
