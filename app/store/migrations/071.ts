@@ -2,7 +2,7 @@
  * Migration 71: set completedOnboarding based on the state of the KeyringController.
  *
  * This migration ended up never being useful, since `onboarding` was blacklisted in `persistConfig`.
- * We're re-running it in migration 81 because we unblacklisted `onboarding` since.
+ * We're instead applying the original logic in `onPersistComplete` in `app/store/index.ts`.
  */
 const migration = (state: unknown): unknown => state;
 
