@@ -21,7 +21,7 @@ export const getAccountNameWithENS = ({
   accounts,
   ensByAccountAddress,
 }: {
-  accountAddress: string;
+  caipAccountId: string;
   accounts: Account[];
   ensByAccountAddress: EnsByAccountAddress;
 }) => {
