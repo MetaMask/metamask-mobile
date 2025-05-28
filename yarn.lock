@@ -5847,10 +5847,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.29.0.tgz#166487b2c953bfad0088437674279172417b23a8"
   integrity sha512-OzxFssGvkuEnKNDFKRizYxolTt5+6IVSnOITGQGU7zEqRVFKI+Taid+OUdMqL69ZaWmqW2fCzoZpJgB5Mr54sQ==
 
-"@metamask/stake-sdk@3.0.0", "@metamask/stake-sdk@^3.0.0":
+"@metamask/stake-sdk@3.0.0":
   version "3.0.0"
   resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/stake-sdk/-/stake-sdk-3.0.0.tgz#bc3ca549ef46a56341bf2c131bc20b7a6878168f"
   integrity sha512-guYCtH73TxLtN8MhV74CPoGeMQ6mqSfDmDYskO6rp3MoDn3pdetqeTErq7II80L+LV6gq4xXSD2tJTiMjXC2dA==
+
+"@metamask/stake-sdk@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-3.1.1.tgz#7d419eb7eb7a5f637602f4696055759575c8b43b"
+  integrity sha512-ouHZU54Lccljmh188mxEiXqGmrIoIfcdui1detSrhaOt/FiuK8ZiQMn8wMN49VchkiemcimlChfXVBRomwv9Lw==
 
 "@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0", "@metamask/superstruct@^3.2.1":
   version "3.2.1"
