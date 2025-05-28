@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
+
 ### Fixed
 - fix(bridge): show "Auto" slippage for Solana swaps
 - fix(bridge): add insufficient balance check for Solana swaps
