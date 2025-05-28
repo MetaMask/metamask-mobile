@@ -55,6 +55,7 @@ import {
   getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -211,7 +212,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       permissionsControllerState,
       hostname,
     );
-    const permittedAccountAddresses = permittedAccountIds.map((accountId) => {
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds)
+    const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
       const { address } = parseCaipAccountId(accountId);
       return address;
     });

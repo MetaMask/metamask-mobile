@@ -968,18 +968,13 @@ export class BackgroundBridge extends EventEmitter {
           SolScope.Testnet,
         ])
       : [];
-    const previousNonUniqueSolanaHexAccountAddresses =
-      previousSolanaCaipAccountIds.map((caipAccountId) => {
-        const { address } = parseCaipAccountId(caipAccountId);
-        return address;
-      });
-    const previousSolanaHexAccountAddresses = uniq(
-      previousNonUniqueSolanaHexAccountAddresses,
-    );
-    const [previousSelectedSolanaAccountAddress] =
+
+
+    const [previousSelectedSolanaAccountId] =
       sortMultichainAccountsByLastSelected(
-        previousSolanaHexAccountAddresses,
+        previousSolanaCaipAccountIds,
       );
+    const previousSelectedSolanaAccountAddress = previousSelectedSolanaAccountId ? parseCaipAccountId(previousSelectedSolanaAccountId).address : ''
 
     const currentSolanaCaipAccountIds = currentValue
       ? getPermittedAccountsForScopes(currentValue, [
@@ -988,18 +983,11 @@ export class BackgroundBridge extends EventEmitter {
           SolScope.Testnet,
         ])
       : [];
-    const currentNonUniqueSolanaHexAccountAddresses =
-      currentSolanaCaipAccountIds.map((caipAccountId) => {
-        const { address } = parseCaipAccountId(caipAccountId);
-        return address;
-      });
-    const currentSolanaHexAccountAddresses = uniq(
-      currentNonUniqueSolanaHexAccountAddresses,
-    );
-    const [currentSelectedSolanaAccountAddress] =
+    const [currentSelectedSolanaAccountId] =
       sortMultichainAccountsByLastSelected(
-        currentSolanaHexAccountAddresses,
+        currentSolanaCaipAccountIds,
       );
+    const currentSelectedSolanaAccountAddress = currentSelectedSolanaAccountId ? parseCaipAccountId(currentSelectedSolanaAccountId).address : ''
 
     if (
       previousSelectedSolanaAccountAddress !==
