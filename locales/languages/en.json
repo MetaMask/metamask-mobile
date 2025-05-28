@@ -475,10 +475,6 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -4067,7 +4063,8 @@
     },
     "privacyLink": "Learn how we protect your privacy",
     "features": {
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "contacts": "Contacts"
     },
     "manageWhatYouSync": {
       "title": "Manage what you sync",

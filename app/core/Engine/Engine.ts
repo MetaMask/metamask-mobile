@@ -988,6 +988,17 @@ export class Engine {
             );
           },
         },
+        contactSyncing: {
+          onContactUpdated: (/*profileId*/) => {
+            // TODO: Implement
+          },
+          onContactDeleted: (/*profileId*/) => {
+            // TODO: Implement
+          },
+          onContactSyncErroneousSituation(/*profileId, situationMessage*/) {
+            // TODO: Implement
+          },
+        },
       },
     });
     ///: END:ONLY_INCLUDE_IF

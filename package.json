@@ -150,7 +150,9 @@
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
-    "@ethereumjs/tx": "^5.4.0"
+    "@ethereumjs/tx": "^5.4.0",
+    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2f320f7a",
+    "@metamask/address-book-controller": "npm:@metamask-previews/address-book-controller@6.0.3-preview-2f320f7a"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -208,7 +210,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
     "@metamask/preferences-controller": "^17.0.0",
-    "@metamask/profile-sync-controller": "^14.0.0",
+    "@metamask/profile-sync-controller": "^15.0.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",

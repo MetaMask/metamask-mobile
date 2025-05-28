@@ -3,9 +3,9 @@ import { renderHookWithProvider } from '../../../test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as actions from '../../../../actions/identity';
 import {
-  useAccountSyncing,
-  useShouldDispatchAccountSyncing,
-} from './useAccountSyncing';
+  useContactSyncing,
+  useShouldDispatchContactSyncing,
+} from './useContactSyncing';
 
 interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
@@ -50,7 +50,7 @@ const arrangeMockState = (
   return { state };
 };
 
-describe('useShouldDispatchAccountSyncing()', () => {
+describe('useShouldDispatchContactSyncing()', () => {
   const testCases = (() => {
     const properties = [
       'isSignedIn',
@@ -65,12 +65,12 @@ describe('useShouldDispatchAccountSyncing()', () => {
     const baseState = {
       isSignedIn: true,
       isBackupAndSyncEnabled: true,
-      isAccountSyncingEnabled: true,
-      isContactSyncingEnabled: false,
+      isAccountSyncingEnabled: false,
+      isContactSyncingEnabled: true,
       isUnlocked: true,
       useExternalServices: true,
       completedOnboarding: true,
-      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingReadyToBeDispatched: false,
     };
 
     const failureStateCases: {
@@ -92,7 +92,7 @@ describe('useShouldDispatchAccountSyncing()', () => {
   it('should return true if all conditions are met', () => {
     const { state } = arrangeMockState(testCases.successTestCase.state);
     const hook = renderHookWithProvider(
-      () => useShouldDispatchAccountSyncing(),
+      () => useShouldDispatchContactSyncing(),
       { state },
     );
     expect(hook.result.current).toBe(true);
@@ -107,7 +107,7 @@ describe('useShouldDispatchAccountSyncing()', () => {
     }: (typeof testCases)['failureStateCases'][number]) => {
       const { state } = arrangeMockState(failureState);
       const hook = renderHookWithProvider(
-        () => useShouldDispatchAccountSyncing(),
+        () => useShouldDispatchContactSyncing(),
         { state },
       );
       expect(hook.result.current).toBe(false);
@@ -115,14 +115,14 @@ describe('useShouldDispatchAccountSyncing()', () => {
   );
 });
 
-describe('useAccountSyncing', () => {
+describe('useContactSyncing', () => {
   const arrangeMocks = () => {
-    const mockSyncAccountsAction = jest.spyOn(
+    const mockSyncContactsAction = jest.spyOn(
       actions,
-      'syncInternalAccountsWithUserStorage',
+      'syncContactsWithUserStorage',
     );
     return {
-      mockSyncAccountsAction,
+      mockSyncContactsAction,
     };
   };
 
@@ -132,50 +132,50 @@ describe('useAccountSyncing', () => {
     const mocks = arrangeMocks();
     const { state } = arrangeMockState(stateOverrides);
 
-    const { result } = renderHookWithProvider(() => useAccountSyncing(), {
+    const { result } = renderHookWithProvider(() => useContactSyncing(), {
       state,
     });
-    const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
+    const { dispatchContactSyncing, shouldDispatchContactSyncing } =
       result.current;
 
-    return { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing };
+    return { mocks, dispatchContactSyncing, shouldDispatchContactSyncing };
   };
 
   it('should dispatch if conditions are met', async () => {
-    const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
-      arrangeAndAct({
-        completedOnboarding: true,
-        isAccountSyncingReadyToBeDispatched: true,
-        isBackupAndSyncEnabled: true,
-        isAccountSyncingEnabled: true,
-        isContactSyncingEnabled: false,
-        isSignedIn: true,
-        isUnlocked: true,
-        useExternalServices: true,
-      });
-
-    await act(async () => dispatchAccountSyncing());
-
-    expect(mocks.mockSyncAccountsAction).toHaveBeenCalled();
-    expect(shouldDispatchAccountSyncing).toBe(true);
-  });
-
-  it('should not dispatch conditions are not met', async () => {
-    const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
+    const { mocks, dispatchContactSyncing, shouldDispatchContactSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
         isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
-        isAccountSyncingEnabled: true,
-        isContactSyncingEnabled: false,
+        isAccountSyncingEnabled: false,
+        isContactSyncingEnabled: true,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,
       });
 
-    await act(async () => dispatchAccountSyncing());
+    await act(async () => dispatchContactSyncing());
 
-    expect(mocks.mockSyncAccountsAction).not.toHaveBeenCalled();
-    expect(shouldDispatchAccountSyncing).toBe(false);
+    expect(mocks.mockSyncContactsAction).toHaveBeenCalled();
+    expect(shouldDispatchContactSyncing).toBe(true);
+  });
+
+  it('should not dispatch conditions are not met', async () => {
+    const { mocks, dispatchContactSyncing, shouldDispatchContactSyncing } =
+      arrangeAndAct({
+        completedOnboarding: true,
+        isAccountSyncingReadyToBeDispatched: false,
+        isBackupAndSyncEnabled: true,
+        isAccountSyncingEnabled: false,
+        isContactSyncingEnabled: true,
+        isSignedIn: true,
+        isUnlocked: true,
+        useExternalServices: true,
+      });
+
+    await act(async () => dispatchContactSyncing());
+
+    expect(mocks.mockSyncContactsAction).not.toHaveBeenCalled();
+    expect(shouldDispatchContactSyncing).toBe(false);
   });
 });
