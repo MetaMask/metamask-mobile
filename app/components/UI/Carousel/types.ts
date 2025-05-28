@@ -56,9 +56,6 @@ export interface CarouselSlide {
   navigation: NavigationAction;
   dismissed?: boolean;
   undismissable?: boolean;
-  testID?: string;
-  testIDTitle?: string;
-  testIDCloseButton?: string;
 }
 
 export interface CarouselProps {
