@@ -122,12 +122,26 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
+const persistOnboardingTransform = createTransform(
+  (inboundState: RootState['onboarding']) => {
+    const { events, ...state } = inboundState;
+    // Reconstruct data to persist
+    return state;
+  },
+  null,
+  { whitelist: ['onboarding'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [
+    persistTransform,
+    persistUserTransform,
+    persistOnboardingTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
