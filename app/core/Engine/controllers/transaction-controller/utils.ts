@@ -178,7 +178,9 @@ export async function generateDefaultTransactionMetrics(
         ...gasFeeProperties,
         status,
         source: 'MetaMask Mobile',
-        transaction_contract_method: await getTransactionContractMethod(transactionMeta),
+        transaction_contract_method: await getTransactionContractMethod(
+          transactionMeta,
+        ),
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),
@@ -268,5 +270,5 @@ async function getTransactionContractMethod(transactionMeta: TransactionMeta) {
     transactionMeta.txParams.data ?? '',
     transactionMeta.networkClientId,
   );
-  return methodData?.name;
+  return methodData?.name ? [methodData.name] : [];
 }
