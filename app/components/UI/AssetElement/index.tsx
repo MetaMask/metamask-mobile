@@ -27,6 +27,7 @@ interface AssetElementProps {
   balance?: string;
   secondaryBalance?: string;
   privacyMode?: boolean;
+  disabled?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -67,6 +68,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   onPress,
   onLongPress,
   privacyMode = false,
+  disabled = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -83,6 +85,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   // when privacyMode is true, we should hide the balance and the fiat
   return (
     <TouchableOpacity
+      disabled={disabled}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}

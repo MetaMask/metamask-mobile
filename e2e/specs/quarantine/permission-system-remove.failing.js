@@ -45,6 +45,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Connect to DApp and configure network permissions
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();

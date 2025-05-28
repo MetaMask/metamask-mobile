@@ -26,6 +26,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     Your balance
   </Text>
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -251,6 +252,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     Your balance
   </Text>
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
