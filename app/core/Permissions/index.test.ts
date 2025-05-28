@@ -933,18 +933,21 @@ describe('Permission Utility Functions', () => {
 
   describe('sortMultichainAccountsByLastSelected', () => {
     it('should sort accounts by lastSelected timestamp', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
       const internalAccounts = [
         {
           address: '0x1',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         {
           address: '0x2',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 300 },
         },
         {
           address: '0x3',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 200 },
         },
       ];
@@ -952,22 +955,25 @@ describe('Permission Utility Functions', () => {
       mockListMultichainAccounts.mockReturnValue(internalAccounts);
 
       const result = sortMultichainAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x2', '0x3', '0x1']);
+      expect(result).toEqual(['eip155:0:0x2', 'eip155:0:0x3', 'eip155:0:0x1']);
     });
 
     it('should handle accounts with undefined lastSelected', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
       const internalAccounts = [
         {
           address: '0x1',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         {
           address: '0x2',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: undefined },
         },
         {
           address: '0x3',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 200 },
         },
       ];
@@ -975,22 +981,25 @@ describe('Permission Utility Functions', () => {
       mockListMultichainAccounts.mockReturnValue(internalAccounts);
 
       const result = sortMultichainAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x3', '0x1', '0x2']);
+      expect(result).toEqual(['eip155:0:0x3', 'eip155:0:0x1', 'eip155:0:0x2']);
     });
 
     it('should handle accounts with same lastSelected value', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
       const internalAccounts = [
         {
           address: '0x1',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         {
           address: '0x2',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         {
           address: '0x3',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 200 },
         },
       ];
@@ -999,22 +1008,24 @@ describe('Permission Utility Functions', () => {
 
       const result = sortMultichainAccountsByLastSelected(accounts);
       // We don't assert the exact order for accounts with the same lastSelected value
-      expect(result).toContain('0x1');
-      expect(result).toContain('0x2');
-      expect(result).toContain('0x3');
-      expect(result[0]).toBe('0x3'); // The one with highest lastSelected should be first
+      expect(result).toContain('eip155:0:0x1');
+      expect(result).toContain('eip155:0:0x2');
+      expect(result).toContain('eip155:0:0x3');
+      expect(result[0]).toBe('eip155:0:0x3'); // The one with highest lastSelected should be first
     });
 
     it('should throw error if account is missing from identities', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
       const internalAccounts = [
         {
           address: '0x1',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         // 0x2 is missing
         {
           address: '0x3',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 200 },
         },
       ];
@@ -1025,24 +1036,27 @@ describe('Permission Utility Functions', () => {
       ).mockResolvedValue('Simple Key Pair');
 
       expect(() => sortMultichainAccountsByLastSelected(accounts)).toThrow(
-        'Missing identity for address: "0x2".',
+        'Missing identity for address: "eip155:0:0x2".',
       );
       expect(captureException).toHaveBeenCalled();
     });
 
     it('should handle case insensitive address comparison', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
       const internalAccounts = [
         {
           address: '0X1', // Uppercase
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 100 },
         },
         {
           address: '0x2',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 300 },
         },
         {
           address: '0x3',
+          scopes: ['eip155:0'],
           metadata: { lastSelected: 200 },
         },
       ];
@@ -1050,7 +1064,7 @@ describe('Permission Utility Functions', () => {
       mockListMultichainAccounts.mockReturnValue(internalAccounts);
 
       const result = sortMultichainAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x2', '0x3', '0x1']);
+      expect(result).toEqual(['eip155:0:0x2', 'eip155:0:0x3', 'eip155:0:0x1']);
     });
   });
 

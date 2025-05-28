@@ -974,7 +974,7 @@ export class BackgroundBridge extends EventEmitter {
       sortMultichainAccountsByLastSelected(
         previousSolanaCaipAccountIds,
       );
-    const previousSelectedSolanaAccountAddress = previousSelectedSolanaAccountId ? parseCaipAccountId(previousSelectedSolanaAccountId).address : ''
+    const previousSelectedSolanaAccountAddress = previousSelectedSolanaAccountId ? parseCaipAccountId(previousSelectedSolanaAccountId).address : '';
 
     const currentSolanaCaipAccountIds = currentValue
       ? getPermittedAccountsForScopes(currentValue, [
@@ -987,7 +987,7 @@ export class BackgroundBridge extends EventEmitter {
       sortMultichainAccountsByLastSelected(
         currentSolanaCaipAccountIds,
       );
-    const currentSelectedSolanaAccountAddress = currentSelectedSolanaAccountId ? parseCaipAccountId(currentSelectedSolanaAccountId).address : ''
+    const currentSelectedSolanaAccountAddress = currentSelectedSolanaAccountId ? parseCaipAccountId(currentSelectedSolanaAccountId).address : '';
 
     if (
       previousSelectedSolanaAccountAddress !==

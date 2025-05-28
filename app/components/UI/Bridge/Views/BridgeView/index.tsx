@@ -156,9 +156,9 @@ const BridgeView = () => {
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
-    isValidSourceAmount && 
-    !!sourceToken && 
-    !!destToken && 
+    isValidSourceAmount &&
+    !!sourceToken &&
+    !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
     (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));

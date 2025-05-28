@@ -662,7 +662,7 @@ export const getPermittedCaipAccountIds = (
 
   const caipAccountIds = getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
   const addresses = caipAccountIds.map(caipAccountId => {
-    const { address } = parseCaipAccountId(caipAccountId)
+    const { address } = parseCaipAccountId(caipAccountId);
     return address;
-  })
+  });
 };

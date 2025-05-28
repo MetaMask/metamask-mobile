@@ -212,7 +212,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       permissionsControllerState,
       hostname,
     );
-    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds)
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds);
     const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
       const { address } = parseCaipAccountId(accountId);
       return address;

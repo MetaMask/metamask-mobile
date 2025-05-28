@@ -157,7 +157,7 @@ const CaipAccountSelectorList = ({
                   const [nextCaipAccountId] =
                     sortMultichainAccountsByLastSelected(nextCaipAccountIds);
 
-                  const nextAddress = nextCaipAccountId ? parseCaipAccountId(nextCaipAccountId).address : ''
+                  const nextAddress = nextCaipAccountId ? parseCaipAccountId(nextCaipAccountId).address : '';
                   const selectedAccountAddress = accounts.find(
                     (acc) => acc.isSelected,
                   )?.address;

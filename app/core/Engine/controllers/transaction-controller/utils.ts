@@ -85,7 +85,7 @@ export function generateDefaultTransactionMetrics(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
   const { chainId, status, type, id } = transactionMeta;
-  
+
   const mergedDefaultProperties = merge(
     {
       metametricsEvent,

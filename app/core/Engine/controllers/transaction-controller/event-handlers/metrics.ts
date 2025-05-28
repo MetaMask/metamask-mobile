@@ -71,7 +71,7 @@ export const handleTransactionSubmittedEventForMetrics = createTransactionEventH
  * Handles metrics tracking when a transaction is finalized (confirmed/failed/dropped)
  * This is a unified handler for all finalized transaction states, with the specific status
  * derived from transactionMeta.status
- * 
+ *
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  * @returns Promise that resolves when the metrics event has been tracked
