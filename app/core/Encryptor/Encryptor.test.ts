@@ -127,9 +127,9 @@ describe('Encryptor', () => {
         const key = await encryptor.keyFromPassword(
           'mockPassword',
           encryptor.generateSalt(),
-          lib,
           exportable,
           keyMetadata,
+          lib,
         );
 
         expect(key.key).not.toBe(undefined);
@@ -145,7 +145,6 @@ describe('Encryptor', () => {
       const key = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
-        ENCRYPTION_LIBRARY.quickCrypto,
         true,
       );
 
@@ -157,7 +156,6 @@ describe('Encryptor', () => {
       const key = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
-        ENCRYPTION_LIBRARY.quickCrypto,
         false,
       );
 
@@ -175,7 +173,6 @@ describe('Encryptor', () => {
       const testKey = await encryptor.keyFromPassword(
         'mockPassword',
         encryptor.generateSalt(),
-        ENCRYPTION_LIBRARY.quickCrypto,
         true,
       );
       const exportedKey = await encryptor.exportKey(testKey);
