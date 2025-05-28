@@ -22,12 +22,10 @@ describe(SmokeTrade('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    /*
     await Assertions.checkIfElementNotToHaveText(
       TokenOverview.tokenPrice,
       '$0',
     );
-    */
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
     await TokenOverview.tapChartPeriod1w();

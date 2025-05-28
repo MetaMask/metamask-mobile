@@ -212,12 +212,8 @@ export default {
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
-    'token-api',
-    'token.api',
     'gas-api',
     'gas.api',
-    'price-api',
-    'price.api',
     'phishing-detection',
     'dapp-scanning',
     'infura.io',
