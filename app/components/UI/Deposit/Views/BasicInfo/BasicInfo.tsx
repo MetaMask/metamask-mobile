@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { TextInput, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../StyledButton';
@@ -12,7 +12,10 @@ import { createNavigationDetails } from '../../../../../util/navigation/navUtils
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
-import { useForm } from './useForm';
+import { useForm } from '../../hooks/useForm';
+import DepositPhoneField from '../../components/DepositPhoneField';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 // TODO: move this to Enter address view when it created
 export const createEnterAddressNavDetails = createNavigationDetails(
@@ -43,6 +46,7 @@ const BasicInfo = (): JSX.Element => {
     ssn: '',
   };
 
+  // TODO: Add more comprehensive validation logic
   const validateForm = (data: FormData): Record<string, string> => {
     const errors: Record<string, string> = {};
 
@@ -56,20 +60,14 @@ const BasicInfo = (): JSX.Element => {
 
     if (!data.phoneNumber.trim()) {
       errors.phoneNumber = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(data.phoneNumber.replace(/\D/g, ''))) {
-      errors.phoneNumber = 'Please enter a valid 10-digit phone number';
     }
 
     if (!data.dateOfBirth.trim()) {
       errors.dateOfBirth = 'Date of birth is required';
-    } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data.dateOfBirth)) {
-      errors.dateOfBirth = 'Please enter date in MM/DD/YYYY format';
     }
 
     if (!data.ssn.trim()) {
       errors.ssn = 'Social security number is required';
-    } else if (!/^\d{9}$/.test(data.ssn.replace(/\D/g, ''))) {
-      errors.ssn = 'Please enter a valid 9-digit SSN';
     }
 
     return errors;
@@ -93,6 +91,7 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
+      // TODO: Send form data here?
       navigation.navigate(...createEnterAddressNavDetails());
     }
   }, [navigation, validateFormData]);
@@ -100,12 +99,15 @@ const BasicInfo = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          <Text style={styles.heading}>Personal Information</Text>
+        <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={2} />
+          <Text style={styles.subtitle}>
+            {strings('deposit.basic_info.subtitle')}
+          </Text>
           <View style={styles.nameInputRow}>
             <DepositTextField
               label="First Name"
-              placeholder="Enter your first name"
+              placeholder="John"
               value={formData.firstName}
               onChangeText={(text) => handleChange('firstName', text)}
               error={errors.firstName}
@@ -116,7 +118,7 @@ const BasicInfo = (): JSX.Element => {
 
             <DepositTextField
               label="Last Name"
-              placeholder="Enter your last name"
+              placeholder="Smith"
               value={formData.lastName}
               onChangeText={(text) => handleChange('lastName', text)}
               error={errors.lastName}
@@ -125,19 +127,28 @@ const BasicInfo = (): JSX.Element => {
               containerStyle={styles.nameInputContainer}
             />
           </View>
-
-          <DepositTextField
+          <DepositPhoneField
+            // TODO: Add internationalization for phone number format
+            // TODO: Automatic formatting
             label="Phone Number"
-            placeholder="(555) 555-5555"
+            placeholder="(234) 567-8910"
             value={formData.phoneNumber}
             onChangeText={(text) => handleChange('phoneNumber', text)}
             error={errors.phoneNumber}
-            returnKeyType="next"
-            keyboardType="phone-pad"
             testID="phone-number-input"
+            returnKeyType="next"
           />
 
           <DepositTextField
+            // TODO: Add internationalization for date format
+            // TODO: Add date picker functionality
+            startAccessory={
+              <IonicIcon
+                name="calendar-outline"
+                size={20}
+                style={styles.calendarIcon}
+              />
+            }
             label="Date of Birth"
             placeholder="MM/DD/YYYY"
             value={formData.dateOfBirth}
@@ -149,6 +160,8 @@ const BasicInfo = (): JSX.Element => {
           />
 
           <DepositTextField
+            // TODO: Contextual rendering of SSN input based on country
+            // TODO: Automatically format SSN input?
             label="Social Security Number"
             placeholder="XXX-XX-XXXX"
             value={formData.ssn}

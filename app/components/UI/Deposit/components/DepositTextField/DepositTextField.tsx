@@ -1,5 +1,11 @@
 import React, { forwardRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import Label from '../../../../../component-library/components/Form/Label';
 import Text, {
@@ -8,32 +14,19 @@ import Text, {
 import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
+import { TextFieldProps } from '../../../../../component-library/components/Form/TextField/TextField.types';
+import { Theme } from '../../../../../util/theme/models';
 
-interface DepositTextFieldProps {
+interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
   label: string;
-  placeholder: string;
-  value: string;
-  onChangeText: (text: string) => void;
   error?: string;
-  returnKeyType?: 'done' | 'next' | 'go' | 'search' | 'send';
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  keyboardType?:
-    | 'default'
-    | 'email-address'
-    | 'numeric'
-    | 'phone-pad'
-    | 'number-pad';
-  secureTextEntry?: boolean;
-  testID?: string;
-  style?: object;
-  containerStyle?: object;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
-const styleSheet = () =>
-  StyleSheet.create({
-    subtitle: {
-      marginBottom: 20,
-    },
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     label: {
       marginBottom: 6,
     },
@@ -42,33 +35,15 @@ const styleSheet = () =>
       marginBottom: 16,
     },
     error: {
-      color: 'red',
+      color: theme.colors.error.default,
       fontSize: 12,
       marginTop: 4,
     },
-    errorPlaceholder: {
-      height: 16, // Ensures consistent spacing even when no error
-    },
   });
+};
 
-const DepositTextField = forwardRef<any, DepositTextFieldProps>(
-  (
-    {
-      label,
-      placeholder,
-      value,
-      onChangeText,
-      error,
-      returnKeyType = 'done',
-      autoCapitalize = 'none',
-      keyboardType = 'default',
-      secureTextEntry = false,
-      testID,
-      style = {},
-      containerStyle = {},
-    },
-    ref,
-  ) => {
+const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
+  ({ label, error, containerStyle, style, ...textFieldProps }, ref) => {
     const { styles, theme } = useStyles(styleSheet, {});
 
     return (
@@ -78,24 +53,13 @@ const DepositTextField = forwardRef<any, DepositTextFieldProps>(
         </Label>
         <TextField
           size={TextFieldSize.Lg}
-          placeholder={placeholder}
           placeholderTextColor={theme.colors.text.muted}
-          returnKeyType={returnKeyType}
-          autoCapitalize={autoCapitalize}
-          ref={ref}
-          onChangeText={onChangeText}
-          value={value}
-          keyboardType={keyboardType}
-          secureTextEntry={secureTextEntry}
           keyboardAppearance={theme.themeAppearance}
-          testID={testID}
           style={style}
+          ref={ref}
+          {...textFieldProps}
         />
-        {error ? (
-          <Text style={styles.error}>{error}</Text>
-        ) : (
-          <View style={styles.errorPlaceholder} />
-        )}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
     );
   },

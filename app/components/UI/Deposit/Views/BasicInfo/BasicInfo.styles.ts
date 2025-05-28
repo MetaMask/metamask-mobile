@@ -1,13 +1,14 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
-    heading: {
-      fontSize: 18,
-      fontWeight: 'bold',
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
+    subtitle: {
+      fontSize: 14,
+      marginTop: 24,
       marginBottom: 20,
-      textAlign: 'center',
-      marginTop: 20,
     },
     nameInputRow: {
       flexDirection: 'row',
@@ -17,38 +18,10 @@ const styleSheet = () =>
     nameInputContainer: {
       flex: 1,
     },
-    fieldContainer: {
-      marginBottom: 16,
-    },
-    field: {
-      flex: 1,
-      flexDirection: 'column',
-      marginBottom: 16,
-    },
-    label: {
-      fontSize: 14,
-      marginBottom: 8,
-      fontWeight: '500',
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#CCCCCC',
-      borderRadius: 8,
-      padding: 12,
-      fontSize: 16,
-    },
-    errorText: {
-      color: 'red',
-      fontSize: 12,
-      marginTop: 4,
-    },
-    errorPlaceholder: {
-      height: 16,
-    },
-    buttonContainer: {
-      marginTop: 20,
-      marginBottom: 30,
+    calendarIcon: {
+      color: theme.colors.icon.default,
     },
   });
+};
 
 export default styleSheet;

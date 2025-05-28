@@ -427,7 +427,8 @@
     },
     "basic_info": {
       "title": "Enter your basic info",
-      "continue": "Continue"
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
     }
   },
   "receive": {
