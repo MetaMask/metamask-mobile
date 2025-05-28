@@ -1,3 +1,5 @@
+import { SharedTabProps } from '../shared/browserTabSharedTypes';
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type IpfsContentResult = {
   url?: string;
@@ -23,13 +25,10 @@ export enum WebViewNavigationEventName {
 
 /**
  * The props for the BrowserTab component
+ * Extends shared props and adds browser-specific properties
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type BrowserTabProps = {
-  /**
-   * The ID of the current tab
-   */
-  id: number;
+export type BrowserTabProps = SharedTabProps & {
   /**
    * The ID of the active tab
    */
@@ -64,10 +63,6 @@ export type BrowserTabProps = {
    */
   url?: string;
   /**
-   * Function to open a new tab
-   */
-  newTab: (url?: string) => void;
-  /**
    * Function to store bookmarks
    */
   addBookmark: (bookmark: { name: string; url: string }) => void;
@@ -88,14 +83,6 @@ export type BrowserTabProps = {
    */
   addToWhitelist: (url: string) => void;
   /**
-   * Function to update the tab information
-   */
-  updateTabInfo: (tabID: number, info: { url?: string, isArchived?: boolean, image?: string }) => void;
-  /**
-   * Function to update the tab information
-   */
-  showTabs: () => void;
-  /**
    * Current onboarding wizard step
    */
   wizardStep: number;
@@ -107,14 +94,6 @@ export type BrowserTabProps = {
    * Represents ipfs gateway toggle
    */
   isIpfsGatewayEnabled: boolean;
-  /**
-   * Represents the current chain id
-   */
-  activeChainId: string;
-  /**
-   * Boolean indicating if browser is in tabs view
-   */
-  isInTabsView: boolean;
   /**
    * Home page url that is appended with metricsEnabled and marketingEnabled
    */
