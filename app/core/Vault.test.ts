@@ -195,6 +195,7 @@ jest.mock('./Engine', () => ({
       listMultichainAccounts: () => mockListMultichainAccounts(),
     },
   },
+  setSelectedAddress: jest.fn(),
 }));
 jest.mocked(Engine);
 
@@ -467,6 +468,11 @@ describe('Vault', () => {
           entropySource: mockNewKeyringIdForSecondSrp,
           scope: SolScope.Mainnet,
         },
+      );
+
+      // Selected address should be restored since it exists in recreated keyrings
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+        mockHdAccount1.address,
       );
     });
   });
