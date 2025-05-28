@@ -132,6 +132,7 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
@@ -308,9 +309,7 @@ interface RootModalFlowProps {
     params: Record<string, unknown>;
   };
 }
-const RootModalFlow = (
-  props: RootModalFlowProps,
-) => (
+const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -327,6 +326,10 @@ const RootModalFlow = (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SUCCESS_ERROR_SHEET}
+      component={SuccessErrorSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}

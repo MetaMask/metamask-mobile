@@ -2315,6 +2315,7 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "action": "Save your Secret Recovery Phrase",
     "info-1": "This is your",
     "info-2": "Secret Recovery Phrase",
@@ -2332,6 +2333,7 @@
     "learn_more": "Learn More"
   },
   "manual_backup_step_2": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "action": "Confirm your Secret Recovery Phrase",
     "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
@@ -2345,6 +2347,7 @@
     "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Congratulations",
     "success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
     "hint": "Leave yourself a hint?",
