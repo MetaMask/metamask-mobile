@@ -1,6 +1,6 @@
-export type ConfirmationState = {
+export interface ConfirmationState {
   upgradeSplashPageAcknowledgedForAccounts: string[];
-};
+}
 
 export const initialState: ConfirmationState = {
   upgradeSplashPageAcknowledgedForAccounts: [],
@@ -11,7 +11,7 @@ const confirmationReducer = (
   action: {
     type: string;
     account?: string;
-  },
+  } = { type: '' },
 ) => {
   switch (action.type) {
     case 'UPGRADE_SPLASH_PAGE_ACKNOWLEDGED_FOR_ACCOUNT': {
