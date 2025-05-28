@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';

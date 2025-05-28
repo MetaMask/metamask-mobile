@@ -93,7 +93,7 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
-      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
     const client = MultichainWalletSnapFactory.createClient(
       WalletClientType.Solana,
       {
@@ -121,7 +121,7 @@ class AuthenticationService {
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     const primaryHdKeyringId =
-      Engine.context.KeyringController.state.keyringsMetadata[0].id;
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
     const client = MultichainWalletSnapFactory.createClient(
       WalletClientType.Solana,
       {

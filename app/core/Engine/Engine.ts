@@ -197,6 +197,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
@@ -214,6 +215,15 @@ import {
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
+import {
+  MultichainRouter,
+  MultichainRouterMessenger,
+  MultichainRouterArgs,
+} from '@metamask/snaps-controllers';
+import {
+  MultichainRouterGetSupportedAccountsEvent,
+  MultichainRouterIsSupportedScopeEvent,
+} from './controllers/multichain-router/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -263,7 +273,7 @@ export class Engine {
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-
+  multichainRouter: MultichainRouter;
   /**
    * Creates a CoreController instance
    */
@@ -648,8 +658,6 @@ export class Engine {
     };
 
     const snapRestrictedMethods = {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       clearSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
@@ -719,14 +727,10 @@ export class Engine {
       ),
       handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
         await handleSnapRequest(this.controllerMessenger, args),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapStateAction,
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       updateSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerUpdateSnapStateAction,
@@ -884,8 +888,14 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
-        isNonEvmScopeSupported: () => false,
-        getNonEvmAccountAddresses: () => [],
+        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          MultichainRouterIsSupportedScopeEvent,
+        ),
+        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          MultichainRouterGetSupportedAccountsEvent,
+        ),
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),
@@ -1166,6 +1176,7 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         SnapController: snapControllerInit,
@@ -1289,6 +1300,7 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1296,6 +1308,7 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+          'KeyringController:accountRemoved',
         ],
       }),
     });
@@ -1355,6 +1368,7 @@ export class Engine {
             'TokenListController:stateChange',
             'TokensController:stateChange',
             'AccountsController:selectedEvmAccountChange',
+            'TransactionController:transactionConfirmed',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1411,11 +1425,13 @@ export class Engine {
             'TokensController:getState',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'AccountsController:listAccounts',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
+            'KeyringController:accountRemoved',
           ],
         }),
         // TODO: This is long, can we decrease it?
@@ -1534,6 +1550,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      DeFiPositionsController: controllersByName.DeFiPositionsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1627,6 +1644,35 @@ export class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
+
+    // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
+    // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
+    // it would cause a deadlock.
+    // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
+    const withSnapKeyring = async (
+      operation: ({ keyring }: { keyring: unknown }) => void,
+    ) => {
+      const keyring = await this.getSnapKeyring();
+
+      return operation({ keyring });
+    };
+
+    const multichainRouterMessenger = this.controllerMessenger.getRestricted({
+      name: 'MultichainRouter',
+      allowedActions: [
+        `SnapController:getAll`,
+        `SnapController:handleRequest`,
+        `${permissionController.name}:getPermissions`,
+        `AccountsController:listMultichainAccounts`,
+      ],
+      allowedEvents: [],
+    }) as MultichainRouterMessenger;
+
+    this.multichainRouter = new MultichainRouter({
+      messenger: multichainRouterMessenger,
+      withSnapKeyring:
+        withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
+    });
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
@@ -2164,6 +2210,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     } = instance.datamodel.state;
 
     return {
@@ -2214,6 +2261,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     };
   },
 
