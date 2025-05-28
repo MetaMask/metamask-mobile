@@ -11,6 +11,8 @@ import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+
 
 // External dependencies.
 import Cell, {
@@ -237,7 +239,7 @@ const AccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || type === KeyringTypes.snap,
+            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
