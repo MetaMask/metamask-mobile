@@ -183,7 +183,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -442,7 +442,7 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       Engine.controllerMessenger.unsubscribe(
         `${Engine.context.PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
@@ -655,10 +655,6 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
    */
   setupProviderEngineCaip() {
-    if (!AppConstants.MULTICHAIN_API) {
-      return null;
-    }
-
     const origin = this.origin;
 
     const { NetworkController, AccountsController, PermissionController } =
