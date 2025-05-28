@@ -39,6 +39,7 @@ import {
   setIsSubmittingTx,
   selectIsSolanaToEvm,
   selectDestAddress,
+  selectIsSolanaSourced,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -70,6 +71,8 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -119,10 +122,13 @@ const BridgeView = () => {
   } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
+  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const isHardwareAddress = selectedAddress ? !!isHardwareAccount(selectedAddress) : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
@@ -375,12 +381,18 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
+          {isHardwareAddress && isSolanaSourced && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={strings('bridge.hardware_wallet_not_supported')}
+            />
+          )}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx}
+            isDisabled={hasInsufficientBalance || isSubmittingTx || (isHardwareAddress && isSolanaSourced)}
           />
           <Button
             variant={ButtonVariants.Link}
@@ -491,3 +503,4 @@ const BridgeView = () => {
 };
 
 export default BridgeView;
+
