@@ -12,6 +12,17 @@ const createStaticServer = function (rootDirectory) {
         public: path.resolve('./node_modules'),
       });
     }
+
+    // Handle test-dapp-multichain URLs by removing the prefix
+    // The multichain test dapp resources are referenced with /test-dapp-multichain/ prefix in its HTML
+    if (request.url.startsWith('/test-dapp-multichain/')) {
+      request.url = request.url.slice('/test-dapp-multichain'.length);
+    }
+
+    if (request.url.startsWith('/solana-test-dapp/')) {
+      request.url = request.url.slice('/solana-test-dapp'.length);
+    }
+
     return serveHandler(request, response, {
       directoryListing: false,
       public: rootDirectory,
