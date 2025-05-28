@@ -4672,15 +4672,6 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/address-book-controller/-/address-book-controller-6.0.3.tgz#5fe7b6f83702402a57cf95a1fd9fa53757685c0e"
-  integrity sha512-thN4fSeoaWgbYE9OjTdEwd/MaO+OXNHMES0yukI/J8FFCyrBpNEtbOm4gvM8mTxGO1hQ7A/PuYtsv0NekiTubQ==
-  dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
-    "@metamask/utils" "^11.1.0"
-
 "@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-2f320f7a":
   version "6.0.3-preview-2f320f7a"
   resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-2f320f7a.tgz#88f677a3a129fae7be59339daf38142c6c7a5d69"
@@ -5567,21 +5558,6 @@
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
-
-"@metamask/profile-sync-controller@^15.0.0":
-  version "15.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-15.0.0.tgz#f031b20c1190129db4ca1f706d836e60eded6b4b"
-  integrity sha512-jK9oFT1Bq6zF6bxQIXnQiCPPSZHCmH8FhZMDUTOTdRq46o+1zBd13CIO1WaK0Fy6AJIKiatHQoN5lWds5GtjVQ==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^17.4.0"
-    "@metamask/snaps-sdk" "^6.22.0"
-    "@metamask/snaps-utils" "^9.2.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/hashes" "^1.4.0"
-    immer "^9.0.6"
-    loglevel "^1.8.1"
-    siwe "^2.3.2"
 
 "@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2f320f7a":
   version "15.0.0-preview-2f320f7a"
