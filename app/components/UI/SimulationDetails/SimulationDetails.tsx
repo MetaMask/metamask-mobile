@@ -18,8 +18,10 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
+import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
@@ -149,8 +151,18 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  const { chainId, id: transactionId, simulationData, networkClientId } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData, networkClientId });
+  const {
+    chainId,
+    id: transactionId,
+    simulationData,
+    networkClientId,
+  } = transaction;
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+  const { isBatched } = use7702TransactionType();
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({
@@ -213,6 +225,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
+        {isBatched && <BatchApprovalRow />}
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
           heading={strings('simulation_details.outgoing_heading')}
