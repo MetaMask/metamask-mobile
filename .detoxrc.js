@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  
+
   testRunner: {
     args: {
       $0: 'jest',
@@ -31,7 +31,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: process.env.CI ? 'ios.qa' :'ios.debug',
+      app: process.env.CI ? 'ios.qa' : 'ios.debug',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
@@ -68,7 +68,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15 Pro',
+        type: 'iPhone 16e',
       },
     },
     'android.bitrise.emulator': {
@@ -80,7 +80,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_Pro_API_34',
+        avdName: 'Pixel_9',
       },
     },
   },

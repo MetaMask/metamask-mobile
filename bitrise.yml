@@ -943,7 +943,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -1015,7 +1015,7 @@ workflows:
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
-                ./scripts/run-e2e-tags.sh
+                  IS_TEST='true' yarn test:e2e:android:debug:run
                 fi
       - custom-test-results-export@1:
           title: Export test results

@@ -65,7 +65,7 @@
     "test:e2e:ios:build:qa-release": "IS_TEST='true' detox build -c ios.sim.qa",
     "test:e2e:ios:run:qa-release": "IS_TEST='true' detox test -c ios.sim.qa",
     "test:e2e:android:build:qa-release": "NO_FLIPPER='1' IS_TEST='true' detox build -c android.emu.release.qa",
-    "test:e2e:android:run:qa-release": "NO_FLIPPER='1' IS_TEST='true' detox test -c android.emu.release.qa --headless --record-logs all",
+    "test:e2e:android:run:qa-release": "NO_FLIPPER='1' IS_TEST='true'  detox test -c android.emu.release.qa --device-name Pixel_9 --headless --record-logs all",
     "test:e2e:ios:debug:build": "IS_TEST='true' detox build -c ios.sim.debug",
     "test:e2e:ios:debug:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox reset-lock-file && NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.debug",
     "test:e2e:android:debug:build": "IS_TEST='true' detox build -c android.emu.debug",
