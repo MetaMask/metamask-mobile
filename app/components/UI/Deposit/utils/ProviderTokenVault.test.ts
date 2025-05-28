@@ -60,7 +60,7 @@ describe('ProviderTokenVault', () => {
       expect(setInternetCredentials).toHaveBeenCalledWith(
         PROVIDER_TOKEN_KEY,
         PROVIDER_TOKEN_KEY,
-        JSON.stringify(mockToken),
+        expect.stringContaining(JSON.stringify(mockToken)),
         expect.objectContaining({
           accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
         }),
@@ -83,7 +83,7 @@ describe('ProviderTokenVault', () => {
       expect(setInternetCredentials).toHaveBeenCalledWith(
         PROVIDER_TOKEN_KEY,
         PROVIDER_TOKEN_KEY,
-        JSON.stringify(mockToken),
+        expect.stringContaining(JSON.stringify(mockToken)),
         expect.objectContaining({
           accessControl: ACCESS_CONTROL.DEVICE_PASSCODE,
         }),
@@ -106,7 +106,7 @@ describe('ProviderTokenVault', () => {
       expect(setInternetCredentials).toHaveBeenCalledWith(
         PROVIDER_TOKEN_KEY,
         PROVIDER_TOKEN_KEY,
-        JSON.stringify(mockToken),
+        expect.stringContaining(JSON.stringify(mockToken)),
         expect.objectContaining({
           accessControl: undefined,
         }),
@@ -153,9 +153,14 @@ describe('ProviderTokenVault', () => {
 
   describe('getProviderToken', () => {
     it('should retrieve token successfully', async () => {
+      const validToken = {
+        token: mockToken,
+        expiresAt: Date.now() + 1000,
+      };
+
       (getInternetCredentials as jest.Mock).mockResolvedValue({
         username: PROVIDER_TOKEN_KEY,
-        password: JSON.stringify(mockToken),
+        password: JSON.stringify(validToken),
       });
 
       const result = await getProviderToken();
@@ -210,25 +215,6 @@ describe('ProviderTokenVault', () => {
       expect(result).toEqual({
         success: false,
         error: 'Token has expired',
-      });
-    });
-
-    it('should return token when it has not expired', async () => {
-      const validToken = {
-        token: mockToken,
-        expiresAt: Date.now() + 1000,
-      };
-
-      (getInternetCredentials as jest.Mock).mockResolvedValue({
-        username: PROVIDER_TOKEN_KEY,
-        password: JSON.stringify(validToken),
-      });
-
-      const result = await getProviderToken();
-
-      expect(result).toEqual({
-        success: true,
-        token: mockToken,
       });
     });
   });
