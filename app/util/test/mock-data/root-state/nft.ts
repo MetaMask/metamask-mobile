@@ -42,6 +42,14 @@ export const MOCK_STATE_NFT = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
+      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -57,14 +65,10 @@ export const MOCK_STATE_NFT = {
           },
         },
       },
-      NetworkController: {
-        ...mockNetworkState({
-          chainId: CHAIN_IDS.MAINNET,
-          id: 'mainnet',
-          nickname: 'Ethereum Mainnet',
-          ticker: 'ETH',
-        }),
-      },
+      PreferencesController: {
+        useNftDetection: true,
+        displayNftMedia: true,
+      } as Partial<PreferencesState>,
       NftController: {
         allNfts: {
           [MOCK_ADDRESS]: {
@@ -93,10 +97,6 @@ export const MOCK_STATE_NFT = {
           },
         },
       },
-      PreferencesController: {
-        useNftDetection: true,
-        displayNftMedia: true,
-      } as Partial<PreferencesState>,
       TransactionController: {
         transactions: [mockTransactionNft],
       },
