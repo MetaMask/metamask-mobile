@@ -1,0 +1,253 @@
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
+index f957018..b66a39b 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
++++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _BridgeStatusController_instances, _BridgeStatusController_pollingTokensByTxMetaId, _BridgeStatusController_clientId, _BridgeStatusController_fetchFn, _BridgeStatusController_config, _BridgeStatusController_addTransactionFn, _BridgeStatusController_estimateGasFeeFn, _BridgeStatusController_addUserOperationFromTransactionFn, _BridgeStatusController_trace, _BridgeStatusController_restartPollingForIncompleteHistoryItems, _BridgeStatusController_getMultichainSelectedAccount, _BridgeStatusController_getMultichainSelectedAccountAddress, _BridgeStatusController_fetchBridgeTxStatus, _BridgeStatusController_getSrcTxHash, _BridgeStatusController_updateSrcTxHash, _BridgeStatusController_wipeBridgeStatusByChainId, _BridgeStatusController_handleSolanaTx, _BridgeStatusController_waitForHashAndReturnFinalTxMeta, _BridgeStatusController_handleApprovalTx, _BridgeStatusController_handleEvmSmartTransaction, _BridgeStatusController_handleEvmTransaction, _BridgeStatusController_handleUSDTAllowanceReset, _BridgeStatusController_calculateGasFees, _BridgeStatusController_trackUnifiedSwapBridgeEvent;
++var _BridgeStatusController_instances, _BridgeStatusController_pollingTokensByTxMetaId, _BridgeStatusController_clientId, _BridgeStatusController_fetchFn, _BridgeStatusController_config, _BridgeStatusController_addTransactionFn, _BridgeStatusController_estimateGasFeeFn, _BridgeStatusController_addUserOperationFromTransactionFn, _BridgeStatusController_restartPollingForIncompleteHistoryItems, _BridgeStatusController_getMultichainSelectedAccount, _BridgeStatusController_getMultichainSelectedAccountAddress, _BridgeStatusController_fetchBridgeTxStatus, _BridgeStatusController_getSrcTxHash, _BridgeStatusController_updateSrcTxHash, _BridgeStatusController_wipeBridgeStatusByChainId, _BridgeStatusController_handleSolanaTx, _BridgeStatusController_waitForHashAndReturnFinalTxMeta, _BridgeStatusController_handleApprovalTx, _BridgeStatusController_handleEvmSmartTransaction, _BridgeStatusController_handleEvmTransaction, _BridgeStatusController_handleUSDTAllowanceReset, _BridgeStatusController_calculateGasFees, _BridgeStatusController_trackUnifiedSwapBridgeEvent;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BridgeStatusController = void 0;
+ const bridge_controller_1 = require("@metamask/bridge-controller");
+@@ -35,7 +35,7 @@ const metadata = {
+     },
+ };
+ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPollingController)() {
+-    constructor({ messenger, state, clientId, fetchFn, addTransactionFn, addUserOperationFromTransactionFn, estimateGasFeeFn, config, traceFn, }) {
++    constructor({ messenger, state, clientId, fetchFn, addTransactionFn, addUserOperationFromTransactionFn, estimateGasFeeFn, config, }) {
+         super({
+             name: constants_1.BRIDGE_STATUS_CONTROLLER_NAME,
+             metadata,
+@@ -54,7 +54,6 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+         _BridgeStatusController_addTransactionFn.set(this, void 0);
+         _BridgeStatusController_estimateGasFeeFn.set(this, void 0);
+         _BridgeStatusController_addUserOperationFromTransactionFn.set(this, void 0);
+-        _BridgeStatusController_trace.set(this, void 0);
+         this.resetState = () => {
+             this.update((state) => {
+                 state.txHistory = constants_1.DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE.txHistory;
+@@ -276,45 +275,44 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+                 .transactions.find((tx) => tx.hash === transactionHash);
+             return finalTransactionMeta;
+         });
+-        _BridgeStatusController_handleApprovalTx.set(this, async (isBridgeTx, quoteResponse) => {
+-            const { approval } = quoteResponse;
+-            if (approval) {
+-                const approveTx = async () => {
+-                    await __classPrivateFieldGet(this, _BridgeStatusController_handleUSDTAllowanceReset, "f").call(this, quoteResponse);
+-                    const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, transaction_controller_1.TransactionType.bridgeApproval, approval, quoteResponse);
+-                    if (!approvalTxMeta) {
+-                        throw new Error('Failed to submit bridge tx: approval txMeta is undefined');
+-                    }
+-                    await (0, transaction_1.handleLineaDelay)(quoteResponse);
+-                    return approvalTxMeta;
+-                };
+-                return await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+-                    name: isBridgeTx
+-                        ? constants_1.TraceName.BridgeTransactionApprovalCompleted
+-                        : constants_1.TraceName.SwapTransactionApprovalCompleted,
+-                    data: {
+-                        srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
+-                        stxEnabled: false,
+-                    },
+-                }, approveTx);
++        _BridgeStatusController_handleApprovalTx.set(this, async (quoteResponse) => {
++            if (quoteResponse.approval) {
++                await __classPrivateFieldGet(this, _BridgeStatusController_handleUSDTAllowanceReset, "f").call(this, quoteResponse);
++                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
++                    transactionType: transaction_controller_1.TransactionType.bridgeApproval,
++                    trade: quoteResponse.approval,
++                    quoteResponse,
++                });
++                if (!approvalTxMeta) {
++                    throw new Error('Failed to submit bridge tx: approval txMeta is undefined');
++                }
++                await (0, transaction_1.handleLineaDelay)(quoteResponse);
++                return approvalTxMeta;
+             }
+             return undefined;
+         });
+         _BridgeStatusController_handleEvmSmartTransaction.set(this, async (trade, quoteResponse, approvalTxId) => {
+-            return await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, transaction_controller_1.TransactionType.bridge, trade, quoteResponse, approvalTxId, false);
++            return await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
++                transactionType: transaction_controller_1.TransactionType.bridge,
++                trade,
++                quoteResponse,
++                approvalTxId,
++                shouldWaitForHash: false, // Set to false to indicate we don't want to wait for hash
++            });
+         });
+         /**
+          * Submits an EVM transaction to the TransactionController
+          *
+-         * @param transactionType - The type of transaction to submit
+-         * @param trade - The trade data to confirm
+-         * @param quoteResponse - The quote response
+-         * @param quoteResponse.quote - The quote
+-         * @param approvalTxId - The tx id of the approval tx
+-         * @param shouldWaitForHash - Whether to wait for the hash of the transaction
++         * @param params - The parameters for the transaction
++         * @param params.transactionType - The type of transaction to submit
++         * @param params.trade - The trade data to confirm
++         * @param params.quoteResponse - The quote response
++         * @param params.approvalTxId - The tx id of the approval tx
++         * @param params.shouldWaitForHash - Whether to wait for the hash of the transaction
++         * @param params.requireApproval - Whether to prompt user to confirm the tx. Hardware wallets require true.
+          * @returns The transaction meta
+          */
+-        _BridgeStatusController_handleEvmTransaction.set(this, async (transactionType, trade, quoteResponse, approvalTxId, shouldWaitForHash = true) => {
++        _BridgeStatusController_handleEvmTransaction.set(this, async ({ transactionType, trade, quoteResponse, approvalTxId, shouldWaitForHash = true, requireApproval = false, }) => {
+             const actionId = (0, transaction_2.generateActionId)().toString();
+             const selectedAccount = this.messagingSystem.call('AccountsController:getAccountByAddress', trade.from);
+             if (!selectedAccount) {
+@@ -325,7 +323,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+             const requestOptions = {
+                 actionId,
+                 networkClientId,
+-                requireApproval: false,
++                requireApproval,
+                 type: transactionType,
+                 origin: 'metamask',
+             };
+@@ -374,7 +372,11 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+                 const allowance = new bignumber_js_1.BigNumber(await this.messagingSystem.call('BridgeController:getBridgeERC20Allowance', quoteResponse.quote.srcAsset.address, hexChainId));
+                 const shouldResetApproval = allowance.lt(quoteResponse.sentAmount.amount) && allowance.gt(0);
+                 if (shouldResetApproval) {
+-                    await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, transaction_controller_1.TransactionType.bridgeApproval, { ...quoteResponse.approval, data: (0, bridge_controller_1.getEthUsdtResetData)() }, quoteResponse);
++                    await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
++                        transactionType: transaction_controller_1.TransactionType.bridgeApproval,
++                        trade: { ...quoteResponse.approval, data: (0, bridge_controller_1.getEthUsdtResetData)() },
++                        quoteResponse,
++                    });
+                 }
+             }
+         });
+@@ -401,23 +403,16 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+          *
+          * @param quoteResponse - The quote response
+          * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
++         * @param requireApproval - Whether to prompt user to confirm the tx. Hardware wallets require true.
++         * @param requireApprova
+          * @returns The transaction meta
+          */
+-        this.submitTx = async (quoteResponse, isStxEnabledOnClient) => {
++        this.submitTx = async (quoteResponse, isStxEnabledOnClient, requireApproval = false) => {
+             let txMeta;
+-            const isBridgeTx = (0, bridge_controller_1.isCrossChain)(quoteResponse.quote.srcChainId, quoteResponse.quote.destChainId);
+             // Submit SOLANA tx
+             if ((0, bridge_controller_1.isSolanaChainId)(quoteResponse.quote.srcChainId) &&
+                 typeof quoteResponse.trade === 'string') {
+-                txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+-                    name: isBridgeTx
+-                        ? constants_1.TraceName.BridgeTransactionCompleted
+-                        : constants_1.TraceName.SwapTransactionCompleted,
+-                    data: {
+-                        srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
+-                        stxEnabled: false,
+-                    },
+-                }, async () => await __classPrivateFieldGet(this, _BridgeStatusController_handleSolanaTx, "f").call(this, quoteResponse));
++                txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleSolanaTx, "f").call(this, quoteResponse);
+                 __classPrivateFieldGet(this, _BridgeStatusController_trackUnifiedSwapBridgeEvent, "f").call(this, bridge_controller_1.UnifiedSwapBridgeEventName.SnapConfirmationViewed, txMeta.id);
+             }
+             // Submit EVM tx
+@@ -425,31 +420,21 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+             if (!(0, bridge_controller_1.isSolanaChainId)(quoteResponse.quote.srcChainId) &&
+                 typeof quoteResponse.trade !== 'string') {
+                 // Set approval time and id if an approval tx is needed
+-                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse);
++                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, quoteResponse);
+                 approvalTime = approvalTxMeta?.time;
+                 approvalTxId = approvalTxMeta?.id;
+                 // Handle smart transactions if enabled
+                 if (isStxEnabledOnClient) {
+-                    txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+-                        name: isBridgeTx
+-                            ? constants_1.TraceName.BridgeTransactionCompleted
+-                            : constants_1.TraceName.SwapTransactionCompleted,
+-                        data: {
+-                            srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
+-                            stxEnabled: true,
+-                        },
+-                    }, async () => await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmSmartTransaction, "f").call(this, quoteResponse.trade, quoteResponse, approvalTxId));
++                    txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmSmartTransaction, "f").call(this, quoteResponse.trade, quoteResponse, approvalTxId);
+                 }
+                 else {
+-                    txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+-                        name: isBridgeTx
+-                            ? constants_1.TraceName.BridgeTransactionCompleted
+-                            : constants_1.TraceName.SwapTransactionCompleted,
+-                        data: {
+-                            srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
+-                            stxEnabled: false,
+-                        },
+-                    }, async () => await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, transaction_controller_1.TransactionType.bridge, quoteResponse.trade, quoteResponse, approvalTxId));
++                    txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
++                        transactionType: transaction_controller_1.TransactionType.bridge,
++                        trade: quoteResponse.trade,
++                        quoteResponse,
++                        approvalTxId,
++                        requireApproval,
++                    });
+                 }
+             }
+             if (!txMeta) {
+@@ -516,7 +501,6 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+         __classPrivateFieldSet(this, _BridgeStatusController_config, {
+             customBridgeApiBaseUrl: config?.customBridgeApiBaseUrl ?? constants_1.BRIDGE_PROD_API_BASE_URL,
+         }, "f");
+-        __classPrivateFieldSet(this, _BridgeStatusController_trace, traceFn ?? ((_request, fn) => fn?.()), "f");
+         // Register action handlers
+         this.messagingSystem.registerActionHandler(`${constants_1.BRIDGE_STATUS_CONTROLLER_NAME}:startPollingForBridgeTxStatus`, this.startPollingForBridgeTxStatus.bind(this));
+         this.messagingSystem.registerActionHandler(`${constants_1.BRIDGE_STATUS_CONTROLLER_NAME}:wipeBridgeStatus`, this.wipeBridgeStatus.bind(this));
+@@ -531,7 +515,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+     }
+ }
+ exports.BridgeStatusController = BridgeStatusController;
+-_BridgeStatusController_pollingTokensByTxMetaId = new WeakMap(), _BridgeStatusController_clientId = new WeakMap(), _BridgeStatusController_fetchFn = new WeakMap(), _BridgeStatusController_config = new WeakMap(), _BridgeStatusController_addTransactionFn = new WeakMap(), _BridgeStatusController_estimateGasFeeFn = new WeakMap(), _BridgeStatusController_addUserOperationFromTransactionFn = new WeakMap(), _BridgeStatusController_trace = new WeakMap(), _BridgeStatusController_restartPollingForIncompleteHistoryItems = new WeakMap(), _BridgeStatusController_fetchBridgeTxStatus = new WeakMap(), _BridgeStatusController_getSrcTxHash = new WeakMap(), _BridgeStatusController_updateSrcTxHash = new WeakMap(), _BridgeStatusController_wipeBridgeStatusByChainId = new WeakMap(), _BridgeStatusController_handleSolanaTx = new WeakMap(), _BridgeStatusController_waitForHashAndReturnFinalTxMeta = new WeakMap(), _BridgeStatusController_handleApprovalTx = new WeakMap(), _BridgeStatusController_handleEvmSmartTransaction = new WeakMap(), _BridgeStatusController_handleEvmTransaction = new WeakMap(), _BridgeStatusController_handleUSDTAllowanceReset = new WeakMap(), _BridgeStatusController_calculateGasFees = new WeakMap(), _BridgeStatusController_trackUnifiedSwapBridgeEvent = new WeakMap(), _BridgeStatusController_instances = new WeakSet(), _BridgeStatusController_getMultichainSelectedAccount = function _BridgeStatusController_getMultichainSelectedAccount() {
++_BridgeStatusController_pollingTokensByTxMetaId = new WeakMap(), _BridgeStatusController_clientId = new WeakMap(), _BridgeStatusController_fetchFn = new WeakMap(), _BridgeStatusController_config = new WeakMap(), _BridgeStatusController_addTransactionFn = new WeakMap(), _BridgeStatusController_estimateGasFeeFn = new WeakMap(), _BridgeStatusController_addUserOperationFromTransactionFn = new WeakMap(), _BridgeStatusController_restartPollingForIncompleteHistoryItems = new WeakMap(), _BridgeStatusController_fetchBridgeTxStatus = new WeakMap(), _BridgeStatusController_getSrcTxHash = new WeakMap(), _BridgeStatusController_updateSrcTxHash = new WeakMap(), _BridgeStatusController_wipeBridgeStatusByChainId = new WeakMap(), _BridgeStatusController_handleSolanaTx = new WeakMap(), _BridgeStatusController_waitForHashAndReturnFinalTxMeta = new WeakMap(), _BridgeStatusController_handleApprovalTx = new WeakMap(), _BridgeStatusController_handleEvmSmartTransaction = new WeakMap(), _BridgeStatusController_handleEvmTransaction = new WeakMap(), _BridgeStatusController_handleUSDTAllowanceReset = new WeakMap(), _BridgeStatusController_calculateGasFees = new WeakMap(), _BridgeStatusController_trackUnifiedSwapBridgeEvent = new WeakMap(), _BridgeStatusController_instances = new WeakSet(), _BridgeStatusController_getMultichainSelectedAccount = function _BridgeStatusController_getMultichainSelectedAccount() {
+     return this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
+ }, _BridgeStatusController_getMultichainSelectedAccountAddress = function _BridgeStatusController_getMultichainSelectedAccountAddress() {
+     return __classPrivateFieldGet(this, _BridgeStatusController_instances, "m", _BridgeStatusController_getMultichainSelectedAccount).call(this)?.address ?? '';
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
+index fbf56ab..b4666f7 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
++++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
+@@ -1,5 +1,4 @@
+ import type { QuoteMetadata, TxData, QuoteResponse } from "@metamask/bridge-controller";
+-import type { TraceCallback } from "@metamask/controller-utils";
+ import type { TransactionController } from "@metamask/transaction-controller";
+ import { type TransactionMeta } from "@metamask/transaction-controller";
+ import type { UserOperationController } from "@metamask/user-operation-controller";
+@@ -28,7 +27,7 @@ declare const BridgeStatusController_base: (abstract new (...args: any[]) => {
+ }) & typeof import("@metamask/base-controller").BaseController;
+ export declare class BridgeStatusController extends BridgeStatusController_base<typeof BRIDGE_STATUS_CONTROLLER_NAME, BridgeStatusControllerState, BridgeStatusControllerMessenger> {
+     #private;
+-    constructor({ messenger, state, clientId, fetchFn, addTransactionFn, addUserOperationFromTransactionFn, estimateGasFeeFn, config, traceFn, }: {
++    constructor({ messenger, state, clientId, fetchFn, addTransactionFn, addUserOperationFromTransactionFn, estimateGasFeeFn, config, }: {
+         messenger: BridgeStatusControllerMessenger;
+         state?: Partial<BridgeStatusControllerState>;
+         clientId: BridgeClientId;
+@@ -39,7 +38,6 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
+         config?: {
+             customBridgeApiBaseUrl?: string;
+         };
+-        traceFn?: TraceCallback;
+     });
+     resetState: () => void;
+     wipeBridgeStatus: ({ address, ignoreNetwork, }: {
+@@ -58,9 +56,11 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
+      *
+      * @param quoteResponse - The quote response
+      * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
++     * @param requireApproval - Whether to prompt user to confirm the tx. Hardware wallets require true.
++     * @param requireApprova
+      * @returns The transaction meta
+      */
+-    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
++    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean, requireApproval?: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
+ }
+ export {};
+ //# sourceMappingURL=bridge-status-controller.d.cts.map
+\ No newline at end of file
