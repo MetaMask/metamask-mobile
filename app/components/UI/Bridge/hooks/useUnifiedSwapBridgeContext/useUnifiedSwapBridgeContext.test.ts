@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { createBridgeTestState } from '../../testUtils';
 import { useUnifiedSwapBridgeContext } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';

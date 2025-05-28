@@ -164,12 +164,9 @@ export const BridgeTransactionDetails = (
 
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = submissionDate
-    ? submissionDate.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+    ? submissionDate.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
       })
     : 'N/A';
 
@@ -180,9 +177,9 @@ export const BridgeTransactionDetails = (
       )
     : null;
   const estimatedCompletionString = estimatedCompletionDate
-    ? estimatedCompletionDate.toLocaleString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
+    ? estimatedCompletionDate.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
       })
     : null;
 

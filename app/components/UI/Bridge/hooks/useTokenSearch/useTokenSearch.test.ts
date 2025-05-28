@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useTokenSearch } from '.';
 import { BridgeToken } from '../../types';

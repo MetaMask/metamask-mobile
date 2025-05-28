@@ -15,7 +15,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
           "backgroundColor": "#f3f5f9",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
-          "height": undefined,
+          "height": 325,
           "justifyContent": "flex-start",
           "paddingTop": 16,
         },
@@ -166,257 +166,175 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       <View
         style={
           {
-            "flex": 1,
-            "paddingHorizontal": 16,
+            "backgroundColor": "#ffffff",
+            "borderRadius": 16,
+            "marginHorizontal": 16,
+            "marginTop": 16,
+            "paddingTop": 8,
           }
         }
       >
-        <View
-          style={
-            {
-              "maxHeight": 262.5,
-            }
-          }
+        <TouchableOpacity
+          onPress={[Function]}
+          testID="navigate_to_edit_networks_permissions_button"
         >
           <View
             style={
               {
-                "backgroundColor": "#ffffff",
-                "borderRadius": 16,
-                "marginHorizontal": 8,
-                "marginTop": 8,
-                "overflow": "hidden",
-              }
-            }
-          >
-            <RCTScrollView
-              data={[]}
-              getItem={[Function]}
-              getItemCount={[Function]}
-              keyExtractor={[Function]}
-              onContentSizeChange={[Function]}
-              onLayout={[Function]}
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              onScrollBeginDrag={[Function]}
-              onScrollEndDrag={[Function]}
-              removeClippedSubviews={false}
-              renderItem={[Function]}
-              scrollEnabled={false}
-              scrollEventThrottle={0.0001}
-              stickyHeaderIndices={[]}
-              viewabilityConfigCallbackPairs={[]}
-            >
-              <View />
-            </RCTScrollView>
-          </View>
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              {
                 "alignItems": "center",
+                "flexDirection": "row",
+                "marginBottom": 16,
+                "marginHorizontal": 24,
                 "marginTop": 8,
               }
             }
-            testID="account-list-bottom-sheet"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "marginTop": 8,
-                }
-              }
-            >
-              Edit accounts
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View
-          navigation={
-            {
-              "navigate": [MockFunction],
-            }
-          }
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "marginTop": 8,
-              "paddingVertical": 8,
-            }
-          }
-          tabLabel="Permissions"
-        >
-          <TouchableOpacity
-            onPress={[Function]}
-            testID="navigate_to_edit_networks_permissions_button"
           >
             <View
               style={
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "marginBottom": 16,
-                  "marginHorizontal": 24,
-                  "marginTop": 8,
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#0000001a",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "width": 32,
                 }
               }
             >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={20}
+                name="Data"
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                width={20}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "marginLeft": 12,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Use your enabled networks
+              </Text>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#0000001a",
-                    "borderRadius": 16,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "width": 32,
+                    "flexDirection": "row",
                   }
                 }
               >
-                <SvgMock
-                  color="#686e7d"
-                  fill="currentColor"
-                  height={20}
-                  name="Data"
+                <View
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
-                    }
-                  }
-                  width={20}
-                />
-              </View>
-              <View
-                style={
-                  {
-                    "flex": 1,
-                    "marginLeft": 12,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "marginRight": 4,
+                      "maxWidth": "75%",
                     }
                   }
                 >
-                  Use your enabled networks
-                </Text>
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Requesting for 
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    />
+                  </Text>
+                </View>
                 <View
                   style={
                     {
                       "alignItems": "center",
-                      "flexDirection": "row",
+                      "backgroundColor": "#f3f5f9",
+                      "borderRadius": 8,
+                      "borderWidth": 1,
+                      "height": 16,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "width": 16,
                     }
                   }
                 >
-                  <View
+                  <Text
+                    accessibilityRole="text"
                     style={
                       {
-                        "marginRight": 4,
-                        "maxWidth": "75%",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 10,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": undefined,
                       }
                     }
                   >
-                    <Text
-                      accessibilityRole="text"
-                      ellipsizeMode="tail"
-                      numberOfLines={1}
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                          }
-                        }
-                      >
-                        Requesting for 
-                      </Text>
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#121314",
-                            "fontFamily": "CentraNo1-Medium",
-                            "fontSize": 14,
-                            "fontWeight": "500",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                          }
-                        }
-                      />
-                    </Text>
-                  </View>
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderRadius": 8,
-                        "borderWidth": 1,
-                        "height": 16,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "width": 16,
-                      }
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 10,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": undefined,
-                        }
-                      }
-                    >
-                      ?
-                    </Text>
-                  </View>
+                    ?
+                  </Text>
                 </View>
               </View>
             </View>
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
     <View

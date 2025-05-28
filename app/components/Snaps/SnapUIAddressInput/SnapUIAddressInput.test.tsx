@@ -3,7 +3,6 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { SnapUIAddressInput } from './SnapUIAddressInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
-import { INPUT_TEST_ID } from '../../../component-library/components/Form/TextField/foundation/Input/Input.constants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 const mockInitialState = {
@@ -42,7 +41,7 @@ describe('SnapUIAddressInput', () => {
       <SnapUIAddressInput name="testAddress" chainId={testChainId} />,
     );
 
-    expect(getByTestId(INPUT_TEST_ID)).toBeTruthy();
+    expect(getByTestId('testAddress-snap-address-input')).toBeTruthy();
   });
 
   it('supports existing state', () => {
@@ -62,7 +61,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    const textfield = getByTestId(INPUT_TEST_ID);
+    const textfield = getByTestId('testAddress-snap-address-input');
     fireEvent.changeText(textfield, '0x');
     expect(mockHandleInputChange).toHaveBeenCalledWith(
       'testAddress',
@@ -82,7 +81,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    const textfield = getByTestId(INPUT_TEST_ID);
+    const textfield = getByTestId('testAddress-snap-address-input');
     expect(textfield.props.placeholder).toBe(placeholder);
   });
 
@@ -96,7 +95,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    const textfield = getByTestId(INPUT_TEST_ID);
+    const textfield = getByTestId('testAddress-snap-address-input');
     expect(textfield.props.editable).toBe(false);
   });
 
@@ -220,7 +219,7 @@ describe('SnapUIAddressInput', () => {
       <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
     );
 
-    const input = getByTestId(INPUT_TEST_ID);
+    const input = getByTestId('testAddress-snap-address-input');
     expect(input.props.editable).toBe(false);
     expect(input.props.value).toBe(testAddress);
 

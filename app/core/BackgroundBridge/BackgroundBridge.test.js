@@ -159,6 +159,7 @@ describe('BackgroundBridge', () => {
       expect(PermissionController.requestPermissions).toHaveBeenCalledWith(
         { origin },
         requestedPermissions,
+        { metadata: { isEip1193Request: true } },
       );
 
       // Assert revokePermissionsForOrigin

@@ -1,9 +1,9 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTokensWithBalance } from '.';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
-import { initialState } from '../../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 
 // Mock dependencies

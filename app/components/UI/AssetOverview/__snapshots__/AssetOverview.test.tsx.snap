@@ -2478,6 +2478,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "lineHeight": 24,
               }
             }
+            testID="price-label"
           >
             Today
           </Text>

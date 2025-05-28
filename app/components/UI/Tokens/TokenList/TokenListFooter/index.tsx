@@ -116,7 +116,8 @@ export const TokenListFooter = ({
       )}
       {/* render footer */}
       <View style={styles.footer} key={'tokens-footer'}>
-        <TouchableOpacity
+        {isEvmSelected &&  (
+          <TouchableOpacity
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
@@ -129,6 +130,7 @@ export const TokenListFooter = ({
             <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
           </Text>
         </TouchableOpacity>
+        )}
       </View>
     </>
   );

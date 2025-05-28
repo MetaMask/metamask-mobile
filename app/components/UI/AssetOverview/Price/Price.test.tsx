@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, userEvent } from '@testing-library/react-native';
 import Price from './Price';
 import { TokenI } from '../../Tokens/types';
 import {
@@ -8,6 +8,16 @@ import {
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import { AssetConversion } from '@metamask/snaps-sdk';
 import { CaipAssetId } from '@metamask/utils';
+import PriceChart from '../PriceChart/PriceChart';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
+
+jest.mock('../PriceChart/PriceChart', () => ({
+  ...jest.requireActual('../PriceChart/PriceChart'),
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => null),
+}));
 
 const mockAsset: TokenI = {
   name: 'Ethereum',
@@ -101,5 +111,29 @@ describe('Price Component', () => {
     );
 
     expect(getByTestId('loading-price-diff')).toBeTruthy();
+  });
+
+  it('renders price at selected date', async () => {
+    jest
+      .mocked(PriceChart)
+      .mockImplementation(({ onChartIndexChange }) => (
+        <Button
+          testID="mock-price-chart"
+          variant={ButtonVariants.Primary}
+          label="TEST BUTTON"
+          onPress={() => onChartIndexChange(1)}
+        />
+      ));
+
+    const { getByTestId } = render(<Price {...{ ...mockProps }} />);
+
+    // No item selected - assert label
+    expect(getByTestId('price-label')).toHaveTextContent('Today');
+
+    // Act - click mock button to change chart index
+    await userEvent.press(getByTestId('mock-price-chart'));
+
+    // A date has been selected, show correct mock date
+    expect(getByTestId('price-label')).toHaveTextContent('Jan 13 at 4:40 am');
   });
 });

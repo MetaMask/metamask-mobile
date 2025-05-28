@@ -314,7 +314,15 @@ const BridgeView = () => {
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
-    return strings('bridge.continue');
+
+    // Solana uses the continue button since they have a snap confirmation modal
+    const isSolana = isSolanaToEvm || isSolanaSwap;
+    if (isSolana) {
+      return strings('bridge.continue');
+    }
+
+    const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
+    return isSwap ? strings('bridge.confirm_swap') : strings('bridge.confirm_bridge');
   };
 
   useEffect(() => {

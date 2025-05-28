@@ -4,6 +4,10 @@ import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
+jest.mock('../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
 
@@ -37,6 +41,23 @@ export const initialState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           bridgeConfig: {
+            minimumVersion: '0.0.0',
+            maxRefreshCount: 5,
+            refreshRate: 30000,
+            support: true,
+            chains: {
+              [formatChainIdToCaip(ethChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+              [formatChainIdToCaip(optimismChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+            },
+          },
+          bridgeConfigV2: {
+            minimumVersion: '0.0.0',
             maxRefreshCount: 5,
             refreshRate: 30000,
             support: true,

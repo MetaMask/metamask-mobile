@@ -33,6 +33,7 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
+import { isEthAddress } from '../../../util/address';
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
 
@@ -240,6 +241,10 @@ class ReceiveRequest extends PureComponent {
     const theme = this.context || mockTheme;
     const styles = createStyles(theme);
 
+    const qrValue = isEthAddress(this.props.selectedAddress)
+      ? `ethereum:${this.props.selectedAddress}@${this.props.chainId}`
+      : this.props.selectedAddress;
+
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.body}>
@@ -248,7 +253,7 @@ class ReceiveRequest extends PureComponent {
               logo={PNG_MM_LOGO_PATH}
               logoSize={35}
               logoMargin={5}
-              value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
+              value={qrValue}
               size={windowWidth / 2}
             />
           </View>
