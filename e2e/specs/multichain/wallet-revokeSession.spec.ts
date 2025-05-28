@@ -5,7 +5,7 @@
  * Tests revoking sessions and verifying the session state afterwards
  */
 import TestHelpers from '../../helpers';
-import { SmokeNetworkExpansion } from '../../tags';
+import { SmokeMultichainApi } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -44,7 +44,7 @@ async function attemptInvokeMethod(chainId: string): Promise<boolean> {
     }
 }
 
-describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
+describe(SmokeMultichainApi('wallet_revokeSession'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });
