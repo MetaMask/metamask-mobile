@@ -88,7 +88,7 @@ describe('SmartContractWithLogo', () => {
     const { queryByText } = renderWithProvider(<SmartAccountUpdateSplash />, {
       state: {
         ...mockState,
-        transaction: {
+        confirmation: {
           upgradeSplashPageAcknowledgedForAccounts: [
             upgradeAccountConfirmation.txParams.from,
           ],

@@ -2,7 +2,7 @@ export type ConfirmationState = {
   upgradeSplashPageAcknowledgedForAccounts: string[];
 };
 
-const initialState: ConfirmationState = {
+export const initialState: ConfirmationState = {
   upgradeSplashPageAcknowledgedForAccounts: [],
 };
 
