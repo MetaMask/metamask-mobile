@@ -16,7 +16,7 @@ interface AllIgnoredTokens {
 }
 
 /**
- * Migration 80: removes from the TokensController state all tokens that belong to an EVM account that has been removed.
+ * Migration 81: removes from the TokensController state all tokens that belong to an EVM account that has been removed.
  * Also removes from TokenBalancesController all balances that belong to an EVM account that has been removed.
  */
 
