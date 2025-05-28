@@ -10,7 +10,6 @@ export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectSmartTransactionsEnabled);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const isHardwareAccount = selectedAddress ? getIsHardwareAccount(selectedAddress) : false;
-  const requireApproval = isHardwareAccount;
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -20,7 +19,7 @@ export default function useSubmitBridgeTx() {
     const txResult = await Engine.context.BridgeStatusController.submitTx(
       quoteResponse,
       stxEnabled,
-      requireApproval,
+      isHardwareAccount,
     );
 
     return txResult;
