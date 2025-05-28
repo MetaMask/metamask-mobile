@@ -154,6 +154,9 @@ stages:
   create_android_release:
     workflows:
       - build_android_release: {}
+  create_android_release_new:
+    workflows:
+      - build_android_main_prod: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
