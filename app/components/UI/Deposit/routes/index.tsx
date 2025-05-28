@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { DepositSDKProvider } from '../sdk';
-import Root from '../Views/Root';
+import { DepositSDKProvider, useDepositSDK } from '../sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import BuildQuote from '../Views/BuildQuote';
 import EnterEmail from '../Views/EnterEmail';
@@ -20,10 +19,31 @@ const BasicInfo = () => (
   </View>
 );
 
-const DepositRoutes = () => (
-  <DepositSDKProvider>
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT}>
-      <Stack.Screen name={Routes.DEPOSIT.ROOT} component={Root} />
+const DepositNavigator = () => {
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const { checkExistingToken } = useDepositSDK();
+  const hasCheckedToken = useRef(false);
+
+  useEffect(() => {
+    const initializeFlow = async () => {
+      if (hasCheckedToken.current) return;
+
+      const hasToken = await checkExistingToken();
+      setInitialRoute(
+        hasToken ? Routes.DEPOSIT.VERIFY_IDENTITY : Routes.DEPOSIT.BUILD_QUOTE,
+      );
+      hasCheckedToken.current = true;
+    };
+
+    initializeFlow();
+  }, [checkExistingToken]);
+
+  if (!initialRoute) {
+    return null;
+  }
+
+  return (
+    <Stack.Navigator initialRouteName={initialRoute}>
       <Stack.Screen name={Routes.DEPOSIT.BUILD_QUOTE} component={BuildQuote} />
       <Stack.Screen name={Routes.DEPOSIT.ENTER_EMAIL} component={EnterEmail} />
       <Stack.Screen name={Routes.DEPOSIT.OTP_CODE} component={OtpCode} />
@@ -33,6 +53,12 @@ const DepositRoutes = () => (
       />
       <Stack.Screen name={Routes.DEPOSIT.BASIC_INFO} component={BasicInfo} />
     </Stack.Navigator>
+  );
+};
+
+const DepositRoutes = () => (
+  <DepositSDKProvider>
+    <DepositNavigator />
   </DepositSDKProvider>
 );
 

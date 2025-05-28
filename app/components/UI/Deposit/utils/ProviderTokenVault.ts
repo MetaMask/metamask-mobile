@@ -17,6 +17,11 @@ interface ProviderTokenResponse {
   error?: string;
 }
 
+interface ProviderToken {
+  token: NativeTransakAccessToken;
+  expiresAt: number;
+}
+
 export async function storeProviderToken(
   token: NativeTransakAccessToken,
 ): Promise<ProviderTokenResponse> {
@@ -34,7 +39,13 @@ export async function storeProviderToken(
           : undefined,
     };
 
-    const stringifiedToken = JSON.stringify(token);
+    const expiresAt = Date.now() + token.ttl * 1000;
+    const storedToken: ProviderToken = {
+      token,
+      expiresAt,
+    };
+
+    const stringifiedToken = JSON.stringify(storedToken);
 
     const storeResult = await setInternetCredentials(
       PROVIDER_TOKEN_KEY,
@@ -65,9 +76,19 @@ export async function getProviderToken(): Promise<ProviderTokenResponse> {
   try {
     const credentials = await getInternetCredentials(PROVIDER_TOKEN_KEY);
     if (credentials) {
+      const storedToken: ProviderToken = JSON.parse(credentials.password);
+
+      if (Date.now() > storedToken.expiresAt) {
+        await resetProviderToken();
+        return {
+          success: false,
+          error: 'Token has expired',
+        };
+      }
+
       return {
         success: true,
-        token: JSON.parse(credentials.password),
+        token: storedToken.token,
       };
     }
     return {

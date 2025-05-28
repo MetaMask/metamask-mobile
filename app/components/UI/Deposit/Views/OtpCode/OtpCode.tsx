@@ -30,6 +30,7 @@ const CELL_COUNT = 6;
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { email, setAuthToken } = useDepositSDK();
 
   useEffect(() => {
     navigation.setOptions(
@@ -42,7 +43,6 @@ const OtpCode = () => {
   }, [navigation, theme]);
 
   const [value, setValue] = useState('');
-  const { email } = useDepositSDK();
 
   const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
@@ -54,20 +54,33 @@ const OtpCode = () => {
     error,
     sdkMethod: submitCode,
     loading,
-  } = useDepositSdkMethod('verifyUserOtp', value, email);
+    response,
+  } = useDepositSdkMethod('verifyUserOtp', email, value);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, [inputRef]);
 
+  useEffect(() => {
+    const saveTokenAndNavigate = async () => {
+      if (response) {
+        try {
+          await setAuthToken(response);
+          navigation.navigate(...createVerifyIdentityNavDetails());
+        } catch (e) {
+          console.error('Failed to store auth token:', e);
+        }
+      }
+    };
+
+    saveTokenAndNavigate();
+  }, [response, setAuthToken, navigation]);
+
   const handleSubmit = useCallback(async () => {
     if (!loading && value.length === CELL_COUNT) {
       await submitCode();
-      if (!error) {
-        navigation.navigate(...createVerifyIdentityNavDetails());
-      }
     }
-  }, [error, loading, navigation, submitCode, value.length]);
+  }, [loading, submitCode, value.length]);
 
   return (
     <ScreenLayout>
