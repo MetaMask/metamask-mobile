@@ -701,10 +701,11 @@ export class BackgroundBridge extends EventEmitter {
             NetworkController,
           ),
         listAccounts: AccountsController.listAccounts.bind(AccountsController),
-        requestPermissionsForOrigin: (requestedPermissions) =>
+        requestPermissionsForOrigin: (requestedPermissions, options = {}) =>
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            options,
           ),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
