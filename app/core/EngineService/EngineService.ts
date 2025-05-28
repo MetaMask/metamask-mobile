@@ -1,5 +1,8 @@
+import { unstable_batchedUpdates as batchFunc } from 'react-native';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
+import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
 import {
@@ -13,89 +16,28 @@ import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
-import { unstable_batchedUpdates as batchFunc } from 'react-native';
-
-const LOG_TAG = 'EngineService';
-
-interface InitializeEngineResult {
-  success: boolean;
-  error?: string;
-}
-
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
-/**
- * This is the frequency of batch flushing in milliseconds
- * delay of 0 means "flush on the next macrotask"
- */
-const BATCH_FLUSH_TIMER = 250;
-
-/**
- * Batcher class for handling batched operations
- * manages a set of items that are processed together after a specified delay
- * might be used for other services as well
- */
-class Batcher<T> {
-  // Set of unique pending items to batch
-  private pending: Set<T> = new Set<T>();
-  // timer that will trigger the flush()
-  private timer: NodeJS.Timeout | null = null;
-  // the function to call when we flush the batch
-  private handler: (items: T[]) => void;
-  // time in ms to wait after the first add() before flushing
-  private delay: number;
-
-  constructor(handler: (items: T[]) => void, delay = 0) {
-    this.handler = handler;
-    this.delay = delay;
-  }
-
-  // add an item to the pending set and schedule a flush if not already pending.
-  add(item: T) {
-    this.pending.add(item);
-    // if no timer is running, start one
-    if (this.timer === null) {
-      this.timer = setTimeout(() => this.flush(), this.delay);
-    }
-  }
-
-  // clear the timer, empty the set, and invoke the handler with all pending items
-  flush() {
-    // cancel the pending timer so we don't call flush twice
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    // snapshot the items and clear for the next batch
-    const items = Array.from(this.pending);
-    this.pending.clear();
-
-    this.handler(items);
-  }
-}
+import { InitializeEngineResult } from './types';
+import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
   private engineInitialized = false;
 
-  private updateBatcher = new Batcher<string>(
-    (keys) =>
-      batchFunc(() => {
-        keys.forEach((key) => {
-          if (key === INIT_BG_STATE_KEY) {
-            // first-time init action
-            ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
-          } else {
-            // incremental update action
-            ReduxService.store.dispatch({
-              type: UPDATE_BG_STATE_KEY,
-              payload: { key },
-            });
-          }
-        });
-      }),
-    BATCH_FLUSH_TIMER,
+  private updateBatcher = new Batcher<string>((keys) =>
+    batchFunc(() => {
+      keys.forEach((key) => {
+        if (key === INIT_BG_STATE_KEY) {
+          // first-time init action
+          ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+        } else {
+          // incremental update action
+          ReduxService.store.dispatch({
+            type: UPDATE_BG_STATE_KEY,
+            payload: { key },
+          });
+        }
+      });
+    }),
   );
 
   /**
