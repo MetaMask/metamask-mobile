@@ -125,6 +125,7 @@ class Matchers {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
   }
+
   /**
    * Get element by href.
    * @param {string} webviewID - The web ID of the browser webview

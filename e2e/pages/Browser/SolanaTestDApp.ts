@@ -72,6 +72,14 @@ class SolanaTestDApp {
       .withTimeout(10000);
   }
 
+  async reloadSolanaTestDApp(): Promise<void> {
+    await Browser.reloadTab();
+
+    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
+      .toBeVisible()
+      .withTimeout(10000);
+  }
+
   /**
    * Tap a button in the WebView
    */
@@ -121,6 +129,12 @@ class SolanaTestDApp {
    */
   getWebView() {
     return web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).atIndex(0);
+  }
+
+  async refreshPage(): Promise<void> {
+    const webview = this.getWebView();
+    // await webview.element(by.web.tag('body')).runScript('(el) => { window.location.reload(); return "refreshed"; }');
+    await webview.element(by.web.tag('body')).runScript('() => { window.location.reload(); }');
   }
 
   getSignMessageTest() {

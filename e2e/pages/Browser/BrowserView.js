@@ -203,6 +203,13 @@ class Browser {
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
     await waitForTestDappToLoad();
   }
+
+  async reloadTab() {
+    await this.tapUrlInputBox();
+
+    const element = await this.urlInputBoxID;
+    await element.typeText('\n');
+  }
 }
 
 export default new Browser();
