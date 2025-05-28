@@ -1348,7 +1348,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                echo "MYLOG Running: yarn $YARN_COMMAND"
+                if [ -n "$YARN_COMMAND" ]; then
+                  echo "Running: yarn $YARN_COMMAND"
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
@@ -1444,15 +1448,8 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_main_prod:
-    steps:
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:prod
-          title: Build Android Main Prod bundle
-          is_always_run: true
+    envs:
+      - YARN_COMMAND: 'build:android:main:prod'
     after_run:
       - _android_build_template
     meta:
