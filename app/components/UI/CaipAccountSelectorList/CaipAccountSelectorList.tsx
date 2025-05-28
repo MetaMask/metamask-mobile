@@ -130,11 +130,7 @@ const CaipAccountSelectorList = ({
       isSelected: boolean;
       caipAccountId: CaipAccountId;
     }) => {
-      if (
-        !isAccountRemoveable ||
-        !isRemoveAccountEnabled ||
-        isSolanaAddress(address)
-      ) return;
+      if (isAccountRemoveable || !isRemoveAccountEnabled) return;
 
       Alert.alert(
         strings('accounts.remove_account_title'),
