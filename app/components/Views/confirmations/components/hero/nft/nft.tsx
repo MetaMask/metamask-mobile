@@ -14,8 +14,8 @@ import images from '../../../../../../images/image-icons';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 // TODO: consider
 // import RemoteImage from '../../../../../Base/RemoteImage';
+import { useNft } from '../../../hooks/nft/useNft';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
-import { useNft } from '../../../hooks/useNft';
 import { Hero } from '../hero';
 import styleSheet from './nft.styles';
 

@@ -1,6 +1,6 @@
-    import { TokenStandard } from '../../../UI/SimulationDetails/types';
-    import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-    import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
+    import { TokenStandard } from '../../../../UI/SimulationDetails/types';
+    import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+    import { useGetTokenStandardAndDetails } from '../useGetTokenStandardAndDetails';
 
     export const useIsNft = (): { isNft: boolean; isPending: boolean } => {
       const transactionMetadata = useTransactionMetadataRequest();
