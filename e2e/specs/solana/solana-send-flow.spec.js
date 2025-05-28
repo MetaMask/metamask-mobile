@@ -39,6 +39,7 @@ describe(
       });
     });
 
+    // TODO: This test is skipped due to issues with Solana onboarding flow. Re-enable once the onboarding process is stable and verified. See issue #12345 for details.
     it.skip('should navigate through Solana onboarding and create a Solana account', async () => {
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAddAccountButton();
