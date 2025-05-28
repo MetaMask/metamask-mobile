@@ -2274,6 +2274,9 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
+      EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3'
+    - opts:
+        is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
