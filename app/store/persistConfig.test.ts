@@ -113,7 +113,6 @@ describe('persistConfig', () => {
       expect(persistConfig.version).toBe(version);
       expect(persistConfig.timeout).toBe(40000);
       expect(persistConfig.blacklist).toEqual([
-        'onboarding',
         'rpcEvents',
         'accounts',
         'confirmationMetrics',
@@ -232,7 +231,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have engine transform configured', () => {
-      expect(persistConfig.transforms).toHaveLength(2);
+      expect(persistConfig.transforms).toHaveLength(3);
       const engineTransform = persistConfig.transforms[0] as Transform<
         unknown,
         unknown
@@ -246,6 +245,14 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(userTransform.whitelist).toEqual(['user']);
+    });
+
+    it('has onboarding transform configured', () => {
+      const onboardingTransform = persistConfig.transforms[2] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(onboardingTransform.whitelist).toEqual(['onboarding']);
     });
 
     describe('persistTransform', () => {
