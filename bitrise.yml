@@ -1450,6 +1450,8 @@ workflows:
   build_android_main_prod:
     envs:
       - YARN_COMMAND: 'build:android:main:prod'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
