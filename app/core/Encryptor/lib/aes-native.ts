@@ -46,7 +46,7 @@ export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is ty
  * Please use `QuickCryptoEncryptionLibrary` instead.
  */
 class AesEncryptionLibrary implements EncryptionLibrary {
-  type: string =  ENCRYPTION_LIBRARY.original;
+  type: string = ENCRYPTION_LIBRARY.original;
 
   deriveKey = async (
     password: string,

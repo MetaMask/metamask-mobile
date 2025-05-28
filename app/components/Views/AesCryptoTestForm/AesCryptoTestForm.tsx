@@ -75,7 +75,7 @@ const AesCryptoTestForm = () => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any[]) => {
-      const response = await encryptor?.keyFromPassword(args[0], args[1], ENCRYPTION_LIBRARY.quickCrypto);
+      const response = await encryptor?.keyFromPassword(args[0], args[1]);
       return response?.key;
     },
     [encryptor],

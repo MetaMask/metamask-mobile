@@ -128,9 +128,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   keyFromPassword = async (
     password: string,
     salt: string,
-    encryptionLibType: string,
     exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
+    encryptionLibType: string = this.encryptionLib.type,
   ): Promise<EncryptionKey> => {
     const derivedKey = await this.encryptionLib.deriveKey(password, salt, opts);
     return {
@@ -198,7 +198,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       salt,
-      this.encryptionLib.type,
       false,
       this.keyDerivationOptions,
     );
@@ -233,9 +232,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       payload.salt,
-      payload.lib,
       false,
       payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
+      payload.lib,
     );
 
     return await this.decryptWithKey(key, payload);
@@ -313,7 +312,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const payload = JSON.parse(text);
 
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(password, salt, payload.lib, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS);
+    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 
@@ -340,7 +339,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
-    const key = await this.keyFromPassword(password, salt, this.encryptionLib.type, true, keyDerivationOptions);
+    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions);
     const exportedKeyString = await this.exportKey(key);
 
     const result = await this.encryptWithKey(key, dataObj);

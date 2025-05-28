@@ -53,7 +53,6 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.error.default,
     },
     warningRowWrapper: {
-      flex: 1,
       flexDirection: 'row',
       alignContent: 'center',
       alignItems: 'center',

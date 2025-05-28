@@ -69,7 +69,7 @@ describe('AesEncryptionLibrary', () => {
       'data',
       'key',
       'iv',
-      'aes-cbc-pkcs7padding',
+      CipherAlgorithmAesCrypto.Cbc,
     );
   });
 });
