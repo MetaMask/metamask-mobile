@@ -1,12 +1,12 @@
 import { useSelector } from 'react-redux';
-import { safeToChecksumAddress } from '../../../../util/address';
-import { parseStandardTokenTransactionData } from '../utils/transaction';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { NameType } from '../../../UI/Name/Name.types';
 import { Nft } from '@metamask/assets-controllers';
-import { collectiblesSelector } from '../../../../reducers/collectibles';
-import useDisplayName from '../../../hooks/DisplayName/useDisplayName';
 import { toHex } from '@metamask/controller-utils';
+import { collectiblesSelector } from '../../../../../reducers/collectibles';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import useDisplayName from '../../../../hooks/DisplayName/useDisplayName';
+import { NameType } from '../../../../UI/Name/Name.types';
+import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 export interface UseNftResponse {
   chainId: string;
