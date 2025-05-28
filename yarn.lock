@@ -4681,6 +4681,15 @@
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/utils" "^11.1.0"
 
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-2f320f7a":
+  version "6.0.3-preview-2f320f7a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-2f320f7a.tgz#88f677a3a129fae7be59339daf38142c6c7a5d69"
+  integrity sha512-k6sEyBKI7M87c7Szh1ayVQ+hb9gT+imSGHvM3IOs1fssGS3l2mbEh5HWVh7QGgBlnmMmpJjM4zrvXhseHW+PvQ==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/utils" "^11.2.0"
+
 "@metamask/api-specs@^0.10.12":
   version "0.10.17"
   resolved "https://registry.yarnpkg.com/@metamask/api-specs/-/api-specs-0.10.17.tgz#e6974ac38e9ae80f67adfd3b4919322d926e5085"
@@ -5559,10 +5568,25 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-14.0.0.tgz#f006ff2f3fea33318d613c9c87f9e9545041994a"
-  integrity sha512-cjgibCaf2h297yN84ceUxL2uqapi/dyTWlK5O6ZDwDDDisvOUmDMN/h4ZaJA8fhQwf4lAeBSqyp4K/x9FLjHHw==
+"@metamask/profile-sync-controller@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-15.0.0.tgz#f031b20c1190129db4ca1f706d836e60eded6b4b"
+  integrity sha512-jK9oFT1Bq6zF6bxQIXnQiCPPSZHCmH8FhZMDUTOTdRq46o+1zBd13CIO1WaK0Fy6AJIKiatHQoN5lWds5GtjVQ==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/keyring-api" "^17.4.0"
+    "@metamask/snaps-sdk" "^6.22.0"
+    "@metamask/snaps-utils" "^9.2.0"
+    "@noble/ciphers" "^0.5.2"
+    "@noble/hashes" "^1.4.0"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    siwe "^2.3.2"
+
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2f320f7a":
+  version "15.0.0-preview-2f320f7a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-2f320f7a.tgz#599ebf33058317cdd5b3d7ea49fc694553d9b0df"
+  integrity sha512-E56ijXmY5hpCrCOgthdd5QcFNK8QJ8VGrRMu5okHouc0XJdd8P14Kd8mXlilBnjPseMTqvndfMnHREjI4IvCdA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^17.4.0"
