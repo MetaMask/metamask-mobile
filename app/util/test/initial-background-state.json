@@ -1,8 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "keyringsMetadata": []
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
