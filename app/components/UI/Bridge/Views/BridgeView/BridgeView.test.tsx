@@ -15,6 +15,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { strings } from '../../../../../../locales/i18n';
+import { isHardwareAccount } from '../../../../../util/address';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -644,7 +645,7 @@ describe('BridgeView', () => {
     it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
       // Mock isHardwareAccount to return true for this test only
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
-      jest.mocked(require('../../../../../util/address').isHardwareAccount).mockImplementation(mockIsHardwareAccount);
+      jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -664,24 +665,6 @@ describe('BridgeView', () => {
             image: '',
             name: 'Solana',
             symbol: 'SOL',
-          },
-        },
-        accountsControllerOverrides: {
-          internalAccounts: {
-            accounts: {
-              '0x1234567890123456789012345678901234567890': {
-                address: '0x1234567890123456789012345678901234567890',
-                id: '0x1234567890123456789012345678901234567890',
-                metadata: {
-                  name: 'Account 1',
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
-                },
-                options: {},
-              },
-            },
-            selectedAccount: '0x1234567890123456789012345678901234567890',
           },
         },
       });
