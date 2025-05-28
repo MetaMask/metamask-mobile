@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
-index f957018..b66a39b 100644
+index f957018..c21eb94 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 @@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -28,7 +28,7 @@ index f957018..b66a39b 100644
          this.resetState = () => {
              this.update((state) => {
                  state.txHistory = constants_1.DEFAULT_BRIDGE_STATUS_CONTROLLER_STATE.txHistory;
-@@ -276,45 +275,44 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -276,45 +275,45 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                  .transactions.find((tx) => tx.hash === transactionHash);
              return finalTransactionMeta;
          });
@@ -53,13 +53,14 @@ index f957018..b66a39b 100644
 -                        stxEnabled: false,
 -                    },
 -                }, approveTx);
-+        _BridgeStatusController_handleApprovalTx.set(this, async (quoteResponse) => {
++        _BridgeStatusController_handleApprovalTx.set(this, async (quoteResponse, requireApproval = false) => {
 +            if (quoteResponse.approval) {
 +                await __classPrivateFieldGet(this, _BridgeStatusController_handleUSDTAllowanceReset, "f").call(this, quoteResponse);
 +                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
 +                    transactionType: transaction_controller_1.TransactionType.bridgeApproval,
 +                    trade: quoteResponse.approval,
 +                    quoteResponse,
++                    requireApproval,
 +                });
 +                if (!approvalTxMeta) {
 +                    throw new Error('Failed to submit bridge tx: approval txMeta is undefined');
@@ -102,7 +103,7 @@ index f957018..b66a39b 100644
              const actionId = (0, transaction_2.generateActionId)().toString();
              const selectedAccount = this.messagingSystem.call('AccountsController:getAccountByAddress', trade.from);
              if (!selectedAccount) {
-@@ -325,7 +323,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -325,7 +324,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
              const requestOptions = {
                  actionId,
                  networkClientId,
@@ -111,7 +112,7 @@ index f957018..b66a39b 100644
                  type: transactionType,
                  origin: 'metamask',
              };
-@@ -374,7 +372,11 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -374,7 +373,11 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                  const allowance = new bignumber_js_1.BigNumber(await this.messagingSystem.call('BridgeController:getBridgeERC20Allowance', quoteResponse.quote.srcAsset.address, hexChainId));
                  const shouldResetApproval = allowance.lt(quoteResponse.sentAmount.amount) && allowance.gt(0);
                  if (shouldResetApproval) {
@@ -124,12 +125,11 @@ index f957018..b66a39b 100644
                  }
              }
          });
-@@ -401,23 +403,16 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -401,23 +404,15 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
           *
           * @param quoteResponse - The quote response
           * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
 +         * @param requireApproval - Whether to prompt user to confirm the tx. Hardware wallets require true.
-+         * @param requireApprova
           * @returns The transaction meta
           */
 -        this.submitTx = async (quoteResponse, isStxEnabledOnClient) => {
@@ -157,7 +157,7 @@ index f957018..b66a39b 100644
                  typeof quoteResponse.trade !== 'string') {
                  // Set approval time and id if an approval tx is needed
 -                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse);
-+                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, quoteResponse);
++                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, quoteResponse, requireApproval);
                  approvalTime = approvalTxMeta?.time;
                  approvalTxId = approvalTxMeta?.id;
                  // Handle smart transactions if enabled
@@ -211,7 +211,7 @@ index f957018..b66a39b 100644
  }, _BridgeStatusController_getMultichainSelectedAccountAddress = function _BridgeStatusController_getMultichainSelectedAccountAddress() {
      return __classPrivateFieldGet(this, _BridgeStatusController_instances, "m", _BridgeStatusController_getMultichainSelectedAccount).call(this)?.address ?? '';
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
-index fbf56ab..b4666f7 100644
+index fbf56ab..b9fbb6f 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 @@ -1,5 +1,4 @@
@@ -237,12 +237,11 @@ index fbf56ab..b4666f7 100644
      });
      resetState: () => void;
      wipeBridgeStatus: ({ address, ignoreNetwork, }: {
-@@ -58,9 +56,11 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
+@@ -58,9 +56,10 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
       *
       * @param quoteResponse - The quote response
       * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
 +     * @param requireApproval - Whether to prompt user to confirm the tx. Hardware wallets require true.
-+     * @param requireApprova
       * @returns The transaction meta
       */
 -    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
