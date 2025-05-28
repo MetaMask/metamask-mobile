@@ -519,6 +519,16 @@ const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '0x0000000000000000000000000000000000000000': {
+              address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+          selectedAccount: '0x0000000000000000000000000000000000000000',
+        },
+      },
       ApprovalController: {
         pendingApprovals: {
           '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
@@ -548,6 +558,24 @@ const stakingConfirmationBaseState = {
             usdConversionRate: 3596.25,
           },
         },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': [{
+              address: '0x0000000000000000000000000000000000000000',
+              aggregators: [],
+              balance: '0xde0b6b3a7640000',
+              chainId: '0x1',
+              decimals: 18,
+              isETH: true,
+              isNative: true,
+              name: 'Ethereum',
+              symbol: 'ETH',
+              ticker: 'ETH',
+            }]
+          }
+        }
       },
       TransactionController: {
         transactions: [
@@ -618,16 +646,7 @@ const stakingConfirmationBaseState = {
           },
         },
         networkConfigurationsByChainId: {
-          '0x1': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
+          ...backgroundState.NetworkController.networkConfigurationsByChainId,
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
@@ -705,16 +724,6 @@ export const stakingWithdrawalConfirmationState = merge(
         TransactionController: {
           transactions: [{ type: TransactionType.stakingUnstake }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -729,16 +738,6 @@ export const stakingClaimConfirmationState = merge(
         TransactionController: {
           transactions: [{ type: TransactionType.stakingClaim }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -1271,11 +1270,12 @@ export const MOCK_KEYRING_CONTROLLER_STATE = {
         '0x089595380921f555d52ab6f5a49defdaab23b444',
         '0xa4a80ce0afdfb8e6bd1221d3b18a1653eee6d19d',
       ],
+      metadata: { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
     },
-    { type: 'QR Hardware Wallet Device', accounts: [] },
-  ],
-  keyringsMetadata: [
-    { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
-    { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
+    {
+      type: 'QR Hardware Wallet Device',
+      accounts: [],
+      metadata: { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
+    },
   ],
 };
