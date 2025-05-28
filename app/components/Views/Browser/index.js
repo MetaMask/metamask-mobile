@@ -207,14 +207,16 @@ export const Browser = (props) => {
   }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
+    // Note: the concept of a currently selected network doesn't quite exist for the Multichain API
+    // The following code will work for detecting changes in the selected EVM account though
     const checkIfActiveAccountChanged = () => {
       const hostname = new URL(browserUrl).hostname;
-      const permittedAccounts = getPermittedAccounts(hostname);
-      const activeAccountAddress = permittedAccounts?.[0];
+      const permittedEvmAccounts = getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedEvmAccounts?.[0];
 
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
-          accountAddress: activeAccountAddress,
+          caipAccountId: `eip155:0:${activeAccountAddress}`,
           accounts,
           ensByAccountAddress,
         });
