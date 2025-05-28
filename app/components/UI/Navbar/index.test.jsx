@@ -3,7 +3,11 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { getDepositNavbarOptions, getNetworkNavbarOptions } from '.';
+import {
+  getDepositNavbarOptions,
+  getNetworkNavbarOptions,
+  getOnboardingNavbarOptions,
+} from '.';
 import { mockTheme } from '../../../util/theme';
 
 describe('getNetworkNavbarOptions', () => {
@@ -76,5 +80,19 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getOnboardingNavbarOptions', () => {
+  it('handles getOnboardingNavbarOptions', () => {
+    const options = getOnboardingNavbarOptions(
+      { params: { headerLeft: 'left', headerRight: 'right' } },
+      { headerLeft: 'left', headerRight: 'right' },
+      mockTheme.colors,
+      false,
+    );
+    expect(options).toBeDefined();
+    expect(options.headerLeft).toBeDefined();
+    expect(options.headerRight).toBeDefined();
   });
 });
