@@ -13,7 +13,6 @@ import {
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 
-import Engine from '../../../core/Engine';
 import {
   BalanceChange,
   TokenAssetIdentifier,
