@@ -85,12 +85,12 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const displayNetworkName = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkName
+  const displayNetworkName = isPerDappSelectedNetworkEnabled() 
+    ? perDappNetworkInfo.networkName 
     : networkName;
-
-  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkImageSource
+  
+  const displayNetworkImage = isPerDappSelectedNetworkEnabled() 
+    ? perDappNetworkInfo.networkImageSource 
     : networkImage;
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
