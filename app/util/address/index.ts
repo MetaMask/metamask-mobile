@@ -95,7 +95,7 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function toFormattedAddress(address: string) {
-  return isEthAddress(address) ? toChecksumAddress(address) : address;
+  return isEthAddress(address) ? toChecksumHexAddress(address) : address;
 }
 
 /**
