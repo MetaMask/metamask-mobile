@@ -620,8 +620,8 @@ class ChoosePassword extends PureComponent {
                   color={TextColor.Alternative}
                 >
                   {strings('choose_password.steps', {
-                    step: 1,
-                    total: 3,
+                    currentStep: 1,
+                    totalSteps: 3,
                   })}
                 </Text>
 
@@ -642,6 +642,7 @@ class ChoosePassword extends PureComponent {
                       placeholder={strings(
                         'import_from_seed.enter_strong_password',
                       )}
+                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
                       value={password}
                       onChangeText={this.onPasswordChange}
                       placeholderTextColor={colors.text.muted}
@@ -732,7 +733,7 @@ class ChoosePassword extends PureComponent {
                       }
                       isDisabled={password === ''}
                     />
-                    {this.isError() && (
+                    {this.checkError() && (
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Error}

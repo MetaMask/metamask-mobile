@@ -692,7 +692,7 @@ const ImportFromSecretRecoveryPhrase = ({
       >
         <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('import_from_seed.step', {
+            {strings('import_from_seed.steps', {
               currentStep: currentStep + 1,
               totalSteps: 2,
             })}
