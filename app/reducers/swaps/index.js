@@ -14,6 +14,7 @@ import { getChainFeatureFlags, getSwapsLiveness } from './utils';
 import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
+import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -91,9 +92,9 @@ export const selectSwapsChainFeatureFlags = createSelector(
   (_state, transactionChainId) =>
     transactionChainId || selectEvmChainId(_state),
   (swapsState, chainId) => ({
-    ...swapsState[chainId].featureFlags,
+    ...(swapsState[chainId]?.featureFlags || {}),
     smartTransactions: {
-      ...(swapsState[chainId].featureFlags?.smartTransactions || {}),
+      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
       ...(swapsState.featureFlags?.smartTransactions || {}),
     },
   }),
@@ -387,24 +388,48 @@ function swapsReducer(state = initialState, action) {
         };
       }
 
-      const chainFeatureFlags = getChainFeatureFlags(featureFlags, chainId);
-      const liveness = getSwapsLiveness(featureFlags, chainId);
-
-      const chain = {
-        ...data,
-        featureFlags: chainFeatureFlags,
-        isLive: liveness,
-      };
-
-      return {
+      const newState = {
         ...state,
-        [chainId]: chain,
-        [rawChainId]: chain,
         featureFlags: {
           smart_transactions: featureFlags.smart_transactions,
           smartTransactions: featureFlags.smartTransactions,
         },
       };
+
+      // Invert CHAIN_ID_TO_NAME_MAP to get chain name to ID mapping
+      const chainNameToIdMap = Object.entries(CHAIN_ID_TO_NAME_MAP).reduce(
+        (acc, [chainId, chainName]) => {
+          acc[chainName] = chainId;
+          return acc;
+        },
+        {},
+      );
+
+      // Iterate through featureFlags and save chain-specific data
+      Object.keys(featureFlags).forEach((chainName) => {
+        const chainIdForName = chainNameToIdMap[chainName];
+
+        if (
+          chainIdForName &&
+          featureFlags[chainName] &&
+          typeof featureFlags[chainName] === 'object'
+        ) {
+          const chainData = featureFlags[chainName];
+          const chainLiveness = getSwapsLiveness(featureFlags, chainIdForName);
+
+          newState[chainIdForName] = {
+            ...state[chainIdForName],
+            featureFlags: chainData,
+            isLive: chainLiveness,
+          };
+
+          if (chainIdForName === chainId && rawChainId !== chainId) {
+            newState[rawChainId] = newState[chainIdForName];
+          }
+        }
+      });
+
+      return newState;
     }
     case SWAPS_SET_HAS_ONBOARDED: {
       return {
