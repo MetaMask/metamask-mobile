@@ -13,6 +13,10 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.44.0'),
+}));
+
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
 }));
