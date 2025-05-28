@@ -24,7 +24,6 @@ import {
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
