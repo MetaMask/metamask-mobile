@@ -88,9 +88,14 @@ const SnapSettings = () => {
     if (isKeyringSnap) {
       (async () => {
         const addresses = await getAccountsBySnapId(snap.id);
+        const formattedAddresses = addresses.map((address) =>
+          toFormattedAddress(address),
+        );
         const snapIdentities = Object.values(internalAccounts).filter(
           (internalAccount) =>
-            addresses.includes(toFormattedAddress(internalAccount.address)),
+            formattedAddresses.includes(
+              toFormattedAddress(internalAccount.address),
+            ),
         );
         setKeyringAccounts(snapIdentities);
       })();
