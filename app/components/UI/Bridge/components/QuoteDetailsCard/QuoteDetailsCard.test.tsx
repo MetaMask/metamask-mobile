@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';

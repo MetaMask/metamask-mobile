@@ -1,9 +1,9 @@
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
-import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

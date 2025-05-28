@@ -310,6 +310,7 @@ class WalletView {
   async tapCarouselSlide(id) {
     await Gestures.tap(this.getCarouselSlide(id));
   }
+
 }
 
 export default new WalletView();

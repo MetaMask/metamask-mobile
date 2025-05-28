@@ -50,15 +50,17 @@ class Gestures {
    * @param {Object} [options={}] - Configuration options
    * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
    * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+   * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
    */
   static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0 } = options;
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
-
+    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    if (!skipVisibilityCheck) {
+      await waitFor(await element).toBeVisible().withTimeout(timeout);
+    }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
-    await element.tap();
+    await (await element).tap();
   }
 
   /**
