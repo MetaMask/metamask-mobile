@@ -420,8 +420,8 @@
     "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
   },
+  
   "devDependencies": {
-    "@metamask-previews/foundryup": "0.0.0-preview-c1fef6e5",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.25.3",
@@ -441,6 +441,7 @@
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
     "@metamask/test-dapp": "^9.2.0",
+    "@metamask-previews/foundryup": "0.0.0-preview-de21a3fe",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
