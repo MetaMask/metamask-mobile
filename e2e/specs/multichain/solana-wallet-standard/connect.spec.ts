@@ -18,26 +18,43 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   });
 
   describe('Connect to Solana test dapp', () => {
-    it('Should connect', async () => {
-      await withFixtures(
-        {
-          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder()
-            .withSolanaFixture()
-            .withSolanaFeatureSheetDisplayed()
-            .build(),
-          dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
-          restartDevice: true,
-        },
-        async () => {
-          await setup();
+    describe('Connect & disconnect from Solana test dapp', () => {
+      it('Should connect & disconnect', async () => {
+        await withFixtures(
+          {
+            ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+            fixture: new FixtureBuilder()
+              .withSolanaFixture()
+              .withSolanaFeatureSheetDisplayed()
+              .build(),
+            dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
+            restartDevice: true,
+          },
+          async () => {
+            await setup();
 
-          await connectSolanaTestDapp();
+            await connectSolanaTestDapp();
 
-          const account = await SolanaTestDApp.getHeader().getAccount();
-          await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
-        },
-      );
+            const header = SolanaTestDApp.getHeader();
+
+            // Check we're connected
+            const account = await header.getAccount();
+            await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+            const connectionStatus = await header.getConnectionStatus();
+            await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
+
+            await header.disconnect();
+
+            // Check we're disconnected
+            const connectionStatusAfterDisconnect =
+              await header.getConnectionStatus();
+            await Assertions.checkIfTextMatches(
+              connectionStatusAfterDisconnect,
+              'Not connected',
+            );
+          },
+        );
+      });
     });
 
     it('Should be able to cancel connection and connect again', async () => {
@@ -77,8 +94,8 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     });
   });
 
-  describe('Disconnect from Solana test dapp', () => {
-    it('Should disconnect', async () => {
+  describe('Page refresh', () => {
+    it('Should not disconnect the dapp', async () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
@@ -94,21 +111,19 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
 
           await connectSolanaTestDapp();
 
+          // Should be connected
           const header = SolanaTestDApp.getHeader();
-
           const account = await header.getAccount();
           await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
-          const connectionStatus = await header.getConnectionStatus();
-          await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
-          await header.disconnect();
+          // Refresh the page
+          await SolanaTestDApp.reloadSolanaTestDApp();
+          await TestHelpers.delay(4000);
 
-          const connectionStatusAfterDisconnect =
-            await header.getConnectionStatus();
-          await Assertions.checkIfTextMatches(
-            connectionStatusAfterDisconnect,
-            'Not connected',
-          );
+          // Should still be connected after refresh
+          const headerAfterRefresh = SolanaTestDApp.getHeader();
+          const accountAfterRefresh = await headerAfterRefresh.getAccount();
+          await Assertions.checkIfTextMatches(accountAfterRefresh, 'CEQ8...Yrrd');
         },
       );
     });
