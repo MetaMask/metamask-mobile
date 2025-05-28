@@ -16,10 +16,10 @@ import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 
-// TODO: move this to Enter address view when it created
-export const createEnterAddressNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_ADDRESS,
+export const createBasicInfoNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.BASIC_INFO,
 );
 
 interface FormData {
