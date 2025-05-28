@@ -832,7 +832,7 @@ describe('WalletConnect2Session', () => {
       const getNetworkClientIdSpy = jest.spyOn(session as any, 'getNetworkClientIdForChainId');
 
       await buildCase(false, testChainId);
-      expect(getNetworkClientIdSpy).toHaveBeenCalled();
+      expect(getNetworkClientIdSpy).toHaveBeenCalledTimes(0);
       expect(mockedEngine.context.MultichainNetworkController.setActiveNetwork).toHaveBeenCalledWith(
         testNetworkClientId
       );
