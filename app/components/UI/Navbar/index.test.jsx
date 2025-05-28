@@ -7,6 +7,7 @@ import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
   getOnboardingCarouselNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -104,6 +105,17 @@ describe('getDepositNavbarOptions', () => {
 
   it('handles getOnboardingCarouselNavbarOptions', () => {
     const options = getOnboardingCarouselNavbarOptions('red');
+    expect(options).toBeDefined();
+    expect(options.headerStyle.backgroundColor).toBe('red');
+  });
+
+  it('handles getTransparentOnboardingNavbarOptions', () => {
+    const options = getTransparentOnboardingNavbarOptions(
+      mockTheme,
+      'red',
+      true,
+      'blue',
+    );
     expect(options).toBeDefined();
     expect(options.headerStyle.backgroundColor).toBe('red');
   });
