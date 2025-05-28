@@ -181,9 +181,11 @@ describe('generateDefaultTransactionMetrics', () => {
       batch_transaction_method: 'eip7702',
       chain_id: '0xaa36a7',
       eip7702_upgrade_transaction: true,
+      source: 'MetaMask Mobile',
       status: 'unapproved',
       transaction_contract_address: [],
       transaction_contract_method: [],
+      transaction_envelope_type: '0x4',
       transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
       transaction_type: 'batch',
     });
@@ -206,7 +208,9 @@ describe('generateDefaultTransactionMetrics', () => {
       account_eip7702_upgraded: undefined,
       chain_id: '0xaa36a7',
       eip7702_upgrade_transaction: true,
+      source: 'MetaMask Mobile',
       status: 'unapproved',
+      transaction_envelope_type: '0x4',
       transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
       transaction_type: 'batch',
     });
@@ -233,10 +237,12 @@ describe('generateDefaultTransactionMetrics', () => {
     );
     expect(metrics.properties).toStrictEqual({
       account_eip7702_upgraded: undefined,
+      source: 'MetaMask Mobile',
       chain_id: '0xaa36a7',
       eip7702_upgrade_rejection: true,
       eip7702_upgrade_transaction: true,
       status: 'rejected',
+      transaction_envelope_type: '0x4',
       transaction_internal_id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
       transaction_type: 'batch',
     });
@@ -257,12 +263,14 @@ describe('generateDefaultTransactionMetrics', () => {
     );
     expect(metrics.properties).toStrictEqual({
       account_eip7702_upgraded: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+      source: 'MetaMask Mobile',
       api_method: 'wallet_sendCalls',
       batch_transaction_count: 2,
       batch_transaction_method: 'eip7702',
       chain_id: '0x1',
       eip7702_upgrade_transaction: false,
       status: 'unapproved',
+      transaction_envelope_type: '0x2',
       transaction_contract_address: [
         '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
       ],
