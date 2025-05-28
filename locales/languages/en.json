@@ -316,6 +316,7 @@
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
     "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
@@ -377,7 +378,7 @@
     "learn_more_link": "Learn more",
     "confirm": "Confirm",
     "pass_flow": "Continue with Flow",
-    "step": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
     "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
     "enter_strong_password": "Enter a strong password"
