@@ -42,9 +42,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   isHDOrFirstPartySnapAccount,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -58,9 +56,7 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -88,7 +84,6 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
@@ -97,7 +92,6 @@ const AccountActions = () => {
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
-  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -233,7 +227,6 @@ const AccountActions = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -242,7 +235,6 @@ const AccountActions = () => {
       });
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -471,20 +463,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}

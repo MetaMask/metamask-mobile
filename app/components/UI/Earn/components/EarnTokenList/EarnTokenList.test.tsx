@@ -11,7 +11,7 @@ import {
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
   MOCK_USDC_BASE_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import Engine from '../../../../../core/Engine';
 import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
@@ -21,6 +21,8 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import * as ReactNative from 'react-native';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -117,6 +119,12 @@ describe('EarnTokenList', () => {
         typeof selectPooledStakingEnabledFlag
       >
     ).mockReturnValue(true);
+
+    jest
+      .spyOn(ReactNative.Image, 'getSize')
+      .mockImplementation((_uri, success) => {
+        success(100, 100);
+      });
   });
 
   it('render matches snapshot', () => {
@@ -237,7 +245,7 @@ describe('EarnTokenList', () => {
 
     const baseUsdc = getByText('USDC');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(baseUsdc);
     });
 
@@ -324,7 +332,7 @@ describe('EarnTokenList', () => {
 
     const ethButton = getByText('Ethereum');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(ethButton);
     });
 
@@ -351,6 +359,7 @@ describe('EarnTokenList', () => {
           balanceMinimalUnit: '0',
           apr: '2.3',
           estimatedAnnualRewardsFormatted: '',
+          experience: EARN_EXPERIENCES.POOLED_STAKING,
         },
       },
       screen: 'Stake',
@@ -369,7 +378,7 @@ describe('EarnTokenList', () => {
 
     const usdcButton = getByText('USDC');
 
-    await act(() => {
+    await act(async () => {
       fireEvent.press(usdcButton);
     });
 
@@ -396,6 +405,7 @@ describe('EarnTokenList', () => {
           balanceMinimalUnit: '0',
           apr: '4.5',
           estimatedAnnualRewardsFormatted: '',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
       },
       screen: 'Stake',

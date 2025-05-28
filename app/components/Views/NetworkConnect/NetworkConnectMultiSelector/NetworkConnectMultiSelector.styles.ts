@@ -17,7 +17,10 @@ const styleSheet = (params: {
       marginTop: 0,
       marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
-    updateButtonContainer: { flexDirection: 'row' },
+    updateButtonContainer: {
+      flexDirection: 'row',
+      marginBottom: Device.isAndroid() ? 8 : 0,
+    },
     buttonPositioning: { flex: 1 },
     disabledOpacity: {
       opacity: 0.5,

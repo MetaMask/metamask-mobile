@@ -31,6 +31,7 @@ export const mockedEngine = {
     AccountsController: {
       listAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
+      getAccountByAddress: jest.fn(),
     },
     AccountTrackerController: {
       state: {
@@ -55,6 +56,9 @@ export const mockedEngine = {
         subjects: {},
       },
     },
+    PreferencesController: {
+      state: {},
+    },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn(),
     },
@@ -64,8 +68,14 @@ export const mockedEngine = {
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
     },
+    MultichainNetworkController: {
+      state: {
+        multichainNetworkConfigurationsByChainId: {},
+      }
+    },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
       getNetworkClientById: (networkClientId: NetworkClientId) => {
         if (networkClientId === 'linea_goerli') {
           return {

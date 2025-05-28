@@ -1,9 +1,11 @@
+import BigNumber from 'bignumber.js';
 import {
   BatchTransactionParams,
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
 } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { useMemo } from 'react';
 
 import useBalanceChanges from '../../../../UI/SimulationDetails/useBalanceChanges';
@@ -16,7 +18,6 @@ import {
 } from '../../utils/token';
 import { parseApprovalTransactionData } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { toHex } from '@metamask/controller-utils';
 
 type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
   tokenSymbol?: string;
@@ -29,17 +30,20 @@ export type ApprovalBalanceChange = BalanceChange & {
   nestedTransactionIndex: number;
 };
 
-export function useBatchApproveBalanceChanges() {
+export function useBatchApproveBalanceChanges(): {
+  pending: boolean;
+  value: ApprovalBalanceChange[];
+} {
   const transactionMeta = useTransactionMetadataRequest();
   const {
     chainId,
     nestedTransactions,
+    networkClientId,
     txParams: { from },
   } = transactionMeta ?? { txParams: {} };
 
   const { value: simulationBalanceChanges, pending: pendingSimulationChanges } =
     useBatchApproveSimulationBalanceChanges({
-      from: from as Hex,
       nestedTransactions,
     });
 
@@ -49,6 +53,7 @@ export function useBatchApproveBalanceChanges() {
       simulationData: {
         tokenBalanceChanges: simulationBalanceChanges ?? [],
       },
+      networkClientId: networkClientId as string,
     });
 
   const finalBalanceChanges = useMemo(

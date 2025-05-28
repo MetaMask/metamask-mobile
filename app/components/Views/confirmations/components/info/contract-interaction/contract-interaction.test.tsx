@@ -18,6 +18,11 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
+jest.mock('../../rows/account-network-info-row', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
   use7702TransactionType: jest
     .fn()

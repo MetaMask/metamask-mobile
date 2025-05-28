@@ -23,7 +23,7 @@ import {
 } from '../../utils/signature';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
-import { BatchedTransactionTag } from './batched-transactions-tag';
+import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 
 const getTitleAndSubTitle = (

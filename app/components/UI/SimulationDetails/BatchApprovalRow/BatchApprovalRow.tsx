@@ -18,8 +18,9 @@ const BatchApprovalRow = () => {
 
   return (
     <>
-      {approveBalanceChanges.map((balanceChange) => (
+      {approveBalanceChanges.map((balanceChange, index) => (
         <BalanceChangeRow
+          key={`batch_balance_change-${index}-${balanceChange}`}
           balanceChange={balanceChange as BalanceChange}
           enableEdit={balanceChange.asset.type === AssetType.ERC20}
           label={strings('confirm.simulation.label_change_type_approve')}
