@@ -15,7 +15,6 @@ import {
   JsonMap,
   IMetaMetricsEvent,
 } from '../../../Analytics/MetaMetrics.types';
-import Engine from '../../Engine';
 import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
@@ -93,10 +92,8 @@ const getConfirmationMetricProperties = (
 async function getNestedMethodNames(
   transactionMeta: TransactionMeta,
 ): Promise<string[]> {
-  const { nestedTransactions: transactions = [], chainId } =
+  const { nestedTransactions: transactions = [], networkClientId } =
     transactionMeta ?? {};
-  const networkClientId =
-    Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
   const allData = transactions
     .filter((tx) => tx.type === TransactionType.contractInteraction && tx.data)
     .map((tx) => tx.data as Hex);
