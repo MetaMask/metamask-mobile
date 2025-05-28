@@ -119,16 +119,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "keyring1",
           "keyring2",
         ],
-        "keyringsMetadata": [
-          {
-            "id": "123",
-            "name": "",
-          },
-          {
-            "id": "456",
-            "name": "",
-          },
-        ],
       },
       "LoggingController": {
         "logs": {},

@@ -37,6 +37,9 @@
       "title": "Insufficient funds",
       "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
       "buy_action": "Buy %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "A previous transaction is still being signed or submitted."
     }
   },
   "blockaid_banner": {
@@ -4044,7 +4047,8 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
-    "fee_disclaimer": "Includes 0.875% MM fee"
+    "fee_disclaimer": "Includes 0.875% MM fee",
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
