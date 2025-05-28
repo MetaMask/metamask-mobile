@@ -37,6 +37,9 @@
       "title": "Insufficient funds",
       "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
       "buy_action": "Buy %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "A previous transaction is still being signed or submitted."
     }
   },
   "blockaid_banner": {
