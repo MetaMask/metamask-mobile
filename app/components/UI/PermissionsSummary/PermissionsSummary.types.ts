@@ -32,4 +32,6 @@ export interface PermissionsSummaryProps {
   ensByAccountAddress?: EnsByAccountAddress;
   setTabIndex?: (tabIndex: number) => void;
   tabIndex?: number;
+  showPermissionsOnly?: boolean;
+  showAccountsOnly?: boolean;
 }

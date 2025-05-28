@@ -28,6 +28,8 @@ import {
 } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 

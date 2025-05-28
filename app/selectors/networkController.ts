@@ -235,7 +235,6 @@ export const getNetworkConfigurationsByCaipChainId = (
   return networkConfigurationsByCaipChainId;
 };
 
-// Uncomment relevant lines when ready for non-evm support
 export const selectNetworkConfigurationsByCaipChainId = createSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
