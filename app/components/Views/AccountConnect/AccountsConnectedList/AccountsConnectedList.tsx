@@ -40,7 +40,7 @@ import {
 
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
-import styleSheet from './AccountsConnectedItemList.styles';
+import styleSheet from './AccountsConnectedList.styles';
 
 const AccountsConnectedItemList = ({
   selectedAddresses,

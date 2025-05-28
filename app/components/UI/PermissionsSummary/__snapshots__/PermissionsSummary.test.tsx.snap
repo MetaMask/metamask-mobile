@@ -3263,6 +3263,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             }
           >
             <RCTScrollView
+              collapsable={false}
               data={
                 [
                   "eip155:0:0x2",
@@ -3272,6 +3273,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               getItemCount={[Function]}
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               onLayout={[Function]}
               onMomentumScrollBegin={[Function]}
               onMomentumScrollEnd={[Function]}
@@ -3280,6 +3283,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               onScrollEndDrag={[Function]}
               removeClippedSubviews={false}
               renderItem={[Function]}
+              renderScrollComponent={[Function]}
               scrollEnabled={false}
               scrollEventThrottle={0.0001}
               stickyHeaderIndices={[]}
