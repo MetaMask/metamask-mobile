@@ -290,12 +290,13 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             </View>
           </View>
         </ScrollView>
-        <View
-          style={styles.ctas}
-          testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-        >
+        <View style={styles.ctas}>
           <View style={styles.ctaWrapper}>
-            <StyledButton type={'normal'} onPress={onPressGetStarted}>
+            <StyledButton
+              type={'normal'}
+              onPress={onPressGetStarted}
+              testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
+            >
               {strings('onboarding_carousel.get_started')}
             </StyledButton>
           </View>

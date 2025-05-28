@@ -86,16 +86,14 @@ const AccountPermissionsConnected = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View
-        style={styles.sheetActionContainer}
-        testID={ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON}
-      >
+      <View style={styles.sheetActionContainer}>
         <SheetActions
           actions={[
             {
               label: strings('accounts.connect_more_accounts'),
               onPress: onConnectMoreAccounts,
               disabled: isLoading,
+              testID: ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
             },
           ]}
         />

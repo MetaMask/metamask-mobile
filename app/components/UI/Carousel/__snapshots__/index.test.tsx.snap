@@ -10,7 +10,6 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
       "width": 728,
     }
   }
-  testID="carousel-container"
 >
   <View
     style={
@@ -83,6 +82,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
       scrollEventThrottle={0.0001}
       showsHorizontalScrollIndicator={false}
       stickyHeaderIndices={[]}
+      testID="carousel-container"
       viewabilityConfigCallbackPairs={[]}
     >
       <View>
@@ -892,7 +892,6 @@ exports[`Carousel should render correctly 1`] = `
       "width": 728,
     }
   }
-  testID="carousel-container"
 >
   <View
     style={
@@ -996,6 +995,7 @@ exports[`Carousel should render correctly 1`] = `
       scrollEventThrottle={0.0001}
       showsHorizontalScrollIndicator={false}
       stickyHeaderIndices={[]}
+      testID="carousel-container"
       viewabilityConfigCallbackPairs={[]}
     >
       <View>

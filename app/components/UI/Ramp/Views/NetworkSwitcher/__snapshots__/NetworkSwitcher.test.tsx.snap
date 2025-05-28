@@ -335,6 +335,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={13}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -423,6 +426,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={12}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -1021,6 +1026,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             </View>
                                             <RCTScrollView
                                               collapsable={false}
+                                              handlerTag={15}
+                                              handlerType="NativeViewGestureHandler"
                                               onGestureHandlerEvent={[Function]}
                                               onGestureHandlerStateChange={[Function]}
                                               style={
@@ -1137,6 +1144,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                 </Text>
                                                 <RCTScrollView
                                                   collapsable={false}
+                                                  handlerTag={14}
+                                                  handlerType="NativeViewGestureHandler"
                                                   nestedScrollEnabled={true}
                                                   onGestureHandlerEvent={[Function]}
                                                   onGestureHandlerStateChange={[Function]}
@@ -2042,6 +2051,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={13}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2130,6 +2142,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={12}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -3174,6 +3188,9 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3262,6 +3279,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -4306,6 +4325,9 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4394,6 +4416,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -5438,6 +5462,9 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={8}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -5526,6 +5553,8 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -6772,6 +6801,9 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={10}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6860,6 +6892,8 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
+                          handlerTag={-1}
+                          handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
@@ -8106,6 +8140,9 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={20}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8747,6 +8784,9 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={21}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -9388,6 +9428,9 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={11}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

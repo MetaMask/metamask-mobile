@@ -5,13 +5,13 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TransactionReview from '.';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+// eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../../util/blockaid';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transactions';
-// eslint-disable-next-line import/no-namespace
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../../../../util/test/keyringControllerTestUtils';
 

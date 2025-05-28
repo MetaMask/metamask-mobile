@@ -187,7 +187,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
         onScroll={({ nativeEvent }) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
+          isCloseToBottom(nativeEvent as unknown as NativeScrollEvent)
         }
         {...(source.uri && {
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
