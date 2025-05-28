@@ -2,12 +2,9 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
-import {
-  getFirstInstallTime,
-  getLastUpdateTime,
-} from 'react-native-device-info';
 import { EXISTING_USER, FRESH_INSTALL_CHECK_DONE } from '../constants/storage';
 import Logger from '../util/Logger';
+import { Platform } from 'react-native';
 /**
  * Wrapper class for MMKV.
  * Provides a unified interface for storage operations, with fallback to AsyncStorage in E2E test mode.
@@ -160,38 +157,40 @@ class StorageWrapper {
   }
 
   /**
-   * Checks if this is a fresh install with restored MMKV data from a backup.
+   * Checks if this is a fresh install with restored MMKV data from a backup on iOS devices.
    * If so, clears the MMKV storage to ensure a clean state.
    */
   static handleFreshInstallWithRestoredData = () => {
     (async () => {
       try {
+        if (Platform.OS !== 'ios') return;
+
         const storage = StorageWrapper.getInstance();
-        // Check if we've already performed this check
-        const freshInstallCheckDone = await AsyncStorage.getItem(
+        const alreadyChecked = await AsyncStorage.getItem(
           FRESH_INSTALL_CHECK_DONE,
         );
 
-        if (!freshInstallCheckDone) {
-          // Check if this is a fresh install
-          const firstInstallTime = await getFirstInstallTime();
-          const lastUpdateTime = await getLastUpdateTime();
-          const isFreshInstall = firstInstallTime === lastUpdateTime;
+        if (!alreadyChecked) {
+          // Check if MMKV has user data (persists through backup)
+          const hasMMKVUserData = await storage.getItem(EXISTING_USER);
 
-          if (isFreshInstall) {
-            // On fresh install, always clear storage to ensure a clean state
+          // Check if AsyncStorage has any app-specific marker (gets cleared on restore)
+          const hasAsyncStorageMarker = await AsyncStorage.getItem(
+            'APP_LAUNCHED_BEFORE',
+          );
+
+          if (hasMMKVUserData && !hasAsyncStorageMarker) {
+            // iOS restore detected
             await storage.clearAll();
-            await storage.removeItem(EXISTING_USER);
-            await AsyncStorage.removeItem(FRESH_INSTALL_CHECK_DONE);
+            // Note: Redux state might still be there via FilesystemStorage,
           }
 
+          // Set markers for future checks
+          await AsyncStorage.setItem('APP_LAUNCHED_BEFORE', 'true');
           await AsyncStorage.setItem(FRESH_INSTALL_CHECK_DONE, 'true');
         }
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'Error checking for fresh install with restored data',
-        );
+        Logger.error(error as Error, 'Error checking for restored data');
       }
     })();
   };
@@ -202,7 +201,8 @@ const storageWrapperInstance = StorageWrapper.getInstance();
 
 // Create an enhanced instance that maintains the singleton pattern
 const enhancedInstance = Object.assign(storageWrapperInstance, {
-  handleFreshInstallWithRestoredData: StorageWrapper.handleFreshInstallWithRestoredData
+  handleFreshInstallWithRestoredData:
+    StorageWrapper.handleFreshInstallWithRestoredData,
 });
 
 export default enhancedInstance;
