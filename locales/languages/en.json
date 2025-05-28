@@ -37,6 +37,9 @@
       "title": "Insufficient funds",
       "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
       "buy_action": "Buy %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "A previous transaction is still being signed or submitted."
     }
   },
   "blockaid_banner": {
@@ -3958,6 +3961,7 @@
       "label_change_type_receive": "You receive",
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
+      "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
@@ -3984,6 +3988,7 @@
       "includes_transaction": "Includes {{transactionCount}} transactions"
     },
     "unlimited": "Unlimited",
+    "all": "All",
     "none": "None",
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
@@ -4070,7 +4075,7 @@
     "enable": {
       "title": "Turn on backup and sync",
       "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
-      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.",
       "updatePreferences": "You can update your preferences at any time in",
       "settingsPath": "Settings > Backup and sync."
     },
