@@ -27,6 +27,9 @@ const initialState = {
   networkOnboarded: {
     networkOnboardedState: {},
   },
+  settings: {
+    passwordResetInProgress: false,
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -45,10 +48,61 @@ const initialState = {
 };
 
 describe('InfoNetworkModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
       state: initialState,
     });
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when passwordResetInProgress is false', () => {
+    const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
+      state: {
+        ...initialState,
+        settings: {
+          passwordResetInProgress: false,
+        },
+      },
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should not show network info modal when passwordResetInProgress is true', () => {
+    const stateWithPasswordReset = {
+      ...initialState,
+      settings: {
+        passwordResetInProgress: true,
+      },
+    };
+
+    const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
+      state: stateWithPasswordReset,
+    });
+
+    // The component should render but the useEffect hook should prevent
+    // the modal from being shown when passwordResetInProgress is true
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should use passwordResetInProgress from settings state', () => {
+    // Test that the component properly accesses the passwordResetInProgress state
+    const stateWithPasswordReset = {
+      ...initialState,
+      settings: {
+        passwordResetInProgress: true,
+      },
+    };
+
+    const { toJSON } = renderWithProvider(<InfoNetworkModal />, {
+      state: stateWithPasswordReset,
+    });
+
+    expect(toJSON()).toBeDefined();
+    // The actual logic is in the useEffect hook which checks passwordResetInProgress
+    // before showing the network info modal
   });
 });

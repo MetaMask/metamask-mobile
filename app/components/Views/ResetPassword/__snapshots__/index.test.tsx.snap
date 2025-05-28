@@ -1,32 +1,493 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChoosePassword should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`ResetPassword should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+    testID="account-backup-step-4-screen"
+  >
+    <View>
+      <RCTSafeAreaView
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "flex": 1,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+              "marginBottom": 10,
+            }
+          }
+        >
+          <RCTScrollView
+            automaticallyAdjustContentInsets={false}
+            contentContainerStyle={
+              {
+                "flexGrow": 1,
+              }
+            }
+            contentInset={
+              {
+                "bottom": 0,
+              }
+            }
+            enableAutomaticScroll={true}
+            enableOnAndroid={false}
+            enableResetScrollToCoords={true}
+            extraHeight={75}
+            extraScrollHeight={0}
+            getScrollResponder={[Function]}
+            handleOnScroll={[Function]}
+            keyboardDismissMode="interactive"
+            keyboardOpeningTime={250}
+            keyboardSpace={0}
+            onScroll={[Function]}
+            resetKeyboardSpace={[Function]}
+            resetScrollToCoords={
+              {
+                "x": 0,
+                "y": 0,
+              }
+            }
+            scrollEventThrottle={1}
+            scrollForExtraHeightOnAndroid={[Function]}
+            scrollIntoView={[Function]}
+            scrollToEnd={[Function]}
+            scrollToFocusedInput={[Function]}
+            scrollToPosition={[Function]}
+            showsVerticalScrollIndicator={true}
+            style={
+              {
+                "flex": 1,
+                "paddingHorizontal": 32,
+              }
+            }
+            update={[Function]}
+            viewIsInsideTabBar={false}
+          >
+            <View>
+              <View
+                testID="create-password-screen"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "flex-start",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 24,
+                        "fontWeight": "400",
+                        "justifyContent": "center",
+                        "letterSpacing": 0,
+                        "lineHeight": 32,
+                        "marginBottom": 20,
+                        "marginTop": 20,
+                        "textAlign": "center",
+                        "width": "100%",
+                      }
+                    }
+                  >
+                    Change password
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "fontFamily": "CentraNo1-Book",
+                        "fontWeight": "400",
+                        "justifyContent": "center",
+                        "marginBottom": 10,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 18,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 23,
+                          "textAlign": "center",
+                        }
+                      }
+                    >
+                      This password will unlock your MetaMask wallet only on this device.
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "position": "relative",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginTop": 14,
+                        "textAlign": "left",
+                      }
+                    }
+                  >
+                    New Password
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    onPress={[Function]}
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginTop": 14,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                      }
+                    }
+                  >
+                    Show
+                  </Text>
+                  <TextInput
+                    autoCapitalize="none"
+                    keyboardAppearance="light"
+                    onChangeText={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder=""
+                    placeholderTextColor="#9ca1af"
+                    returnKeyType="next"
+                    secureTextEntry={true}
+                    style={
+                      [
+                        {
+                          "borderColor": "#b7bbc8",
+                          "borderRadius": 6,
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "height": 50,
+                          "padding": 10,
+                        },
+                        {
+                          "width": "99%",
+                        },
+                      ]
+                    }
+                    testID="create-password-first-input-field"
+                    value=""
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginTop": 14,
+                        "textAlign": "left",
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "position": "relative",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginTop": 14,
+                        "textAlign": "left",
+                      }
+                    }
+                  >
+                    Confirm password
+                  </Text>
+                  <TextInput
+                    autoCapitalize="none"
+                    keyboardAppearance="light"
+                    onChangeText={[Function]}
+                    onSubmitEditing={[Function]}
+                    placeholder=""
+                    placeholderTextColor="#9ca1af"
+                    returnKeyType="done"
+                    secureTextEntry={true}
+                    style={
+                      [
+                        {
+                          "borderColor": "#b7bbc8",
+                          "borderRadius": 6,
+                          "borderWidth": 1,
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "height": 50,
+                          "padding": 10,
+                        },
+                        {
+                          "width": "99%",
+                        },
+                      ]
+                    }
+                    testID="create-password-second-input-field"
+                    value=""
+                    zasdfasfasf={true}
+                  />
+                  <View
+                    style={
+                      {
+                        "alignSelf": "flex-end",
+                        "position": "absolute",
+                        "right": 17,
+                        "top": 50,
+                      }
+                    }
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginTop": 14,
+                        "textAlign": "left",
+                      }
+                    }
+                  >
+                    Must be at least 8 characters
+                  </Text>
+                </View>
+                <View />
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flex": 1,
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "marginHorizontal": 10,
+                      "marginTop": 10,
+                    }
+                  }
+                >
+                  <View
+                    accessibilityRole="checkbox"
+                    accessibilityState={
+                      {
+                        "checked": false,
+                        "disabled": false,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "text": "off",
+                      }
+                    }
+                    accessible={true}
+                    pointerEvents="auto"
+                    testID="password-understand-box"
+                  >
+                    <RNCCheckbox
+                      boxType="square"
+                      forwardedRef={null}
+                      onValueChange={[Function]}
+                      style={
+                        [
+                          {
+                            "backgroundColor": "transparent",
+                            "height": 32,
+                            "width": 32,
+                          },
+                          {
+                            "height": 18,
+                            "margin": 10,
+                            "marginTop": -5,
+                            "width": 18,
+                          },
+                        ]
+                      }
+                      tintColors={
+                        {
+                          "false": "#b7bbc8",
+                          "true": "#4459ff",
+                        }
+                      }
+                      value={false}
+                    />
+                  </View>
+                  <Text
+                    accessibilityRole="text"
+                    onPress={[Function]}
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 18,
+                        "paddingHorizontal": 10,
+                      }
+                    }
+                    testID="i-understand-text"
+                  >
+                    I understand that MetaMask cannot recover this password for me.
+                     
+                    <Text
+                      accessibilityRole="text"
+                      onPress={[Function]}
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                          "textDecorationColor": "#4459ff",
+                          "textDecorationLine": "underline",
+                        }
+                      }
+                    >
+                      Learn more.
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "marginTop": 20,
+                    "paddingHorizontal": 10,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={true}
+                  style={
+                    [
+                      [
+                        {
+                          "borderRadius": 100,
+                          "justifyContent": "center",
+                          "padding": 15,
+                        },
+                        {
+                          "backgroundColor": "#4459ff",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "opacity": 0.6,
+                      },
+                    ]
+                  }
+                  testID="submit-button"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#007aff",
+                          "fontSize": 17,
+                          "fontWeight": "500",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#dcdcdc",
+                        },
+                        [
+                          {
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 14,
+                            "fontWeight": "600",
+                            "textAlign": "center",
+                          },
+                          {
+                            "color": "#ffffff",
+                          },
+                          undefined,
+                        ],
+                        {
+                          "opacity": 0.6,
+                        },
+                      ]
+                    }
+                  >
+                    Reset password
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </RCTScrollView>
+        </View>
+      </RCTSafeAreaView>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
 `;
