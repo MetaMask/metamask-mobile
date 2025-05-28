@@ -1,23 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Text,
   View,
   SafeAreaView,
   ActivityIndicator,
-  TextInput,
   KeyboardAvoidingView,
   Appearance,
+  FlatList,
+  TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import FeatherIcons from 'react-native-vector-icons/Feather';
-import { BlurView } from '@react-native-community/blur';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
@@ -32,12 +37,20 @@ import {
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
-
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
+import Label from '../../../component-library/components/Form/Label';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField/TextField';
+import Routes from '../../../constants/navigation/Routes';
 
 /**
  * View that's shown during the second step of
@@ -45,23 +58,41 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
  */
 const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-
   const [password, setPassword] = useState(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState(undefined);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState([]);
-
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const currentStep = 1;
+  const backupFlow = route?.params?.backupFlow || false;
+  const settingsBackup = route?.params?.settingsBackup || false;
+
   const steps = MANUAL_BACKUP_STEPS;
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  }, [colors, navigation, route]);
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={colors.text.default}
+                style={styles.headerLeft}
+              />
+            </TouchableOpacity>
+          ),
+        },
+        colors,
+        false,
+      ),
+    );
+  }, [colors, navigation, route, styles.headerLeft]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -69,6 +100,12 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+  };
+
+  const showWhatIsSeedphrase = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
   };
 
   useEffect(() => {
@@ -109,6 +146,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     navigation.navigate('ManualBackupStep2', {
       words,
       steps,
+      backupFlow,
+      settingsBackup,
     });
   };
 
@@ -165,26 +204,29 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <View style={styles.seedPhraseConcealerContainer}>
-        <BlurView blurType={blurType} blurAmount={5} style={styles.blurView} />
-        <View style={styles.seedPhraseConcealer}>
-          <FeatherIcons name="eye-off" size={24} style={styles.icon} />
-          <Text style={styles.reveal}>
-            {strings('manual_backup_step_1.reveal')}
-          </Text>
-          <Text style={styles.watching}>
-            {strings('manual_backup_step_1.watching')}
-          </Text>
-          <View style={styles.viewButtonWrapper}>
-            <StyledButton
-              type={'onOverlay'}
-              onPress={revealSeedPhrase}
-              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
-              containerStyle={styles.viewButtonContainer}
-            >
-              {strings('manual_backup_step_1.view')}
-            </StyledButton>
+        <TouchableOpacity
+          onPress={revealSeedPhrase}
+          style={styles.blurContainer}
+        >
+          <ImageBackground
+            source={require('../../../images/blur.png')}
+            style={styles.blurView}
+            resizeMode="cover"
+          />
+          <View style={styles.seedPhraseConcealer}>
+            <Icon
+              name={IconName.EyeSlashSolid}
+              size={IconSize.Xl}
+              color={colors.overlay.default}
+            />
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('manual_backup_step_1.reveal')}
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              {strings('manual_backup_step_1.watching')}
+            </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -197,107 +239,136 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
               {strings('manual_backup_step_1.confirm_password')}
             </Text>
             <View style={styles.text}>
-              <Text style={styles.label}>
+              <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
-              </Text>
+              </Label>
             </View>
-            <TextInput
-              style={styles.input}
-              placeholder={'Password'}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={onPasswordChange}
-              secureTextEntry
-              onSubmitEditing={tryUnlock}
-              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-              keyboardAppearance={themeAppearance}
-              autoCapitalize="none"
-            />
-            {warningIncorrectPassword && (
-              <Text style={styles.warningMessageText}>
-                {warningIncorrectPassword}
-              </Text>
-            )}
+            <View style={styles.field}>
+              <TextField
+                placeholder={'Password'}
+                value={password}
+                onChangeText={onPasswordChange}
+                secureTextEntry
+                placeholderTextColor={colors.text.muted}
+                onSubmitEditing={tryUnlock}
+                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
+                keyboardAppearance={themeAppearance}
+                autoCapitalize="none"
+                size={TextFieldSize.Lg}
+                autoFocus
+              />
+              {warningIncorrectPassword && (
+                <Text style={styles.warningMessageText}>
+                  {warningIncorrectPassword}
+                </Text>
+              )}
+            </View>
           </View>
           <View style={styles.buttonWrapper}>
-            <StyledButton
-              containerStyle={styles.button}
-              type={'confirm'}
+            <Button
+              variant={ButtonVariants.Primary}
               onPress={tryUnlock}
+              label={strings('manual_backup_step_1.confirm')}
               testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
-            >
-              {strings('manual_backup_step_1.confirm')}
-            </StyledButton>
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              isDisabled={!password}
+            />
           </View>
         </View>
       </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 
-  const renderSeedphraseView = () => {
-    const wordLength = words.length;
-    const half = wordLength / 2 || 6;
-
-    return (
-      <ActionView
-        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        confirmText={strings('manual_backup_step_1.continue')}
-        onConfirmPress={goNext}
-        confirmDisabled={seedPhraseHidden}
-        showCancelButton={false}
-        confirmButtonMode={'confirm'}
+  const renderSeedphraseView = () => (
+    <ActionView
+      confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
+      confirmText={strings('manual_backup_step_1.continue')}
+      onConfirmPress={goNext}
+      confirmDisabled={seedPhraseHidden}
+      showCancelButton={false}
+      confirmButtonMode={'confirm'}
+      contentContainerStyle={styles.actionView}
+      buttonContainerStyle={styles.buttonContainer}
+    >
+      <View
+        style={styles.wrapper}
+        testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <View
-          style={styles.wrapper}
-          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
-        >
-          <Text style={styles.action}>
-            {strings('manual_backup_step_1.action')}
-          </Text>
-          <View style={styles.infoWrapper}>
-            <Text style={styles.info}>
-              {strings('manual_backup_step_1.info')}
+        <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+          {strings('manual_backup_step_1.action')}
+        </Text>
+        <View style={styles.infoWrapper}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('manual_backup_step_1.info-1')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              onPress={showWhatIsSeedphrase}
+            >
+              {strings('manual_backup_step_1.info-2')}{' '}
             </Text>
-          </View>
-          <View style={styles.seedPhraseWrapper}>
-            {seedPhraseHidden ? (
-              renderSeedPhraseConcealer()
-            ) : (
-              <React.Fragment>
-                <View style={styles.wordColumn}>
-                  {words.slice(0, half).map((word, i) => (
-                    <View key={`word_${i}`} style={styles.wordWrapper}>
-                      <Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
-                    </View>
-                  ))}
-                </View>
-                <View style={styles.wordColumn}>
-                  {words.slice(-half).map((word, i) => (
-                    <View key={`word_${i}`} style={styles.wordWrapper}>
-                      <Text style={styles.word}>{`${
-                        i + (half + 1)
-                      }. ${word}`}</Text>
-                    </View>
-                  ))}
-                </View>
-                <ScreenshotDeterrent enabled isSRP />
-              </React.Fragment>
-            )}
-          </View>
+            {strings('manual_backup_step_1.info-3')}{' '}
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('manual_backup_step_1.info-4')}
+            </Text>
+          </Text>
         </View>
-      </ActionView>
-    );
-  };
+        {seedPhraseHidden ? (
+          <View style={styles.seedPhraseWrapper}>
+            {renderSeedPhraseConcealer()}
+          </View>
+        ) : (
+          <View style={styles.seedPhraseContainer}>
+            <FlatList
+              data={words}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <View style={[styles.inputContainer]}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {index + 1}.
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    key={index}
+                    ellipsizeMode="tail"
+                    numberOfLines={1}
+                    style={styles.word}
+                  >
+                    {item}
+                  </Text>
+                </View>
+              )}
+            />
+          </View>
+        )}
+      </View>
+    </ActionView>
+  );
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={styles.onBoardingWrapper}>
-        <OnboardingProgress currentStep={currentStep} steps={steps} />
+      <View style={[styles.container]}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          Step 2 of 3
+        </Text>
+        {view === SEED_PHRASE
+          ? renderSeedphraseView()
+          : renderConfirmPassword()}
       </View>
-      {view === SEED_PHRASE ? renderSeedphraseView() : renderConfirmPassword()}
+      <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   ) : (
     <View style={styles.loader}>
