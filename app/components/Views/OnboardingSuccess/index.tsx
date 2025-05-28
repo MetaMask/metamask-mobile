@@ -1,25 +1,28 @@
-import React, { useCallback, useLayoutEffect, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Linking,
-  Keyboard,
-  TouchableOpacity,
-  Text as RNText,
-} from 'react-native';
-import Button from '../../../component-library/components/Buttons/Button';
-import {
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react';
+import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button/Button.types';
+} from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation } from '@react-navigation/native';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/Text.types';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import HintModal from '../../UI/HintModal';
+import {
+  getOnboardingNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
+} from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
@@ -30,11 +33,19 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
-import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import styles from './index.styles';
+import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
+import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
+
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
+import createStyles from './index.styles';
+import CelebratingFox from '../../../animations/Celebrating_Fox.json';
+import SearchingFox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -48,14 +59,60 @@ const OnboardingSuccess = ({
   noSRP,
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const route = useRoute();
+  const { toastRef } = useContext(ToastContext);
+
   const dispatch = useDispatch();
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
+  const [savedHint, setSavedHint] = useState('');
+
+  const { colors, themeAppearance } = useTheme();
+  const styles = createStyles(colors);
+
+  const { showPasswordHint } = (useRoute()?.params as {
+    showPasswordHint?: boolean;
+  }) || { showPasswordHint: false };
+
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => setShowHint(false)}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [colors, styles.headerLeft, setShowHint],
+  );
+
+  const headerRight = useCallback(() => <View />, []);
 
   useLayoutEffect(() => {
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  }, [navigation, colors]);
+    navigation.setOptions(
+      showHint
+        ? getOnboardingNavbarOptions(
+            route,
+            {
+              headerLeft,
+              headerRight,
+            },
+            colors,
+            false,
+          )
+        : getTransparentOnboardingNavbarOptions(colors, false),
+    );
+  }, [
+    navigation,
+    colors,
+    route,
+    showHint,
+    styles.headerLeft,
+    headerLeft,
+    headerRight,
+  ]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -65,6 +122,16 @@ const OnboardingSuccess = ({
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
+  };
+
+  const fetchHintFromStorage = async () => {
+    const hints = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
+    if (hints) {
+      const parsedHints = JSON.parse(hints);
+      setSavedHint(parsedHints?.manualBackup);
+    } else {
+      setSavedHint('');
+    }
   };
 
   const handleOnDone = useCallback(() => {
@@ -88,48 +155,67 @@ const OnboardingSuccess = ({
         SEED_PHRASE_HINTS,
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
+    } else {
+      await StorageWrapper.setItem(
+        SEED_PHRASE_HINTS,
+        JSON.stringify({ manualBackup: hintText }),
+      );
     }
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings('onboarding_success.hint_saved_toast'),
+          isBold: true,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+    fetchHintFromStorage();
   };
 
-  const toggleHint = () => {
-    setShowHint((hintVisible) => !hintVisible);
-  };
-
-  const renderHint = () => (
-    <HintModal
-      onConfirm={saveHint}
-      onCancel={toggleHint}
-      modalVisible={showHint}
-      onRequestClose={Keyboard.dismiss}
-      value={hintText}
-      onChangeText={setHintText}
-    />
-  );
+  useEffect(() => {
+    fetchHintFromStorage();
+  }, [showHint]);
 
   const renderContent = () => {
-    if (backedUpSRP) {
+    if (backedUpSRP && !showPasswordHint) {
       return (
         <>
-          <Emoji name="tada" style={styles.emoji} />
-          <Text style={styles.title}>
+          <Text variant={TextVariant.DisplayMD}>
             {strings('onboarding_success.title')}
           </Text>
+          <LottieView
+            style={styles.walletReadyImage}
+            autoPlay
+            loop
+            source={SearchingFox}
+            resizeMode="contain"
+          />
           <View style={styles.descriptionWrapper}>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('onboarding_success.description')}
-              <Text style={styles.descriptionBold}>
+              <Text variant={TextVariant.BodyMDMedium}>
                 {strings('onboarding_success.description_bold')}
                 {'\n'}
                 {'\n'}
               </Text>
-              <Text color={TextColor.Info} onPress={() => setShowHint(true)}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Info}
+                onPress={() => setShowHint(true)}
+              >
                 {strings('onboarding_success.leave_hint')}
                 {'\n'}
                 {'\n'}
               </Text>
-              <Text style={styles.description}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.description_continued')}
-                <Text color={TextColor.Info} onPress={handleLink}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Info}
+                  onPress={handleLink}
+                >
                   {' '}
                   {strings('onboarding_success.learn_more')}
                 </Text>
@@ -138,21 +224,27 @@ const OnboardingSuccess = ({
           </View>
         </>
       );
-    } else if (noSRP) {
+    } else if (noSRP && !showPasswordHint) {
       return (
         <>
-          <RNText style={styles.emoji}>🔓</RNText>
-          <Text style={styles.title}>
-            {strings('onboarding_success.no_srp_title')}
+          <Text variant={TextVariant.DisplayMD}>
+            {strings('onboarding_success.remind_later')}
           </Text>
+          <LottieView
+            style={styles.walletReadyImage}
+            autoPlay
+            loop
+            source={SearchingFox}
+            resizeMode="contain"
+          />
           <View style={styles.descriptionWrapper}>
-            <Text style={styles.description}>
-              {strings('onboarding_success.no_srp_description')}
-              <Text style={styles.descriptionBold}>
-                {' '}
-                {strings('onboarding_success.description_bold')}
-                {'\n'}
-                {'\n'}
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('onboarding_success.remind_later_description')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('onboarding_success.remind_later_description2')}
+              <Text variant={TextVariant.BodyMDMedium} onPress={handleLink}>
+                {' ' + strings('onboarding_success.setting_security_privacy')}
               </Text>
             </Text>
           </View>
@@ -161,72 +253,154 @@ const OnboardingSuccess = ({
     }
     return (
       <>
-        <RNText style={styles.emoji}>🎉</RNText>
-        <Text style={styles.title}>
+        <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
           {strings('onboarding_success.import_title')}
         </Text>
+
+        <LottieView
+          style={styles.walletReadyImage}
+          autoPlay
+          loop
+          source={CelebratingFox}
+          resizeMode="contain"
+        />
+
         <View style={styles.descriptionWrapper}>
-          <Text style={styles.description}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('onboarding_success.import_description')}
-            <Text style={styles.description}>
-              <Text color={TextColor.Info} onPress={handleLink}>
-                {strings('onboarding_success.learn_how')}{' '}
-              </Text>
-              {strings('onboarding_success.import_description2')}
+          </Text>
+
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text color={TextColor.Primary} onPress={handleLink}>
+              {strings('onboarding_success.learn_how')}{' '}
             </Text>
+            {strings('onboarding_success.import_description2')}
           </Text>
         </View>
       </>
     );
   };
 
-  const renderFooter = () => {
-    const linkStyle = { paddingTop: backedUpSRP ? 20 : 10 };
-    return (
+  const renderFooter = () => (
+    <View style={styles.footerWrapper}>
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.linkWrapper, linkStyle]}
+          style={[styles.linkWrapper]}
+          onPress={() => setShowHint(true)}
+        >
+          <View style={styles.row}>
+            <Icon
+              name={IconName.AddSquare}
+              size={IconSize.Lg}
+              color={IconColor.Default}
+            />
+            <View style={styles.hintTextWrapper}>
+              <Text
+                color={TextColor.Default}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {strings('onboarding_success.create_hint')}
+              </Text>
+              {savedHint && (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {savedHint}
+                </Text>
+              )}
+            </View>
+          </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Lg}
+            color={IconColor.Alternative}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.linkWrapper]}
           onPress={goToDefaultSettings}
         >
-          <View style={styles.iconWrapper}>
+          <View style={styles.row}>
             <Icon
               name={IconName.Setting}
-              size={IconSize.Sm}
-              color={IconColor.Info}
+              size={IconSize.Lg}
+              color={IconColor.Default}
             />
+            <Text color={TextColor.Default} variant={TextVariant.BodyMDMedium}>
+              {strings('onboarding_success.manage_default_settings')}
+            </Text>
           </View>
-          <Text color={TextColor.Info}>
-            {strings('onboarding_success.manage_default_settings')}
-          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Lg}
+            color={IconColor.Alternative}
+          />
         </TouchableOpacity>
-        <Text style={styles.footerText}>
-          {strings('onboarding_success.default_settings_footer')}
-        </Text>
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <ScrollView
-      style={styles.root}
+      contentContainerStyle={[styles.root]}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
-      <View style={styles.contentWrapper}>
-        {renderContent()}
-        {renderFooter()}
-      </View>
-
-      <View style={styles.buttonWrapper}>
-        <Button
-          testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-          label={strings('onboarding_success.done')}
-          variant={ButtonVariants.Primary}
-          onPress={handleOnDone}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-        />
-      </View>
-      {renderHint()}
+      {!showHint ? (
+        <View style={styles.contentContainer}>
+          <View style={styles.contentWrapper}>
+            {renderContent()}
+            {renderFooter()}
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button
+              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+              label={strings('onboarding_success.done')}
+              variant={ButtonVariants.Primary}
+              onPress={handleOnDone}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
+        </View>
+      ) : (
+        <View style={styles.hintWrapper}>
+          <View style={styles.hintContent}>
+            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+              {strings('onboarding_success.hint_title')}
+            </Text>
+            <View style={styles.hintDescriptionWrapper}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.hint_description')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.hint_description2')}
+              </Text>
+            </View>
+            <TextField
+              style={styles.hintInput}
+              placeholder={strings('onboarding_success.hint_placeholder')}
+              value={hintText}
+              onChangeText={setHintText}
+              size={TextFieldSize.Lg}
+              placeholderTextColor={colors.text.muted}
+              autoFocus
+              keyboardAppearance={themeAppearance}
+            />
+          </View>
+          <Button
+            label={strings('onboarding_success.hint_saved')}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            onPress={saveHint}
+            isDisabled={!hintText}
+          />
+        </View>
+      )}
     </ScrollView>
   );
 };
