@@ -20,7 +20,9 @@ import { invert } from 'lodash';
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
 export const getFeatureFlagChainId = (chainId) =>
-  __DEV__ && allowedTestnetChainIds.includes(chainId)
+  typeof __DEV__ !== 'undefined' &&
+  __DEV__ &&
+  allowedTestnetChainIds.includes(chainId)
     ? NETWORKS_CHAIN_ID.MAINNET
     : chainId;
 
