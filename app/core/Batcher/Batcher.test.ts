@@ -3,7 +3,7 @@ import { DEFAULT_BATCH_FLUSH_TIMER } from './constants';
 
 describe('Batcher', () => {
   let batcher: Batcher<string>;
-  let mockHandler: jest.Mock = jest.fn();
+  const mockHandler: jest.Mock = jest.fn();
   const mockItemOne = 'item1';
   const mockItemTwo = 'item2';
 
@@ -22,28 +22,28 @@ describe('Batcher', () => {
       batcher.add(mockItemOne);
       batcher.add(mockItemTwo);
 
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.pending.size).toBe(2);
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.pending.has(mockItemOne)).toBe(true);
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.pending.has(mockItemTwo)).toBe(true);
     });
 
     it('should set timer on first add', () => {
       batcher.add(mockItemOne);
 
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.timer).not.toBeNull();
     });
 
     it('should not reset timer on subsequent adds', () => {
       batcher.add(mockItemOne);
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       const firstTimer = batcher.timer;
       batcher.add(mockItemTwo);
 
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.timer).toBe(firstTimer);
     });
 
@@ -59,7 +59,7 @@ describe('Batcher', () => {
       expect(mockHandler).toHaveBeenCalledWith([mockItemOne, mockItemTwo]);
 
       // Verify pending set is cleared
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.pending.size).toBe(0);
     });
   });
@@ -91,18 +91,18 @@ describe('Batcher', () => {
 
       batcher.flush();
 
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.pending.size).toBe(0);
     });
 
     it('should clear timer after flush', () => {
       batcher.add(mockItemOne);
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.timer).not.toBeNull();
 
       batcher.flush();
 
-      // @ts-ignore - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       expect(batcher.timer).toBeNull();
     });
 
