@@ -14,14 +14,9 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(element, timeout = TIMEOUT) {
-    try {
-      await waitFor(await element)
-        .toBeVisible()
-        .withTimeout(timeout);
-      return true;
-    } catch {
-      return false;
-    }
+    return await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
   }
 
   /**

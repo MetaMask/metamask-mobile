@@ -157,14 +157,14 @@ describe('Transaction Metric Event Handlers', () => {
     },
   );
 
-  it('handles missing transaction metrics properties', () => {
+  it('handles missing transaction metrics properties', async () => {
     mockGetState.mockReturnValueOnce({
       confirmationMetrics: {
         metricsById: {},
       },
     });
 
-    handleTransactionApprovedEventForMetrics(
+    await handleTransactionApprovedEventForMetrics(
       mockTransactionMeta,
       mockTransactionMetricRequest,
     );

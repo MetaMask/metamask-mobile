@@ -177,6 +177,10 @@ describe('useGetFormattedTokensPerChain', () => {
             },
           ],
         },
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          tokensWithBalances: [],
+        },
       ],
     };
 
