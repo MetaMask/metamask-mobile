@@ -166,7 +166,9 @@ const AccountBackupStep1 = (props) => {
     !onboardingWizard && props.setOnboardingWizardStep(1);
     props.navigation.navigate('OptinMetrics', {
       onContinue: () => {
-        props.navigation.navigate('OnboardingSuccess');
+        props.navigation.navigate('OnboardingSuccess', {
+          noSRP: true,
+        });
       },
     });
   };

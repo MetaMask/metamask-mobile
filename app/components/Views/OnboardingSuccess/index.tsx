@@ -59,60 +59,17 @@ const OnboardingSuccess = ({
   noSRP,
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const { toastRef } = useContext(ToastContext);
 
   const dispatch = useDispatch();
-  const [showHint, setShowHint] = useState(false);
-  const [hintText, setHintText] = useState('');
-  const [savedHint, setSavedHint] = useState('');
 
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const { showPasswordHint } = (useRoute()?.params as {
-    showPasswordHint?: boolean;
-  }) || { showPasswordHint: false };
-
-  const headerLeft = useCallback(
-    () => (
-      <TouchableOpacity onPress={() => setShowHint(false)}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={colors.text.default}
-          style={styles.headerLeft}
-        />
-      </TouchableOpacity>
-    ),
-    [colors, styles.headerLeft, setShowHint],
-  );
-
-  const headerRight = useCallback(() => <View />, []);
-
   useLayoutEffect(() => {
     navigation.setOptions(
-      showHint
-        ? getOnboardingNavbarOptions(
-            route,
-            {
-              headerLeft,
-              headerRight,
-            },
-            colors,
-            false,
-          )
-        : getTransparentOnboardingNavbarOptions(colors, false),
+      getTransparentOnboardingNavbarOptions(colors, undefined, false),
     );
-  }, [
-    navigation,
-    colors,
-    route,
-    showHint,
-    styles.headerLeft,
-    headerLeft,
-    headerRight,
-  ]);
+  }, [navigation, colors]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -124,16 +81,6 @@ const OnboardingSuccess = ({
     Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
   };
 
-  const fetchHintFromStorage = async () => {
-    const hints = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    if (hints) {
-      const parsedHints = JSON.parse(hints);
-      setSavedHint(parsedHints?.manualBackup);
-    } else {
-      setSavedHint('');
-    }
-  };
-
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
       await importAdditionalAccounts();
@@ -143,43 +90,8 @@ const OnboardingSuccess = ({
     onDone();
   }, [onDone, dispatch]);
 
-  const saveHint = async () => {
-    if (!hintText) return;
-    setShowHint(false);
-    const currentSeedphraseHints = await StorageWrapper.getItem(
-      SEED_PHRASE_HINTS,
-    );
-    if (currentSeedphraseHints) {
-      const parsedHints = JSON.parse(currentSeedphraseHints);
-      await StorageWrapper.setItem(
-        SEED_PHRASE_HINTS,
-        JSON.stringify({ ...parsedHints, manualBackup: hintText }),
-      );
-    } else {
-      await StorageWrapper.setItem(
-        SEED_PHRASE_HINTS,
-        JSON.stringify({ manualBackup: hintText }),
-      );
-    }
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings('onboarding_success.hint_saved_toast'),
-          isBold: true,
-        },
-      ],
-      hasNoTimeout: false,
-    });
-    fetchHintFromStorage();
-  };
-
-  useEffect(() => {
-    fetchHintFromStorage();
-  }, [showHint]);
-
   const renderContent = () => {
-    if (backedUpSRP && !showPasswordHint) {
+    if (backedUpSRP) {
       return (
         <>
           <Text variant={TextVariant.DisplayMD}>
@@ -195,36 +107,23 @@ const OnboardingSuccess = ({
           <View style={styles.descriptionWrapper}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('onboarding_success.description')}
-              <Text variant={TextVariant.BodyMDMedium}>
-                {strings('onboarding_success.description_bold')}
-                {'\n'}
-                {'\n'}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Info}
-                onPress={() => setShowHint(true)}
-              >
-                {strings('onboarding_success.leave_hint')}
-                {'\n'}
-                {'\n'}
-              </Text>
+              {'\n'}
+              {'\n'}
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.description_continued')}
                 <Text
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Info}
                   onPress={handleLink}
                 >
-                  {' '}
                   {strings('onboarding_success.learn_more')}
                 </Text>
+                {' ' + strings('onboarding_success.description_continued')}
               </Text>
             </Text>
           </View>
         </>
       );
-    } else if (noSRP && !showPasswordHint) {
+    } else if (noSRP) {
       return (
         <>
           <Text variant={TextVariant.DisplayMD}>
@@ -286,42 +185,6 @@ const OnboardingSuccess = ({
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.linkWrapper]}
-          onPress={() => setShowHint(true)}
-        >
-          <View style={styles.row}>
-            <Icon
-              name={IconName.AddSquare}
-              size={IconSize.Lg}
-              color={IconColor.Default}
-            />
-            <View style={styles.hintTextWrapper}>
-              <Text
-                color={TextColor.Default}
-                variant={TextVariant.BodyMDMedium}
-              >
-                {strings('onboarding_success.create_hint')}
-              </Text>
-              {savedHint && (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {savedHint}
-                </Text>
-              )}
-            </View>
-          </View>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Lg}
-            color={IconColor.Alternative}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.linkWrapper]}
           onPress={goToDefaultSettings}
         >
           <View style={styles.row}>
@@ -349,58 +212,22 @@ const OnboardingSuccess = ({
       contentContainerStyle={[styles.root]}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
-      {!showHint ? (
-        <View style={styles.contentContainer}>
-          <View style={styles.contentWrapper}>
-            {renderContent()}
-            {renderFooter()}
-          </View>
-          <View style={styles.buttonWrapper}>
-            <Button
-              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-              label={strings('onboarding_success.done')}
-              variant={ButtonVariants.Primary}
-              onPress={handleOnDone}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-            />
-          </View>
+      <View style={styles.contentContainer}>
+        <View style={styles.contentWrapper}>
+          {renderContent()}
+          {renderFooter()}
         </View>
-      ) : (
-        <View style={styles.hintWrapper}>
-          <View style={styles.hintContent}>
-            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-              {strings('onboarding_success.hint_title')}
-            </Text>
-            <View style={styles.hintDescriptionWrapper}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.hint_description')}
-              </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.hint_description2')}
-              </Text>
-            </View>
-            <TextField
-              style={styles.hintInput}
-              placeholder={strings('onboarding_success.hint_placeholder')}
-              value={hintText}
-              onChangeText={setHintText}
-              size={TextFieldSize.Lg}
-              placeholderTextColor={colors.text.muted}
-              autoFocus
-              keyboardAppearance={themeAppearance}
-            />
-          </View>
+        <View style={styles.buttonWrapper}>
           <Button
-            label={strings('onboarding_success.hint_saved')}
+            testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+            label={strings('onboarding_success.done')}
             variant={ButtonVariants.Primary}
+            onPress={handleOnDone}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            onPress={saveHint}
-            isDisabled={!hintText}
           />
         </View>
-      )}
+      </View>
     </ScrollView>
   );
 };

@@ -138,10 +138,10 @@
     "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "title": "Keep your Secret Recovery Phrase safe!",
+    "description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
     "learn_how": "Learn how",
     "leave_hint": "Leave yourself a hint?",

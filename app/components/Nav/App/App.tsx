@@ -156,8 +156,16 @@ const Stack = createStackNavigator();
 
 const OnboardingSuccessComponent = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { backedUpSRP, noSRP } = route.params as {
+    backedUpSRP: boolean;
+    noSRP: boolean;
+  };
+
   return (
     <OnboardingSuccess
+      backedUpSRP={backedUpSRP}
+      noSRP={noSRP}
       onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
     />
   );
@@ -219,7 +227,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccessComponent} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
