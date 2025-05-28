@@ -1,10 +1,17 @@
-import type {UserTraits, GroupTraits, SegmentClient} from '@segment/analytics-react-native';
+import type {
+  UserTraits,
+  GroupTraits,
+  SegmentClient,
+} from '@segment/analytics-react-native';
 import { PublicInterface } from '@metamask/utils';
 
 /**
  * Segment client restricted to the interface used by MetaMetrics
  */
-export type ISegmentClient = Pick<PublicInterface<SegmentClient>, 'track' | 'identify' | 'group' | 'screen' | 'flush' | 'reset' | 'add'>
+export type ISegmentClient = Pick<
+  PublicInterface<SegmentClient>,
+  'track' | 'identify' | 'group' | 'screen' | 'flush' | 'reset' | 'add'
+>;
 
 /**
  * MetaMetrics core interface
@@ -157,4 +164,14 @@ export interface IDeleteRegulationStatus {
   deletionRequestDate?: DataDeleteDate;
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
+}
+
+// TODO: validate if there's a better location for this
+// we don't seem to use the same convention here vs extension
+/**
+ * The API type used to perform a request
+ */
+export enum MetaMetricsRequestedThrough {
+  EthereumProvider = 'ethereum_provider',
+  MultichainApi = 'multichain_api',
 }
