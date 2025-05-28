@@ -347,7 +347,6 @@ export const selectIsSolanaSourced = createSelector(
     isSolanaChainId(sourceToken.chainId),
 );
 
-
 export const selectIsEvmToSolana = createSelector(
   selectSourceToken,
   selectDestToken,

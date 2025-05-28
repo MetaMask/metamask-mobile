@@ -780,3 +780,4 @@ describe('BridgeView', () => {
     });
   });
 });
+
