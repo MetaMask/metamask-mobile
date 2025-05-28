@@ -321,6 +321,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subjects": {},
       },
       "PreferencesController": {
+        "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": {},
