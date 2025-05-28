@@ -4070,7 +4070,7 @@
     "enable": {
       "title": "Turn on backup and sync",
       "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
-      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.",
       "updatePreferences": "You can update your preferences at any time in",
       "settingsPath": "Settings > Backup and sync."
     },
