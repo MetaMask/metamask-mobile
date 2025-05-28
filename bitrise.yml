@@ -1450,6 +1450,11 @@ workflows:
   build_android_main_prod:
     envs:
       - YARN_COMMAND: 'build:android:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
     meta:
