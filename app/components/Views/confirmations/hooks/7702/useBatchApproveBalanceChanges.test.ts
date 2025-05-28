@@ -1,5 +1,4 @@
 import BigNumber from 'bignumber.js';
-import BN from 'bn.js';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { waitFor } from '@testing-library/react-native';
 
@@ -70,7 +69,8 @@ describe('useBatchApproveBalanceChanges', () => {
         decimals: '18',
         standard: 'ERC20',
         symbol: 'DAI',
-        balance: '0x5' as unknown as BN,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        balance: '0x5' as any,
       } as TokenUtils.TokenDetailsERC20);
   });
 
