@@ -62,7 +62,6 @@ jest.mock('../../core/Engine', () => {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
           keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
-          keyringsMetadata: [...MOCK_KEYRING_CONTROLLER_STATE.keyringsMetadata],
         },
       },
       AccountsController: {
