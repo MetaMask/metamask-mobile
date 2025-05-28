@@ -7,7 +7,7 @@ import { ImageSourcePropType, Linking, Platform } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import { selectEvmChainId } from '../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
@@ -191,7 +191,7 @@ class WalletConnect2Session {
 
   private getNetworkClientIdForChainId(chainId: number) {
     if (isPerDappSelectedNetworkEnabled()) {
-      const { engine: { backgroundState: { NetworkController: { networkConfigurationsByChainId } } } } = store.getState();
+      const networkConfigurationsByChainId = selectEvmNetworkConfigurationsByChainId(store.getState());
       const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[`0x${chainId.toString(16)}`];
       return networkClientId;
     }
@@ -537,19 +537,13 @@ class WalletConnect2Session {
       return;
     }
 
-    if (this.networkChanged(caip2ChainId)) {
+    if (isPerDappSelectedNetworkEnabled() && this.networkChanged(caip2ChainId)) {
       const chainId = parseInt(caip2ChainId.split(':')[1])
       const networkClientId = this.getNetworkClientIdForChainId(chainId);
-      if (isPerDappSelectedNetworkEnabled()) {
-        Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
-          this.hostname,
-          networkClientId
-        )
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          networkClientId,
-        );
-      }
+      Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+        this.hostname,
+        networkClientId
+      )
     }
 
     if (METHODS_TO_REDIRECT[method]) {
