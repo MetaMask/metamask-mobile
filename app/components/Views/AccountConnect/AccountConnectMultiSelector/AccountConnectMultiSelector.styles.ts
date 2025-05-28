@@ -21,6 +21,7 @@ const styleSheet = (params: {
       height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
+      marginTop: 16,
       paddingHorizontal: 16,
     },
     description: {
@@ -38,6 +39,9 @@ const styleSheet = (params: {
     },
     button: {
       flex: 1,
+    },
+    newAccountButton: {
+      paddingRight: 0,
     },
     buttonSeparator: {
       width: 16,

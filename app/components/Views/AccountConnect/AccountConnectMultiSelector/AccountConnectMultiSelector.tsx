@@ -22,7 +22,6 @@ import HelpText, {
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
-import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
@@ -31,7 +30,19 @@ import {
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
-import { CaipAccountId } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  parseCaipChainId,
+  toCaipAccountId,
+} from '@metamask/utils';
+import { Box } from '../../../UI/Box/Box';
+import { FlexDirection, JustifyContent } from '../../../UI/Box/box.types';
+import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import AddAccountSelection from '../AddAccount/AddAccount';
+import AddNewAccount from '../../AddNewAccount/AddNewAccount';
+import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -55,6 +66,14 @@ const AccountConnectMultiSelector = ({
   const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
     [],
   );
+
+  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+    | {
+        clientType?: WalletClientType;
+        scope?: CaipChainId;
+      }
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
@@ -202,7 +221,23 @@ const AccountConnectMultiSelector = ({
               {accounts?.length > 0 &&
                 strings('accounts.select_accounts_description')}
             </Text>
-            {accounts?.length > 0 && renderSelectAllCheckbox()}
+            <Box
+              flexDirection={FlexDirection.Row}
+              justifyContent={JustifyContent.spaceBetween}
+            >
+              {accounts?.length > 0 && renderSelectAllCheckbox()}
+              <ButtonLink
+                style={styles.newAccountButton}
+                label={strings('accounts.new_account')}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={() => {
+                  setScreen(
+                    AccountConnectMultiSelectorScreens.AddAccountActions,
+                  );
+                }}
+              />
+            </Box>
           </View>
           <CaipAccountSelectorList
             onSelectAccount={onSelectAccount}
@@ -224,20 +259,6 @@ const AccountConnectMultiSelector = ({
               </Text>
             </View>
           )}
-          <View style={styles.addAccountButtonContainer}>
-            <Button
-              variant={ButtonVariants.Link}
-              label={strings('account_actions.add_account_or_hardware_wallet')}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-              onPress={() =>
-                setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
-              }
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-            />
-          </View>
           <View style={styles.body}>{renderCtaButtons()}</View>
         </View>
       </SafeAreaView>
@@ -257,6 +278,7 @@ const AccountConnectMultiSelector = ({
       styles.sdkInfoContainer,
       styles.container,
       styles.sdkInfoDivier,
+      styles.newAccountButton,
       onBack,
       renderSelectAllCheckbox,
       screenTitle,
@@ -265,13 +287,44 @@ const AccountConnectMultiSelector = ({
 
   const renderAddAccountActions = useCallback(
     () => (
-      <AddAccountActions
-        onBack={() =>
-          setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector)
-        }
+      <AddAccountSelection
+        onBack={() => {
+          setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector);
+        }}
+        onCreateAccount={(clientType, scope) => {
+          setMultichainAccountOptions({ clientType, scope });
+          setScreen(AccountConnectMultiSelectorScreens.AddNewAccount);
+        }}
       />
     ),
     [],
+  );
+
+  const renderAddNewAccount = useCallback(
+    ({
+      clientType,
+      scope,
+    }: {
+      clientType?: WalletClientType;
+      scope?: CaipChainId;
+    }) => (
+      <AddNewAccount
+        scope={scope}
+        clientType={clientType}
+        onActionComplete={(account: InternalAccount) => {
+          const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+          const caipAccountId = toCaipAccountId(
+            namespace,
+            reference,
+            account.address,
+          );
+          setSelectedAddresses([...selectedAddresses, caipAccountId]);
+          onSubmit([...selectedAddresses, caipAccountId]);
+        }}
+        onBack={onBack}
+      />
+    ),
+    [onBack, selectedAddresses, onSubmit],
   );
 
   const renderAccountScreens = useCallback(() => {
@@ -280,10 +333,18 @@ const AccountConnectMultiSelector = ({
         return renderAccountConnectMultiSelector();
       case AccountConnectMultiSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
+      case AccountConnectMultiSelectorScreens.AddNewAccount:
+        return renderAddNewAccount(multichainAccountOptions || {});
       default:
         return renderAccountConnectMultiSelector();
     }
-  }, [screen, renderAccountConnectMultiSelector, renderAddAccountActions]);
+  }, [
+    screen,
+    renderAccountConnectMultiSelector,
+    renderAddAccountActions,
+    renderAddNewAccount,
+    multichainAccountOptions,
+  ]);
 
   return renderAccountScreens();
 };

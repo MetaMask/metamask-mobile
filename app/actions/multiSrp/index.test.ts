@@ -7,6 +7,7 @@ import {
   addNewHdAccount,
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
@@ -16,6 +17,7 @@ const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
 const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
+const mockGetAccountByAddress = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -31,6 +33,13 @@ const hdKeyring = {
 const mockSnapClient = {
   addDiscoveredAccounts: mockAddDiscoveredAccounts,
 };
+
+const testAddress = '0x123';
+const mockExpectedAccount = createMockInternalAccount(
+  testAddress,
+  'Account 1',
+  KeyringTypes.hd,
+);
 
 jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
@@ -50,6 +59,8 @@ jest.mock('../../core/Engine', () => ({
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
+      getAccountByAddress: () =>
+        mockGetAccountByAddress.mockReturnValue(mockExpectedAccount)(),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -60,7 +71,6 @@ jest.mock('../../core/Engine', () => ({
 
 jest.mocked(Engine);
 
-const testAddress = '0x123';
 const testMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
@@ -129,13 +139,14 @@ describe('MultiSRP Actions', () => {
   });
 
   describe('addNewHdAccount', () => {
-    it('adds a new HD account and sets the selected address', async () => {
+    it('adds a new HD account, sets the selected address and returns the account', async () => {
       mockAddAccounts.mockReturnValue([testAddress]);
 
-      await addNewHdAccount();
+      const account = await addNewHdAccount();
 
       expect(mockAddAccounts).toHaveBeenCalledWith(1);
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(account).toEqual(mockExpectedAccount);
     });
 
     it('adds a new HD account with a specific keyring ID and sets the selected address', async () => {
