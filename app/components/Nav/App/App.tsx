@@ -132,6 +132,7 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
@@ -327,6 +328,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
