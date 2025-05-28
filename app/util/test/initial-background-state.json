@@ -1,8 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "keyringsMetadata": []
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -87,6 +86,22 @@
             "type": "custom",
             "url": "https://carrot.megaeth.com/rpc",
             "failoverUrls": []
+          }
+        ]
+      },
+      "0x279f": {
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
+        "chainId": "0x279f",
+        "defaultBlockExplorerUrlIndex": 0,
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad Testnet",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-testnet",
+            "type": "custom",
+            "url": "https://testnet-rpc.monad.xyz"
           }
         ]
       },
@@ -361,8 +376,8 @@
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
     "isAccountSyncingInProgress": false,
-    "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false,
+    "isBackupAndSyncEnabled": true,
+    "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true
   },
   "MultichainBalancesController": {
@@ -496,5 +511,8 @@
         }
       ]
     }
+  },
+  "DeFiPositionsController": {
+    "allDeFiPositions": {}
   }
 }

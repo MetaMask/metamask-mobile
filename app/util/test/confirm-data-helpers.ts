@@ -31,7 +31,7 @@ const mockTypeDefEIP712Domain = [
   { name: 'name', type: 'string' },
   { name: 'version', type: 'string' },
   { name: 'chainId', type: 'uint256' },
-  { name: 'verifyingContract', type: 'address' }
+  { name: 'verifyingContract', type: 'address' },
 ];
 
 export const personalSignSignatureRequest = {
@@ -519,6 +519,16 @@ const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '0x0000000000000000000000000000000000000000': {
+              address: '0x0000000000000000000000000000000000000000',
+            },
+          },
+          selectedAccount: '0x0000000000000000000000000000000000000000',
+        },
+      },
       ApprovalController: {
         pendingApprovals: {
           '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
@@ -548,6 +558,24 @@ const stakingConfirmationBaseState = {
             usdConversionRate: 3596.25,
           },
         },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': [{
+              address: '0x0000000000000000000000000000000000000000',
+              aggregators: [],
+              balance: '0xde0b6b3a7640000',
+              chainId: '0x1',
+              decimals: 18,
+              isETH: true,
+              isNative: true,
+              name: 'Ethereum',
+              symbol: 'ETH',
+              ticker: 'ETH',
+            }]
+          }
+        }
       },
       TransactionController: {
         transactions: [
@@ -618,16 +646,7 @@ const stakingConfirmationBaseState = {
           },
         },
         networkConfigurationsByChainId: {
-          '0x1': {
-            nativeCurrency: 'ETH',
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                url: 'https://mainnet.infura.io/v3/1234567890',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-          },
+          ...backgroundState.NetworkController.networkConfigurationsByChainId,
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
@@ -689,9 +708,7 @@ export const stakingDepositConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingDeposit },
-          ],
+          transactions: [{ type: TransactionType.stakingDeposit }],
         } as unknown as TransactionControllerState,
       },
     },
@@ -705,20 +722,8 @@ export const stakingWithdrawalConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingUnstake },
-          ],
+          transactions: [{ type: TransactionType.stakingUnstake }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -731,20 +736,8 @@ export const stakingClaimConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingClaim },
-          ],
+          transactions: [{ type: TransactionType.stakingClaim }],
         } as unknown as TransactionControllerState,
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              '0x0000000000000000000000000000000000000000': {
-                address: '0x0000000000000000000000000000000000000000',
-              },
-            },
-            selectedAccount: '0x0000000000000000000000000000000000000000',
-          },
-        },
       },
     },
   },
@@ -762,20 +755,20 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
       PermitBatch: [
         { name: 'details', type: 'PermitDetails[]' },
         { name: 'spender', type: 'address' },
-        { name: 'sigDeadline', type: 'uint256' }
+        { name: 'sigDeadline', type: 'uint256' },
       ],
       PermitDetails: [
         { name: 'token', type: 'address' },
         { name: 'amount', type: 'uint160' },
         { name: 'expiration', type: 'uint48' },
-        { name: 'nonce', type: 'uint48' }
+        { name: 'nonce', type: 'uint48' },
       ],
     },
     domain: {
       name: 'Permit2',
       chainId: '1',
       version: '1',
-      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3'
+      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
     },
     primaryType: 'PermitBatch',
     message: {
@@ -784,25 +777,25 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
           token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           amount: '1461501637330902918203684832716283019655932542975',
           expiration: '1722887542',
-          nonce: '5'
+          nonce: '5',
         },
         {
           token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           amount: '250',
           expiration: '1722887642',
-          nonce: '6'
-        }
+          nonce: '6',
+        },
       ],
       spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
-      sigDeadline: '1720297342'
-    }
+      sigDeadline: '1720297342',
+    },
   }),
   [SignTypedDataMockType.DAI]: JSON.stringify({
     domain: {
       name: 'Dai Stablecoin',
       version: '1',
       chainId: 1,
-      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     },
     types: {
       EIP712Domain: mockTypeDefEIP712Domain,
@@ -811,8 +804,8 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
         { name: 'spender', type: 'address' },
         { name: 'nonce', type: 'uint256' },
         { name: 'expiry', type: 'uint256' },
-        { name: 'allowed', type: 'bool' }
-      ]
+        { name: 'allowed', type: 'bool' },
+      ],
     },
     primaryType: 'Permit',
     message: {
@@ -820,7 +813,7 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
       tokenId: '3606393',
       nonce: 0,
       expiry: 0,
-      allowed: false
+      allowed: false,
     },
   }),
 };
@@ -871,8 +864,7 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
         },
         SignatureController: {
           signatureRequests: {
-            'c5067710-87cf-11ef-916c-71f266571322':
-            mockSignatureRequest,
+            'c5067710-87cf-11ef-916c-71f266571322': mockSignatureRequest,
           },
         },
       },
@@ -890,13 +882,13 @@ const mockApprovalRequest = {
   requestData: {
     txId: mockTxId,
     from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-    origin: 'metamask.github.io'
+    origin: 'metamask.github.io',
   },
   requestState: null,
   expectsResult: true,
 } as unknown as ApprovalRequest<TransactionMeta>;
 
-const mockTransaction = {
+export const mockTransaction = {
   id: mockTxId,
   type: TransactionType.contractInteraction,
   txParams: {
@@ -912,17 +904,13 @@ const mockTransaction = {
   origin: 'https://metamask.github.io',
 } as unknown as TransactionMeta;
 
-const contractInteractionBaseState = merge(
-  {},
-  stakingConfirmationBaseState,
-  {
-    engine: {
-      backgroundState: {
-        TransactionController: { transactions: [mockTransaction] },
-      },
+const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+  engine: {
+    backgroundState: {
+      TransactionController: { transactions: [mockTransaction] },
     },
-  }
-);
+  },
+});
 
 export const generateContractInteractionState = {
   ...contractInteractionBaseState,
@@ -967,3 +955,327 @@ export const transferConfirmationState = merge(
     },
   },
 );
+
+export const getAppStateForConfirmation = (confirmation: TransactionMeta) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          [confirmation.id]: {
+            id: confirmation.id,
+            origin: confirmation.origin,
+            type: 'transaction',
+            requestData: {
+              txId: confirmation.id,
+              from: confirmation.txParams.from,
+              origin: confirmation.origin,
+            },
+            requestState: null,
+            expectsResult: true,
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      TransactionController: {
+        transactions: [confirmation],
+      },
+    },
+  },
+});
+
+const switchAccountConfirmation = {
+  chainId: '0xaa36a7',
+  networkClientId: 'sepolia',
+  origin: 'metamask',
+  status: 'unapproved',
+  userEditedGasLimit: false,
+  verifiedOnBlockchain: false,
+  gasFeeEstimates: {
+    userFeeLevel: 'medium',
+    sendFlowHistory: [],
+    gasFeeEstimates: {
+      type: 'fee-market',
+      low: { maxFeePerGas: '0x9374a3b7', maxPriorityFeePerGas: '0x3b9aca00' },
+      medium: {
+        maxFeePerGas: '0xd0017b51',
+        maxPriorityFeePerGas: '0x59682f00',
+      },
+      high: { maxFeePerGas: '0x10c8e52eb', maxPriorityFeePerGas: '0x77359400' },
+    },
+  },
+};
+
+export const upgradeAccountConfirmation = {
+  ...switchAccountConfirmation,
+  batchId: '0x6046131032d748a6bfac42fd5117479f',
+  id: 'aa0ff2b0-150f-11f0-9325-8f0b8505bc4f',
+  origin: 'metamask.github.io',
+  nestedTransactions: [
+    {
+      to: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+      data: '0x654365436543',
+      value: '0x3B9ACA00',
+      type: TransactionType.simpleSend,
+    },
+    {
+      to: '0xbc2114a988e9CEf5bA63548D432024f34B487048',
+      data: '0x789078907890',
+      value: '0x1DCD6500',
+      type: TransactionType.simpleSend,
+    },
+  ],
+  securityAlertResponse: {
+    block: 8082431,
+    result_type: 'Benign',
+    reason: '',
+    description: '',
+    features: [],
+    source: 'api',
+    securityAlertId: '31cda7d5-9657-4567-b364-d6918f0933a0',
+  },
+  txParams: {
+    from: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    authorizationList: [
+      { address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B' },
+    ],
+    data: '0xe9ae5c530100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000c54fccd2e384b4bb6f2e405bf5cbc15a017aafb000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000066543654365430000000000000000000000000000000000000000000000000000000000000000000000000000bc2114a988e9cef5ba63548d432024f34b487048000000000000000000000000000000000000000000000000000000001dcd650000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000006789789078900000000000000000000000000000000000000000000000000000',
+    gas: '0x1a209',
+    to: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    value: '0x0',
+    maxFeePerGas: '0x21b65659b',
+    maxPriorityFeePerGas: '0x59682f00',
+    type: '0x4',
+  },
+  type: 'batch',
+  originalGasEstimate: '0x1a209',
+  defaultGasEstimates: {
+    gas: '0x1a209',
+    maxFeePerGas: '0x21b65659b',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimateType: 'medium',
+  },
+  gasFeeTokens: [],
+  simulationData: {
+    nativeBalanceChange: {
+      previousBalance: '0x109f1f975d02012',
+      newBalance: '0x109f1f91c67f112',
+      difference: '0x59682f00',
+      isDecrease: true,
+    },
+    tokenBalanceChanges: [],
+  },
+} as unknown as TransactionMeta;
+
+export const upgradeOnlyAccountConfirmation = {
+  ...upgradeAccountConfirmation,
+  origin: 'metamask',
+  nestedTransactions: [],
+  txParams: {
+    ...upgradeAccountConfirmation.txParams,
+    data: '0x',
+  },
+} as unknown as TransactionMeta;
+
+export const downgradeAccountConfirmation = {
+  ...switchAccountConfirmation,
+  delegationAddress: '0xcd8d6c5554e209fbb0dec797c6293cf7eae13454',
+  id: '22c82900-1134-11f0-a4de-3b789e5a89ad',
+  txParams: {
+    from: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    authorizationList: [
+      { address: '0x0000000000000000000000000000000000000000' },
+    ],
+    gas: '0x11017',
+    to: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    value: '0x0',
+    maxFeePerGas: '0xd0017b51',
+    maxPriorityFeePerGas: '0x59682f00',
+    type: '0x4',
+  },
+  type: TransactionType.revokeDelegation,
+  defaultGasEstimates: {
+    gas: '0x11017',
+    maxFeePerGas: '0xd0017b51',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimateType: 'medium',
+  },
+} as unknown as TransactionMeta;
+
+export const batchApprovalConfirmation = {
+  batchId: '0xac5b147713b64947a1848309dc528c95',
+  chainId: '0x1',
+  delegationAddress: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',
+  id: '00e2c3a0-3537-11f0-a6bc-c5da15141f51',
+  nestedTransactions: [
+    {
+      data: '0x095ea7b30000000000000000000000001231deb6f5749ef6ce6943a275a1d3e7486f4eae000000000000000000000000000000000000000000000000000009184e72a000',
+      to: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      type: 'approve',
+    },
+    {
+      data: '0x4666fc801137140f3717bc6b605645d86122fa67acca7687a3f5ee603c321eead00b212e00000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c16400000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000000f6a756d7065722e65786368616e67650000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002a3078303030303030303030303030303030303030303030303030303030303030303030303030303030300000000000000000000000000000000000000000000000000000000000000000000085cd07ea01423b1e937929b44e4ad8c40bbb5e7100000000000000000000000085cd07ea01423b1e937929b44e4ad8c40bbb5e710000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000184dd9c5f960000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000000000000000000000000000000009184e72a000000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000000000080000000000000000000000001231deb6f5749ef6ce6943a275a1d3e7486f4eae000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000045026b175474e89094c44da98b954eedeac495271d0f01ffff00b5214edee5741324a13539bcc207bc549e2491ff0185cd07ea01423b1e937929b44e4ad8c40bbb5e71000bb800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+      to: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE',
+      type: 'contractInteraction',
+    },
+  ],
+  networkClientId: 'mainnet',
+  origin: 'jumper123.exchange',
+  status: 'unapproved',
+  txParams: {
+    from: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    data: '0xe9ae5c5301000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001200000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000044095ea7b30000000000000000000000001231deb6f5749ef6ce6943a275a1d3e7486f4eae000000000000000000000000000000000000000000000000000009184e72a000000000000000000000000000000000000000000000000000000000000000000000000000000000001231deb6f5749ef6ce6943a275a1d3e7486f4eae0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000004044666fc801137140f3717bc6b605645d86122fa67acca7687a3f5ee603c321eead00b212e00000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c16400000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000000f6a756d7065722e65786368616e67650000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002a3078303030303030303030303030303030303030303030303030303030303030303030303030303030300000000000000000000000000000000000000000000000000000000000000000000085cd07ea01423b1e937929b44e4ad8c40bbb5e7100000000000000000000000085cd07ea01423b1e937929b44e4ad8c40bbb5e710000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000184dd9c5f960000000000000000000000006b175474e89094c44da98b954eedeac495271d0f000000000000000000000000000000000000000000000000000009184e72a000000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000000000080000000000000000000000001231deb6f5749ef6ce6943a275a1d3e7486f4eae000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000045026b175474e89094c44da98b954eedeac495271d0f01ffff00b5214edee5741324a13539bcc207bc549e2491ff0185cd07ea01423b1e937929b44e4ad8c40bbb5e71000bb80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    gas: '0x430c8',
+    to: '0x8a0bbcd42cf79e7cee834e7808eb2fef1cebdb87',
+    value: '0x0',
+    maxFeePerGas: '0x56febcee',
+    maxPriorityFeePerGas: '0x1dcd6500',
+    type: '0x2',
+  },
+  type: 'batch',
+  userEditedGasLimit: false,
+  verifiedOnBlockchain: false,
+  gasLimitNoBuffer: '0x430c8',
+  originalGasEstimate: '0x430c8',
+  defaultGasEstimates: {
+    gas: '0x430c8',
+    maxFeePerGas: '0x4ea9e5b3',
+    maxPriorityFeePerGas: '0x1dcd6500',
+    estimateType: 'medium',
+  },
+  userFeeLevel: 'medium',
+  customNonceValue: '606',
+  gasFeeEstimates: {
+    type: 'fee-market',
+    low: { maxFeePerGas: '0x28003a44', maxPriorityFeePerGas: '0x186a0' },
+    medium: { maxFeePerGas: '0x56febcee', maxPriorityFeePerGas: '0x1dcd6500' },
+    high: { maxFeePerGas: '0xd3329793', maxPriorityFeePerGas: '0x77359400' },
+  },
+  gasFeeEstimatesLoaded: true,
+  simulationData: {
+    tokenBalanceChanges: [
+      {
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        standard: 'erc20',
+        previousBalance: '0x2d915e92d0fd02b0',
+        newBalance: '0x2d91557a828a62b0',
+        difference: '0x9184e72a000',
+        isDecrease: true,
+      },
+      {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        standard: 'erc20',
+        previousBalance: '0x2bcc4f',
+        newBalance: '0x2bcc58',
+        difference: '0x9',
+        isDecrease: false,
+      },
+    ],
+  },
+} as unknown as TransactionMeta;
+
+export const MOCK_NETWORK_CONTROLLER_STATE = {
+  networkConfigurationsByChainId: {
+    '0xaa36a7': {
+      blockExplorerUrls: [],
+      chainId: '0xaa36a7',
+      defaultRpcEndpointIndex: 0,
+      name: 'Sepolia',
+      nativeCurrency: 'SepoliaETH',
+      rpcEndpoints: [
+        {
+          failoverUrls: [],
+          networkClientId: 'sepolia',
+          type: 'infura',
+          url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+        },
+      ],
+    },
+    '0x18c6': {
+      blockExplorerUrls: ['https://megaexplorer.xyz'],
+      chainId: '0x18c6',
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: 'Mega Testnet',
+      nativeCurrency: 'MegaETH',
+      rpcEndpoints: [
+        {
+          failoverUrls: [],
+          networkClientId: 'megaeth-testnet',
+          type: 'custom',
+          url: 'https://carrot.megaeth.com/rpc',
+        },
+      ],
+    },
+  },
+};
+
+export const MOCK_MULTICHAIN_NETWORK_CONTROLLER_STATE = {
+  isEvmSelected: true,
+  multichainNetworkConfigurationsByChainId: {
+    'bip122:000000000019d6689c085ae165831e93': {
+      chainId: 'bip122:000000000019d6689c085ae165831e93',
+      isEvm: false,
+      name: 'Bitcoin Mainnet',
+      nativeCurrency: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    },
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      isEvm: false,
+      name: 'Solana Mainnet',
+      nativeCurrency:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    },
+  },
+  selectedMultichainNetworkChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+};
+
+export const MOCK_ACCOUNT_CONTROLLER_STATE = {
+  internalAccounts: {
+    accounts: {
+      '94b520b3-a0c9-4cbd-a689-441a01630331': {
+        id: '94b520b3-a0c9-4cbd-a689-441a01630331',
+        address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        options: {},
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        scopes: ['eip155:0'],
+        type: 'eip155:eoa',
+        metadata: {
+          name: 'Account 1',
+          importTime: 1746181774143,
+          keyring: { type: 'HD Key Tree' },
+          lastSelected: 1746191007939,
+        },
+      },
+    },
+    selectedAccount: '94b520b3-a0c9-4cbd-a689-441a01630331',
+  },
+};
+
+export const MOCK_KEYRING_CONTROLLER_STATE = {
+  isUnlocked: true,
+  keyrings: [
+    {
+      type: 'HD Key Tree',
+      accounts: [
+        '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        '0x089595380921f555d52ab6f5a49defdaab23b444',
+        '0xa4a80ce0afdfb8e6bd1221d3b18a1653eee6d19d',
+      ],
+      metadata: { id: '01JT88PPSFQW1C2SGPKTS874ZX', name: '' },
+    },
+    {
+      type: 'QR Hardware Wallet Device',
+      accounts: [],
+      metadata: { id: '01JT88PSBXWQ36YBFJWHJAC9T2', name: '' },
+    },
+  ],
+};

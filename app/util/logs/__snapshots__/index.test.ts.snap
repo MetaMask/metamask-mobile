@@ -119,16 +119,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "keyring1",
           "keyring2",
         ],
-        "keyringsMetadata": [
-          {
-            "id": "123",
-            "name": "",
-          },
-          {
-            "id": "456",
-            "name": "",
-          },
-        ],
       },
       "LoggingController": {
         "logs": {},
@@ -221,6 +211,24 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
                 "networkClientId": "megaeth-testnet",
                 "type": "custom",
                 "url": "https://carrot.megaeth.com/rpc",
+              },
+            ],
+          },
+          "0x279f": {
+            "blockExplorerUrls": [
+              "https://testnet.monadexplorer.com",
+            ],
+            "chainId": "0x279f",
+            "defaultBlockExplorerUrlIndex": 0,
+            "defaultRpcEndpointIndex": 0,
+            "name": "Monad Testnet",
+            "nativeCurrency": "MON",
+            "rpcEndpoints": [
+              {
+                "failoverUrls": [],
+                "networkClientId": "monad-testnet",
+                "type": "custom",
+                "url": "https://testnet-rpc.monad.xyz",
               },
             ],
           },
@@ -505,8 +513,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAccountSyncingEnabled": true,
         "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
-        "isProfileSyncingEnabled": true,
-        "isProfileSyncingUpdateLoading": false,
+        "isBackupAndSyncEnabled": true,
+        "isBackupAndSyncUpdateLoading": false,
       },
     },
   },

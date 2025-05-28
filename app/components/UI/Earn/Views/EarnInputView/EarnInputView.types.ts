@@ -5,11 +5,13 @@ import { strings } from '../../../../../../locales/i18n';
 export enum EARN_INPUT_VIEW_ACTIONS {
   STAKE = 'STAKE',
   LEND = 'LEND',
+  ALLOWANCE_INCREASE = 'ALLOWANCE_INCREASE',
 }
 
 export const EARN_INPUT_ACTION_TO_LABEL_MAP = {
   [EARN_INPUT_VIEW_ACTIONS.STAKE]: strings('stake.stake'),
   [EARN_INPUT_VIEW_ACTIONS.LEND]: strings('stake.deposit'),
+  [EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE]: strings('stake.deposit'),
 };
 
 interface EarnInputViewRouteParams {

@@ -60,6 +60,32 @@ class FixtureBuilder {
   }
 
   /**
+   * Ensures that the Solana feature modal is suppressed by adding the appropriate flag to asyncState.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureSolanaModalSuppressed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
+    return this;
+  }
+
+  withSolanaFeatureSheetDisplayed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState = {
+      '@MetaMask:existingUser': 'true',
+      '@MetaMask:onboardingWizard': 'explored',
+      '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+      '@MetaMask:solanaFeatureModalShown': 'false'
+    };
+    return this;
+  }
+
+  /**
    * Set the default fixture values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -278,6 +304,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
+                    scopes: ['eip155:0']
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -647,6 +674,7 @@ class FixtureBuilder {
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
+        '@MetaMask:solanaFeatureModalShown': 'true',
       },
     };
     return this;
@@ -702,7 +730,6 @@ class FixtureBuilder {
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
-
     return this;
   }
 
@@ -758,7 +785,9 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(additionalPermissions),
     );
-    return this;
+
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withRampsSelectedRegion(region = null) {
@@ -795,7 +824,7 @@ class FixtureBuilder {
       .map((id) => ({
         [`eip155:${parseInt(id)}`]: { accounts: [] },
       }))
-      .reduce(((acc, obj) => ({ ...acc, ...obj })));
+      .reduce((acc, obj) => ({ ...acc, ...obj }));
 
     const defaultCaip25CaveatValue = {
       optionalScopes,
@@ -804,6 +833,8 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -812,7 +843,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
+            value: caip25CaveatValueWithDefaultAccount,
           },
         ],
         date: 1732715918637,
@@ -836,7 +867,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withGanacheNetwork() {
+  withGanacheNetwork(chainId = '0x539') {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
@@ -847,7 +878,7 @@ class FixtureBuilder {
 
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
-      chainId: '0x539',
+      chainId,
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
@@ -864,13 +895,14 @@ class FixtureBuilder {
     };
 
     // Add the new Ganache network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId['0x539'] =
+    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
       ganacheNetworkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withSepoliaNetwork() {
@@ -910,7 +942,8 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPopularNetworks() {
@@ -961,7 +994,8 @@ class FixtureBuilder {
       networkConfigurationsByChainId,
     };
 
-    return this;
+    // Ensure Solana feature modal is suppressed
+    return this.ensureSolanaModalSuppressed();
   }
 
   withPreferencesController(data) {
@@ -976,8 +1010,8 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
           type: 'HD Key Tree',
-          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
         },
         { type: 'QR Hardware Wallet Device', accounts: [] },
       ],
@@ -1011,22 +1045,21 @@ class FixtureBuilder {
         {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          metadata: {
+            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+            name: '',
+          },
         },
         {
           type: 'HD Key Tree',
           accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
+          metadata: {
+            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+            name: '',
+          },
         },
       ],
-      keyringsMetadata: [
-        {
-          id: '01JN61V4CZ5WSJXSS7END4FJQ9',
-          name: '',
-        },
-        {
-          id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
-          name: '',
-        },
-      ],
+      // TODO: update this
       vault:
         '{"cipher":"IpV+3goe8Vey0mmfHz6DT0NiLwcTbjeglBI+WckZ/HeW0JcyE6kK9rBaqiZ+I0adwWAysIf/OanwvpE5YkYw9xYEkVXDUBQ/0lmscFGatXl24hadMdD01MRkKH6qyjUUw6ZqqmFnIRFbSwwYtD1X8UaRDhX+k/vnzAD9ETFW2cUpji7n5VU5hJQYOaCDO6hUxzE55scp2k68bDm/26EJ5SVgcsDXP/BW/MKnsqGGLAIPtQbVYUVChQ9D150WJif3HLJS1p0SSdGluL85JBLEQqShbBRZ3SiAHtJilf3oQBJB/YcAM6j6Uo7Sf+gAhc7cOvMYQ+YrTc+0Solzfa2OkLemskd4IOIVj6vWY+w0TPLo1IYSR1mFE2JVXE064zhUO0PKXME1qENQTiQCAAIfeEBwfdbQfrv92Zo/nU4VFyzdC3Rf+WPmWjLMXkZYqb1PdwhcgY85EpdFcjZAtcye6VF2iBTO0nMmZIyUabI/3RFizUgKtTlNH/H4NOLTm2HwUHOwAe4pxBbtEIFyuqo050n7UAJftN14Lp+/0kmraguFvsf0sg+AWXK5Tk9Bmkqm74bCuvmDCw2l28/+VEXOiYvytr9105NstlOnG/MmIJoYx8NkIJr5jMSCRtX8byBGRT+lhNq70CjWZIub5USmHkRdx1AuBAipQCdTjisaS2QRPwcA7M4PFbE2ltil1TavcRGRo+xa5nKji04jsx9AotAKkCqUPTOFr/h+WazGtx5+LWTAGXPUe9YtUraBCABXdnNhq7t7dXR7ivaZLkl6oXhQN6u2wmGRRvg3D36gddFVgDcqNafk/y82e0uWAu3F9VrGynYd0t7txkmzup1J19kpBlv7YVWy17J2MT3/PkatNrqdo21qFlhnYAcYKBC52MMInaY8qwQWXLMPud+cDdSR7QDLefl2AQEvH+hyzh2DI6d3Wri17LjujvSRdcwjAitylxnz9k4H2IAgJLlXIh5W69C+JdsNzoHanuJd+Hk=","iv":"68e751a7883bd7119118ebd2b3d30a6f","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"pOiYCrlywkH4UDFq/IHIKg=="}',
     });
@@ -1039,22 +1072,21 @@ class FixtureBuilder {
         {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
+          metadata: {
+            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+            name: '',
+          },
         },
         {
           type: 'HD Key Tree',
           accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
+          metadata: {
+            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+            name: '',
+          },
         },
       ],
-      keyringsMetadata: [
-        {
-          id: '01JN61V4CZ5WSJXSS7END4FJQ9',
-          name: '',
-        },
-        {
-          id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
-          name: '',
-        },
-      ],
+      // TODO: update this
       vault:
         '{"cipher":"wWIegxm+og31XAr34sZAkaf+wsuIycthFqmLa2mA0zxD0HSJKp1uITa4dJ94uGN10RgaDHHRmqpLzMqx7l7W+LiG6KMkdaPiZUqDLq3zdQVecY+rwWt+G4DZbIrZC6jUMopKTdvSv0Lrzb3fRnsQ1sDJ4R99OY8Dvhloc4V+rgi43rLc4eT7DB7zLlK0GuUtxfZwStJVeq5lBlYsVNrsZF2kfBCZQxqZGxLlSk6qaIP8HNY/ptttB/ZdOBjYYPqZkr5J5oUhmiIQDqN+MqsjUrOEmfz9fP3HIi8IxCFGA94G1tvDClMHMqpzwYsBQpcA0k7NJiSc+UdB8dcilXQLXF33PvQKSbgVeXuNkgKgnWPGtsGxPTJ0gIxCBxsW0MmyYvyBsHO8BoocflrOaqkXvSwmXUja9aQwHdZAmayvxWXnIE4MRAD1nLnvXdMO+qY+nW3yCvw5R6DoNBtnQIk9cKCuj2UL0/fxhNDdfbK8rhTyPZMRqRH2dhhuji71V+OeQBPV1/R0srvSUggOfSmcxVNe+ok5SJdzJpCavXE4/JVwTPe1Jrr/uz4AC4R2ih7lDBPFZnNXy7uSRn0lZWbKZFoM6jkLO7oTn9UN1C+YcteyNqkDiYGNJ0zxjuMzU/r6aJGAlvKGCkvBph3ON9vfD2ARAwpSSIFckh4a6t37vmKzmpsW7tQE95uqJHe7h+KMraWxtqlCCWB6BsJkpbm0BqjBdg8zUH8pP0GA0un3KCJjUEfTOWw+Yn69IkJQzX1Jyr5Hepzt500Va7K7kDDlFG4KFUt5RO80GnT7jtRGPGjPx29pKK2Zp61dmP5BZu+0xnXMlSGozJv+dgRCsZuzqvzUu5/44jYpggHrApNk5hhw0crBeovV+EgHE2VVnGNdLwwSngJ00b/cUnCUsPW0FjR7IscaI96eslFAPkdZXr70zXPVzA/NiE05ADciMoZxD8Qv8dGGU+yQMnDo2wABv+YEroO3VOtJiKBPqIB0GC0=","iv":"1ccda0516bc876f905e08e76bad201b9","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"E9val7NN4h2AfX/pwUkd9aa2iNyn+LwIurZXIdxlG/o="}',
     });
@@ -1083,6 +1115,43 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.TransactionController, {
       transactions,
     });
+    return this;
+  }
+
+  /**
+   * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState.
+   * This indicates that the user has agreed to MetaMetrics data collection.
+   *
+   * @returns {this} The current instance for method chaining.
+   */
+  withMetaMetricsOptIn() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:metricsOptIn'] = 'agreed';
+    return this;
+  }
+
+/**
+   * Sets up a minimal Solana fixture with mainnet configuration
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSolanaFixture() {
+    const SOLANA_TOKEN = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: SolScope.Mainnet,
+      multichainNetworkConfigurationsByChainId: {
+        [SolScope.Mainnet]: {
+          chainId: SolScope.Mainnet,
+          name: 'Solana Mainnet',
+          nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
+          isEvm: false
+        }
+      },
+      isEvmSelected: false
+    };
+
     return this;
   }
 

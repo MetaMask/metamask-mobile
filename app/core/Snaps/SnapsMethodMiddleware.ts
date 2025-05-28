@@ -26,6 +26,9 @@ import {
   SnapInterfaceControllerUpdateInterfaceStateAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../../../app/core/Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { Json } from '@metamask/utils';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -121,6 +124,19 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       SnapControllerGetSnapAction,
     ),
+    trackEvent: (eventPayload: {
+      event: string;
+      properties: Record<string, Json>;
+      sensitiveProperties: Record<string, Json>;
+    }) => {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: eventPayload.event,
+          properties: eventPayload.properties,
+          sensitiveProperties: eventPayload.sensitiveProperties,
+        }).build(),
+      );
+    },
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
       SnapInterfaceControllerUpdateInterfaceStateAction,
@@ -154,8 +170,8 @@ const snapMethodMiddlewareBuilder = (
         .map((keyring, index) => {
           if (keyring.type === KeyringTypes.hd) {
             return {
-              id: state.keyringsMetadata[index].id,
-              name: state.keyringsMetadata[index].name,
+              id: keyring.metadata.id,
+              name: keyring.metadata.name,
               type: 'mnemonic',
               primary: index === 0,
             };

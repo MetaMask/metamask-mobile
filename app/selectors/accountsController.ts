@@ -20,7 +20,12 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+
+export type InternalAccountWithCaipAccountId = InternalAccount & {
+  caipAccountId: CaipAccountId;
+}
 
 /**
  *
@@ -52,6 +57,23 @@ export const selectInternalAccounts = createDeepEqualSelector(
     );
     return sortedAccounts;
   },
+);
+
+/**
+ * A memoized selector that returns internal accounts from the AccountsController,
+ * sorted by the order of KeyringController's keyring accounts,
+ * with an additional caipAccountId property
+ */
+export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts): InternalAccountWithCaipAccountId[] =>
+    accounts.map((account) => {
+      const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+      return {
+        ...account,
+        caipAccountId: `${namespace}:${reference}:${account.address}`,
+      };
+    }),
 );
 
 /**

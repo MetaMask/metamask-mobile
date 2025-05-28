@@ -51,12 +51,13 @@ import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
-import Drawer from '../../UI/Drawer';
 
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
 import RampSettings from '../../UI/Ramp/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
+
+import DepositRoutes from '../../UI/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -69,7 +70,7 @@ import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { getPermittedCaipAccountIdsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -92,9 +93,11 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
+import { EarnScreenStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
+import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -253,8 +256,6 @@ const BrowserFlow = (props) => (
     />
   </Stack.Navigator>
 );
-
-export const DrawerContext = React.createContext({ drawerRef: null });
 
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
@@ -439,7 +440,6 @@ const SettingsFlow = () => (
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
@@ -461,7 +461,7 @@ const HomeTabs = () => {
     try {
       const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedAccountsByHostname(
+      const permittedAcc = getPermittedCaipAccountIdsByHostname(
         permissionsControllerState,
         hostname,
       );
@@ -566,41 +566,34 @@ const HomeTabs = () => {
   };
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={renderTabBar}
-        >
-          <Tab.Screen
-            name={Routes.WALLET.HOME}
-            options={options.home}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-          />
-          <Tab.Screen
-            name={Routes.MODAL.WALLET_ACTIONS}
-            options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
+    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+      <Tab.Screen
+        name={Routes.WALLET.HOME}
+        options={options.home}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
+      />
+      <Tab.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        options={options.actions}
+        component={WalletTabModalFlow}
+      />
+      <Tab.Screen
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
+      />
 
-          <Tab.Screen
-            name={Routes.SETTINGS_VIEW}
-            options={options.settings}
-            component={SettingsFlow}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
+      <Tab.Screen
+        name={Routes.SETTINGS_VIEW}
+        options={options.settings}
+        component={SettingsFlow}
+      />
+    </Tab.Navigator>
   );
 };
 
@@ -860,6 +853,7 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.RAMP.SELL}>
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
+    <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
     <Stack.Screen
@@ -868,6 +862,7 @@ const MainNavigator = () => (
       options={clearStackNavigatorOptions}
     />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+    <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
     <Stack.Screen
       name="StakeModals"
       component={StakeModalStack}
@@ -904,6 +899,13 @@ const MainNavigator = () => (
       name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
       component={TurnOnBackupAndSync}
       options={TurnOnBackupAndSync.navigationOptions}
+    />
+    <Stack.Screen
+      name="DeFiProtocolPositionDetails"
+      component={DeFiProtocolPositionDetails}
+      options={{
+        headerShown: true,
+      }}
     />
   </Stack.Navigator>
 );

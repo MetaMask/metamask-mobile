@@ -2,7 +2,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import Button, {
@@ -22,13 +21,14 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectEvmNetworkConfigurationsByChainId,
+  EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { CaipChainId } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -39,9 +39,9 @@ const NetworkConnectMultiSelector = ({
   defaultSelectedChainIds,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>([]);
   const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+    selectNetworkConfigurationsByCaipChainId,
   );
 
   useEffect(() => {
@@ -59,19 +59,18 @@ const NetworkConnectMultiSelector = ({
   ]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
   const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [string, NetworkConfiguration]) => ({
+    ([key, network]: [string, EvmAndMultichainNetworkConfigurationsWithCaipChainId]) => ({
       id: key,
       name: network.name,
-      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
       imageSource: getNetworkImageSource({
-        chainId: network.chainId,
+        chainId: network.caipChainId,
       }),
-      chainId: network.chainId,
+      caipChainId: network.caipChainId,
     }),
   );
 
-  const onSelectNetwork = useCallback((chainId: string) => {
+  const onSelectNetwork = useCallback((chainId: CaipChainId) => {
       if (selectedChainIds.includes(chainId)) {
         setSelectedChainIds(
           selectedChainIds.filter((_chainId) => _chainId !== chainId),
@@ -82,7 +81,7 @@ const NetworkConnectMultiSelector = ({
   }, [selectedChainIds, setSelectedChainIds]);
 
   const areAllNetworksSelected = networks
-    .every(({ chainId }) => selectedChainIds.includes(chainId));
+    .every(({ caipChainId }) => selectedChainIds.includes(caipChainId));
 const areAnyNetworksSelected = selectedChainIds.length > 0;
 const areNoNetworksSelected = !areAnyNetworksSelected;
 
@@ -92,7 +91,7 @@ const areNoNetworksSelected = !areAnyNetworksSelected;
 
     const selectAll = () => {
       if (isLoading) return;
-      const allSelectedChainIds = networks.map(({ chainId }) => chainId);
+      const allSelectedChainIds = networks.map(({ caipChainId }) => caipChainId);
       setSelectedChainIds(allSelectedChainIds);
     };
 
