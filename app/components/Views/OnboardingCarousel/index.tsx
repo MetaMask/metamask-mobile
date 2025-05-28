@@ -215,10 +215,16 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
-  const currentTabKey = useMemo(
-    () => (currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three'),
-    [currentTab],
-  );
+  const currentTabKey = useMemo(() => {
+    switch (currentTab) {
+      case 1:
+        return 'one';
+      case 2:
+        return 'two';
+      default:
+        return 'three';
+    }
+  }, [currentTab]);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -247,10 +253,10 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     updateNavBar();
   }, [colors, updateNavBar]);
 
-  const backgroundColor = useMemo(() => {
-    const key = currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three';
-    return onboardingCarouselColors[key].background;
-  }, [currentTab]);
+  const backgroundColor = useMemo(
+    () => onboardingCarouselColors[currentTabKey].background,
+    [currentTabKey],
+  );
 
   return (
     <View
