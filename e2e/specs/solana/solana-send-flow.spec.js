@@ -39,8 +39,7 @@ describe(
       });
     });
 
-    // TODO: This test is skipped due to issues with Solana onboarding flow. Re-enable once the onboarding process is stable and verified. See issue #12345 for details.
-    it.skip('should navigate through Solana onboarding and create a Solana account', async () => {
+    it('should navigate through Solana onboarding and create a Solana account', async () => {
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapAddSolanaAccount();
@@ -73,7 +72,7 @@ describe(
 
 
       /*
-      ENABLE ME IN ADDITION TO THE BELOW IT BLOCK ONCE WE FIX SENDING SOL 
+      ENABLE ME IN ADDITION TO THE BELOW IT BLOCK ONCE WE FIX SENDING SOL
       await SnapSendActionSheet.tapContinueButton();
       await Assertions.checkIfTextIsDisplayed(
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
