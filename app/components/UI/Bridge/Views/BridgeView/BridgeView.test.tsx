@@ -14,6 +14,7 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { strings } from '../../../../../../locales/i18n';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -69,6 +70,9 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         isSelected: true,
       },
     ],
+    ensByAccountAddress: {
+      '0x1234567890123456789012345678901234567890': '',
+    },
   }),
 }));
 
@@ -121,6 +125,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn().mockReturnValue(false),
+  formatAddress: jest.fn().mockImplementation((address) => address),
+  getLabelTextByAddress: jest.fn().mockReturnValue(''),
 }));
 
 describe('BridgeView', () => {
@@ -630,6 +640,65 @@ describe('BridgeView', () => {
 
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
+      // Mock isHardwareAccount to return true for this test only
+      const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
+      jest.mocked(require('../../../../../util/address').isHardwareAccount).mockImplementation(mockIsHardwareAccount);
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+        accountsControllerOverrides: {
+          internalAccounts: {
+            accounts: {
+              '0x1234567890123456789012345678901234567890': {
+                address: '0x1234567890123456789012345678901234567890',
+                id: '0x1234567890123456789012345678901234567890',
+                metadata: {
+                  name: 'Account 1',
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+                options: {},
+              },
+            },
+            selectedAccount: '0x1234567890123456789012345678901234567890',
+          },
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the banner text to appear
+      await waitFor(() => {
+        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+      });
+    });
   });
 
   describe('Error Banner Visibility', () => {
@@ -728,3 +797,4 @@ describe('BridgeView', () => {
     });
   });
 });
+
