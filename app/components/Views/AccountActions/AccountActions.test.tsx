@@ -670,6 +670,7 @@ describe('AccountActions', () => {
         },
       );
     });
+
     it('option should not be displayed if there is no network supporting 7702 for selected address', () => {
       jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
         pending: false,
@@ -679,6 +680,25 @@ describe('AccountActions', () => {
 
       const { queryByText } = renderWithProvider(<AccountActions />, {
         state: initialState,
+      });
+
+      expect(queryByText('Switch to Smart account')).toBeNull();
+    });
+
+    it('option should not be displayed if use has enabled dismissSmartAccountSuggestionEnabled', () => {
+      const { queryByText } = renderWithProvider(<AccountActions />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                dismissSmartAccountSuggestionEnabled: true,
+              },
+            },
+          },
+        },
       });
 
       expect(queryByText('Switch to Smart account')).toBeNull();

@@ -73,6 +73,44 @@ describe('AdvancedSettings', () => {
     Device.isIos = jest.fn().mockReturnValue(true);
     Device.isAndroid = jest.fn().mockReturnValue(false);
 
+    it('should render option to dismiss smart account upgrade', async () => {
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.dismiss_smart_account_update_heading'),
+      );
+      expect(switchElement.props.value).toBe(false);
+    });
+
+    it('should render option to dismiss smart account upgrade 2', async () => {
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.dismiss_smart_account_update_heading'),
+      );
+      fireEvent.press(switchElement);
+      Engine.context.PreferencesController.setDismissSmartAccountSuggestionEnabled =
+        jest.fn();
+      expect(
+        Engine.context.PreferencesController
+          .setDismissSmartAccountSuggestionEnabled,
+      ).toHaveBeenCalled();
+    });
+
     it('should render smart transactions opt in switch on by default', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings
@@ -88,6 +126,7 @@ describe('AdvancedSettings', () => {
       );
       expect(switchElement.props.value).toBe(true);
     });
+
     it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings

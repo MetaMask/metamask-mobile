@@ -313,6 +313,7 @@ class AdvancedSettings extends PureComponent {
       setShowCustomNonce,
       setShowFiatOnTestnets,
       smartTransactionsOptInStatus,
+      dismissSmartAccountSuggestionEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -378,8 +379,10 @@ class AdvancedSettings extends PureComponent {
                     testID={
                       AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE
                     }
-                    value={smartTransactionsOptInStatus}
-                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    value={dismissSmartAccountSuggestionEnabled}
+                    onValueChange={
+                      this.toggleDismissSmartAccountSuggestionEnabled
+                    }
                     trackColor={{
                       true: colors.primary.default,
                       false: colors.border.muted,
