@@ -1,4 +1,4 @@
-import migrate from './079';
+import migrate from './082';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 079: Reset PhishingController phishingLists', () => {
+describe('Migration 082: Reset PhishingController phishingLists', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -39,7 +39,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: Invalid engine state structure',
+      'Migration 082: Invalid engine state structure',
     );
   });
 
@@ -59,7 +59,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: Invalid PhishingController state',
+      'Migration 082: Invalid PhishingController state',
     );
   });
 
@@ -148,7 +148,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 079: cleaning PhishingController state failed with error',
+      'Migration 082: cleaning PhishingController state failed with error',
     );
   });
 }); 

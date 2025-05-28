@@ -78,7 +78,7 @@ import migration75 from './075';
 import migration76 from './076';
 import migration77 from './077';
 import migration78 from './078';
-import migration79 from './079';
+import migration79 from './082';
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
