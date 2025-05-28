@@ -123,6 +123,7 @@ stages:
   create_build_all_targets:
     workflows:
       - build_android_release: {}
+      - build_android_main_prod: {}
       - build_ios_release: {}
       - build_android_beta: {}
       - build_ios_beta: {}
@@ -1433,6 +1434,22 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_prod:
+    steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:prod
+          title: Build Android Main Prod bundle
+          is_always_run: true
     after_run:
       - _android_build_template
     meta:

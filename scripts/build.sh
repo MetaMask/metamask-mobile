@@ -97,10 +97,10 @@ checkParameters(){
 			fi
 		elif [ "$3"  == "--pre" ] ; then
 			PRE_RELEASE=true
-		else
-			printError "Unknown argument: $4"
-			displayHelp
-			exit 0;
+		#else
+			#printError "Unknown argument: $4"
+			#displayHelp
+			#exit 0;
 		fi
 	fi
 }
@@ -254,8 +254,8 @@ buildAndroidRunFlask(){
 buildIosDevBuild(){
 	remapEnvVariableLocal
 	prebuild_ios
-	
-	
+
+
 	echo "Setting up env vars...";
 	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 	echo "Build started..."
@@ -541,7 +541,7 @@ buildAndroidQAE2E(){
 }
 
 buildAndroid() {
-	if [ "$MODE" == "release" ] ; then
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
@@ -586,7 +586,7 @@ buildIos() {
 	elif [ "$MODE" == "qadebugE2E" ] ; then
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
-			buildIosFlaskSimulatorE2E	
+			buildIosFlaskSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
@@ -653,11 +653,28 @@ checkParameters "$@"
 
 printTitle
 loadJSEnv
+
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $MODE"
+echo "TARGET = $TARGET"
+
+if [ "$PLATFORM" == "android" ] && [ "$MODE" == "main" ] && [ "$TARGET" == "prod" ]; then
+      export METAMASK_BUILD_TYPE='main'
+      export METAMASK_ENVIRONMENT='production'
+      export NAME=$VERSION_NAME
+      export NUMBER=$VERSION_NUMBER
+      export KEYSTORE_PATH='android/keystores/release.keystore'
+      export APP_NAME='prod'
+      export OUTPUT_PATH='prodRelease'
+      export GENERATE_BUNDLE=true
+      export PRE_RELEASE=true
+fi
+
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
+elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
