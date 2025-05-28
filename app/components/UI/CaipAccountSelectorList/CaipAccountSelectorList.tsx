@@ -44,8 +44,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
-import { CaipAccountId, Hex, parseCaipAccountId } from '@metamask/utils';
-import { parseAccountId } from '@walletconnect/utils';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,

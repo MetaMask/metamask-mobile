@@ -87,7 +87,6 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../selectors/multichainNetworkController';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -109,8 +108,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
-  const evmNetworkConfigurationsByChainId = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const nonEvmNetworkConfigurationsByChainId = useSelector(selectNonEvmNetworkConfigurationsByChainId);
   const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -484,8 +481,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
     },
     [
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
       permittedCaipAccountIds,
       setIsLoading,
       hostname,
