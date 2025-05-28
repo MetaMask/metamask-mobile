@@ -221,7 +221,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting no-networks session test...');
                 await TestHelpers.reverseServerPort();
 
                 // Login and navigate to the test dapp
@@ -233,8 +232,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await MultichainTestDApp.navigateToMultichainTestDApp();
 
                 try {
-                    console.log('⚡ Attempting session creation with no networks...');
-
                     // Try to create session with no networks selected
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks([]);
 
@@ -269,7 +266,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting session retrieval test...');
                 await TestHelpers.reverseServerPort();
 
                 // Login and navigate to the test dapp
@@ -282,7 +278,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
 
                 try {
                     // First create a session
-                    console.log('⚡ Creating initial session...');
                     const createResult = await MultichainTestDApp.createSessionWithNetworks(
                         MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM
                     );
@@ -295,13 +290,11 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                     if (!createAssertions.success) {
                         throw new Error('Initial session creation failed');
                     }
-                    console.log('✅ Initial session created');
 
                     // Wait a bit for session to be established
                     await TestHelpers.delay(1000);
 
                     // Get session information using the dedicated method
-                    console.log('📊 Retrieving session data...');
                     const getSessionResult = await MultichainTestDApp.getSessionData();
 
                     const getAssertions = MultichainUtilities.generateSessionAssertions(
@@ -316,11 +309,9 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                     if (!getAssertions.chainsValid) {
                         throw new Error('Ethereum scope not found in retrieved session');
                     }
-                    console.log('✅ Session data retrieved successfully');
 
                     // Verify we can retrieve session data multiple times
                     await TestHelpers.delay(500);
-                    console.log('📊 Retrieving session data again...');
                     const getSessionResult2 = await MultichainTestDApp.getSessionData();
 
                     const getAssertions2 = MultichainUtilities.generateSessionAssertions(
@@ -339,7 +330,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                     if (scopes1 !== scopes2) {
                         throw new Error('Session data inconsistent between calls');
                     }
-                    console.log('✅ Session data consistent across multiple calls');
 
                     console.log('🎉 Session retrieval test completed successfully');
 
@@ -361,7 +351,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                console.log('🚀 Starting helper methods test...');
                 await TestHelpers.reverseServerPort();
 
                 // Login and navigate to the test dapp
@@ -375,7 +364,6 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 try {
                     // Create session with specific networks
                     const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON;
-                    console.log('⚡ Creating session with networks for helper test:', networksToTest);
 
                     const sessionResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -384,25 +372,20 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                     if (!assertions.success) {
                         throw new Error('Session creation failed');
                     }
-                    console.log('✅ Session created for helper test');
 
                     // Use helper method to verify chains are present
-                    console.log('🔍 Verifying chains using helper method...');
                     const chainsVerified = await MultichainTestDApp.verifySessionContainsChains(networksToTest);
 
                     if (!chainsVerified) {
                         throw new Error('Chain verification failed');
                     }
-                    console.log('✅ Chains verified successfully');
 
                     // Test chain count method
-                    console.log('🔢 Testing chain count method...');
                     const chainCount = await MultichainTestDApp.getSessionChainCount();
 
                     if (chainCount !== networksToTest.length) {
                         throw new Error(`Expected ${networksToTest.length} chains, but count method returned ${chainCount}`);
                     }
-                    console.log('✅ Chain count method returned correct value:', chainCount);
 
                     // Additional validation using utilities
                     if (assertions.chainCount !== networksToTest.length) {

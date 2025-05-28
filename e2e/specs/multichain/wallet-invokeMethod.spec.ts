@@ -48,7 +48,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session with single network
-                        console.log('🔄 Creating session...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -57,8 +56,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -71,8 +68,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const escapedScopeForButton = scope.replace(/:/g, '-');
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
-                        console.log(`🎯 Targeting button: ${directButtonId}`);
-
                         // Click the direct method button using native selector
                         const directButton = webview.element(by.web.id(directButtonId));
                         await directButton.tap();
@@ -83,7 +78,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                         // Verify result using native selectors (avoid JavaScript queries)
                         const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                        console.log(`🔍 Looking for result element: ${resultElementId}`);
 
                         try {
                             // Try to find the result element using native selector
@@ -97,7 +91,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             console.log('🎉 eth_chainId method invocation test PASSED');
                             console.log('✅ Direct button click worked');
                             console.log('✅ Result element was created');
-                            console.log('✅ Method execution completed successfully');
 
                         } catch (resultError) {
                             // If result element not found, try alternative verification
@@ -140,7 +133,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session
-                        console.log('🔄 Creating session...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -149,8 +141,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -162,8 +152,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const method = 'eth_getBalance';
                         const escapedScopeForButton = scope.replace(/:/g, '-');
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-
-                        console.log(`🎯 Targeting button: ${directButtonId}`);
 
                         // Click the direct method button
                         const directButton = webview.element(by.web.id(directButtonId));
@@ -215,7 +203,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session
-                        console.log('🔄 Creating session...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -224,8 +211,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -237,8 +222,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const method = 'eth_gasPrice';
                         const escapedScopeForButton = scope.replace(/:/g, '-');
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-
-                        console.log(`🎯 Targeting button: ${directButtonId}`);
 
                         // Click the direct method button
                         const directButton = webview.element(by.web.id(directButtonId));
@@ -292,7 +275,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session
-                        console.log('🔄 Creating session for transaction test...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -301,8 +283,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -315,7 +295,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const escapedScopeForButton = scope.replace(/:/g, '-');
 
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
-                        console.log(`🎯 Targeting transaction button: ${directButtonId}`);
 
                         // Use the same approach as the working read-only tests
                         try {
@@ -329,7 +308,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             // Look for the transaction confirmation screen using what actually works
                             try {
                                 // Wait for the confirm button to appear (this is what actually works)
-                                console.log('🔍 Waiting for transaction confirmation button...');
                                 await Assertions.checkIfVisible(TransactionConfirmationView.confirmButton);
                                 console.log('✅ Transaction confirmation screen appeared - confirm button found');
 
@@ -379,7 +357,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session
-                        console.log('🔄 Creating session for confirmation test...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -388,8 +365,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -404,36 +379,29 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const writeOperations = ['eth_sendTransaction', 'personal_sign'];
 
                         for (const method of writeOperations) {
-                            console.log(`🔄 Testing confirmation requirement for: ${method}`);
-
                             const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
                             try {
                                 // Click the method button
                                 const directButton = webview.element(by.web.id(directButtonId));
                                 await directButton.tap();
-                                console.log(`✅ ${method} button clicked`);
 
                                 // Look for confirmation screen elements based on method type
                                 try {
                                     if (method === 'eth_sendTransaction') {
                                         // Transaction confirmation screen
                                         await Assertions.checkIfVisible(TransactionConfirmationView.confirmButton);
-                                        console.log(`✅ ${method} triggered transaction confirmation screen`);
 
                                         const rejectButton = element(by.text('Reject'));
                                         await rejectButton.tap();
-                                        console.log(`✅ ${method} transaction rejected`);
                                     } else {
                                         // Signature confirmation screen (personal_sign, eth_signTypedData_v4)
                                         // Look for signature confirmation elements
                                         const signButton = element(by.text('Sign'));
                                         await waitFor(signButton).toBeVisible().withTimeout(10000);
-                                        console.log(`✅ ${method} triggered signature confirmation screen`);
 
                                         const cancelButton = element(by.text('Cancel'));
                                         await cancelButton.tap();
-                                        console.log(`✅ ${method} signature cancelled`);
                                     }
 
                                 } catch (confirmError) {
@@ -479,7 +447,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     try {
                         // Create session
-                        console.log('🔄 Creating session...');
                         const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
                         const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
@@ -488,8 +455,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         if (!createAssertions.success) {
                             throw new Error('Session creation failed');
                         }
-
-                        console.log('✅ Session created successfully');
 
                         // Wait for session to be established
                         await TestHelpers.delay(3000);
@@ -503,14 +468,11 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const methodsToTest = ['eth_chainId', 'eth_getBalance', 'eth_gasPrice'];
 
                         for (const method of methodsToTest) {
-                            console.log(`🔄 Testing method: ${method}`);
-
                             const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
                             // Click the direct method button
                             const directButton = webview.element(by.web.id(directButtonId));
                             await directButton.tap();
-                            console.log(`✅ ${method} button clicked`);
 
                             // Wait for method execution
                             await TestHelpers.delay(2000);
@@ -520,7 +482,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                 const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
                                 const resultElement = webview.element(by.web.id(resultElementId));
                                 await Assertions.checkIfVisible(Promise.resolve(resultElement));
-                                console.log(`✅ ${method} result element found`);
                             } catch (resultError) {
                                 console.log(`⚠️ ${method} result element not immediately visible`);
                             }
