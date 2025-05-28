@@ -130,8 +130,7 @@ const CaipAccountSelectorList = ({
       isSelected: boolean;
       caipAccountId: CaipAccountId;
     }) => {
-      if (isAccountRemoveable || !isRemoveAccountEnabled) return;
-
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
