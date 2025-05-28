@@ -19,15 +19,10 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   findBlockExplorerForNonEvmAccount,
-  findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -98,8 +93,6 @@ const AccountActions = () => {
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
   const blockExplorer:
     | {
         url: string;
@@ -111,11 +104,11 @@ const AccountActions = () => {
       if (isEvmAccountType(selectedAccount.type)) {
         return {
           url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
-          title: 'Etherscan',
-          blockExplorerName: 'Etherscan',
+          title: 'Etherscan (Multichain)',
+          blockExplorerName: 'Etherscan (Multichain)',
         };
       }
-      
+
       const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       if (explorer) {
         return {
@@ -128,9 +121,6 @@ const AccountActions = () => {
       return undefined;
     }
   }, [
-    networkConfigurations,
-    providerConfig.rpcUrl,
-    providerConfig.type,
     selectedAccount,
   ]);
 
