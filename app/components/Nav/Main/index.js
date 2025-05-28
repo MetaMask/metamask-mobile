@@ -495,10 +495,6 @@ Main.propTypes = {
    */
   removeNotVisibleNotifications: PropTypes.func,
   /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-  /**
    * Current chain id
    */
   chainId: PropTypes.string,

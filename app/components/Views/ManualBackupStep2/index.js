@@ -91,11 +91,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow) {
-          navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.reset({ routes: [{ name: 'HomeNav' }] });
-            },
-          });
+          navigation.reset({ routes: [{ name: 'HomeNav' }] });
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
