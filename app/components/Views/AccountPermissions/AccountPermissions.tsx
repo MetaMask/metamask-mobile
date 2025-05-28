@@ -424,7 +424,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         );
 
         if (accountsToAdd.length > 0) {
-          addPermittedAccounts(hostname, accountsToAdd, evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+          addPermittedAccounts(hostname, accountsToAdd);
           newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
         }
 

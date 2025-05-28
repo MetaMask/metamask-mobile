@@ -128,7 +128,7 @@ import { parseCaipAccountId } from '@metamask/utils';
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = ({
+export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -1503,7 +1503,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       </KeyboardAvoidingView>
     </ErrorBoundary>
   );
-};
+});
 
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,
