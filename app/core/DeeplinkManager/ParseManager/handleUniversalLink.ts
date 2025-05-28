@@ -34,6 +34,7 @@ function handleUniversalLink({
     MM_UNIVERSAL_LINK_HOST,
     MM_DEEP_ITMS_APP_LINK,
     MM_IO_UNIVERSAL_LINK_HOST,
+    MM_IO_UNIVERSAL_LINK_TEST_HOST,
   } = AppConstants;
   const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
@@ -43,7 +44,7 @@ function handleUniversalLink({
   // action is the first part of the pathname
   const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
 
-  if (urlObj.hostname !== MM_UNIVERSAL_LINK_HOST) {
+  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
     if (action === ACTIONS.ANDROID_SDK) {
       DevLogger.log(
         `DeeplinkManager:: metamask launched via android sdk universal link`,
@@ -149,7 +150,7 @@ function handleUniversalLink({
       // Normal links (same as dapp)
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
     }
-  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST) {
+  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST || urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST) {
     // TODO: private links
     // TODO: modal for public links
     switch (action) {
