@@ -20,8 +20,8 @@ const SOLANA_ACCOUNT_NAME = 'Solana Account 1';
 const INVALID_ADDRESS = 'invalid address';
 const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
 const RECIPIENT_ADDRESS = 'GxE7wWLyUEV4jMqQUMj8kT1XVpcfxq4iWBTVDTwCV77M';
-const TRANSFER_AMOUNT = '0.0011';
-const EXPECTED_CONFIRMATION = '0.0011 SOL was successfully sent';
+const TRANSFER_AMOUNT = '0.0001';
+const EXPECTED_CONFIRMATION = '0.0001 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
 const RECENT_TRANSACTION_INDEX = 0;
 
