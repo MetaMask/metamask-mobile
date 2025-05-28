@@ -75,5 +75,5 @@ export type Alert = {
   /**
    * The title of the alert.
    */
-  title: string;
+  title?: string;
 } & MessageOrContent;
