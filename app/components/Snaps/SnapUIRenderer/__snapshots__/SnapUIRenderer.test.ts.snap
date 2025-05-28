@@ -121,7 +121,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -130,6 +130,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="default-snap-footer-button"
       >
         <Text
           accessibilityRole="text"
@@ -224,7 +225,9 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -262,7 +265,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="bar"
                 />
               </View>
@@ -347,7 +350,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -386,7 +391,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value=""
                 />
               </View>
@@ -409,7 +414,9 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -448,7 +455,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input2-snap-ui-input"
                   value=""
                 />
               </View>
@@ -533,7 +540,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -571,7 +580,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="bar"
                 />
               </View>
@@ -594,7 +603,9 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -632,7 +643,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input2-snap-ui-input"
                   value="foo"
                 />
               </View>
@@ -1133,7 +1144,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -1142,6 +1153,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <Text
           accessibilityRole="text"
@@ -1172,7 +1184,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#121314",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
@@ -1180,6 +1192,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <View
           style={
@@ -1382,7 +1395,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -1391,6 +1404,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <Text
           accessibilityRole="text"
@@ -1421,7 +1435,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#121314",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
@@ -1429,6 +1443,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <View
           style={
@@ -1619,7 +1634,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "flexGrow": 1,
                     "height": 48,
+                    "maxHeight": 58,
                     "opacity": 1,
                     "paddingHorizontal": 16,
                   }
@@ -1745,7 +1762,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "paddingVertical": 0,
                       }
                     }
-                    testID="input"
+                    testID="input-snap-ui-input"
                     value=""
                   />
                 </View>
@@ -1862,7 +1879,9 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
+                  "flexGrow": 1,
                   "height": 48,
+                  "maxHeight": 58,
                   "opacity": 1,
                   "paddingHorizontal": 16,
                 }
@@ -1900,7 +1919,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="input-snap-ui-input"
                   value="a"
                 />
               </View>
@@ -2037,7 +2056,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
@@ -2046,6 +2065,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <Text
           accessibilityRole="text"
@@ -2076,7 +2096,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#121314",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
@@ -2084,6 +2104,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="undefined-snap-footer-button"
       >
         <View
           style={

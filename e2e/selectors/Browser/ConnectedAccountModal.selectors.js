@@ -22,4 +22,10 @@ export const ConnectedAccountsSelectorsIDs = {
   DISCONNECT_NETWORKS_BUTTON: 'disconnect',
   CONFIRM_DISCONNECT_NETWORKS_BUTTON: 'confirm_disconnect_networks',
   MANAGE_PERMISSIONS: 'manage_permissions',
+  ACCOUNT_LIST_BOTTOM_SHEET: 'account-list-bottom-sheet',
+};
+
+export const PermissionsSummarySelectorsIDs = {
+  ACCOUNTS_TAB: 'accounts-tab',
+  PERMISSIONS_TAB: 'permissions-tab',
 };

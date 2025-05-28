@@ -225,7 +225,7 @@ class OptinMetrics extends PureComponent {
     this.updateNavBar();
 
     const { scrollViewContentHeight, isEndReached, scrollViewHeight } = this.state;
-    
+
     // Only run this check if any of the relevant values have changed
     if (
       prevState.scrollViewContentHeight !== scrollViewContentHeight ||
@@ -233,7 +233,7 @@ class OptinMetrics extends PureComponent {
       prevState.scrollViewHeight !== scrollViewHeight
     ) {
       if (scrollViewContentHeight === undefined || isEndReached) return;
-      
+
       // Check if content fits view port of scroll view
       if (scrollViewHeight >= scrollViewContentHeight) {
         this.onScrollEndReached();

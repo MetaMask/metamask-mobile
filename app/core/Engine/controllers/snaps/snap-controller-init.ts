@@ -21,6 +21,8 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { MetaMetrics } from '../../../Analytics';
+import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 
 /**
  * Initialize the Snap controller.
@@ -100,6 +102,7 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
+      useCaip25Permission: true,
     },
 
     // @ts-expect-error: `encryptorFactory` is not compatible with the expected
@@ -119,6 +122,16 @@ export const snapControllerInit: ControllerInitFunction<
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
     },
+    trackEvent: (params: {
+      event: string;
+      properties?: Record<string, unknown>;
+    }) =>
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: params.event,
+          properties: params.properties,
+        }).build(),
+      ),
   });
 
   return {

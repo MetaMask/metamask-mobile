@@ -1,14 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Linking, View } from 'react-native';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolScope } from '@metamask/keyring-api';
 import Text from '../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import Logger from '../../../util/Logger';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -24,13 +21,17 @@ import {
 import createStyles from './SolanaNewFeatureContent.styles';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import Engine from '../../../core/Engine';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);
-
+  const { navigate } = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const hasExistingSolanaAccount = useSelector(
@@ -78,17 +79,14 @@ const SolanaNewFeatureContent = () => {
   };
 
   const createSolanaAccount = async () => {
-    try {
-      const client = new KeyringClient(new SolanaWalletSnapSender());
-
-      await client.createAccount({
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ADD_ACCOUNT,
+      params: {
+        clientType: WalletClientType.Solana,
         scope: SolScope.Mainnet,
-      });
-    } catch (error) {
-      Logger.error(error as Error, 'Solana account creation failed');
-    } finally {
-      handleClose();
-    }
+      },
+    });
+    await handleClose();
   };
 
   const features = [
@@ -135,6 +133,7 @@ const SolanaNewFeatureContent = () => {
           variant={ButtonVariants.Link}
           label={strings('solana_new_feature_content.learn_more')}
           onPress={onLearnMoreClicked}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
         />
         <Button
           variant={ButtonVariants.Primary}
@@ -147,6 +146,7 @@ const SolanaNewFeatureContent = () => {
             hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
           }
           width={ButtonWidthTypes.Full}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
         />
 
         <Button
@@ -154,6 +154,7 @@ const SolanaNewFeatureContent = () => {
           label={strings('solana_new_feature_content.not_now')}
           onPress={handleClose}
           style={styles.cancelButton}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
         />
       </View>
     </BottomSheet>

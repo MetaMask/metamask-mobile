@@ -5,7 +5,7 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import { strings } from '../../../../../locales/i18n';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../../../components/UI/EvmAccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import {
   ToastContext,
@@ -37,7 +37,6 @@ const AccountPermissionsConnected = ({
   isLoading,
   selectedAddresses,
   onSetPermissionsScreen,
-  onSetSelectedAddresses,
   onDismissSheet,
   hostname,
   favicon,
@@ -47,9 +46,8 @@ const AccountPermissionsConnected = ({
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
-    onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
-  }, [onSetSelectedAddresses, onSetPermissionsScreen]);
+  }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
     (address: string) => {
@@ -122,7 +120,7 @@ const AccountPermissionsConnected = ({
           {strings('accounts.connected_accounts_title')}
         </Text>
       </View>
-      <AccountSelectorList
+      <EvmAccountSelectorList
         onSelectAccount={switchActiveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
