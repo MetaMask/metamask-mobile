@@ -24,7 +24,7 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { isSupportedChain } from '@metamask/stake-sdk/dist/contracts/PooledStaking/utils.mjs';
+import { isSupportedPooledStakingChain } from '@metamask/stake-sdk';
 import BigNumber from 'bignumber.js';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
@@ -213,7 +213,8 @@ const selectEarnTokens = createDeepEqualSelector(
         pooledStakingPerChain?.[decimalChainId]?.vaultApy.apyPercentString,
       ).toString();
 
-      const isStakingSupportedChain = isSupportedChain(decimalChainId);
+      const isStakingSupportedChain =
+        isSupportedPooledStakingChain(decimalChainId);
       const isLendingToken = lendingMarketsForToken.length > 0;
       const isLendingOutputToken = lendingMarketsForOutputToken.length > 0;
       const isStakingToken =
