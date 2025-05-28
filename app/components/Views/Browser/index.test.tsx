@@ -275,12 +275,13 @@ describe('Browser', () => {
 
     // Mock accounts and ENS data
     const mockAccounts = [
-      { 
-        address: testAccountAddress, 
+      {
+        address: testAccountAddress,
         name: mockAccountName,
         type: KeyringTypes.simple,
         yOffset: 0,
-        isSelected: true
+        isSelected: true,
+        caipAccountId: `eip155:0:${testAccountAddress}`
       }
     ];
     const mockEnsByAccountAddress = {
@@ -365,8 +366,8 @@ describe('Browser', () => {
     const mockAccountName2 = 'Account 2';
 
     const mockAccounts = [
-      { address: testAccountAddress1, name: mockAccountName1, type: KeyringTypes.simple, yOffset: 0, isSelected: true },
-      { address: testAccountAddress2, name: mockAccountName2, type: KeyringTypes.simple, yOffset: 0, isSelected: false },
+      { address: testAccountAddress1, name: mockAccountName1, type: KeyringTypes.simple, yOffset: 0, isSelected: true, caipAccountId: `eip155:0:${testAccountAddress1}` },
+      { address: testAccountAddress2, name: mockAccountName2, type: KeyringTypes.simple, yOffset: 0, isSelected: false, caipAccountId: `eip155:0:${testAccountAddress2}` },
     ];
     const mockEnsByAccountAddress = {
       [testAccountAddress1]: 'account1.eth',
