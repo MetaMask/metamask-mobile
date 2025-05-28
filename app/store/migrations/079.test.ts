@@ -39,7 +39,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 074: Invalid engine state structure',
+      'Migration 079: Invalid engine state structure',
     );
   });
 
@@ -59,7 +59,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 074: Invalid PhishingController state',
+      'Migration 079: Invalid PhishingController state',
     );
   });
 
@@ -148,7 +148,7 @@ describe('Migration 079: Reset PhishingController phishingLists', () => {
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
     expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 074: cleaning PhishingController state failed with error',
+      'Migration 079: cleaning PhishingController state failed with error',
     );
   });
 }); 
