@@ -62,12 +62,10 @@ jest.mock('../../../../../../core/Engine', () => {
             {
               type: KeyringTypes.hd,
               accounts: ['0x0000000000000000000000000000000000000000'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              },
             },
           ],
         },
