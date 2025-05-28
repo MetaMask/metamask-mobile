@@ -115,6 +115,16 @@ function validateCapabilities(sendCalls: SendCalls) {
 }
 
 function validateUpgrade(keyringType?: KeyringTypes) {
+  if (
+    Engine.context.PreferencesController.state
+      .dismissSmartAccountSuggestionEnabled
+  ) {
+    throw new JsonRpcError(
+      EIP5792ErrorCode.RejectedUpgrade,
+      'EIP-7702 upgrade disabled by the user',
+    );
+  }
+
   if (keyringType && !SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
     throw new JsonRpcError(
       EIP5792ErrorCode.RejectedUpgrade,

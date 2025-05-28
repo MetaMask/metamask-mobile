@@ -403,6 +403,9 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
@@ -875,6 +878,11 @@ const events = {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
+    EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+  ),
 
   // Notifications
   ALL_NOTIFICATIONS: generateOpt(

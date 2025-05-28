@@ -22,6 +22,7 @@ import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  selectDismissSmartAccountSuggestionEnabled,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -183,6 +184,10 @@ class AdvancedSettings extends PureComponent {
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
+    /**
+     * Boolean to disable smart account upgrade prompts
+     */
+    dismissSmartAccountSuggestionEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -274,6 +279,27 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
+  toggleDismissSmartAccountSuggestionEnabled = (
+    dismissSmartAccountSuggestionEnabled,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setDismissSmartAccountSuggestionEnabled(
+      dismissSmartAccountSuggestionEnabled,
+    );
+
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+        )
+        .addProperties({
+          stx_opt_in: dismissSmartAccountSuggestionEnabled,
+          location: 'Advanced Settings',
+        })
+        .build(),
+    );
+  };
+
   openLinkAboutStx = () => {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
@@ -340,6 +366,41 @@ class AdvancedSettings extends PureComponent {
                 label={strings('app_settings.reset_account_button')}
                 style={styles.accessory}
               />
+            </View>
+
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.dismiss_smart_account_update_heading')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    testID={
+                      AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE
+                    }
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.dismiss_smart_account_update_heading',
+                    )}
+                  />
+                </View>
+              </View>
+
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.dismiss_smart_account_update_desc')}
+              </Text>
             </View>
 
             <View style={styles.setting}>
@@ -519,6 +580,8 @@ const mapStateToProps = (state) => ({
     state,
     selectChainId(state),
   ),
+  dismissSmartAccountSuggestionEnabled:
+    selectDismissSmartAccountSuggestionEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

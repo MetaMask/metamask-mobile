@@ -59,6 +59,7 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
+import { selectDismissSmartAccountSuggestionEnabled } from '../../../selectors/preferencesController';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -75,6 +76,9 @@ const AccountActions = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
+  );
+  const dismissSmartAccountSuggestionEnabled = useSelector(
+    selectDismissSmartAccountSuggestionEnabled,
   );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
@@ -463,18 +467,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
@@ -498,7 +500,8 @@ const AccountActions = () => {
           ///: END:ONLY_INCLUDE_IF
         }
         {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
-          networkSupporting7702Present && (
+          networkSupporting7702Present &&
+          !dismissSmartAccountSuggestionEnabled && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
