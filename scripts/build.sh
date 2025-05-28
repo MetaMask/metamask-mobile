@@ -661,11 +661,6 @@ echo "TARGET = $TARGET"
 if [ "$PLATFORM" == "android" ] && [ "$MODE" == "main" ] && [ "$TARGET" == "prod" ]; then
       export METAMASK_BUILD_TYPE='main'
       export METAMASK_ENVIRONMENT='production'
-      export NAME=$VERSION_NAME
-      export NUMBER=$VERSION_NUMBER
-      export KEYSTORE_PATH='android/keystores/release.keystore'
-      export APP_NAME='prod'
-      export OUTPUT_PATH='prodRelease'
       export GENERATE_BUNDLE=true
       export PRE_RELEASE=true
 fi
