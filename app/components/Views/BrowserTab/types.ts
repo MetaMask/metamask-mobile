@@ -30,6 +30,18 @@ export enum WebViewNavigationEventName {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BrowserTabProps = SharedTabProps & {
   /**
+   * Function to open a new tab
+   */
+  newTab: (url?: string) => void;
+  /**
+   * Represents the current chain id
+   */
+  activeChainId: string;
+  /**
+   * Boolean indicating if browser is in tabs view
+   */
+  isInTabsView: boolean;
+  /**
    * The ID of the active tab
    */
   activeTab: number;
