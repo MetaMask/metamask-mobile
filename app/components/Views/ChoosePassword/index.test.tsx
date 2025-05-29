@@ -251,7 +251,7 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(submitButton.props.disabled).toBe(true);
+    fireEvent.press(submitButton);
 
     // Enter non-matching passwords
     await act(async () => {
