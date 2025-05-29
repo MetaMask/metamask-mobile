@@ -1,0 +1,42 @@
+import {
+  JsonRpcEngineNextCallback,
+  JsonRpcMiddleware,
+} from '@metamask/json-rpc-engine';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
+
+import { store } from '../../store';
+import {
+  ExtendedJSONRPCRequest,
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
+
+export function createOriginThrottlingMiddleware(
+  navigation: any,
+): JsonRpcMiddleware<JsonRpcParams, Json> {
+  return (
+    req: JsonRpcRequest<JsonRpcParams>,
+    res: PendingJsonRpcResponse<Json>,
+    next: JsonRpcEngineNextCallback,
+  ) => {
+    validateOriginThrottling({ req: req as ExtendedJSONRPCRequest, store });
+
+    next(() => {
+      processOriginThrottlingRejection({
+        req: req as ExtendedJSONRPCRequest,
+        error: res.error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+    });
+    return;
+  };
+}
