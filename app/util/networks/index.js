@@ -61,7 +61,7 @@ import {
 } from '../../selectors/multichainNetworkController';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isCaipChainId } from '@metamask/utils';
+import { isCaipChainId, KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 
 /**
  * List of the supported networks
@@ -509,14 +509,14 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
 };
 
 /**
- * Gets the image source given both the network type and the chain ID.
+ * Gets the image source for an EVM network given both the network type and the Hex chain ID.
  *
  * @param {object} params - Params that contains information about the network.
  * @param {string=} params.networkType - Type of network from the provider.
- * @param {string} params.chainId - ChainID of the network.
+ * @param {string} params.chainId - Hex EVM chain ID of the EVM network.
  * @returns {Object} - Image source of the network.
  */
-export const getNetworkImageSource = ({ networkType, chainId }) => {
+const getEvmNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
 
   if (defaultNetwork) {
@@ -541,11 +541,28 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return customNetworkImg;
   }
 
+  return getTestNetImage(networkType);
+};
+
+/**
+ * Gets the image source for a network given both the network type and the Hex EVM chain ID or CaipChainId.
+ *
+ * @param {object} params - Params that contains information about the network.
+ * @param {string=} params.networkType - Type of network from the provider.
+ * @param {string} params.chainId - Hex EVM chain ID or CAIP chain ID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = ({ networkType, chainId }) => {
+  let hexChainId = chainId;
   if (isCaipChainId(chainId)) {
-    return getNonEvmNetworkImageSourceByChainId(chainId);
+    const {namespace, reference} = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return getNonEvmNetworkImageSourceByChainId(chainId);
+    }
+    hexChainId = toHex(reference);
   }
 
-  return getTestNetImage(networkType);
+  return getEvmNetworkImageSource({ networkType, chainId: hexChainId});
 };
 
 /**
@@ -615,6 +632,9 @@ export const isChainPermissionsFeatureEnabled = true;
 
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
+
+export const isPerDappSelectedNetworkEnabled = () =>
+  process.env.MM_PER_DAPP_SELECTED_NETWORK === 'true';
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';

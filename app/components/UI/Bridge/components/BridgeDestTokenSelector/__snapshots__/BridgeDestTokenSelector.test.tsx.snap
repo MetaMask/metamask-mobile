@@ -769,7 +769,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               [
                                 {
                                   "address": "0x0000000000000000000000000000000000000002",
-                                  "balance": "2",
+                                  "balance": "2.0",
                                   "balanceFiat": "$200000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -780,7 +780,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000001",
-                                  "balance": "1",
+                                  "balance": "1.0",
                                   "balanceFiat": "$20000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -791,7 +791,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000000",
-                                  "balance": "3",
+                                  "balance": "3.0",
                                   "balanceFiat": "$6000",
                                   "chainId": "0x1",
                                   "decimals": 18,

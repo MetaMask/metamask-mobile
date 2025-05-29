@@ -125,20 +125,6 @@ describe('useAccountTrackerPolling', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should return accountsByChainId from the state', () => {
-    const { result } = renderHookWithProvider(
-      () => useAccountTrackerPolling(),
-      {
-        state,
-      },
-    );
-
-    expect(result.current.accountsByChainId).toEqual({
-      '0x1': {},
-      '0x2': {},
-    });
-  });
-
   it('should poll only for current network if selected one is not popular', () => {
     const { unmount } = renderHookWithProvider(
       () => useAccountTrackerPolling(),

@@ -14,7 +14,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import AccountSelectorList from '../../../UI/AccountSelectorList';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
@@ -31,6 +31,7 @@ import {
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { CaipAccountId } from '@metamask/utils';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -51,24 +52,22 @@ const AccountConnectMultiSelector = ({
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
+    [],
+  );
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
-  }, [
-    setSelectedAddresses,
-    defaultSelectedAddresses,
-  ]);
+  }, [setSelectedAddresses, defaultSelectedAddresses]);
 
   const onSelectAccount = useCallback(
-    (accAddress: string) => {
+    (accAddress: CaipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
-        (selectedAccountId) => !isEqualCaseInsensitive(selectedAccountId, accAddress),
+        (selectedAccountId) =>
+          !isEqualCaseInsensitive(selectedAccountId, accAddress),
       );
 
-      if (
-        updatedSelectedAccountAddresses.length === selectedAddresses.length
-      ) {
+      if (updatedSelectedAccountAddresses.length === selectedAddresses.length) {
         setSelectedAddresses([...selectedAddresses, accAddress]);
       } else {
         setSelectedAddresses(updatedSelectedAccountAddresses);
@@ -85,8 +84,9 @@ const AccountConnectMultiSelector = ({
     onSubmit([]);
   }, [onSubmit]);
 
-  const areAllAccountsSelected = accounts
-    .every(({ address }) => selectedAddresses.includes(address));
+  const areAllAccountsSelected = accounts.every(({ caipAccountId }) =>
+    selectedAddresses.includes(caipAccountId),
+  );
 
   const areAnyAccountsSelected = selectedAddresses?.length !== 0;
   const areNoAccountsSelected = selectedAddresses?.length === 0;
@@ -98,7 +98,7 @@ const AccountConnectMultiSelector = ({
     const selectAll = () => {
       if (isLoading) return;
       const allSelectedAccountAddresses = accounts.map(
-        ({ address }) => address,
+        ({ caipAccountId }) => caipAccountId,
       );
       setSelectedAddresses(allSelectedAccountAddresses);
     };
@@ -132,7 +132,8 @@ const AccountConnectMultiSelector = ({
     styles.selectAll,
   ]);
 
-  const renderCtaButtons = useCallback(() => (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
@@ -143,8 +144,7 @@ const AccountConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...(isLoading &&
-                  styles.disabled),
+                ...(isLoading && styles.disabled),
               }}
               disabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
@@ -176,16 +176,18 @@ const AccountConnectMultiSelector = ({
           </View>
         )}
       </View>
-    ), [
-    areAnyAccountsSelected,
-    isLoading,
-    styles,
-    areNoAccountsSelected,
-    hostname,
-    showDisconnectAllButton,
-    handleDisconnect,
-    handleSubmit,
-  ]);
+    ),
+    [
+      areAnyAccountsSelected,
+      isLoading,
+      styles,
+      areNoAccountsSelected,
+      hostname,
+      showDisconnectAllButton,
+      handleDisconnect,
+      handleSubmit,
+    ],
+  );
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
@@ -202,7 +204,7 @@ const AccountConnectMultiSelector = ({
             </Text>
             {accounts?.length > 0 && renderSelectAllCheckbox()}
           </View>
-          <AccountSelectorList
+          <CaipAccountSelectorList
             onSelectAccount={onSelectAccount}
             accounts={accounts}
             ensByAccountAddress={ensByAccountAddress}

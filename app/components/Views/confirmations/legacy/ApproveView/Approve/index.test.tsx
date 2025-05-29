@@ -63,6 +63,15 @@ jest.mock('../../../../../../core/Engine', () => ({
         .fn()
         .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
     },
+    TokenDetectionController: {
+      detectTokens: jest.fn(),
+    },
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+    TokenBalancesController: {
+      updateBalancesByChainId: jest.fn(),
+    },
   },
 }));
 

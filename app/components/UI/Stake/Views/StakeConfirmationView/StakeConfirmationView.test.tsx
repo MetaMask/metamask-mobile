@@ -7,7 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 

@@ -8,10 +8,6 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import {
-  selectContractExchangeRates,
-  selectTokenMarketData,
-} from '../../../selectors/tokenRatesController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
@@ -24,10 +20,6 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-
-  // Selectors returning state updated by the polling
-  const contractExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenMarketData = useSelector(selectTokenMarketData);
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
@@ -53,11 +45,6 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         ]
       : [],
   });
-
-  return {
-    contractExchangeRates,
-    tokenMarketData,
-  };
 };
 
 export default useTokenRatesPolling;
