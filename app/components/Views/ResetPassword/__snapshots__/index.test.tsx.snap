@@ -115,7 +115,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       }
                     }
                   >
-                    Change password
+                    reset_password.title
                   </Text>
                   <View
                     style={
@@ -141,7 +141,7 @@ exports[`ResetPassword should render correctly 1`] = `
                         }
                       }
                     >
-                      This password will unlock your MetaMask wallet only on this device.
+                      reset_password.subtitle
                     </Text>
                   </View>
                 </View>
@@ -167,7 +167,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       }
                     }
                   >
-                    New Password
+                    reset_password.password
                   </Text>
                   <Text
                     accessibilityRole="text"
@@ -187,7 +187,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       }
                     }
                   >
-                    Show
+                    reset_password.show
                   </Text>
                   <TextInput
                     autoCapitalize="none"
@@ -257,7 +257,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       }
                     }
                   >
-                    Confirm password
+                    reset_password.confirm_password
                   </Text>
                   <TextInput
                     autoCapitalize="none"
@@ -315,7 +315,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       }
                     }
                   >
-                    Must be at least 8 characters
+                    reset_password.must_be_at_least
                   </Text>
                 </View>
                 <View />
@@ -392,7 +392,7 @@ exports[`ResetPassword should render correctly 1`] = `
                     }
                     testID="i-understand-text"
                   >
-                    I understand that MetaMask cannot recover this password for me.
+                    reset_password.i_understand
                      
                     <Text
                       accessibilityRole="text"
@@ -410,7 +410,7 @@ exports[`ResetPassword should render correctly 1`] = `
                         }
                       }
                     >
-                      Learn more.
+                      reset_password.learn_more
                     </Text>
                   </Text>
                 </View>
@@ -479,7 +479,7 @@ exports[`ResetPassword should render correctly 1`] = `
                       ]
                     }
                   >
-                    Reset password
+                    reset_password.reset_button
                   </Text>
                 </TouchableOpacity>
               </View>
