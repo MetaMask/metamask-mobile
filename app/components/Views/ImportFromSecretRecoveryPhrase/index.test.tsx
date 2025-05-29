@@ -285,6 +285,102 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(finalField.props.value).toBe('word1');
       });
     });
+
+    it('should validate seed phrase correctly', async () => {
+      const { getByText, getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Test case 1: Invalid length (less than 12 words)
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      // Enter invalid length seed phrase
+      fireEvent.changeText(input, 'word1 word2 word3');
+
+      // Verify we're still on step 1
+      await waitFor(() => {
+        expect(getByText('Step 1 of 2')).toBeTruthy();
+        expect(continueButton.props.disabled).toBeTruthy();
+      });
+    });
+
+    it('should validate seed phrase correctly - Invalid mnemonic', async () => {
+      const { getByPlaceholderText, getByRole, queryByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Test case 1: Invalid length (less than 12 words)
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      // Invalid mnemonic
+      const invalidMnemonic = 'invalid '.repeat(12).trim();
+
+      // Enter invalid mnemonic
+      fireEvent.changeText(input, invalidMnemonic);
+      // Press continue and verify error message
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        const errorMessage = queryByText(
+          strings('import_from_seed.invalid_seed_phrase'),
+        );
+        expect(errorMessage).toBeTruthy();
+      });
+    });
+
+    it('should validate seed phrase correctly - Valid 12-word mnemonic', async () => {
+      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+        );
+
+      // Test case 1: Invalid length (less than 12 words)
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      // Valid 12-word mnemonic
+      const validMnemonic =
+        'say devote wasp video cool lunch brief add fever uncover novel offer';
+
+      // Enter valid mnemonic
+      fireEvent.changeText(input, validMnemonic);
+
+      // Get all input fields after they are created
+      const inputFields = await waitFor(() => {
+        const fields = [];
+        for (let i = 0; i < 12; i++) {
+          const field = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+          );
+          fields.push(field);
+        }
+        return fields;
+      });
+
+      // Verify initial state
+      expect(inputFields[0].props.value).toBe('say');
+
+      // Press continue and verify step 2
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(getByText('Step 2 of 2')).toBeTruthy();
+      });
+    });
   });
 
   describe('Step 2 UI functionality', () => {
