@@ -1346,7 +1346,15 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                    if [ "$IS_SIM_BUILD" = "true" ]; then
+                      if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
+                      else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                      fi
+                    else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
+                    fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1365,8 +1373,8 @@ workflows:
                 #!/usr/bin/env bash
                 # Set base paths for release builds
                 if [ "$IS_DEV_BUILD" = "true" ]; then
-                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
-                    TEST_APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/androidTest/$APP_NAME/debug"
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug"
+                    TEST_APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/androidTest/prod/debug"
                 else
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                     BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
@@ -1377,12 +1385,16 @@ workflows:
 
                 # Rename APKs
                 if [ "$IS_DEV_BUILD" = "true" ]; then
-                    OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
-                    OLD_TEST_APK="$TEST_APK_DIR/app-$APP_NAME-debug-androidTest.apk"
+                    OLD_APK="$APK_DIR/app-prod-debug.apk"
+                    OLD_TEST_APK="$TEST_APK_DIR/app-prod-debug-androidTest.apk"
                     NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                     NEW_TEST_APK="$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
                     mv "$OLD_APK" "$NEW_APK"
                     mv "$OLD_TEST_APK" "$NEW_TEST_APK"
+
+                    # Export paths for deployment
+                    envman add --key APK_DEPLOY_PATH --value "$NEW_APK"
+                    envman add --key TEST_APK_DEPLOY_PATH --value "$NEW_TEST_APK"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
@@ -1390,6 +1402,10 @@ workflows:
                     NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                     mv "$OLD_APK" "$NEW_APK"
                     mv "$OLD_AAB" "$NEW_AAB"
+
+                    # Export paths for deployment
+                    envman add --key APK_DEPLOY_PATH --value "$NEW_APK"
+                    envman add --key AAB_DEPLOY_PATH --value "$NEW_AAB"
                 fi
 
                 # Export new names as environment variables
