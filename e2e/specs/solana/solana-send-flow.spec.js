@@ -16,13 +16,13 @@ import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 // Test constants
-const SOLANA_ACCOUNT_NAME = 'Solana Account 2';
+const SOLANA_ACCOUNT_NAME = 'Solana Account 3';
 const INVALID_ADDRESS = 'invalid address';
 const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
-const RECIPIENT_ADDRESS = 'GxE7wWLyUEV4jMqQUMj8kT1XVpcfxq4iWBTVDTwCV77M';
-const TRANSFER_AMOUNT = '0.0001';
-const EXPECTED_CONFIRMATION = '0.0001 SOL was successfully sent';
-const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
+const RECIPIENT_ADDRESS = 'EjiyBUWeEXPBJT5cB2jzbm6pmbBxWuyVyVBGasSGgtXt';
+const TRANSFER_AMOUNT = '0.002';
+const EXPECTED_CONFIRMATION = '0.002 SOL was successfully sent';
+const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
 describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
@@ -45,7 +45,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapAddSolanaAccount();
       await AddNewHdAccountComponent.tapConfirm();
-      await NetworkEducationModal.tapGotItButton();
+      await NetworkEducationModal.tapGotItButton(); 
       // Assert account created, which is an existing account with SOL
       await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME);
     },
@@ -86,7 +86,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
       await SnapSendActionSheet.tapSendSOLTransactionButton();
       // Assert transaction is sent
       await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
-    */
+    // */
     },
   );
 
