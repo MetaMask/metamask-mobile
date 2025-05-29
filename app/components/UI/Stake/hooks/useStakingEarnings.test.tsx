@@ -39,7 +39,7 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() => useStakingEarnings(1));
 
     // Wait for state updates
     await waitFor(() => {
@@ -67,7 +67,7 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() => useStakingEarnings(1));
 
     // Wait for state updates
     await waitFor(() => {
@@ -96,7 +96,7 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() => useStakingEarnings(1));
 
     await waitFor(() => {
       expect(result.current.lifetimeRewardsETH).toBe('0 ETH'); // No lifetime rewards
@@ -127,7 +127,7 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() => useStakingEarnings(1));
 
     await waitFor(() => {
       expect(result.current.lifetimeRewardsETH).toBe('0 ETH'); // No lifetime rewards
