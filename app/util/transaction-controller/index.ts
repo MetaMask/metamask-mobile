@@ -20,6 +20,14 @@ export async function addTransaction(
   return await TransactionController.addTransaction(transaction, opts);
 }
 
+export async function addTransactionBatch(
+transactionBatchRequest: Parameters<BaseTransactionController['addTransactionBatch']>[0]
+) {
+  const { TransactionController } = Engine.context;
+
+  return await TransactionController.addTransactionBatch(transactionBatchRequest)
+}
+
 // Keeping this export as function to put more logic in the future
 export async function estimateGas(
   transaction: TransactionParams,

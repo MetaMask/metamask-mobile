@@ -1,38 +1,38 @@
+import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './Balance.styles';
-import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import {
-  getTestNetImageByChainId,
-  getDefaultNetworkByChainId,
-  isTestNet,
-} from '../../../../util/networks';
+import { strings } from '../../../../../locales/i18n';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge from '../../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import NetworkAssetLogo from '../../NetworkAssetLogo';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+import { useStyles } from '../../../../component-library/hooks';
+import { RootState } from '../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
-  PopularList,
-  UnpopularNetworkList,
+  getDefaultNetworkByChainId,
+  getTestNetImageByChainId,
+  isTestNet,
+} from '../../../../util/networks';
+import {
   CustomNetworkImgMapping,
   getNonEvmNetworkImageSourceByChainId,
+  PopularList,
+  UnpopularNetworkList,
 } from '../../../../util/networks/customNetworks';
-import { RootState } from '../../../../reducers';
+import AssetElement from '../../AssetElement';
+import NetworkAssetLogo from '../../NetworkAssetLogo';
+import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+import { TokenI } from '../../Tokens/types';
+import styleSheet from './Balance.styles';
 
 interface BalanceProps {
   asset: TokenI;
