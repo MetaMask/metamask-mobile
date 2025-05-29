@@ -37,7 +37,6 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
-  SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -106,8 +105,6 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [hintText, setHintText] = useState('');
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<
@@ -130,18 +127,6 @@ const Login: React.FC = () => {
   const handleBackPress = () => {
     Authentication.lockApp();
     return false;
-  };
-
-  const getHint = async () => {
-    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    if (!hint) return;
-    const parsedHints = await JSON.parse(hint);
-    setHintText(parsedHints?.manualBackup || '');
-  };
-
-  const toggleHint = () => {
-    setShowHint(!showHint);
-    getHint();
   };
 
   useEffect(() => {
@@ -185,8 +170,6 @@ const Login: React.FC = () => {
     };
 
     getUserAuthPreferences();
-
-    getHint();
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
@@ -445,18 +428,6 @@ const Login: React.FC = () => {
                 >
                   {strings('login.password')}
                 </Label>
-                {hintText && (
-                  <Button
-                    variant={ButtonVariants.Link}
-                    onPress={toggleHint}
-                    testID={LoginViewSelectors.SHOW_HINT_BUTTON}
-                    label={
-                      showHint
-                        ? strings('login.hide_hint')
-                        : strings('login.show_hint')
-                    }
-                  />
-                )}
               </View>
               <TextField
                 size={TextFieldSize.Lg}
@@ -482,16 +453,6 @@ const Login: React.FC = () => {
             </View>
 
             <View style={styles.helperTextContainer}>
-              {showHint && (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.hintText}
-                >
-                  {strings('login.hint', { hint: hintText })}
-                </Text>
-              )}
-
               {!!error && (
                 <HelpText
                   severity={HelpTextSeverity.Error}
