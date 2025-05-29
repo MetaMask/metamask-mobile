@@ -44,14 +44,14 @@ export type PPOMMessenger = Messenger<
 
 const log = createProjectLogger('ppom-util');
 
-const TRANSACTION_METHOD = 'eth_sendTransaction';
-const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
+const METHOD_SEND_TRANSACTION = 'eth_sendTransaction';
+const TRANSACTION_METHODS = [METHOD_SEND_TRANSACTION, 'eth_sendRawTransaction'];
 export const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
 export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
-  TRANSACTION_METHOD,
+  METHOD_SEND_TRANSACTION,
   'eth_signTypedData',
   'eth_signTypedData_v1',
   'eth_signTypedData_v3',
@@ -321,7 +321,7 @@ function normalizeTransactionRequest(
   request: PPOMRequest,
   transactionMeta?: TransactionMeta,
 ): PPOMRequest {
-  if (request.method !== TRANSACTION_METHOD) {
+  if (request.method !== METHOD_SEND_TRANSACTION) {
     return request;
   }
 
