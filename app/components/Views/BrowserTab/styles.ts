@@ -1,1 +1,1 @@
-export { default } from '../shared/browserTabSharedStyles';
+export { default } from '../shared/browser-tab-shared-styles';

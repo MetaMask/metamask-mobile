@@ -134,6 +134,9 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
+  /**
+   * Reset the autocomplete results
+   */
   const reset = useCallback(() => {
     setFuseResults(initialFuseResults);
     resetTokenSearch();
@@ -168,8 +171,9 @@ const UrlAutocomplete = forwardRef<
   const hide = useCallback(() => {
     // Cancel the search
     debouncedSearch.cancel();
+    reset();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-  }, [debouncedSearch]);
+  }, [debouncedSearch, reset]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -181,7 +185,6 @@ const UrlAutocomplete = forwardRef<
     search: debouncedSearch,
     hide,
     show,
-    reset,
   }));
 
   useEffect(() => {

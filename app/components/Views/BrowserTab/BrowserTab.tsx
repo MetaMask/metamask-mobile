@@ -212,9 +212,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       hostname,
     );
     const permittedAccountAddresses = permittedAccountIds.map((accountId) => {
-      const { address } = parseCaipAccountId(accountId)
+      const { address } = parseCaipAccountId(accountId);
       return address;
-    })
+    });
     return permittedAccountAddresses;
   }, isEqual);
 
@@ -1276,7 +1276,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const hideAutocomplete = useCallback(
     () => {
       autocompleteRef.current?.hide();
-      autocompleteRef.current?.reset();
     },
     [],
   );

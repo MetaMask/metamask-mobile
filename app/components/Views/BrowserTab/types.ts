@@ -1,4 +1,4 @@
-import { SharedTabProps } from '../shared/browserTabSharedTypes';
+import { SharedTabProps } from '../shared/browser-tab-shared-types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type IpfsContentResult = {

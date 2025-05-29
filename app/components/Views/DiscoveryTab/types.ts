@@ -1,4 +1,4 @@
-import { SharedTabProps } from '../shared/browserTabSharedTypes';
+import { SharedTabProps } from '../shared/browser-tab-shared-types';
 
 /**
  * The props for the DiscoveryTab component
