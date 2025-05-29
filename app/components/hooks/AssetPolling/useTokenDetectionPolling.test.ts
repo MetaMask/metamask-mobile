@@ -357,4 +357,30 @@ describe('useTokenDetectionPolling', () => {
       mockedTokenDetectionController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('polls with provided chain ids and address', () => {
+    const providedAddress = '0x1234567890abcdef';
+    renderHookWithProvider(
+      () =>
+        useTokenDetectionPolling({
+          chainIds: ['0x1', '0x89'],
+          address: providedAddress,
+        }),
+      {
+        state,
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenNthCalledWith(
+      1,
+      {
+        chainIds: ['0x1', '0x89'],
+        address: providedAddress,
+      },
+    );
+  });
 });
