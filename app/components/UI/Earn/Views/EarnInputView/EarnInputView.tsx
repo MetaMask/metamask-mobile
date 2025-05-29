@@ -5,7 +5,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { formatEther } from 'ethers/lib/utils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -41,7 +41,6 @@ import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import { getEarnInputViewTitle } from './utils';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
@@ -51,12 +50,13 @@ import {
   getErc20SpendingLimit,
 } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
+import { isSupportedLendingTokenByChainId } from '../../utils';
 
 const EarnInputView = () => {
   // navigation hooks
   const navigation = useNavigation();
   const route = useRoute<EarnInputViewProps['route']>();
-  const { action, token } = route.params;
+  const { token } = route.params;
 
   // state
   const [
@@ -131,7 +131,7 @@ const EarnInputView = () => {
   const handleLendingFlow = useCallback(async () => {
     if (!activeAccount?.address) return;
 
-    // TODO: Add GasCostImpact for lending deposit flow.
+    // TODO: Add GasCostImpact for lending deposit flow after launch.
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
 
     const tokenContractAddress = earnToken?.address;
@@ -238,6 +238,7 @@ const EarnInputView = () => {
         undefined,
         true,
       );
+
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });
@@ -390,9 +391,16 @@ const EarnInputView = () => {
   const navBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
-  const title = isStablecoinLendingEnabled
-    ? getEarnInputViewTitle(action)
-    : strings('stake.stake_eth');
+  const title = useMemo(() => {
+    if (
+      isStablecoinLendingEnabled &&
+      token?.chainId &&
+      isSupportedLendingTokenByChainId(token.symbol, token.chainId)
+    ) {
+      return strings('earn.deposit');
+    }
+    return strings('stake.stake');
+  }, [isStablecoinLendingEnabled, token.chainId, token.symbol]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -406,7 +414,6 @@ const EarnInputView = () => {
     );
   }, [
     navigation,
-    action,
     token,
     theme.colors,
     navBarEventOptions,
