@@ -5,14 +5,6 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { useTransferRecipient } from './useTransferRecipient';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 const nativeTransferState = merge({}, transferConfirmationState, {
   engine: {
     backgroundState: {
