@@ -19,9 +19,10 @@ export enum AccountConnectScreens {
 export interface AccountConnectParams {
   hostInfo: {
     metadata: {
-    permissions: RequestedPermissions;
+      permissions: RequestedPermissions;
+    };
+    permissionRequestId: string;
   };
-  permissionRequestId: string;
 }
 
 /**
