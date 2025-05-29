@@ -1,6 +1,6 @@
 import { createClient, type EntrySkeletonType } from 'contentful';
-import { CarouselSlide } from './types';
 import { isProduction } from '../../../util/environment';
+import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
 
 export interface ContentfulCarouselSlideFields {
