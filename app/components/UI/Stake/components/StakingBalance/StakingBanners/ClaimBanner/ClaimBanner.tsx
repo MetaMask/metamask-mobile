@@ -1,4 +1,3 @@
-import { hexToNumber } from '@metamask/utils';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -20,7 +19,6 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
 import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
-import { selectEvmChainId } from '../../../../../../../selectors/networkController';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -32,13 +30,14 @@ import { useStakeContext } from '../../../../hooks/useStakeContext';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import styleSheet from './ClaimBanner.styles';
 import { renderFromWei } from '../../../../../../../util/number';
-import { getDecimalChainId } from '../../../../../../../util/networks';
+import { TokenI } from '../../../../../Tokens/types';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
+  asset: TokenI;
 };
 
-const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
+const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
@@ -49,9 +48,9 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
 
-  const chainId = useSelector(selectEvmChainId);
+  const chainId = Number(asset?.chainId);
 
-  const { pooledStakesData } = usePooledStakes(getDecimalChainId(chainId));
+  const { pooledStakesData } = usePooledStakes(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
   const confirmationRedesignFlags = useSelector(
@@ -147,7 +146,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     if (
       shouldAttemptClaim &&
       isStakingSupportedChain &&
-      Number(stakingContract?.chainId) === hexToNumber(chainId) &&
+      Number(stakingContract?.chainId) === chainId &&
       !isSubmittingClaimTransaction
     ) {
       setShouldAttemptClaim(false);
