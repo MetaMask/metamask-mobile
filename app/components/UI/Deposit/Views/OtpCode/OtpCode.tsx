@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { TextInput, View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -18,12 +18,8 @@ import {
 import { getDepositNavbarOptions } from '../../../Navbar';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
-
-// TODO: Move this to the ID Verify component when it is implemented
-export const createIdVerifyNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ID_VERIFY,
-);
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
@@ -68,7 +64,7 @@ const OtpCode = () => {
     if (!loading && value.length === CELL_COUNT) {
       await submitCode();
       if (!error) {
-        navigation.navigate(...createIdVerifyNavDetails());
+        navigation.navigate(...createVerifyIdentityNavDetails());
       }
     }
   }, [error, loading, navigation, submitCode, value.length]);
@@ -101,6 +97,7 @@ const OtpCode = () => {
               </View>
             )}
           />
+
           {error && (
             <Text style={{ color: theme.colors.error.default }}>{error}</Text>
           )}

@@ -3,7 +3,7 @@ import React from 'react';
 import { BigNumber } from 'bignumber.js';
 import { AssetIdentifier, AssetType } from '../types';
 import { formatAmount, formatAmountMaxPrecision } from '../formatAmount';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import styleSheet from './AmountPill.styles';
 import { View, ViewProps } from 'react-native';
 import Text, {
@@ -15,6 +15,9 @@ import { hexToDecimal } from '../../../../util/conversions';
 interface AmountPillProperties extends ViewProps {
   asset: AssetIdentifier;
   amount: BigNumber;
+  isApproval?: boolean;
+  isAllApproval?: boolean;
+  isUnlimitedApproval?: boolean;
 }
 /**
  * Displays a pill with an amount and a background color indicating whether the amount
@@ -28,18 +31,28 @@ const AmountPill: React.FC<AmountPillProperties> = ({
   asset,
   amount,
   style,
+  isApproval,
+  isAllApproval,
+  isUnlimitedApproval,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
+    isApproval: isApproval ?? false,
     isNegative: amount.isNegative(),
   });
-  const amountParts: string[] = [amount.isNegative() ? '-' : '+'];
+  const amountParts: string[] = [];
   const tooltipParts: string[] = [];
 
+  if (!isApproval) {
+    amountParts.push(amount.isNegative() ? '-' : '+');
+  }
+
   // ERC721 amounts are always 1 and are not displayed.
-  if (asset.type !== AssetType.ERC721) {
-    const formattedAmount = formatAmount(I18n.locale, amount.abs());
+  if (asset.type !== AssetType.ERC721 && !isAllApproval) {
+    const formattedAmount = isUnlimitedApproval
+      ? strings('confirm.unlimited')
+      : formatAmount(I18n.locale, amount.abs());
     const fullPrecisionAmount = formatAmountMaxPrecision(
       I18n.locale,
       amount.abs(),
@@ -54,6 +67,11 @@ const AmountPill: React.FC<AmountPillProperties> = ({
 
     amountParts.push(tokenIdPart);
     tooltipParts.push(tokenIdPart);
+  }
+
+  if (isAllApproval) {
+    amountParts.push(strings('confirm.all'));
+    tooltipParts.push(strings('confirm.all'));
   }
 
   return (

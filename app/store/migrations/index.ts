@@ -81,6 +81,8 @@ import migration77 from './077';
 import migration78 from './078';
 import migration79 from './079';
 import migration80 from './080';
+import migration81 from './081';
+
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
@@ -177,6 +179,7 @@ export const migrationList: MigrationsList = {
   78: migration78,
   79: migration79,
   80: migration80,
+  81: migration81,
 };
 
 // Enable both synchronous and asynchronous migrations

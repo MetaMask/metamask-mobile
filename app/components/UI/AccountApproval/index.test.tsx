@@ -31,12 +31,10 @@ jest.mock('../../../core/Engine', () => {
           keyrings: [
             {
               accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              },
             },
           ],
         },
