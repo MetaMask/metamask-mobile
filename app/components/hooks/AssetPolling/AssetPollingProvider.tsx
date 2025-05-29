@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Hex } from '@metamask/utils';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
@@ -10,7 +10,7 @@ import useAccountTrackerPolling from './useAccountTrackerPolling';
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
-export const AssetPollingProvider = ({
+export const AssetPollingProvider = memo(({
   chainId,
   networkClientId,
   address,
@@ -43,4 +43,4 @@ export const AssetPollingProvider = ({
   useTokenBalancesPolling(chainParams);
 
   return null;
-};
+});
