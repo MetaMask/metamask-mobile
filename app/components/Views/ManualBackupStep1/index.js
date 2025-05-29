@@ -51,12 +51,18 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
+const ManualBackupStep1 = ({
+  route,
+  navigation,
+  appTheme,
+  dispatchSaveOnboardingEvent,
+}) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
   const [password, setPassword] = useState(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
@@ -157,6 +163,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
       ).build(),
+      dispatchSaveOnboardingEvent,
     );
   };
 
@@ -390,10 +397,18 @@ ManualBackupStep1.propTypes = {
    * Theme that app is set to
    */
   appTheme: PropTypes.string,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   appTheme: state.user.appTheme,
 });
 
-export default connect(mapStateToProps)(ManualBackupStep1);
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);

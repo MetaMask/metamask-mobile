@@ -32,8 +32,14 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
-const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+const ManualBackupStep2 = ({
+  navigation,
+  seedphraseBackedUp,
+  route,
+  dispatchSaveOnboardingEvent,
+}) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
@@ -113,6 +119,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
+          dispatchSaveOnboardingEvent,
         );
       });
     } else {
@@ -392,10 +399,15 @@ ManualBackupStep2.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);
