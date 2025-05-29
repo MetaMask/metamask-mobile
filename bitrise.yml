@@ -1971,7 +1971,11 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
+                      if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:flask
+                      else
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                      fi
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -1988,6 +1992,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
