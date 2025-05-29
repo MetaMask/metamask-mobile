@@ -250,11 +250,6 @@ const EarnWithdrawInputView = () => {
         lendingToken as EarnTokenDetails,
       );
 
-    console.log(
-      'simulatedHealthFactorAfterWithdrawal: ',
-      simulatedHealthFactorAfterWithdrawal,
-    );
-
     setIsSubmittingStakeWithdrawalTransaction(true);
 
     const amountToWithdraw = amountTokenMinimalUnit.toString();

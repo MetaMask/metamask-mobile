@@ -76,14 +76,6 @@ const useEarnInputHandlers = ({
     [balanceWei, estimatedGasFeeWei, isEarnGasFeeError, isLoadingEarnGasFee],
   );
 
-  console.log('maxStakeableAmountWei', maxStakeableAmountWei.toString());
-  console.log('isEarnGasFeeError', isEarnGasFeeError);
-  console.log('isLoadingEarnGasFee', isLoadingEarnGasFee);
-  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit.toString());
-  console.log('balanceMinimalUnit', balanceMinimalUnit.toString());
-  console.log('balanceWei', balanceWei.toString());
-  console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
-
   const isOverMaximum = useMemo(() => {
     const isOverMaximumEth =
       !!earnToken.isETH &&
