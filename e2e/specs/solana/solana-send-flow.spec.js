@@ -14,7 +14,6 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
-import NetworkList from '../../../app/util/networks';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 // Test constants
