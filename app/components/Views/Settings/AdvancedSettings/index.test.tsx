@@ -16,7 +16,8 @@ const mockNavigate = jest.fn();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
-let mockDismissSmartAccountSuggestionEnabled: Function;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockDismissSmartAccountSuggestionEnabled: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
