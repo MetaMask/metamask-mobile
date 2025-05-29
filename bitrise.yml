@@ -123,7 +123,6 @@ stages:
   create_build_all_targets:
     workflows:
       - build_android_release: {}
-      - build_android_main_prod: {}
       - build_ios_release: {}
       - build_android_beta: {}
       - build_ios_beta: {}
@@ -157,6 +156,8 @@ stages:
   create_android_release_new:
     workflows:
       - build_android_main_prod: {}
+      - build_android_main_beta: {}
+      - build_android_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -1459,6 +1460,34 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:android:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod-beta'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:android:main:rc'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod-rc'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template

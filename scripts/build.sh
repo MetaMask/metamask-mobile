@@ -97,10 +97,6 @@ checkParameters(){
 			fi
 		elif [ "$3"  == "--pre" ] ; then
 			PRE_RELEASE=true
-		#else
-			#printError "Unknown argument: $4"
-			#displayHelp
-			#exit 0;
 		fi
 	fi
 }
@@ -575,7 +571,7 @@ buildAndroidRunE2E(){
 
 buildIos() {
 	echo "Build iOS $MODE started..."
-	if [ "$MODE" == "release" ] ; then
+	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease
@@ -658,11 +654,11 @@ echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
 echo "TARGET = $TARGET"
 
-if [ "$PLATFORM" == "android" ] && [ "$MODE" == "main" ] && [ "$TARGET" == "prod" ]; then
-      export METAMASK_BUILD_TYPE='main'
-      export METAMASK_ENVIRONMENT='production'
-      export GENERATE_BUNDLE=true
-      export PRE_RELEASE=true
+if [[ "$PLATFORM" == "android" && "$MODE" == "main" && ( "$TARGET" == "production" || "$TARGET" == "beta" || "$TARGET" == "rc" ) ]]; then
+  export METAMASK_BUILD_TYPE="$MODE"
+  export METAMASK_ENVIRONMENT="$TARGET"
+  export GENERATE_BUNDLE=true
+  export PRE_RELEASE=true
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
