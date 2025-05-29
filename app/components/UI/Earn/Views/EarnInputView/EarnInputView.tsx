@@ -242,6 +242,7 @@ const EarnInputView = () => {
           annualRewardRate,
           estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
           estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+          chainId: earnToken?.chainId,
         },
       });
       return;
@@ -296,6 +297,7 @@ const EarnInputView = () => {
         annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
+        chainId: earnToken?.chainId,
       },
     });
 
@@ -314,6 +316,7 @@ const EarnInputView = () => {
     annualRewardsToken,
     attemptDepositTransaction,
     createEventBuilder,
+    earnToken?.chainId,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,

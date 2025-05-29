@@ -24,6 +24,7 @@ const AccountCard = ({
   contractName,
   primaryLabel,
   secondaryLabel,
+  chainId,
 }: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -35,7 +36,7 @@ const AccountCard = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { vaultMetadata } = useVaultMetadata();
+  const { vaultMetadata } = useVaultMetadata(chainId);
 
   return (
     <View>
