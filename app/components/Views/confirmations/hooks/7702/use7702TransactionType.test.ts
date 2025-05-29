@@ -13,9 +13,6 @@ import { use7702TransactionType } from './use7702TransactionType';
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
     TransactionController: {
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),

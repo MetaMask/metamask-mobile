@@ -13,7 +13,15 @@ import {
 } from '../selectors/featureFlags';
 
 // Filters user's tokens to only return the supported and enabled earn tokens.
-const useEarnTokens = () => {
+const useEarnTokens = ({
+  includeStakingTokens = false,
+  includeLendingTokens = false,
+  includeReceiptTokens = false,
+}: Partial<{
+  includeStakingTokens: boolean;
+  includeLendingTokens: boolean;
+  includeReceiptTokens: boolean;
+}> = {}) => {
   const tokens = useSelector((state: RootState) =>
     selectAccountTokensAcrossChains(state),
   );
@@ -30,14 +38,18 @@ const useEarnTokens = () => {
     isLoadingEligibility: isLoadingStakingEligibility,
   } = useStakingEligibility();
 
-  const supportedStablecoins = useMemo(() => {
+  const supportedEarnTokens = useMemo(() => {
     if (isLoadingStakingEligibility || !isPortfolioViewEnabled()) return [];
 
     const allTokens = Object.values(tokens).flat() as TokenI[];
 
     if (!allTokens.length) return [];
 
-    const supportedTokens = getSupportedEarnTokens(allTokens);
+    const supportedTokens = getSupportedEarnTokens(allTokens, {
+      stakingTokens: includeStakingTokens,
+      lendingTokens: includeLendingTokens,
+      receiptTokens: includeReceiptTokens,
+    });
 
     const eligibleTokens = filterEligibleTokens(
       supportedTokens,
@@ -61,6 +73,9 @@ const useEarnTokens = () => {
     });
   }, [
     getTokenWithBalanceAndApr,
+    includeLendingTokens,
+    includeReceiptTokens,
+    includeStakingTokens,
     isEligibleToStake,
     isLoadingStakingEligibility,
     isPooledStakingEnabled,
@@ -68,7 +83,7 @@ const useEarnTokens = () => {
     tokens,
   ]);
 
-  return supportedStablecoins;
+  return supportedEarnTokens;
 };
 
 export default useEarnTokens;
