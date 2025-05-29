@@ -28,7 +28,7 @@ const Root = () => {
     if (initialRoute === null) return;
     navigation.reset({
       index: 0,
-      routes: [{ name: initialRoute }],
+      routes: [{ name: initialRoute, params: { animationEnabled: false } }],
     });
   });
 

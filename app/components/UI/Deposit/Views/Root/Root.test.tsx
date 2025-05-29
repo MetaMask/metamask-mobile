@@ -45,7 +45,12 @@ describe('Root Component', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.DEPOSIT.BUILD_QUOTE }],
+        routes: [
+          {
+            name: Routes.DEPOSIT.BUILD_QUOTE,
+            params: { animationEnabled: false },
+          },
+        ],
       });
     });
   });
@@ -58,7 +63,12 @@ describe('Root Component', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.DEPOSIT.VERIFY_IDENTITY }],
+        routes: [
+          {
+            name: Routes.DEPOSIT.VERIFY_IDENTITY,
+            params: { animationEnabled: false },
+          },
+        ],
       });
     });
   });
@@ -75,7 +85,12 @@ describe('Root Component', () => {
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.DEPOSIT.BUILD_QUOTE }],
+        routes: [
+          {
+            name: Routes.DEPOSIT.BUILD_QUOTE,
+            params: { animationEnabled: false },
+          },
+        ],
       });
     });
   });
