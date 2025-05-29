@@ -570,7 +570,6 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
-      const id = trx.transactionMeta.id;
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
