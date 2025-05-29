@@ -4,514 +4,746 @@ exports[`DeleteWalletModal should render correctly 1`] = `
 <View
   style={
     {
-      "bottom": 0,
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-      "top": 0,
+      "flex": 1,
     }
   }
 >
-  <View
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
     style={
       [
         {
-          "backgroundColor": "#00000066",
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
+          "flex": 1,
         },
-        {
-          "opacity": undefined,
-        },
-      ]
-    }
-  />
-  <View
-    collapsable={false}
-    onGestureHandlerEvent={[Function]}
-    onGestureHandlerStateChange={[Function]}
-    style={
-      [
-        [
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-          },
-          {
-            "transform": [
-              {
-                "translateY": 1334,
-              },
-            ],
-          },
-        ],
         undefined,
       ]
     }
   >
-    <TouchableOpacity
-      disabled={false}
-      onPress={[Function]}
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
         {
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
+          "zIndex": 1,
         }
       }
-    />
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      transparent={true}
-      visible={true}
     >
       <View
-        accessibilityState={
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "rgb(255, 255, 255)",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "flex": 1,
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                DeleteWalletModal
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
           {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
           }
         }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
-            "backgroundColor": "#00000066",
             "bottom": 0,
-            "height": 1334,
             "left": 0,
-            "opacity": 0,
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "width": 750,
+            "zIndex": undefined,
           }
-        }
-      />
-      <View
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={
-          [
-            [
-              {
-                "margin": 37.5,
-                "transform": [
-                  {
-                    "translateY": 0,
-                  },
-                ],
-              },
-              {
-                "flex": 1,
-                "justifyContent": "center",
-              },
-              [
-                {
-                  "margin": 0,
-                  "width": "100%",
-                },
-                undefined,
-              ],
-              {
-                "margin": 0,
-              },
-            ],
-            {
-              "paddingBottom": 0,
-            },
-          ]
         }
       >
         <View
           collapsable={false}
-          deviceHeight={null}
-          deviceWidth={null}
-          hideModalContentWhileAnimating={false}
-          onBackdropPress={[Function]}
-          onModalHide={[Function]}
-          onModalWillHide={[Function]}
-          onModalWillShow={[Function]}
-          onMoveShouldSetResponder={[Function]}
-          onMoveShouldSetResponderCapture={[Function]}
-          onResponderEnd={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderReject={[Function]}
-          onResponderRelease={[Function]}
-          onResponderStart={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          onStartShouldSetResponderCapture={[Function]}
-          onSwipeComplete={[Function]}
-          panResponderThreshold={4}
-          pointerEvents="box-none"
-          scrollHorizontal={false}
-          scrollOffset={0}
-          scrollOffsetMax={0}
-          scrollTo={null}
-          statusBarTranslucent={false}
           style={
             {
-              "flex": 1,
-              "justifyContent": "center",
-              "left": 0,
-              "margin": 0,
-              "top": 0,
-              "transform": [
-                {
-                  "translateY": 1334,
-                },
-              ],
-              "width": "100%",
+              "opacity": 1,
             }
           }
-          supportedOrientations={
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
             [
-              "portrait",
-              "landscape",
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
             ]
           }
-          swipeDirection="down"
-          swipeThreshold={100}
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
         >
           <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "column",
-                  "justifyContent": "center",
-                  "marginHorizontal": 24,
-                },
-                null,
-              ]
+              {
+                "flex": 1,
+              }
             }
           >
             <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               style={
-                [
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 10,
-                    "width": "100%",
-                  },
-                  null,
-                ]
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
               }
             >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
               <View
                 style={
                   [
                     {
-                      "alignItems": "center",
-                      "flexDirection": "row",
+                      "flex": 1,
+                      "overflow": "hidden",
                     },
-                    null,
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
                   ]
                 }
               >
                 <View
                   style={
                     {
-                      "alignSelf": "center",
-                      "justifyContent": "center",
-                      "padding": 24,
-                      "width": "100%",
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
                     }
                   }
-                  testID="delete-wallet-modal-container"
                 >
-                  <Text
-                    allowFontScaling={false}
-                    selectable={false}
-                    style={
-                      [
-                        {
-                          "color": "#ca3542",
-                          "fontSize": 46,
-                        },
-                        {
-                          "alignSelf": "center",
-                          "color": "#ca3542",
-                          "marginVertical": 10,
-                        },
-                        {
-                          "fontFamily": "FontAwesome",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Bold",
-                          "fontSize": 20,
-                          "fontWeight": "600",
-                          "lineHeight": 26,
-                          "marginHorizontal": 6,
-                          "textAlign": "center",
-                        },
-                        {
-                          "color": "#ca3542",
-                          "marginHorizontal": 24,
-                        },
-                      ]
-                    }
-                  >
-                    Are you sure you want to erase your wallet?
-                  </Text>
-                  <Text
+                  <View
                     style={
                       {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "lineHeight": 22,
-                        "marginTop": 20,
-                        "textAlign": "center",
+                        "flex": 1,
                       }
                     }
                   >
-                    <Text>
-                      Your current wallet, accounts and assets will be 
-                    </Text>
-                    <Text
+                    <View
+                      onLayout={[Function]}
                       style={
-                        {
-                          "fontFamily": "CentraNo1-Bold",
-                          "fontWeight": "600",
-                        }
+                        [
+                          {
+                            "bottom": 0,
+                            "justifyContent": "flex-end",
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          {
+                            "paddingBottom": 0,
+                          },
+                        ]
                       }
                     >
-                      removed from this app permanently. 
-                    </Text>
-                    <Text>
-                      This action cannot be undone.
-                    </Text>
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
-                          "fontWeight": "400",
-                          "lineHeight": 22,
-                          "marginTop": 20,
-                          "textAlign": "center",
-                        },
-                      ]
-                    }
-                  >
-                    <Text>
-                      You can ONLY recover this wallet with your 
-                    </Text>
-                    <Text
-                      style={
-                        {
-                          "fontFamily": "CentraNo1-Bold",
-                          "fontWeight": "600",
+                      <View
+                        style={
+                          [
+                            {
+                              "backgroundColor": "#00000066",
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            },
+                            {
+                              "opacity": 0,
+                            },
+                          ]
                         }
-                      }
-                    >
-                      Secret Recovery Phrase 
-                    </Text>
-                    <Text>
-                      MetaMask does not have your Secret Recovery Phrase.
-                    </Text>
-                  </Text>
+                      >
+                        <TouchableOpacity
+                          onPress={[Function]}
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          [
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                            },
+                            {
+                              "paddingBottom": 0,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          collapsable={false}
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
+                          onLayout={[Function]}
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc866",
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
+                                "borderWidth": 1,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "translateY": 1334,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "padding": 4,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "backgroundColor": "#b7bbc866",
+                                  "borderRadius": 2,
+                                  "height": 4,
+                                  "width": 40,
+                                }
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flexDirection": "column",
+                                "justifyContent": "flex-start",
+                                "paddingHorizontal": 16,
+                                "rowGap": 24,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignSelf": "center",
+                                  "flexDirection": "column",
+                                  "justifyContent": "center",
+                                  "paddingVertical": 24,
+                                  "rowGap": 16,
+                                  "width": "100%",
+                                }
+                              }
+                              testID="delete-wallet-modal-container"
+                            >
+                              <SvgMock
+                                color="#ca3542"
+                                fill="currentColor"
+                                height={32}
+                                name="Danger"
+                                style={
+                                  {
+                                    "alignSelf": "center",
+                                    "height": 32,
+                                    "width": 32,
+                                  }
+                                }
+                                width={32}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 18,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "marginLeft": "auto",
+                                    "marginRight": "auto",
+                                    "textAlign": "center",
+                                    "width": "80%",
+                                  }
+                                }
+                              >
+                                Are you sure you want to erase your wallet?
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "column",
+                                    "justifyContent": "flex-start",
+                                    "rowGap": 24,
+                                    "width": "100%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "left",
+                                      "width": "100%",
+                                    }
+                                  }
+                                >
+                                  Your wallet, accounts, and assets will be
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "left",
+                                        "width": "100%",
+                                      }
+                                    }
+                                  >
+                                     permanently removed from this app
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    This action cannot be undone.
+                                  </Text>
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "left",
+                                      "width": "100%",
+                                    }
+                                  }
+                                >
+                                  You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "column",
+                                    "justifyContent": "flex-start",
+                                    "rowGap": 2,
+                                    "width": "100%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Type ‘erase’ to confirm
+                                </Text>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="textfield"
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TextInput
+                                      autoCapitalize="none"
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardAppearance="light"
+                                      onBlur={[Function]}
+                                      onChangeText={[Function]}
+                                      onFocus={[Function]}
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 24,
+                                          "letterSpacing": 0,
+                                          "opacity": 1,
+                                          "paddingVertical": 0,
+                                        }
+                                      }
+                                      testID="input"
+                                      value=""
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "column",
+                                    "justifyContent": "flex-start",
+                                    "marginTop": 24,
+                                    "rowGap": 16,
+                                    "width": "100%",
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={true}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#ca3542",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "opacity": 0.5,
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="delete-my-wallet-button-on-permanetly-delete-modal"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Yes, erase wallet
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "transparent",
+                                      "borderColor": "#4459ff",
+                                      "borderRadius": 12,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "justifyContent": "center",
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="delete-modal-cancel-button"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Cancel
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
                 </View>
-              </View>
-              <View
-                style={
-                  [
-                    {
-                      "flexDirection": "column",
-                      "paddingHorizontal": 16,
-                      "paddingVertical": 8,
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={0.2}
-                  disabled={false}
-                  onPress={[Function]}
-                  style={
-                    [
-                      [
-                        {
-                          "borderRadius": 100,
-                          "justifyContent": "center",
-                          "padding": 15,
-                        },
-                        {
-                          "backgroundColor": "#ca3542",
-                        },
-                        [
-                          {
-                            "margin": 8,
-                          },
-                          false,
-                        ],
-                      ],
-                      null,
-                    ]
-                  }
-                  testID="delete-modal-understand-continue"
-                >
-                  <Text
-                    style={
-                      [
-                        {
-                          "color": "#007aff",
-                          "fontSize": 17,
-                          "fontWeight": "500",
-                          "textAlign": "center",
-                        },
-                        null,
-                        [
-                          {
-                            "fontFamily": "CentraNo1-Bold",
-                            "fontSize": 14,
-                            "fontWeight": "600",
-                            "textAlign": "center",
-                          },
-                          {
-                            "color": "#ffffff",
-                          },
-                          undefined,
-                        ],
-                        null,
-                      ]
-                    }
-                  >
-                    I understand, continue
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={0.2}
-                  disabled={false}
-                  onPress={[Function]}
-                  style={
-                    [
-                      [
-                        {
-                          "borderRadius": 100,
-                          "justifyContent": "center",
-                          "padding": 15,
-                        },
-                        {
-                          "backgroundColor": "#ffffff",
-                          "borderColor": "#686e7d",
-                          "borderWidth": 1,
-                        },
-                        [
-                          {
-                            "margin": 8,
-                          },
-                          false,
-                        ],
-                      ],
-                      null,
-                    ]
-                  }
-                  testID="delete-modal-cancel-button"
-                >
-                  <Text
-                    style={
-                      [
-                        {
-                          "color": "#007aff",
-                          "fontSize": 17,
-                          "fontWeight": "500",
-                          "textAlign": "center",
-                        },
-                        null,
-                        [
-                          {
-                            "fontFamily": "CentraNo1-Bold",
-                            "fontSize": 14,
-                            "fontWeight": "600",
-                            "textAlign": "center",
-                          },
-                          {
-                            "color": "#686e7d",
-                          },
-                          undefined,
-                        ],
-                        null,
-                      ]
-                    }
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>
         </View>
-      </View>
-    </Modal>
-  </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
 </View>
 `;
