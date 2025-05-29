@@ -155,7 +155,7 @@
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^0.1.2",
-    "@consensys/on-ramp-sdk": "2.1.8",
+    "@consensys/on-ramp-sdk": "2.1.10",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
@@ -291,6 +291,7 @@
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
+    "contentful": "^11.5.22",
     "cross-spawn": "7.0.6",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
