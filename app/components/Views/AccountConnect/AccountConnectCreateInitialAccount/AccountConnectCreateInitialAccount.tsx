@@ -13,6 +13,7 @@ import {
 import { Box } from '../../../UI/Box/Box';
 import styleSheet from './AccountConnectCreateInitialAccount.styles';
 import { useStyles } from '../../../../component-library/hooks';
+import { AccountConnectSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountConnect.selectors';
 
 interface AccountConnectCreateInitialAccountProps {
   onCreateAccount: () => void;
@@ -43,6 +44,7 @@ export const AccountConnectCreateInitialAccount = ({
         {strings('accounts.account_connect_create_initial_account.description')}
       </Text>
       <ButtonLink
+        testID={AccountConnectSelectorsIDs.CREATE_ACCOUNT_BUTTON}
         style={styles.button}
         label={strings(
           'accounts.account_connect_create_initial_account.button',
