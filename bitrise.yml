@@ -1344,6 +1344,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
@@ -1355,15 +1356,6 @@ workflows:
                     else
                         GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
                     fi
-                elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    yarn build:android:pre-release:bundle
-                elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    yarn build:android:pre-release:bundle:beta
-                elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    yarn build:android:pre-release:bundle:flask
-                else
-                    echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
-                    exit 1
                 fi
       - save-gradle-cache@1: {}
       - script@1:
@@ -1540,6 +1532,8 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
+    before_run:
+      - code_setup
     after_run:
       - _android_build_template
     steps:
@@ -1549,6 +1543,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
