@@ -1,5 +1,9 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import { DepositSDKProvider } from '../sdk';
 import Root from '../Views/Root';
 import Routes from '../../../../constants/navigation/Routes';
@@ -11,7 +15,16 @@ import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 
-const Stack = createStackNavigator();
+interface DepositParamList {
+  [key: string]:
+    | {
+        animationEnabled?: boolean;
+      }
+    | undefined;
+}
+
+const Stack = createStackNavigator<DepositParamList>();
+
 const EnterAddress = () => (
   <View>
     {/* eslint-disable-next-line react-native/no-inline-styles */}
@@ -21,21 +34,52 @@ const EnterAddress = () => (
   </View>
 );
 
+const getAnimationOptions = ({
+  route,
+}: {
+  route: RouteProp<DepositParamList, string>;
+}): StackNavigationOptions => ({
+  animationEnabled: route.params?.animationEnabled !== false,
+});
+
 const DepositRoutes = () => (
   <DepositSDKProvider>
     <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT}>
-      <Stack.Screen name={Routes.DEPOSIT.ROOT} component={Root} />
-      <Stack.Screen name={Routes.DEPOSIT.BUILD_QUOTE} component={BuildQuote} />
-      <Stack.Screen name={Routes.DEPOSIT.ENTER_EMAIL} component={EnterEmail} />
-      <Stack.Screen name={Routes.DEPOSIT.OTP_CODE} component={OtpCode} />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ROOT}
+        component={Root}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.BUILD_QUOTE}
+        component={BuildQuote}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ENTER_EMAIL}
+        component={EnterEmail}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.OTP_CODE}
+        component={OtpCode}
+        options={getAnimationOptions}
+      />
       <Stack.Screen
         name={Routes.DEPOSIT.VERIFY_IDENTITY}
         component={VerifyIdentity}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.BASIC_INFO}
+        component={BasicInfo}
+        options={getAnimationOptions}
       />
       <Stack.Screen name={Routes.DEPOSIT.BASIC_INFO} component={BasicInfo} />
       <Stack.Screen
         name={Routes.DEPOSIT.ENTER_ADDRESS}
         component={EnterAddress}
+        options={getAnimationOptions}
       />
     </Stack.Navigator>
   </DepositSDKProvider>
