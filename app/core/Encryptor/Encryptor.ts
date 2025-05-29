@@ -47,7 +47,6 @@ const isKeyDerivationOptions = (
 const isEncryptionKey = (key: unknown): key is EncryptionKey =>
   isPlainObject(key) &&
   hasProperty(key, 'key') &&
-  hasProperty(key, 'lib') &&
   hasProperty(key, 'keyMetadata') &&
   isKeyDerivationOptions(key.keyMetadata);
 
@@ -130,14 +129,12 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt: string,
     exportable = true,
     opts: KeyDerivationOptions = this.keyDerivationOptions,
-    encryptionLibType: string = this.encryptionLib.type,
   ): Promise<EncryptionKey> => {
     const derivedKey = await this.encryptionLib.deriveKey(password, salt, opts);
     return {
       key: derivedKey,
       keyMetadata: opts,
       exportable,
-      lib: encryptionLibType,
     };
   };
 
@@ -162,7 +159,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       cipher: result,
       iv,
       keyMetadata: key.keyMetadata,
-      lib: key.lib,
     };
   };
 
@@ -206,7 +202,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // the encryptor itself. This makes sure we always re-encrypt with the "latest" and "best"
     // setup possible.
     const result = await this.encryptWithKey(key, data);
-    result.lib = key.lib;
     result.salt = salt;
     result.keyMetadata = key.keyMetadata;
     return JSON.stringify(result);
@@ -234,7 +229,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       payload.salt,
       false,
       payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
     );
 
     return await this.decryptWithKey(key, payload);
@@ -312,7 +306,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const payload = JSON.parse(text);
 
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
+    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS);
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 

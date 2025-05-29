@@ -3,6 +3,7 @@ import { QuickCryptoLib } from './lib';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
+  DERIVATION_OPTIONS_DEFAULT_OWASP2023,
 } from './constants';
 
 describe('getPreferredEncryptionLibrary', () => {
@@ -35,7 +36,6 @@ describe('Encryptor', () => {
       expect(encryptedObject).toHaveProperty('cipher');
       expect(encryptedObject).toHaveProperty('iv');
       expect(encryptedObject).toHaveProperty('salt');
-      expect(encryptedObject).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
     });
   });
 
@@ -46,7 +46,6 @@ describe('Encryptor', () => {
         cipher: 'mockedCipher',
         iv: 'mockedIV',
         salt: 'mockedSalt',
-        lib: ENCRYPTION_LIBRARY.original,
       };
 
       const decryptedObject = await encryptor.decrypt(
@@ -66,7 +65,6 @@ describe('Encryptor', () => {
             cipher: 'mockedCipher',
             iv: 'mockedIV',
             salt: 'mockedSalt',
-            lib: 'original',
             keyMetadata: LEGACY_DERIVATION_OPTIONS,
           }),
         ),
@@ -80,7 +78,6 @@ describe('Encryptor', () => {
             cipher: 'mockedCipher',
             iv: 'mockedIV',
             salt: 'mockedSalt',
-            lib: 'original',
           }),
         ),
       ).toBe(false);
@@ -90,50 +87,30 @@ describe('Encryptor', () => {
   describe('keyFromPassword', () => {
     it.each([
       [
-        'exportable with original lib',
+        'exportable with default derivation options',
         {
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: true,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+          keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
       ],
       [
-        'non-exportable with original lib',
+        'non-exportable with legacy derivation options',
         {
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: false,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
-        },
-      ],
-      [
-        'exportable with random lib',
-        {
-          lib: 'random-lib',
-          exportable: true,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
-        },
-      ],
-      [
-        'non-exportable with random lib',
-        {
-          lib: 'random-lib',
-          exportable: false,
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+          keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
       ],
     ])(
       'generates a key with the right attributes: %s',
-      async (_, { lib, exportable, keyMetadata }) => {
+      async (_, { exportable, keyMetadata }) => {
         const key = await encryptor.keyFromPassword(
           'mockPassword',
           encryptor.generateSalt(),
           exportable,
           keyMetadata,
-          lib,
         );
 
         expect(key.key).not.toBe(undefined);
-        expect(key.lib).toBe(lib);
         expect(key.exportable).toBe(exportable);
         expect(key.keyMetadata).toBe(keyMetadata);
       },
@@ -194,17 +171,8 @@ describe('Encryptor', () => {
 
     it.each([
       [
-        'missing lib',
-        {
-          exportable: true,
-          key: 'a-key',
-          keyMetadata: LEGACY_DERIVATION_OPTIONS,
-        },
-      ],
-      [
         'missing key',
         {
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: true,
           keyMetadata: LEGACY_DERIVATION_OPTIONS,
         },
@@ -212,7 +180,6 @@ describe('Encryptor', () => {
       [
         'missing keyMetadata',
         {
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: true,
           key: 'a-key',
         },
@@ -220,7 +187,6 @@ describe('Encryptor', () => {
       [
         'invalid keyMetadata',
         {
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: true,
           key: 'a-key',
           keyMatadata: {},
@@ -256,12 +222,10 @@ describe('Encryptor', () => {
       expect(vaultObj).toHaveProperty('cipher');
       expect(vaultObj).toHaveProperty('iv');
       expect(vaultObj).toHaveProperty('salt', mockSalt);
-      expect(vaultObj).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(vaultObj).toHaveProperty('keyMetadata', LEGACY_DERIVATION_OPTIONS);
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(importedKey).toHaveProperty(
         'keyMetadata',
         LEGACY_DERIVATION_OPTIONS,
@@ -301,7 +265,6 @@ describe('Encryptor', () => {
 
       const importedKey = await encryptor.importKey(result.exportedKeyString);
       expect(importedKey).toHaveProperty('exportable', true);
-      expect(importedKey).toHaveProperty('lib', ENCRYPTION_LIBRARY.quickCrypto);
       expect(importedKey).toHaveProperty('keyMetadata');
     });
 
@@ -311,7 +274,6 @@ describe('Encryptor', () => {
         cipher: 'mockedCipher',
         iv: 'mockedIV',
         salt: 'mockedSalt',
-        lib: 'original',
       };
 
       const result = await encryptor.decryptWithDetail(
