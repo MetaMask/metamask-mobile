@@ -1,4 +1,5 @@
 import React from 'react';
+import { waitFor } from '@testing-library/react-native';
 import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
@@ -6,6 +7,10 @@ import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingWithdrawal from './staking-withdrawal';
+
+jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -16,9 +21,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
     GasFeeController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
   },
 }));
@@ -33,6 +35,11 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
 
 jest.mock('../../../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
+}));
+
+jest.mock('../../../../utils/token', () => ({
+  ...jest.requireActual('../../../../utils/token'),
+  fetchErc20Decimals: jest.fn().mockResolvedValue(18),
 }));
 
 const noop = () => undefined;
@@ -92,6 +99,7 @@ describe('StakingWithdrawal', () => {
         state: stakingWithdrawalConfirmationState,
       },
     );
+
     expect(getByText('Withdrawal time')).toBeDefined();
 
     expect(getByText('Unstaking to')).toBeDefined();
@@ -109,7 +117,7 @@ describe('StakingWithdrawal', () => {
     });
   });
 
-  it('tracks metrics events', () => {
+  it('tracks metrics events', async () => {
     renderWithProvider(
       <StakingWithdrawal
         route={{
@@ -126,16 +134,19 @@ describe('StakingWithdrawal', () => {
       },
     );
 
+
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
 
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
-      expect.objectContaining({
-        properties: expect.objectContaining({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          transaction_amount_eth: '1',
+    await waitFor(() => {
+      expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+      expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            transaction_amount_eth: '1',
+          }),
         }),
-      }),
-    );
+      );
+    });
   });
 });

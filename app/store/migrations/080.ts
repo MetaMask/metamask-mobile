@@ -1,158 +1,189 @@
-import { hasProperty, Hex, isObject } from '@metamask/utils';
-import { ensureValidState } from './util';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { getErrorMessage, hasProperty, Hex, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Token } from '@metamask/assets-controllers';
+import { cloneDeep, escapeRegExp } from 'lodash';
+import { ensureValidState, ValidState } from './util';
 
-interface AllTokens {
-  [chainId: Hex]: { [key: string]: Token[] };
-}
-interface AllDetectedTokens {
-  [chainId: Hex]: { [key: string]: Token[] };
-}
-interface AllIgnoredTokens {
-  [chainId: Hex]: { [key: string]: Token[] };
-}
+const VERSION = 80;
 
-/**
- * Migration 80: removes from the TokensController state all tokens that belong to an EVM account that has been removed.
- * Also removes from TokenBalancesController all balances that belong to an EVM account that has been removed.
- */
+// Chains supported by Infura that are either built in or featured,
+// mapped to their corresponding failover URLs.
+// Copied from `PopularList` in app/util/networks/customNetworks.ts:
+// <https://github.com/MetaMask/metamask-mobile/blob/c29c22bf2ad62171c4cad3b4156500a1347aa7dc/app/util/networks/customNetworks.tsx#L12>
+export const INFURA_CHAINS_WITH_FAILOVERS: Map<
+  Hex,
+  { subdomain: string; getFailoverUrl: () => string | undefined }
+> = new Map([
+  [
+    '0x1',
+    {
+      subdomain: 'mainnet',
+      getFailoverUrl: () => process.env.QUICKNODE_MAINNET_URL,
+    },
+  ],
+  // linea mainnet
+  [
+    '0xe708',
+    {
+      subdomain: 'linea-mainnet',
+      getFailoverUrl: () => process.env.QUICKNODE_LINEA_MAINNET_URL,
+    },
+  ],
+  [
+    '0xa4b1',
+    {
+      subdomain: 'arbitrum',
+      getFailoverUrl: () => process.env.QUICKNODE_ARBITRUM_URL,
+    },
+  ],
+  [
+    '0xa86a',
+    {
+      subdomain: 'avalanche',
+      getFailoverUrl: () => process.env.QUICKNODE_AVALANCHE_URL,
+    },
+  ],
+  [
+    '0xa',
+    {
+      subdomain: 'optimism',
+      getFailoverUrl: () => process.env.QUICKNODE_OPTIMISM_URL,
+    },
+  ],
+  [
+    '0x89',
+    {
+      subdomain: 'polygon',
+      getFailoverUrl: () => process.env.QUICKNODE_POLYGON_URL,
+    },
+  ],
+  [
+    '0x2105',
+    {
+      subdomain: 'base',
+      getFailoverUrl: () => process.env.QUICKNODE_BASE_URL,
+    },
+  ],
+]);
 
-const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 80)) {
+export default function migrate(state: unknown) {
+  const newState = cloneDeep(state);
+
+  if (!ensureValidState(newState, VERSION)) {
     return state;
   }
 
-  const tokenBalancesControllerState =
-    state.engine.backgroundState.TokenBalancesController;
-
-  const accountsControllerState =
-    state.engine.backgroundState.AccountsController;
-
-  const tokensControllerState = state.engine.backgroundState.TokensController;
-
-  if (
-    !isObject(tokenBalancesControllerState) ||
-    !hasProperty(tokenBalancesControllerState, 'tokenBalances') ||
-    !isObject(tokenBalancesControllerState.tokenBalances)
-  ) {
+  try {
+    updateState(newState);
+    return newState;
+  } catch (error) {
     captureException(
-      new Error(
-        `FATAL ERROR: Migration 80: Invalid TokenBalancesController state error: '${typeof tokenBalancesControllerState}'`,
-      ),
+      new Error(`FATAL ERROR: Migration ${VERSION}: ${getErrorMessage(error)}`),
     );
     return state;
   }
+}
 
-  if (
-    !isObject(tokensControllerState) ||
-    !hasProperty(tokensControllerState, 'allTokens') ||
-    !isObject(tokensControllerState.allTokens) ||
-    !hasProperty(tokensControllerState, 'allDetectedTokens') ||
-    !isObject(tokensControllerState.allDetectedTokens) ||
-    !hasProperty(tokensControllerState, 'allIgnoredTokens') ||
-    !isObject(tokensControllerState.allIgnoredTokens)
-  ) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 80: Invalid TokensController state error: '${typeof tokensControllerState}'`,
-      ),
+function updateState(state: ValidState) {
+  if (!hasProperty(state.engine.backgroundState, 'NetworkController')) {
+    throw new Error('Missing state.engine.backgroundState.NetworkController');
+  }
+
+  if (!isObject(state.engine.backgroundState.NetworkController)) {
+    throw new Error(
+      `Expected state.engine.backgroundState.NetworkController to be an object, but is ${typeof state
+        .engine.backgroundState.NetworkController}`,
     );
-    return state;
   }
 
   if (
-    !isObject(accountsControllerState) ||
-    !hasProperty(accountsControllerState, 'internalAccounts') ||
-    !isObject(accountsControllerState.internalAccounts) ||
-    !hasProperty(accountsControllerState.internalAccounts, 'accounts') ||
-    !isObject(accountsControllerState.internalAccounts.accounts)
+    !hasProperty(
+      state.engine.backgroundState.NetworkController,
+      'networkConfigurationsByChainId',
+    )
   ) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 80: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
-      ),
+    throw new Error(
+      'Missing state.engine.backgroundState.NetworkController.networkConfigurationsByChainId',
     );
-    return state;
   }
 
-  const { internalAccounts } = accountsControllerState;
+  if (
+    !isObject(
+      state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId,
+    )
+  ) {
+    throw new Error(
+      `Expected state.engine.backgroundState.NetworkController.networkConfigurationsByChainId to be an object, but is ${typeof state
+        .engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId}`,
+    );
+  }
 
-  const accounts = Object.values(
-    internalAccounts.accounts as Record<string, InternalAccount>,
-  );
-  const evmAccounts = accounts.filter((account) =>
-    isEvmAccountType(account.type),
-  );
-  const evmAccountAddresses = evmAccounts.map((account) => account.address);
+  if (!process.env.MM_INFURA_PROJECT_ID) {
+    throw new Error('No MM_INFURA_PROJECT_ID set!');
+  }
 
-  // Check and clean up tokens in allTokens that do not belong to any EVM account
-  if (hasProperty(tokensControllerState, 'allTokens')) {
-    for (const [chainId, accountsTokens] of Object.entries(
-      tokensControllerState.allTokens,
-    )) {
-      for (const account of Object.keys(
-        accountsTokens as Record<`0x${string}`, Token[]>,
-      )) {
-        if (!evmAccountAddresses.includes(account)) {
-          delete (tokensControllerState.allTokens as AllTokens)[chainId as Hex][
-            account
-          ];
+  const { networkConfigurationsByChainId } =
+    state.engine.backgroundState.NetworkController;
+
+  for (const [chainId, networkConfiguration] of Object.entries(
+    networkConfigurationsByChainId,
+  )) {
+    const infuraChainWithFailover = INFURA_CHAINS_WITH_FAILOVERS.get(
+      chainId as Hex,
+    );
+
+    if (
+      !isObject(networkConfiguration) ||
+      !hasProperty(networkConfiguration, 'rpcEndpoints') ||
+      !Array.isArray(networkConfiguration.rpcEndpoints)
+    ) {
+      continue;
+    }
+
+    networkConfiguration.rpcEndpoints = networkConfiguration.rpcEndpoints.map(
+      (rpcEndpoint) => {
+        if (
+          !isObject(rpcEndpoint) ||
+          !hasProperty(rpcEndpoint, 'url') ||
+          typeof rpcEndpoint.url !== 'string' ||
+          (hasProperty(rpcEndpoint, 'failoverUrls') &&
+            Array.isArray(rpcEndpoint.failoverUrls) &&
+            rpcEndpoint.failoverUrls.length > 0)
+        ) {
+          return rpcEndpoint;
         }
-      }
-    }
-  }
 
-  // Check and clean up tokens in allDetectedTokens that do not belong to any EVM account
-  if (hasProperty(tokensControllerState, 'allDetectedTokens')) {
-    for (const [chainId, accountsTokens] of Object.entries(
-      tokensControllerState.allDetectedTokens,
-    )) {
-      for (const account of Object.keys(
-        accountsTokens as Record<`0x${string}`, Token[]>,
-      )) {
-        if (!evmAccountAddresses.includes(account)) {
-          delete (tokensControllerState.allDetectedTokens as AllDetectedTokens)[
-            chainId as Hex
-          ][account];
+        // All featured networks that use Infura get added as custom RPC
+        // endpoints, not Infura RPC endpoints
+        const match = rpcEndpoint.url.match(
+          new RegExp(
+            `https://(.+?)\\.infura\\.io/v3/${escapeRegExp(
+              process.env.MM_INFURA_PROJECT_ID,
+            )}`,
+            'u',
+          ),
+        );
+        const isInfuraLike =
+          match &&
+          infuraChainWithFailover &&
+          match[1] === infuraChainWithFailover.subdomain;
+
+        const failoverUrl = infuraChainWithFailover?.getFailoverUrl();
+
+        if (
+          failoverUrl &&
+          (rpcEndpoint.type === RpcEndpointType.Infura || isInfuraLike)
+        ) {
+          return {
+            ...rpcEndpoint,
+            failoverUrls: [failoverUrl],
+          };
         }
-      }
-    }
+
+        return rpcEndpoint;
+      },
+    );
   }
-
-  // Check and clean up tokens in allIgnoredTokens that do not belong to any EVM account
-  if (hasProperty(tokensControllerState, 'allIgnoredTokens')) {
-    for (const [chainId, accountsTokens] of Object.entries(
-      tokensControllerState.allIgnoredTokens,
-    )) {
-      for (const account of Object.keys(
-        accountsTokens as Record<`0x${string}`, Token[]>,
-      )) {
-        if (!evmAccountAddresses.includes(account)) {
-          delete (tokensControllerState.allIgnoredTokens as AllIgnoredTokens)[
-            chainId as Hex
-          ][account];
-        }
-      }
-    }
-  }
-
-  // Check and clean up balances in tokenBalancesControllerState that do not belong to any EVM account
-  if (hasProperty(tokenBalancesControllerState, 'tokenBalances')) {
-    for (const accountAddress of Object.keys(
-      tokenBalancesControllerState.tokenBalances,
-    )) {
-      if (!evmAccountAddresses.includes(accountAddress)) {
-        delete tokenBalancesControllerState.tokenBalances[
-          accountAddress as Hex
-        ];
-      }
-    }
-  }
-
-  return state;
-};
-
-export default migration;
+}

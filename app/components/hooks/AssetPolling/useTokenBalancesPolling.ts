@@ -28,9 +28,20 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         )
       : [currentChainId];
 
-  const chainIdsToPoll = chainIds ?? networkConfigurationsToPoll;
+  const chainIdsToPoll = isEvmSelected
+    ? networkConfigurationsToPoll.map((chainId) => ({
+        chainId: chainId as Hex,
+      }))
+    : [];
 
   const { TokenBalancesController } = Engine.context;
+
+  let providedChainIds;
+  if (chainIds) {
+    providedChainIds = chainIds.map((chainId) => ({ chainId: chainId as Hex }));
+  }
+
+  const input = providedChainIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenBalancesController.startPolling.bind(
@@ -40,9 +51,7 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       TokenBalancesController.stopPollingByPollingToken.bind(
         TokenBalancesController,
       ),
-    input: isEvmSelected
-      ? chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
-      : [],
+    input,
   });
 };
 

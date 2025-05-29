@@ -6,19 +6,23 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../../Analytics';
 import { BaseControllerMessenger } from '../../../types';
-import { generateDefaultTransactionMetrics, generateEvent, generateRPCProperties } from '../utils';
+import {
+  generateDefaultTransactionMetrics,
+  generateEvent,
+  generateRPCProperties,
+} from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
 import Logger from '../../../../../util/Logger';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
   (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
-  (
+  async (
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
     const defaultTransactionMetricProperties =
-      generateDefaultTransactionMetrics(
+      await generateDefaultTransactionMetrics(
         eventType,
         transactionMeta,
         transactionEventHandlerRequest,
@@ -33,36 +37,32 @@ const createTransactionEventHandler =
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  */
-export const handleTransactionAddedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_ADDED,
-);
+export const handleTransactionAddedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
 
 /**
  * Handles metrics tracking when a transaction is approved by the user
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  */
-export const handleTransactionApprovedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_APPROVED,
-);
+export const handleTransactionApprovedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
 
 /**
  * Handles metrics tracking when a transaction is rejected by the user
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  */
-export const handleTransactionRejectedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
-);
+export const handleTransactionRejectedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
 
 /**
  * Handles metrics tracking when a transaction is submitted to the network
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  */
-export const handleTransactionSubmittedEventForMetrics = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-);
+export const handleTransactionSubmittedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
 
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.
@@ -71,7 +71,7 @@ export const handleTransactionSubmittedEventForMetrics = createTransactionEventH
  * Handles metrics tracking when a transaction is finalized (confirmed/failed/dropped)
  * This is a unified handler for all finalized transaction states, with the specific status
  * derived from transactionMeta.status
- * 
+ *
  * @param transactionMeta - The transaction metadata
  * @param transactionEventHandlerRequest - The event handler request containing state and controller references
  * @returns Promise that resolves when the metrics event has been tracked
@@ -81,16 +81,18 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
   // Generate default properties
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionEventHandlerRequest,
-  );
+  const defaultTransactionMetricProperties =
+    await generateDefaultTransactionMetrics(
+      TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+      transactionMeta,
+      transactionEventHandlerRequest,
+    );
 
   // Generate smart transaction properties if applicable
   let smartTransactionProperties = { properties: {}, sensitiveProperties: {} };
   try {
-    const { getState, initMessenger, smartTransactionsController } = transactionEventHandlerRequest;
+    const { getState, initMessenger, smartTransactionsController } =
+      transactionEventHandlerRequest;
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       getState(),
       transactionMeta.chainId,
@@ -119,7 +121,10 @@ export async function handleTransactionFinalizedEventForMetrics(
     {},
     defaultTransactionMetricProperties,
     smartTransactionProperties,
-    { properties: rpcProperties.properties, sensitiveProperties: rpcProperties.sensitiveProperties }
+    {
+      properties: rpcProperties.properties,
+      sensitiveProperties: rpcProperties.sensitiveProperties,
+    },
   );
 
   // Generate and track the event
