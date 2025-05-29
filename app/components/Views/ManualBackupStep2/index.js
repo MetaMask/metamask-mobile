@@ -374,6 +374,22 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   );
 };
 
+ManualBackupStep2.propTypes = {
+  /**
+  /* navigation object required to push and pop other views
+  */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+};
+
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
 });
