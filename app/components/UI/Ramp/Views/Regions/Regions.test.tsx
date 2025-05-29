@@ -97,6 +97,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -104,6 +105,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      reset: mockReset,
       setOptions: mockSetOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -122,6 +124,7 @@ describe('Regions View', () => {
     mockSetOptions.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
+    mockReset.mockClear();
     (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     (
       mockUseRampSDKInitialValues.setSelectedFiatCurrencyId as jest.Mock
@@ -139,7 +142,7 @@ describe('Regions View', () => {
 
   it('calls setOptions when rendering', async () => {
     render(Regions);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly', async () => {
@@ -172,6 +175,60 @@ describe('Regions View', () => {
     };
     render(Regions);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('resets the navigation with selectedRegion', async () => {
+    mockUseRegionsValues = {
+      ...mockUseRegionsInitialValues,
+      selectedRegion: mockRegionsData[0] as Country,
+    };
+    render(Regions);
+    expect(mockReset).toHaveBeenCalled();
+  });
+
+  it('does not reset the navigation with selectedRegion unsupported', async () => {
+    mockUseRegionsValues = {
+      ...mockUseRegionsInitialValues,
+      selectedRegion: { ...mockRegionsData[0], unsupported: true } as Country,
+    };
+    render(Regions);
+    expect(mockReset).not.toHaveBeenCalled();
+
+    mockReset.mockClear();
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: true,
+      isSell: false,
+    };
+    mockUseRegionsValues = {
+      ...mockUseRegionsInitialValues,
+      selectedRegion: {
+        ...mockRegionsData[0],
+        unsupported: false,
+        support: { buy: false, sell: true },
+      } as Country,
+    };
+    render(Regions);
+    expect(mockReset).not.toHaveBeenCalled();
+
+    mockReset.mockClear();
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+    };
+    mockUseRegionsValues = {
+      ...mockUseRegionsInitialValues,
+      selectedRegion: {
+        ...mockRegionsData[0],
+        unsupported: false,
+        support: { buy: true, sell: false },
+      } as Country,
+    };
+    render(Regions);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('renders regions modal when pressing select button', async () => {
@@ -213,9 +270,7 @@ describe('Regions View', () => {
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createBuildQuoteNavDetails(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -238,7 +293,7 @@ describe('Regions View', () => {
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
-    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Region Screen',
     });
@@ -286,7 +341,7 @@ describe('Regions View', () => {
     fireEvent.press(
       screen.getByRole('button', { name: 'Return to Home Screen' }),
     );
-    expect(mockPop).toBeCalledTimes(1);
+    expect(mockPop).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly with error', async () => {
@@ -305,6 +360,6 @@ describe('Regions View', () => {
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-    expect(mockQueryGetCountries).toBeCalledTimes(1);
+    expect(mockQueryGetCountries).toHaveBeenCalledTimes(1);
   });
 });

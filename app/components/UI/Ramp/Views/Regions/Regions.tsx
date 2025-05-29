@@ -111,6 +111,7 @@ const RegionsView = () => {
   useEffect(() => {
     if (
       selectedRegion &&
+      !selectedRegion.unsupported &&
       ((isBuy && selectedRegion.support.buy) ||
         (isSell && selectedRegion.support.sell)) &&
       isPristine
