@@ -923,6 +923,9 @@ const ImportFromSecretRecoveryPhrase = ({
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(0)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
+                        }
                       />
                     }
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
@@ -981,6 +984,9 @@ const ImportFromSecretRecoveryPhrase = ({
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(1)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
+                        }
                       />
                     }
                     testID={

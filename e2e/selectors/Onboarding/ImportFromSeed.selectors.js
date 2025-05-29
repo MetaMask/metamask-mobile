@@ -7,4 +7,6 @@ export const ImportFromSeedSelectorsIDs = {
     'import-from-seed-screen-seed-password-match-icon-id',
   SUBMIT_BUTTON_ID: 'import-from-seed-screen-submit-button-id',
   INVALID_SEED_PHRASE_PLACE_HOLDER_TEXT: 'invalid-seed-phrase',
+  NEW_PASSWORD_VISIBILITY_ID: 'import-from-seed-screen-new-password-visibility-id',
+  CONFIRM_PASSWORD_VISIBILITY_ID: 'import-from-seed-screen-confirm-password-visibility-id',
 };
