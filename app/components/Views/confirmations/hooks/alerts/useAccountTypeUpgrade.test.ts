@@ -5,14 +5,6 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('useAccountTypeUpgrade', () => {
   it('returns alert for upgrade+batched account request', () => {
     const { result } = renderHookWithProvider(() => useAccountTypeUpgrade(), {
