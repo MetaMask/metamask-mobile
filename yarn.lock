@@ -1439,10 +1439,10 @@
     axios "^1.8.3"
     reflect-metadata "^0.2.2"
 
-"@consensys/on-ramp-sdk@2.1.8":
-  version "2.1.8"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.8.tgz#285244aaf85f704461230ef351eef84cf3451cc9"
-  integrity sha512-pxQAaH1TptFoKeNy0Rt/+JAmUCCZKEE4ynCvTb0382ilAYOpV+/Ql79EwVXWIJIuE0a47jCjU2I7VVkvxUIqMQ==
+"@consensys/on-ramp-sdk@2.1.10":
+  version "2.1.10"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.10.tgz#c681d10473a6d20f8d62008d70e972ed8abc302d"
+  integrity sha512-PnY84qBWs21jM0RdFfw0TDwk/gbv/G9rOGmsj8g8sj4OQNAULNkC0QPdft0U1IztTkCa6A+9O94YnQeTXSTeBQ==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
