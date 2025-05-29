@@ -53,7 +53,7 @@ export interface CarouselSlide {
   id: SlideId;
   title: string;
   description: string;
-  image: string;
+  image?: string;
   navigation: NavigationAction;
   dismissed?: boolean;
   undismissable?: boolean;
