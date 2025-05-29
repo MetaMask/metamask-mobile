@@ -3,6 +3,7 @@ import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { strings } from '../../../../locales/i18n';
 
 const initialState = {
   user: {
@@ -32,7 +33,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     expect(getByText('Step 1 of 2')).toBeTruthy();
   });
 
-  describe('Step 0 UI functionality', () => {
+  describe('Step 1 UI functionality', () => {
     it('should show seed phrase input field', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -134,6 +135,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { timeout: 3000 },
       );
     });
+
+    it('should check qr code button', async () => {
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const qrCodeButton = getByTestId(
+        ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+      );
+      expect(qrCodeButton).toBeTruthy();
+      fireEvent.press(qrCodeButton);
+    });
   });
 
   describe('Step 2 UI functionality', () => {
@@ -227,7 +242,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
 
       await waitFor(() => {
-        expect(getByText('Passwords don’t match. Try again.')).toBeTruthy();
+        expect(
+          getByText(strings('import_from_seed.password_error')),
+        ).toBeTruthy();
       });
     });
 
@@ -254,6 +271,39 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(
           getByText('Password must have at least 8 characters'),
         ).toBeTruthy();
+      });
+    });
+
+    it('should focus confirm password field when pressing next on new password field', async () => {
+      const { getByPlaceholderText } = renderStep2();
+
+      const passwordInput = getByPlaceholderText('Enter a strong password');
+      const confirmPasswordInput = getByPlaceholderText(
+        'Re-enter your password',
+      );
+
+      // Enter password and press next
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent(passwordInput, 'submitEditing');
+
+      // Verify that confirm password field is enabled and ready for input
+      expect(confirmPasswordInput.props.editable).toBeTruthy();
+      expect(confirmPasswordInput.props.value).toBe('');
+    });
+
+    it('should go back to previous step when back button is pressed on step 2', async () => {
+      const { getByTestId, getByText } = renderStep2();
+
+      // Verify we're on step 2
+      expect(getByText('Step 2 of 2')).toBeTruthy();
+
+      // Press back button
+      const backButton = getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID);
+      fireEvent.press(backButton);
+
+      // Verify we're back on step 1
+      await waitFor(() => {
+        expect(getByText('Step 1 of 2')).toBeTruthy();
       });
     });
   });

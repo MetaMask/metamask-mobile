@@ -116,15 +116,13 @@ const ImportFromSecretRecoveryPhrase = ({
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const seedPhraseInputRefs = useRef([]);
-  const { toastRef } = useContext(ToastContext);
+  const confirmPasswordInput = useRef();
 
-  const passwordInput = React.createRef();
-  const confirmPasswordInput = React.createRef();
+  const { toastRef } = useContext(ToastContext);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
-  const [seed, setSeed] = useState('');
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [biometryChoice, setBiometryChoice] = useState(true);
@@ -266,7 +264,10 @@ const ImportFromSecretRecoveryPhrase = ({
         route,
         {
           headerLeft: () => (
-            <TouchableOpacity onPress={onBackPress}>
+            <TouchableOpacity
+              onPress={onBackPress}
+              testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
+            >
               <Icon
                 name={IconName.ArrowLeft}
                 size={24}
@@ -277,7 +278,10 @@ const ImportFromSecretRecoveryPhrase = ({
           ),
           headerRight: () =>
             currentStep === 0 ? (
-              <TouchableOpacity onPress={onQrCodePress}>
+              <TouchableOpacity
+                onPress={onQrCodePress}
+                testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+              >
                 <Icon
                   name={IconName.Scan}
                   size={24}
@@ -375,18 +379,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const onSeedWordsChange = useCallback(async (seed) => {
-    setSeed(seed);
-    // Only clear on android since iOS will notify users when we getString()
-    if (Device.isAndroid()) {
-      const androidOSVersion = parseInt(Platform.constants.Release, 10);
-      // This conditional is necessary to avoid an error in Android 8.1.0 or lower
-      if (androidOSVersion >= MINIMUM_SUPPORTED_CLIPBOARD_VERSION) {
-        await clearSecretRecoveryPhrase(seed);
-      }
-    }
-  }, []);
-
   const onPasswordChange = (value) => {
     const passInfo = zxcvbn(value);
 
@@ -397,11 +389,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const onPasswordConfirmChange = (value) => {
     setConfirmPassword(value);
   };
-
-  const jumpToPassword = useCallback(() => {
-    const { current } = passwordInput;
-    current && current.focus();
-  }, [passwordInput]);
 
   const jumpToConfirmPassword = () => {
     const { current } = confirmPasswordInput;
@@ -636,10 +623,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const getSecureWord = useCallback(
-    (word, index, focusedIndex) => {
-      const isFocusedWord =
-        focusedIndex === index &&
-        focusedIndex !== nextSeedPhraseInputFocusedIndex;
+    (word, index) => {
       const isValidSeedWord = checkValidSeedWord(word);
 
       return word &&
@@ -648,12 +632,7 @@ const ImportFromSecretRecoveryPhrase = ({
         ? '***'
         : word;
     },
-    [
-      seedPhraseInputFocusedIndex,
-      nextSeedPhraseInputFocusedIndex,
-      showAllSeedPhrase,
-      checkValidSeedWord,
-    ],
+    [seedPhraseInputFocusedIndex, showAllSeedPhrase, checkValidSeedWord],
   );
 
   useEffect(() => {
@@ -786,11 +765,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                       {index + 1}.
                                     </Text>
                                   }
-                                  value={getSecureWord(
-                                    item,
-                                    index,
-                                    seedPhraseInputFocusedIndex,
-                                  )}
+                                  value={getSecureWord(item, index)}
                                   secureTextEntry={
                                     checkValidSeedWord(item) &&
                                     (showAllSeedPhrase
@@ -966,6 +941,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings('import_from_seed.confirm_password')}
                   </Label>
                   <TextField
+                    ref={confirmPasswordInput}
                     placeholder={strings('import_from_seed.re_enter_password')}
                     size={TextFieldSize.Lg}
                     onChangeText={onPasswordConfirmChange}

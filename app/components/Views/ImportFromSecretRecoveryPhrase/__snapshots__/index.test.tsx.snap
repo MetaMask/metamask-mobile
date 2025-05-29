@@ -118,6 +118,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             >
               <TouchableOpacity
                 onPress={[Function]}
+                testID="import-from-seed-screen-back-button-id"
               >
                 <SvgMock
                   color="#121314"
@@ -177,6 +178,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             >
               <TouchableOpacity
                 onPress={[Function]}
+                testID="import-from-seed-screen-qr-code-button-id"
               >
                 <SvgMock
                   color="#121314"
