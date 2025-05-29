@@ -7,14 +7,6 @@ import { transferTransactionStateMock } from '../../../mock-data/transfer-transa
 import { validateGas } from '../../../utils/gas-validations';
 import { GasInput } from './gas-input';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../../utils/gas-validations', () => ({
   validateGas: jest.fn(),
 }));

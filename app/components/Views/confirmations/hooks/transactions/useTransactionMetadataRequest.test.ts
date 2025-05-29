@@ -8,14 +8,6 @@ import {
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('useTransactionMetadataRequest', () => {
   it('returns transaction metadata', () => {
     const { result } = renderHookWithProvider(useTransactionMetadataRequest, {
