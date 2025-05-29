@@ -3,11 +3,14 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
 
-const useVaultApys = () => {
+const useVaultApys = (chainId: number) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const vaultApys = useSelector(pooledStakingSelectors.selectVaultDailyApys);
+  const vaultApys =
+    useSelector(pooledStakingSelectors.selectVaultDailyApysForChain(chainId)) ??
+    [];
+
   const fetchVaultApys = async () => {
     setIsLoading(true);
     setError(null);
