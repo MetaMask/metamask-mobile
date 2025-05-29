@@ -14,12 +14,14 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
+import { TokenI } from '../../../../Tokens/types';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
+  token: TokenI;
 }
 
-const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
+const StakingCta = ({ estimatedRewardRate, token, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -27,6 +29,9 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const navigateToLearnMoreModal = () => {
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: {
+        token,
+      },
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)

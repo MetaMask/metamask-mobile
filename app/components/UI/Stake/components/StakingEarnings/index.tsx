@@ -52,7 +52,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
     hasStakedPositions,
-  } = useStakingEarnings();
+  } = useStakingEarnings(Number(asset.chainId));
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,
@@ -61,6 +61,9 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const onDisplayAnnualRateTooltip = () =>
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: {
+        token: asset,
+      },
     });
 
   if (!isStakingSupportedChain || !hasStakedPositions) return <></>;

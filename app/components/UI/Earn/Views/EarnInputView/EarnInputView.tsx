@@ -44,10 +44,6 @@ import {
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-// import {
-//   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
-//   getErc20SpendingLimit,
-// } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
 import {
   EARN_LENDING_ACTIONS,
@@ -127,11 +123,12 @@ const EarnInputView = () => {
     exchangeRate,
   });
 
-  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit);
-  console.log('balanceValue', balanceValue);
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: {
+        token,
+      },
     });
   };
 
@@ -149,13 +146,7 @@ const EarnInputView = () => {
         earnToken.experience.market?.protocol,
         earnToken.experience.market?.underlying?.address,
       );
-    console.log(
-      'Engine.context.EarnController',
-      tokenContractAddress,
-      earnToken.experience.market?.underlying?.address,
-      earnToken.experience.market?.protocol,
-      allowanceMinimalTokenUnitBN.toString(),
-    );
+
     const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN.toString();
     // const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
     //   activeAccount.address,
@@ -167,11 +158,6 @@ const EarnInputView = () => {
       allowanceMinimalTokenUnit ?? '',
     ).isLessThan(amountTokenMinimalUnitString);
 
-    console.log(
-      'needsAllowanceIncrease',
-      needsAllowanceIncrease,
-      earnToken.chainId,
-    );
     // const lendingPoolContractAddress =
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
@@ -187,7 +173,6 @@ const EarnInputView = () => {
         annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
-        // TODO: Replace hardcoded protocol in future iteration.
         lendingProtocol: earnToken?.experience?.market?.protocol,
         // TODO: Add lending pool contract address when available.
         lendingContractAddress: lendingPoolContractAddress,

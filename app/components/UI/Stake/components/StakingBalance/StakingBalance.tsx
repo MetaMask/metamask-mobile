@@ -205,6 +205,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
                 outputFormat: PercentageOutputFormat.PERCENT_SIGN,
                 fixed: 1,
               })}
+              token={asset}
             />
           )}
 
