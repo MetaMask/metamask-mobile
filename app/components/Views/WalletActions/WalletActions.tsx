@@ -55,6 +55,7 @@ import {
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -69,6 +70,9 @@ const WalletActions = () => {
   );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
+  const isDepositWalletActionEnabled = useSelector(
+    selectDepositEntrypointWalletActions,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -195,6 +199,12 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const onDeposit = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.DEPOSIT.ID);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const onSend = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_BUTTON_CLICKED)
@@ -229,6 +239,7 @@ const WalletActions = () => {
             scope: chainId as CaipChainId,
           },
         );
+        sheetRef.current?.onCloseBottomSheet();
       } catch {
         // Restore the previous page in case of any error
         sheetRef.current?.onCloseBottomSheet();
@@ -316,6 +327,16 @@ const WalletActions = () => {
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
+          />
+        )}
+        {isDepositWalletActionEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (

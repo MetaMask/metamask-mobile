@@ -102,6 +102,7 @@ export const snapControllerInit: ControllerInitFunction<
       allowLocalSnaps,
       disableSnapInstallation,
       requireAllowlist,
+      useCaip25Permission: true,
     },
 
     // @ts-expect-error: `encryptorFactory` is not compatible with the expected
