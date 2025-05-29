@@ -42,7 +42,12 @@ const MAX_CAROUSEL_SLIDES = 15;
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
-  const [fetchedSlides, setFetchedSlides] = useState<CarouselSlide[]>([]);
+  const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
+  const [regularContentfulSlides, setRegularContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
   const isContentfulCarouselEnabled = useSelector(
     selectContentfulCarouselEnabledFlag,
   );
@@ -67,9 +72,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     const loadContentfulSlides = async () => {
       if (!isContentfulCarouselEnabled) return;
       try {
-        const remoteSlides = await fetchCarouselSlidesFromContentful();
-        const activeSlides = remoteSlides.filter((slide) => isActive(slide));
-        setFetchedSlides(activeSlides);
+        const { prioritySlides, regularSlides } =
+          await fetchCarouselSlidesFromContentful();
+        setPriorityContentfulSlides(
+          prioritySlides.filter((slides) => isActive(slides)),
+        );
+        setRegularContentfulSlides(
+          regularSlides.filter((slides) => isActive(slides)),
+        );
       } catch (err) {
         console.warn('Failed to fetch Contentful slides:', err);
       }
@@ -79,7 +89,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   // Merge all slides (predefined + contentful),
   const slidesConfig = useMemo(() => {
-    const baseSlides = [...PREDEFINED_SLIDES, ...fetchedSlides];
+    const baseSlides = [
+      ...priorityContentfulSlides,
+      ...PREDEFINED_SLIDES,
+      ...regularContentfulSlides,
+    ];
     return baseSlides.map((slide) => {
       if (slide.id === 'fund' && isZeroBalance) {
         return {
@@ -92,7 +106,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         undismissable: false,
       };
     });
-  }, [isZeroBalance, fetchedSlides]);
+  }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
 
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
