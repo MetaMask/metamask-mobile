@@ -13,11 +13,12 @@ export enum AccountConnectScreens {
   SingleConnectSelector = 'SingleConnectSelector',
   MultiConnectSelector = 'MultiConnectSelector',
   MultiConnectNetworkSelector = 'MultiConnectNetworkSelector',
+  AddNewAccount = 'AddNewAccount',
 }
 
 export interface AccountConnectParams {
   hostInfo: {
-    metadata: { origin: string; id: string, isEip1193Request?: boolean, promptToCreateSolanaAccount?: boolean };
+    metadata: {
     permissions: RequestedPermissions;
   };
   permissionRequestId: string;

@@ -71,6 +71,9 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -81,6 +84,7 @@ const PermissionsSummary = ({
   onCancel,
   onConfirm,
   onUserAction,
+  onCreateAccount,
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
@@ -97,6 +101,7 @@ const PermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  promptToCreateSolanaAccount,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -558,16 +563,26 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedItemList
-          key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
-          ensByAccountAddress={ensByAccountAddress}
-          accounts={accounts}
-          privacyMode={privacyMode}
-          networkAvatars={networkAvatars}
-          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-          {...restAccountsConnectedTabProps}
-        />
+        {promptToCreateSolanaAccount ? (
+          <AccountConnectCreateInitialAccount
+            key={accountsConnectedTabKey}
+            onCreateAccount={() => {
+              onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+            }}
+            {...restAccountsConnectedTabProps}
+          />
+        ) : (
+          <AccountsConnectedItemList
+            key={accountsConnectedTabKey}
+            selectedAddresses={accountAddresses}
+            ensByAccountAddress={ensByAccountAddress}
+            accounts={accounts}
+            privacyMode={privacyMode}
+            networkAvatars={networkAvatars}
+            handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+            {...restAccountsConnectedTabProps}
+          />
+        )}
         <View
           key={permissionsTabKey}
           style={styles.permissionsManagementContainer}
