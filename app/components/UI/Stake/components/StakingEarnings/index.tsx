@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,6 +29,7 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { useSelector } from 'react-redux';
 import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -44,6 +44,8 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
 
   const { navigate } = useNavigation();
 
+  const decimalChainId = getDecimalChainId(asset?.chainId);
+
   const {
     annualRewardRate,
     lifetimeRewardsETH,
@@ -52,11 +54,9 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
     hasStakedPositions,
-  } = useStakingEarnings(Number(asset.chainId));
+  } = useStakingEarnings(decimalChainId);
 
-  const { isStakingSupportedChain } = useStakingChainByChainId(
-    asset.chainId as Hex,
-  );
+  const { isStakingSupportedChain } = useStakingChainByChainId(decimalChainId);
 
   const onDisplayAnnualRateTooltip = () =>
     navigate('StakeModals', {

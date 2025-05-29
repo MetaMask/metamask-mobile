@@ -38,6 +38,7 @@ import {
   PercentageOutputFormat,
 } from '../../utils/value';
 import { TokenI } from '../../../Tokens/types';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -92,7 +93,7 @@ const PoolStakingLearnMoreModal = () => {
 
   const { params } = useRoute<PoolStakingLeanMoreModalProps['route']>();
 
-  const tokenChainId = Number(params.token.chainId);
+  const tokenChainId = getDecimalChainId(params?.token?.chainId);
 
   const { vaultApys, isLoadingVaultApys } = useVaultApys(tokenChainId);
 
