@@ -48,7 +48,7 @@ describe(
       await AddNewHdAccountComponent.tapConfirm();
       await NetworkEducationModal.tapGotItButton();
       // Assert account created, which is an existing account with SOL
-      await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME, 1);
+      await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME);
     });
 
     itif(device.getPlatform() === 'ios')('should validate recipient address format correctly', async () => {
