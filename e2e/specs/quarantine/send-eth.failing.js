@@ -50,10 +50,9 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await AmountView.tapNextButton();
 
         await TransactionConfirmationView.tapConfirmButton();
-        // await TabBarComponent.tapActivity();
+        await TabBarComponent.tapActivity();
 
-        // TODO: fix this test with bug on confirmation screen
-        // await Assertions.checkIfTextIsDisplayed(`${AMOUNT}`);
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT}`);
       },
     );
   });
