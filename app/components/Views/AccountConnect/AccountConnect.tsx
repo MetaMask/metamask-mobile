@@ -409,7 +409,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             number_of_accounts: accountsLength,
             source: eventSource,
             chain_id_list: chainIds,
-            api,
+            api_source: api,
             method,
             referrer: channelIdOrHostname,
           })
@@ -527,7 +527,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
             chain_id_list: selectedChainIds,
-            api,
+            api_source: api,
             method,
             referrer: request.metadata.origin,
           })

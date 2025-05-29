@@ -72,7 +72,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           number_of_accounts: totalAccounts,
           source: eventSource,
           chain_id_list: caip2ChainIds,
-          api,
+          api_source: api,
           method,
         })
         .build(),
