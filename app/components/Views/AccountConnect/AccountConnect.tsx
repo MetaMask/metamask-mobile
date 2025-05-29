@@ -163,7 +163,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
+      // otherwise, if we have supported requested CAIP chain IDs, use those
     } else if (supportedRequestedCaipChainIds.length > 0) {
       return supportedRequestedCaipChainIds;
     }
@@ -250,8 +250,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     promptToCreateSolanaAccount?: boolean;
   };
 
-  // TODO: use this value to show Solana Opt In Flow
-  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
+  const promptToCreateSolanaAccount =
+    hostInfo.metadata.promptToCreateSolanaAccount;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -483,7 +483,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
-    
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
