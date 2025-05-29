@@ -180,8 +180,8 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           );
         }
 
-        // Set the selected account to the new account
         if (accountName) {
+          // Set the account name if one is provided
           this.#messenger.call(
             'AccountsController:setAccountName',
             accountId,
