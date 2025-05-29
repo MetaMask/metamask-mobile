@@ -6,11 +6,11 @@ import {
 } from '@metamask/transaction-controller';
 import { ethers, BigNumber as EthersBigNumber } from 'ethers';
 import Engine from '../../../../core/Engine';
-import { EarnTokenDetails } from '../hooks/useEarnTokenDetails';
 import BigNumber from 'bignumber.js';
 
 // TODO: ADD SUPPORT FOR LINEA: Feasibility TBD
 // TODO: ADD SUPPORT FOR ARBITRUM: Feasibility TBD
+import { EarnTokenDetails } from '../types/lending.types';
 
 const { parseUnits, formatUnits } = ethers.utils;
 /**
@@ -57,7 +57,10 @@ const BASE_AAVE_V3_POOL_CONTRACT_ADDRESS =
 const LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS =
   '0xc47b8C00b0f69a36fa203Ffeac0334874574a8Ac';
 
-const ARBITRUM_AAVE_V3_POOL_CONTRACT_ADDRESS =
+const SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS =
+  '0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951';
+
+const ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS =
   '0x794a61358D6845594F94dc1DB02A252b5b4814aD';
 
 export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
@@ -65,7 +68,8 @@ export const CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS: Record<string, string> =
     '0x1': ETHEREUM_MAINNET_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0x2105': BASE_AAVE_V3_POOL_CONTRACT_ADDRESS,
     '0xe708': LINEA_AAVE_V3_POOL_CONTRACT_ADDRESS,
-    '0xa4b1': ARBITRUM_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0xa4b1': ARBITRUM_ONE_AAVE_V3_POOL_CONTRACT_ADDRESS,
+    '0xaa36a7': SEPOLIA_AAVE_V3_POOL_CONTRACT_ADDRESS,
   };
 
 export const getErc20SpendingLimit = async (
@@ -214,7 +218,6 @@ export const generateLendingAllowanceIncreaseTransaction = (
       minimalTokenAmount,
       chainId,
     );
-
   if (!encodedLendingApprovalTransactionData) return;
 
   const txParams = generateLendingApprovalTxParams(

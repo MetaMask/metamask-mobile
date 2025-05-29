@@ -31,9 +31,9 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { toHex } from '@metamask/controller-utils';
+import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -55,9 +55,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-
-  const earnToken = getTokenWithBalanceAndApr(asset);
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(asset);
 
   const areEarnExperiencesDisabled =
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
@@ -135,11 +134,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   };
 
   const onEarnButtonPress = async () => {
-    if (earnToken.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleStakeRedirect();
     }
 
-    if (earnToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       return handleLendingRedirect();
     }
   };
@@ -152,18 +151,13 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodyMDMedium} style={styles.dot}>
+      <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
         {' • '}
       </Text>
-      <Text color={TextColor.Primary} variant={TextVariant.BodyMDMedium}>
-        {`${strings('stake.earn')}`}
+      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+        {`${strings('stake.earn')}`}{' '}
+        {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
       </Text>
-      <Icon
-        name={IconName.Plant}
-        size={IconSize.Sm}
-        color={IconColor.Primary}
-        style={styles.sprout}
-      />
     </Pressable>
   );
 };

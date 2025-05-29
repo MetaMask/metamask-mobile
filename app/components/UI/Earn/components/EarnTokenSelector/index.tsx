@@ -24,40 +24,37 @@ import BadgeWrapper, {
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
   action: EARN_INPUT_VIEW_ACTIONS;
 }
 
-const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
+const EarnTokenSelector = ({
+  token: someEarnToken,
+  action,
+}: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const earnToken = getTokenWithBalanceAndApr(token);
+  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const earnToken = getEarnToken(someEarnToken);
+  const outputToken = getOutputToken(someEarnToken);
+  const token = (earnToken || outputToken) as EarnTokenDetails;
+  const apr = parseFloat(token?.experiences?.[0]?.apr ?? '0').toFixed(1);
 
   const handlePress = () => {
     const tokenFilter = {
-      // Staking tokens visible for both deposit and withdrawals
-      includeNativeTokens: false,
-      includeStakingTokens: false,
-      includeLendingTokens: false,
       includeReceiptTokens: false,
     };
 
-    // Withdraw
+    // Make this more intuitive after merge resolution
     if (action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
-      tokenFilter.includeStakingTokens = true;
       tokenFilter.includeReceiptTokens = true;
-    }
-    // Deposit
-    else {
-      tokenFilter.includeNativeTokens = true;
-      tokenFilter.includeLendingTokens = true;
     }
 
     navigation.navigate('StakeModals', {
@@ -107,7 +104,11 @@ const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
       >
         {renderTokenAvatar()}
       </BadgeWrapper>
-      <Text variant={TextVariant.BodyMDMedium} style={styles.tokenText}>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        style={styles.tokenText}
+        numberOfLines={1}
+      >
         {token.name}
       </Text>
     </View>
@@ -116,11 +117,12 @@ const EarnTokenSelector = ({ token, action }: EarnTokenSelectorProps) => {
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-        {`${earnToken.apr}% APR`}
+        {`${apr}% APR`}
       </Text>
-      {earnToken.balanceFormatted !== undefined && (
+
+      {token?.balanceFormatted !== undefined && (
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {earnToken.balanceFormatted}
+          {token?.balanceFormatted}
         </Text>
       )}
     </View>

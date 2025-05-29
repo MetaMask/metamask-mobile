@@ -33,6 +33,8 @@ import {
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
 import EarnBalance from '../../Earn/components/EarnBalance';
+import { useTokenPricePercentageChange } from '../../Tokens/hooks/useTokenPricePercentageChange';
+import PercentageChange from '../../../../component-library/components-temp/Price/PercentageChange';
 
 interface BalanceProps {
   asset: TokenI;
@@ -82,6 +84,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
+
+  const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
   const tokenChainId = asset.chainId;
 
@@ -148,9 +152,10 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         >
           {renderNetworkAvatar()}
         </BadgeWrapper>
-        <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
-          {asset.name || asset.symbol}
-        </Text>
+        <View style={styles.balanceInfo}>
+          <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
+          <PercentageChange value={pricePercentChange1d} />
+        </View>
       </AssetElement>
       <EarnBalance asset={asset} />
     </View>

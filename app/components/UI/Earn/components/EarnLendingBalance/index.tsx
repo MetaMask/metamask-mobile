@@ -26,9 +26,11 @@ import Text, {
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
-import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -60,7 +62,10 @@ const EarnLendingBalance = ({
 
   const navigation = useNavigation();
 
-  const { receiptToken } = useLendingTokenPair(asset);
+  const { getPairedEarnTokens } = useEarnTokens();
+  const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
+
+  const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
 
   const handleNavigateToWithdrawalInputScreen = () => {
     navigation.navigate('StakeScreens', {
@@ -75,12 +80,12 @@ const EarnLendingBalance = ({
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: asset,
+        token: earnToken,
       },
     });
   };
 
-  if (!isStablecoinLendingEnabled || !receiptToken?.chainId) return null;
+  if (!isStablecoinLendingEnabled || !receiptToken) return null;
 
   return (
     <View>
@@ -110,13 +115,15 @@ const EarnLendingBalance = ({
               }
             />
           </BadgeWrapper>
-          <Text
-            style={styles.balances}
-            variant={TextVariant.BodyLGMedium}
-            testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
-          >
-            {receiptToken.name}
-          </Text>
+          <View style={styles.balances}>
+            <Text
+              variant={TextVariant.BodyMD}
+              testID={EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL}
+            >
+              {receiptToken.name}
+            </Text>
+            <PercentageChange value={pricePercentChange1d} />
+          </View>
         </AssetElement>
       )}
       {displayButtons && (

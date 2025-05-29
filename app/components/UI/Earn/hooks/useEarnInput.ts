@@ -8,10 +8,11 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import useBalance from '../../Stake/hooks/useBalance';
-import { EarnTokenDetails } from './useEarnTokenDetails';
 import useInputHandler from './useInput';
-import useStakingGasFee from '../../Stake/hooks/useStakingGasFee';
 import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
+import { EarnTokenDetails } from '../types/lending.types';
+import { getDecimalChainId } from '../../../../util/networks';
+import useEarnDepositGasFee from './useEarnGasFee';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -28,8 +29,8 @@ const useEarnInputHandlers = ({
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
   const balanceMinimalUnit: BN4 = useMemo(
-    () => new BN4(earnToken.balanceMinimalUnit),
-    [earnToken.balanceMinimalUnit],
+    () => new BN4(earnToken?.balanceMinimalUnit ?? '0'),
+    [earnToken],
   );
 
   const {
@@ -48,34 +49,51 @@ const useEarnInputHandlers = ({
     amountFiatNumber,
     handleMaxInput,
   } = useInputHandler({
-    balance: earnToken.balanceMinimalUnit,
+    balance: earnToken?.balanceMinimalUnit ?? '0',
     decimals: earnToken.decimals,
     ticker: earnToken.ticker ?? earnToken.symbol,
     conversionRate,
     exchangeRate,
   });
 
-  const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
-    useStakingGasFee(balanceWei.toString());
-
-  // max amount of native currency stakable after gas fee
+  const {
+    estimatedEarnGasFeeWei: estimatedGasFeeWei,
+    isLoadingEarnGasFee,
+    isEarnGasFeeError,
+  } = useEarnDepositGasFee(
+    amountTokenMinimalUnit.toString(),
+    earnToken.experience,
+  );
+  // // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
-      !isStakingGasFeeError && balanceWei.gt(estimatedGasFeeWei)
+      !isEarnGasFeeError &&
+      !isLoadingEarnGasFee &&
+      balanceWei.gt(estimatedGasFeeWei)
         ? balanceWei.sub(estimatedGasFeeWei)
         : new BN4(0),
 
-    [balanceWei, estimatedGasFeeWei, isStakingGasFeeError],
+    [balanceWei, estimatedGasFeeWei, isEarnGasFeeError, isLoadingEarnGasFee],
   );
+
+  console.log('maxStakeableAmountWei', maxStakeableAmountWei.toString());
+  console.log('isEarnGasFeeError', isEarnGasFeeError);
+  console.log('isLoadingEarnGasFee', isLoadingEarnGasFee);
+  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit.toString());
+  console.log('balanceMinimalUnit', balanceMinimalUnit.toString());
+  console.log('balanceWei', balanceWei.toString());
+  console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
 
   const isOverMaximum = useMemo(() => {
     const isOverMaximumEth =
       !!earnToken.isETH &&
       isNonZeroAmount &&
+      !isLoadingEarnGasFee &&
       amountTokenMinimalUnit.sub(maxStakeableAmountWei).gt(new BN4(0));
     const isOverMaximumToken =
       !earnToken.isETH &&
       isNonZeroAmount &&
+      !isLoadingEarnGasFee &&
       amountTokenMinimalUnit.sub(balanceMinimalUnit).gt(new BN4(0)) &&
       balanceWei.sub(estimatedGasFeeWei).gte(new BN4(0));
     return {
@@ -90,11 +108,12 @@ const useEarnInputHandlers = ({
     balanceMinimalUnit,
     balanceWei,
     estimatedGasFeeWei,
+    isLoadingEarnGasFee,
   ]);
 
   // TODO: Update useVaultMetadata to support lending and pooled-staking or separate and call separate hooks.
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
-    useVaultMetadata();
+    useVaultMetadata(getDecimalChainId(earnToken.chainId));
 
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
@@ -160,7 +179,7 @@ const useEarnInputHandlers = ({
     : `${tokenBalance}`;
 
   const getDepositTxGasPercentage = useCallback(() => {
-    if (!isNonZeroAmount || isLoadingStakingGasFee || !estimatedGasFeeWei) {
+    if (!isNonZeroAmount || isLoadingEarnGasFee || !estimatedGasFeeWei) {
       return '0';
     }
 
@@ -176,7 +195,7 @@ const useEarnInputHandlers = ({
     conversionRate,
     estimatedGasFeeWei,
     isNonZeroAmount,
-    isLoadingStakingGasFee,
+    isLoadingEarnGasFee,
     amountFiatNumber,
   ]);
 
@@ -208,7 +227,7 @@ const useEarnInputHandlers = ({
     annualRewardsFiat,
     annualRewardRate,
     handleMax,
-    isLoadingStakingGasFee,
+    isLoadingEarnGasFee,
     isLoadingVaultMetadata,
     balanceValue,
     getDepositTxGasPercentage,

@@ -23,7 +23,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
-import { isPortfolioViewEnabled } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../../../util/networks';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
@@ -51,6 +54,8 @@ import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -78,20 +83,24 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
+  const decimalChainId = getDecimalChainId(asset.chainId);
   const {
     pooledStakesData,
     exchangeRate,
     hasStakedPositions,
     hasEthToUnstake,
     isLoadingPooledStakesData,
-  } = usePooledStakes();
+  } = usePooledStakes(decimalChainId);
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } =
+    useVaultApyAverages(decimalChainId);
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
     formattedStakedBalanceFiat: stakedBalanceFiat,
   } = useBalance(asset.chainId as Hex);
+
+  const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -241,13 +250,14 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               <NetworkMainAssetLogo style={styles.ethLogo} />
             )}
           </BadgeWrapper>
-          <Text
-            style={styles.balances}
-            variant={TextVariant.BodyLGMedium}
-            testID="staked-ethereum-label"
-          >
-            {strings('stake.staked_ethereum')}
-          </Text>
+          <View style={styles.balances}>
+            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
+              {strings('stake.staked_ethereum')}
+            </Text>
+            <Text>
+              <PercentageChange value={pricePercentChange1d} />
+            </Text>
+          </View>
         </AssetElement>
       )}
 

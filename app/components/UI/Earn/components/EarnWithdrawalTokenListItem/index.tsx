@@ -17,7 +17,7 @@ import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useSelector } from 'react-redux';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
-import { EarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import { EarnTokenDetails } from '../../types/lending.types';
 
 export interface EarnWithdrawalTokenListItemProps {
   earnToken: EarnTokenDetails;
@@ -33,54 +33,58 @@ const EarnWithdrawalTokenListItem = ({
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => onPress(earnToken)}
-    >
-      <View style={styles.left}>
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              name={networkName}
-              imageSource={getNetworkImageSource({
-                chainId: earnToken?.chainId ?? '',
-              })}
-            />
-          }
-        >
-          <EarnNetworkAvatar token={earnToken} />
-        </BadgeWrapper>
-        <View>
-          <Text variant={TextVariant.BodyMDMedium}>{earnToken.name}</Text>
-          <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
-          >{`${strings('earn.earning')} ${earnToken.apr}%`}</Text>
-        </View>
-      </View>
-      <View style={styles.right}>
-        {/* Only show token balance if exchange rates aren't available */}
-        {earnToken?.balanceFiat !== 'tokenRateUndefined' ? (
-          <>
-            <Text variant={TextVariant.BodyMDMedium}>
-              {earnToken.balanceFiat}
-            </Text>
+    earnToken && (
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() => onPress(earnToken)}
+      >
+        <View style={styles.left}>
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={getNetworkImageSource({
+                  chainId: earnToken?.chainId ?? '',
+                })}
+              />
+            }
+          >
+            <EarnNetworkAvatar token={earnToken} />
+          </BadgeWrapper>
+          <View>
+            <Text variant={TextVariant.BodyMDMedium}>{earnToken.name}</Text>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
-            >
+            >{`${strings('earn.earning')} ${parseFloat(
+              earnToken?.experiences?.[0]?.apr ?? '0',
+            ).toFixed(1)}%`}</Text>
+          </View>
+        </View>
+        <View style={styles.right}>
+          {/* Only show token balance if exchange rates aren't available */}
+          {earnToken?.balanceFiat !== 'tokenRateUndefined' ? (
+            <>
+              <Text variant={TextVariant.BodyMDMedium}>
+                {earnToken.balanceFiat}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+              >
+                {earnToken.balanceFormatted}
+              </Text>
+            </>
+          ) : (
+            <Text variant={TextVariant.BodyMDMedium}>
               {earnToken.balanceFormatted}
             </Text>
-          </>
-        ) : (
-          <Text variant={TextVariant.BodyMDMedium}>
-            {earnToken.balanceFormatted}
-          </Text>
-        )}
-      </View>
-    </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    )
   );
 };
 

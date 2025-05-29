@@ -33,9 +33,9 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
-import { EarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
+import { EarnTokenDetails } from '../../types/lending.types';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -88,20 +88,13 @@ const EarnTokenList = () => {
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const {
-    includeNativeTokens,
-    includeStakingTokens,
-    includeLendingTokens,
-    includeReceiptTokens,
-  } = params?.tokenFilter ?? {};
+  // TODO: adjust this properly
+  const { includeReceiptTokens: includeOutputTokens } =
+    params?.tokenFilter ?? {};
 
-  const supportedEarnTokens = useEarnTokens({
-    // TODO: This SHOULD include pool-staked Ethereum and NOT Ethereum
-    includeNativeTokens,
-    includeStakingTokens,
-    includeLendingTokens,
-    includeReceiptTokens,
-  });
+  const { earnTokens, earnOutputTokens } = useEarnTokens();
+
+  const tokens = includeOutputTokens ? earnOutputTokens : earnTokens;
 
   // Temp workaround for BadgeNetwork component not anchoring correctly on initial render.
   // We force a rerender to ensure the BadgeNetwork component properly anchors to its BadgeWrapper.
@@ -192,7 +185,7 @@ const EarnTokenList = () => {
         token={token}
         onPress={handleRedirectToInputScreen}
         primaryText={{
-          value: `${token.apr}% APR`,
+          value: `${token?.experiences[0]?.apr || 0}% APR`,
           color: TextColor.Success,
         }}
         {...(!isEmptyBalance(token) && {
@@ -212,7 +205,7 @@ const EarnTokenList = () => {
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.container}>
-        {supportedEarnTokens?.length ? (
+        {earnTokens?.length ? (
           <>
             {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
               <UpsellBanner
@@ -222,7 +215,7 @@ const EarnTokenList = () => {
                 variant={UPSELL_BANNER_VARIANTS.HEADER}
               />
             )}
-            {supportedEarnTokens?.map(
+            {tokens?.map(
               (token) =>
                 token?.chainId && (
                   <View

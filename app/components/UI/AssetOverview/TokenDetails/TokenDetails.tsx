@@ -26,10 +26,7 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import {
-  isSupportedLendingReceiptTokenByChainId,
-  isSupportedLendingTokenByChainId,
-} from '../../Earn/utils/token';
+
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
 import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -41,7 +38,7 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
-import useLendingTokenPair from '../../Earn/hooks/useLendingTokenPair';
+import useEarnTokens from '../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
 
 export interface TokenDetails {
@@ -93,6 +90,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
+  const { getEarnToken, getOutputToken, getPairedEarnTokens } = useEarnTokens();
+  const { earnToken: lendingToken, outputToken: receiptToken } =
+    getPairedEarnTokens(asset);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
@@ -105,8 +105,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     conversionTime: Number(multichainAssetRates?.conversionTime),
   };
   ///: END:ONLY_INCLUDE_IF
-
-  const { lendingToken, receiptToken } = useLendingTokenPair(asset);
 
   const evmMarketData = useSelector((state: RootState) =>
     isEvmNetworkSelected
@@ -191,26 +189,21 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   }, [marketData, currentCurrency, isEvmNetworkSelected, conversionRate]);
 
   const hasLendingTokenBalance =
-    lendingToken.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-    asset.balanceFiat &&
-    parseFloatSafe(asset.balanceFiat) > 0;
+    lendingToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+    lendingToken?.balanceFiat &&
+    parseFloatSafe(lendingToken?.balanceFiat) > 0;
 
   const hasReceiptTokenBalance =
-    (receiptToken?.balanceFiat &&
-      parseFloatSafe(receiptToken.balanceFiat) > 0) ??
-    false;
+    receiptToken?.balanceFiat && parseFloatSafe(receiptToken?.balanceFiat) > 0;
 
   return (
     <View style={styles.tokenDetailsContainer}>
       {/* TODO: Abstract StakingEarnings and EarnEmptyStateCta (Earn Lending Experience) into single entrypoint */}
       {asset.isETH && <StakingEarnings asset={asset} />}
       {isStablecoinLendingEnabled &&
-        isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
-        // Don't display for receipt tokens
-        !isSupportedLendingReceiptTokenByChainId(
-          asset.symbol,
-          asset.chainId ?? '',
-        ) &&
+        !asset.isETH &&
+        getEarnToken(asset) &&
+        !getOutputToken(asset) &&
         hasLendingTokenBalance &&
         !hasReceiptTokenBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || !isEvmNetworkSelected) && (

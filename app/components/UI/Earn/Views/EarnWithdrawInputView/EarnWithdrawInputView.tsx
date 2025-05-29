@@ -32,10 +32,6 @@ import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import {
-  EarnTokenDetails,
-  useEarnTokenDetails,
-} from '../../hooks/useEarnTokenDetails';
 import { RootState } from '../../../../../reducers';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { Hex } from '@metamask/utils';
@@ -47,31 +43,35 @@ import EarnTokenSelector from '../../components/EarnTokenSelector';
 import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import {
-  calculateAaveV3HealthFactorAfterWithdrawal,
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
   getAaveV3MaxRiskAwareWithdrawalAmount,
+  calculateAaveV3HealthFactorAfterWithdrawal,
 } from '../../utils/tempLending';
-import useLendingTokenPair from '../../hooks/useLendingTokenPair';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+// import BigNumber from 'bignumber.js';
 import BN from 'bnjs4';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { TokenI } from '../../../Tokens/types';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const earnToken = getTokenWithBalanceAndApr(token);
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+  const { getPairedEarnTokens } = useEarnTokens();
+  const { outputToken: receiptToken, earnToken: lendingToken } =
+    getPairedEarnTokens(token);
+
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
-  const { lendingToken, receiptToken } = useLendingTokenPair(token);
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
-  );
-
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
@@ -97,7 +97,7 @@ const EarnWithdrawInputView = () => {
     handleKeypadChange,
     earnBalanceValue,
   } = useEarnWithdrawInput({
-    earnToken,
+    earnToken: receiptToken as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });
@@ -112,7 +112,7 @@ const EarnWithdrawInputView = () => {
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
     if (
-      earnToken.experience !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      lendingToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !activeAccount?.address ||
       !lendingToken?.address ||
       !receiptToken?.address ||
@@ -135,7 +135,28 @@ const EarnWithdrawInputView = () => {
       });
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [earnToken.symbol, earnToken?.chainId]);
+  }, [lendingToken?.symbol, lendingToken?.chainId]);
+
+  const buttonLabel = useMemo(() => {
+    if (!isNonZeroAmount) {
+      return strings('stake.enter_amount');
+    }
+    if (isOverMaximum.isOverMaximumToken) {
+      return strings('stake.not_enough_token', {
+        ticker: receiptToken?.ticker ?? receiptToken?.symbol ?? '',
+      });
+    }
+    if (isOverMaximum.isOverMaximumEth) {
+      return strings('stake.not_enough_eth');
+    }
+    return strings('stake.review');
+  }, [
+    receiptToken?.symbol,
+    receiptToken?.ticker,
+    isNonZeroAmount,
+    isOverMaximum.isOverMaximumEth,
+    isOverMaximum.isOverMaximumToken,
+  ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
 
@@ -211,7 +232,7 @@ const EarnWithdrawInputView = () => {
   const handleLendingWithdrawalFlow = useCallback(async () => {
     // TODO: Get the actual receiptToken protocol.
     // Some of our safety checks only apply to AAVE
-    const RECEIPT_TOKEN_PROTOCOL = 'AAVE v3';
+    // const RECEIPT_TOKEN_PROTOCOL = 'AAVE v3';
 
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
@@ -239,8 +260,57 @@ const EarnWithdrawInputView = () => {
     const amountToWithdraw = amountTokenMinimalUnit.toString();
 
     try {
+      // 1. Make sure pool has available liquidity for withdrawal amount.
+      // const currentPoolLiquidityInLowestDenomination =
+      //   await getLendingPoolLiquidity(
+      //     lendingToken.address,
+      //     receiptToken.address,
+      //     receiptToken.chainId,
+      //   );
+
+      // const amountToWithdrawBn = new BigNumber(amountToWithdraw);
+
+      // const poolHasLiquidity = amountToWithdrawBn.lt(
+      //   currentPoolLiquidityInLowestDenomination,
+      // );
+
+      // if (!poolHasLiquidity) {
+      //   // eslint-disable-next-line no-alert
+      //   alert('Withdrawal failed: Pool does not have enough liquidity');
+      //   return;
+      // }
+
+      // if (RECEIPT_TOKEN_PROTOCOL === 'AAVE v3') {
+      //   // 2. (AAVE only) Make sure the user's health factor won't drop below 1 from the transaction and cause a revert (poor UX)
+      //   // Risk-aware withdrawal check if AAVEv3 is selected protocol.
+      //   // Only perform this check if receiptToken protocol is AAVEv3
+      //   const aaveV3MaxSafeWithdrawalLowestDenomination =
+      //     await getAaveV3MaxSafeWithdrawal(
+      //       activeAccount.address,
+      //       lendingToken as EarnTokenDetails,
+      //     );
+
+      //   const isSafeWithdrawal = amountToWithdrawBn.lt(
+      //     aaveV3MaxSafeWithdrawalLowestDenomination,
+      //   );
+
+      //   if (!isSafeWithdrawal) {
+      //     // eslint-disable-next-line no-alert
+      //     alert('Withdrawal failed: Unsafe withdrawal could cause liquidation');
+      //     return;
+      //   }
+      // }
+
       const lendingPoolContractAddress =
         CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[receiptToken.chainId] ?? '';
+
+      // if (!lendingPoolContractAddress) {
+      //   // eslint-disable-next-line no-alert
+      //   alert(
+      //     'Withdrawal failed: Could not find lending pool contract address',
+      //   );
+      //   return;
+      // }
 
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION,
@@ -248,7 +318,7 @@ const EarnWithdrawInputView = () => {
           token: receiptToken,
           amountTokenMinimalUnit: amountToWithdraw,
           amountFiat: amountFiatNumber,
-          lendingProtocol: RECEIPT_TOKEN_PROTOCOL,
+          lendingProtocol: receiptToken.experience?.market?.protocol,
           lendingContractAddress: lendingPoolContractAddress,
           healthFactorSimulation: simulatedHealthFactorAfterWithdrawal,
         },
@@ -336,16 +406,21 @@ const EarnWithdrawInputView = () => {
     trackEvent,
   ]);
 
+  // TODO: access primary experience a better way
+  // TODO: think about if we could rely on receiptToken experience instead here
+  // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
-    if (earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      lendingToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+    ) {
       return handleLendingWithdrawalFlow();
     }
 
-    if (earnToken?.experience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (lendingToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    earnToken?.experience,
+    lendingToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -361,38 +436,19 @@ const EarnWithdrawInputView = () => {
 
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
-      receiptToken.decimals as number,
+      receiptToken?.decimals as number,
     );
   }, [
     isLoadingMaxSafeWithdrawalAmount,
     maxRiskAwareWithdrawalAmount,
-    receiptToken.decimals,
-  ]);
-
-  const buttonLabel = useMemo(() => {
-    if (!isNonZeroAmount) {
-      return strings('stake.enter_amount');
-    }
-    if (isOverMaximum.isOverMaximumToken) {
-      return strings('stake.not_enough_token', {
-        ticker: earnToken.ticker ?? earnToken.symbol,
-      });
-    }
-    if (isOverMaximum.isOverMaximumEth) {
-      return strings('stake.not_enough_eth');
-    }
-    return strings('stake.review');
-  }, [
-    earnToken.symbol,
-    earnToken.ticker,
-    isNonZeroAmount,
-    isOverMaximum.isOverMaximumEth,
-    isOverMaximum.isOverMaximumToken,
+    receiptToken?.decimals,
   ]);
 
   const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
     // This check only applies to lending experience.
-    if (earnToken.experience !== EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (
+      lendingToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+    ) {
       return false;
     }
 
@@ -401,7 +457,7 @@ const EarnWithdrawInputView = () => {
     );
   }, [
     amountTokenMinimalUnit,
-    earnToken.experience,
+    lendingToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
 
@@ -415,7 +471,7 @@ const EarnWithdrawInputView = () => {
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
-        asset={earnToken}
+        asset={token}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
@@ -433,7 +489,7 @@ const EarnWithdrawInputView = () => {
       {isStablecoinLendingEnabled && (
         <View style={styles.earnTokenSelectorContainer}>
           <EarnTokenSelector
-            token={token}
+            token={receiptToken as TokenI}
             action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
           />
         </View>

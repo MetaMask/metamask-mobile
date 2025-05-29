@@ -254,6 +254,9 @@ const createStyles = (colors: Colors) =>
       position: 'absolute',
       right: 0,
     },
+    badge: {
+      marginTop: 8,
+    },
   });
 
 export default createStyles;

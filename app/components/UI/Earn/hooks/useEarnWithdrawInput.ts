@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import useBalance from '../../Stake/hooks/useBalance';
-import { EarnTokenDetails } from './useEarnTokenDetails';
 import useInputHandler from './useInput';
+import { EarnTokenDetails } from '../types/lending.types';
 
 const useEarnWithdrawInputHandlers = ({
   earnToken,

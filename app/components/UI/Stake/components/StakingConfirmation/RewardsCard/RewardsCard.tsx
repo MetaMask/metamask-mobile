@@ -21,7 +21,9 @@ const RewardsCard = ({
   rewardsFiat,
 }: RewardsCardProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  console.log('rewardsEth', rewardsEth);
+  console.log('rewardsFiat', rewardsFiat);
+  console.log('rewardRate', rewardRate);
   const { trackEvent } = useMetrics();
 
   return (
