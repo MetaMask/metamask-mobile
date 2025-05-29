@@ -108,6 +108,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AddNewAccountProps } from '../AddNewAccount/AddNewAccount.types';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -864,16 +865,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const renderAddNewAccount = useCallback(
-    ({
-      clientType,
-      scope,
-    }: {
-      clientType?: WalletClientType;
-      scope?: CaipChainId;
-    }) => (
+    (params: AddNewAccountProps) => (
       <AddNewAccount
-        scope={scope}
-        clientType={clientType}
+        {...params}
         onActionComplete={(account: InternalAccount) => {
           const [scope] = account.scopes;
           const { namespace, reference } = parseCaipChainId(scope);
@@ -952,6 +946,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
+    renderAddNewAccount,
     multichainAccountOptions,
   ]);
 
