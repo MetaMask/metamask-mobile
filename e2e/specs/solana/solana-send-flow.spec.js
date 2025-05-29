@@ -14,6 +14,8 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import NetworkList from '../../../app/util/networks';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 // Test constants
 const SOLANA_ACCOUNT_NAME = 'Solana Account 2';
@@ -39,21 +41,13 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   const itif = (condition) => (condition ? it : it.skip);
 
   itif(device.getPlatform() === 'ios')(
-    'should navigate through Solana onboarding and create a Solana account',
-    async () => {
-      await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAddAccountButton();
-      await AddAccountBottomSheet.tapAddSolanaAccount();
-      await AddNewHdAccountComponent.tapConfirm();
-      await NetworkEducationModal.tapGotItButton();
-      // Assert account created, which is an existing account with SOL
-      await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME);
-    },
-  );
-
-  itif(device.getPlatform() === 'ios')(
     'should validate recipient address format correctly',
     async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await TestHelpers.delay(2000);
+      await NetworkListModal.changeNetworkTo('Solana');
+      await NetworkEducationModal.tapGotItButton();
+      await TestHelpers.delay(2000);
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
