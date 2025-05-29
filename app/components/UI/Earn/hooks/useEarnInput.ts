@@ -59,15 +59,10 @@ const useEarnInputHandlers = ({
   const {
     estimatedEarnGasFeeWei: estimatedGasFeeWei,
     isLoadingEarnGasFee,
+    getEstimatedEarnGasFee,
     isEarnGasFeeError,
-  } = useEarnDepositGasFee(
-    amountTokenMinimalUnit.toString(),
-    earnToken.experience,
-  );
-  console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
-  console.log('balanceWei', balanceWei.toString());
-  console.log('isEarnGasFeeError', isEarnGasFeeError);
-  console.log('isLoadingEarnGasFee', isLoadingEarnGasFee);
+  } = useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience);
+
   // // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
@@ -81,6 +76,21 @@ const useEarnInputHandlers = ({
   );
 
   const isOverMaximum = useMemo(() => {
+    console.log('balanceWei', balanceWei.toString());
+    console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
+    console.log(
+      'minus gas is the amount stakable',
+      balanceWei.sub(estimatedGasFeeWei).toString(),
+    );
+    console.log(
+      'amountTokenMinimalUnit is what we plan to stake',
+      amountTokenMinimalUnit.toString(),
+    );
+    console.log(
+      'minus the gas from amount stakable',
+      amountTokenMinimalUnit.sub(balanceWei.sub(estimatedGasFeeWei)).toString(),
+    );
+    console.log('--------------------------------');
     const isOverMaximumEth =
       !!earnToken.isETH &&
       isNonZeroAmount &&
@@ -114,14 +124,19 @@ const useEarnInputHandlers = ({
 
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
-    handleMaxInput(
+
+    const preEstimatedGasFee = await getEstimatedEarnGasFee(
       earnToken.isETH ? maxStakeableAmountWei : balanceMinimalUnit,
     );
+    const maxDepositAmountMinimalUnit = balanceWei.sub(preEstimatedGasFee);
+    handleMaxInput(maxDepositAmountMinimalUnit);
   }, [
     balanceMinimalUnit,
     handleMaxInput,
     maxStakeableAmountWei,
     earnToken.isETH,
+    getEstimatedEarnGasFee,
+    balanceWei,
   ]);
 
   const annualRewardsToken = useMemo(

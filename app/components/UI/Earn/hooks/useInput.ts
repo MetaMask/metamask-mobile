@@ -65,6 +65,10 @@ const useInputHandler = ({
   const handleTokenInput = useCallback(
     (value: string) => {
       setAmountToken(value);
+      console.log(
+        'setAmountTokenMinimalUnit from handleTokenInput',
+        new BN4(toTokenMinimalUnit(value, decimals)).toString(),
+      );
       setAmountTokenMinimalUnit(new BN4(toTokenMinimalUnit(value, decimals)));
       const balanceFiatNumber = balanceToFiatNumber(
         value,
@@ -92,6 +96,10 @@ const useInputHandler = ({
       );
       setAmountFiatNumber(value);
       setAmountToken(tokenValue);
+      console.log(
+        'setAmountTokenMinimalUnit from handleFiatInput',
+        tokenMinimalUnit.toString(),
+      );
       setAmountTokenMinimalUnit(tokenMinimalUnit);
     },
     [conversionRate, decimals, exchangeRate],
@@ -156,6 +164,10 @@ const useInputHandler = ({
         2,
       );
       setAmountToken(newTokenAmount);
+      console.log(
+        'setAmountTokenMinimalUnit from handleQuickAmountPress',
+        amountPercentage.toString(),
+      );
       setAmountTokenMinimalUnit(amountPercentage);
       setAmountFiatNumber(newBalanceFiatNumber.toString());
     },
@@ -164,6 +176,10 @@ const useInputHandler = ({
 
   const handleMaxInput = useCallback(
     (maxStakeableMinimalUnit: BN4) => {
+      console.log(
+        'maxStakeableMinimalUnit from handle max',
+        maxStakeableMinimalUnit.toString(),
+      );
       const tokenValue = renderFromTokenMinimalUnit(
         maxStakeableMinimalUnit,
         decimals,
@@ -175,6 +191,10 @@ const useInputHandler = ({
         exchangeRate,
         2,
       ).toString();
+      console.log(
+        'setAmountTokenMinimalUnit from handle max',
+        maxStakeableMinimalUnit.toString(),
+      );
       setAmountTokenMinimalUnit(maxStakeableMinimalUnit);
       setAmountToken(tokenValue);
       setAmountFiatNumber(fiatValue);

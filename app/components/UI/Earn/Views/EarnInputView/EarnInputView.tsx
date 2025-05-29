@@ -55,7 +55,6 @@ import {
 } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import Engine from '../../../../../core/Engine';
-import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { getDecimalChainId } from '../../../../../util/networks';
 

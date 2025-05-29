@@ -16,6 +16,7 @@ interface EarnGasFee {
   isLoadingEarnGasFee: boolean;
   isEarnGasFeeError: boolean;
   refreshEarnGasValues: () => void;
+  getEstimatedEarnGasFee: (amountMinimalUnit: BN4) => Promise<BN4>;
 }
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -23,59 +24,39 @@ const DEFAULT_GAS_LIMIT = 21000;
 const GAS_LIMIT_BUFFER = 1.3;
 
 const useEarnDepositGasFee = (
-  amountTokenMinimalUnit: string,
+  amountTokenMinimalUnit: BN4,
   earnExperience: EarnTokenDetails['experience'],
 ): EarnGasFee => {
   // move to using the controller once it has proper handling error flow
   const { stakingContract, lendingContracts } = useStakeContext();
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';
-  const [isLoadingEarnGasFee, setIsLoadingEarnGasFee] = useState<boolean>(true);
+  const [isLoadingEarnGasFee, setIsLoadingEarnGasFee] =
+    useState<boolean>(false);
   const [isEarnGasFeeError, setIsEarnGasFeeError] = useState<boolean>(false);
   const [estimatedEarnGasFeeWei, setEstimatedEarnGasFeeWei] = useState<BN4>(
     new BN4(0),
   );
 
-  const fetchEarnGasValues = useCallback(async () => {
-    const isPooledStaking =
-      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
-    const isStablecoinLending =
-      earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
-    if (isPooledStaking && stakingContract === null) {
-      setIsEarnGasFeeError(true);
-      setIsLoadingEarnGasFee(false);
-      return;
-    }
-    if (isStablecoinLending && lendingContracts === null) {
-      setIsEarnGasFeeError(true);
-      setIsLoadingEarnGasFee(false);
-      return;
-    }
-    if (
-      typeof stakingContract === 'undefined' ||
-      typeof lendingContracts === 'undefined'
-    ) {
-      console.log('stakingContract', stakingContract);
-      console.log('lendingContracts', lendingContracts);
-      setIsLoadingEarnGasFee(true);
-      return;
-    }
+  const getEstimatedEarnGasFee = useCallback(
+    async (amountMinimalUnit: BN4) => {
+      const isPooledStaking =
+        earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
+      const isStablecoinLending =
+        earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
-    setIsLoadingEarnGasFee(true);
-    setIsEarnGasFeeError(false);
-
-    const { GasFeeController } = Engine.context;
-    console.log('GasFeeController', amountTokenMinimalUnit);
-    try {
+      const { GasFeeController } = Engine.context;
       const result = await GasFeeController.fetchGasFeeEstimates();
+
       let depositGasLimit = DEFAULT_GAS_LIMIT;
       if (isPooledStaking) {
-        depositGasLimit =
-          (await stakingContract?.estimateDepositGas(
-            formatEther(amountTokenMinimalUnit),
-            selectedAddress,
-            ZERO_ADDRESS,
-          )) || depositGasLimit;
+        depositGasLimit = amountMinimalUnit.eq(new BN4(0))
+          ? DEFAULT_GAS_LIMIT
+          : (await stakingContract?.estimateDepositGas(
+              formatEther(amountMinimalUnit.toString()),
+              selectedAddress,
+              ZERO_ADDRESS,
+            )) || DEFAULT_GAS_LIMIT;
       } else if (isStablecoinLending) {
         // do nothing for now as we need to have allowance to guarantee supply success
       }
@@ -100,6 +81,35 @@ const useEarnDepositGasFee = (
 
       const weiGasPrice = hexToBN(decGWEIToHexWEI(gasPrice));
       const estimatedGasFee = weiGasPrice.muln(gasLimitWithBuffer);
+      return estimatedGasFee;
+    },
+    [earnExperience.type, stakingContract, selectedAddress],
+  );
+
+  const fetchEarnGasValues = useCallback(async () => {
+    setIsLoadingEarnGasFee(true);
+    setIsEarnGasFeeError(false);
+
+    const isPooledStaking =
+      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
+    const isStablecoinLending =
+      earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+
+    if (isPooledStaking && !stakingContract) {
+      setIsEarnGasFeeError(true);
+      setIsLoadingEarnGasFee(false);
+      return;
+    }
+    if (isStablecoinLending && !lendingContracts) {
+      setIsEarnGasFeeError(true);
+      setIsLoadingEarnGasFee(false);
+      return;
+    }
+
+    try {
+      const estimatedGasFee = await getEstimatedEarnGasFee(
+        amountTokenMinimalUnit,
+      );
 
       setEstimatedEarnGasFeeWei(estimatedGasFee);
     } catch (error) {
@@ -109,11 +119,11 @@ const useEarnDepositGasFee = (
       setIsLoadingEarnGasFee(false);
     }
   }, [
-    earnExperience,
+    earnExperience.type,
     stakingContract,
     lendingContracts,
-    selectedAddress,
     amountTokenMinimalUnit,
+    getEstimatedEarnGasFee,
   ]);
 
   useEffect(() => {
@@ -125,6 +135,7 @@ const useEarnDepositGasFee = (
     isLoadingEarnGasFee,
     isEarnGasFeeError,
     refreshEarnGasValues: fetchEarnGasValues,
+    getEstimatedEarnGasFee,
   };
 };
 
