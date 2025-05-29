@@ -17,6 +17,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../utils/token', () => ({
+  ...jest.requireActual('../../../../utils/token'),
+  fetchErc20Decimals: jest.fn().mockResolvedValue(18),
+}));
+
 describe('useFeeCalculations', () => {
   const transactionMeta =
     stakingDepositConfirmationState.engine.backgroundState.TransactionController
