@@ -42,7 +42,6 @@ import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-// import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
@@ -63,7 +62,6 @@ import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
@@ -84,7 +82,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { useMetrics } from '../../hooks/useMetrics';

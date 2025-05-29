@@ -77,6 +77,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       expect(getByText('Paste')).toBeTruthy();
+      fireEvent.press(getByText('Paste'));
     });
 
     it('should show clear all button when seed phrase is entered', () => {
@@ -95,6 +96,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       expect(getByText('Clear all')).toBeTruthy();
+      fireEvent.press(getByText('Clear all'));
     });
 
     it('should advance to step 2 when valid seed phrase is entered', async () => {
@@ -214,8 +216,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Enter a complete valid seed phrase
       fireEvent.changeText(
         input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
+        'say devote wasp video cool lunch brief add fever uncover novel',
       );
+
+      fireEvent(input, 'keyPress', { nativeEvent: { key: 'Backspace' } });
     });
   });
 
