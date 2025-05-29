@@ -6,14 +6,6 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import { waitFor } from '@testing-library/react-native';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('useTokenAmount', () => {
   describe('returns amount and fiat display values', () => {
     it('for a transfer type transaction', async () => {

@@ -19,6 +19,10 @@ import * as EditNonceHook from '../../../../../components/hooks/useEditNonce';
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -92,9 +96,6 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         },
       },
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
     TransactionController: {
       getTransactions: jest.fn().mockReturnValue([]),
