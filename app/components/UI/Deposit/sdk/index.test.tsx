@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Text } from 'react-native';
-import { screen } from '@testing-library/react-native';
+import { screen, act } from '@testing-library/react-native';
 import {
   DepositSDK,
   DepositSDKContext,
@@ -11,6 +11,13 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+
+jest.mock('../utils/ProviderTokenVault', () => ({
+  getProviderToken: jest
+    .fn()
+    .mockResolvedValue({ success: false, token: null }),
+  storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
+}));
 
 declare module '@consensys/native-ramps-sdk' {
   interface NativeRampsSdk {
@@ -76,6 +83,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       createdAt: '2023-01-01',
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
+    setAccessToken: jest.fn(),
   })),
 }));
 
@@ -270,6 +278,130 @@ describe('Deposit SDK Context', () => {
 
       renderWithProvider(<TestComponent />);
       expect(screen.getByText('Error thrown correctly')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Email and Authentication', () => {
+    it('manages email state correctly', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      act(() => {
+        contextValue?.setEmail('test@example.com');
+      });
+
+      expect(contextValue?.email).toBe('test@example.com');
+    });
+
+    it('handles authentication state correctly', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      expect(contextValue?.isAuthenticated).toBe(false);
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        const result = await contextValue?.setAuthToken(mockToken);
+        expect(result).toBe(true);
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+    });
+
+    it('checks for existing token', async () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      const result = await contextValue?.checkExistingToken();
+      expect(result).toBe(false);
+    });
+
+    it('sets auth token and returns true when existing token is found', async () => {
+      const originalMock = jest.requireMock(
+        '../utils/ProviderTokenVault',
+      ).getProviderToken;
+
+      const mockToken = {
+        id: 'existing-token-id',
+        accessToken: 'existing-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      jest
+        .requireMock('../utils/ProviderTokenVault')
+        .getProviderToken.mockResolvedValueOnce({
+          success: true,
+          token: mockToken,
+        });
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      expect(contextValue?.isAuthenticated).toBe(false);
+
+      const result = await act(
+        async () => await contextValue?.checkExistingToken(),
+      );
+      expect(result).toBe(true);
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+      jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
+        originalMock;
     });
   });
 });
