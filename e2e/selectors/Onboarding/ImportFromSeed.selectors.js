@@ -14,4 +14,5 @@ export const ImportFromSeedSelectorsIDs = {
   BACK_BUTTON_ID: 'import-from-seed-screen-back-button-id',
   QR_CODE_BUTTON_ID: 'import-from-seed-screen-qr-code-button-id',
   LEARN_MORE_CHECKBOX_ID: 'import-from-seed-screen-learn-more-checkbox-id',
+  CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
 };
