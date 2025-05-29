@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo, useEffect } from 'react';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   Alert,
   InteractionManager,
@@ -311,7 +312,8 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || type === KeyringTypes.snap,
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });

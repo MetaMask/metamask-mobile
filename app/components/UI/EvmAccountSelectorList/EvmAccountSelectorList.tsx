@@ -13,6 +13,7 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 // External dependencies.
 import Cell, {
@@ -346,7 +347,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || type === KeyringTypes.snap,
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
