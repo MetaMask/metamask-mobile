@@ -10,8 +10,6 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountCo
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
-  MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
@@ -94,6 +92,8 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
+  // Ignore no shadowing warning for mocks.
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
@@ -197,7 +197,7 @@ const mockInitialState: DeepPartial<RootState> = {
         keyrings: [
           {
             type: KeyringTypes.hd,
-            accounts: [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+            accounts: [mockAddress1, mockAddress2],
             metadata: {
               id: mockKeyringId,
               name: '',
