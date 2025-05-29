@@ -104,7 +104,7 @@ const usePoolStakedDeposit = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const memoizedAttemptDepositTransaction = useCallback(
     attemptDepositTransaction(
-      stakingContract,
+      stakingContract as PooledStakingContract,
       networkClientId,
       trackEvent,
       createEventBuilder,

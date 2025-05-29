@@ -1,8 +1,4 @@
-import {
-  ChainId,
-  PooledStakingContract,
-  StakingType,
-} from '@metamask/stake-sdk';
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import usePoolStakedClaim from '.';
 import { Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
@@ -50,7 +46,6 @@ const mockEncodeClaimExitedAssetsTransactionData = jest.fn().mockResolvedValue({
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: jest.fn(),
   contract: new Contract('0x0000000000000000000000000000000000000000', []),
   convertToShares: jest.fn(),
   encodeClaimExitedAssetsTransactionData:
@@ -67,8 +62,6 @@ const mockPooledStakingContractService: PooledStakingContract = {
 
 const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
   networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
