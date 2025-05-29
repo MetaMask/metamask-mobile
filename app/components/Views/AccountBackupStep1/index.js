@@ -40,6 +40,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,7 +102,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { navigation, route } = props;
+  const { navigation, route, dispatchSaveOnboardingEvent } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -109,7 +110,7 @@ const AccountBackupStep1 = (props) => {
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
   useEffect(() => {
@@ -276,10 +277,15 @@ AccountBackupStep1.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);
