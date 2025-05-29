@@ -1,12 +1,13 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSwitchTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 // eslint-disable-next-line import/no-namespace
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import Engine from '../../../../../core/Engine';
 
 // Mock useSwitchNetworks
 const mockOnSetRpcTarget = jest.fn();
@@ -38,6 +39,10 @@ describe('useSwitchTokens', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock BridgeController with resetState
+    Engine.context.BridgeController = {
+      resetState: jest.fn(),
+    } as unknown as typeof Engine.context.BridgeController;
   });
 
   it('handles EVM to EVM chain switching', async () => {
@@ -166,5 +171,26 @@ describe('useSwitchTokens', () => {
       expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
       expect(mockOnNonEvmNetworkChange).not.toHaveBeenCalled();
     });
+  });
+
+  it('calls BridgeController.resetState when switching tokens', async () => {
+    const setSourceTokenSpy = jest.spyOn(bridgeSlice, 'setSourceToken');
+    const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+    const { result } = renderHookWithProvider(() => useSwitchTokens(), {
+      state: {
+        ...initialState,
+        bridge: {
+          ...initialState.bridge,
+          sourceToken: mockEvmToken,
+          destToken: mockSolanaToken,
+        },
+      },
+    });
+
+    await result.current.handleSwitchTokens();
+
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    expect(setSourceTokenSpy).toHaveBeenCalledWith(mockSolanaToken);
+    expect(setDestTokenSpy).toHaveBeenCalledWith(mockEvmToken);
   });
 });

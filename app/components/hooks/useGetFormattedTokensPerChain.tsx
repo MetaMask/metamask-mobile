@@ -11,7 +11,7 @@ import {
   toHexadecimal,
 } from '../../util/number';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { selectTokenMarketPriceData } from '../../selectors/tokenRatesController';
@@ -21,6 +21,7 @@ import {
 } from '../../selectors/currencyRateController';
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
+import { selectSelectedNonEvmNetworkChainId } from '../../selectors/multichainNetworkController';
 interface AllTokens {
   [chainId: string]: {
     [tokenAddress: string]: Token[];
@@ -89,9 +90,9 @@ export const useGetFormattedTokensPerChain = (
 } => {
   const stableAccounts = useStableReference(accounts);
   const stableAllChainIDs = useStableReference(allChainIDs);
+  const currentEvmChainID = useSelector(selectEvmChainId);
+  const currentSolChainID = useSelector(selectSelectedNonEvmNetworkChainId);
 
-  // TODO: [SOLANA] Revisit this before shipping, `selectAllTokenBalances` selector needs to most likely be replaced by a non evm supported version
-  const currentChainId = useSelector(selectChainId);
   const importedTokens: AllTokens = useSelector(selectAllTokens);
   const allNetworks: Record<
     string,
@@ -110,17 +111,16 @@ export const useGetFormattedTokensPerChain = (
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   return useMemo(() => {
-    //If the current network is a testnet, UI should display 0 unless conversions are enabled
     const validAccounts =
       stableAccounts.length > 0 &&
       stableAccounts.every((item) => item !== undefined);
-    if (!validAccounts || (isTestNet(currentChainId) && !showFiatOnTestnets)) {
+    if (!validAccounts) {
       return {};
     }
 
     const networksToFormat = shouldAggregateAcrossChains
       ? stableAllChainIDs
-      : [currentChainId];
+      : [currentEvmChainID, currentSolChainID];
 
     function getTokenFiatBalances({
       tokens,
@@ -183,6 +183,10 @@ export const useGetFormattedTokensPerChain = (
         if (!allNetworks[singleChain]) {
           continue;
         }
+        // Skip if should not show fiat on testnets
+        if (isTestNet(singleChain) && !showFiatOnTestnets) {
+          continue;
+        }
 
         const tokens: Token[] =
           importedTokens?.[singleChain]?.[account?.address] ?? [];
@@ -212,7 +216,8 @@ export const useGetFormattedTokensPerChain = (
     stableAccounts,
     stableAllChainIDs,
     allNetworks,
-    currentChainId,
+    currentEvmChainID,
+    currentSolChainID,
     currentCurrency,
     currentTokenBalances,
     currencyRates,
