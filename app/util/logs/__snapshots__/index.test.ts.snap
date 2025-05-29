@@ -388,6 +388,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
       },
+      "SeedlessOnboardingController": {
+        "socialBackupsMetadata": [],
+      },
       "SelectedNetworkController": {
         "domains": {},
       },
