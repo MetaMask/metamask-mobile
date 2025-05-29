@@ -283,7 +283,7 @@ const AccountConnectMultiSelector = ({
         }}
       />
     ),
-    [],
+    [onCreateAccount],
   );
 
   const renderAccountScreens = useCallback(() => {
