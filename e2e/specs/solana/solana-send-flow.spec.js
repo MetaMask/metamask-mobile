@@ -40,7 +40,6 @@ describe(
     });
     const itif = (condition) => (condition ? it : it.skip);
 
-
     it('should navigate through Solana onboarding and create a Solana account', async () => {
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAddAccountButton();
@@ -55,7 +54,6 @@ describe(
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
-
       await Assertions.checkIfElementToHaveText(
         SnapSendActionSheet.invalidAddressError,
         INVALID_ADDRESS_ERROR,
@@ -83,11 +81,8 @@ describe(
       await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
-      
       await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
-
       await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
-    
     });
   },
 );
