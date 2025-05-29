@@ -247,7 +247,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
+    promptToCreateSolanaAccount?: boolean;
   };
+
+  // TODO: use this value to show Solana Opt In Flow
+  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -479,6 +483,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
+    
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
