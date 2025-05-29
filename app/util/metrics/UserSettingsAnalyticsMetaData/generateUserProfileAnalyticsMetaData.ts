@@ -23,7 +23,16 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
 
   const hdKeyrings = selectHDKeyrings(reduxState);
 
-  return {
+  // Additional debugging for keyring controller state
+  const keyringControllerState =
+    reduxState?.engine?.backgroundState?.KeyringController;
+
+  // Check if wallet is unlocked for keyring counting
+  const numberOfHDEntropies = keyringControllerState?.isUnlocked
+    ? hdKeyrings.length
+    : 0;
+
+  const metadata = {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
       preferencesController?.displayNftMedia
         ? UserProfileProperty.ON
@@ -47,8 +56,10 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: numberOfHDEntropies,
   };
+
+  return metadata;
 };
 
 export default generateUserProfileAnalyticsMetaData;
