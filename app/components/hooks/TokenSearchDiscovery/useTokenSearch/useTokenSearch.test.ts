@@ -3,7 +3,7 @@ import Engine from '../../../../core/Engine';
 import useTokenSearchDiscovery, { MAX_RESULTS } from './useTokenSearch';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     TokenSearchDiscoveryController: {
       searchSwappableTokens: jest.fn(),
