@@ -694,3 +694,69 @@ else
 		envFileMissing $ANDROID_ENV_FILE
 	fi
 fi
+
+# We're working on adding new workflows to the pipeline.
+# To validate their correctness we add logging of variables to later ensure consistency of variables between new and old workflows.
+echo "===== BUILD SCRIPT VARIABLE LOGGING ====="
+echo "Input Parameters:"
+echo "  PLATFORM = $PLATFORM"
+echo "  MODE = $MODE"
+echo "  TARGET = $TARGET"
+echo "  RUN_DEVICE = $RUN_DEVICE"
+echo "  PRE_RELEASE = $PRE_RELEASE"
+echo ""
+
+echo "Environment Configuration:"
+echo "  METAMASK_BUILD_TYPE = $METAMASK_BUILD_TYPE"
+echo "  METAMASK_ENVIRONMENT = $METAMASK_ENVIRONMENT"
+echo "  CI = $CI"
+echo ""
+
+echo "File Paths:"
+echo "  JS_ENV_FILE = $JS_ENV_FILE"
+echo "  ANDROID_ENV_FILE = $ANDROID_ENV_FILE"
+echo "  IOS_ENV_FILE = $IOS_ENV_FILE"
+echo ""
+
+echo "Build Configuration:"
+echo "  WATCHER_PORT = $WATCHER_PORT"
+echo "  SENTRY_DISABLE_AUTO_UPLOAD = $SENTRY_DISABLE_AUTO_UPLOAD"
+echo "  SENTRY_PROPERTIES = $SENTRY_PROPERTIES"
+echo "  EXPO_NO_TYPESCRIPT_SETUP = $EXPO_NO_TYPESCRIPT_SETUP"
+echo "  IGNORE_BOXLOGS_DEVELOPMENT = $IGNORE_BOXLOGS_DEVELOPMENT"
+echo "  GENERATE_BUNDLE = $GENERATE_BUNDLE"
+echo ""
+
+echo "Git Information:"
+echo "  BITRISE_GIT_BRANCH = $BITRISE_GIT_BRANCH"
+echo "  BITRISE_GIT_COMMIT = $BITRISE_GIT_COMMIT"
+echo ""
+
+echo "Google Services:"
+echo "  GOOGLE_SERVICES_B64_IOS = $([ -n "$GOOGLE_SERVICES_B64_IOS" ] && echo "SET" || echo "NOT_SET")"
+echo "  GOOGLE_SERVICES_B64_ANDROID = $([ -n "$GOOGLE_SERVICES_B64_ANDROID" ] && echo "SET" || echo "NOT_SET")"
+echo ""
+
+echo "Sentry Configuration:"
+echo "  MM_SENTRY_AUTH_TOKEN = $([ -n "$MM_SENTRY_AUTH_TOKEN" ] && echo "SET" || echo "NOT_SET")"
+echo "  MM_SENTRY_DSN = $([ -n "$MM_SENTRY_DSN" ] && echo "SET" || echo "NOT_SET")"
+echo ""
+
+echo "Segment Configuration:"
+echo "  SEGMENT_WRITE_KEY = $([ -n "$SEGMENT_WRITE_KEY" ] && echo "SET" || echo "NOT_SET")"
+echo "  SEGMENT_PROXY_URL = $([ -n "$SEGMENT_PROXY_URL" ] && echo "SET" || echo "NOT_SET")"
+echo "  SEGMENT_DELETE_API_SOURCE_ID = $([ -n "$SEGMENT_DELETE_API_SOURCE_ID" ] && echo "SET" || echo "NOT_SET")"
+echo "  SEGMENT_REGULATIONS_ENDPOINT = $([ -n "$SEGMENT_REGULATIONS_ENDPOINT" ] && echo "SET" || echo "NOT_SET")"
+echo ""
+
+echo "iOS Environment:"
+echo "  IOS_ENV = $([ -n "$IOS_ENV" ] && echo "SET" || echo "NOT_SET")"
+echo "  IOS_SIMULATOR = $IOS_SIMULATOR"
+echo ""
+
+echo "Repository Information:"
+echo "  REPO_ROOT_DIR = $REPO_ROOT_DIR"
+echo "  __DIRNAME__ = $__DIRNAME__"
+echo ""
+
+echo "===== END VARIABLE LOGGING ====="
