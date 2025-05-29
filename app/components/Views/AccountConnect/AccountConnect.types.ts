@@ -1,9 +1,12 @@
-import { RequestedPermissions } from '@metamask/permission-controller';
 import { ImageSourcePropType } from 'react-native';
 import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import {
+  Caip25CaveatValue,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 /**
  * Enum to track states of the connect screen.
@@ -17,8 +20,17 @@ export enum AccountConnectScreens {
 
 export interface AccountConnectParams {
   hostInfo: {
-    metadata: { origin: string; id: string, isEip1193Request?: boolean, promptToCreateSolanaAccount?: boolean };
-    permissions: RequestedPermissions;
+    metadata: {
+      origin: string;
+      id: string;
+      isEip1193Request?: boolean;
+      promptToCreateSolanaAccount?: boolean;
+    };
+    permissions: {
+      [Caip25EndowmentPermissionName]: {
+        caveats: [{ type: string; value: Caip25CaveatValue }];
+      };
+    };
   };
   permissionRequestId: string;
 }
