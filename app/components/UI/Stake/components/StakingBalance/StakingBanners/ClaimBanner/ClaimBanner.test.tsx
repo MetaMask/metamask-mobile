@@ -7,7 +7,7 @@ import { createMockAccountsControllerState } from '../../../../../../../util/tes
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../../util/test/network';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import ClaimBanner from './ClaimBanner';
 

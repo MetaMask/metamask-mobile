@@ -2,7 +2,7 @@ import React from 'react';
 import EarnEmptyStateCta from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TokenI } from '../../../Tokens/types';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,6 +13,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -76,6 +77,7 @@ describe('EmptyStateCta', () => {
         balanceFormatted: '$100 USDC',
         balanceMinimalUnit: '100',
         balanceFiatNumber: 100,
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       }),
     });
   });

@@ -5,7 +5,7 @@ import EnableNotificationsModal from '../../pages/Notifications/EnableNotificati
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeNotifications } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import {
@@ -14,7 +14,7 @@ import {
 } from './utils/constants';
 import {
   getMockFeatureAnnouncementItemId,
-  getMockWalletNotificationItemId,
+  getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
 
@@ -31,7 +31,7 @@ const launchAppSettings = (port) => ({
   launchArgs: { mockServerPort: port },
 });
 
-describe(SmokeNotifications('Notification Onboarding'), () => {
+describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   /** @type {import('mockttp').Mockttp} */
   let mockServer;
 
@@ -53,12 +53,10 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
 
   it('enables notifications through bell icon', async () => {
     // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase(
-      {
-        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-        password: NOTIFICATIONS_TEAM_PASSWORD,
-      }
-    );
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+      password: NOTIFICATIONS_TEAM_PASSWORD,
+    });
 
     // Bell Icon
     await WalletView.tapBellIcon();
@@ -71,11 +69,6 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
   it('shows notifications visible in the notifications menu', async () => {
     // Notifications Menu
     await Assertions.checkIfVisible(NotificationMenuView.title);
-    await Assertions.checkIfVisible(
-      NotificationMenuView.selectNotificationItem(
-        getMockWalletNotificationItemId(),
-      ),
-    );
     await Assertions.checkIfVisible(
       NotificationMenuView.selectNotificationItem(
         getMockFeatureAnnouncementItemId(),
@@ -91,11 +84,13 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
     await Assertions.checkIfVisible(NotificationDetailsView.title);
     await NotificationDetailsView.tapOnBackButton();
 
-    // Wallet Annonucement Details
-    await NotificationMenuView.tapOnNotificationItem(
-      getMockWalletNotificationItemId(),
-    );
-    await Assertions.checkIfVisible(NotificationDetailsView.title);
-    await NotificationDetailsView.tapOnBackButton();
+    // Wallet Announcement Details
+    const walletNotifications = getMockWalletNotificationItemIds();
+    for (const walletNotificationId of walletNotifications) {
+      await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
+      await NotificationMenuView.tapOnNotificationItem(walletNotificationId);
+      await Assertions.checkIfVisible(NotificationDetailsView.title);
+      await NotificationDetailsView.tapOnBackButton();
+    }
   });
 });
