@@ -212,13 +212,13 @@ const BridgeView = () => {
   useEffect(
     () => () => {
       // Only reset state if we're not in the middle of a transaction
-      if (!isSubmittingTxRef.current) {
+      // if (!isSubmittingTxRef.current) {
         dispatch(resetBridgeState());
         // Clear bridge controller state if available
         if (Engine.context.BridgeController?.resetState) {
           Engine.context.BridgeController.resetState();
         }
-      }
+      // }
     },
     [dispatch],
   );
