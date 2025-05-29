@@ -2,7 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { getDecimalChainId } from '../../../../util/networks';
 import { selectEvmChainId } from '../../../../selectors/networkController';
-import { isSupportedPooledStakingChain } from '@metamask/stake-sdk/dist/contracts/PooledStaking/utils.mjs';
+import { isSupportedPooledStakingChain } from '@metamask/stake-sdk';
 
 const useStakingChain = () => {
   const chainId = useSelector(selectEvmChainId);
