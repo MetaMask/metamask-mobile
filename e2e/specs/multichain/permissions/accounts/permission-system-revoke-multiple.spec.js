@@ -46,6 +46,8 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
+        await AccountListBottomSheet.tapAddEthereumAccountButton();
+        await AddNewAccountSheet.tapConfirmButton();
         await AddAccountBottomSheet.tapCreateAccount();
         if (device.getPlatform() === 'android') {
           await Assertions.checkIfTextIsDisplayed(AccountTwoText);
