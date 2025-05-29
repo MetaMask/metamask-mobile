@@ -30,6 +30,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     decimals = 0,
     isStaked = false,
     ticker = '',
+    balance = '',
     balanceFiat = '',
   } = options;
 
@@ -45,7 +46,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
   return {
     address,
     aggregators: [],
-    balance: '',
+    balance,
     balanceFiat,
     chainId,
     decimals: decimals ?? 0,

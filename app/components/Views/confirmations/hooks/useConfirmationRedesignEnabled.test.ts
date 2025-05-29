@@ -38,9 +38,6 @@ jest.mock('../../../../core/Engine', () => ({
       },
       getOrAddQRKeyring: jest.fn(),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
