@@ -1176,16 +1176,13 @@ export class BackgroundBridge extends EventEmitter {
 
     if (solanaAccountsChangedNotifications && solanaScope) {
       const { accounts } = solanaScope;
-      const parsedPermittedSolanaAddresses = accounts.map((caipAccountId) => {
-        const { address } = parseCaipAccountId(caipAccountId);
-        return address;
-      });
 
-      const [accountAddressToEmit] = sortMultichainAccountsByLastSelected(
-        parsedPermittedSolanaAddresses,
+      const [accountIdToEmit] = sortMultichainAccountsByLastSelected(
+        accounts,
       );
 
-      if (accountAddressToEmit) {
+      if (accountIdToEmit) {
+        const accountAddressToEmit = parseCaipAccountId(accountIdToEmit).address;
         this._notifySolanaAccountChange([accountAddressToEmit]);
       }
     }

@@ -75,7 +75,7 @@ const captureKeyringTypesWithMissingIdentities = (
  * the matching InternalAccount object from the list of internalAccounts provided.
  */
 const sortAddressesWithInternalAccounts = <T extends string>(addresses: T[], internalAccounts: InternalAccount[]): T[] =>
-  addresses.sort((firstAddress, secondAddress) => {
+  [...addresses].sort((firstAddress, secondAddress) => {
     const firstAccount = internalAccounts.find(
       (internalAccount) =>
         internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
@@ -128,7 +128,7 @@ export const sortEvmAccountsByLastSelected = (addresses: Hex[]): Hex[] => {
  * the matching InternalAccount object from the list of internalAccounts provided.
  */
 const sortCaipAccountIdsWithInternalAccounts = (caipAccountIds: CaipAccountId[], internalAccounts: InternalAccount[]): CaipAccountId[] =>
-  caipAccountIds.sort((firstAccountId, secondAccountId) => {
+  [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
     const firstAccount = internalAccounts.find(
       (internalAccount) =>
         isInternalAccountInPermittedAccountIds(internalAccount, [firstAccountId])
