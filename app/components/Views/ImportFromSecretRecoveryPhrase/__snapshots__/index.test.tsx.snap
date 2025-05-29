@@ -569,6 +569,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           "paddingHorizontal": 0,
                                         }
                                       }
+                                      testID="import-from-seed-screen-seed-phrase-input-id"
                                       textAlignVertical="top"
                                       value=""
                                     />
@@ -698,6 +699,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="import-from-seed-screen-continue-button-id"
                                 >
                                   <Text
                                     accessibilityRole="text"

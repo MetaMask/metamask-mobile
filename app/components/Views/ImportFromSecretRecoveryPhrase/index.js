@@ -708,7 +708,9 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoComplete="off"
                           blurOnSubmit={false}
                           autoCapitalize="none"
-                          testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                          testID={
+                            ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+                          }
                         />
                       ) : (
                         <View
@@ -988,7 +990,6 @@ const ImportFromSecretRecoveryPhrase = ({
                       </Text>
                     </View>
                   }
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
               </View>
 
