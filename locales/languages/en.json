@@ -420,7 +420,10 @@
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
-      "validation_error": "Please enter a valid code"
+      "validation_error": "Please enter a valid code",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds"
     },
     "verify_identity": {
       "title": "Verify your identity",

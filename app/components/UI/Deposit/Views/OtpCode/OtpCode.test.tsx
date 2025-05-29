@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
@@ -11,15 +11,7 @@ const EMAIL = 'test@email.com';
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
-  useDepositSDK: jest.fn().mockReturnValue({
-    email: EMAIL,
-    setEmail: jest.fn(),
-    sdk: {},
-    sdkError: null,
-    providerApiKey: 'mock-api-key',
-    providerFrontendAuth: 'mock-frontend-auth',
-    setAuthToken: jest.fn().mockResolvedValue(undefined),
-  }),
+  useDepositSDK: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -65,12 +57,50 @@ function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.OTP_CODE);
 }
 
+function mockDepositSDK(overrides = {}) {
+  const mockSendUserOtp = jest.fn().mockResolvedValue('success');
+  const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
+
+  const defaultSdk = {
+    setAccessToken: jest.fn(),
+    getAccessToken: jest.fn(),
+    clearAccessToken: jest.fn(),
+    verifyUserOtp: jest.fn(),
+    sendUserOtp: mockSendUserOtp,
+    getVersion: jest.fn(),
+  };
+
+  const defaultValues = {
+    email: EMAIL,
+    setEmail: jest.fn(),
+    sdk: defaultSdk as unknown as NativeRampsSdk,
+    sdkError: undefined,
+    providerApiKey: 'mock-api-key',
+    providerFrontendAuth: 'mock-frontend-auth',
+    setAuthToken: mockSetAuthToken,
+    isAuthenticated: false,
+    checkExistingToken: jest.fn(),
+  };
+
+  jest.mocked(useDepositSDK).mockReturnValue({
+    ...defaultValues,
+    ...overrides,
+  });
+
+  return {
+    mockSendUserOtp,
+    mockSetAuthToken,
+    defaultSdk,
+  };
+}
+
 describe('OtpCode Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDepositSdkMethodValues = {
       ...mockUseDepositSdkMethodInitialValues,
     };
+    mockDepositSDK({ sdk: {} });
   });
 
   it('renders correctly', () => {
@@ -102,31 +132,13 @@ describe('OtpCode Component', () => {
 
   it('navigates to next screen on submit button press when valid code is entered', async () => {
     const mockResponse = 'success';
-    const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
     mockUseDepositSdkMethodValues = {
       ...mockUseDepositSdkMethodInitialValues,
       sdkMethod: jest.fn().mockResolvedValue(mockResponse),
       response: mockResponse,
     };
 
-    jest.mocked(useDepositSDK).mockReturnValue({
-      email: EMAIL,
-      setEmail: jest.fn(),
-      sdk: {
-        setAccessToken: jest.fn(),
-        getAccessToken: jest.fn(),
-        clearAccessToken: jest.fn(),
-        verifyUserOtp: jest.fn(),
-        sendUserOtp: jest.fn(),
-        getVersion: jest.fn(),
-      } as unknown as NativeRampsSdk,
-      sdkError: undefined,
-      providerApiKey: 'mock-api-key',
-      providerFrontendAuth: 'mock-frontend-auth',
-      setAuthToken: mockSetAuthToken,
-      isAuthenticated: false,
-      checkExistingToken: jest.fn(),
-    });
+    const { mockSetAuthToken } = mockDepositSDK();
 
     const { getByTestId } = render(OtpCode);
 
@@ -179,5 +191,20 @@ describe('OtpCode Component', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.press(submitButton);
     expect(mockUseDepositSdkMethodValues.sdkMethod).not.toHaveBeenCalled();
+  });
+
+  it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
+    const mockResendFn = jest.fn().mockResolvedValue('success');
+
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
+      sdkMethod: mockResendFn,
+    };
+
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
+    expect(mockResendFn).toHaveBeenCalled();
+    expect(screen.getByText('Resend code in', { exact: false })).toBeTruthy();
   });
 });
