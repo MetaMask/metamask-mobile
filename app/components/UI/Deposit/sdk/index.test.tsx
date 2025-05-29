@@ -356,5 +356,52 @@ describe('Deposit SDK Context', () => {
       const result = await contextValue?.checkExistingToken();
       expect(result).toBe(false);
     });
+
+    it('sets auth token and returns true when existing token is found', async () => {
+      const originalMock = jest.requireMock(
+        '../utils/ProviderTokenVault',
+      ).getProviderToken;
+
+      const mockToken = {
+        id: 'existing-token-id',
+        accessToken: 'existing-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      jest
+        .requireMock('../utils/ProviderTokenVault')
+        .getProviderToken.mockResolvedValueOnce({
+          success: true,
+          token: mockToken,
+        });
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      expect(contextValue?.isAuthenticated).toBe(false);
+
+      const result = await act(
+        async () => await contextValue?.checkExistingToken(),
+      );
+      expect(result).toBe(true);
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+      jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
+        originalMock;
+    });
   });
 });
