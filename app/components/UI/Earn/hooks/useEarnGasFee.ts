@@ -65,7 +65,7 @@ const useEarnDepositGasFee = (
     setIsEarnGasFeeError(false);
 
     const { GasFeeController } = Engine.context;
-
+    console.log('GasFeeController', amountTokenMinimalUnit);
     try {
       const result = await GasFeeController.fetchGasFeeEstimates();
       let depositGasLimit = DEFAULT_GAS_LIMIT;

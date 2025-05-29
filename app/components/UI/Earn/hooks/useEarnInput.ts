@@ -64,6 +64,10 @@ const useEarnInputHandlers = ({
     amountTokenMinimalUnit.toString(),
     earnToken.experience,
   );
+  console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
+  console.log('balanceWei', balanceWei.toString());
+  console.log('isEarnGasFeeError', isEarnGasFeeError);
+  console.log('isLoadingEarnGasFee', isLoadingEarnGasFee);
   // // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
@@ -75,14 +79,6 @@ const useEarnInputHandlers = ({
 
     [balanceWei, estimatedGasFeeWei, isEarnGasFeeError, isLoadingEarnGasFee],
   );
-
-  console.log('maxStakeableAmountWei', maxStakeableAmountWei.toString());
-  console.log('isEarnGasFeeError', isEarnGasFeeError);
-  console.log('isLoadingEarnGasFee', isLoadingEarnGasFee);
-  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit.toString());
-  console.log('balanceMinimalUnit', balanceMinimalUnit.toString());
-  console.log('balanceWei', balanceWei.toString());
-  console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
 
   const isOverMaximum = useMemo(() => {
     const isOverMaximumEth =
@@ -111,6 +107,7 @@ const useEarnInputHandlers = ({
     isLoadingEarnGasFee,
   ]);
 
+  console.log('maxStakeableAmountWei', maxStakeableAmountWei.toString());
   // TODO: Update useVaultMetadata to support lending and pooled-staking or separate and call separate hooks.
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
     useVaultMetadata(getDecimalChainId(earnToken.chainId));

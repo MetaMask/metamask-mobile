@@ -154,7 +154,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         </BadgeWrapper>
         <View style={styles.balanceInfo}>
           <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
-          <PercentageChange value={pricePercentChange1d} />
+          <PercentageChange value={pricePercentChange1d ?? 0} />
         </View>
       </AssetElement>
       <EarnBalance asset={asset} />

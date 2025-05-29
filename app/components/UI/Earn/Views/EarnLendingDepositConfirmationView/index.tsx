@@ -258,6 +258,13 @@ const EarnLendingDepositConfirmationView = () => {
     [createAllowanceTxEventListeners, createDepositTxEventListeners],
   );
 
+  console.log('token', token);
+  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit);
+  console.log('amountFiat', amountFiat);
+  console.log('lendingContractAddress', lendingContractAddress);
+  console.log('lendingProtocol', lendingProtocol);
+  console.log('action', action);
+
   // Route param guards
   if (
     isEmpty(token) ||

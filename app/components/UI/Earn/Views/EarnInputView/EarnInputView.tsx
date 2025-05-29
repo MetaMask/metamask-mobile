@@ -56,6 +56,8 @@ import {
 import useEarnTokens from '../../hooks/useEarnTokens';
 import Engine from '../../../../../core/Engine';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -132,6 +134,7 @@ const EarnInputView = () => {
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId: earnToken?.chainId },
     });
   };
 
@@ -154,9 +157,11 @@ const EarnInputView = () => {
       tokenContractAddress,
       earnToken.experience.market?.underlying?.address,
       earnToken.experience.market?.protocol,
-      allowanceMinimalTokenUnitBN.toString(),
+      allowanceMinimalTokenUnitBN,
     );
-    const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN.toString();
+    const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN
+      ? allowanceMinimalTokenUnitBN.toString()
+      : '0';
     // const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
     //   activeAccount.address,
     //   tokenContractAddress,
@@ -172,9 +177,9 @@ const EarnInputView = () => {
       needsAllowanceIncrease,
       earnToken.chainId,
     );
-    // const lendingPoolContractAddress =
     const lendingPoolContractAddress =
-      CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
+      CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
+      '';
 
     navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,

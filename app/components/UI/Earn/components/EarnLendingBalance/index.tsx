@@ -122,7 +122,7 @@ const EarnLendingBalance = ({
             >
               {receiptToken.name}
             </Text>
-            <PercentageChange value={pricePercentChange1d} />
+            <PercentageChange value={pricePercentChange1d ?? 0} />
           </View>
         </AssetElement>
       )}

@@ -411,7 +411,7 @@ export const TokenListItem = React.memo(
           </View>
           <View style={styles.percentageChange}>
             {!isTestNet(chainId) && showPercentageChange ? (
-              <PercentageChange value={pricePercentChange1d} />
+              <PercentageChange value={pricePercentChange1d ?? 0} />
             ) : null}
             {renderEarnCta()}
           </View>

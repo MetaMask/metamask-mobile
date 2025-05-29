@@ -62,9 +62,11 @@ const EarnWithdrawInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const { getPairedEarnTokens } = useEarnTokens();
+  console.log('token testing hoodie', token);
   const { outputToken: receiptToken, earnToken: lendingToken } =
     getPairedEarnTokens(token);
-
+  console.log('receiptToken testing hoodie', receiptToken);
+  console.log('lendingToken testing hoodie', lendingToken);
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});

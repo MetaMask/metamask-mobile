@@ -49,9 +49,10 @@ const StakingButtons = ({
     }
   };
 
+  console.log('asset testing hoodie', asset);
   const { getPairedEarnTokens } = useEarnTokens();
   const { outputToken } = getPairedEarnTokens(asset);
-
+  console.log('outputToken asset testing hoodie', outputToken);
   const onUnstakePress = async () => {
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {

@@ -18,7 +18,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '../../../components/UI/Earn/hooks/useEarnTokens';
-import { hexToBN, weiToFiatNumber } from '../../../util/number';
+import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
 import { TokenI } from '../../../components/UI/Tokens/types';
 import {
   getDecimalChainId,
@@ -28,7 +28,7 @@ import { isSupportedPooledStakingChain } from '@metamask/stake-sdk/dist/contract
 import BigNumber from 'bignumber.js';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
-import { getEstimatedAnnualRewardsFormatted } from '../../../components/UI/Earn/utils/token';
+import { getEstimatedAnnualRewards } from '../../../components/UI/Earn/utils/token';
 import { pooledStakingSelectors } from '../pooledStaking';
 import { RootState } from '../../../reducers';
 
@@ -134,6 +134,8 @@ const selectEarnTokens = createDeepEqualSelector(
         string,
         Record<string, EarnTokenDetails[]>
       >;
+      earnableTotalFiatNumber: number;
+      earnableTotalFiatFormatted: string;
     } = {
       earnTokens: [],
       earnOutputTokens: [],
@@ -141,6 +143,8 @@ const selectEarnTokens = createDeepEqualSelector(
       earnOutputTokensByChainIdAndAddress: {},
       earnTokenPairsByChainIdAndAddress: {},
       earnOutputTokenPairsByChainIdAndAddress: {},
+      earnableTotalFiatNumber: 0,
+      earnableTotalFiatFormatted: '',
     };
 
     if (!isPortfolioViewEnabled()) {
@@ -156,14 +160,6 @@ const selectEarnTokens = createDeepEqualSelector(
       return emptyEarnTokensData;
     }
 
-    const rawAccountBalance = selectedAddress
-      ? accountsByChainId[selectedChainId]?.[toChecksumAddress(selectedAddress)]
-          ?.balance
-      : '0';
-    const balanceWei = hexToBN(rawAccountBalance);
-    console.log('balanceWei', balanceWei.toString());
-    console.log('selectedAddress', selectedAddress);
-    console.log('accountsByChainId', accountsByChainId);
     // const lendingMarketsWithPosition =
     //   selectLendingMarketsWithPosition(earnState);
     // console.log(
@@ -197,8 +193,9 @@ const selectEarnTokens = createDeepEqualSelector(
     // );
 
     const earnTokensData = allTokens.reduce((acc, token) => {
-      const experiences = [];
+      const experiences: EarnTokenDetails['experiences'] = [];
       const decimalChainId = getDecimalChainId(token.chainId);
+
       const lendingMarketsForToken =
         lendingMarketsByChainIdAndTokenAddress?.[decimalChainId]?.[
           token.address.toLowerCase()
@@ -229,8 +226,23 @@ const selectEarnTokens = createDeepEqualSelector(
       }
 
       // TODO: balance logic, extract to utils then use when we are clear to add token
+      const rawAccountBalance = selectedAddress
+        ? accountsByChainId[token?.chainId as Hex]?.[
+            toChecksumAddress(selectedAddress)
+          ]?.balance
+        : '0';
+      const rawStakedAccountBalance = selectedAddress
+        ? accountsByChainId[token?.chainId as Hex]?.[
+            toChecksumAddress(selectedAddress)
+          ]?.stakedBalance
+        : '0';
+      const balanceWei = hexToBN(rawAccountBalance);
+      const stakedBalanceWei = hexToBN(rawStakedAccountBalance);
+
       const tokenBalanceMinimalUnit = token.isETH
-        ? balanceWei
+        ? token.isStaked
+          ? stakedBalanceWei
+          : balanceWei
         : hexToBN(
             tokenBalances?.[selectedAddress as Hex]?.[token.chainId as Hex]?.[
               token.address as Hex
@@ -283,7 +295,7 @@ const selectEarnTokens = createDeepEqualSelector(
           experiences.push({
             type: EARN_EXPERIENCES.POOLED_STAKING,
             apr: pooledStakingVaultAprForChain,
-            estimatedAnnualRewardsFormatted: getEstimatedAnnualRewardsFormatted(
+            ...getEstimatedAnnualRewards(
               pooledStakingVaultAprForChain,
               assetBalanceFiatNumber,
               currentCurrency,
@@ -300,12 +312,11 @@ const selectEarnTokens = createDeepEqualSelector(
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
               apr: String(market.netSupplyRate.toFixed(1)),
-              estimatedAnnualRewardsFormatted:
-                getEstimatedAnnualRewardsFormatted(
-                  String(market.netSupplyRate),
-                  assetBalanceFiatNumber,
-                  currentCurrency,
-                ),
+              ...getEstimatedAnnualRewards(
+                String(market.netSupplyRate),
+                assetBalanceFiatNumber,
+                currentCurrency,
+              ),
               market,
             });
           }
@@ -315,12 +326,11 @@ const selectEarnTokens = createDeepEqualSelector(
             experiences.push({
               type: EARN_EXPERIENCES.STABLECOIN_LENDING,
               apr: String(market.netSupplyRate),
-              estimatedAnnualRewardsFormatted:
-                getEstimatedAnnualRewardsFormatted(
-                  String(market.netSupplyRate),
-                  assetBalanceFiatNumber,
-                  currentCurrency,
-                ),
+              ...getEstimatedAnnualRewards(
+                String(market.netSupplyRate),
+                assetBalanceFiatNumber,
+                currentCurrency,
+              ),
               market,
             });
           }
@@ -366,6 +376,16 @@ const selectEarnTokens = createDeepEqualSelector(
           acc.earnTokensByChainIdAndAddress[decimalChainId][
             token.address.toLowerCase()
           ] = earnTokenDetails;
+          console.log('assetBalanceFiatNumber', assetBalanceFiatNumber);
+          console.log('balanceFiat', balanceFiat);
+          console.log('details', earnTokenDetails);
+
+          acc.earnableTotalFiatNumber +=
+            earnTokenDetails.experience.estimatedAnnualRewardsFiatNumber;
+          console.log(
+            'acc.earnableTotalFiatNumber',
+            acc.earnableTotalFiatNumber,
+          );
         }
         if (isEarnOutputToken) {
           acc.earnOutputTokens.push(earnTokenDetails);
@@ -418,6 +438,12 @@ const selectEarnTokens = createDeepEqualSelector(
       }
       return acc;
     }, emptyEarnTokensData);
+
+    earnTokensData.earnableTotalFiatFormatted = renderFiat(
+      earnTokensData.earnableTotalFiatNumber,
+      currentCurrency,
+      0,
+    );
 
     // Tokens with a balance of 0 are placed at the end of each earn token list.
     for (const tokens of [

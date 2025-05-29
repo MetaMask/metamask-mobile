@@ -199,6 +199,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           !isLoadingVaultApyAverages &&
           isPooledStakingEnabled && (
             <StakingCta
+              chainId={asset.chainId as Hex}
               style={styles.stakingCta}
               estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
                 inputFormat: CommonPercentageInputUnits.PERCENTAGE,
@@ -255,7 +256,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               {strings('stake.staked_ethereum')}
             </Text>
             <Text>
-              <PercentageChange value={pricePercentChange1d} />
+              <PercentageChange value={pricePercentChange1d ?? 0} />
             </Text>
           </View>
         </AssetElement>

@@ -1,13 +1,15 @@
 import BigNumber from 'bignumber.js';
 import { addCurrencySymbol } from '../../../../../util/number';
 
-export const getEstimatedAnnualRewardsFormatted = (
+export const getEstimatedAnnualRewards = (
   apr: string,
   amountFiatNumber: number,
   currency: string,
-): string => {
+): {
+  estimatedAnnualRewardsFormatted: string;
+  estimatedAnnualRewardsFiatNumber: number;
+} => {
   let estimatedAnnualRewardsFormatted = '';
-
   const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
   const estimatedAnnualRewardsDecimal = new BigNumber(amountFiatNumber)
     .multipliedBy(rewardRateDecimal)
@@ -28,5 +30,8 @@ export const getEstimatedAnnualRewardsFormatted = (
     )}`;
   }
 
-  return estimatedAnnualRewardsFormatted;
+  return {
+    estimatedAnnualRewardsFormatted,
+    estimatedAnnualRewardsFiatNumber: estimatedAnnualRewardsDecimal,
+  };
 };

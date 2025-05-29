@@ -19,6 +19,7 @@ export interface EarnTokenDetails extends TokenI {
     type: EARN_EXPERIENCES;
     apr: string;
     estimatedAnnualRewardsFormatted: string;
+    estimatedAnnualRewardsFiatNumber: number;
     market?: LendingMarketWithPosition;
     vault?: VaultData;
   }[];
