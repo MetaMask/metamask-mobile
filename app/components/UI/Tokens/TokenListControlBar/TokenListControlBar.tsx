@@ -103,4 +103,4 @@ export const TokenListControlBar = ({
   );
 };
 
-export default TokenListControlBar;
+export default React.memo(TokenListControlBar);

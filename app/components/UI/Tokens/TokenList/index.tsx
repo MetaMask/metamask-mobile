@@ -36,7 +36,7 @@ interface TokenListProps {
   setShowScamWarningModal: () => void;
 }
 
-export const TokenList = ({
+const TokenListComponent = ({
   tokenKeys,
   refreshing,
   isAddTokenEnabled,
@@ -145,3 +145,5 @@ export const TokenList = ({
     </View>
   );
 };
+
+export const TokenList = React.memo(TokenListComponent);
