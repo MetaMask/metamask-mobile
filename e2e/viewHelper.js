@@ -120,12 +120,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -137,6 +131,19 @@ export const importWalletWithRecoveryPhrase = async ({
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
+
+  try {
+    if (optInToMetrics) {
+      await MetaMetricsOptIn.tapAgreeButton();
+    } else {
+      await MetaMetricsOptIn.tapNoThanksButton();
+    }
+  } catch (error) {
+    /* eslint-disable no-console */
+    console.log('The metrics opt in modal is not visible');
+  }
+
+
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
