@@ -379,6 +379,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
+                accessibilityLabel="Show Hex Data"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
@@ -465,6 +466,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
+                accessibilityLabel="Customize transaction nonce"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
@@ -638,6 +640,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             >
               <RCTSwitch
+                accessibilityLabel="Show conversion on test networks"
                 accessibilityRole="switch"
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
