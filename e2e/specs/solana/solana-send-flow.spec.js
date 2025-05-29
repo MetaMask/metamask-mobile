@@ -25,7 +25,7 @@ const EXPECTED_CONFIRMATION = '0.0001 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'GxE7wWL...CV77M';
 const RECENT_TRANSACTION_INDEX = 0;
 
-describe.skip(
+describe(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {
@@ -35,7 +35,7 @@ describe.skip(
 
     it('should import wallet with Solana support', async () => {
       await importWalletWithRecoveryPhrase({
-        seedPhrase: 'all huge boy erupt choose people leaf awful can twenty point swap',
+        seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
       });
     });
     const itif = (condition) => (condition ? it : it.skip);

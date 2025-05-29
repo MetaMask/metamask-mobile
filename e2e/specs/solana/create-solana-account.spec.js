@@ -33,8 +33,7 @@ const PASSWORD = '123123123';
 
 const fixtureServer = new FixtureServer();
 
-// TODO: fix this test with proper page object
-describe.skip(SmokeNetworkExpansion('Create Solana account'), () => {
+describe(SmokeNetworkExpansion('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
