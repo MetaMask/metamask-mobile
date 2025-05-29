@@ -31,6 +31,7 @@ import useStakingChain from '../../../../hooks/useStakingChain';
 import styleSheet from './ClaimBanner.styles';
 import { renderFromWei } from '../../../../../../../util/number';
 import { TokenI } from '../../../../../Tokens/types';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -48,7 +49,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
 
-  const chainId = Number(asset?.chainId);
+  const chainId = getDecimalChainId(asset?.chainId);
 
   const { pooledStakesData } = usePooledStakes(chainId);
 
