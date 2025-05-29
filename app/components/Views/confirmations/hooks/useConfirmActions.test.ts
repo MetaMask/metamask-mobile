@@ -34,9 +34,6 @@ jest.mock('../../../../core/Engine', () => ({
         ],
       },
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
 }));
 

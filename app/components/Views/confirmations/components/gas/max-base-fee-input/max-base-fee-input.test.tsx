@@ -11,13 +11,6 @@ import { validateMaxBaseFee } from '../../../utils/gas-validations';
 import { MaxBaseFeeInput } from './max-base-fee-input';
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates');
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../../../utils/gas-validations', () => ({
   validateMaxBaseFee: jest.fn(),
