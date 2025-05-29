@@ -222,6 +222,69 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent(input, 'keyPress', { nativeEvent: { key: 'Backspace' } });
     });
+
+    it('should handle backspace key press correctly', async () => {
+      const { getByTestId, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+
+      // Enter multiple words
+      fireEvent.changeText(input, 'word1 word2 word3');
+
+      // Get all input fields after they are created
+      const inputFields = await waitFor(() => {
+        const fields = [];
+        for (let i = 0; i < 3; i++) {
+          const field = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+          );
+          fields.push(field);
+        }
+        return fields;
+      });
+
+      // Verify initial state
+      expect(inputFields[0].props.value).toBe('word1');
+      expect(inputFields[1].props.value).toBe('word2');
+      expect(inputFields[2].props.value).toBe('word3');
+
+      // Simulate backspace press on the third input field
+      fireEvent(inputFields[2], 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      // Wait for the component to update and verify the input values
+      await waitFor(() => {
+        const updatedFields = [];
+        for (let i = 0; i < 2; i++) {
+          const field = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+          );
+          updatedFields.push(field);
+        }
+        expect(updatedFields[0].props.value).toBe('word1');
+        expect(updatedFields[1].props.value).toBe('word2');
+      });
+
+      // Simulate backspace press on the second input field
+      fireEvent(inputFields[1], 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      // Wait for the component to update and verify the final input value
+      await waitFor(() => {
+        const finalField = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        );
+        expect(finalField.props.value).toBe('word1');
+      });
+    });
   });
 
   describe('Step 2 UI functionality', () => {
