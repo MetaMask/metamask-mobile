@@ -76,6 +76,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
@@ -96,6 +97,7 @@ jest.mock('../../../../../core/Engine', () => ({
       fetchTokenList: jest.fn(),
     },
     TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
     },

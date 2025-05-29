@@ -1,7 +1,7 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useInitialSourceToken } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { useRoute } from '@react-navigation/native';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';

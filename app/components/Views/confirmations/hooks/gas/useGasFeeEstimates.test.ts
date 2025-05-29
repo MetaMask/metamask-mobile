@@ -30,6 +30,8 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const arrangeStore = () => cloneDeep(stakingDepositConfirmationState);
+
 describe('useGasFeeEstimates', () => {
   const mockNetworkClientId = '1';
   const startPollingMock = jest.fn();
@@ -56,7 +58,7 @@ describe('useGasFeeEstimates', () => {
 
   it('polls with given network client id', async () => {
     renderHookWithProvider(() => useGasFeeEstimates('mockNetworkClientId2'), {
-      state: stakingDepositConfirmationState,
+      state: arrangeStore(),
     });
 
     expect(usePollingMock).toHaveBeenCalledWith({
@@ -67,9 +69,7 @@ describe('useGasFeeEstimates', () => {
   });
 
   it('returns gas fee estimates from gas fee controller if transaction does not have gas fee estimates', () => {
-    const transactionWithoutGasFeeEstimates = cloneDeep(
-      stakingDepositConfirmationState,
-    );
+    const transactionWithoutGasFeeEstimates = arrangeStore();
     transactionWithoutGasFeeEstimates.engine.backgroundState.TransactionController.transactions[0].gasFeeEstimates =
       undefined;
 
@@ -88,7 +88,7 @@ describe('useGasFeeEstimates', () => {
 
   it('merges gas fee estimates from transaction and gas fee controller', () => {
     renderHookWithProvider(() => useGasFeeEstimates(mockNetworkClientId), {
-      state: stakingDepositConfirmationState,
+      state: arrangeStore(),
     });
 
     expect(mergeGasFeeEstimates).toHaveBeenCalledWith({

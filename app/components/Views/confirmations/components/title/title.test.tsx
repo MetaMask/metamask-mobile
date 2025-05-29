@@ -1,4 +1,5 @@
 import React from 'react';
+import { merge } from 'lodash';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -77,7 +78,19 @@ describe('Confirm Title', () => {
 
   it('renders correct title for transfer', () => {
     const { getByText } = renderWithProvider(<Title />, {
-      state: transferConfirmationState,
+      state: merge(transferConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  origin: 'test-dapp',
+                },
+              ],
+            },
+          },
+        },
+      }),
     });
     expect(getByText('Transfer request')).toBeTruthy();
   });
@@ -105,5 +118,12 @@ describe('Confirm Title', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
     expect(getByText('Transaction request')).toBeTruthy();
+  });
+
+  it('displays transaction count for batched confirmation', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Includes 2 transactions')).toBeTruthy();
   });
 });
