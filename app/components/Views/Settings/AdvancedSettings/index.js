@@ -262,21 +262,27 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setUseTokenDetection(detectionStatus);
   };
 
+  trackMetricsEvent = (event, properties) => {
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(event)
+        .addProperties({
+          location: 'Advanced Settings',
+          ...properties,
+        })
+        .build(),
+    );
+  };
+
   toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setSmartTransactionsOptInStatus(
       smartTransactionsOptInStatus,
     );
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN)
-        .addProperties({
-          stx_opt_in: smartTransactionsOptInStatus,
-          location: 'Advanced Settings',
-        })
-        .build(),
-    );
+    this.trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: smartTransactionsOptInStatus,
+    });
   };
 
   toggleDismissSmartAccountSuggestionEnabled = (
@@ -287,16 +293,12 @@ class AdvancedSettings extends PureComponent {
       dismissSmartAccountSuggestionEnabled,
     );
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(
-          MetaMetricsEvents.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
-        )
-        .addProperties({
-          stx_opt_in: dismissSmartAccountSuggestionEnabled,
-          location: 'Advanced Settings',
-        })
-        .build(),
+    this.trackMetricsEvent(
+      MetaMetricsEvents.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+      {
+        dismiss_smart_account_suggestion_enabled:
+          dismissSmartAccountSuggestionEnabled,
+      },
     );
   };
 
