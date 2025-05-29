@@ -7,8 +7,18 @@ import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
   getOnboardingNavbarOptions,
+  getOnboardingCarouselNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
+import Device from '../../../util/device';
+
+jest.mock('../../../util/device', () => ({
+  isAndroid: jest.fn(),
+  isIphoneX: jest.fn(),
+  isIphone5S: jest.fn(),
+  isIos: jest.fn(),
+}));
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -25,6 +35,7 @@ describe('getNetworkNavbarOptions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Device.isAndroid.mockReset();
   });
 
   it('renders correctly with default options', () => {
@@ -80,6 +91,34 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns navbar options with the correct title in android', () => {
+    Device.isAndroid.mockReturnValue(true);
+    const options = getDepositNavbarOptions(
+      mockNavigation,
+      { title: 'Deposit' },
+      mockTheme,
+    );
+    expect(options).toBeDefined();
+    expect(options.title).toBe('Deposit');
+  });
+
+  it('handles getOnboardingCarouselNavbarOptions', () => {
+    const options = getOnboardingCarouselNavbarOptions('red');
+    expect(options).toBeDefined();
+    expect(options.headerStyle.backgroundColor).toBe('red');
+  });
+
+  it('handles getTransparentOnboardingNavbarOptions', () => {
+    const options = getTransparentOnboardingNavbarOptions(
+      mockTheme,
+      'red',
+      true,
+      'blue',
+    );
+    expect(options).toBeDefined();
+    expect(options.headerStyle.backgroundColor).toBe('red');
   });
 });
 

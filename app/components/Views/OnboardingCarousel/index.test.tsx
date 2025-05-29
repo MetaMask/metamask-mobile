@@ -131,5 +131,56 @@ describe('OnboardingCarousel', () => {
 
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('should call getStarted button and show terms of use', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(false);
+
+      const navigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      const { toJSON, getByTestId } = renderWithProvider(
+        <OnboardingCarousel navigation={navigation} />,
+      );
+
+      const getStartedButton = getByTestId(
+        OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+      );
+
+      expect(getStartedButton).toBeOnTheScreen();
+      fireEvent.press(getStartedButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Onboarding');
+      });
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should change the carousel when the user swipes', async () => {
+      const mockOnChangeTab = jest.fn();
+
+      const navigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={navigation} />,
+      );
+
+      // Simulate the tab change event
+      const tabChangeEvent = { i: 0 };
+      mockOnChangeTab(tabChangeEvent);
+
+      const tabChangeEvent2 = { i: 1 };
+      mockOnChangeTab(tabChangeEvent2);
+
+      const tabChangeEvent3 = { i: 2 };
+      mockOnChangeTab(tabChangeEvent3);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 });
