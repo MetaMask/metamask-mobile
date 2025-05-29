@@ -178,6 +178,15 @@ const SettingsRow = ({
   );
 };
 
+SettingsRow.propTypes = {
+  heading: PropTypes.string,
+  description: PropTypes.string,
+  value: PropTypes.bool,
+  onValueChange: PropTypes.func,
+  testId: PropTypes.string,
+  styles: PropTypes.object,
+};
+
 /**
  * Main view for app configurations
  */
