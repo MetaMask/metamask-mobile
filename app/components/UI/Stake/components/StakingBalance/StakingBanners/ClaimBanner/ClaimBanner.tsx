@@ -32,6 +32,7 @@ import { useStakeContext } from '../../../../hooks/useStakeContext';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import styleSheet from './ClaimBanner.styles';
 import { renderFromWei } from '../../../../../../../util/number';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -47,9 +48,11 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
-  const { pooledStakesData } = usePooledStakes();
 
   const chainId = useSelector(selectEvmChainId);
+
+  const { pooledStakesData } = usePooledStakes(getDecimalChainId(chainId));
+
   const { isStakingSupportedChain } = useStakingChain();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,

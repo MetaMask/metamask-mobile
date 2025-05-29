@@ -49,14 +49,15 @@ const StakingButtons = ({
     }
   };
 
-  const stakedEthToken = useEarnTokens({ includeStakingTokens: true })[0];
+  const { getPairedEarnTokens } = useEarnTokens();
+  const { outputToken } = getPairedEarnTokens(asset);
 
   const onUnstakePress = async () => {
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
-        token: stakedEthToken,
+        token: outputToken,
       },
     });
     trackEvent(

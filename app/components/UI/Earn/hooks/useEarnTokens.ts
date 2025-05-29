@@ -75,10 +75,11 @@ const useEarnTokens = () => {
     (token: TokenI | EarnTokenDetails) => {
       const earnToken =
         earnTokensData.earnTokensByChainIdAndAddress?.[
-          getDecimalChainId(token.chainId)
+          getDecimalChainId(token?.chainId)
         ]?.[token.address.toLowerCase()];
 
-      if (token.isETH && token.isStaked !== earnToken?.isStaked) return;
+      console.log('earnToken found', earnToken);
+      if (token?.isETH && token?.isStaked !== earnToken?.isStaked) return;
 
       return earnToken;
     },
@@ -89,10 +90,10 @@ const useEarnTokens = () => {
     (token: TokenI | EarnTokenDetails) => {
       const outputToken =
         earnTokensData.earnOutputTokensByChainIdAndAddress?.[
-          getDecimalChainId(token.chainId)
+          getDecimalChainId(token?.chainId)
         ]?.[token.address.toLowerCase()];
-
-      if (token.isETH && token.isStaked !== outputToken?.isStaked) return;
+      console.log('outputToken found', outputToken);
+      if (token?.isETH && token?.isStaked !== outputToken?.isStaked) return;
 
       return outputToken;
     },
@@ -105,7 +106,7 @@ const useEarnTokens = () => {
         earnTokensData.earnTokenPairsByChainIdAndAddress?.[
           Number(underlyingToken.chainId)
         ]?.[underlyingToken.address.toLowerCase()]?.[0];
-
+      console.log('pairedEarnOutputToken', pairedEarnOutputToken);
       if (
         underlyingToken.isETH &&
         underlyingToken.isStaked === pairedEarnOutputToken?.isStaked
@@ -124,6 +125,7 @@ const useEarnTokens = () => {
         earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
           Number(outputToken.chainId)
         ]?.[outputToken.address.toLowerCase()]?.[0];
+      console.log('pairedEarnToken', pairedEarnToken);
 
       if (
         outputToken.isETH &&

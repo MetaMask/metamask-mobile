@@ -1,6 +1,5 @@
 import React from 'react';
 import { TokenI } from '../../../Tokens/types';
-import { USER_HAS_LENDING_POSITIONS } from '../../constants/tempLendingConstants';
 import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
 import EarnLendingBalance from '../EarnLendingBalance';
 import useEarnTokens from '../../hooks/useEarnTokens';
@@ -13,7 +12,7 @@ export interface EarnBalanceProps {
 const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const { getEarnToken, getOutputToken } = useEarnTokens();
 
-  if (asset?.isETH) {
+  if (asset?.isETH && !asset.isStaked) {
     return <StakingBalance asset={asset} />;
   }
 
@@ -22,7 +21,10 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isLendingToken = getEarnToken(asset);
   const isReceiptToken = getOutputToken(asset);
 
-  if ((isLendingToken || isReceiptToken) && USER_HAS_LENDING_POSITIONS) {
+  if (
+    (isLendingToken || isReceiptToken) &&
+    isReceiptToken?.balanceMinimalUnit !== '0'
+  ) {
     return (
       <EarnLendingBalance asset={asset} displayBalance={!isReceiptToken} />
     );
