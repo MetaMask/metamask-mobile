@@ -7,7 +7,15 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 
-jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../actions/onboarding', () => ({
+  saveOnboardingEvent: jest.fn(),
+}));
+
 jest.mock('../../../util/test/utils', () => ({
   isTest: true,
 }));
@@ -104,6 +112,54 @@ describe('OnboardingCarousel', () => {
         <OnboardingCarousel navigation={mockNavigation} />,
       );
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should use android padding for large screens', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+
+      // Mock window height to be greater than 800
+      const originalHeight = global.window.innerHeight;
+      Object.defineProperty(global.window, 'innerHeight', {
+        value: 900,
+        writable: true,
+      });
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+
+      // Restore original height
+      Object.defineProperty(global.window, 'innerHeight', {
+        value: originalHeight,
+        writable: true,
+      });
+    });
+
+    it('should use android padding for small screens', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+
+      // Mock window height to be less than 800
+      const originalHeight = global.window.innerHeight;
+      Object.defineProperty(global.window, 'innerHeight', {
+        value: 700,
+        writable: true,
+      });
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+
+      // Restore original height
+      Object.defineProperty(global.window, 'innerHeight', {
+        value: originalHeight,
+        writable: true,
+      });
     });
 
     it('should call getStarted button', async () => {

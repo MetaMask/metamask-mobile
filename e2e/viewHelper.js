@@ -72,7 +72,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   try {
-    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+    await SolanaNewFeatureSheet.tapNotNowButton();
   } catch {
     /* eslint-disable no-console */
 
@@ -117,6 +117,7 @@ export const importWalletWithRecoveryPhrase = async ({
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
+  await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   if (optInToMetrics) {
@@ -126,7 +127,6 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   await TestHelpers.delay(3500);
-  await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(

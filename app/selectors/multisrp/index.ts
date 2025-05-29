@@ -5,8 +5,9 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../accountsController';
-import { selectHDKeyrings, ExtendedKeyring } from '../keyringController';
+import { selectHDKeyrings } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
+import { KeyringObject } from '@metamask/keyring-controller';
 
 /**
  * Selects the index of an HD keyring by its ID, defaulting to 0 if not found
@@ -17,7 +18,7 @@ import { createDeepEqualSelector } from '../util';
 export const selectHdKeyringIndexByIdOrDefault = createDeepEqualSelector(
   selectHDKeyrings,
   (_state: RootState, keyringId?: string) => keyringId,
-  (keyrings: ExtendedKeyring[], keyringId?: string) => {
+  (keyrings: KeyringObject[], keyringId?: string) => {
     // 0 is the default hd keyring index.
     if (!keyringId) {
       return 0;
@@ -44,7 +45,7 @@ export const getHdKeyringOfSelectedAccountOrPrimaryKeyring =
     selectHDKeyrings,
     (
       selectedAccount: InternalAccount | undefined,
-      hdKeyrings: ExtendedKeyring[],
+      hdKeyrings: KeyringObject[],
     ) => {
       if (!selectedAccount || hdKeyrings.length === 0) {
         // Should never reach this point. This selector is only used after onboarding.
