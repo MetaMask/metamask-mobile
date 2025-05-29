@@ -64,7 +64,6 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
-  NetworkAvatarProps,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
@@ -123,10 +122,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    NetworkAvatarProps[]
-  >([]);
-
   const requestedCaip25CaveatValue = useMemo(
     () => getRequestedCaip25CaveatValue(hostInfo.permissions),
     [hostInfo.permissions],
@@ -155,29 +150,36 @@ const AccountConnect = (props: AccountConnectProps) => {
     (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
   );
 
-  const defaultSelectedChainIds =
-    supportedRequestedCaipChainIds.length > 0
-      ? supportedRequestedCaipChainIds
-      : allNetworksList;
+  const { isEip1193Request } = hostInfo.metadata;
 
-  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(
-    defaultSelectedChainIds as CaipChainId[],
-  );
-  const setSelectedChainIds = useCallback(
-    (newSelectedChainIds: CaipChainId[]) => {
-      _setSelectedChainIds(newSelectedChainIds);
-
-      const newNetworkAvatars = newSelectedChainIds.map(
-        (newSelectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[newSelectedChainId]?.name || '',
-          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-          variant: AvatarVariant.Network,
-        }),
+  const defaultSelectedChainIds = useMemo(() => {
+    // For EIP-1193 requests (injected Ethereum provider requests),
+    // we only want to show EIP-155 (Ethereum) compatible chains
+    if (isEip1193Request) {
+      return allNetworksList.filter((chain) =>
+        chain.includes(KnownCaipNamespace.Eip155),
       );
-      setSelectedNetworkAvatars(newNetworkAvatars);
-    },
-    [networkConfigurations, setSelectedNetworkAvatars],
+    // otherwise, if we have supported requested CAIP chain IDs, use those
+    } else if (supportedRequestedCaipChainIds.length > 0) {
+      return supportedRequestedCaipChainIds;
+    }
+    // otherwise, use all available networks
+    return allNetworksList;
+  }, [isEip1193Request, allNetworksList, supportedRequestedCaipChainIds]);
+
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds,
+  );
+
+  const selectedNetworkAvatars = useMemo(
+    () =>
+      selectedChainIds.map((selectedChainId) => ({
+        size: AvatarSize.Xs,
+        name: networkConfigurations[selectedChainId]?.name || '',
+        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+        variant: AvatarVariant.Network,
+      })),
+    [networkConfigurations, selectedChainIds],
   );
 
   // all accounts that match the requested namespaces
@@ -241,7 +243,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
+    promptToCreateSolanaAccount?: boolean;
   };
+
+  // TODO: use this value to show Solana Opt In Flow
+  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -297,22 +303,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { hostname: hostnameFromUrlObj, protocol: protocolFromUrlObj } =
     getUrlObj(urlWithProtocol);
-
-  useEffect(() => {
-    // Create network avatars for all enabled networks
-    const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => ({
-        size: AvatarSize.Xs,
-        name: network.name || '',
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
-        variant: AvatarVariant.Network,
-      }),
-    );
-
-    setSelectedNetworkAvatars(networkAvatars);
-
-    // No need to update selectedChainIds here since it's already initialized with all networks
-  }, [networkConfigurations]);
 
   useEffect(() => {
     let url = dappUrl || channelIdOrHostname || '';
@@ -480,6 +470,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
+    
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 

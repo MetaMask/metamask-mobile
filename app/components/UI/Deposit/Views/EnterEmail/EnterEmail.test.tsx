@@ -1,23 +1,22 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import EnterEmail from './EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { DepositSdk } from '../../hooks/useDepositSdkMethod';
+import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkMethodInitialValues: DepositSdk = {
+const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'response'> = {
   error: null,
   loading: false,
   sdkMethod: jest.fn().mockResolvedValue('Success'),
-  data: null,
+  response: null,
 };
 
-let mockUseDepositSdkMethodValues: DepositSdk = {
+let mockUseDepositSdkMethodValues: DepositSdkResult<'response'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
@@ -46,19 +45,7 @@ jest.mock('../../../Navbar', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.ENTER_EMAIL,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_EMAIL);
 }
 
 describe('EnterEmail Component', () => {
@@ -96,8 +83,10 @@ describe('EnterEmail Component', () => {
     expect(screen.getByText('Sending email...')).toBeTruthy();
   });
 
-  it('navigates to next screen on "Send email" button press', async () => {
+  it('navigates to next screen on "Send email" button press with valid email', async () => {
     render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -105,6 +94,15 @@ describe('EnterEmail Component', () => {
         undefined,
       );
     });
+  });
+
+  it('shows validation error for invalid email', async () => {
+    render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'invalid-email');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    expect(screen.getByText('Please enter a valid email address')).toBeTruthy();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('displays error message when API call fails', async () => {

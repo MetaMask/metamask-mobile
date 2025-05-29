@@ -13,9 +13,6 @@ import { use7702TransactionType } from './use7702TransactionType';
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
     TransactionController: {
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
@@ -48,7 +45,7 @@ describe('use7702TransactionType', () => {
     expect(result.isDowngrade).toBe(false);
     expect(result.isUpgrade).toBe(true);
     expect(result.isUpgradeOnly).toBe(false);
-    expect(result.isBatched).toBe(false);
+    expect(result.isBatched).toBe(true);
     expect(result.isBatchedUpgrade).toBe(true);
   });
 

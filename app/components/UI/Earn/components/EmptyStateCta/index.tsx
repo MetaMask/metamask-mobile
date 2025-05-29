@@ -18,7 +18,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -66,7 +65,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
 
     navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
-      params: { token, action: EARN_INPUT_VIEW_ACTIONS.LEND },
+      params: { token },
     });
   };
 

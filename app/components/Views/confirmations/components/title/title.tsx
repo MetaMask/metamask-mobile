@@ -23,6 +23,7 @@ import {
 } from '../../utils/signature';
 import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
+import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
 
 const getTitleAndSubTitle = (
@@ -30,7 +31,7 @@ const getTitleAndSubTitle = (
   signatureRequest?: SignatureRequest,
   transactionMetadata?: TransactionMeta,
   isDowngrade: boolean = false,
-  isBatchedUpgrade: boolean = false,
+  isBatched: boolean = false,
   isUpgradeOnly: boolean = false,
 ) => {
   const type = approvalRequest?.type;
@@ -100,11 +101,11 @@ const getTitleAndSubTitle = (
       }
       if (
         transactionMetadata?.type === TransactionType.contractInteraction ||
-        isBatchedUpgrade
+        isBatched
       ) {
         return {
           title: strings('confirm.title.contract_interaction'),
-          subTitle: isBatchedUpgrade
+          subTitle: isBatched
             ? ''
             : strings('confirm.sub_title.contract_interaction'),
         };
@@ -131,8 +132,7 @@ const Title = () => {
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isDowngrade, isBatchedUpgrade, isUpgradeOnly } =
-    use7702TransactionType();
+  const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
 
   if (isStandaloneConfirmation) {
     return null;
@@ -143,7 +143,7 @@ const Title = () => {
     signatureRequest,
     transactionMetadata,
     isDowngrade,
-    isBatchedUpgrade,
+    isBatched,
     isUpgradeOnly,
   );
 
@@ -151,6 +151,7 @@ const Title = () => {
     <View style={styles.titleContainer}>
       <Text style={styles.title}>{title}</Text>
       {subTitle && <Text style={styles.subTitle}>{subTitle}</Text>}
+      <BatchedTransactionTag />
     </View>
   );
 };

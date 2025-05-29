@@ -14,75 +14,7 @@ describe('Migration 071: Set completedOnboarding based on the KeyringController 
     jest.resetAllMocks();
   });
 
-  const invalidStates = [
-    {
-      state: null,
-      scenario: 'state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: null,
-      }),
-      scenario: 'engine state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: null,
-        },
-      }),
-      scenario: 'backgroundState is invalid',
-    },
-  ];
-
-  it.each(invalidStates)('captures exception if %s', async ({ state }) => {
-    const newState = await migrate(state);
-
-    expect(newState).toStrictEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-  });
-
-  it('sets completedOnboarding to true if vault exists', () => {
-    const state = merge({}, initialRootState, {
-      onboarding: {
-        completedOnboarding: false,
-      },
-      engine: {
-        backgroundState: {
-          KeyringController: {
-            vault: true,
-          },
-        },
-      },
-    });
-
-    migrate(state);
-
-    expect(state.onboarding.completedOnboarding).toBe(true);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('sets completedOnboarding to false if vault does not exist', () => {
-    const state = merge({}, initialRootState, {
-      onboarding: {
-        completedOnboarding: false,
-      },
-      engine: {
-        backgroundState: {
-          KeyringController: {
-            vault: false,
-          },
-        },
-      },
-    });
-
-    migrate(state);
-
-    expect(state.onboarding.completedOnboarding).toBe(false);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('adds the completedOnboarding property if it does not exist', () => {
+  it('returns the initial state', () => {
     const state = merge({}, initialRootState, {
       onboarding: {},
       engine: {
@@ -94,9 +26,9 @@ describe('Migration 071: Set completedOnboarding based on the KeyringController 
       },
     });
 
-    migrate(state);
+    const migratedState = migrate(state);
 
-    expect(state.onboarding.completedOnboarding).toBe(true);
+    expect(migratedState).toStrictEqual(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
