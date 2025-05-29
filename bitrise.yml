@@ -216,8 +216,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -242,8 +240,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -337,12 +333,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           ./scripts/foundry-install.sh
-      #     title: install foundry
   prep_environment:
     steps:
       - restore-cache@2:
@@ -680,56 +670,6 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
-  test-foundry-install:
-    before_run:
-      - code_setup
-    steps:
-      - script@1:
-          title: installing foundry
-          inputs:
-            - content: |
-                #!/bin/bash
-                set -ex
-
-                echo "Installing Foundry..."
-                curl -L https://foundry.paradigm.xyz | bash
-
-                export FOUNDRY_BIN_PATH="$HOME/.foundry/bin"
-                envman add --key FOUNDRY_BIN_PATH --value "$FOUNDRY_BIN_PATH"
-                envman add --key PATH --value "$FOUNDRY_BIN_PATH:$PATH"
-
-                command -v forge && forge --version
-                command -v anvil && anvil --version
-
-                echo "Foundry Bin: " $FOUNDRY_BIN_PATH
-
-                command -v forge && forge --version
-                command -v anvil && anvil --version
-  foundry-install:
-    envs:
-      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
-    steps:
-      - script@1:
-          title: installing foundry
-          inputs:
-            - content: |
-                #!/usr/bin/env bash
-                set -ex 
-                # ./scripts/foundry-install.sh
-                # export PATH="$FOUNDRY_BIN_PATH:$PATH"
-
-                echo "Installing Foundry..."
-                curl -L https://foundry.paradigm.xyz | bash
-
-                export FOUNDRY_BIN_PATH="$HOME/.foundry/bin"
-                envman add --key FOUNDRY_BIN_PATH --value "$FOUNDRY_BIN_PATH"
-                envman add --key PATH --value "$FOUNDRY_BIN_PATH:$PATH"
-
-                command -v forge && forge --version
-                command -v anvil && anvil --version
-
-                echo "Foundry Bin: " $FOUNDRY_BIN_PATH
-
   build_flask_e2e_android:
     meta:
       bitrise.io:
@@ -1025,7 +965,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - foundry-install
     after_run:
       - notify_failure
     steps:
@@ -1051,6 +990,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1068,22 +1013,9 @@ workflows:
                 #!/usr/bin/env bash
                 export METAMASK_ENVIRONMENT='local'
                  node -v
-                  echo "Running foundryup to install the latest version..."
-
-                 curl -L https://foundry.paradigm.xyz | bash
-
-                # Add Foundry binaries to PATH for *this step*
-                export PATH="$HOME/.foundry/bin:$PATH"
-
-                $HOME/.foundry/bin/foundryup
-                command -v forge && forge --version
-                command -v anvil && anvil --version
-
-                which anvil
-                anvil --version
-                
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-               
+                echo "ANVIL VERSION"
+                node_modules/.bin/anvil --version
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
@@ -1154,6 +1086,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1279,7 +1217,6 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
-      - foundry-install
     after_run:
       - notify_failure
     steps:
@@ -1307,6 +1244,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1335,20 +1278,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                node -v
-                   echo "Running foundryup to install the latest version..."
-
-                 curl -L https://foundry.paradigm.xyz | bash
-
-                # Add Foundry binaries to PATH for *this step*
-                export PATH="$HOME/.foundry/bin:$PATH"
-
-                $HOME/.foundry/bin/foundryup
-                command -v forge && forge --version
-                command -v anvil && anvil --version
-
-                which anvil
-                anvil --version
+                # node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
