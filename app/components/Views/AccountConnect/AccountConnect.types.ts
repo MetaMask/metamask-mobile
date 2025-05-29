@@ -19,10 +19,14 @@ export enum AccountConnectScreens {
 export interface AccountConnectParams {
   hostInfo: {
     metadata: {
-      permissions: RequestedPermissions;
+      origin: string;
+      id: string;
+      isEip1193Request?: boolean;
+      promptToCreateSolanaAccount?: boolean;
     };
-    permissionRequestId: string;
+    permissions: RequestedPermissions;
   };
+  permissionRequestId: string;
 }
 
 /**
