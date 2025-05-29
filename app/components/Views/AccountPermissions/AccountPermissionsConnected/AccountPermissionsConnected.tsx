@@ -5,7 +5,7 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import { strings } from '../../../../../locales/i18n';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../../../components/UI/EvmAccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import {
   ToastContext,
@@ -120,7 +120,7 @@ const AccountPermissionsConnected = ({
           {strings('accounts.connected_accounts_title')}
         </Text>
       </View>
-      <AccountSelectorList
+      <EvmAccountSelectorList
         onSelectAccount={switchActiveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}

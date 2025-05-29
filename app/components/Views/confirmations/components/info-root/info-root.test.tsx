@@ -6,11 +6,16 @@ import {
   downgradeAccountConfirmation,
   getAppStateForConfirmation,
   personalSignatureConfirmationState,
+  upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import Info from './info-root';
+
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -37,6 +42,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     AccountsController: {
       state: {
@@ -49,10 +55,8 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       },
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
     TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
     },
@@ -93,6 +97,15 @@ describe('Info', () => {
     const { getByText } = renderWithProvider(<Info />, {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
     });
+    expect(getByText('Switching To')).toBeTruthy();
+    expect(getByText('Smart Account')).toBeTruthy();
+  });
+
+  it('renders correctly for smart account type - upgrade + batched confirmations', () => {
+    const { getByText } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Estimated changes')).toBeTruthy();
     expect(getByText('Switching To')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
   });

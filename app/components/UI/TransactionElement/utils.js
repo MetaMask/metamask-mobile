@@ -601,15 +601,13 @@ function decodeConfirmTx(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     actionKey,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
-
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const totalEth = hexToBN(value);
   const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
   const renderTotalEthFiat = weiToFiat(

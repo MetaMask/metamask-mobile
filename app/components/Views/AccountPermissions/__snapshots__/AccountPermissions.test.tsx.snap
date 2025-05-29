@@ -203,6 +203,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "tokens": [],
               },
               "balanceError": undefined,
+              "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
               "isSelected": true,
               "name": "Account 1",
               "type": "HD Key Tree",
@@ -241,7 +242,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#4459ff1a",
+                  "backgroundColor": "#ffffff",
                   "flexDirection": "row",
                 }
               }
@@ -567,34 +568,6 @@ exports[`AccountPermissions renders correctly 1`] = `
                       </View>
                     </View>
                   </View>
-                </View>
-                <View
-                  accessibilityRole="checkbox"
-                  accessible={true}
-                  style={
-                    {
-                      "backgroundColor": "#4459ff1a",
-                      "bottom": 0,
-                      "flexDirection": "row",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                      "width": 4,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "backgroundColor": "#4459ff",
-                        "borderRadius": 2,
-                        "marginLeft": 4,
-                        "marginVertical": 4,
-                        "width": 4,
-                      }
-                    }
-                  />
                 </View>
               </TouchableOpacity>
               <View

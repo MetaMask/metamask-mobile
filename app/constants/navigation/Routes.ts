@@ -21,6 +21,15 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
   },
+  DEPOSIT: {
+    ID: 'Deposit',
+    ROOT: 'DepositRoot',
+    BUILD_QUOTE: 'BuildQuote',
+    ENTER_EMAIL: 'EnterEmail',
+    OTP_CODE: 'OtpCode',
+    VERIFY_IDENTITY: 'VerifyIdentity',
+    BASIC_INFO: 'BasicInfo',
+  },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
     SELECT_DEVICE: 'SelectHardwareWallet',

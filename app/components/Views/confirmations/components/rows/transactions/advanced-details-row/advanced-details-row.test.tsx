@@ -6,6 +6,7 @@ import {
   downgradeAccountConfirmation,
   generateContractInteractionState,
   getAppStateForConfirmation,
+  upgradeAccountConfirmation,
   upgradeOnlyAccountConfirmation,
 } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -27,14 +28,6 @@ jest.mock(
 
 jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
-}));
-
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
 }));
 
 describe('AdvancedDetailsRow', () => {
@@ -126,5 +119,21 @@ describe('AdvancedDetailsRow', () => {
     expect(getByText('Interacting with')).toBeTruthy();
     expect(getByText('Smart contract')).toBeTruthy();
     expect(queryByText('Data')).toBeNull();
+  });
+
+  it('display correct information for upgrade+batch confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(upgradeAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('Smart contract')).toBeTruthy();
+    expect(queryByText('Data')).toBeTruthy();
   });
 });

@@ -18,7 +18,7 @@ interface MarketData {
 
 interface CalculateAssetPriceParams {
   _asset: TokenI; // Prefix with underscore to indicate it's intentionally unused
-  isEvmNetworkSelected: boolean;
+  isEvmAssetSelected: boolean;
   exchangeRate?: number;
   tickerConversionRate?: number;
   prices: TokenPrice[];
@@ -50,7 +50,7 @@ const TIME_PERIOD_TO_MARKET_DATA_KEY: Record<
 };
 
 export const calculateAssetPrice = ({
-  isEvmNetworkSelected,
+  isEvmAssetSelected,
   exchangeRate,
   tickerConversionRate,
   prices,
@@ -62,7 +62,7 @@ export const calculateAssetPrice = ({
   const comparePrice = prices[0]?.[1] || 0;
   let pricePercentChange: number | undefined;
 
-  if (isEvmNetworkSelected) {
+  if (isEvmAssetSelected) {
     // EVM price calculation
     currentPrice =
       exchangeRate && tickerConversionRate

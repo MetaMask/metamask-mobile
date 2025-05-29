@@ -72,7 +72,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   try {
-    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+    await SolanaNewFeatureSheet.tapNotNowButton();
   } catch {
     /* eslint-disable no-console */
 
