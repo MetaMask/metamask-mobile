@@ -149,6 +149,74 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(qrCodeButton).toBeTruthy();
       fireEvent.press(qrCodeButton);
     });
+
+    it('should have input field autofocused on initial render', () => {
+      const { getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      expect(input.props.autoFocus).toBeTruthy();
+    });
+
+    it('should handle onKeyPress event', () => {
+      const { getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+
+      // Simulate key press event
+      fireEvent(input, 'keyPress', { nativeEvent: { key: 'Enter' } });
+    });
+
+    it('should handle onSubmitEditing event', () => {
+      const { getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+
+      // Simulate submit editing event
+      fireEvent(input, 'submitEditing');
+    });
+
+    it('should handle seed phrase with multiple words', async () => {
+      const { getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+
+      // Enter multiple words
+      fireEvent.changeText(input, 'test word');
+
+      // Verify continue button is still disabled (since it's not a complete seed phrase)
+      const continueButton = getByRole('button', { name: 'Continue' });
+      expect(continueButton.props.disabled).toBeTruthy();
+
+      // Enter a complete valid seed phrase
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
+    });
   });
 
   describe('Step 2 UI functionality', () => {
@@ -305,6 +373,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await waitFor(() => {
         expect(getByText('Step 1 of 2')).toBeTruthy();
       });
+    });
+
+    it('should check learn more checkbox', async () => {
+      const { getByTestId } = renderStep2();
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.LEARN_MORE_CHECKBOX_ID,
+      );
+      expect(learnMoreCheckbox).toBeTruthy();
+      fireEvent.press(learnMoreCheckbox);
     });
   });
 });
