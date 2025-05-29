@@ -586,7 +586,9 @@ class WalletConnect2Session {
         ],
       };
 
-      ppomUtil.validateRequest(reqObject, id);
+      ppomUtil.validateRequest(reqObject, {
+        transactionMeta: trx.transactionMeta,
+      });
       const hash = await trx.result;
 
       await this.approveRequest({ id: requestEvent.id + '', result: hash });
