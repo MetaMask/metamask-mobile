@@ -55,7 +55,7 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
+import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import {
   BOTTOM_SHEET_BASE_HEIGHT,
@@ -558,7 +558,7 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedItemList
+        <AccountsConnectedList
           key={accountsConnectedTabKey}
           selectedAddresses={accountAddresses}
           ensByAccountAddress={ensByAccountAddress}
