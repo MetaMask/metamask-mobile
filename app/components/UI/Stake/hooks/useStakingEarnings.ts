@@ -8,14 +8,14 @@ import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
 import useVaultMetadata from './useVaultMetadata';
 
-const useStakingEarnings = () => {
+const useStakingEarnings = (chainId: number) => {
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
-    useVaultMetadata();
+    useVaultMetadata(chainId);
 
   const { currentCurrency, conversionRate } = useBalance();
 
   const { pooledStakesData, isLoadingPooledStakesData, hasStakedPositions } =
-    usePooledStakes();
+    usePooledStakes(chainId);
 
   const lifetimeRewards = pooledStakesData?.lifetimeRewards ?? '0';
 
