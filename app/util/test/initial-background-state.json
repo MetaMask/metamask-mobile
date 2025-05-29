@@ -20,12 +20,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AppMetadataController": {
-    "currentAppVersion": "7.44.0",
-    "currentMigrationVersion": 80,
-    "previousAppVersion": "",
-    "previousMigrationVersion": 0
-  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
