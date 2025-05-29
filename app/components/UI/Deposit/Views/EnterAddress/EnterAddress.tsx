@@ -86,7 +86,7 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
       // TODO: Implement form submission logic and update the route
-      navigation.navigate(Routes.DEPOSIT.BUILD_QUOTE);
+      navigation.navigate(Routes.DEPOSIT.VERIFY_IDENTITY_LOADING);
     }
   }, [navigation, validateFormData]);
 

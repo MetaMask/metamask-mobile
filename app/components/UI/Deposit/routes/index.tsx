@@ -9,6 +9,7 @@ import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
+import VerifyIdentityLoading from '../Views/VerifyIdentityLoading';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,10 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.ENTER_ADDRESS}
         component={EnterAddress}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.VERIFY_IDENTITY_LOADING}
+        component={VerifyIdentityLoading}
       />
     </Stack.Navigator>
   </DepositSDKProvider>

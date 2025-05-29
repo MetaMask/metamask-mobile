@@ -30,6 +30,7 @@ const Routes = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
+    VERIFY_IDENTITY_LOADING: 'VerifyIdentityLoading',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
