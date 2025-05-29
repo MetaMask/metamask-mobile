@@ -33,7 +33,7 @@ import { strings } from '../../../../locales/i18n';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
-import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearchDiscovery/useTokenSearch';
+import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
