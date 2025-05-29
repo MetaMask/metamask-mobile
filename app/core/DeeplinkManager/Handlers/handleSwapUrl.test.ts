@@ -13,7 +13,7 @@ describe('handleSwapUrl', () => {
 
   it('should handle valid CAIP-19 swap URLs correctly', async () => {
     const validSwapPath =
-      '?fromToken=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&toToken=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=0x38d7ea4c68000';
+      '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=0x38d7ea4c68000';
 
     handleSwapUrl({
       swapPath: validSwapPath,
@@ -32,7 +32,7 @@ describe('handleSwapUrl', () => {
 
   it('should handle URLs without leading question mark', async () => {
     const swapPath =
-      'fromToken=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&toToken=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7';
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7';
 
     handleSwapUrl({
       swapPath,
@@ -50,7 +50,7 @@ describe('handleSwapUrl', () => {
   });
 
   it('should handle invalid CAIP format by navigating to SwapsAmountView without params', async () => {
-    const invalidSwapPath = '?fromToken=invalid&toToken=invalid';
+    const invalidSwapPath = '?from=invalid&to=invalid';
 
     handleSwapUrl({
       swapPath: invalidSwapPath,
@@ -77,7 +77,7 @@ describe('handleSwapUrl', () => {
 
   it('should handle invalid hex value by setting amount to 0', async () => {
     const invalidHexPath =
-      '?fromToken=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&toToken=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=invalid';
+      '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=invalid';
 
     handleSwapUrl({
       swapPath: invalidHexPath,
