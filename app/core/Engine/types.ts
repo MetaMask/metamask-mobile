@@ -259,6 +259,14 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerEvents,
+} from '@metamask/seedless-onboarding-controller';
+///: END:ONLY_INCLUDE_IF
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -269,6 +277,9 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { EncryptionKey } from '../Encryptor/types';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
  * Controllers that area always instantiated
@@ -297,12 +308,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -405,6 +416,9 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | SeedlessOnboardingControllerEvents
+  ///: END:ONLY_INCLUDE_IF
   | DeFiPositionsControllerEvents;
 
 /**
@@ -480,6 +494,9 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /**
@@ -544,6 +561,9 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /** Controller names */
@@ -596,6 +616,9 @@ export type ControllersToInitialize =
   | 'TransactionController'
   | 'GasFeeController'
   | 'SignatureController'
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'SeedlessOnboardingController'
+  ///: END:ONLY_INCLUDE_IF`
   | 'DeFiPositionsController';
 
 /**

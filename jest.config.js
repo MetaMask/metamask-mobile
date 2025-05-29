@@ -14,6 +14,8 @@ process.env.LAUNCH_DARKLY_URL =
 
 process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
 
+process.env.WEB3AUTH_NETWORK = 'sapphire_devnet';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],

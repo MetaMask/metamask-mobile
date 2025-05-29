@@ -31,6 +31,10 @@ import { getNotificationServicesControllerMessenger } from './notifications/noti
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
+///: END:ONLY_INCLUDE_IF
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -112,6 +116,12 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  SeedlessOnboardingController: {
+    getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
