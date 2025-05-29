@@ -30,10 +30,12 @@ import { SignatureStateChange } from '@metamask/signature-controller';
 import cloneDeep from 'lodash/cloneDeep';
 
 export interface PPOMRequest {
-  id: number | string;
-  jsonrpc: string;
   method: string;
   params: unknown[];
+
+  // Optional
+  id?: number | string;
+  jsonrpc?: string;
   origin?: string;
 }
 
