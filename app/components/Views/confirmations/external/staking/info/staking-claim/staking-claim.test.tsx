@@ -6,6 +6,10 @@ import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingClaim from './staking-claim';
 
+jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -15,9 +19,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
     GasFeeController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
   },
 }));
