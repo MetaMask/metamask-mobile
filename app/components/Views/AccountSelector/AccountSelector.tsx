@@ -40,7 +40,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,11 +58,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
-
-  const isMultichainAccountsState1Enabled = useSelector(
-    selectMultichainAccountsState1Enabled,
-  );
-  console.log({ isMultichainAccountsState1Enabled });
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
