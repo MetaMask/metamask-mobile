@@ -148,9 +148,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return `eip155:0:${address}` as CaipAccountId;
       }
       return caipAccountId;
-    }))
+    }));
 
-    return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts)
+    return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
   }, [nonRemappedPermittedAccounts]);
 
   const permittedCaipChainIds = getPermittedCaipChainIdsByHostname(
