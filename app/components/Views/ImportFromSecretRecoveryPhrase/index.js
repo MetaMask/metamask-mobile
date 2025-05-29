@@ -452,13 +452,6 @@ const ImportFromSecretRecoveryPhrase = ({
     if (!validateSeedPhrase()) {
       return;
     }
-    if (seedPhrase.length === 0) {
-      Alert.alert(
-        strings('import_from_seed.error'),
-        strings('import_from_seed.seed_phrase_required'),
-      );
-      return;
-    }
     setCurrentStep(currentStep + 1);
   };
 
