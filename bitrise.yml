@@ -1378,17 +1378,19 @@ workflows:
                 # Rename APKs
                 if [ "$IS_DEV_BUILD" = "true" ]; then
                     OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
-                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
+                    OLD_TEST_APK="$TEST_APK_DIR/app-$APP_NAME-debug-androidTest.apk"
+                    NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                    NEW_TEST_APK="$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
+                    mv "$OLD_APK" "$NEW_APK"
+                    mv "$OLD_TEST_APK" "$NEW_TEST_APK"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                    NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                    mv "$OLD_APK" "$NEW_APK"
+                    mv "$OLD_AAB" "$NEW_AAB"
                 fi
-
-                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
-                mv "$OLD_APK" "$NEW_APK"
-                # Rename AAB
-                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                mv "$OLD_AAB" "$NEW_AAB"
 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
@@ -1887,7 +1889,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
