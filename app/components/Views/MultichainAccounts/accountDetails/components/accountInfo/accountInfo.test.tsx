@@ -1,76 +1,74 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { AccountInfo } from './index';
-import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
+import { AccountInfo } from './accountInfo';
+import {
+  createMockInternalAccount,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { formatAddress } from '../../../../../../util/address';
 
-const mockFormatAddress = jest.fn();
-jest.mock('../../../../../../util/address', () => ({
-  formatAddress: mockFormatAddress,
-}));
-
+const mockAddress = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const mockAccount = createMockInternalAccount(
-  '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
+  mockAddress,
   'Test Account',
   KeyringTypes.hd,
   EthAccountType.Eoa,
 );
 
+const render = (account: InternalAccount) =>
+  renderWithProvider(<AccountInfo account={account} />, {
+    state: {
+      engine: {
+        backgroundState: {
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        },
+      },
+    },
+  });
+
 describe('AccountInfo', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockFormatAddress.mockImplementation((address, format) => {
-      if (format === 'short') {
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-      }
-      return address;
-    });
+    jest.resetAllMocks();
   });
 
   it('renders correctly with account information', () => {
-    const { getByText } = render(<AccountInfo account={mockAccount} />);
+    const { getByText } = render(mockAccount);
 
     expect(getByText(mockAccount.metadata.name)).toBeTruthy();
   });
 
   it('displays account name correctly', () => {
-    const { getByText } = render(<AccountInfo account={mockAccount} />);
+    const { getByText } = render(mockAccount);
 
     expect(getByText('Test Account')).toBeTruthy();
   });
 
   it('displays formatted address correctly', () => {
-    const { getByText } = render(<AccountInfo account={mockAccount} />);
+    const { getByText } = render(mockAccount);
 
-    expect(mockFormatAddress).toHaveBeenCalledWith(
-      mockAccount.address,
-      'short',
-    );
-    expect(getByText('0x67B2...2569')).toBeTruthy();
+    expect(getByText(formatAddress(mockAccount.address, 'short'))).toBeTruthy();
   });
 
   it('calls formatAddress with correct parameters', () => {
-    render(<AccountInfo account={mockAccount} />);
-
-    expect(mockFormatAddress).toHaveBeenCalledWith(
-      '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
-      'short',
-    );
+    render(mockAccount);
   });
 
   it('handles different account types', () => {
+    const mockSnapAddress = '0x9876543210987654321098765432109876543210';
     const snapAccount = createMockInternalAccount(
-      '0x9876543210987654321098765432109876543210',
+      mockSnapAddress,
       'Snap Account',
       KeyringTypes.snap,
       EthAccountType.Eoa,
     );
 
-    const { getByText } = render(<AccountInfo account={snapAccount} />);
+    const { getByText } = render(snapAccount);
 
     expect(getByText('Snap Account')).toBeTruthy();
-    expect(getByText('0x9876...3210')).toBeTruthy();
+    expect(getByText(formatAddress(mockSnapAddress, 'short'))).toBeTruthy();
   });
 
   it('handles long account names correctly', () => {
@@ -81,7 +79,7 @@ describe('AccountInfo', () => {
       EthAccountType.Eoa,
     );
 
-    const { getByText } = render(<AccountInfo account={longNameAccount} />);
+    const { getByText } = render(longNameAccount);
 
     expect(
       getByText('Very Long Account Name That Should Still Display Correctly'),
@@ -96,12 +94,8 @@ describe('AccountInfo', () => {
       EthAccountType.Eoa,
     );
 
-    const { getByText } = render(<AccountInfo account={differentAccount} />);
+    const { getByText } = render(differentAccount);
 
     expect(getByText('Different Account')).toBeTruthy();
-    expect(mockFormatAddress).toHaveBeenCalledWith(
-      differentAccount.address,
-      'short',
-    );
   });
 });

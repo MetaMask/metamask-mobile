@@ -24,15 +24,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../../util/address', () => ({
-  formatAddress: jest.fn().mockImplementation((address, format) => {
-    if (format === 'short') {
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-    return address;
-  }),
-}));
-
 const mockAccount = createMockInternalAccount(
   '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
   'Test Account',
