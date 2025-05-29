@@ -4,6 +4,8 @@ import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { useDepositSDK } from '../../sdk';
+import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 const EMAIL = 'test@email.com';
 
@@ -16,6 +18,7 @@ jest.mock('../../sdk', () => ({
     sdkError: null,
     providerApiKey: 'mock-api-key',
     providerFrontendAuth: 'mock-frontend-auth',
+    setAuthToken: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -98,6 +101,33 @@ describe('OtpCode Component', () => {
   });
 
   it('navigates to next screen on submit button press when valid code is entered', async () => {
+    const mockResponse = 'success';
+    const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
+    mockUseDepositSdkMethodValues = {
+      ...mockUseDepositSdkMethodInitialValues,
+      sdkMethod: jest.fn().mockResolvedValue(mockResponse),
+      response: mockResponse,
+    };
+
+    jest.mocked(useDepositSDK).mockReturnValue({
+      email: EMAIL,
+      setEmail: jest.fn(),
+      sdk: {
+        setAccessToken: jest.fn(),
+        getAccessToken: jest.fn(),
+        clearAccessToken: jest.fn(),
+        verifyUserOtp: jest.fn(),
+        sendUserOtp: jest.fn(),
+        getVersion: jest.fn(),
+      } as unknown as NativeRampsSdk,
+      sdkError: undefined,
+      providerApiKey: 'mock-api-key',
+      providerFrontendAuth: 'mock-frontend-auth',
+      setAuthToken: mockSetAuthToken,
+      isAuthenticated: false,
+      checkExistingToken: jest.fn(),
+    });
+
     const { getByTestId } = render(OtpCode);
 
     const codeInput = getByTestId('otp-code-input');
@@ -112,6 +142,7 @@ describe('OtpCode Component', () => {
 
     await waitFor(() => {
       expect(mockUseDepositSdkMethodValues.sdkMethod).toHaveBeenCalled();
+      expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
         undefined,
