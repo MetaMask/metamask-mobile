@@ -79,6 +79,7 @@ pipelines:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
+      - create_build_qa_and_expo: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -2362,5 +2363,3 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
-  - label: 'run_app_launch_times'
-    pipeline: app_launch_times_and_expo_pipeline
