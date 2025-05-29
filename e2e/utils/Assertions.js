@@ -267,6 +267,50 @@ class Assertions {
     }
   }
 
+   /**
+   * Checks if the actual object contains all keys from the expected array
+   * @param {Object} actual - The object to check against
+   * @param {Object} validations - Object with keys and their expected values
+   */
+   static checkIfObjectHasKeysAndValidValues(actual, validations) {
+    const errors = [];
+
+    for (const [key, validation] of Object.entries(validations)) {
+      if (!Object.prototype.hasOwnProperty.call(actual, key)) {
+        errors.push(`Missing key: ${key}`);
+        continue;
+      }
+
+      const value = actual[key];
+
+      if (typeof validation === 'string') {
+        const actualType = typeof value;
+
+        if (Array.isArray(value) && validation === 'array') continue;
+        if (value === null && validation === 'null') continue;
+
+        // Check type
+        if (actualType !== validation && !(Array.isArray(value) && validation === 'array')) {
+          errors.push(`Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`);
+        }
+      }
+      else if (typeof validation === 'function') {
+        try {
+          const valid = validation(value);
+          if (!valid) {
+            errors.push(`Validation failed for key "${key}": custom validator returned false`);
+          }
+        } catch (err) {
+          errors.push(`Validation error for key "${key}": ${err.message}`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new Error('Object validation failed:\n' + errors.join('\n'));
+    }
+  }
+
   /**
    * Check if element is enabled
    * @param {Promise<Detox.IndexableNativeElement>} element - The element to check
