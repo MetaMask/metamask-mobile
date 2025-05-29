@@ -4,13 +4,13 @@
 export enum AccountConnectMultiSelectorScreens {
   AccountMultiSelector = 'AccountMultiSelector',
   AddAccountActions = 'AddAccountActions',
-  AddNewAccount = 'AddNewAccount',
 }
 
-import { CaipAccountId } from '@metamask/utils';
 // External dependencies.
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
+import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 /**
  * AccountConnectMultiSelector props.
@@ -19,6 +19,7 @@ export interface AccountConnectMultiSelectorProps
   extends Omit<UseAccounts, 'evmAccounts'> {
   defaultSelectedAddresses: CaipAccountId[];
   onSubmit: (addresses: CaipAccountId[]) => void;
+  onCreateAccount: (clientType?: WalletClientType, scope?: CaipChainId) => void;
   isLoading?: boolean;
   hostname: string;
   isAutoScrollEnabled?: boolean;

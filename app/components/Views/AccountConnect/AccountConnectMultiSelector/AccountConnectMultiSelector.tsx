@@ -30,25 +30,18 @@ import {
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
-import {
-  CaipAccountId,
-  CaipChainId,
-  parseCaipChainId,
-  toCaipAccountId,
-} from '@metamask/utils';
+import { CaipAccountId } from '@metamask/utils';
 import { Box } from '../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../UI/Box/box.types';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import AddAccountSelection from '../AddAccount/AddAccount';
-import AddNewAccount from '../../AddNewAccount/AddNewAccount';
-import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
   defaultSelectedAddresses,
   onSubmit,
+  onCreateAccount,
   isLoading,
   isAutoScrollEnabled = true,
   hostname,
@@ -66,14 +59,6 @@ const AccountConnectMultiSelector = ({
   const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
     [],
   );
-
-  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
-    | {
-        clientType?: WalletClientType;
-        scope?: CaipChainId;
-      }
-    | undefined
-  >(undefined);
 
   useEffect(() => {
     setSelectedAddresses(defaultSelectedAddresses);
@@ -227,6 +212,9 @@ const AccountConnectMultiSelector = ({
             >
               {accounts?.length > 0 && renderSelectAllCheckbox()}
               <ButtonLink
+                testID={
+                  AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+                }
                 style={styles.newAccountButton}
                 label={strings('accounts.new_account')}
                 width={ButtonWidthTypes.Full}
@@ -291,39 +279,11 @@ const AccountConnectMultiSelector = ({
           setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector);
         }}
         onCreateAccount={(clientType, scope) => {
-          setMultichainAccountOptions({ clientType, scope });
-          setScreen(AccountConnectMultiSelectorScreens.AddNewAccount);
+          onCreateAccount(clientType, scope);
         }}
       />
     ),
     [],
-  );
-
-  const renderAddNewAccount = useCallback(
-    ({
-      clientType,
-      scope,
-    }: {
-      clientType?: WalletClientType;
-      scope?: CaipChainId;
-    }) => (
-      <AddNewAccount
-        scope={scope}
-        clientType={clientType}
-        onActionComplete={(account: InternalAccount) => {
-          const { namespace, reference } = parseCaipChainId(account.scopes[0]);
-          const caipAccountId = toCaipAccountId(
-            namespace,
-            reference,
-            account.address,
-          );
-          setSelectedAddresses([...selectedAddresses, caipAccountId]);
-          onSubmit([...selectedAddresses, caipAccountId]);
-        }}
-        onBack={onBack}
-      />
-    ),
-    [onBack, selectedAddresses, onSubmit],
   );
 
   const renderAccountScreens = useCallback(() => {
@@ -332,18 +292,10 @@ const AccountConnectMultiSelector = ({
         return renderAccountConnectMultiSelector();
       case AccountConnectMultiSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountConnectMultiSelectorScreens.AddNewAccount:
-        return renderAddNewAccount(multichainAccountOptions || {});
       default:
         return renderAccountConnectMultiSelector();
     }
-  }, [
-    screen,
-    renderAccountConnectMultiSelector,
-    renderAddAccountActions,
-    renderAddNewAccount,
-    multichainAccountOptions,
-  ]);
+  }, [screen, renderAccountConnectMultiSelector, renderAddAccountActions]);
 
   return renderAccountScreens();
 };

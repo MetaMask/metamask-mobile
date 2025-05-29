@@ -94,6 +94,7 @@ import {
   KnownCaipNamespace,
   parseCaipAccountId,
   parseCaipChainId,
+  toCaipAccountId,
 } from '@metamask/utils';
 import {
   getAllNamespacesFromCaip25CaveatValue,
@@ -104,6 +105,9 @@ import {
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import AddNewAccount from '../AddNewAccount';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -159,7 +163,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
+      // otherwise, if we have supported requested CAIP chain IDs, use those
     } else if (supportedRequestedCaipChainIds.length > 0) {
       return supportedRequestedCaipChainIds;
     }
@@ -258,6 +262,15 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  // If it is undefined, it will enter the regular eth account creation flow.
+  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+    | {
+        clientType?: WalletClientType;
+        scope?: CaipChainId;
+      }
+    | undefined
+  >(undefined);
 
   const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
 
@@ -802,6 +815,13 @@ const AccountConnect = (props: AccountConnectProps) => {
         ensByAccountAddress={ensByAccountAddress}
         defaultSelectedAddresses={selectedAddresses}
         onSubmit={handleAccountsSelected}
+        onCreateAccount={(clientType, scope) => {
+          setMultichainAccountOptions({
+            clientType,
+            scope,
+          });
+          setScreen(AccountConnectScreens.AddNewAccount);
+        }}
         isLoading={isLoading}
         onBack={() => {
           setScreen(AccountConnectScreens.SingleConnect);
@@ -833,6 +853,36 @@ const AccountConnect = (props: AccountConnectProps) => {
       />
     ),
     [isLoading, handleNetworksSelected, hostnameFromUrlObj, selectedChainIds],
+  );
+
+  const renderAddNewAccount = useCallback(
+    ({
+      clientType,
+      scope,
+    }: {
+      clientType?: WalletClientType;
+      scope?: CaipChainId;
+    }) => (
+      <AddNewAccount
+        scope={scope}
+        clientType={clientType}
+        onActionComplete={(account: InternalAccount) => {
+          const [scope] = account.scopes;
+          const { namespace, reference } = parseCaipChainId(scope);
+          const caipAccountId = toCaipAccountId(
+            namespace,
+            reference,
+            account.address,
+          );
+          setSelectedAddresses([...selectedAddresses, caipAccountId]);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
+        onBack={() => {
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
+      />
+    ),
+    [selectedAddresses],
   );
 
   const renderPhishingModal = useCallback(
@@ -883,6 +933,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectNetworkSelector:
         return renderMultiConnectNetworkSelectorScreen();
+      case AccountConnectScreens.AddNewAccount:
+        return renderAddNewAccount(multichainAccountOptions || {});
     }
   }, [
     screen,
@@ -892,6 +944,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
+    multichainAccountOptions,
   ]);
 
   return (
