@@ -7,9 +7,9 @@ const useVaultApys = (chainId: number) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const vaultApys =
-    useSelector(pooledStakingSelectors.selectVaultDailyApysForChain(chainId)) ??
-    [];
+  const vaultApys = useSelector(
+    pooledStakingSelectors.selectVaultDailyApysForChain(chainId),
+  );
 
   const fetchVaultApys = async () => {
     setIsLoading(true);

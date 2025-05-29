@@ -110,7 +110,8 @@ const selectExchangeRateForChain = (chainId: number) =>
 const selectVaultDailyApysForChain = (chainId: number) =>
   createSelector(
     selectPooledStakingPerChain,
-    (pooledStakingPerChain) => pooledStakingPerChain?.[chainId]?.vaultDailyApys,
+    (pooledStakingPerChain) =>
+      pooledStakingPerChain?.[chainId]?.vaultDailyApys ?? [],
   );
 
 const selectVaultApyAveragesForChain = (chainId: number) =>

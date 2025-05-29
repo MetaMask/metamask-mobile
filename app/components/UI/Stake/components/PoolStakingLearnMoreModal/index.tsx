@@ -92,7 +92,7 @@ const PoolStakingLearnMoreModal = () => {
 
   const { params } = useRoute<PoolStakingLeanMoreModalProps['route']>();
 
-  const tokenChainId = Number(params.token.chainId ?? 1);
+  const tokenChainId = Number(params.token.chainId);
 
   const { vaultApys, isLoadingVaultApys } = useVaultApys(tokenChainId);
 
