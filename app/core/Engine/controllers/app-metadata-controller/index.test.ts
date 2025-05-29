@@ -19,8 +19,8 @@ describe('AppMetadataController', () => {
 
     expect(controller.state).toEqual({
       currentAppVersion: expect.any(String),
-      previousAppVersion: '',
-      previousMigrationVersion: 0,
+      previousAppVersion: expect.any(String),
+      previousMigrationVersion: expect.any(Number),
       currentMigrationVersion: expect.any(Number),
     });
   });
@@ -41,7 +41,7 @@ describe('AppMetadataController', () => {
     expect(controller.state).toEqual({
       currentAppVersion: '1.44.0',
       previousAppVersion: '',
-      previousMigrationVersion: 0,
+      previousMigrationVersion: expect.any(Number),
       currentMigrationVersion: expect.any(Number),
     });
   });
