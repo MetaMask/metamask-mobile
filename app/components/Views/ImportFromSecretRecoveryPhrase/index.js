@@ -752,6 +752,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoComplete="off"
                           blurOnSubmit={false}
                           autoCapitalize="none"
+                          testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
                         />
                       ) : (
                         <View
@@ -875,6 +876,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
                     isDisabled={isSRPContinueButtonDisabled() || Boolean(error)}
+                    testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
                   />
                 </View>
               </View>
@@ -984,7 +986,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                     }
                     testID={
-                      ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                     isDisabled={password === ''}
                   />
@@ -1025,6 +1027,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       </Text>
                     </View>
                   }
+                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
               </View>
 
@@ -1037,6 +1040,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   disabled={isContinueButtonDisabled()}
                   size={ButtonSize.Lg}
                   isDisabled={isContinueButtonDisabled()}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 />
               </View>
             </View>

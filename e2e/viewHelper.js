@@ -119,21 +119,26 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
+  await TestHelpers.delay(3500);
+  
+  // should import wallet with secret recovery phrase
+  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.tapTitle();
+  await ImportWalletView.tapContinueButton();
+
+  await CreatePasswordView.enterPassword(password ?? validAccount.password);
+  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
 
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
-
-  await TestHelpers.delay(3500);
-  // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(
-    seedPhrase ?? validAccount.seedPhrase,
-  );
-  await ImportWalletView.enterPassword(password ?? validAccount.password);
-  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
