@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { TransactionMeta, UserFeeLevel } from '@metamask/transaction-controller';
 import { pickBy } from 'lodash';
 
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -52,7 +52,7 @@ export const AdvancedEIP1559Modal = ({
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
-      userFeeLevel: 'custom',
+      userFeeLevel: UserFeeLevel.CUSTOM,
       ...pickBy(gasParams, Boolean),
     });
     handleCloseModals();
