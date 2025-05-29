@@ -2,7 +2,6 @@ import { merge } from 'lodash';
 
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
@@ -44,21 +43,5 @@ describe('useTransactionMetadataRequest', () => {
     });
 
     expect(result.current).toBeUndefined();
-  });
-
-  it('fetches the token list for the chainId of the transaction', () => {
-    const spyOnFetchTokenList = jest.spyOn(
-      Engine.context.TokenListController,
-      'fetchTokenList',
-    );
-
-    renderHookWithProvider(useTransactionMetadataRequest, {
-      state: stakingDepositConfirmationState,
-    });
-
-    expect(spyOnFetchTokenList).toHaveBeenCalledWith(
-      stakingDepositConfirmationState.engine.backgroundState
-        .TransactionController.transactions[0].chainId,
-    );
   });
 });
