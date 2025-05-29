@@ -99,7 +99,7 @@ async function validateRequest(
     return;
   }
 
-  if (req.method === 'eth_sendTransaction') {
+  if (req.method === METHOD_SEND_TRANSACTION) {
     const internalAccounts = AccountsController.listAccounts();
     const { from: fromAddress, to: toAddress } = req
       ?.params?.[0] as Partial<TransactionParams>;
