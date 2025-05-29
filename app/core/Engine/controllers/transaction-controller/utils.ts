@@ -3,6 +3,8 @@ import { ORIGIN_METAMASK } from '@metamask/approval-controller';
 import {
   TransactionStatus,
   TransactionType,
+  GasFeeEstimateType,
+  GasFeeEstimateLevel,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
@@ -165,6 +167,7 @@ export async function generateDefaultTransactionMetrics(
   const { chainId, status, type, id } = transactionMeta;
 
   const batchProperties = await getBatchProperties(transactionMeta);
+  const gasFeeProperties = getGasMetricProperties(transactionMeta);
 
   const mergedDefaultProperties = merge(
     {
@@ -172,6 +175,7 @@ export async function generateDefaultTransactionMetrics(
       properties: {
         ...batchProperties,
         chain_id: chainId,
+        ...gasFeeProperties,
         status,
         source: 'MetaMask Mobile',
         transaction_type: getTransactionTypeValue(type),
@@ -216,4 +220,44 @@ export function generateRPCProperties(chainId: string) {
     sensitiveProperties: {},
   };
   return rpcMetrics;
+}
+
+function getGasMetricProperties(transactionMeta: TransactionMeta) {
+  const {
+    gasFeeEstimatesLoaded,
+    gasFeeEstimates,
+    dappSuggestedGasFees,
+    userFeeLevel,
+  } = transactionMeta;
+  const { type: gasFeeEstimateType } = gasFeeEstimates ?? {};
+
+  // Advanced is always presented
+  const presentedGasFeeOptions = ['custom'];
+
+  if (gasFeeEstimatesLoaded) {
+    if (
+      gasFeeEstimateType === GasFeeEstimateType.FeeMarket ||
+      gasFeeEstimateType === GasFeeEstimateType.Legacy
+    ) {
+      presentedGasFeeOptions.push(
+        GasFeeEstimateLevel.Low,
+        GasFeeEstimateLevel.Medium,
+        GasFeeEstimateLevel.High,
+      );
+    }
+
+    if (gasFeeEstimateType === GasFeeEstimateType.GasPrice) {
+      presentedGasFeeOptions.push('network_proposed');
+    }
+
+    if (dappSuggestedGasFees) {
+      presentedGasFeeOptions.push('dapp_proposed');
+    }
+  }
+
+  return {
+    gas_estimation_failed: !gasFeeEstimatesLoaded,
+    gas_fee_presented: presentedGasFeeOptions,
+    gas_fee_selected: userFeeLevel,
+  };
 }
