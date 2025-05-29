@@ -2,7 +2,12 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
-import { EXISTING_USER, FRESH_INSTALL_CHECK_DONE } from '../constants/storage';
+import {
+  EXISTING_USER,
+  FRESH_INSTALL_CHECK_DONE,
+  CURRENT_APP_VERSION,
+  LAST_APP_VERSION,
+} from '../constants/storage';
 import Logger from '../util/Logger';
 import { Platform } from 'react-native';
 /**
@@ -179,10 +184,17 @@ class StorageWrapper {
             'APP_LAUNCHED_BEFORE',
           );
 
-          if (hasMMKVUserData && !hasAsyncStorageMarker) {
-            // iOS restore detected
+          // Get current app version
+          const currentVersion = await storage.getItem(CURRENT_APP_VERSION);
+          const lastVersion = await storage.getItem(LAST_APP_VERSION);
+
+          // If this is an app update (currentVersion !== lastVersion) or a restore (hasMMKVUserData && hasAsyncStorageMarker === null)
+          if (
+            currentVersion !== lastVersion ||
+            (hasMMKVUserData && hasAsyncStorageMarker === null)
+          ) {
+            // Clear MMKV storage to ensure a clean state
             await storage.clearAll();
-            // Note: Redux state might still be there via FilesystemStorage,
           }
 
           // Set markers for future checks
