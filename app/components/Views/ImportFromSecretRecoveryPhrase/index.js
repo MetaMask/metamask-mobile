@@ -88,6 +88,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { useMetrics } from '../../hooks/useMetrics';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -108,6 +109,7 @@ const ImportFromSecretRecoveryPhrase = ({
   seedphraseBackedUp,
   setOnboardingWizardStep,
   route,
+  dispatchSaveOnboardingEvent,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -159,7 +161,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
   const checkValidSeedWord = useCallback((text) => wordlist.includes(text), []);
@@ -1078,7 +1080,14 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Action to set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1086,6 +1095,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(

@@ -71,6 +71,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -204,6 +205,10 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Action to save onboarding event
+     */
+    dispatchSaveOnboardingEvent: PropTypes.func,
   };
 
   state = {
@@ -230,7 +235,10 @@ class ChoosePassword extends PureComponent {
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(
+      eventBuilder.build(),
+      this.props.dispatchSaveOnboardingEvent,
+    );
   };
 
   updateNavBar = () => {
@@ -808,6 +816,7 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 const mapStateToProps = (state) => ({});

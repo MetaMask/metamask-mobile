@@ -366,9 +366,10 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build(), [
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event).build(),
       this.props.dispatchSaveOnboardingEvent,
-    ]);
+    );
   };
 
   alertExistingUser = (callback) => {
