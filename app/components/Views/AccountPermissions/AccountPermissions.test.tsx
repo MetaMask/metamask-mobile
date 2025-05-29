@@ -135,6 +135,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountsController: {
       listAccounts: jest.fn(() => MOCK_USE_ACCOUNTS_RETURN),
+      listMultichainAccounts: jest.fn(() => MOCK_INTERNAL_ACCOUNTS),
       getAccountByAddress: jest.fn((address: string) =>
         MOCK_INTERNAL_ACCOUNTS.find((account) => account.address === address),
       ),
