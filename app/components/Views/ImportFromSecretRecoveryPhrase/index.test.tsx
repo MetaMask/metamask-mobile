@@ -4,6 +4,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { strings } from '../../../../locales/i18n';
+import { Authentication } from '../../../core';
 
 const initialState = {
   user: {
@@ -387,6 +388,141 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       expect(learnMoreCheckbox).toBeTruthy();
       fireEvent.press(learnMoreCheckbox);
+    });
+  });
+
+  describe('Import functionality', () => {
+    const renderStep2WithInputs = () => {
+      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+        );
+
+      // Enter valid seed phrase and continue to step 2
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+      fireEvent.press(continueButton);
+
+      // Enter password and confirm password
+      const passwordInput = getByPlaceholderText('Enter a strong password');
+      const confirmPasswordInput = getByPlaceholderText(
+        'Re-enter your password',
+      );
+
+      return {
+        getByText,
+        getByPlaceholderText,
+        getByRole,
+        getByTestId,
+        passwordInput,
+        confirmPasswordInput,
+      };
+    };
+
+    it('should show error when password requirements are not met', async () => {
+      const { getByText, passwordInput, confirmPasswordInput } =
+        renderStep2WithInputs();
+
+      // Enter weak password
+      fireEvent.changeText(passwordInput, 'weak');
+      fireEvent.changeText(confirmPasswordInput, 'weak');
+
+      // Check learn more checkbox
+      const learnMoreCheckbox = getByText(
+        'MetaMask can’t reset this password if you forget it',
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      // Try to import
+      const confirmButton = getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(getByText('Password strength: Weak')).toBeTruthy();
+      });
+    });
+
+    it('should show error when passwords do not match', async () => {
+      const { getByText, passwordInput, confirmPasswordInput } =
+        renderStep2WithInputs();
+
+      // Enter different passwords
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
+
+      // Check learn more checkbox
+      const learnMoreCheckbox = getByText(
+        'MetaMask can’t reset this password if you forget it',
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      // Try to import
+      const confirmButton = getByText('Confirm');
+      fireEvent.press(confirmButton);
+      expect(confirmButton).toBeTruthy();
+    });
+
+    it('should show error when seed phrase is invalid', async () => {
+      const { getByText, getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter invalid seed phrase
+      const input = getByPlaceholderText(
+        'Add a space between each word and make sure no one is watching 👀',
+      );
+      fireEvent.changeText(
+        input,
+        'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.invalid_seed_phrase')),
+        ).toBeTruthy();
+      });
+    });
+
+    it('should show error when passcode is not set', async () => {
+      const { getByText, passwordInput, confirmPasswordInput } =
+        renderStep2WithInputs();
+
+      // Enter valid passwords
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      // Check learn more checkbox
+      const learnMoreCheckbox = getByText(
+        'MetaMask can’t reset this password if you forget it',
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      // Mock Authentication.newWalletAndRestore to throw passcode error
+      jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
+
+      // Try to import
+      const confirmButton = getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(getByText('Unlock with Face ID?')).toBeTruthy();
+      });
     });
   });
 });
