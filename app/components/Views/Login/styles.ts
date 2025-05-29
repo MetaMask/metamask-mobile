@@ -135,6 +135,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 80,
       height: 40,
       marginTop: 10,
+      tintColor: colors.icon.default,
     },
     input: {
       width: '100%',
