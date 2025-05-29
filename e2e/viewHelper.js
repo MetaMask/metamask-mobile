@@ -72,7 +72,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   try {
-    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+    await SolanaNewFeatureSheet.tapNotNowButton();
   } catch {
     /* eslint-disable no-console */
 
@@ -117,16 +117,10 @@ export const importWalletWithRecoveryPhrase = async ({
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
+  await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
   await TestHelpers.delay(3500);
-  await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -137,6 +131,19 @@ export const importWalletWithRecoveryPhrase = async ({
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
+
+  try {
+    if (optInToMetrics) {
+      await MetaMetricsOptIn.tapAgreeButton();
+    } else {
+      await MetaMetricsOptIn.tapNoThanksButton();
+    }
+  } catch (error) {
+    /* eslint-disable no-console */
+    console.log('The metrics opt in modal is not visible');
+  }
+
+
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
