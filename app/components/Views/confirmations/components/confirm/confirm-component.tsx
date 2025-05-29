@@ -14,6 +14,7 @@ import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import GeneralAlertBanner from '../general-alert-banner';
 import Info from '../info-root';
 import Title from '../title';
@@ -32,23 +33,25 @@ const ConfirmWrapped = ({
 
   return (
     <ConfirmationContextProvider>
-      <AlertsContextProvider alerts={alerts}>
-        <QRHardwareContextProvider>
-          <LedgerContextProvider>
-            <Title />
-            <ScrollView style={styles.scrollView} nestedScrollEnabled>
-              <TouchableWithoutFeedback>
-                <>
-                  <GeneralAlertBanner />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-            <Splash />
-          </LedgerContextProvider>
-        </QRHardwareContextProvider>
-      </AlertsContextProvider>
+      <ConfirmationAssetPollingProvider>
+        <AlertsContextProvider alerts={alerts}>
+          <QRHardwareContextProvider>
+            <LedgerContextProvider>
+              <Title />
+              <ScrollView style={styles.scrollView} nestedScrollEnabled>
+                <TouchableWithoutFeedback>
+                  <>
+                    <GeneralAlertBanner />
+                    <Info route={route} />
+                  </>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+              <Footer />
+              <Splash />
+            </LedgerContextProvider>
+          </QRHardwareContextProvider>
+        </AlertsContextProvider>
+      </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );
 };
