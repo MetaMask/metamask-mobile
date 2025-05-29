@@ -73,8 +73,6 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 
 export interface BridgeRouteParams {
@@ -105,9 +103,6 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
   const {
     activeQuote,
     isLoading,
@@ -119,12 +114,8 @@ const BridgeView = () => {
   } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const isHardwareAddress = selectedAddress
-    ? !!isHardwareAccount(selectedAddress)
-    : false;
+  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const isHardwareAddress = selectedAddress ? !!isHardwareAccount(selectedAddress) : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
