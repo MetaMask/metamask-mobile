@@ -63,7 +63,8 @@ describe(
       }
     });
 
-    it('retrieves all previously synced accounts', async () => {
+    // TODO: enable this test when MetaMetricsOptIn is back
+    it.skip('retrieves all previously synced accounts', async () => {
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const decryptedAccountNames = await Promise.all(
