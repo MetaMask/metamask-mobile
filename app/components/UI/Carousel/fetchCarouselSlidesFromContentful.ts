@@ -1,6 +1,7 @@
-import { createClient, type Entry, type EntrySkeletonType } from 'contentful';
+import { createClient, type EntrySkeletonType } from 'contentful';
 import { CarouselSlide } from './types';
 import { isProduction } from '../../../util/environment';
+import { ACCESS_TOKEN, SPACE_ID } from './constants';
 
 export interface ContentfulCarouselSlideFields {
   headline: string;
@@ -16,8 +17,6 @@ export interface ContentfulCarouselSlideFields {
 export type ContentfulSlideSkeleton =
   EntrySkeletonType<ContentfulCarouselSlideFields>;
 
-const SPACE_ID = process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID;
-const ACCESS_TOKEN = process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN;
 const ENVIRONMENT = isProduction() ? 'master' : 'dev';
 const CONTENT_TYPE = 'promotionalBanner';
 const DEFAULT_DOMAIN = isProduction()
@@ -32,20 +31,23 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
   prioritySlides: CarouselSlide[];
   regularSlides: CarouselSlide[];
 }> {
-  if (!SPACE_ID || !ACCESS_TOKEN) {
+  const spaceId = SPACE_ID();
+  const accessToken = ACCESS_TOKEN();
+
+  if (!spaceId || !accessToken) {
     console.warn(
       'Missing Contentful env variables: FEATURES_ANNOUNCEMENTS_SPACE_ID, FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN.',
     );
     return { prioritySlides: [], regularSlides: [] };
   }
 
-  const host = `https://${DEFAULT_DOMAIN}/spaces/${SPACE_ID}/environments/${ENVIRONMENT}/entries`;
+  const host = `https://${DEFAULT_DOMAIN}/spaces/${spaceId}/environments/${ENVIRONMENT}/entries`;
 
   // First try through the Contentful Client
   try {
     const contentfulClient = createClient({
-      space: SPACE_ID,
-      accessToken: ACCESS_TOKEN,
+      space: spaceId,
+      accessToken,
       environment: ENVIRONMENT,
       host,
     });
@@ -63,9 +65,11 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
     // If the Contentful SDK fails, fall back to a direct fetch
     console.warn('Contentful SDK failed, falling back to direct fetch', err);
   }
+
+  // Otherwise fallback to URL fetch
   try {
     const url = new URL(`${host}`);
-    url.searchParams.set('access_token', ACCESS_TOKEN);
+    url.searchParams.set('access_token', accessToken);
     url.searchParams.set('content_type', CONTENT_TYPE);
     url.searchParams.set('fields.showInMobile', 'true');
 
@@ -77,8 +81,8 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
     );
     return { prioritySlides, regularSlides };
   } catch (fallbackError) {
-    console.error(
-      '[fetchCarouselSlidesFromContentful] Fallback fetch failed:',
+    console.warn(
+      '[fetchCarouselSlidesFromContentful] Fallback fetch failed, gracefully failing.',
       fallbackError,
     );
     return { prioritySlides: [], regularSlides: [] };
@@ -86,7 +90,9 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
 }
 
 function mapContentfulEntriesToSlides(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   items: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   assets: any[],
 ): { prioritySlides: CarouselSlide[]; regularSlides: CarouselSlide[] } {
   if (!items || !Array.isArray(items)) {

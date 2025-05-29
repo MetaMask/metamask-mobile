@@ -112,3 +112,7 @@ export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };
+
+export const SPACE_ID = () => process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID;
+export const ACCESS_TOKEN = () =>
+  process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN;
