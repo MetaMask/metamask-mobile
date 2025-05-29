@@ -386,6 +386,7 @@ const EarnWithdrawInputView = () => {
       params: {
         amountWei: amountTokenMinimalUnit.toString(),
         amountFiat: amountFiatNumber,
+        chainId: token?.chainId,
       },
     });
 
@@ -403,6 +404,7 @@ const EarnWithdrawInputView = () => {
     confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
     navigation,
+    token?.chainId,
     trackEvent,
   ]);
 
