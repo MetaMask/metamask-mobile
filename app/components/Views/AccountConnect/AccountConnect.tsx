@@ -936,7 +936,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       case AccountConnectScreens.MultiConnectNetworkSelector:
         return renderMultiConnectNetworkSelectorScreen();
       case AccountConnectScreens.AddNewAccount:
-        return renderAddNewAccount(multichainAccountOptions || {});
+        return renderAddNewAccount(multichainAccountOptions ?? {});
     }
   }, [
     screen,
