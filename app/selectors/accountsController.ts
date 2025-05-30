@@ -20,6 +20,7 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 /**
  *
@@ -93,6 +94,13 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
       return bLastSelected - aLastSelected;
     });
   },
+);
+
+export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
+  [selectInternalAccounts, (_state, address) => address],
+  (internalAccounts, address) => internalAccounts.find((account) =>
+      isEqualCaseInsensitive(account.address, address),
+    ),
 );
 
 /**

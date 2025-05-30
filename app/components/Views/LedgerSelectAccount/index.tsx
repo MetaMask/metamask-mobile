@@ -7,8 +7,8 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import ledgerDeviceLightImage from 'images/ledger-device-light.png';
-import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
+import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
+import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import {
   forgetLedger,
   getHDPath,

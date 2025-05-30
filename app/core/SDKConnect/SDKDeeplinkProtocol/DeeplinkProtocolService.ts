@@ -24,6 +24,14 @@ import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -281,7 +289,16 @@ export default class DeeplinkProtocolService {
 
     return permissionsController.requestPermissions(
       { origin: channelId },
-      { eth_accounts: {} },
+      {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: getDefaultCaip25CaveatValue(),
+            },
+          ],
+        },
+      },
     );
   }
 
@@ -551,18 +568,6 @@ export default class DeeplinkProtocolService {
   }
 
   public getSelectedAccounts() {
-    const permissionController = (
-      Engine.context as {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
-    const permissions = permissionController.getPermissions(
-      this.currentClientId ?? '',
-    );
-
     const accountsController = (
       Engine.context as {
         AccountsController: AccountsController;
@@ -573,8 +578,7 @@ export default class DeeplinkProtocolService {
       accountsController.getSelectedAccount().address,
     );
 
-    let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
-      ?.value as string[];
+    let connectedAddresses = getPermittedAccounts(this.currentClientId ?? '');
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,

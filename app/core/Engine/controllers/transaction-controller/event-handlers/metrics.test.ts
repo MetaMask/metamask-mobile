@@ -18,7 +18,13 @@ import {
   enabledSmartTransactionsState,
 } from '../data-helpers';
 
-jest.mock('../../../../../util/smart-transactions');
+jest.mock('../../../../../util/smart-transactions', () => {
+  const actual = jest.requireActual('../../../../../util/smart-transactions');
+  return {
+    ...actual,
+    getSmartTransactionMetricsProperties: jest.fn(),
+  };
+});
 
 // Mock dependencies
 jest.mock('../../../../Analytics', () => ({

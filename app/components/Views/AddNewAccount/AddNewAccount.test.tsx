@@ -51,39 +51,48 @@ jest.mock('../../../actions/multiSrp', () => ({
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
 const mockMultichainWalletSnapClient = {
   createAccount: mockCreateMultichainAccount,
+  getSnapId: jest.fn().mockReturnValue('mock-snap-id'),
+  getSnapName: jest.fn().mockReturnValue('mock-snap-name'),
+  getScopes: jest.fn().mockReturnValue([]),
+  getSnapSender: jest.fn().mockReturnValue({}),
+  withSnapKeyring: jest.fn().mockImplementation(async (callback) => {
+    await callback({ createAccount: mockCreateMultichainAccount });
+  }),
 };
 
 jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapClient: jest
-    .fn()
-    .mockImplementation(() => mockMultichainWalletSnapClient),
+  WalletClientType: {
+    Bitcoin: 'bitcoin',
+    Solana: 'solana',
+  },
+  MultichainWalletSnapFactory: {
+    createClient: jest
+      .fn()
+      .mockImplementation(() => mockMultichainWalletSnapClient),
+  },
 }));
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockKeyringMetadata1 = {
-  id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
-  name: '',
-};
-
-const mockKeyringMetadata2 = {
-  id: '01JKZ56KRVYEEHC601HSNW28T2',
-  name: '',
-};
-
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount1.address],
-  metadata: mockKeyringMetadata1,
+  metadata: {
+    id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+    name: '',
+  },
 };
 
 const mockKeyring2 = {
   type: ExtendedKeyringTypes.hd,
   accounts: [internalAccount2.address],
-  metadata: mockKeyringMetadata2,
+  metadata: {
+    id: '01JKZ56KRVYEEHC601HSNW28T2',
+    name: '',
+  },
 };
 
 const mockNextAccountName = 'Account 3';
@@ -95,7 +104,6 @@ const initialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: {
         keyrings: [mockKeyring1, mockKeyring2],
-        keyringsMetadata: [mockKeyringMetadata1, mockKeyringMetadata2],
       },
     },
   },
@@ -200,7 +208,7 @@ describe('AddNewAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata2.id,
+      mockKeyring2.metadata.id,
       mockNextAccountName,
     );
   });
@@ -215,7 +223,7 @@ describe('AddNewAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata2.id,
+      mockKeyring2.metadata.id,
       'My Custom Account',
     );
   });
@@ -317,7 +325,7 @@ describe('AddNewAccount', () => {
         ).toHaveBeenCalledWith({
           scope: MultichainNetwork.Solana,
           accountNameSuggestion: 'Solana Account 1',
-          entropySource: mockKeyringMetadata2.id,
+          entropySource: mockKeyring2.metadata.id,
         });
       });
     });
@@ -371,5 +379,40 @@ describe('AddNewAccount', () => {
 
       expect(addButton.props.disabled).toBe(true);
     });
+
+    it.each([
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+        expectedHeader: 'account_actions.headers.solana',
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+        expectedHeader: 'account_actions.headers.bitcoin',
+      },
+    ])(
+      'shows the correct header for $clientType',
+      async ({ scope, clientType, expectedHeader }) => {
+        mockCreateMultichainAccount.mockRejectedValueOnce(
+          new Error(`Failed to create ${clientType} account`),
+        );
+
+        const { getByText } = render(initialState, {
+          params: {
+            scope,
+            clientType,
+          },
+        });
+
+        expect(
+          getByText(
+            strings('account_actions.add_multichain_account', {
+              networkName: strings(expectedHeader),
+            }),
+          ),
+        ).toBeDefined();
+      },
+    );
   });
 });

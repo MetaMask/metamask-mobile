@@ -22,6 +22,7 @@ exports[`CopyButton should match snapshot 1`] = `
 >
   <SvgMock
     color="#686e7d"
+    fill="currentColor"
     height={16}
     name="Copy"
     style={

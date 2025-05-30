@@ -235,9 +235,10 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const renderOverlay = useCallback(() => {
     return <Animated.View style={animatedOverlayStyle} />;
   }, []);
-
+  // Drawer view is no longer in the UI
   const renderContent = useCallback(() => {
     return (
+      // @ts-expect-error - PanGestureHandler is not correctly typed and react-natige-gesture-handler is outdated
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View style={[animatedDrawerStyle, style]}>
           <Animated.View style={animatedTouchableStyle}>

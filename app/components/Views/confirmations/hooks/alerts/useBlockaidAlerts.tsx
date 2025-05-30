@@ -1,17 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
 import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
-import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
-import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 // TODO: Remove legacy import
 import { REASON_TITLE_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
 import BlockaidAlertContent from '../../components/blockaid-alert-content/blockaid-alert-content';
+import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 const IGNORED_RESULT_TYPES = [
   BlockaidResultType.Benign,
@@ -69,33 +67,8 @@ const getConfirmModalDescription = (reason: Reason) => {
 };
 
 export default function useBlockaidAlerts(): Alert[] {
-  const signatureRequest = useSignatureRequest();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const {
-    type,
-    messageParams: { from: fromAddress },
-  } = signatureRequest ?? {
-    messageParams: {},
-  };
-
-  const onContactUsClicked = useCallback(() => {
-    const analyticsParams = {
-      ...getAnalyticsParams(
-        {
-          from: fromAddress,
-        },
-        type,
-      ),
-      external_link_clicked: 'security_alert_support_link',
-    };
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SIGNATURE_REQUESTED)
-        .addProperties(analyticsParams)
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder, type, fromAddress]);
+  const { trackBlockaidAlertLinkClickedEvent } = useConfirmationMetricEvents();
 
   const isResultTypeIgnored = IGNORED_RESULT_TYPES.includes(
     securityAlertResponse?.result_type as BlockaidResultType,
@@ -115,7 +88,7 @@ export default function useBlockaidAlerts(): Alert[] {
           <BlockaidAlertContent
             alertDetails={features}
             securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
-            onContactUsClicked={onContactUsClicked}
+            onContactUsClicked={trackBlockaidAlertLinkClickedEvent}
           />
         ),
         // The blockaid message displays in the confirm alert modal when the only alert is a blockaid alert
@@ -124,7 +97,11 @@ export default function useBlockaidAlerts(): Alert[] {
         severity: getBlockaidAlertSeverity(result_type as BlockaidResultType),
       },
     ] as Alert[];
-  }, [securityAlertResponse, isResultTypeIgnored, onContactUsClicked]);
+  }, [
+    isResultTypeIgnored,
+    securityAlertResponse,
+    trackBlockaidAlertLinkClickedEvent,
+  ]);
 
   return alerts;
 }

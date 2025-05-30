@@ -310,25 +310,23 @@ export function getInternalAccountByAddress(
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
   const { KeyringController } = Engine.context;
-  const { keyrings, keyringsMetadata } = KeyringController.state;
+  const { keyrings } = KeyringController.state;
   const internalAccount = getInternalAccountByAddress(address);
-  const hdKeyringsWithMetadata = keyrings
-    .map((keyring, index) => ({
-      ...keyring,
-      metadata: keyringsMetadata[index],
-    }))
-    .filter((keyring) => keyring.type === ExtendedKeyringTypes.hd);
+  const hdKeyrings = keyrings.filter(
+    (keyring) => keyring.type === ExtendedKeyringTypes.hd,
+  );
   const keyring = internalAccount?.metadata?.keyring;
+  // We do show pills only if we have multiple SRPs (and thus, multiple HD keyrings).
+  const shouldShowSrpPill = hdKeyrings.length > 1;
 
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.hd:
-        if (hdKeyringsWithMetadata.length > 1) {
-          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
-            (kr: KeyringObject) =>
-              kr.accounts.find((account) =>
-                isEqualCaseInsensitive(account, address),
-              ),
+        if (shouldShowSrpPill) {
+          const hdKeyringIndex = hdKeyrings.findIndex((kr: KeyringObject) =>
+            kr.accounts.find((account) =>
+              isEqualCaseInsensitive(account, address),
+            ),
           );
           // -1 means the address is not found in any of the hd keyrings
           if (hdKeyringIndex !== -1) {
@@ -344,14 +342,19 @@ export function getLabelTextByAddress(address: string) {
         return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap: {
-        const { entropySource } = internalAccount?.options || {};
-        if (entropySource) {
-          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
-            (kr) => kr.metadata.id === entropySource,
-          );
-          // -1 means the address is not found in any of the hd keyrings
-          if (hdKeyringIndex !== -1) {
-            return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+        // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
+        // 1. For the SRP (if they provide `options.entropySource`)
+        // 2. For the "Snap tag" (`accounts.snap_account_tag`)
+        if (shouldShowSrpPill) {
+          const { entropySource } = internalAccount?.options || {};
+          if (entropySource) {
+            const hdKeyringIndex = hdKeyrings.findIndex(
+              (kr) => kr.metadata.id === entropySource,
+            );
+            // -1 means the address is not found in any of the hd keyrings
+            if (hdKeyringIndex !== -1) {
+              return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+            }
           }
         }
 

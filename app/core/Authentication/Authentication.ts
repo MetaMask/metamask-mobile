@@ -31,6 +31,12 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Holds auth data used to determine auth configuration
@@ -85,6 +91,17 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -101,6 +118,18 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
+    const client = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Solana,
+      {
+        setSelectedAccount: false,
+      },
+    );
+    await client.addDiscoveredAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
     password = this.wipeSensitiveData();
   };
 

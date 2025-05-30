@@ -13,6 +13,7 @@ interface BottomModalProps {
   hideBackground?: boolean;
   testID?: string;
   visible?: boolean;
+  isTooltip?: boolean;
 }
 
 /**
@@ -25,9 +26,10 @@ const BottomModal = ({
   onClose,
   testID,
   visible = true,
+  isTooltip = false,
 }: BottomModalProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isTooltip });
 
   return (
     <Modal

@@ -73,6 +73,13 @@ const Settings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
+  const onPressBackupAndSync = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_BACKUP_AND_SYNC).build(),
+    );
+    navigation.navigate(Routes.SETTINGS.BACKUP_AND_SYNC);
+  };
+
   const onPressSecurity = () => {
     trackEvent(
       createEventBuilder(
@@ -224,6 +231,12 @@ const Settings = () => {
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
+      />
+      <SettingsDrawer
+        description={strings('backupAndSync.description')}
+        onPress={onPressBackupAndSync}
+        title={strings('backupAndSync.title')}
+        testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
       />
       {isNotificationsFeatureEnabled() && (
         <SettingsDrawer

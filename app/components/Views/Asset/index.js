@@ -20,8 +20,6 @@ import AppConstants from '../../../core/AppConstants';
 import {
   getFeatureFlagChainId,
   setSwapsLiveness,
-  swapsLivenessMultichainSelector,
-  swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
@@ -69,12 +67,10 @@ import {
 } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import {
-  isAssetFromSearch,
-  selectSupportedSwapTokenAddressesForChainId,
-} from '../../../selectors/tokenSearchDiscoveryDataController';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -525,17 +521,11 @@ class Asset extends PureComponent {
       ? isSwapsAllowed(asset.chainId)
       : isSwapsAllowed(chainId);
 
-    let isSwapsAssetAllowed;
-    if (asset.isETH || asset.isNative) {
-      isSwapsAssetAllowed = true;
-    } else if (isAssetFromSearch(asset)) {
-      isSwapsAssetAllowed = this.props.searchDiscoverySwapsTokens?.includes(
-        asset.address?.toLowerCase(),
-      );
-    } else {
-      isSwapsAssetAllowed =
-        asset.address?.toLowerCase() in this.props.swapsTokens;
-    }
+    const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+      asset,
+      searchDiscoverySwapsTokens: this.props.searchDiscoverySwapsTokens,
+      swapsTokens: this.props.swapsTokens,
+    });
 
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -591,9 +581,7 @@ class Asset extends PureComponent {
 Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: isPortfolioViewEnabled()
-    ? swapsLivenessMultichainSelector(state, route.params.chainId)
-    : swapsLivenessSelector(state),
+  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),

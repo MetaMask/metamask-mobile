@@ -9,6 +9,7 @@ import {
 import Engine from '../../../core/Engine';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 // Polls native currency prices across networks.
 const useAccountTrackerPolling = ({
@@ -20,6 +21,7 @@ const useAccountTrackerPolling = ({
   );
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
@@ -42,6 +44,12 @@ const useAccountTrackerPolling = ({
 
   const { AccountTrackerController } = Engine.context;
 
+  const input = isEvmSelected
+    ? chainIdsToPoll.map((chainId) => ({
+        networkClientIds: [chainId.networkClientId],
+      }))
+    : [];
+
   usePolling({
     startPolling: AccountTrackerController.startPolling.bind(
       AccountTrackerController,
@@ -50,7 +58,7 @@ const useAccountTrackerPolling = ({
       AccountTrackerController.stopPollingByPollingToken.bind(
         AccountTrackerController,
       ),
-    input: chainIdsToPoll,
+    input,
   });
 
   return {
