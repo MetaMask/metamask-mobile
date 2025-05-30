@@ -12,7 +12,6 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
-import images from '../../../../../../images/image-icons';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useNft } from '../../../hooks/nft/useNft';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
@@ -55,10 +54,7 @@ const NftImageAndNetworkBadge = ({
   }
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.touchableOpacity}
-    >
+    <TouchableOpacity onPress={onPress} style={styles.touchableOpacity}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -82,12 +78,7 @@ export const HeroNft = () => {
 
   return (
     <Hero
-      componentAsset={
-        <NftImageAndNetworkBadge
-          chainId={chainId}
-          nft={nft}
-        />
-      }
+      componentAsset={<NftImageAndNetworkBadge chainId={chainId} nft={nft} />}
       title={name}
       subtitle={`#${tokenId}`}
     />
