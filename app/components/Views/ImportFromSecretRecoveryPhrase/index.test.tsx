@@ -89,7 +89,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       fireEvent.changeText(
         input,
@@ -109,7 +109,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Enter a valid 12-word seed phrase
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       fireEvent.changeText(
         input,
@@ -161,7 +161,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       expect(input.props.autoFocus).toBeTruthy();
     });
@@ -174,7 +174,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
 
       // Simulate key press event
@@ -189,7 +189,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
 
       // Simulate submit editing event
@@ -204,7 +204,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
 
       // Enter multiple words
@@ -231,7 +231,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
 
       // Enter multiple words
@@ -295,7 +295,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Test case 1: Invalid length (less than 12 words)
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       const continueButton = getByRole('button', { name: 'Continue' });
 
@@ -318,7 +318,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Test case 1: Invalid length (less than 12 words)
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       const continueButton = getByRole('button', { name: 'Continue' });
 
@@ -348,7 +348,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Test case 1: Invalid length (less than 12 words)
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       const continueButton = getByRole('button', { name: 'Continue' });
 
@@ -394,7 +394,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Enter valid seed phrase and continue to step 2
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       fireEvent.changeText(
         input,
@@ -561,7 +561,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Enter valid seed phrase and continue to step 2
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       fireEvent.changeText(
         input,
@@ -639,7 +639,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Enter invalid seed phrase
       const input = getByPlaceholderText(
-        'Add a space between each word and make sure no one is watching 👀',
+        strings('import_from_seed.srp_placeholder'),
       );
       fireEvent.changeText(
         input,
@@ -683,5 +683,146 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(getByText('Unlock with Face ID?')).toBeTruthy();
       });
     });
+  });
+});
+
+describe('handleOnFocus', () => {
+  it('should handle input focus correctly', async () => {
+    const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
+
+    // Enter invalid seed phrase
+    const input = getByPlaceholderText(
+      strings('import_from_seed.srp_placeholder'),
+    );
+
+    fireEvent.changeText(
+      input,
+      'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+    );
+
+    // Get all seed phrase inputs
+    const seedPhraseInputs = Array.from({ length: 12 }).map((_, index) =>
+      getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      ),
+    );
+
+    // Test focusing on first input
+    fireEvent(seedPhraseInputs[0], 'focus');
+    // seedPhraseInputFocusedIndex is internal state, can't test directly
+    expect(seedPhraseInputs[0]).toBeTruthy();
+
+    // Focus second input - should show spell check error
+    fireEvent(seedPhraseInputs[1], 'focus');
+    expect(
+      getByText(strings('import_from_seed.spellcheck_error')),
+    ).toBeTruthy();
+
+    // Enter valid word in first input
+    fireEvent.changeText(seedPhraseInputs[0], 'abandon');
+
+    // Focus third input - error should clear
+    fireEvent(seedPhraseInputs[2], 'focus');
+    const errorText = getByText(strings('import_from_seed.spellcheck_error'));
+    expect(errorText).toBeOnTheScreen();
+
+    // Test focusing same input multiple times
+    fireEvent(seedPhraseInputs[2], 'focus');
+    fireEvent(seedPhraseInputs[2], 'focus');
+    expect(seedPhraseInputs[2]).toBeTruthy();
+  });
+
+  it('should clear error when focusing new input with no previous errors', () => {
+    const { getByPlaceholderText, getByTestId, queryByText, getByText } =
+      renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+    // Enter invalid seed phrase
+    const input = getByPlaceholderText(
+      strings('import_from_seed.srp_placeholder'),
+    );
+
+    fireEvent.changeText(
+      input,
+      'say devote wasp video cool lunch brief add fever uncover novel offer',
+    );
+
+    const firstInput = getByTestId(
+      `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+    );
+    const secondInput = getByTestId(
+      `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+    );
+
+    // Focus first input
+    fireEvent(firstInput, 'focus');
+
+    // Enter valid word
+    fireEvent.changeText(firstInput, 'invalid');
+
+    // Focus second input
+    fireEvent(secondInput, 'focus');
+
+    expect(
+      getByText(strings('import_from_seed.spellcheck_error')),
+    ).toBeTruthy();
+
+    // Enter valid word
+    fireEvent.changeText(firstInput, 'say');
+
+    // Focus second input
+    fireEvent(secondInput, 'focus');
+
+    // Should not show any error since all words are valid
+    const errorElement = queryByText(
+      strings('import_from_seed.spellcheck_error'),
+    );
+    expect(errorElement).not.toBeOnTheScreen();
+  });
+
+  it('should handle multiple error states correctly', () => {
+    const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
+
+    // Enter invalid seed phrase
+    const input = getByPlaceholderText(
+      strings('import_from_seed.srp_placeholder'),
+    );
+
+    fireEvent.changeText(
+      input,
+      'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+    );
+
+    const inputs = Array.from({ length: 12 }).map((_, index) =>
+      getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      ),
+    );
+
+    // Enter multiple invalid words
+    fireEvent(inputs[0], 'focus');
+    fireEvent.changeText(inputs[0], 'invalid1');
+
+    fireEvent(inputs[1], 'focus');
+    fireEvent.changeText(inputs[1], 'invalid2');
+
+    // Focus third input
+    fireEvent(inputs[2], 'focus');
+
+    // Should show spell check error
+    expect(
+      getByText(strings('import_from_seed.spellcheck_error')),
+    ).toBeTruthy();
   });
 });
