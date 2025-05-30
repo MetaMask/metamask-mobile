@@ -118,33 +118,9 @@ export const importWalletWithRecoveryPhrase = async ({
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
+
+  await TestHelpers.delay(3500);
   await OnboardingView.tapImportWalletFromSeedPhrase();
-  await TestHelpers.delay(3500);
-  
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
-  // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(
-    seedPhrase ?? validAccount.seedPhrase,
-  );
-  await ImportWalletView.tapTitle();
-  await ImportWalletView.tapContinueButton();
-
-  await CreatePasswordView.enterPassword(password ?? validAccount.password);
-  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
-  await CreatePasswordView.tapCreatePasswordButton();
 
   await TestHelpers.delay(3500);
 
@@ -153,19 +129,13 @@ export const importWalletWithRecoveryPhrase = async ({
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
-  await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
+  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);

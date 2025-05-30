@@ -60,7 +60,10 @@ const ManualBackupStep2 = ({
         route,
         {
           headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
+              onPress={() => navigation.goBack()}
+            >
               <Icon
                 name={IconName.ArrowLeft}
                 size={IconSize.Lg}
@@ -91,8 +94,6 @@ const ManualBackupStep2 = ({
   }, [route.params?.words, gridWords]);
 
   const goNext = () => {
-    // eslint-disable-next-line no-console
-    console.log('goNext', validateWords());
     if (validateWords()) {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
@@ -235,6 +236,7 @@ const ManualBackupStep2 = ({
               return (
                 <TouchableOpacity
                   key={index}
+                  testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
                   style={[
                     styles.gridItem,
                     isEmpty && styles.emptySlot,
