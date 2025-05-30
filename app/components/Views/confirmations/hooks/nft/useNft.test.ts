@@ -2,7 +2,6 @@ import { MOCK_STATE_NFT } from '../../../../../util/test/mock-data/root-state/nf
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useNft } from './useNft';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { renderHook } from '@testing-library/react-hooks';
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
@@ -22,9 +21,8 @@ describe('useNft', () => {
     const { result } = renderHookWithProvider(useNft, {
       state: MOCK_STATE_NFT,
     });
-    
+
     expect(result.current.chainId).toBe('0x1');
-    expect(result.current.isFirstPartyContractName).toBe(false);
     expect(result.current.name).toBe('Test Dapp NFTs');
     expect(result.current.nft).toBeDefined();
     expect(result.current.nft?.tokenId).toBe('12345');
