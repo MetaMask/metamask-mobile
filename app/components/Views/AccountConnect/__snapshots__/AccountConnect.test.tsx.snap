@@ -304,6 +304,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -313,6 +314,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -321,6 +324,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
@@ -1572,6 +1576,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -1581,6 +1586,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -1589,6 +1596,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
@@ -2840,6 +2848,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -2849,6 +2858,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -2857,6 +2868,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}

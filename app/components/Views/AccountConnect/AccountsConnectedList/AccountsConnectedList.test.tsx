@@ -14,7 +14,7 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 
 // Internal dependencies.
-import AccountsConnectedItemList from './AccountsConnectedItemList';
+import AccountsConnectedList from './AccountsConnectedList';
 
 type HandleEditAccountsButtonPress = () => void;
 
@@ -68,7 +68,7 @@ function renderWithProvider(ui: React.ReactElement, state = initialState) {
 describe('AccountsConnectedItemList', () => {
   it('renders a list of accounts', () => {
     const { getByText } = renderWithProvider(
-      <AccountsConnectedItemList
+      <AccountsConnectedList
         selectedAddresses={['eip155:1:0x123', 'eip155:1:0x456']}
         ensByAccountAddress={mockEnsByAccountAddress}
         accounts={mockAccounts}
@@ -85,7 +85,7 @@ describe('AccountsConnectedItemList', () => {
   it('calls handleEditAccountsButtonPress when edit button is pressed', () => {
     const onEdit = jest.fn();
     const { getByText } = renderWithProvider(
-      <AccountsConnectedItemList
+      <AccountsConnectedList
         selectedAddresses={['eip155:1:0x123']}
         ensByAccountAddress={mockEnsByAccountAddress}
         accounts={mockAccounts}
@@ -100,7 +100,7 @@ describe('AccountsConnectedItemList', () => {
 
   it('hides balances when privacyMode is true', () => {
     const { getAllByTestId } = renderWithProvider(
-      <AccountsConnectedItemList
+      <AccountsConnectedList
         selectedAddresses={['eip155:1:0x123']}
         ensByAccountAddress={mockEnsByAccountAddress}
         accounts={mockAccounts}
