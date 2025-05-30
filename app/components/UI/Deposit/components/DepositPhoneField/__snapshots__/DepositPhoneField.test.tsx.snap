@@ -78,6 +78,7 @@ exports[`DepositPhoneField should render default settings correctly 1`] = `
         }
       }
       testID="deposit-phone-field-test-id"
+      value=""
     />
   </View>
 </View>

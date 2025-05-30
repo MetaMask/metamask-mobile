@@ -1,4 +1,3 @@
-// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
@@ -10,6 +9,11 @@ import Text, {
 import TextField, {
   TextFieldSize,
 } from '../../../../../component-library/components/Form/TextField';
+import { formatUSPhoneNumber } from '../../utils';
+
+jest.mock('../../utils', () => ({
+  formatUSPhoneNumber: jest.fn(),
+}));
 
 const DEPOSIT_PHONE_FIELD_TEST_ID = 'deposit-phone-field-test-id';
 
@@ -181,5 +185,16 @@ describe('DepositPhoneField', () => {
       borderTopLeftRadius: 0,
       borderBottomLeftRadius: 0,
     });
+  });
+
+  // Then add this new test within the existing describe block:
+  it('should call formatUSPhoneNumber and pass raw value to onChangeText', () => {
+    const wrapper = shallow(<DepositPhoneField {...defaultProps} />);
+    const textField = wrapper.find(TextField);
+
+    const inputPhoneNumber = '1234567890';
+    textField.prop('onChangeText')(inputPhoneNumber);
+    expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
+    expect(mockOnChangeText).toHaveBeenCalledWith('1234567890');
   });
 });
