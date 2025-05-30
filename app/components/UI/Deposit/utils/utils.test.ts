@@ -1,4 +1,3 @@
-// Import the function directly
 import { formatUSPhoneNumber } from './index';
 
 describe('formatUSPhoneNumber', () => {
