@@ -3,57 +3,70 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 class SendActionBottomSheet {
-    get solanaAddressInputField() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD);
-      }
+  get solanaAddressInputField() {
+    return Matchers.getElementByID(
+      SendActionViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD,
+    );
+  }
 
-      get solanaAmountInputField() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.SOLANA_INPUT_AMOUNT_FIELD);
-      }
-    
-      get invalidAddressError() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.INVALID_ADDRESS_ERROR);
-      }
+  get solanaAmountInputField() {
+    return Matchers.getElementByID(
+      SendActionViewSelectorsIDs.SOLANA_INPUT_AMOUNT_FIELD,
+    );
+  }
 
-      get continueButton() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.CONTINUE_BUTTON);
-      }
+  get invalidAddressError() {
+    return Matchers.getElementByID(
+      SendActionViewSelectorsIDs.INVALID_ADDRESS_ERROR,
+    );
+  }
 
-      get cancelButton() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.CANCEL_BUTTON);
-      }
+  get continueButton() {
+    return Matchers.getElementByID(SendActionViewSelectorsIDs.CONTINUE_BUTTON);
+  }
 
-      get closeModalButton() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.CLOSE_BUTTON);
-      }
-    
-      get sendSOLTransactionButton() {
-        return Matchers.getElementByID(SendActionViewSelectorsIDs.SEND_TRANSACTION_BUTTON);
-      }
+  get cancelButton() {
+    return Matchers.getElementByID(SendActionViewSelectorsIDs.CANCEL_BUTTON);
+  }
 
-      async sendActionInputAddress(address) {
-        await Gestures.replaceTextInField(this.solanaAddressInputField, address);
-      }
-    
-      async sendActionInputAmount(amount) {
-        await Gestures.replaceTextInField(this.solanaAmountInputField, amount);
-      }
+  get closeModalButton() {
+    return Matchers.getElementByID(SendActionViewSelectorsIDs.CLOSE_BUTTON);
+  }
 
-      async tapSendSOLTransactionButton() {
-        await Gestures.waitAndTap(this.sendSOLTransactionButton);
-      }
+  get sendSOLTransactionButton() {
+    return Matchers.getElementByID(
+      SendActionViewSelectorsIDs.SEND_TRANSACTION_BUTTON,
+    );
+  }
 
-      async tapCancelButton() {
-        await Gestures.waitAndTap(this.cancelButton);
-      } 
+  async sendActionInputAddress(address) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.solanaAddressInputField,
+      address,
+    );
+  }
 
-      async tapContinueButton() {
-        await Gestures.waitAndTap(this.continueButton, { skipVisibilityCheck: true });
-      }
+  async sendActionInputAmount(amount) {
+    await Gestures.typeTextAndHideKeyboard(this.solanaAmountInputField, amount);
+  }
 
-      async tapCloseButton() {
-        await Gestures.waitAndTap(this.closeModalButton);
-      }
+  async tapSendSOLTransactionButton() {
+    await Gestures.waitAndTap(this.sendSOLTransactionButton);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapContinueButton() {
+    await Gestures.waitAndTap(this.continueButton, {
+      skipVisibilityCheck: true,
+    });
+  }
+
+  async tapCloseButton() {
+    await Gestures.waitAndTap(this.closeModalButton);
+  }
 }
 
-export default new SendActionBottomSheet;
+export default new SendActionBottomSheet();
