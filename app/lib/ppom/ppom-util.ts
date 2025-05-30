@@ -333,9 +333,11 @@ function normalizeTransactionRequest(
 
   const txParams = (Array.isArray(request.params) ? request.params[0] : {}) as TransactionParams;
 
+  // Provide the estimated gas to PPOM rather than relying on PPOM to estimate the gas values
   txParams.gas = transactionMeta?.txParams?.gas;
   txParams.gasPrice = transactionMeta?.txParams?.maxFeePerGas ?? transactionMeta?.txParams?.gasPrice;
 
+  // Remove unused request params for PPOM
   delete txParams.gasLimit;
   delete txParams.maxFeePerGas;
   delete txParams.maxPriorityFeePerGas;
