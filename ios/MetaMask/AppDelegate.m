@@ -29,7 +29,13 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
-
+  
+  // Exclude MMKV directory from iCloud and iTunes backup
+  NSString *mmkvPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/mmkv"];
+  NSURL *mmkvURL = [NSURL fileURLWithPath:mmkvPath];
+  NSError *error = nil;
+  [mmkvURL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:&error];
+  
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
