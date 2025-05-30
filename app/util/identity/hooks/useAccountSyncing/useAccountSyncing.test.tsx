@@ -11,7 +11,6 @@ interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
   isBackupAndSyncEnabled: boolean;
   isAccountSyncingEnabled: boolean;
-  isContactSyncingEnabled: boolean;
   isUnlocked: boolean;
   useExternalServices: boolean;
   completedOnboarding: boolean;
@@ -33,7 +32,6 @@ const arrangeMockState = (
         UserStorageController: {
           isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
           isAccountSyncingEnabled: stateOverrides.isAccountSyncingEnabled,
-          isContactSyncingEnabled: stateOverrides.isContactSyncingEnabled,
           isAccountSyncingReadyToBeDispatched:
             stateOverrides.isAccountSyncingReadyToBeDispatched,
         },
@@ -56,7 +54,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       'isSignedIn',
       'isBackupAndSyncEnabled',
       'isAccountSyncingEnabled',
-      'isContactSyncingEnabled',
       'isUnlocked',
       'useExternalServices',
       'completedOnboarding',
@@ -66,7 +63,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       isSignedIn: true,
       isBackupAndSyncEnabled: true,
       isAccountSyncingEnabled: true,
-      isContactSyncingEnabled: false,
       isUnlocked: true,
       useExternalServices: true,
       completedOnboarding: true,
@@ -148,7 +144,6 @@ describe('useAccountSyncing', () => {
         isAccountSyncingReadyToBeDispatched: true,
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: true,
-        isContactSyncingEnabled: false,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,
@@ -167,7 +162,6 @@ describe('useAccountSyncing', () => {
         isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: true,
-        isContactSyncingEnabled: false,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,

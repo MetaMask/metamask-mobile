@@ -10,12 +10,10 @@ import {
 interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
   isBackupAndSyncEnabled: boolean;
-  isAccountSyncingEnabled: boolean;
   isContactSyncingEnabled: boolean;
   isUnlocked: boolean;
   useExternalServices: boolean;
   completedOnboarding: boolean;
-  isAccountSyncingReadyToBeDispatched: boolean;
 }
 
 const arrangeMockState = (
@@ -32,10 +30,7 @@ const arrangeMockState = (
         },
         UserStorageController: {
           isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
-          isAccountSyncingEnabled: stateOverrides.isAccountSyncingEnabled,
           isContactSyncingEnabled: stateOverrides.isContactSyncingEnabled,
-          isAccountSyncingReadyToBeDispatched:
-            stateOverrides.isAccountSyncingReadyToBeDispatched,
         },
       },
     },
@@ -55,22 +50,18 @@ describe('useShouldDispatchContactSyncing()', () => {
     const properties = [
       'isSignedIn',
       'isBackupAndSyncEnabled',
-      'isAccountSyncingEnabled',
       'isContactSyncingEnabled',
       'isUnlocked',
       'useExternalServices',
       'completedOnboarding',
-      'isAccountSyncingReadyToBeDispatched',
     ] as const;
     const baseState = {
       isSignedIn: true,
       isBackupAndSyncEnabled: true,
-      isAccountSyncingEnabled: false,
       isContactSyncingEnabled: true,
       isUnlocked: true,
       useExternalServices: true,
       completedOnboarding: true,
-      isAccountSyncingReadyToBeDispatched: false,
     };
 
     const failureStateCases: {
@@ -145,9 +136,7 @@ describe('useContactSyncing', () => {
     const { mocks, dispatchContactSyncing, shouldDispatchContactSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
-        isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
-        isAccountSyncingEnabled: false,
         isContactSyncingEnabled: true,
         isSignedIn: true,
         isUnlocked: true,
@@ -160,14 +149,12 @@ describe('useContactSyncing', () => {
     expect(shouldDispatchContactSyncing).toBe(true);
   });
 
-  it('should not dispatch conditions are not met', async () => {
+  it('should not dispatch when conditions are not met', async () => {
     const { mocks, dispatchContactSyncing, shouldDispatchContactSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
-        isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
-        isAccountSyncingEnabled: false,
-        isContactSyncingEnabled: true,
+        isContactSyncingEnabled: false,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,
