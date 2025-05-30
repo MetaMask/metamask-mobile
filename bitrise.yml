@@ -80,7 +80,7 @@ pipelines:
       - create_build_qa_and_expo: {}
       # - build_smoke_e2e_ios_android_stage: {}
       # - run_smoke_e2e_ios_android_stage: {}
-      # - notify: {}
+      - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
@@ -1569,7 +1569,15 @@ workflows:
                 mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug"
                 
                 # Copy the debug APK to the expected location
-                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/debug/app-debug.apk" "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
+                # The source APK is in a different location for devbuilds
+                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/debug/app-debug.apk" "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" || true
+                
+                # Also try the alternate location
+                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk" || true
+                
+                # List the contents to debug
+                ls -la "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/" || true
+                find "$BITRISE_SOURCE_DIR/android/app/build/outputs" -name "*.apk" || true
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
