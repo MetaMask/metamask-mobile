@@ -26,7 +26,8 @@ import {
   generateRPCProperties,
   generateDefaultTransactionMetrics,
 } from './utils';
-
+// eslint-disable-next-line import/no-namespace
+import * as TransactionUtilities from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { IMetaMetricsEvent } from '../../../Analytics/MetaMetrics.types';
 import {
@@ -330,6 +331,20 @@ describe('generateDefaultTransactionMetrics', () => {
     );
 
     expect(result.properties.transaction_type).toBe('unknown');
+  });
+
+  it('adds transaction_contract_method to the metrics', async () => {
+    jest.spyOn(TransactionUtilities, 'getMethodData').mockResolvedValue({
+      name: 'transfer',
+    } as never);
+
+    const result = await generateDefaultTransactionMetrics(
+      mockMetametricsEvent,
+      mockTransactionMeta as TransactionMeta,
+      mockEventHandlerRequest as TransactionEventHandlerRequest,
+    );
+
+    expect(result.properties.transaction_contract_method).toEqual(['transfer']);
   });
 
   describe('gas related metrics', () => {
