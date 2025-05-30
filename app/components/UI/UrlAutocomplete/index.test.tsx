@@ -31,7 +31,7 @@ const defaultState = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
-jest.mock('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery', () => {
+jest.mock('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch', () => {
   const searchTokens = jest.fn();
   const results: TokenSearchResponseItem[] = [];
   const reset = jest.fn();
