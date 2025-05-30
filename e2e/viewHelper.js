@@ -72,7 +72,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   try {
-    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+    await SolanaNewFeatureSheet.tapNotNowButton();
   } catch {
     /* eslint-disable no-console */
 
@@ -120,7 +120,28 @@ export const importWalletWithRecoveryPhrase = async ({
   await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await TestHelpers.delay(3500);
-  
+
+  // should import wallet with secret recovery phrase
+  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.tapTitle();
+  await ImportWalletView.tapContinueButton();
+
+  await CreatePasswordView.enterPassword(password ?? validAccount.password);
+  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
+
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
+
+  await TestHelpers.delay(3500);
+
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -268,10 +289,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }

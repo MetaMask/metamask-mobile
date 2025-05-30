@@ -101,15 +101,7 @@ const ManualBackupStep2 = ({
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OptinMetrics', {
-            steps: route.params?.steps,
-            words,
-            onContinue: () => {
-              navigation.navigate('OnboardingSuccess', {
-                showPasswordHint: true,
-              });
-            },
-          });
+          navigation.navigate('OnboardingSuccess');
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
@@ -169,7 +161,7 @@ const ManualBackupStep2 = ({
 
         // Clear selection completely if this was the last word
         const remaining = updatedGrid.filter((w) => w !== '');
-        setSelectedSlot(remaining.length === 0 ? null : null); // ← always reset for top-down behavior
+        setSelectedSlot(null); // ← always reset for top-down behavior
         return;
       }
 

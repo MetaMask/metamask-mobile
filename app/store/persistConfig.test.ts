@@ -113,7 +113,6 @@ describe('persistConfig', () => {
       expect(persistConfig.version).toBe(version);
       expect(persistConfig.timeout).toBe(40000);
       expect(persistConfig.blacklist).toEqual([
-        'onboarding',
         'rpcEvents',
         'accounts',
         'confirmationMetrics',
@@ -232,7 +231,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have engine transform configured', () => {
-      expect(persistConfig.transforms).toHaveLength(2);
+      expect(persistConfig.transforms).toHaveLength(3);
       const engineTransform = persistConfig.transforms[0] as Transform<
         unknown,
         unknown
@@ -246,6 +245,14 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(userTransform.whitelist).toEqual(['user']);
+    });
+
+    it('has onboarding transform configured', () => {
+      const onboardingTransform = persistConfig.transforms[2] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(onboardingTransform.whitelist).toEqual(['onboarding']);
     });
 
     describe('persistTransform', () => {
@@ -285,7 +292,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -313,7 +319,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -327,7 +332,6 @@ describe('persistConfig', () => {
               vault: 'encrypted-vault-data',
               isUnlocked: true,
               keyrings: ['keyring1', 'keyring2'],
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
               encryptionKey: 'secret-key',
               encryptionSalt: 'salt-value',
             },
@@ -339,7 +343,6 @@ describe('persistConfig', () => {
           backgroundState: {
             KeyringController: {
               vault: 'encrypted-vault-data',
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
             },
           },
         });
@@ -352,7 +355,6 @@ describe('persistConfig', () => {
               vault: { persist: true, anonymous: false },
               isUnlocked: { persist: false, anonymous: true },
               keyrings: { persist: false, anonymous: false },
-              keyringsMetadata: { persist: true, anonymous: false },
               encryptionKey: { persist: false, anonymous: false },
               encryptionSalt: { persist: false, anonymous: false },
             },
@@ -389,7 +391,6 @@ describe('persistConfig', () => {
               vault: 'encrypted-vault-data',
               isUnlocked: true,
               keyrings: ['keyring1', 'keyring2'],
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
               encryptionKey: 'secret-key',
               encryptionSalt: 'salt-value',
             },
@@ -419,7 +420,6 @@ describe('persistConfig', () => {
           backgroundState: {
             KeyringController: {
               vault: 'encrypted-vault-data',
-              keyringsMetadata: { keyring1: { name: 'HD Key Tree' } },
             },
             PreferencesController: {
               selectedAddress: '0x123',

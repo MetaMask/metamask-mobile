@@ -8,13 +8,14 @@ import EnterEmail from '../Views/EnterEmail';
 import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';
 import OtpCode from '../Views/OtpCode';
+import VerifyIdentity from '../Views/VerifyIdentity';
 
 const Stack = createStackNavigator();
-const VerifyIdentity = () => (
+const BasicInfo = () => (
   <View>
     {/* eslint-disable-next-line react-native/no-inline-styles */}
     <Text style={{ textAlign: 'center', marginTop: 40 }}>
-      Verify your identity placeholder
+      Basic Info form placeholder
     </Text>
   </View>
 );
@@ -27,9 +28,10 @@ const DepositRoutes = () => (
       <Stack.Screen name={Routes.DEPOSIT.ENTER_EMAIL} component={EnterEmail} />
       <Stack.Screen name={Routes.DEPOSIT.OTP_CODE} component={OtpCode} />
       <Stack.Screen
-        name={Routes.DEPOSIT.ID_VERIFY}
+        name={Routes.DEPOSIT.VERIFY_IDENTITY}
         component={VerifyIdentity}
       />
+      <Stack.Screen name={Routes.DEPOSIT.BASIC_INFO} component={BasicInfo} />
     </Stack.Navigator>
   </DepositSDKProvider>
 );

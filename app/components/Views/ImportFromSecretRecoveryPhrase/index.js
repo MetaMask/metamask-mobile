@@ -42,7 +42,6 @@ import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-// import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
@@ -63,7 +62,6 @@ import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
@@ -84,10 +82,10 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import SeedphraseModal from '../../UI/SeedphraseModal';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { useMetrics } from '../../hooks/useMetrics';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -108,21 +106,20 @@ const ImportFromSecretRecoveryPhrase = ({
   seedphraseBackedUp,
   setOnboardingWizardStep,
   route,
+  dispatchSaveOnboardingEvent,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const seedPhraseInputRefs = useRef([]);
-  const { toastRef } = useContext(ToastContext);
+  const confirmPasswordInput = useRef();
 
-  const passwordInput = React.createRef();
-  const confirmPasswordInput = React.createRef();
+  const { toastRef } = useContext(ToastContext);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
-  const [seed, setSeed] = useState('');
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [biometryChoice, setBiometryChoice] = useState(true);
@@ -159,7 +156,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build());
+    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
   const checkValidSeedWord = useCallback((text) => wordlist.includes(text), []);
@@ -264,7 +261,10 @@ const ImportFromSecretRecoveryPhrase = ({
         route,
         {
           headerLeft: () => (
-            <TouchableOpacity onPress={onBackPress}>
+            <TouchableOpacity
+              onPress={onBackPress}
+              testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
+            >
               <Icon
                 name={IconName.ArrowLeft}
                 size={24}
@@ -275,7 +275,10 @@ const ImportFromSecretRecoveryPhrase = ({
           ),
           headerRight: () =>
             currentStep === 0 ? (
-              <TouchableOpacity onPress={onQrCodePress}>
+              <TouchableOpacity
+                onPress={onQrCodePress}
+                testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+              >
                 <Icon
                   name={IconName.Scan}
                   size={24}
@@ -358,33 +361,6 @@ const ImportFromSecretRecoveryPhrase = ({
     updateBiometryChoice(false);
   };
 
-  const clearSecretRecoveryPhrase = async (seed) => {
-    // get clipboard contents
-    const clipboardContents = await Clipboard.getString();
-    const parsedClipboardContents = parseSeedPhrase(clipboardContents);
-    if (
-      // only clear clipboard if contents isValidMnemonic
-      !failedSeedPhraseRequirements(parsedClipboardContents) &&
-      isValidMnemonic(parsedClipboardContents) &&
-      // only clear clipboard if the seed phrase entered matches what's in the clipboard
-      parseSeedPhrase(seed) === parsedClipboardContents
-    ) {
-      await Clipboard.clearString();
-    }
-  };
-
-  const onSeedWordsChange = useCallback(async (seed) => {
-    setSeed(seed);
-    // Only clear on android since iOS will notify users when we getString()
-    if (Device.isAndroid()) {
-      const androidOSVersion = parseInt(Platform.constants.Release, 10);
-      // This conditional is necessary to avoid an error in Android 8.1.0 or lower
-      if (androidOSVersion >= MINIMUM_SUPPORTED_CLIPBOARD_VERSION) {
-        await clearSecretRecoveryPhrase(seed);
-      }
-    }
-  }, []);
-
   const onPasswordChange = (value) => {
     const passInfo = zxcvbn(value);
 
@@ -395,11 +371,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const onPasswordConfirmChange = (value) => {
     setConfirmPassword(value);
   };
-
-  const jumpToPassword = useCallback(() => {
-    const { current } = passwordInput;
-    current && current.focus();
-  }, [passwordInput]);
 
   const jumpToConfirmPassword = () => {
     const { current } = confirmPasswordInput;
@@ -479,13 +450,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleContinueImportFlow = () => {
     if (!validateSeedPhrase()) {
-      return;
-    }
-    if (seedPhrase.length === 0) {
-      Alert.alert(
-        strings('import_from_seed.error'),
-        strings('import_from_seed.seed_phrase_required'),
-      );
       return;
     }
     setCurrentStep(currentStep + 1);
@@ -568,31 +532,10 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        if (isMetricsEnabled()) {
-          navigation.reset({
-            index: 1,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS_FLOW,
-                params: { showPasswordHint: false },
-              },
-            ],
-          });
-        } else {
-          navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.reset({
-                index: 1,
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.SUCCESS_FLOW,
-                    params: { showPasswordHint: false },
-                  },
-                ],
-              });
-            },
-          });
-        }
+        navigation.reset({
+          index: 1,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+        });
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -634,10 +577,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const getSecureWord = useCallback(
-    (word, index, focusedIndex) => {
-      const isFocusedWord =
-        focusedIndex === index &&
-        focusedIndex !== nextSeedPhraseInputFocusedIndex;
+    (word, index) => {
       const isValidSeedWord = checkValidSeedWord(word);
 
       return word &&
@@ -646,12 +586,7 @@ const ImportFromSecretRecoveryPhrase = ({
         ? '***'
         : word;
     },
-    [
-      seedPhraseInputFocusedIndex,
-      nextSeedPhraseInputFocusedIndex,
-      showAllSeedPhrase,
-      checkValidSeedWord,
-    ],
+    [seedPhraseInputFocusedIndex, showAllSeedPhrase, checkValidSeedWord],
   );
 
   useEffect(() => {
@@ -752,7 +687,9 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoComplete="off"
                           blurOnSubmit={false}
                           autoCapitalize="none"
-                          testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                          testID={
+                            ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+                          }
                         />
                       ) : (
                         <View
@@ -785,11 +722,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                       {index + 1}.
                                     </Text>
                                   }
-                                  value={getSecureWord(
-                                    item,
-                                    index,
-                                    seedPhraseInputFocusedIndex,
-                                  )}
+                                  value={getSecureWord(item, index)}
                                   secureTextEntry={
                                     checkValidSeedWord(item) &&
                                     (showAllSeedPhrase
@@ -821,6 +754,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   isError={!checkValidSeedWord(item)}
                                   autoCapitalize="none"
                                   numberOfLines={1}
+                                  testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                 />
                               </View>
                             )}
@@ -925,6 +859,9 @@ const ImportFromSecretRecoveryPhrase = ({
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(0)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
+                        }
                       />
                     }
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
@@ -963,6 +900,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings('import_from_seed.confirm_password')}
                   </Label>
                   <TextField
+                    ref={confirmPasswordInput}
                     placeholder={strings('import_from_seed.re_enter_password')}
                     size={TextFieldSize.Lg}
                     onChangeText={onPasswordConfirmChange}
@@ -983,6 +921,9 @@ const ImportFromSecretRecoveryPhrase = ({
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => toggleShowPassword(1)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
+                        }
                       />
                     }
                     testID={
@@ -1010,6 +951,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
                   style={styles.checkbox}
+                  testID={ImportFromSeedSelectorsIDs.LEARN_MORE_CHECKBOX_ID}
                   label={
                     <View style={styles.learnMoreTextContainer}>
                       <Text
@@ -1052,38 +994,12 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 };
 
-ImportFromSecretRecoveryPhrase.propTypes = {
-  /**
-   * The navigator object
-   */
-  navigation: PropTypes.object,
-  /**
-   * The action to update the password set flag
-   * in the redux store
-   */
-  passwordSet: PropTypes.func,
-  /**
-   * The action to set the locktime
-   * in the redux store
-   */
-  setLockTime: PropTypes.func,
-  /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
-   */
-  seedphraseBackedUp: PropTypes.func,
-  /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  route: PropTypes.object,
-};
-
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(
