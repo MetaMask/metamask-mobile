@@ -300,8 +300,6 @@ class MultichainTestDApp {
       const webview = this.getWebView();
       const autoConnectButton = webview.element(by.web.id('auto-connect-postmessage-button'));
 
-
-
       try {
         // Simple click with minimal JS
         await autoConnectButton.runScript('(el) => { el.click(); }');

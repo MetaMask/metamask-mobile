@@ -302,7 +302,6 @@ export async function withFixtures(options, testSuite) {
         if (dappPath || (dappPaths && dappPaths[i])) {
           dappDirectory = path.resolve(__dirname, dappPath || dappPaths[i]);
         } else {
-          // Select dapp directory based on multichainDapp flag
           dappDirectory = multichainDapp
             ? path.resolve(__dirname, DEFAULT_MULTICHAIN_TEST_DAPP_PATH)
             : path.resolve(__dirname, DEFAULT_TEST_DAPP_PATH);
@@ -316,7 +315,6 @@ export async function withFixtures(options, testSuite) {
       }
     }
 
-    // Start the fixture server
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     console.log(
