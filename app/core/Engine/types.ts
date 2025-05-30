@@ -279,7 +279,7 @@ import {
 } from '@metamask/app-metadata-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { EncryptionKey } from '../Encryptor/types';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Controllers that area always instantiated
@@ -618,7 +618,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
-  ///: END:ONLY_INCLUDE_IF`
+  ///: END:ONLY_INCLUDE_IF
   | 'DeFiPositionsController';
 
 /**
