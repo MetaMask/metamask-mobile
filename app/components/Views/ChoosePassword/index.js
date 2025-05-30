@@ -548,10 +548,12 @@ class ChoosePassword extends PureComponent {
   };
 
   toggleShowPassword = (index) => {
-    const newShowPasswordIndex = this.state.showPasswordIndex.includes(index)
-      ? this.state.showPasswordIndex.filter((i) => i !== index)
-      : [...this.state.showPasswordIndex, index];
-    this.setState({ showPasswordIndex: newShowPasswordIndex });
+    this.setState((prevState) => {
+      const newShowPasswordIndex = prevState.showPasswordIndex.includes(index)
+        ? prevState.showPasswordIndex.filter((i) => i !== index)
+        : [...prevState.showPasswordIndex, index];
+      return { showPasswordIndex: newShowPasswordIndex };
+    });
   };
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
