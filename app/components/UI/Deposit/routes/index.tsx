@@ -75,7 +75,6 @@ const DepositRoutes = () => (
         component={BasicInfo}
         options={getAnimationOptions}
       />
-      <Stack.Screen name={Routes.DEPOSIT.BASIC_INFO} component={BasicInfo} />
       <Stack.Screen
         name={Routes.DEPOSIT.ENTER_ADDRESS}
         component={EnterAddress}
