@@ -120,6 +120,12 @@ export const importWalletWithRecoveryPhrase = async ({
   await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
   await TestHelpers.delay(3500);
+  
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -133,12 +139,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
 
   await TestHelpers.delay(3500);
 
