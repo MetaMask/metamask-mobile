@@ -104,8 +104,7 @@ import {
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics.types';
-import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
+import { getApiAnalytics } from '../../../core/Analytics/helpers/getApiAnalytics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -395,23 +394,14 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
-      const api = isMultichainRequest
-        ? MetaMetricsRequestedThrough.MultichainApi
-        : MetaMetricsRequestedThrough.EthereumProvider;
-
-      const method = isMultichainRequest
-        ? MESSAGE_TYPE.WALLET_CREATE_SESSION
-        : MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS;
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
             source: eventSource,
             chain_id_list: chainIds,
-            api_source: api,
-            method,
             referrer: channelIdOrHostname,
+            ...getApiAnalytics(isMultichainRequest),
           })
           .build(),
       );
@@ -499,14 +489,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
-    const api = isMultichainRequest
-      ? MetaMetricsRequestedThrough.MultichainApi
-      : MetaMetricsRequestedThrough.EthereumProvider;
-
-    const method = isMultichainRequest
-      ? MESSAGE_TYPE.WALLET_CREATE_SESSION
-      : MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS;
-
     try {
       setIsLoading(true);
       /*
@@ -527,9 +509,8 @@ const AccountConnect = (props: AccountConnectProps) => {
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
             chain_id_list: selectedChainIds,
-            api_source: api,
-            method,
             referrer: request.metadata.origin,
+            ...getApiAnalytics(isMultichainRequest),
           })
           .build(),
       );

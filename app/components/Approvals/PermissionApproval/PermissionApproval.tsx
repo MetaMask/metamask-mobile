@@ -8,8 +8,7 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics.types';
-import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
+import { getApiAnalytics } from '../../../core/Analytics/helpers/getApiAnalytics';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -58,22 +57,13 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     const isMultichainRequest =
       !approvalRequest.requestData?.metadata?.isEip1193Request;
 
-    const api = isMultichainRequest
-      ? MetaMetricsRequestedThrough.MultichainApi
-      : MetaMetricsRequestedThrough.EthereumProvider;
-
-    const method = isMultichainRequest
-      ? MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS
-      : MESSAGE_TYPE.WALLET_CREATE_SESSION;
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
           number_of_accounts: totalAccounts,
           source: eventSource,
           chain_id_list: caip2ChainIds,
-          api_source: api,
-          method,
+          ...getApiAnalytics(isMultichainRequest),
         })
         .build(),
     );
