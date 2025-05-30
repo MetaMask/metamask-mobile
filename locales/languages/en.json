@@ -1930,7 +1930,8 @@
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
       "gas_limit_too_low": "Gas limit must be greater than 21000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
-      "no_zero_value": "{{field}} must be greater than 0"
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
     }
   },
   "smart_transactions": {
