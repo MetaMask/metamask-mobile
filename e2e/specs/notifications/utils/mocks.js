@@ -68,7 +68,9 @@ mockFeatureAnnouncementResponse.url =
   mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
 if (mockFeatureAnnouncementResponse.response.items?.[0]) {
   mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
-    new Date().toString();
+    /** @type {`${number}-${number}-${number}T${number}:${number}:${number}Z`} */ (
+      new Date().toString()
+    );
 }
 
 export function getMockWalletNotificationItemIds() {

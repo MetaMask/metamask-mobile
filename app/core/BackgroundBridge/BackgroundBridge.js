@@ -285,8 +285,8 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN) {
-    const networkClientId = Engine.controllerMessenger.call(
+  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
+    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
       origin,
     );
@@ -416,10 +416,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  async getProviderState(origin) {
+  async getProviderState(origin, networkClientId) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...(await this.getProviderNetworkState(origin)),
+      ...(await this.getProviderNetworkState(origin, networkClientId)),
     };
   }
 
@@ -549,6 +549,11 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            {
+              metadata: {
+                isEip1193Request: true,
+              },
+            },
           ),
         revokePermissionsForOrigin: (permissionKeys) => {
           try {
@@ -696,10 +701,11 @@ export class BackgroundBridge extends EventEmitter {
             NetworkController,
           ),
         listAccounts: AccountsController.listAccounts.bind(AccountsController),
-        requestPermissionsForOrigin: (requestedPermissions) =>
+        requestPermissionsForOrigin: (requestedPermissions, options = {}) =>
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
+            options,
           ),
         getCaveatForOrigin: PermissionController.getCaveat.bind(
           PermissionController,
@@ -714,7 +720,7 @@ export class BackgroundBridge extends EventEmitter {
 
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
-          Engine.controllerMessenger.controllerMessenger,
+          Engine.controllerMessenger,
           'MultichainRouter:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (params) =>
@@ -885,7 +891,7 @@ export class BackgroundBridge extends EventEmitter {
       }
     });
     this.notifyCaipAuthorizationChange(changedAuthorization);
-  }
+  };
 
   sendNotification(payload) {
     DevLogger.log(`BackgroundBridge::sendNotification: `, payload);

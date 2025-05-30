@@ -34,6 +34,7 @@ const styleSheet = (params: {
     },
     connectOrUpdateButtonContainer: {
       flexDirection: 'row',
+      marginBottom: Device.isAndroid() ? 8 : 0,
     },
     button: {
       flex: 1,

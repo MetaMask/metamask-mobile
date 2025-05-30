@@ -19,17 +19,11 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   findBlockExplorerForNonEvmAccount,
-  findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
 import {
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
@@ -55,6 +49,7 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
+import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
@@ -72,6 +67,9 @@ const AccountActions = () => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { networkSupporting7702Present } = useEIP7702Networks(
+    selectedAccount.address,
+  );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -94,8 +92,6 @@ const AccountActions = () => {
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
   const blockExplorer:
     | {
         url: string;
@@ -105,38 +101,13 @@ const AccountActions = () => {
     | undefined = useMemo(() => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
-        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-          const explorer = findBlockExplorerForRpc(
-            providerConfig.rpcUrl,
-            networkConfigurations,
-          );
-
-          if (!explorer) {
-            return undefined;
-          }
-
-          return {
-            url: `${explorer}/address/${selectedAccount.address}`,
-            title: new URL(explorer).hostname,
-            blockExplorerName:
-              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-          };
-        }
-
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAccount.address,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
         return {
-          url,
-          title: etherscan_url,
-          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
+          title: 'Etherscan (Multichain)',
+          blockExplorerName: 'Etherscan (Multichain)',
         };
       }
+
       const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       if (explorer) {
         return {
@@ -149,9 +120,6 @@ const AccountActions = () => {
       return undefined;
     }
   }, [
-    networkConfigurations,
-    providerConfig.rpcUrl,
-    providerConfig.type,
     selectedAccount,
   ]);
 
@@ -493,13 +461,14 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
-          <AccountAction
-            actionTitle={strings('account_actions.switch_to_smart_account')}
-            iconName={IconName.SwapHorizontal}
-            onPress={goToSwitchAccountType}
-          />
-        )}
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
+          networkSupporting7702Present && (
+            <AccountAction
+              actionTitle={strings('account_actions.switch_to_smart_account')}
+              iconName={IconName.SwapHorizontal}
+              onPress={goToSwitchAccountType}
+            />
+          )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

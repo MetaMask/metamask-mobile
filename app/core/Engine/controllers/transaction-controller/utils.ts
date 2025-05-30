@@ -1,9 +1,17 @@
+import { Hex } from '@metamask/utils';
+import { ORIGIN_METAMASK } from '@metamask/approval-controller';
 import {
+  TransactionStatus,
   TransactionType,
+  GasFeeEstimateType,
+  GasFeeEstimateLevel,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
+
 import type { RootState } from '../../../../reducers';
+import { EIP5792ErrorCode } from '../../../../constants/transaction';
+import { getMethodData } from '../../../../util/transactions';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   JsonMap,
@@ -13,6 +21,15 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
+import {
+  getNetworkRpcUrl,
+  extractRpcDomain,
+} from '../../../../util/rpc-domain-utils';
+
+const BATCHED_MESSAGE_TYPE = {
+  WALLET_SEND_CALLS: 'wallet_sendCalls',
+  ETH_SEND_TRANSACTION: 'eth_sendTransaction',
+};
 
 export function getTransactionTypeValue(
   transactionType: TransactionType | undefined,
@@ -62,6 +79,7 @@ export function getTransactionTypeValue(
     case TransactionType.retry:
     case TransactionType.smart:
     case TransactionType.swap:
+    case TransactionType.batch:
       return transactionType;
     default:
       return 'unknown';
@@ -77,24 +95,103 @@ const getConfirmationMetricProperties = (
     {}) as unknown as TransactionMetrics;
 };
 
-export function generateDefaultTransactionMetrics(
+async function getNestedMethodNames(
+  transactionMeta: TransactionMeta,
+): Promise<string[]> {
+  const { nestedTransactions: transactions = [], networkClientId } =
+    transactionMeta ?? {};
+  const allData = transactions
+    .filter((tx) => tx.type === TransactionType.contractInteraction && tx.data)
+    .map((tx) => tx.data as Hex);
+
+  const results = await Promise.all(
+    allData.map((data) => getMethodData(data, networkClientId)),
+  );
+
+  const names = results
+    .map((result) => result?.name)
+    .filter((name) => name?.length) as string[];
+
+  return names;
+}
+
+async function getBatchProperties(transactionMeta: TransactionMeta) {
+  const properties: Record<string, unknown> = {};
+  const { delegationAddress, nestedTransactions, origin, txParams } =
+    transactionMeta;
+  const isExternal = origin && origin !== ORIGIN_METAMASK;
+  const { authorizationList } = txParams;
+  const isBatch = Boolean(nestedTransactions?.length);
+  const isUpgrade = Boolean(authorizationList?.length);
+
+  if (isExternal) {
+    properties.api_method = isBatch
+      ? BATCHED_MESSAGE_TYPE.WALLET_SEND_CALLS
+      : BATCHED_MESSAGE_TYPE.ETH_SEND_TRANSACTION;
+  }
+
+  if (isBatch) {
+    properties.batch_transaction_count = nestedTransactions?.length;
+    properties.batch_transaction_method = 'eip7702';
+
+    properties.transaction_contract_method = await getNestedMethodNames(
+      transactionMeta,
+    );
+
+    properties.transaction_contract_address = nestedTransactions
+      ?.filter(
+        (tx) =>
+          tx.type === TransactionType.contractInteraction && tx.to?.length,
+      )
+      .map((tx) => tx.to as string);
+  }
+
+  if (transactionMeta.status === TransactionStatus.rejected) {
+    const { error } = transactionMeta;
+
+    properties.eip7702_upgrade_rejection =
+      // @ts-expect-error Code has string type in controller
+      isUpgrade && error.code === EIP5792ErrorCode.RejectedUpgrade;
+  }
+  properties.eip7702_upgrade_transaction = isUpgrade;
+  properties.account_eip7702_upgraded = delegationAddress;
+
+  return properties;
+}
+
+export async function generateDefaultTransactionMetrics(
   metametricsEvent: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
-  { getState }: TransactionEventHandlerRequest,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, id, type, status } = transactionMeta;
+  const { chainId, status, type, id } = transactionMeta;
+
+  const batchProperties = await getBatchProperties(transactionMeta);
+  const gasFeeProperties = getGasMetricProperties(transactionMeta);
 
   const mergedDefaultProperties = merge(
     {
       metametricsEvent,
       properties: {
+        ...batchProperties,
         chain_id: chainId,
-        transaction_internal_id: id,
-        transaction_type: getTransactionTypeValue(type),
+        ...gasFeeProperties,
         status,
+        source: 'MetaMask Mobile',
+        transaction_type: getTransactionTypeValue(type),
+        transaction_envelope_type: transactionMeta.txParams.type,
+        transaction_internal_id: id,
+      },
+      sensitiveProperties: {
+        value: transactionMeta.txParams.value,
+        to_address: transactionMeta.txParams.to,
+        from_address: transactionMeta.txParams.from,
       },
     },
-    getConfirmationMetricProperties(getState, id),
+    getConfirmationMetricProperties(
+      transactionEventHandlerRequest.getState,
+      id,
+    ),
   );
 
   return mergedDefaultProperties;
@@ -113,4 +210,54 @@ export function generateEvent({
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();
+}
+
+export function generateRPCProperties(chainId: string) {
+  const rpcUrl = getNetworkRpcUrl(chainId);
+  const rpcDomain = extractRpcDomain(rpcUrl);
+  const rpcMetrics = {
+    properties: rpcDomain ? { rpc_domain: rpcDomain } : {},
+    sensitiveProperties: {},
+  };
+  return rpcMetrics;
+}
+
+function getGasMetricProperties(transactionMeta: TransactionMeta) {
+  const {
+    gasFeeEstimatesLoaded,
+    gasFeeEstimates,
+    dappSuggestedGasFees,
+    userFeeLevel,
+  } = transactionMeta;
+  const { type: gasFeeEstimateType } = gasFeeEstimates ?? {};
+
+  // Advanced is always presented
+  const presentedGasFeeOptions = ['custom'];
+
+  if (gasFeeEstimatesLoaded) {
+    if (
+      gasFeeEstimateType === GasFeeEstimateType.FeeMarket ||
+      gasFeeEstimateType === GasFeeEstimateType.Legacy
+    ) {
+      presentedGasFeeOptions.push(
+        GasFeeEstimateLevel.Low,
+        GasFeeEstimateLevel.Medium,
+        GasFeeEstimateLevel.High,
+      );
+    }
+
+    if (gasFeeEstimateType === GasFeeEstimateType.GasPrice) {
+      presentedGasFeeOptions.push('network_proposed');
+    }
+
+    if (dappSuggestedGasFees) {
+      presentedGasFeeOptions.push('dapp_proposed');
+    }
+  }
+
+  return {
+    gas_estimation_failed: !gasFeeEstimatesLoaded,
+    gas_fee_presented: presentedGasFeeOptions,
+    gas_fee_selected: userFeeLevel,
+  };
 }

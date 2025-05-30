@@ -92,6 +92,10 @@ pipelines:
     stages:
       - create_build_qa_and_expo: {}
       - app_launch_times_test_stage: {}
+  #Main expo pipeline
+  expo_main_pipeline:
+    stages:
+      - create_build_main_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -159,6 +163,11 @@ stages:
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
       - build_ios_qa: {}
+  create_build_main_expo:
+    workflows:
+      - build_android_devbuild: {}
+      - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -195,8 +204,7 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # TODO: Re-enable in a future commit
-      #- run_ios_api_specs: {}
+      - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
@@ -1110,8 +1118,6 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - install_applesimutils
       - code_setup
@@ -1193,8 +1199,6 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - setup
       - install_applesimutils
@@ -1842,8 +1846,6 @@ workflows:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   # iOS Builds
   _ios_build_template:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -2041,8 +2043,6 @@ workflows:
     after_run:
       - _ios_build_template
   build_ios_qa:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -2173,8 +2173,6 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa_flask:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -2257,7 +2255,7 @@ app:
       PORTFOLIO_VIEW: true
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: true
+      MM_PER_DAPP_SELECTED_NETWORK: false
     - opts:
         is_expand: false
       MM_CHAIN_PERMISSIONS: true
@@ -2270,6 +2268,9 @@ app:
     - opts:
         is_expand: false
       BRIDGE_USE_DEV_APIS: false
+    - opts:
+        is_expand: false
+      MM_BRIDGE_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -2302,13 +2303,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.45.2
+      VERSION_NAME: 7.46.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1810
+      VERSION_NUMBER: 1862
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.45.2
+      FLASK_VERSION_NAME: 7.46.1
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1810

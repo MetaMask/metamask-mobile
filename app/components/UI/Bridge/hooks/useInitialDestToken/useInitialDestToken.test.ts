@@ -1,7 +1,7 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useInitialDestToken } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { initialState } from '../../_mocks_/initialState';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { SolScope } from '@metamask/keyring-api';
@@ -32,6 +32,16 @@ jest.mock('../../../../../selectors/networkController', () => {
     selectChainId: jest.fn(actual.selectChainId),
   };
 });
+
+jest.mock('../useInitialSourceToken', () => ({
+  getNativeSourceToken: jest.fn().mockReturnValue({
+    address: '0x456',
+    symbol: 'NATIVE',
+    decimals: 18,
+    name: 'Native Token',
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  }),
+}));
 
 describe('useInitialDestToken', () => {
   const mockSourceToken: BridgeToken = {
@@ -109,6 +119,12 @@ describe('useInitialDestToken', () => {
       state: initialState,
     });
 
-    expect(setDestToken).not.toHaveBeenCalled();
+    expect(setDestToken).toHaveBeenCalledWith({
+      address: '0x456',
+      symbol: 'NATIVE',
+      decimals: 18,
+      name: 'Native Token',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
   });
 });

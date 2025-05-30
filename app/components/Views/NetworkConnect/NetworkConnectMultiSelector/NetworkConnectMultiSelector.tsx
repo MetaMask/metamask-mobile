@@ -2,7 +2,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
 import Button, {

@@ -6,8 +6,8 @@ exports[`Deposit SDK Context DepositSDKProvider renders and provides context val
 </Text>
 `;
 
-exports[`Deposit SDK Context useDepositSDK returns the correct context values 1`] = `
+exports[`Deposit SDK Context useDepositSDK provides access to the NativeRampsSdk instance 1`] = `
 <Text>
-  API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth
+  Test Component
 </Text>
 `;

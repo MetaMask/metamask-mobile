@@ -15,23 +15,19 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import SelectRegionView from '../../pages/Ramps/SelectRegionView';
-import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 const fixtureServer = new FixtureServer();
 
-const Regions = {
-  USA: 'United States of America',
-  CALIFORNIA: 'California',
-  FRANCE: 'France',
-  UK: 'United Kingdom',
-};
-
-const PaymentMethods = {
-  DEBIT_OR_CREDIT: 'Debit or Credit',
-  INSTANT_ACH_BANK_TRANSFER: 'Insant ACH Bank Transfer',
-  ACH_BANK_TRANSFER: 'ACH Bank Transfer',
+const franceRegion = {
+  currencies: ['/currencies/fiat/eur'],
+  emoji: '🇫🇷',
+  id: '/regions/fr',
+  name: 'France',
+  support: { buy: true, sell: true, recurringBuy: true },
+  unsupported: false,
+  recommended: false,
+  detected: false,
 };
 
 describe(SmokeTrade('Off-Ramp'), () => {
@@ -39,6 +35,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+      .withRampsSelectedRegion(franceRegion)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -57,9 +54,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     jest.setTimeout(150000);
   });
 
-  const itif = (condition) => (condition ? it : it.skip);
-
-  itif(device.getPlatform() === 'ios')('should display Build Sell Quote page after user clicks Get Started', async () => {
+  it('should get to the Amount to sell screen, after selecting Get Started', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
@@ -69,7 +64,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  itif(device.getPlatform() === 'ios')('should show quotes', async () => {
+  it('should show quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await BuildQuoteView.enterAmount('2');

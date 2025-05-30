@@ -19,9 +19,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
 }));
 
