@@ -113,7 +113,6 @@ const AesCryptoTestForm = () => {
       const response = await encryptor?.encryptWithKey(
         {
           key: args[0],
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: true,
           keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
@@ -132,7 +131,6 @@ const AesCryptoTestForm = () => {
       const response = await encryptor?.decryptWithKey(
         {
           key: args[0],
-          lib: ENCRYPTION_LIBRARY.original,
           exportable: false,
           keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
