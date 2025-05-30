@@ -2,12 +2,14 @@ import { BigNumber } from 'bignumber.js';
 import { Hex, add0x } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 
+import {
+  APPROVALS_LIST,
+  APPROVAL_TYPES,
+  SIGNATURE_INCREASE_ALLOWANCE,
+  SIGNATURE_LEGACY,
+  SIGNATURE_PERMIT2,
+} from '../constants/approvals';
 import { parseStandardTokenTransactionData } from './transaction';
-
-const SIGNATURE_LEGACY = 'function approve(address,uint256)';
-const SIGNATURE_PERMIT2 = 'function approve(address,address,uint160,uint48)';
-const SIGNATURE_INCREASE_ALLOWANCE =
-  'function increaseAllowance(address,uint256)';
 
 export function parseApprovalTransactionData(data: Hex):
   | {
@@ -21,12 +23,7 @@ export function parseApprovalTransactionData(data: Hex):
   const transactionDescription = parseStandardTokenTransactionData(data);
   const { args, name } = transactionDescription ?? {};
 
-  if (
-    !['approve', 'increaseAllowance', 'setApprovalForAll'].includes(
-      name ?? '',
-    ) ||
-    !name
-  ) {
+  if (!APPROVALS_LIST.includes(name ?? '') || !name) {
     return undefined;
   }
 
@@ -39,9 +36,12 @@ export function parseApprovalTransactionData(data: Hex):
     ? new BigNumber(rawAmountOrTokenId?.toString())
     : undefined;
 
-  const isApproveAll = name === 'setApprovalForAll' && args?._approved === true;
-  const isRevokeAll = name === 'setApprovalForAll' && args?._approved === false;
-  const tokenAddress = name === 'approve' ? args?.token : undefined;
+  const isApproveAll =
+    name === APPROVAL_TYPES.setApprovalForAll && args?._approved === true;
+  const isRevokeAll =
+    name === APPROVAL_TYPES.setApprovalForAll && args?._approved === false;
+  const tokenAddress =
+    name === APPROVAL_TYPES.approve ? args?.token : undefined;
 
   return {
     amountOrTokenId,
@@ -69,7 +69,7 @@ export function updateApprovalAmount(
 
   let signature = tokenAddress ? SIGNATURE_PERMIT2 : SIGNATURE_LEGACY;
 
-  if (name === 'increaseAllowance') {
+  if (name === APPROVAL_TYPES.setApprovalForAll) {
     signature = SIGNATURE_INCREASE_ALLOWANCE;
   }
 
