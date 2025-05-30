@@ -49,14 +49,6 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
-import {
-  processOriginThrottlingRejection,
-  validateOriginThrottling,
-} from './spam';
-import {
-  NUMBER_OF_REJECTIONS_THRESHOLD,
-  OriginThrottlingState,
-} from '../redux/slices/originThrottling';
 import { ProviderConfig } from '../../selectors/networkController';
 import {
   Caip25CaveatType,
@@ -141,10 +133,6 @@ jest.mock('../Permissions', () => ({
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
-
-const mockProcessOriginThrottlingRejection =
-  processOriginThrottlingRejection as jest.Mock;
-const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -291,7 +279,6 @@ function setupGlobalState({
   networksMetadata,
   networkConfigurationsByChainId,
   selectedAddress,
-  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
@@ -301,7 +288,6 @@ function setupGlobalState({
   networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
-  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -328,9 +314,6 @@ function setupGlobalState({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
-      originThrottling: originThrottling || {
-        origins: {},
-      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
