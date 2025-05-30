@@ -88,7 +88,7 @@ export const MOCK_STATE_NFT = {
           },
         },
         allNftContracts: {
-          [MOCK_ADDRESS_TOKEN_CONTRACT]: {
+          [MOCK_ADDRESS_1_LOWERCASE]: {
             '0x1': [{
               address: MOCK_ADDRESS_TOKEN_CONTRACT,
               image: 'testURI//:contract-333',

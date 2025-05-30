@@ -22,11 +22,9 @@ import styleSheet from './nft.styles';
 const NftImageAndNetworkBadge = ({
   chainId,
   nft,
-  isFirstPartyContractName,
 }: {
   chainId: string;
   nft?: Nft;
-  isFirstPartyContractName?: boolean;
 }) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
