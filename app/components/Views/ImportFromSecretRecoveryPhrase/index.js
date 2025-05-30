@@ -822,7 +822,7 @@ const ImportFromSecretRecoveryPhrase = ({
               <Text
                 variant={TextVariant.DisplayMD}
                 color={TextColor.Default}
-                testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
+                testID={ChoosePasswordSelectorsIDs.TITLE_ID}
               >
                 {strings('import_from_seed.create_password')}
               </Text>
