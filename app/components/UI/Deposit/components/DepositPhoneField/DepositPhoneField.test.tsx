@@ -22,12 +22,12 @@ describe('DepositPhoneField', () => {
     jest.clearAllMocks();
   });
 
-  it('should render default settings correctly', () => {
+  it('render should match snapshot', () => {
     const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with custom country code and flag', () => {
+  it('custom flags and country codes should match snapshot', () => {
     const customProps = {
       ...defaultProps,
       countryCode: '44',
@@ -37,7 +37,7 @@ describe('DepositPhoneField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with error message', () => {
+  it('error message should match snapshot', () => {
     const errorMessage = 'Invalid phone number';
     const { toJSON } = render(
       <DepositPhoneField {...defaultProps} error={errorMessage} />,
@@ -45,7 +45,7 @@ describe('DepositPhoneField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render with additional props', () => {
+  it('additional props should match snapshot', () => {
     const placeholder = 'Enter phone number';
     const { toJSON } = render(
       <DepositPhoneField
@@ -61,32 +61,16 @@ describe('DepositPhoneField', () => {
     const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
     const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
     const phoneNumber = '5551234567';
-
     fireEvent.changeText(textField, phoneNumber);
-
     expect(mockOnChangeText).toHaveBeenCalledWith(phoneNumber);
   });
 
   it('should call formatUSPhoneNumber and pass raw value to onChangeText', () => {
     const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
     const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-
     const inputPhoneNumber = '1234567890';
     fireEvent.changeText(textField, inputPhoneNumber);
-
     expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
     expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
-    })
-  it('should pass additional props to TextField', () => {
-    const placeholder = 'Enter phone number';
-    const { getByPlaceholderText } = render(
-      <DepositPhoneField
-        {...defaultProps}
-        placeholder={placeholder}
-        maxLength={10}
-      />,
-    );
-    const textField = getByPlaceholderText(placeholder);
-    expect(textField).toBeTruthy();
   });
 });
