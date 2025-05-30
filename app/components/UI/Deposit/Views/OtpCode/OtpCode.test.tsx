@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
