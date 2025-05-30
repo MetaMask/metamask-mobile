@@ -147,6 +147,8 @@ const BasicInfo = (): JSX.Element => {
           />
 
           <DepositTextField
+            // TODO: Contextual rendering of SSN input based on country
+            // TODO: Automatically format SSN input?
             label="Social Security Number"
             placeholder="XXX-XX-XXXX"
             value={formData.ssn}
