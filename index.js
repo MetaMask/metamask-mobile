@@ -20,13 +20,11 @@ import { name } from './app.config.js';
 import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
-import StorageWrapper from './app/store/storage-wrapper';
 import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
-StorageWrapper.handleFreshInstallWithRestoredData();
 
 LogBox.ignoreAllLogs();
 // List of warnings that we're ignoring
