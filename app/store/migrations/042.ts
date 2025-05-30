@@ -58,7 +58,7 @@ function mergeInternalAccounts(state: ValidState) {
   const selectedAccountId = accountsController.internalAccounts.selectedAccount;
 
   const selectedAddress =
-    internalAccounts[selectedAccountId]?.address.toLowerCase(); // Should this be lowercase?
+    internalAccounts[selectedAccountId]?.address.toLowerCase();
 
   const mergedAccounts: Record<string, InternalAccount> = {};
   const addressMap: Record<string, string> = {};
