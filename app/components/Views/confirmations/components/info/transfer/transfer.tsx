@@ -14,17 +14,31 @@ import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import TokenHero from '../../rows/transactions/token-hero';
 import NetworkRow from '../../rows/transactions/network-row';
+import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
 import styleSheet from './transfer.styles';
 
 const Transfer = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
-  const { trackPageViewedEvent } = useConfirmationMetricEvents();
+  const { usdValue } = useTokenAmount();
+  const { assetType } = useTransferAssetType();
+  const { trackPageViewedEvent, setConfirmationMetric } =
+    useConfirmationMetricEvents();
 
   useClearConfirmationOnBackSwipe();
   useNavbar(strings('confirm.review'));
   useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        transaction_transfer_usd_value: usdValue,
+        asset_type: assetType,
+      },
+    });
+  }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
     <View>
