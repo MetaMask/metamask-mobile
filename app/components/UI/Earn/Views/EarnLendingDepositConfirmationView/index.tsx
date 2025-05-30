@@ -34,6 +34,12 @@ import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
 import Erc20TokenHero from './components/Erc20TokenHero';
 import styleSheet from './EarnLendingDepositConfirmationView.styles';
+import { parseFloatSafe } from '../../utils';
+import {
+  addCurrencySymbol,
+  renderFromTokenMinimalUnit,
+} from '../../../../../util/number';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -50,14 +56,6 @@ export interface EarnLendingDepositConfirmationViewProps {
   route: RouteProp<{ params: LendingDepositViewRouteParams }, 'params'>;
 }
 
-const MOCK_DATA_TO_REPLACE = {
-  RECEIPT_TOKEN_NAME: 'Aave v3 USDC Coin',
-  RECEIPT_TOKEN_AMOUNT: {
-    FIAT: '$10,000.00',
-    TOKEN: '10,100 AETHUSDC',
-  },
-};
-
 const Steps = {
   ALLOWANCE_INCREASE: 0,
   DEPOSIT: 1,
@@ -65,7 +63,7 @@ const Steps = {
 
 const EarnLendingDepositConfirmationView = () => {
   const { styles, theme } = useStyles(styleSheet, {});
-
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
     useRoute<EarnLendingDepositConfirmationViewProps['route']>();
 
@@ -105,7 +103,7 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken } = useEarnTokens();
+  const { getEarnToken, getPairedEarnTokens } = useEarnTokens();
   const { toastRef } = useContext(ToastContext);
 
   const confirmButtonText = useMemo(
@@ -249,7 +247,9 @@ const EarnLendingDepositConfirmationView = () => {
   )
     return null;
 
-  const earnToken = getEarnToken(token);
+  const { earnToken, outputToken } = getPairedEarnTokens(token);
+
+  if (!earnToken) return null;
 
   const handleCancel = () => {
     navigation.goBack();
@@ -374,15 +374,24 @@ const EarnLendingDepositConfirmationView = () => {
           token={token}
           lendingContractAddress={lendingContractAddress}
           lendingProtocol={lendingProtocol}
+          amountTokenMinimalUnit={amountTokenMinimalUnit}
+          amountFiatNumber={parseFloatSafe(amountFiat)}
         />
         <DepositReceiveSection
           token={token}
-          // TODO: Replace MOCK_DATA before launch
-          receiptTokenName={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_NAME}
-          receiptTokenAmount={MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.TOKEN}
-          receiptTokenAmountFiat={
-            MOCK_DATA_TO_REPLACE.RECEIPT_TOKEN_AMOUNT.FIAT
+          receiptTokenName={outputToken?.symbol || outputToken?.ticker || ''}
+          receiptTokenAmount={
+            renderFromTokenMinimalUnit(
+              amountTokenMinimalUnit,
+              earnToken.decimals,
+            ) +
+            ' ' +
+            (outputToken?.ticker || outputToken?.symbol || '')
           }
+          receiptTokenAmountFiat={addCurrencySymbol(
+            amountFiat,
+            currentCurrency,
+          )}
         />
       </View>
       <ConfirmationFooter

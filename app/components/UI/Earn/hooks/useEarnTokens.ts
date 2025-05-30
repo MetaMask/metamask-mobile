@@ -4,9 +4,15 @@ import { earnSelectors } from '../../../../selectors/earnController/earn';
 import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
+import { convertTokenToFiat } from '../../../../util/confirm-tx';
+import { balanceToFiatNumber, renderFiat } from '../../../../util/number';
+import { getEstimatedAnnualRewards } from '../utils/token';
+import { BigNumber } from 'bignumber.js';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 
 const useEarnTokens = () => {
   const earnTokensData = useSelector(earnSelectors.selectEarnTokens);
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const getEarnToken = useCallback(
     (token: TokenI | EarnTokenDetails) => {
@@ -104,12 +110,28 @@ const useEarnTokens = () => {
     ],
   );
 
+  const getEstimatedAnnualRewardsForAmount = (
+    earnToken: EarnTokenDetails,
+    amountTokenMinimalUnit: string,
+    amountFiatNumber: number,
+  ) => {
+    return getEstimatedAnnualRewards(
+      earnToken.experience.apr,
+      amountFiatNumber,
+      amountTokenMinimalUnit,
+      currentCurrency,
+      earnToken.decimals,
+      earnToken?.ticker || earnToken.symbol,
+    );
+  };
+
   return {
     ...earnTokensData,
     getEarnToken,
     getOutputToken,
     getPairedEarnTokens,
     getEarnExperience,
+    getEstimatedAnnualRewardsForAmount,
   };
 };
 

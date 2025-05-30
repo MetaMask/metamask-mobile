@@ -250,6 +250,7 @@ const selectEarnTokens = createDeepEqualSelector(
             : balanceFiatCalculation;
       }
 
+      let assetTicker = token?.ticker || token.symbol;
       // is pooled staking enabled and eligible
       if (isPooledStakingEnabled && isPooledStakingEligible) {
         // TODO: we could add direct validator staking as an additional earn experience
@@ -260,7 +261,10 @@ const selectEarnTokens = createDeepEqualSelector(
             ...getEstimatedAnnualRewards(
               pooledStakingVaultAprForChain,
               assetBalanceFiatNumber,
+              tokenBalanceMinimalUnit.toString(),
               currentCurrency,
+              token.decimals,
+              assetTicker,
             ),
             vault: pooledStakingVaultForChain,
           });
@@ -277,7 +281,10 @@ const selectEarnTokens = createDeepEqualSelector(
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
+                tokenBalanceMinimalUnit.toString(),
                 currentCurrency,
+                token.decimals,
+                assetTicker,
               ),
               market,
             });
@@ -291,7 +298,10 @@ const selectEarnTokens = createDeepEqualSelector(
               ...getEstimatedAnnualRewards(
                 String(market.netSupplyRate),
                 assetBalanceFiatNumber,
+                tokenBalanceMinimalUnit.toString(),
                 currentCurrency,
+                token.decimals,
+                assetTicker,
               ),
               market,
             });

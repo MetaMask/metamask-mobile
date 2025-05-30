@@ -23,19 +23,16 @@ export interface DepositInfoSectionProps {
   token: TokenI;
   lendingContractAddress: string;
   lendingProtocol: string;
+  amountTokenMinimalUnit: string;
+  amountFiatNumber: number;
 }
-
-// TODO: Replace mock data with actual values before launch
-export const MOCK_DATA_TO_REPLACE = {
-  EST_ANNUAL_REWARD: {
-    TOKEN: '5 DAI',
-  },
-};
 
 const DepositInfoSection = ({
   token,
   lendingContractAddress,
   lendingProtocol,
+  amountTokenMinimalUnit,
+  amountFiatNumber,
 }: DepositInfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -43,8 +40,16 @@ const DepositInfoSection = ({
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
-  const { getEarnToken } = useEarnTokens();
+  const { getEarnToken, getEstimatedAnnualRewardsForAmount } = useEarnTokens();
   const earnToken = getEarnToken(token);
+
+  if (!earnToken) return null;
+
+  const estimatedAnnualRewardsForAmount = getEstimatedAnnualRewardsForAmount(
+    earnToken,
+    amountTokenMinimalUnit,
+    amountFiatNumber,
+  );
 
   return (
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
@@ -84,10 +89,14 @@ const DepositInfoSection = ({
             label: (
               <View style={styles.estAnnualReward}>
                 <Text>
-                  {earnToken?.experience?.estimatedAnnualRewardsFormatted}
+                  {
+                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
+                  }
                 </Text>
                 <Text color={TextColor.Alternative}>
-                  {MOCK_DATA_TO_REPLACE.EST_ANNUAL_REWARD.TOKEN}
+                  {
+                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
+                  }
                 </Text>
               </View>
             ),
