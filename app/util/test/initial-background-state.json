@@ -91,9 +91,7 @@
         ]
       },
       "0x279f": {
-        "blockExplorerUrls": [
-          "https://testnet.monadexplorer.com"
-        ],
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
         "chainId": "0x279f",
         "defaultBlockExplorerUrlIndex": 0,
         "defaultRpcEndpointIndex": 0,
@@ -344,6 +342,9 @@
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
+  },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
     "domains": {}
