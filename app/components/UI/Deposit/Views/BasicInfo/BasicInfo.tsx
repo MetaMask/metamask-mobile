@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../StyledButton';
@@ -15,7 +15,7 @@ import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
+import DepositDateField from '../../components/DepositDateField';
 
 // TODO: move this to Enter address view when it created
 export const createEnterAddressNavDetails = createNavigationDetails(
@@ -33,6 +33,7 @@ interface FormData {
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const ssnInputRef = useRef<TextInput>(null);
 
   const initialFormData: FormData = {
     firstName: '',
@@ -124,8 +125,6 @@ const BasicInfo = (): JSX.Element => {
             />
           </View>
           <DepositPhoneField
-            // TODO: Add internationalization for phone number format
-            // TODO: Automatic formatting
             label="Phone Number"
             placeholder="(234) 567-8910"
             value={formData.phoneNumber}
@@ -135,29 +134,19 @@ const BasicInfo = (): JSX.Element => {
             returnKeyType="next"
           />
 
-          <DepositTextField
-            // TODO: Add internationalization for date format
-            // TODO: Add date picker functionality
-            startAccessory={
-              <IonicIcon
-                name="calendar-outline"
-                size={20}
-                style={styles.calendarIcon}
-              />
-            }
+          <DepositDateField
             label="Date of Birth"
+            // TODO: Internationalize date format
             placeholder="MM/DD/YYYY"
             value={formData.dateOfBirth}
             onChangeText={(text) => handleChange('dateOfBirth', text)}
             error={errors.dateOfBirth}
-            returnKeyType="next"
-            keyboardType="number-pad"
             testID="dob-input"
+            maximumDate={new Date()}
+            nextInputRef={ssnInputRef}
           />
 
           <DepositTextField
-            // TODO: Contextual rendering of SSN input based on country
-            // TODO: Automatically format SSN input?
             label="Social Security Number"
             placeholder="XXX-XX-XXXX"
             value={formData.ssn}
@@ -167,6 +156,7 @@ const BasicInfo = (): JSX.Element => {
             keyboardType="number-pad"
             secureTextEntry
             testID="ssn-input"
+            ref={ssnInputRef}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
