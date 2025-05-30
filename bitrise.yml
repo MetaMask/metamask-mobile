@@ -916,24 +916,6 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - script@1:
           title: Run detox build
           timeout: 1200
           is_always_run: true
@@ -945,23 +927,32 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
-      - save-gradle-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+      - script@1:
+          title: Create outputs.zip with only necessary files
           inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                
+                # Create a temporary directory for the files we want to zip
+                mkdir -p "$BITRISE_SOURCE_DIR/tmp_outputs"
+                
+                # Copy only the necessary APK files
+                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/qa/release/app-qa-release.apk" "$BITRISE_SOURCE_DIR/tmp_outputs/"
+                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk" "$BITRISE_SOURCE_DIR/tmp_outputs/"
+                
+                # Create the zip file
+                cd "$BITRISE_SOURCE_DIR/tmp_outputs"
+                zip -r "$BITRISE_SOURCE_DIR/outputs.zip" .
+                
+                # Clean up
+                cd "$BITRISE_SOURCE_DIR"
+                rm -rf tmp_outputs
       - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
+            - pipeline_intermediate_files: outputs.zip:INTERMEDIATE_ANDROID_BUILD_DIR
+            - is_compress: false
+          title: Save outputs.zip
     meta:
       bitrise.io:
         machine_type_id: elite-xl
