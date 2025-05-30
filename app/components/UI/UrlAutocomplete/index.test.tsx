@@ -55,7 +55,7 @@ const mockUseTSDReturnValue = ({
   searchTokens: () => void;
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const useTSD = require('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
+  const useTSD = require('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch');
   useTSD.mockReturnValue({
     results,
     isLoading,
