@@ -14,7 +14,7 @@ jest.mock('./spam', () => ({
 const jsonrpc = '2.0' as const;
 
 describe('createOriginThrottlingMiddleware', () => {
-  const mockNavigation = jest.fn();
+  const mockNavigation = { navigate: jest.fn() };
 
   it('returns a middleware function', async () => {
     const middleware = createOriginThrottlingMiddleware(mockNavigation);
@@ -47,7 +47,7 @@ describe('createOriginThrottlingMiddleware', () => {
       });
     engine.push(nextMiddleware);
 
-    const response = await engine.handle({
+    await engine.handle({
       jsonrpc,
       id: 1,
       method: 'this-is-a-fake-method',

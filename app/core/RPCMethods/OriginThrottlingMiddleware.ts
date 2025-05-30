@@ -16,9 +16,9 @@ import {
   validateOriginThrottling,
 } from './spam';
 
-export function createOriginThrottlingMiddleware(
-  navigation: any,
-): JsonRpcMiddleware<JsonRpcParams, Json> {
+export function createOriginThrottlingMiddleware(navigation: {
+  navigate: (route: string, params: Record<string, unknown>) => void;
+}): JsonRpcMiddleware<JsonRpcParams, Json> {
   return (
     req: JsonRpcRequest<JsonRpcParams>,
     res: PendingJsonRpcResponse<Json>,
