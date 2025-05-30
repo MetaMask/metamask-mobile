@@ -9,16 +9,23 @@ exports[`DepositPhoneField should render default settings correctly 1`] = `
     }
   }
 >
-  <Label
+  <Text
+    accessibilityRole="text"
     style={
       {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 24,
         "marginBottom": 6,
       }
     }
-    variant="sHeadingSMRegular"
+    testID="label"
   >
     Phone Number
-  </Label>
+  </Text>
   <View
     style={
       {
@@ -44,9 +51,15 @@ exports[`DepositPhoneField should render default settings correctly 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         style={
           {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
             "marginRight": 4,
           }
         }
@@ -54,9 +67,15 @@ exports[`DepositPhoneField should render default settings correctly 1`] = `
         🇺🇸
       </Text>
       <Text
+        accessibilityRole="text"
         style={
           {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
           }
         }
       >
@@ -64,21 +83,60 @@ exports[`DepositPhoneField should render default settings correctly 1`] = `
         1
       </Text>
     </View>
-    <ForwardRef
-      keyboardAppearance="light"
-      keyboardType="phone-pad"
-      onChangeText={[Function]}
-      placeholderTextColor="#9ca1af"
-      size="48"
+    <View
       style={
         {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "borderBottomLeftRadius": 0,
+          "borderColor": "#b7bbc8",
+          "borderRadius": 8,
           "borderTopLeftRadius": 0,
+          "borderWidth": 1,
           "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "opacity": 1,
+          "paddingHorizontal": 16,
         }
       }
-      testID="deposit-phone-field-test-id"
-    />
+      testID="textfield"
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <TextInput
+          autoFocus={false}
+          editable={true}
+          keyboardAppearance="light"
+          keyboardType="phone-pad"
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onFocus={[Function]}
+          placeholderTextColor="#9ca1af"
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "transparent",
+              "borderWidth": 1,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "height": 24,
+              "letterSpacing": 0,
+              "opacity": 1,
+              "paddingVertical": 0,
+            }
+          }
+          testID="deposit-phone-field-test-id"
+        />
+      </View>
+    </View>
   </View>
 </View>
 `;
