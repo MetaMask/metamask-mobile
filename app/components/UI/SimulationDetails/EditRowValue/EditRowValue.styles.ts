@@ -9,7 +9,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '48%',
     },
     buttonSection: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
