@@ -4666,10 +4666,10 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^29.0.0":
-  version "29.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-29.0.0.tgz#e190acb5c5c925a0a9109b576272be47076013a4"
-  integrity sha512-GkyES657EeYASDFyqJaB1quTSiXhtu6C8c4mLOhUJXg26rQjXvZHvtDzq5Fj/45iK6RSjiM9jX/r9+KT0wfIQw==
+"@metamask/accounts-controller@^29.0.1":
+  version "29.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-29.0.1.tgz#6ba83a0ced634d86c12d068a676dc2905d003c73"
+  integrity sha512-sAJ1awhy1ejI/DS85yimps24h/b/tdv35Ys16mF/4QQqw/RJlNMjgVHBPAeqfB58jNj4bg4FWzGpD6d3dTDIjQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
