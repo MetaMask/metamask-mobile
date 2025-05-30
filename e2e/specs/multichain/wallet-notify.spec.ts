@@ -10,7 +10,7 @@ import { SmokeMultichainApi } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -25,6 +25,7 @@ describe(SmokeMultichainApi('wallet_notify'), () => {
     it('should receive a notification through the Multichain API for the event subscribed to', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
