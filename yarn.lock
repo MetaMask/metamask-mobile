@@ -13255,7 +13255,7 @@ base64-js@1.3.1:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.1.tgz#58ece8cb75dd07e71ed08c736abc5fac4dbf8df1"
   integrity sha512-mLQ4i2QO1ytvGWFWmcngKO//JXAQueZvwEKtjgQFM4jIK0kU+ytMfplL8j+n5mspOfjHwoAg+9yhb7BwAHm36g==
 
-base64-js@^1.0.2, base64-js@^1.2.3, base64-js@^1.3.1, base64-js@^1.5.1:
+base64-js@^1.0.2, base64-js@^1.2.3, base64-js@^1.3.0, base64-js@^1.3.1, base64-js@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
@@ -17300,6 +17300,16 @@ expect@^29.0.0, expect@^29.7.0:
     jest-message-util "^29.7.0"
     jest-util "^29.7.0"
 
+expo-apple-authentication@~7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/expo-apple-authentication/-/expo-apple-authentication-7.1.3.tgz#3d4ec9fa29ff336eba9b280e7db110639ae7e020"
+  integrity sha512-TRaF513oDGjGx3hRiAwkMiSnKLN8BIR9Se5Gi3ttz2UUgP9y+tNHV6Ji6/oztJo9ON7zerHg2mn5Y+3B8c2vTQ==
+
+expo-application@~6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/expo-application/-/expo-application-6.0.2.tgz#4384299f0518958e2fb18b8b029af5583c642479"
+  integrity sha512-qcj6kGq3mc7x5yIb5KxESurFTJCoEKwNEL34RdPEvTB/xhl7SeVZlu05sZBqxB1V4Ryzq/LsCb7NHNfBbb3L7A==
+
 expo-asset@~11.0.2:
   version "11.0.5"
   resolved "https://registry.yarnpkg.com/expo-asset/-/expo-asset-11.0.5.tgz#9d0ad28da3af220d25c001cd6e4a80cc669ee18b"
@@ -17310,6 +17320,18 @@ expo-asset@~11.0.2:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
+expo-auth-session@~6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/expo-auth-session/-/expo-auth-session-6.0.3.tgz#2a31afca4b0c3654b02ca69c88e897266ff63863"
+  integrity sha512-s7LmmMPiiY1NXrlcXkc4+09Hlfw9X1CpaQOCDkwfQEodG1uCYGQi/WImTnDzw5YDkWI79uC8F1mB8EIerilkDA==
+  dependencies:
+    expo-application "~6.0.2"
+    expo-constants "~17.0.5"
+    expo-crypto "~14.0.2"
+    expo-linking "~7.0.5"
+    expo-web-browser "~14.0.2"
+    invariant "^2.2.4"
+
 expo-build-properties@^0.13.1, expo-build-properties@~0.13.2:
   version "0.13.2"
   resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.13.2.tgz#c9cef927fc8236551d940da4fd8dc1332e2d052d"
@@ -17318,13 +17340,20 @@ expo-build-properties@^0.13.1, expo-build-properties@~0.13.2:
     ajv "^8.11.0"
     semver "^7.6.0"
 
-expo-constants@~17.0.4, expo-constants@~17.0.8:
+expo-constants@~17.0.4, expo-constants@~17.0.5, expo-constants@~17.0.8:
   version "17.0.8"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-17.0.8.tgz#d7a21ec6f1f4834ea25aa645be20292ef99c0b81"
   integrity sha512-XfWRyQAf1yUNgWZ1TnE8pFBMqGmFP5Gb+SFSgszxDdOoheB/NI5D4p7q86kI2fvGyfTrxAe+D+74nZkfsGvUlg==
   dependencies:
     "@expo/config" "~10.0.11"
     "@expo/env" "~0.4.2"
+
+expo-crypto@~14.0.2:
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/expo-crypto/-/expo-crypto-14.0.2.tgz#5f5d83c849164229f7a3e6a341887142756d517e"
+  integrity sha512-WRc9PBpJraJN29VD5Ef7nCecxJmZNyRKcGkNiDQC1nhY5agppzwhqh7zEzNFarE/GqDgSiaDHS8yd5EgFhP9AQ==
+  dependencies:
+    base64-js "^1.3.0"
 
 expo-dev-client@~5.0.18:
   version "5.0.20"
@@ -17383,6 +17412,14 @@ expo-keep-awake@~14.0.2:
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-14.0.3.tgz#74c91b68effdb6969bc1e8371621aad90386cfbf"
   integrity sha512-6Jh94G6NvTZfuLnm2vwIpKe3GdOiVBuISl7FI8GqN0/9UOg9E0WXXp5cDcfAG8bn80RfgLJS8P7EPUGTZyOvhg==
 
+expo-linking@~7.0.5:
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/expo-linking/-/expo-linking-7.0.5.tgz#6f583c636a3cc29f02d67a1550b21f8e636fe2af"
+  integrity sha512-3KptlJtcYDPWohk0MfJU75MJFh2ybavbtcSd84zEPfw9s1q3hjimw3sXnH03ZxP54kiEWldvKmmnGcVffBDB1g==
+  dependencies:
+    expo-constants "~17.0.5"
+    invariant "^2.2.4"
+
 expo-manifests@~0.15.8:
   version "0.15.8"
   resolved "https://registry.yarnpkg.com/expo-manifests/-/expo-manifests-0.15.8.tgz#15e7b7b99d764b40ca3e3f859a126c856e2d6206"
@@ -17416,6 +17453,11 @@ expo-updates-interface@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/expo-updates-interface/-/expo-updates-interface-1.0.0.tgz#b98c66b800d29561c62409556948b2af3d5316e5"
   integrity sha512-93oWtvULJOj+Pp+N/lpTcFfuREX1wNeHtp7Lwn8EbzYYmdn37MvZU3TPW2tYYCZuhzmKEXnUblYcruYoDu7IrQ==
+
+expo-web-browser@~14.0.2:
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/expo-web-browser/-/expo-web-browser-14.0.2.tgz#52d53947c42fdfb225e8c230418ffe508bcf98a7"
+  integrity sha512-Hncv2yojhTpHbP6SGWARBFdl7P6wBHc1O8IKaNsH0a/IEakq887o1eRhLxZ5IwztPQyRDhpqHdgJ+BjWolOnwA==
 
 expo@52.0.27:
   version "52.0.27"
@@ -24948,6 +24990,10 @@ react-native-get-random-values@^1.8.0:
   integrity sha512-4BTbDbRmS7iPdhYLRcz3PGFIpFJBwNZg9g42iwa2P6FOv9vZj/xJc678RZXnLNZzd0qd7Q3CCF6Yd+CU2eoXKQ==
   dependencies:
     fast-base64-decode "^1.0.0"
+
+"react-native-google-acm@git+https://github.com/Web3Auth/react-native-google-acm.git#3ad58f4c11273ba102ede93d2a3148e45c84d248":
+  version "0.1.0"
+  resolved "git+https://github.com/Web3Auth/react-native-google-acm.git#3ad58f4c11273ba102ede93d2a3148e45c84d248"
 
 react-native-gzip@^1.1.0:
   version "1.1.0"
