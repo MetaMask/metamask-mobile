@@ -113,12 +113,9 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
           </View>
         </AlertRow>
         {isUserFeeLevelExists && (
-          <AlertRow
-            alertField={RowAlertKey.EstimatedFee}
-            label={strings('transactions.gas_modal.speed')}
-          >
+          <InfoRow label={strings('transactions.gas_modal.speed')}>
             <GasSpeed />
-          </AlertRow>
+          </InfoRow>
         )}
       </InfoSection>
       {gasModalVisible && (
