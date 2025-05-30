@@ -67,8 +67,8 @@ import type { BridgeDestTokenSelectorRouteParams } from '../../components/Bridge
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { isHardwareAccount , isHardwareAccount } from '../../../../../util/address';
-import { selectSelectedInternalAccountFormattedAddress , selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../util/address';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
@@ -111,9 +111,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+
   const {
     activeQuote,
     isLoading,
