@@ -1,20 +1,20 @@
 'use strict';
-import Browser from '../../pages/Browser/BrowserView';
-import TestDApp from '../../pages/Browser/TestDApp';
-import { buildPermissions } from '../../fixtures/utils';
-import SigningBottomSheet from '../../pages/Browser/SigningBottomSheet';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { RegressionNetworkAbstraction } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import Assertions from '../../utils/Assertions';
-import enContent from '../../../locales/languages/en.json';
+import Browser from '../../../pages/Browser/BrowserView';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import { buildPermissions } from '../../../fixtures/utils';
+import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
+import TestHelpers from '../../../helpers';
+import WalletView from '../../../pages/wallet/WalletView';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import { Regression } from '../../../tags';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../fixtures/fixture-helper';
+import { CustomNetworks } from '../../../resources/networks.e2e';
+import Assertions from '../../../utils/Assertions';
+import enContent from '../../../../locales/languages/en.json';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
