@@ -59,7 +59,7 @@ const EarnWithdrawalTokenListItem = ({
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
             >{`${strings('earn.earning')} ${parseFloat(
-              earnToken?.experiences?.[0]?.apr ?? '0',
+              earnToken?.experience?.apr ?? '0',
             ).toFixed(1)}%`}</Text>
           </View>
         </View>

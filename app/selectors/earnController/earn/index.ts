@@ -7,24 +7,21 @@ import {
   selectCurrentCurrency,
 } from '../../currencyRateController';
 import { selectAccountsByChainId } from '../../accountTrackerController';
-import {
-  selectEvmChainId,
-  selectNetworkConfigurations,
-} from '../../networkController';
+import { selectNetworkConfigurations } from '../../networkController';
 import { selectSelectedInternalAccountAddress } from '../../accountsController';
 import { selectTokenMarketData } from '../../tokenRatesController';
 import { selectTokensBalances } from '../../tokenBalancesController';
 import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
-} from '../../../components/UI/Earn/hooks/useEarnTokens';
+  isSupportedPooledStakingChain,
+} from '@metamask-previews/earn-controller';
 import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
 import { TokenI } from '../../../components/UI/Tokens/types';
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { isSupportedPooledStakingChain } from '@metamask/stake-sdk';
 import BigNumber from 'bignumber.js';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
@@ -58,7 +55,6 @@ const selectEarnTokenBaseData = createSelector(
     selectAccountTokensAcrossChains,
     selectCurrencyRates,
     selectAccountsByChainId,
-    selectEvmChainId,
   ],
   (
     earnState,
@@ -74,7 +70,6 @@ const selectEarnTokenBaseData = createSelector(
     accountTokensAcrossChains,
     currencyRates,
     accountsByChainId,
-    selectedChainId,
   ) => ({
     earnState,
     isPooledStakingEnabled,
@@ -89,7 +84,6 @@ const selectEarnTokenBaseData = createSelector(
     accountTokensAcrossChains,
     currencyRates,
     accountsByChainId,
-    selectedChainId,
   }),
 );
 
@@ -110,7 +104,6 @@ const selectEarnTokens = createDeepEqualSelector(
       currencyRates,
       networkConfigs,
       accountsByChainId,
-      selectedChainId,
     } = earnTokenBaseData;
     // TODO: replace with selector for this in controller
     const isStablecoinLendingEligible = isPooledStakingEligible;
@@ -160,37 +153,10 @@ const selectEarnTokens = createDeepEqualSelector(
       return emptyEarnTokensData;
     }
 
-    // const lendingMarketsWithPosition =
-    //   selectLendingMarketsWithPosition(earnState);
-    // console.log(
-    //   'LENDING MARKETS WITH POSITION',
-    //   JSON.stringify(lendingMarketsWithPosition, null, 2),
-    // );
-    // const marketsByProtocolAndId =
-    //   selectLendingMarketsByProtocolAndId(earnState);
-    // console.log(
-    //   'MARKETS BY PROTOCOL AND ID',
-    //   JSON.stringify(marketsByProtocolAndId, null, 2),
-    // );
-    // const lendingPositionsWithMarket =
-    //   selectLendingPositionsWithMarket(earnState);
-    // console.log(
-    //   'SELECT LENDING POSITIONS WITH MARKET',
-    //   JSON.stringify(lendingPositionsWithMarket, null, 2),
-    // );
-    // console.log('earnState', JSON.stringify(earnState, null, 2));
     const lendingMarketsByChainIdAndTokenAddress =
       selectLendingMarketsByChainIdAndTokenAddress(earnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
       selectLendingMarketsByChainIdAndOutputTokenAddress(earnState);
-    // console.log(
-    //   'lendingMarketsByChainIdAndTokenAddress',
-    //   JSON.stringify(lendingMarketsByChainIdAndTokenAddress, null, 2),
-    // );
-    // console.log(
-    //   'lendingMarketsByChainIdAndOutputTokenAddress',
-    //   JSON.stringify(lendingMarketsByChainIdAndOutputTokenAddress, null, 2),
-    // );
 
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
@@ -248,11 +214,7 @@ const selectEarnTokens = createDeepEqualSelector(
               token.address as Hex
             ],
           );
-      console.log(
-        'tokenBalanceMinimalUnit from deriveBalanceFromAssetMarketDetails',
-        tokenBalanceMinimalUnit.toString(),
-        balanceWei.toString(),
-      );
+
       const nativeCurrency =
         networkConfigs?.[token.chainId as Hex]?.nativeCurrency;
       const tokenExchangeRates = marketData?.[token.chainId as Hex] || {};
@@ -376,16 +338,8 @@ const selectEarnTokens = createDeepEqualSelector(
           acc.earnTokensByChainIdAndAddress[decimalChainId][
             token.address.toLowerCase()
           ] = earnTokenDetails;
-          console.log('assetBalanceFiatNumber', assetBalanceFiatNumber);
-          console.log('balanceFiat', balanceFiat);
-          console.log('details', earnTokenDetails);
-
           acc.earnableTotalFiatNumber +=
             earnTokenDetails.experience.estimatedAnnualRewardsFiatNumber;
-          console.log(
-            'acc.earnableTotalFiatNumber',
-            acc.earnableTotalFiatNumber,
-          );
         }
         if (isEarnOutputToken) {
           acc.earnOutputTokens.push(earnTokenDetails);

@@ -64,7 +64,6 @@ const Steps = {
 };
 
 const EarnLendingDepositConfirmationView = () => {
-  console.log('EarnLendingDepositConfirmationView');
   const { styles, theme } = useStyles(styleSheet, {});
 
   const { params } =
@@ -181,29 +180,10 @@ const EarnLendingDepositConfirmationView = () => {
       );
 
       Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFinished',
-        () => {
-          // setIsConfirmButtonDisabled(false);
-          // setIsApprovalLoading(false);
-          console.info('transactionFinished');
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
-          console.info('transactionDropped');
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionStatusUpdated',
-        (data: unknown) => {
-          console.info('transactionStatusUpdated', data);
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
@@ -257,13 +237,6 @@ const EarnLendingDepositConfirmationView = () => {
     },
     [createAllowanceTxEventListeners, createDepositTxEventListeners],
   );
-
-  console.log('token', token);
-  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit);
-  console.log('amountFiat', amountFiat);
-  console.log('lendingContractAddress', lendingContractAddress);
-  console.log('lendingProtocol', lendingProtocol);
-  console.log('action', action);
 
   // Route param guards
   if (

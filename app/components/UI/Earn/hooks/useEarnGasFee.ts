@@ -27,7 +27,7 @@ const useEarnDepositGasFee = (
   amountTokenMinimalUnit: BN4,
   earnExperience: EarnTokenDetails['experience'],
 ): EarnGasFee => {
-  // move to using the controller once it has proper handling error flow
+  // TODO: move to using the earn controller for gas estimation fot pooled staking
   const { stakingContract, lendingContracts } = useStakeContext();
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';

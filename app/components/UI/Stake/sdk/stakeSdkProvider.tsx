@@ -4,7 +4,6 @@ import {
   PooledStakingContract,
   LendingProvider,
   EarnApiService,
-  EarnEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -22,7 +21,7 @@ import {
 import { getDecimalChainId } from '../../../../util/networks';
 import { LendingProtocol } from '@metamask/stake-sdk/dist/contracts/Lending/constants.mjs';
 
-export const earnApiService = new EarnApiService(EarnEnvironments.PROD);
+export const earnApiService = new EarnApiService();
 export const stakingApiService = earnApiService.pooledStaking;
 export const lendingApiService = earnApiService.lending;
 

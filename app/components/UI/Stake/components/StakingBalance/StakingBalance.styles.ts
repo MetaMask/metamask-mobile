@@ -1,9 +1,4 @@
-import { typography } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -19,12 +14,6 @@ const styleSheet = () =>
       marginLeft: 20,
       alignSelf: 'center',
     },
-    assetName: {
-      ...typography.sBodySMMedium,
-      fontFamily: getFontFamily(TextVariant.BodySMMedium),
-      fontSize: 14,
-      lineHeight: 20,
-    } as TextStyle,
     ethLogo: {
       width: 32,
       height: 32,

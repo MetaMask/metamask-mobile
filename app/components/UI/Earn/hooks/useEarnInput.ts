@@ -8,11 +8,10 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import useBalance from '../../Stake/hooks/useBalance';
-import useInputHandler from './useInput';
-import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 import { EarnTokenDetails } from '../types/lending.types';
-import { getDecimalChainId } from '../../../../util/networks';
 import useEarnDepositGasFee from './useEarnGasFee';
+import { useEarnMetadata } from './useEarnMetadata';
+import useInputHandler from './useInput';
 
 export interface EarnInputProps {
   earnToken: EarnTokenDetails;
@@ -63,7 +62,7 @@ const useEarnInputHandlers = ({
     isEarnGasFeeError,
   } = useEarnDepositGasFee(amountTokenMinimalUnit, earnToken.experience);
 
-  // // max amount of native currency stakable after gas fee
+  // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
       !isEarnGasFeeError &&
@@ -76,21 +75,6 @@ const useEarnInputHandlers = ({
   );
 
   const isOverMaximum = useMemo(() => {
-    console.log('balanceWei', balanceWei.toString());
-    console.log('estimatedGasFeeWei', estimatedGasFeeWei.toString());
-    console.log(
-      'minus gas is the amount stakable',
-      balanceWei.sub(estimatedGasFeeWei).toString(),
-    );
-    console.log(
-      'amountTokenMinimalUnit is what we plan to stake',
-      amountTokenMinimalUnit.toString(),
-    );
-    console.log(
-      'minus the gas from amount stakable',
-      amountTokenMinimalUnit.sub(balanceWei.sub(estimatedGasFeeWei)).toString(),
-    );
-    console.log('--------------------------------');
     const isOverMaximumEth =
       !!earnToken.isETH &&
       isNonZeroAmount &&
@@ -117,11 +101,8 @@ const useEarnInputHandlers = ({
     isLoadingEarnGasFee,
   ]);
 
-  console.log('maxStakeableAmountWei', maxStakeableAmountWei.toString());
-  // TODO: Update useVaultMetadata to support lending and pooled-staking or separate and call separate hooks.
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
-    useVaultMetadata(getDecimalChainId(earnToken.chainId));
-
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingEarnMetadata } =
+    useEarnMetadata(earnToken);
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
 
@@ -240,7 +221,7 @@ const useEarnInputHandlers = ({
     annualRewardRate,
     handleMax,
     isLoadingEarnGasFee,
-    isLoadingVaultMetadata,
+    isLoadingEarnMetadata,
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,

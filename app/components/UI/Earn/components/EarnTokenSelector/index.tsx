@@ -45,14 +45,13 @@ const EarnTokenSelector = ({
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
   const token = (earnToken || outputToken) as EarnTokenDetails;
-  const apr = parseFloat(token?.experiences?.[0]?.apr ?? '0').toFixed(1);
+  const apr = parseFloat(token?.experience?.apr ?? '0').toFixed(1);
 
   const handlePress = () => {
     const tokenFilter = {
       includeReceiptTokens: false,
     };
 
-    // Make this more intuitive after merge resolution
     if (action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
       tokenFilter.includeReceiptTokens = true;
     }

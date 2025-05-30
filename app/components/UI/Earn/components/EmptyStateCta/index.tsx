@@ -48,8 +48,8 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const earnToken = getEarnToken(token);
 
   const estimatedAnnualRewardsFormatted =
-    earnToken?.experiences?.[0]?.estimatedAnnualRewardsFormatted;
-  const apr = earnToken?.experiences?.[0]?.apr;
+    earnToken?.experience?.estimatedAnnualRewardsFormatted;
+  const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED)

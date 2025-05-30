@@ -46,6 +46,7 @@ import {
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
   getAaveV3MaxRiskAwareWithdrawalAmount,
   calculateAaveV3HealthFactorAfterWithdrawal,
+  getLendingPoolLiquidity,
 } from '../../utils/tempLending';
 // import BigNumber from 'bignumber.js';
 import BN from 'bnjs4';
@@ -53,6 +54,7 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { TokenI } from '../../../Tokens/types';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import BigNumber from 'bignumber.js';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -62,11 +64,9 @@ const EarnWithdrawInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const { getPairedEarnTokens } = useEarnTokens();
-  console.log('token testing hoodie', token);
   const { outputToken: receiptToken, earnToken: lendingToken } =
     getPairedEarnTokens(token);
-  console.log('receiptToken testing hoodie', receiptToken);
-  console.log('lendingToken testing hoodie', lendingToken);
+
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -251,11 +251,6 @@ const EarnWithdrawInputView = () => {
         amountTokenMinimalUnit.toString(),
         lendingToken as EarnTokenDetails,
       );
-
-    console.log(
-      'simulatedHealthFactorAfterWithdrawal: ',
-      simulatedHealthFactorAfterWithdrawal,
-    );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
 

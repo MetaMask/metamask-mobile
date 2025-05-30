@@ -160,7 +160,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.33.2",
-    "@metamask-previews/earn-controller": "0.14.0-preview-7bb49dcb",
+    "@metamask-previews/earn-controller": "0.14.0-preview-e9f8bc88",
     "@metamask/accounts-controller": "^29.0.1",
     "@metamask/address-book-controller": "^6.0.3",
     "@metamask/app-metadata-controller": "^1.0.0",

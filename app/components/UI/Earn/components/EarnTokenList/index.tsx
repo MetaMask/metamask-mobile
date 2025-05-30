@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useCallback,
-  useEffect,
-  useReducer,
-  useMemo,
-} from 'react';
+import React, { useRef, useCallback, useEffect, useReducer } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -46,9 +40,6 @@ import { EarnTokenDetails } from '../../types/lending.types';
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
 
-// Temporary: Will be replaced by actual API call in near future.
-const MOCK_ESTIMATE_REWARDS = '$454';
-
 const EarnTokenListSkeletonPlaceholder = () => (
   <SkeletonPlaceholder>
     <SkeletonPlaceholder.Item
@@ -73,9 +64,6 @@ const EarnTokenListSkeletonPlaceholder = () => (
 
 interface EarnTokenListViewRouteParams {
   tokenFilter: {
-    includeNativeTokens: boolean;
-    includeStakingTokens: boolean;
-    includeLendingTokens: boolean;
     includeReceiptTokens: boolean;
   };
   onItemPressScreen: string;
@@ -94,14 +82,12 @@ const EarnTokenList = () => {
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  // TODO: adjust this properly
-  const { includeReceiptTokens: includeOutputTokens } =
-    params?.tokenFilter ?? {};
+  const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
   const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
     useEarnTokens();
 
-  const tokens = includeOutputTokens ? earnOutputTokens : earnTokens;
+  const tokens = includeReceiptTokens ? earnOutputTokens : earnTokens;
 
   // Temp workaround for BadgeNetwork component not anchoring correctly on initial render.
   // We force a rerender to ensure the BadgeNetwork component properly anchors to its BadgeWrapper.

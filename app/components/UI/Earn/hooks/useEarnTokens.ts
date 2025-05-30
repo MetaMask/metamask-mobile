@@ -1,72 +1,9 @@
-import {
-  LendingMarketWithPosition,
-  LendingPositionWithMarket,
-  selectLendingMarkets,
-  selectLendingPositionsWithMarket,
-} from '@metamask-previews/earn-controller';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
 import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
-
-// TODO: move to earn-controller
-const selectLendingPositionsByProtocolChainIdMarketId = createSelector(
-  selectLendingPositionsWithMarket,
-  (positionsWithMarket) =>
-    positionsWithMarket.reduce((acc, position) => {
-      acc[position.protocol] ??= {};
-      acc[position.protocol][position.chainId] ??= {};
-      acc[position.protocol][position.chainId][position.marketId] = position;
-      return acc;
-    }, {} as Record<string, Record<string, Record<string, LendingPositionWithMarket>>>),
-);
-
-export const selectLendingMarketsWithPosition = createSelector(
-  selectLendingPositionsByProtocolChainIdMarketId,
-  selectLendingMarkets,
-  (positionsByProtocolChainIdMarketId, lendingMarkets) =>
-    lendingMarkets.map((market) => {
-      const position =
-        positionsByProtocolChainIdMarketId?.[market.protocol]?.[
-          market.chainId
-        ]?.[market.id];
-      return {
-        ...market,
-        position: position || null,
-      };
-    }),
-);
-
-export const selectLendingMarketsByChainIdAndOutputTokenAddress =
-  createSelector(selectLendingMarketsWithPosition, (marketsWithPosition) =>
-    marketsWithPosition.reduce((acc, market) => {
-      if (market.outputToken?.address) {
-        acc[market.chainId] = acc?.[market.chainId] || {};
-        acc[market.chainId][market.outputToken.address] =
-          acc?.[market.chainId]?.[market.outputToken.address] || [];
-        acc[market.chainId][market.outputToken.address].push(market);
-      }
-      return acc;
-    }, {} as Record<string, Record<string, LendingMarketWithPosition[]>>),
-  );
-
-// we want a list of markets across protocols for chainId and token address
-export const selectLendingMarketsByChainIdAndTokenAddress = createSelector(
-  selectLendingMarketsWithPosition,
-  (marketsWithPosition) =>
-    marketsWithPosition.reduce((acc, market) => {
-      if (market.underlying?.address) {
-        acc[market.chainId] = acc?.[market.chainId] || {};
-        acc[market.chainId][market.underlying.address] =
-          acc?.[market.chainId]?.[market.underlying.address] || [];
-        acc[market.chainId][market.underlying.address].push(market);
-      }
-      return acc;
-    }, {} as Record<string, Record<string, LendingMarketWithPosition[]>>),
-);
 
 const useEarnTokens = () => {
   const earnTokensData = useSelector(earnSelectors.selectEarnTokens);

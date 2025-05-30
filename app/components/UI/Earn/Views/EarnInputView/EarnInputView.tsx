@@ -115,7 +115,7 @@ const EarnInputView = () => {
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultMetadata,
+    isLoadingEarnMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -128,8 +128,6 @@ const EarnInputView = () => {
     exchangeRate,
   });
 
-  console.log('amountTokenMinimalUnit', amountTokenMinimalUnit);
-  console.log('balanceValue', balanceValue);
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
@@ -146,36 +144,21 @@ const EarnInputView = () => {
     const tokenContractAddress = earnToken?.address;
 
     if (!tokenContractAddress || !earnToken?.chainId) return;
+
     const allowanceMinimalTokenUnitBN =
       await Engine.context.EarnController.getLendingTokenAllowance(
         earnToken.experience.market?.protocol,
         earnToken.experience.market?.underlying?.address,
       );
-    console.log(
-      'Engine.context.EarnController',
-      tokenContractAddress,
-      earnToken.experience.market?.underlying?.address,
-      earnToken.experience.market?.protocol,
-      allowanceMinimalTokenUnitBN,
-    );
+
     const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN
       ? allowanceMinimalTokenUnitBN.toString()
       : '0';
-    // const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
-    //   activeAccount.address,
-    //   tokenContractAddress,
-    //   earnToken.chainId,
-    // );
 
     const needsAllowanceIncrease = new BigNumber(
       allowanceMinimalTokenUnit ?? '',
     ).isLessThan(amountTokenMinimalUnitString);
 
-    console.log(
-      'needsAllowanceIncrease',
-      needsAllowanceIncrease,
-      earnToken.chainId,
-    );
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
       '';
@@ -191,9 +174,7 @@ const EarnInputView = () => {
         annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
-        // TODO: Replace hardcoded protocol in future iteration.
         lendingProtocol: earnToken?.experience?.market?.protocol,
-        // TODO: Add lending pool contract address when available.
         lendingContractAddress: lendingPoolContractAddress,
         action: needsAllowanceIncrease
           ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
@@ -327,9 +308,7 @@ const EarnInputView = () => {
   const handleEarnPress = useCallback(async () => {
     // Stablecoin Lending Flow
     if (
-      // TODO: fix this to be easier to understand
-      earnToken?.experiences?.[0]?.type ===
-        EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
       isStablecoinLendingEnabled
     ) {
       await handleLendingFlow();
@@ -339,7 +318,7 @@ const EarnInputView = () => {
     // Pooled-Staking Flow
     await handlePooledStakingFlow();
   }, [
-    earnToken?.experiences,
+    earnToken?.experience?.type,
     isStablecoinLendingEnabled,
     handlePooledStakingFlow,
     handleLendingFlow,
@@ -504,7 +483,7 @@ const EarnInputView = () => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultMetadata}
+            isLoading={isLoadingEarnMetadata}
           />
         )}
       </View>

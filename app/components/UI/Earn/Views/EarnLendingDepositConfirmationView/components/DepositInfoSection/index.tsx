@@ -28,11 +28,8 @@ export interface DepositInfoSectionProps {
 // TODO: Replace mock data with actual values before launch
 export const MOCK_DATA_TO_REPLACE = {
   EST_ANNUAL_REWARD: {
-    FIAT: '$5.00',
     TOKEN: '5 DAI',
   },
-  REWARD_FREQUENCY: strings('earn.every_minute'),
-  WITHDRAWAL_TIME: strings('earn.immediate'),
 };
 
 const DepositInfoSection = ({
@@ -71,7 +68,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: `${earnToken.experiences?.[0]?.apr}%`,
+              text: `${earnToken?.experience?.apr}%`,
               variant: TextVariant.BodyMD,
               color: TextColor.Success,
             },
@@ -86,7 +83,9 @@ const DepositInfoSection = ({
           value={{
             label: (
               <View style={styles.estAnnualReward}>
-                <Text>{MOCK_DATA_TO_REPLACE.EST_ANNUAL_REWARD.FIAT}</Text>
+                <Text>
+                  {earnToken?.experience?.estimatedAnnualRewardsFormatted}
+                </Text>
                 <Text color={TextColor.Alternative}>
                   {MOCK_DATA_TO_REPLACE.EST_ANNUAL_REWARD.TOKEN}
                 </Text>
@@ -107,7 +106,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: MOCK_DATA_TO_REPLACE.REWARD_FREQUENCY,
+              text: strings('earn.every_minute'),
               variant: TextVariant.BodyMD,
             },
           }}
@@ -125,7 +124,7 @@ const DepositInfoSection = ({
           }}
           value={{
             label: {
-              text: MOCK_DATA_TO_REPLACE.WITHDRAWAL_TIME,
+              text: strings('earn.immediate'),
               variant: TextVariant.BodyMD,
             },
           }}
