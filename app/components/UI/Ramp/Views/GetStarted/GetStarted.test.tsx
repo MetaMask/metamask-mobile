@@ -49,7 +49,6 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
 };
 
 const mockUseRegionInitialValues: Partial<ReturnType<typeof useRegions>> = {
-  isDetecting: false,
   selectedRegion: null,
 };
 
@@ -190,7 +189,6 @@ describe('GetStarted', () => {
 
   it('navigates to select region screen when getStarted is true and selectedRegion is null', async () => {
     (useRegions as jest.Mock).mockReturnValue({
-      isDetecting: false,
       selectedRegion: null,
     });
     mockUseRampSDKValues = {
@@ -207,7 +205,6 @@ describe('GetStarted', () => {
 
   it('navigates to build quote when getStarted is true and selectedRegion is defined', async () => {
     (useRegions as jest.Mock).mockReturnValue({
-      isDetecting: false,
       selectedRegion: {
         id: 'us-al',
       },
@@ -229,15 +226,5 @@ describe('GetStarted', () => {
         },
       ],
     });
-  });
-
-  it('does not redirect when isDetecting is true', async () => {
-    (useRegions as jest.Mock).mockReturnValue({
-      isDetecting: true,
-      selectedRegion: undefined,
-    });
-
-    render(GetStarted);
-    expect(mockReset).not.toBeCalled();
   });
 });

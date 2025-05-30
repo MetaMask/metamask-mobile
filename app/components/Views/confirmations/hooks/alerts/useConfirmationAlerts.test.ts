@@ -10,11 +10,15 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
+import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
+import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
 jest.mock('./useInsufficientBalanceAlert');
 jest.mock('./useAccountTypeUpgrade');
+jest.mock('./useSignedOrSubmittedAlert');
+jest.mock('./usePendingTransactionAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -57,12 +61,32 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockSignedOrSubmittedAlert: Alert[] = [
+    {
+      key: 'signedOrSubmittedAlert',
+      title: 'Test Signed or Submitted Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
+  const mockPendingTransactionAlert: Alert[] = [
+    {
+      key: 'pendingTransactionAlert',
+      title: 'Test Pending Transaction Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
     (useDomainMismatchAlerts as jest.Mock).mockReturnValue([]);
     (useInsufficientBalanceAlert as jest.Mock).mockReturnValue([]);
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
+    (useSignedOrSubmittedAlert as jest.Mock).mockReturnValue([]);
+    (usePendingTransactionAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -109,6 +133,12 @@ describe('useConfirmationAlerts', () => {
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue(
       mockUpgradeAccountAlert,
     );
+    (useSignedOrSubmittedAlert as jest.Mock).mockReturnValue(
+      mockSignedOrSubmittedAlert,
+    );
+    (usePendingTransactionAlert as jest.Mock).mockReturnValue(
+      mockPendingTransactionAlert,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -116,6 +146,8 @@ describe('useConfirmationAlerts', () => {
       ...mockBlockaidAlerts,
       ...mockDomainMisMatchAlerts,
       ...mockInsufficientBalanceAlert,
+      ...mockPendingTransactionAlert,
+      ...mockSignedOrSubmittedAlert,
       ...mockUpgradeAccountAlert,
     ]);
   });
