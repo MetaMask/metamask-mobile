@@ -44,6 +44,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       },
     },
+    TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),

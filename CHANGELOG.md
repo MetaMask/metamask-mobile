@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - fix(bridge): show "Auto" slippage for Solana swaps
 
+## [7.46.2]
+
+### Fixed 
+- fix: Json rpc and invalid transaction type envelope errors ([#15538](https://github.com/MetaMask/metamask-mobile/pull/15538)
+
 ## [7.46.1]
 
 ### Fixed 
@@ -5410,7 +5415,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.2...HEAD
+[7.46.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...v7.46.2
 [7.46.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.0...v7.46.1
 [7.46.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...v7.46.0
 [7.45.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...v7.45.1
