@@ -26,16 +26,19 @@ export function createOriginThrottlingMiddleware(
   ) => {
     validateOriginThrottling({ req: req as ExtendedJSONRPCRequest, store });
 
-    next(() => {
-      processOriginThrottlingRejection({
-        req: req as ExtendedJSONRPCRequest,
-        error: res.error as {
-          message: string;
-          code?: number;
-        },
-        store,
-        navigation,
-      });
+    next((callback: () => void) => {
+      if (res.error) {
+        processOriginThrottlingRejection({
+          req: req as ExtendedJSONRPCRequest,
+          error: res.error as {
+            message: string;
+            code?: number;
+          },
+          store,
+          navigation,
+        });
+      }
+      callback();
     });
     return;
   };

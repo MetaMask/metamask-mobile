@@ -645,7 +645,11 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
+    // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    // Middleware to handle wallet_xxx requests
+    engine.push(createAsyncWalletMiddleware());
 
     // user-facing RPC methods
     engine.push(
@@ -655,7 +659,6 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    engine.push(createAsyncWalletMiddleware());
     engine.push(createSanitizationMiddleware());
 
     // forward to metamask primary provider
