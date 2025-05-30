@@ -6,7 +6,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import {withFixtures} from '../../fixtures/fixture-helper';
 import {Regression} from '../../tags';
 import TestHelpers from '../../helpers';
-import Assertions from "../../utils/Assertions";
+import Assertions from '../../utils/Assertions';
 
 describe(Regression('Search for a website with broken SVG and open it'), () => {
   beforeAll(async () => {
