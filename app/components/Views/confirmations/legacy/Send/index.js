@@ -17,6 +17,7 @@ import {
   fromWei,
   fromTokenMinimalUnit,
 } from '../../../../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -35,7 +36,7 @@ import {
   generateTransferData,
 } from '../../../../../util/transactions';
 import Logger from '../../../../../util/Logger';
-import { getAddress, safeToChecksumAddress } from '../../../../../util/address';
+import { getAddress } from '../../../../../util/address';
 import { MAINNET } from '../../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -443,7 +444,7 @@ class Send extends PureComponent {
    */
   handleTokenDeeplink = async (address) => {
     const { tokens, tokenList } = this.props;
-    address = safeToChecksumAddress(address);
+    address = toChecksumAddress(address);
     // First check if we have token information in token list
     if (address in tokenList) {
       return tokenList[address];
@@ -582,9 +583,7 @@ class Send extends PureComponent {
       let checksummedAddress = null;
 
       if (assetType === 'ETH') {
-        checksummedAddress = safeToChecksumAddress(
-          transactionMeta.transaction.to,
-        );
+        checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
       } else if (assetType === 'ERC20') {
         try {
           const [addressTo] = decodeTransferData(
@@ -592,7 +591,7 @@ class Send extends PureComponent {
             transactionMeta.transaction.data,
           );
           if (addressTo) {
-            checksummedAddress = safeToChecksumAddress(addressTo);
+            checksummedAddress = toChecksumAddress(addressTo);
           }
         } catch (e) {
           Logger.log('Error decoding transfer data', transactionMeta.data);
@@ -605,7 +604,7 @@ class Send extends PureComponent {
           );
           const addressTo = data[1];
           if (addressTo) {
-            checksummedAddress = safeToChecksumAddress(addressTo);
+            checksummedAddress = toChecksumAddress(addressTo);
           }
         } catch (e) {
           Logger.log('Error decoding transfer data', transactionMeta.data);
@@ -821,7 +820,10 @@ const mapStateToProps = (state) => {
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
     tokenList: selectTokenList(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+      state,
+      state.transaction?.chainId,
+    ),
   };
 };
 

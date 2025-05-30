@@ -173,7 +173,13 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -181,6 +187,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -653,12 +660,41 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     }
                                   >
                                     <TextInput
+                                      activeLineWidth={2}
+                                      animationDuration={225}
+                                      autoCapitalize="none"
+                                      baseColor="#b7bbc8"
+                                      containerStyle={
+                                        {
+                                          "width": "99%",
+                                        }
+                                      }
+                                      disableFullscreenUI={true}
+                                      disabled={false}
+                                      disabledLineType="dotted"
+                                      disabledLineWidth={0.5}
                                       editable={true}
+                                      errorColor="rgb(213, 0, 0)"
+                                      fontSize={16}
+                                      inputContainerStyle={
+                                        {
+                                          "paddingRight": 46,
+                                        }
+                                      }
+                                      keyboardAppearance="light"
+                                      labelFontSize={12}
+                                      lineType="solid"
+                                      lineWidth={1}
                                       onBlur={[Function]}
                                       onChange={[Function]}
                                       onChangeText={[Function]}
                                       onContentSizeChange={[Function]}
                                       onFocus={[Function]}
+                                      onSubmitEditing={[Function]}
+                                      placeholder="Enter your Secret Recovery Phrase"
+                                      placeholderTextColor="#9ca1af"
+                                      returnKeyType="next"
+                                      secureTextEntry={true}
                                       selectionColor="#4459ff"
                                       style={
                                         [
@@ -686,6 +722,10 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           },
                                         ]
                                       }
+                                      testID="import-from-seed-screen-seed-phrase-input-id"
+                                      textColor="rgba(0, 0, 0, .87)"
+                                      tintColor="#4459ff"
+                                      underlineColorAndroid="transparent"
                                       value=""
                                     />
                                   </View>
@@ -726,6 +766,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1011,12 +1052,36 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       }
                                     >
                                       <TextInput
+                                        activeLineWidth={2}
+                                        animationDuration={225}
+                                        autoCapitalize="none"
+                                        baseColor="#b7bbc8"
+                                        containerStyle={
+                                          {
+                                            "width": "99%",
+                                          }
+                                        }
+                                        disableFullscreenUI={true}
+                                        disabled={false}
+                                        disabledLineType="dotted"
+                                        disabledLineWidth={0.5}
                                         editable={true}
+                                        errorColor="rgb(213, 0, 0)"
+                                        fontSize={16}
+                                        keyboardAppearance="light"
+                                        labelFontSize={12}
+                                        lineType="solid"
+                                        lineWidth={1}
                                         onBlur={[Function]}
                                         onChange={[Function]}
                                         onChangeText={[Function]}
                                         onContentSizeChange={[Function]}
                                         onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="New Password"
+                                        placeholderTextColor="#9ca1af"
+                                        returnKeyType="next"
+                                        secureTextEntry={true}
                                         selectionColor="#4459ff"
                                         style={
                                           [
@@ -1044,6 +1109,10 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
+                                        testID="create-password-first-input-field"
+                                        textColor="rgba(0, 0, 0, .87)"
+                                        tintColor="#4459ff"
+                                        underlineColorAndroid="transparent"
                                         value=""
                                       />
                                     </View>
@@ -1296,12 +1365,36 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       }
                                     >
                                       <TextInput
+                                        activeLineWidth={2}
+                                        animationDuration={225}
+                                        autoCapitalize="none"
+                                        baseColor="#b7bbc8"
+                                        containerStyle={
+                                          {
+                                            "width": "99%",
+                                          }
+                                        }
+                                        disableFullscreenUI={true}
+                                        disabled={false}
+                                        disabledLineType="dotted"
+                                        disabledLineWidth={0.5}
                                         editable={true}
+                                        errorColor="rgb(213, 0, 0)"
+                                        fontSize={16}
+                                        keyboardAppearance="light"
+                                        labelFontSize={12}
+                                        lineType="solid"
+                                        lineWidth={1}
                                         onBlur={[Function]}
                                         onChange={[Function]}
                                         onChangeText={[Function]}
                                         onContentSizeChange={[Function]}
                                         onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="Confirm password"
+                                        placeholderTextColor="#9ca1af"
+                                        returnKeyType="next"
+                                        secureTextEntry={true}
                                         selectionColor="#4459ff"
                                         style={
                                           [
@@ -1329,6 +1422,10 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
+                                        testID="create-password-second-input-field"
+                                        textColor="rgba(0, 0, 0, .87)"
+                                        tintColor="#4459ff"
+                                        underlineColorAndroid="transparent"
                                         value=""
                                       />
                                     </View>

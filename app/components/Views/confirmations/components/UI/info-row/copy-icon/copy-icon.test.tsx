@@ -27,9 +27,9 @@ describe('CopyIcon', () => {
   it('copies text to clipboard when pressed', async () => {
     const { UNSAFE_getAllByType } = render(<CopyIcon {...mockProps} />);
     const touchable = UNSAFE_getAllByType(TouchableOpacity)[0];
-    
+
     fireEvent.press(touchable);
-    
+
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
     expect(ClipboardManager.setString).toHaveBeenCalledWith(mockProps.textToCopy);
   });
@@ -39,12 +39,12 @@ describe('CopyIcon', () => {
       ...mockProps,
       textToCopy: '',
     };
-    
+
     const { UNSAFE_getAllByType } = render(<CopyIcon {...emptyTextProps} />);
     const touchable = UNSAFE_getAllByType(TouchableOpacity)[0];
-    
+
     fireEvent.press(touchable);
-    
+
     expect(ClipboardManager.setString).not.toHaveBeenCalled();
   });
 
@@ -53,10 +53,10 @@ describe('CopyIcon', () => {
       ...mockProps,
       color: IconColor.Success,
     };
-    
+
     const { UNSAFE_getByProps } = render(<CopyIcon {...customColorProps} />);
     const icon = UNSAFE_getByProps({ name: IconName.Copy });
-    
+
     expect(icon.props.color).toBe(IconColor.Success);
   });
 });

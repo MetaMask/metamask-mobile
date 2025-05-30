@@ -8,6 +8,7 @@ const PORTFOLIO_URL =
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
+const MULTICHAIN_API = process.env.MULTICHAIN_API || false;
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -23,6 +24,7 @@ export default {
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
   },
+  MULTICHAIN_API,
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -138,6 +140,7 @@ export default {
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: 'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts'
   },
   DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {

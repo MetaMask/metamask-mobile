@@ -1,9 +1,15 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { isMultichainV1Enabled, getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { InfuraNetworkType, BUILT_IN_NETWORKS } from '@metamask/controller-utils';
+import {
+  InfuraNetworkType,
+  BUILT_IN_NETWORKS,
+} from '@metamask/controller-utils';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipChainId,
@@ -14,7 +20,10 @@ import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
-import { selectEvmNetworkConfigurationsByChainId, selectIsAllNetworks } from '../../../selectors/networkController';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectIsAllNetworks,
+} from '../../../selectors/networkController';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -104,7 +113,8 @@ export function useSwitchNetworks({
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
-      const { MultichainNetworkController, SelectedNetworkController } = Engine.context;
+      const { MultichainNetworkController, SelectedNetworkController } =
+        Engine.context;
       const {
         name: nickname,
         chainId,
@@ -112,10 +122,15 @@ export function useSwitchNetworks({
         defaultRpcEndpointIndex,
       } = networkConfiguration;
 
-      const networkConfigurationId = rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
+      const networkConfigurationId =
+        rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
-        SelectedNetworkController.setNetworkClientIdForDomain(origin, networkConfigurationId);
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+        SelectedNetworkController.setNetworkClientIdForDomain(
+          origin,
+          networkConfigurationId,
+        );
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -131,8 +146,7 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
-        dismissModal?.();
+      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled())) dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -175,20 +189,23 @@ export function useSwitchNetworks({
         SelectedNetworkController,
       } = Engine.context;
 
-      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
+      if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
-        const networkConfiguration = networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
+        const networkConfiguration =
+          networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
 
         const clientId =
-          networkConfiguration?.rpcEndpoints[networkConfiguration.defaultRpcEndpointIndex]
-            .networkClientId ?? type;
+          networkConfiguration?.rpcEndpoints[
+            networkConfiguration.defaultRpcEndpointIndex
+          ].networkClientId ?? type;
 
         setTokenNetworkFilter(networkConfiguration.chainId);
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
-        AccountTrackerController.refresh();
+        AccountTrackerController.refresh([clientId]);
 
         // Update incoming transactions after a delay
         setTimeout(async () => {
@@ -225,22 +242,27 @@ export function useSwitchNetworks({
     ],
   );
 
-   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-   /**
-    * Switches to a non-EVM network
-    */
-   const onNonEvmNetworkChange = useCallback(async (chainId: CaipChainId) => {
-    if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
-      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
-        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-      });
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  /**
+   * Switches to a non-EVM network
+   */
+  const onNonEvmNetworkChange = useCallback(
+    async (chainId: CaipChainId) => {
+      if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
+        navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        });
 
-      return;
-    }
+        return;
+      }
 
-    await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
-    dismissModal?.();
-  }, [dismissModal, isSolanaAccountAlreadyCreated, navigate]);
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        chainId,
+      );
+      dismissModal?.();
+    },
+    [dismissModal, isSolanaAccountAlreadyCreated, navigate],
+  );
   ///: END:ONLY_INCLUDE_IF
 
   return {

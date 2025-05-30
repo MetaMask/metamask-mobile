@@ -30,6 +30,7 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { SelectRegionSelectors } from '../../../../../e2e/selectors/Ramps/SelectRegion.selectors';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -301,7 +302,7 @@ const RegionModal: React.FC<Props> = ({
   }, [activeView, dismiss, handleRegionBackButton]);
 
   const handleSearchTextChange = useCallback(
-    (text) => {
+    (text: string) => {
       setSearchString(text);
       scrollToTop();
     },
@@ -364,11 +365,7 @@ const RegionModal: React.FC<Props> = ({
 
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
-                <Icon
-                  name="ios-search"
-                  size={20}
-                  style={modalStyles.searchIcon}
-                />
+                <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
                   ref={searchInput}
                   style={modalStyles.input}
@@ -380,11 +377,12 @@ const RegionModal: React.FC<Props> = ({
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
                   onChangeText={handleSearchTextChange}
+                  testID={SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT}
                 />
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>
                     <Icon
-                      name="ios-close-circle"
+                      name="close-circle"
                       size={20}
                       style={modalStyles.searchIcon}
                       color={colors.text.muted}

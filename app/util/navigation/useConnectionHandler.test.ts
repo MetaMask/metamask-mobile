@@ -31,7 +31,7 @@ describe('useConnectionHandler', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should not navigate to OfflineModeView immediately when connection is lost', () => {

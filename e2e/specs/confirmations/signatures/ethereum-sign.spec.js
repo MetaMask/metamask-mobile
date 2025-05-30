@@ -13,6 +13,7 @@ import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../../fixtures/utils';
 
 describe(SmokeConfirmations('Ethereum Sign'), () => {
   beforeAll(async () => {
@@ -30,7 +31,7 @@ describe(SmokeConfirmations('Ethereum Sign'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

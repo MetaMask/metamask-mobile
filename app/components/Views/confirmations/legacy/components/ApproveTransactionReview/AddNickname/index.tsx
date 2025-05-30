@@ -5,6 +5,7 @@ import EthereumAddress from '../../../../../../UI/EthereumAddress';
 import Engine from '../../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 
+import { toChecksumAddress } from 'ethereumjs-util';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../../../../../../UI/StyledButton';
 import Text from '../../../../../../../component-library/components/Texts/Text';
@@ -23,7 +24,6 @@ import { AddNicknameProps } from './types';
 import {
   validateAddressOrENS,
   shouldShowBlockExplorer,
-  safeToChecksumAddress,
 } from '../../../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import {
@@ -120,7 +120,7 @@ const AddNickname = (props: AddNicknameProps) => {
     const { AddressBookController } = Engine.context as any;
     if (!newNickname || !address) return;
     AddressBookController.set(
-      safeToChecksumAddress(address),
+      toChecksumAddress(address),
       newNickname,
       providerChainId,
     );

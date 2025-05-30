@@ -15,6 +15,7 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -37,7 +38,7 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

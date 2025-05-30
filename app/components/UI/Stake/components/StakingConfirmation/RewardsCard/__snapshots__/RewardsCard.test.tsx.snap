@@ -92,6 +92,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -356,6 +357,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -510,6 +512,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -774,6 +777,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -928,6 +932,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -1192,6 +1197,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={

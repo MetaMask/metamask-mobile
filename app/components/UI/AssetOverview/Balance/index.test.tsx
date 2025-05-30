@@ -9,6 +9,9 @@ import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { NetworkBadgeSource } from './Balance';
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
+import { MOCK_DAI_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { createMockToken } from '../../Stake/testUtils';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -112,7 +115,35 @@ jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: () => ({
     isEligible: true,
+    isLoadingEligibility: false,
   }),
+}));
+
+const mockDaiMainnet = {
+  ...MOCK_DAI_MAINNET_ASSET,
+  apr: '4.5',
+  balanceFiat: '$100',
+  balanceFormatted: '100 DAI',
+  balanceMinimalUnit: '100',
+  balanceFiatNumber: 100,
+  experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+};
+
+const mockADaiMainnet = {
+  ...createMockToken({ chainId: '0x1', symbol: 'ADAI', name: 'Aave v3 DAI' }),
+  apr: '4.5',
+  balanceFiat: '$100',
+  balanceFormatted: '100 ADAI',
+  balanceMinimalUnit: '100',
+  balanceFiatNumber: 100,
+  experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+};
+
+const mockEarnTokens = [mockDaiMainnet, mockADaiMainnet];
+
+jest.mock('../../Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => mockEarnTokens,
 }));
 
 const mockInitialState = {
@@ -125,9 +156,22 @@ describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
 
-  Image.getSize = jest.fn((_uri, success) => {
-    success(100, 100); // Mock successful response for ETH native Icon Image
-  });
+  interface ImageSize {
+    width: number;
+    height: number;
+  }
+  Image.getSize = jest.fn(
+    (
+      _uri: string,
+      success?: (width: number, height: number) => void,
+      _failure?: (error: Error) => void,
+    ) => {
+      if (success) {
+        success(100, 100);
+      }
+      return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+    },
+  );
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -165,10 +209,10 @@ describe('Balance', () => {
   });
 
   it('should fire navigation event for non native tokens', () => {
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
     );
-    const assetElement = queryByTestId('asset-DAI');
+    const assetElement = getByTestId('asset-DAI');
     fireEvent.press(assetElement);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });

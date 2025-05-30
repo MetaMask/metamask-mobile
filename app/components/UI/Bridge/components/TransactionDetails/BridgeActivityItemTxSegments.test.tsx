@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeActivityItemTxSegments from './BridgeActivityItemTxSegments';

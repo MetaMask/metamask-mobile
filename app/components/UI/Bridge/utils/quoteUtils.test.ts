@@ -1,3 +1,4 @@
+import '../_mocks_/initialState';
 import {
   getQuoteRefreshRate,
   shouldRefreshQuote,
@@ -11,7 +12,7 @@ import type {
 import { Hex } from '@metamask/utils';
 
 describe('quoteUtils', () => {
-  const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
+  const DEFAULT_REFRESH_RATE = 30 * 1000; // 30 seconds
 
   describe('getQuoteRefreshRate', () => {
     const mockChainConfig: ChainConfiguration = {
@@ -21,6 +22,7 @@ describe('quoteUtils', () => {
     };
 
     const mockFeatureFlags: FeatureFlagsPlatformConfig = {
+      minimumVersion: '0.0.0',
       refreshRate: 10000,
       maxRefreshCount: 3,
       support: true,

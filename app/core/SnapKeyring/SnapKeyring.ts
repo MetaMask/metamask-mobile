@@ -16,6 +16,8 @@ import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import { endPerformanceTrace } from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 /**
  * Builder type for the Snap keyring.
@@ -144,11 +146,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   private async addAccountFinalize({
     address: _address,
     snapId,
+    skipSetSelectedAccountStep,
     accountName,
     onceSaved,
   }: {
     address: string;
     snapId: SnapId;
+    skipSetSelectedAccountStep: boolean;
     onceSaved: Promise<string>;
     accountName?: string;
   }) {
@@ -159,6 +163,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           op: TraceOperation.AddSnapAccount,
           tags: getTraceTags(store.getState()),
         });
+
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -167,13 +172,16 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // state, so we can safely uses this state to run post-processing.
         // (e.g. renaming the account, select the account, etc...)
 
-        // Set the selected account to the new account
-        this.#messenger.call(
-          'AccountsController:setSelectedAccount',
-          accountId,
-        );
+        if (!skipSetSelectedAccountStep) {
+          // Set the selected account to the new account
+          this.#messenger.call(
+            'AccountsController:setSelectedAccount',
+            accountId,
+          );
+        }
 
         if (accountName) {
+          // Set the account name if one is provided
           this.#messenger.call(
             'AccountsController:setAccountName',
             accountId,
@@ -187,6 +195,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           MetaMetricsEvents.ACCOUNT_ADDED,
           snapId,
           snapName,
+        );
+
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
         );
 
         endTrace({
@@ -209,6 +223,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     accountNameSuggestion: string = '',
     {
       displayAccountNameSuggestion,
+      setSelectedAccount,
     }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
   ) {
     assertIsValidSnapId(snapId);
@@ -226,6 +241,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       skipAccountNameSuggestionDialog,
     });
 
+    // Only pre-installed Snaps can skip the account from being selected.
+    const skipSetSelectedAccountStep =
+      isSnapPreinstalled(snapId) && !setSelectedAccount;
+
     // The second part is about selecting the newly created account and showing some other
     // confirmation dialogs (or error dialogs if anything goes wrong while persisting the account
     // into the state.
@@ -233,6 +252,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     void this.addAccountFinalize({
       address,
       snapId,
+      skipSetSelectedAccountStep,
       onceSaved,
       accountName,
     });

@@ -21,6 +21,7 @@ exports[`NotificationsView - content should render correctly 1`] = `
   >
     <SvgMock
       color="#121314"
+      fill="currentColor"
       height={32}
       name="Notification"
       style={

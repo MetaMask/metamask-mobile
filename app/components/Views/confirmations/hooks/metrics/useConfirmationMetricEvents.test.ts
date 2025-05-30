@@ -28,10 +28,18 @@ const MOCK_TRANSACTION_META = {
   id: 'mockTransactionId',
   chainId: 'mockChainId',
   status: 'mockStatus',
+  type: 'mockType',
+  txParams: {
+    from: 'mockFrom',
+  },
 } as unknown as TransactionMeta;
 const MOCK_SIGNATURE_REQUEST = {
   id: 'mockSignatureRequestId',
   status: 'mockStatus',
+  type: 'mockType',
+  messageParams: {
+    from: 'mockFrom',
+  },
 } as unknown as SignatureRequest;
 
 describe('useConfirmationMetricEvents', () => {
@@ -92,6 +100,62 @@ describe('useConfirmationMetricEvents', () => {
     });
     expect(mockAddSensitiveProperties).toHaveBeenCalledWith({});
     expect(mockBuild).toHaveBeenCalled();
+  });
+
+  describe('tracks blockaid alert link clicked event', () => {
+    it('when confirmation is a signature', () => {
+      mockUseTransactionMetadataRequest.mockReturnValue(undefined);
+      mockUseSignatureRequest.mockReturnValue(MOCK_SIGNATURE_REQUEST);
+
+      const expectedProperties = {
+        location: MOCK_LOCATION,
+      };
+
+      mockBuild.mockReturnValue(expectedProperties);
+
+      const { result } = renderHook(() => useConfirmationMetricEvents());
+
+      result.current.trackBlockaidAlertLinkClickedEvent();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        CONFIRMATION_EVENTS.BLOCKAID_ALERT_LINK_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        external_link_clicked: 'security_alert_support_link',
+        from_address: MOCK_SIGNATURE_REQUEST.messageParams.from,
+        location: MOCK_LOCATION,
+        type: MOCK_SIGNATURE_REQUEST.type,
+      });
+      expect(mockAddSensitiveProperties).toHaveBeenCalledWith({});
+      expect(mockBuild).toHaveBeenCalled();
+    });
+
+    it('when confirmation is a transaction', () => {
+      mockUseTransactionMetadataRequest.mockReturnValue(MOCK_TRANSACTION_META);
+      mockUseSignatureRequest.mockReturnValue(undefined);
+
+      const expectedProperties = {
+        location: MOCK_LOCATION,
+      };
+
+      mockBuild.mockReturnValue(expectedProperties);
+
+      const { result } = renderHook(() => useConfirmationMetricEvents());
+
+      result.current.trackBlockaidAlertLinkClickedEvent();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        CONFIRMATION_EVENTS.BLOCKAID_ALERT_LINK_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        external_link_clicked: 'security_alert_support_link',
+        from_address: MOCK_TRANSACTION_META.txParams.from,
+        location: MOCK_LOCATION,
+        type: MOCK_TRANSACTION_META.type,
+      });
+      expect(mockAddSensitiveProperties).toHaveBeenCalledWith({});
+      expect(mockBuild).toHaveBeenCalled();
+    });
   });
 
   it('tracks tooltip clicked event', () => {

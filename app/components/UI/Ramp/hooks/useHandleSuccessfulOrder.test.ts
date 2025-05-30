@@ -139,4 +139,31 @@ describe('useHandleSuccessfulOrder', () => {
 
     expect(Engine.context.TokensController.addToken).not.toHaveBeenCalled();
   });
+
+  it('should add token to TokensController', async () => {
+    const order = {
+      id: '3',
+      orderType: OrderOrderTypeEnum.Buy,
+      data: {
+        cryptoCurrency: {
+          symbol: 'ETH',
+          address: '0x123',
+          network: {
+            chainId: '1',
+          },
+        },
+        fiatCurrency: {
+          symbol: 'USD',
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useHandleSuccessfulOrder());
+
+    await act(async () => {
+      await result.current(order as FiatOrder);
+    });
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalled();
+  });
 });

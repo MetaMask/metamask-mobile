@@ -150,7 +150,13 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -552,7 +559,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -591,7 +598,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "borderRadius": 12,
                                   "flex": 1,
                                   "flexDirection": "row",
                                   "height": 48,

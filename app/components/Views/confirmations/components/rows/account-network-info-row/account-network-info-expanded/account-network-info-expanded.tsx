@@ -9,8 +9,8 @@ import Network from '../../../UI/info-row/info-value/network';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { Hex } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../../../util/address';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelectedAccountMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 
 const AccountNetworkInfoExpanded = () => {
   const signatureRequest = useSignatureRequest();
@@ -25,7 +25,7 @@ const AccountNetworkInfoExpanded = () => {
     chainId = transactionMetadata?.chainId as Hex;
     fromAddress = transactionMetadata?.txParams?.from as string;
   }
-  const { accountAddress } = useAccountInfo(fromAddress);
+  const { accountAddress } = useAccountInfo(fromAddress, chainId as Hex);
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const balanceToDisplay = selectedAccountMultichainBalance?.displayBalance;

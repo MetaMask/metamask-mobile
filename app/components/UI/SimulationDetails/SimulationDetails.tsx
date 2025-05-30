@@ -18,8 +18,10 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
+import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
 import styleSheet from './SimulationDetails.styles';
 import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
@@ -37,7 +39,10 @@ export interface SimulationDetailsProps {
  * @param error.code - The error code.
  * @returns The error content.
  */
-const ErrorContent: React.FC<{ error: SimulationError, isTransactionsRedesign: boolean }> = ({ error, isTransactionsRedesign }) => {
+const ErrorContent: React.FC<{
+  error: SimulationError;
+  isTransactionsRedesign: boolean;
+}> = ({ error, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
 
   function getMessage() {
@@ -75,7 +80,10 @@ const EmptyContent: React.FC = () => (
  * @param children - The children to render in the header.
  * @returns The header layout.
  */
-const HeaderLayout: React.FC<{ isTransactionsRedesign: boolean }> = ({ children, isTransactionsRedesign }) => {
+const HeaderLayout: React.FC<{
+  isTransactionsRedesign: boolean;
+  children?: React.ReactNode;
+}> = ({ children, isTransactionsRedesign }) => {
   const {
     styles,
     theme: { colors },
@@ -118,11 +126,14 @@ const HeaderLayout: React.FC<{ isTransactionsRedesign: boolean }> = ({ children,
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
+  children?: React.ReactNode;
 }> = ({ inHeader, children, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   return (
     <View style={styles.container}>
-      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>{inHeader}</HeaderLayout>
+      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
+        {inHeader}
+      </HeaderLayout>
       {children}
     </View>
   );
@@ -140,8 +151,18 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  const { chainId, id: transactionId, simulationData } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData });
+  const {
+    chainId,
+    id: transactionId,
+    simulationData,
+    networkClientId,
+  } = transaction;
+  const balanceChangesResult = useBalanceChanges({
+    chainId,
+    simulationData,
+    networkClientId,
+  });
+  const { isBatched } = use7702TransactionType();
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({
@@ -180,7 +201,10 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   if (error) {
     return (
       <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
-        <ErrorContent error={error} isTransactionsRedesign={isTransactionsRedesign} />
+        <ErrorContent
+          error={error}
+          isTransactionsRedesign={isTransactionsRedesign}
+        />
       </SimulationDetailsLayout>
     );
   }
@@ -201,6 +225,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   return (
     <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
+        {isBatched && <BatchApprovalRow />}
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
           heading={strings('simulation_details.outgoing_heading')}

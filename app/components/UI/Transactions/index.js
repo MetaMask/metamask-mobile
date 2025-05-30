@@ -116,6 +116,8 @@ const createStyles = (colors, typography) =>
       fontSize: 20,
       color: colors.text.muted,
       textAlign: 'center',
+      marginLeft: 6,
+      marginRight: 6,
       ...fontStyles.normal,
     },
     viewMoreWrapper: {

@@ -2,6 +2,14 @@ import { zeroAddress } from 'ethereumjs-util';
 import { getTokenDetails } from './getTokenDetails';
 import { TokenI } from '../../Tokens/types';
 
+// In test file
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  parseCaipAssetType: jest.fn(),
+}));
+
+import { parseCaipAssetType } from '@metamask/utils';
+
 describe('getTokenDetails', () => {
   // Base test data
   const mockAsset: TokenI = {
@@ -23,16 +31,50 @@ describe('getTokenDetails', () => {
   };
 
   describe('Network-specific behavior', () => {
-    it('should format token details for non-EVM networks', () => {
+    it('should format token details for non-EVM networks for spl token', () => {
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: '0x123',
+        chainId: 'test:test',
+        chain: {
+          namespace: 'slip44',
+          reference: '0x123',
+        },
+      });
+
       const result = getTokenDetails(
         mockAsset,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
 
       expect(result).toEqual({
         contractAddress: '0x123',
+        tokenDecimal: 18,
+        tokenList: 'uniswap, 1inch',
+      });
+    });
+    it('should format token details for non-EVM networks for native token', () => {
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'slip44',
+        assetReference: '0x123',
+        chainId: 'test:test',
+        chain: {
+          namespace: 'slip44',
+          reference: '0x123',
+        },
+      });
+
+      const result = getTokenDetails(
+        mockAsset,
+        true, // isNonEvmAsset
+        undefined,
+        mockEvmMetadata,
+      );
+
+      expect(result).toEqual({
+        contractAddress: null,
         tokenDecimal: 18,
         tokenList: 'uniswap, 1inch',
       });
@@ -46,7 +88,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         ethAsset,
-        true,
+        false, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -59,7 +101,12 @@ describe('getTokenDetails', () => {
     });
 
     it('should format regular token details for EVM networks', () => {
-      const result = getTokenDetails(mockAsset, true, '0x456', mockEvmMetadata);
+      const result = getTokenDetails(
+        mockAsset,
+        false,
+        '0x456',
+        mockEvmMetadata,
+      );
 
       expect(result).toEqual({
         contractAddress: '0x456',
@@ -77,7 +124,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false,
         '0x456',
         metadataWithoutDecimals,
       );
@@ -96,7 +143,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false,
         '0x456',
         metadataWithoutAggregators,
       );
@@ -116,7 +163,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         mockAsset,
-        true,
+        false, // isNonEvmAsset
         '0x456',
         metadataWithInvalidAggregators,
       );
@@ -138,7 +185,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutAddress,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -151,6 +198,15 @@ describe('getTokenDetails', () => {
     });
 
     it('should handle zero decimals in asset', () => {
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: '0x123',
+        chainId: 'test:test',
+        chain: {
+          namespace: 'slip44',
+          reference: '0x123',
+        },
+      });
       const assetWithoutDecimals: TokenI = {
         ...mockAsset,
         decimals: 0,
@@ -158,7 +214,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutDecimals,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );
@@ -171,6 +227,15 @@ describe('getTokenDetails', () => {
     });
 
     it('should handle empty aggregators array in asset', () => {
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: '0x123',
+        chainId: 'test:test',
+        chain: {
+          namespace: 'slip44',
+          reference: '0x123',
+        },
+      });
       const assetWithoutAggregators: TokenI = {
         ...mockAsset,
         aggregators: [],
@@ -178,7 +243,7 @@ describe('getTokenDetails', () => {
 
       const result = getTokenDetails(
         assetWithoutAggregators,
-        false,
+        true, // isNonEvmAsset
         undefined,
         mockEvmMetadata,
       );

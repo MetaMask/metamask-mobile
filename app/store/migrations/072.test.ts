@@ -151,7 +151,7 @@ describe('Migration 72: Add `MegaEth Testnet`', () => {
   it('replaces `MegaEth Testnet` NetworkConfiguration if there is one', () => {
     const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
     const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration> ;
+    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration>;
     networkConfigurationsByChainId[megaethTestnetConfiguration.chainId] = {
       ...megaethTestnetConfiguration,
       rpcEndpoints: [

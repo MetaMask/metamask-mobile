@@ -8,6 +8,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
+import { PreferencesState } from '@metamask/preferences-controller';
 
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
@@ -183,7 +184,7 @@ describe('CollectibleContracts', () => {
           },
           PreferencesController: {
             displayNftMedia: true,
-          },
+          } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
@@ -226,7 +227,7 @@ describe('CollectibleContracts', () => {
     await waitFor(() => {
       expect(spyOnUpdateNftMetadata).toHaveBeenCalled();
       const nftImageAfter = queryByTestId('nft-image');
-      expect(nftImageAfter.props.source.uri).toEqual(
+      expect(nftImageAfter?.props.source.uri).toEqual(
         nftItemDataUpdated[0].image,
       );
     });
@@ -300,7 +301,7 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-          },
+          } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
@@ -342,7 +343,7 @@ describe('CollectibleContracts', () => {
     await waitFor(() => {
       expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
       const nftImageAfter = queryByTestId('nft-image');
-      expect(nftImageAfter.props.source.uri).toEqual(
+      expect(nftImageAfter?.props.source.uri).toEqual(
         nftItemDataUpdated[0].image,
       );
     });
@@ -417,7 +418,7 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-          },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [MOCK_ADDRESS]: {
@@ -502,7 +503,7 @@ describe('CollectibleContracts', () => {
                 name: 'Account 1',
               },
             },
-          },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [CURRENT_ACCOUNT]: {
@@ -560,7 +561,7 @@ describe('CollectibleContracts', () => {
                 name: 'Account 1',
               },
             },
-          },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [CURRENT_ACCOUNT]: {

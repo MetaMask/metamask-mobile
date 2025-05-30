@@ -6,9 +6,7 @@ import styleSheet from './info-row-divider.styles';
 const InfoRowDivider = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  return (
-    <View style={styles.infoRowDivider} />
-  );
+  return <View style={styles.infoRowDivider} />;
 };
 
 export default InfoRowDivider;

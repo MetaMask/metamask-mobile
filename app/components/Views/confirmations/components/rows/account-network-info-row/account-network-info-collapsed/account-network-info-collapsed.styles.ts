@@ -13,8 +13,14 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
-    container: {
-      display: 'flex',
+    container:{
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingBottom: 4,
+    },
+    accountContainer: {
+      flex: 1,
       flexDirection: 'row',
     },
     badgeWrapper: {
@@ -22,7 +28,6 @@ const styleSheet = (params: {
       alignSelf: 'center',
     },
     accountInfo: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       width: '100%',
@@ -31,7 +36,6 @@ const styleSheet = (params: {
       color: theme.colors.text.default,
       width: accountNameWide ? '86%' : '40%',
       ...fontStyles.bold,
-      fontSize: 14,
     },
     accountLabel: {
       borderRadius: 16,
@@ -41,7 +45,6 @@ const styleSheet = (params: {
     networkName: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };

@@ -21,6 +21,7 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

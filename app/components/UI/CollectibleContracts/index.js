@@ -96,6 +96,7 @@ const createStyles = (colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -105,6 +106,7 @@ const createStyles = (colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
@@ -515,9 +517,7 @@ const CollectibleContracts = ({
             label={
               <Text style={styles.controlButtonText} numberOfLines={1}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

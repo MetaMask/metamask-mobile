@@ -1,9 +1,13 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
@@ -21,6 +25,11 @@ export interface InfoRowProps {
   variant?: TextColor;
   copyText?: string;
   valueOnNewLine?: boolean;
+  withIcon?: {
+    color: IconColor;
+    size: IconSize;
+    name: IconName;
+  };
 }
 
 const InfoRow = ({
@@ -34,6 +43,7 @@ const InfoRow = ({
   variant = TextColor.Default,
   copyText,
   valueOnNewLine = false,
+  withIcon,
 }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -41,7 +51,7 @@ const InfoRow = ({
       <Text style={styles.value}>{children}</Text>
     ) : (
       <>{children}</>
-    )
+    );
 
   return (
     <>
@@ -65,12 +75,19 @@ const InfoRow = ({
             color={IconColor.Muted}
           />
         )}
+        {withIcon && (
+          <Icon
+            color={withIcon.color}
+            size={withIcon.size}
+            name={withIcon.name}
+          />
+        )}
       </View>
       {valueOnNewLine ? (
         <View style={styles.valueOnNewLineContainer}>
           {ValueComponent}
         </View>
-      ): null}
+      ) : null}
     </>
   );
 };

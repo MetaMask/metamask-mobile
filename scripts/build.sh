@@ -296,14 +296,17 @@ buildIosSimulatorQA(){
 buildIosSimulatorFlask(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-
-	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
 	prebuild_ios
 	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+}
+
+buildIosFlaskSimulatorE2E(){
+	prebuild_ios
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosQASimulatorE2E(){
@@ -318,20 +321,16 @@ runIosE2E(){
 buildIosDevice(){
 	remapEnvVariableLocal
 	prebuild_ios
-	#react-native run-ios --port=$WATCHER_PORT --device
 	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	#react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
-
 	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
 }
 
 buildIosDeviceFlask(){
 	prebuild_ios
-	#react-native run-ios --device --scheme "MetaMask-Flask"
 	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
@@ -582,10 +581,12 @@ buildIos() {
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
-		buildIosSimulatorE2E
-  elif [ "$MODE" == "qadebugE2E" ] ; then
-		buildIosQASimulatorE2E
+	elif [ "$MODE" == "debugE2E" ] ; then
+			buildIosSimulatorE2E
+	elif [ "$MODE" == "qadebugE2E" ] ; then
+			buildIosQASimulatorE2E
+	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+			buildIosFlaskSimulatorE2E	
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then

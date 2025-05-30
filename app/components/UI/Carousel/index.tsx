@@ -16,55 +16,126 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useSelectedAccountMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import {
+  selectSelectedInternalAccount,
+  selectLastSelectedSolanaAccount,
+} from '../../../selectors/accountsController';
+import { SolAccountType } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
+import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
+import {
+  fetchCarouselSlidesFromContentful,
+  isActive,
+} from './fetchCarouselSlidesFromContentful';
+import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
+
+const MAX_CAROUSEL_SLIDES = 15;
 
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
+  const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
+  const [regularContentfulSlides, setRegularContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
+  const isContentfulCarouselEnabled = useSelector(
+    selectContentfulCarouselEnabledFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } =
-    useSelectedAccountMultichainBalances();
+  const hasBalance = useSelector(selectAddressHasTokenBalances);
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const isZeroBalance =
-    selectedAccountMultichainBalance?.totalFiatBalance === 0;
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
+  );
+  ///: END:ONLY_INCLUDE_IF
 
-  const slidesConfig = useMemo(
-    () =>
-      PREDEFINED_SLIDES.map((slide) => {
-        if (slide.id === 'fund' && isZeroBalance) {
-          return {
-            ...slide,
-            undismissable: true,
-          };
-        }
+  const isZeroBalance = !hasBalance;
+
+  // Fetch slides from Contentful
+  useEffect(() => {
+    const loadContentfulSlides = async () => {
+      if (!isContentfulCarouselEnabled) return;
+      try {
+        const { prioritySlides, regularSlides } =
+          await fetchCarouselSlidesFromContentful();
+        setPriorityContentfulSlides(
+          prioritySlides.filter((slides) => isActive(slides)),
+        );
+        setRegularContentfulSlides(
+          regularSlides.filter((slides) => isActive(slides)),
+        );
+      } catch (err) {
+        console.warn('Failed to fetch Contentful slides:', err);
+      }
+    };
+    loadContentfulSlides();
+  }, [isContentfulCarouselEnabled]);
+
+  // Merge all slides (predefined + contentful),
+  const slidesConfig = useMemo(() => {
+    const baseSlides = [
+      ...priorityContentfulSlides,
+      ...PREDEFINED_SLIDES,
+      ...regularContentfulSlides,
+    ];
+    return baseSlides.map((slide) => {
+      if (slide.id === 'fund' && isZeroBalance) {
         return {
           ...slide,
-          undismissable: false,
+          undismissable: true,
         };
-      }),
-    [isZeroBalance],
-  );
+      }
+      return {
+        ...slide,
+        undismissable: false,
+      };
+    });
+  }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
 
-  const visibleSlides = useMemo(
-    () =>
-      slidesConfig.filter((slide) => {
-        if (slide.id === 'fund' && isZeroBalance) {
-          return true;
-        }
-        return !dismissedBanners.includes(slide.id);
-      }),
-    [slidesConfig, isZeroBalance, dismissedBanners],
-  );
+  const visibleSlides = useMemo(() => {
+    const filtered = slidesConfig.filter((slide: CarouselSlide) => {
+      const isCurrentlyActive = isActive(slide);
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      if (
+        slide.id === 'solana' &&
+        selectedAccount?.type === SolAccountType.DataAccount
+      ) {
+        return false;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      if (slide.id === 'fund' && isZeroBalance) {
+        return true;
+      }
+
+      return isCurrentlyActive && !dismissedBanners.includes(slide.id);
+    });
+    return filtered.slice(0, MAX_CAROUSEL_SLIDES);
+  }, [
+    slidesConfig,
+    isZeroBalance,
+    dismissedBanners,
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    selectedAccount,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
 
   const isSingleSlide = visibleSlides.length === 1;
 
@@ -77,14 +148,32 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
+      const extraProperties: Record<string, string> = {};
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      const isSolanaBanner = slideId === 'solana';
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        extraProperties.action = 'redirect-solana-account';
+      } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
+        extraProperties.action = 'create-solana-account';
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       trackEvent(
         createEventBuilder({
           category: 'Banner Select',
           properties: {
             name: slideId,
+            ...extraProperties,
           },
         }).build(),
       );
+
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      if (isSolanaBanner && lastSelectedSolanaAccount) {
+        return Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
+      }
+      ///: END:ONLY_INCLUDE_IF
 
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
@@ -98,7 +187,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         return navigate(navigation.route);
       }
     },
-    [navigate, trackEvent, createEventBuilder],
+    [
+      trackEvent,
+      createEventBuilder,
+      navigate,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      lastSelectedSolanaAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const handleClose = useCallback(
@@ -112,7 +208,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     ({ item: slide }: { item: CarouselSlide }) => (
       <Pressable
         key={slide.id}
-        testID={slide.testID}
+        testID={`carousel-slide-${slide.id}`}
         style={[
           styles.slideContainer,
           pressedSlideId === slide.id && styles.slideContainerPressed,
@@ -124,7 +220,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         <View style={styles.slideContent}>
           <View style={styles.imageContainer}>
             <Image
-              source={BANNER_IMAGES[slide.id]}
+              source={
+                slide.id.startsWith('contentful-')
+                  ? { uri: slide.image }
+                  : BANNER_IMAGES[slide.id]
+              }
               style={styles.bannerImage}
               resizeMode="contain"
             />
@@ -134,7 +234,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.title}
-                testID={slide.testIDTitle}
+                testID={`carousel-slide-${slide.id}-title`}
               >
                 {slide.title}
               </Text>
@@ -145,7 +245,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
           </View>
           {!slide.undismissable && (
             <TouchableOpacity
-              testID={slide.testIDCloseButton}
+              testID={`carousel-slide-${slide.id}-close-button`}
               style={styles.closeButton}
               onPress={() => handleClose(slide.id)}
             >
@@ -166,7 +266,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   // Track banner display events when visible slides change
   useEffect(() => {
-    visibleSlides.forEach((slide) => {
+    visibleSlides.forEach((slide: CarouselSlide) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -184,7 +284,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
         style={styles.progressContainer}
       >
-        {visibleSlides.map((slide, index) => (
+        {visibleSlides.map((slide: CarouselSlide, index: number) => (
           <View
             key={slide.id}
             style={[

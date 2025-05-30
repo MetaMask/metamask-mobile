@@ -190,7 +190,13 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -198,6 +204,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -980,63 +987,6 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        onSwipeComplete={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeDirection="down"
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
                     </RCTSafeAreaView>
                   </View>
                 </View>

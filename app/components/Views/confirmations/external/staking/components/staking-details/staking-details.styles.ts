@@ -9,12 +9,10 @@ const styleSheet = (params: { theme: Theme }) => {
     primaryValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     secondaryValue: {
       color: theme.colors.text.alternative,
       ...fontStyles.normal,
-      fontSize: 14,
       marginRight: 8,
     },
     valueContainer: {

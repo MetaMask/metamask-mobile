@@ -9,16 +9,28 @@ const styleSheet = (params: { theme: Theme }) => {
     primaryValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
     secondaryValue: {
       color: theme.colors.text.alternative,
       ...fontStyles.normal,
-      fontSize: 14,
-      marginRight: 8,
+      marginRight: 4,
     },
     valueContainer: {
       display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    editButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      // Intentional padding to increase touchable area
+      padding: 6,
+      paddingRight: 0,
+    },
+    editIcon: {
+      marginRight: 4,
+    },
+    estimationContainer: {
       flexDirection: 'row',
       alignItems: 'center',
     },

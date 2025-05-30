@@ -19,17 +19,11 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   findBlockExplorerForNonEvmAccount,
-  findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
 import {
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
@@ -42,9 +36,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   isHDOrFirstPartySnapAccount,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,11 +49,10 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-import { Hex } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -76,6 +67,9 @@ const AccountActions = () => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { networkSupporting7702Present } = useEIP7702Networks(
+    selectedAccount.address,
+  );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -84,7 +78,6 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
@@ -93,14 +86,11 @@ const AccountActions = () => {
     );
     return keyring?.metadata.id;
   }, [existingKeyrings, selectedAccount.address]);
-  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
-
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer:
     | {
@@ -111,38 +101,13 @@ const AccountActions = () => {
     | undefined = useMemo(() => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
-        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-          const explorer = findBlockExplorerForRpc(
-            providerConfig.rpcUrl,
-            networkConfigurations,
-          );
-
-          if (!explorer) {
-            return undefined;
-          }
-
-          return {
-            url: `${explorer}/address/${selectedAccount.address}`,
-            title: new URL(explorer).hostname,
-            blockExplorerName:
-              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-          };
-        }
-
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAccount.address,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
         return {
-          url,
-          title: etherscan_url,
-          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
+          title: 'Etherscan (Multichain)',
+          blockExplorerName: 'Etherscan (Multichain)',
         };
       }
+
       const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       if (explorer) {
         return {
@@ -155,9 +120,6 @@ const AccountActions = () => {
       return undefined;
     }
   }, [
-    networkConfigurations,
-    providerConfig.rpcUrl,
-    providerConfig.type,
     selectedAccount,
   ]);
 
@@ -220,7 +182,15 @@ const AccountActions = () => {
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const goToSwitchAccountType = () => {
+    navigate(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE, {
+      screen: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+      params: {
+        address: selectedAddress,
+      },
+    });
+  };
+
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -229,7 +199,6 @@ const AccountActions = () => {
       });
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -257,8 +226,9 @@ const AccountActions = () => {
    */
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -293,8 +263,9 @@ const AccountActions = () => {
    */
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
-      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      const hexSelectedAddress = toHex(selectedAddress);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
+      await removeAccountsFromPermissions([hexSelectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -457,7 +428,6 @@ const AccountActions = () => {
           />
         )}
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
           selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
             <AccountAction
               actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
@@ -468,7 +438,6 @@ const AccountActions = () => {
               }
             />
           )
-          ///: END:ONLY_INCLUDE_IF
         }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
@@ -492,6 +461,14 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
+        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
+          networkSupporting7702Present && (
+            <AccountAction
+              actionTitle={strings('account_actions.switch_to_smart_account')}
+              iconName={IconName.SwapHorizontal}
+              onPress={goToSwitchAccountType}
+            />
+          )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

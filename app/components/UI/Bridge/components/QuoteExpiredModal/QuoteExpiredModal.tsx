@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,8 +18,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './QuoteExpiredModal.styles';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import Engine from '../../../../../core/Engine';
-import { setIsSubmittingTx } from '../../../../../core/redux/slices/bridge';
-import { useDispatch } from 'react-redux';
+import {
+  selectBridgeFeatureFlags,
+  selectSourceToken,
+  setIsSubmittingTx,
+} from '../../../../../core/redux/slices/bridge';
+import { useDispatch, useSelector } from 'react-redux';
+import { getQuoteRefreshRate } from '../../utils/quoteUtils';
 
 const QuoteExpiredModal = () => {
   const navigation = useNavigation();
@@ -27,6 +32,10 @@ const QuoteExpiredModal = () => {
   const { styles } = useStyles(createStyles, {});
   const updateQuoteParams = useBridgeQuoteRequest();
   const dispatch = useDispatch();
+  const sourceToken = useSelector(selectSourceToken);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const refreshRate =
+    getQuoteRefreshRate(bridgeFeatureFlags, sourceToken) / 1000;
 
   const handleClose = () => {
     navigation.goBack();
@@ -43,6 +52,13 @@ const QuoteExpiredModal = () => {
     // Close the modal
     navigation.goBack();
   };
+
+  useEffect(() => {
+    // Stop polling when modal opens
+    if (Engine.context.BridgeController?.stopAllPolling) {
+      Engine.context.BridgeController.stopAllPolling();
+    }
+  }, []);
 
   const footerButtonProps = [
     {
@@ -62,7 +78,9 @@ const QuoteExpiredModal = () => {
       </BottomSheetHeader>
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMD}>
-          {strings('quote_expired_modal.description')}
+          {strings('quote_expired_modal.description', {
+            refreshRate,
+          })}
         </Text>
       </View>
       <BottomSheetFooter

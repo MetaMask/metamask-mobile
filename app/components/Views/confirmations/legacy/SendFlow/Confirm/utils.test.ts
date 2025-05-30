@@ -16,7 +16,7 @@ describe('updateTransactionToMaxValue', () => {
     (updateEditableParams as jest.Mock).mockClear();
   });
 
-  it('should update EIP1559 transaction value correctly', async () => {
+  it('updates EIP1559 transaction value', async () => {
     const transactionId = 'testTransactionId';
     const accountBalance = '0x2386f26fc10000'; // 0.1 ether in wei
     const gasFeeMaxHex = '0x2386f26fc1'; // Small gas fee
@@ -41,7 +41,7 @@ describe('updateTransactionToMaxValue', () => {
     });
   });
 
-  it('should update legacy transaction value correctly', async () => {
+  it('updates legacy transaction value', async () => {
     const transactionId = 'testTransactionId';
     const accountBalance = '0x2386f26fc10000'; // 0.1 ether in wei
     const gasFeeMaxHex = '0x2386f26fc1'; // Small gas fee
@@ -66,7 +66,7 @@ describe('updateTransactionToMaxValue', () => {
     });
   });
 
-  it('should handle negative balance case', async () => {
+  it('does not update value if it makes account have negative balance', async () => {
     const transactionId = 'testTransactionId';
     const accountBalance = '0x2386f26fc1'; // Very small balance
     const gasFeeMaxHex = '0x2386f26fc10000'; // Large gas fee
@@ -84,7 +84,7 @@ describe('updateTransactionToMaxValue', () => {
     expect(updateEditableParams).not.toHaveBeenCalled();
   });
 
-  it('should handle missing transactionId', async () => {
+  it('does not update value when missing transactionId', async () => {
     const accountBalance = '0x2386f26fc10000';
     const gasFeeMaxHex = '0x2386f26fc1';
 

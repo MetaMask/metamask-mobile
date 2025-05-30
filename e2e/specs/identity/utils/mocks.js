@@ -6,7 +6,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 const AuthMocks = AuthenticationController.Mocks;
 
 /**
- * E2E mock setup for identity APIs (Auth, UserStorage, Profile syncing)
+ * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
  *
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints

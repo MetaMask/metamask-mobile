@@ -67,7 +67,7 @@ function PaymentMethodModal({
   const isBuy = rampType === RampType.BUY;
 
   const handleOnPressItemCallback = useCallback(
-    (paymentMethodId) => {
+    (paymentMethodId: Payment['id']) => {
       if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
 

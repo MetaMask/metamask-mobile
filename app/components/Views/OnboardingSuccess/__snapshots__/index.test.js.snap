@@ -137,6 +137,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           >
             <SvgMock
               color="#4459ff"
+              fill="currentColor"
               height={16}
               name="Setting"
               style={
@@ -203,7 +204,7 @@ Change these at any time.
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -229,35 +230,6 @@ Change these at any time.
         </Text>
       </TouchableOpacity>
     </View>
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      transparent={true}
-      visible={false}
-    />
   </View>
 </RCTScrollView>
 `;

@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from '../useInitialSourceToken';
+import { BridgeRouteParams } from '../../Views/BridgeView';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
@@ -25,12 +25,13 @@ import { RootState } from '../../../../../reducers';
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
   TokenDetails = 'TokenDetails',
+  Swaps = 'Swaps',
 }
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
- * @param token token object containing address and chainId.
+ * @param token token object containing address and chainId we want to set as source.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({

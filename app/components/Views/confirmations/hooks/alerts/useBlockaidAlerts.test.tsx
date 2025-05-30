@@ -2,36 +2,25 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { useMetrics } from '../../../../hooks/useMetrics';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';
-import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
 import useBlockaidAlerts from './useBlockaidAlerts';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { strings } from '../../../../../../locales/i18n';
+import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
-jest.mock('../../../../../util/confirmation/signatureUtils', () => ({
-  getAnalyticsParams: jest.fn(),
+jest.mock('../metrics/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: jest.fn().mockReturnValue({
+    trackBlockaidAlertLinkClickedEvent: jest.fn(),
+  }),
 }));
-
-jest.mock('../../../../hooks/useMetrics');
 
 jest.mock('./useSecurityAlertResponse', () => ({
   useSecurityAlertResponse: jest.fn(),
 }));
 
-jest.mock('../signatures/useSignatureRequest', () => ({
-  useSignatureRequest: jest.fn(),
-}));
-
 jest.mock('../../components/blockaid-alert-content/blockaid-alert-content', () => 'BlockaidAlertContent');
 
 describe('useBlockaidAlerts', () => {
-  const mockSignatureRequest = {
-    type: 'eth_sign',
-    messageParams: { from: '0x123' },
-  };
-
   const mockSecurityAlertResponse: SecurityAlertResponse = {
     result_type: BlockaidResultType.Malicious,
     reason: Reason.other,
@@ -44,26 +33,11 @@ describe('useBlockaidAlerts', () => {
     },
     chainId: '1',
   };
-
-  const mockTrackEvent = jest.fn();
+  const mockUseConfirmationMetricEvents = jest.mocked(useConfirmationMetricEvents);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSignatureRequest as jest.Mock).mockReturnValue(mockSignatureRequest);
     (useSecurityAlertResponse as jest.Mock).mockReturnValue({ securityAlertResponse: mockSecurityAlertResponse });
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
   });
 
   it('returns an empty array when there is no security alert response', () => {
@@ -127,6 +101,12 @@ describe('useBlockaidAlerts', () => {
   );
 
   it('calls onContactUsClicked when the report link is clicked', () => {
+    const mockTrackBlockaidAlertLinkClickedEvent = jest.fn();
+
+    mockUseConfirmationMetricEvents.mockReturnValue({
+      trackBlockaidAlertLinkClickedEvent: mockTrackBlockaidAlertLinkClickedEvent,
+    } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+
     const { result } = renderHook(() => useBlockaidAlerts());
 
     const selectAlert = result.current[0];
@@ -134,14 +114,7 @@ describe('useBlockaidAlerts', () => {
 
     onContactUsClicked();
 
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      name: 'Signature Requested',
-      properties: {
-        external_link_clicked: 'security_alert_support_link',
-      },
-      saveDataRecording: true,
-      sensitiveProperties: {},
-    });
+    expect(mockTrackBlockaidAlertLinkClickedEvent).toHaveBeenCalledTimes(1);
   });
 
   it.each`

@@ -1,8 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isFlatConfirmation: boolean };
+}) => {
+  const { theme, vars } = params;
+  const { isFlatConfirmation } = vars;
 
   return StyleSheet.create({
     assetAmountContainer: {
@@ -11,21 +15,16 @@ const styleSheet = (params: { theme: Theme }) => {
     assetAmountText: {
       textAlign: 'center',
     },
+    assetTextUnknown: {
+      color: theme.colors.text.alternative,
+    },
     assetFiatConversionText: {
       textAlign: 'center',
       color: theme.colors.text.alternative,
     },
-    networkAndTokenContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    networkLogo: {
-      width: 48,
-      height: 48,
-    },
     container: {
-      paddingVertical: 16,
+      paddingBottom: 16,
+      paddingTop: isFlatConfirmation ? 16 : 0,
     },
   });
 };

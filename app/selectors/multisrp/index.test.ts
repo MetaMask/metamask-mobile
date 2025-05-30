@@ -1,16 +1,13 @@
 import {
   selectHdKeyringIndexByIdOrDefault,
   getHdKeyringOfSelectedAccountOrPrimaryKeyring,
+  getSnapAccountsByKeyringId,
 } from './index';
 import { RootState } from '../../reducers';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import {
-  KeyringMetadata,
-  KeyringObject,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { ExtendedKeyring } from '../keyringController';
+import { SOLANA_WALLET_SNAP_ID } from '../../core/SnapKeyring/SolanaWalletSnap';
 
 const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const MOCK_ADDRESS_2 = '0xeE94464eFCa6F3fb77AC3A77Ca995234c0c1f7fC';
@@ -42,41 +39,62 @@ const mockAccount4 = createMockInternalAccount(
 const mockHDKeyring = {
   accounts: [mockAccount1.address],
   type: KeyringTypes.hd,
+  metadata: {
+    id: '01JREC6GSZQJPCDJF921FT2A82',
+    name: '',
+  },
 };
 
 const mockHDKeyring2 = {
   accounts: [mockAccount2.address],
   type: KeyringTypes.hd,
+  metadata: {
+    id: '01JREC6R2ZCCZKQTEYMJ7P0GGT',
+    name: '',
+  },
 };
 
 const mockSimpleKeyring = {
   accounts: [mockAccount3.address],
   type: KeyringTypes.simple,
+  metadata: {
+    id: '01JREC6W64RRX0Y9C15Y8QW3DH',
+    name: '',
+  },
 };
 
 const mockSimpleKeyring2 = {
   accounts: [mockAccount4.address],
   type: KeyringTypes.simple,
+  metadata: {
+    id: '01JREC70MCJJNQT13ENMNVYBKM',
+    name: '',
+  },
 };
 
-const mockHDKeyringMetadata = {
-  id: '01JREC6GSZQJPCDJF921FT2A82',
-  name: '',
+const mockSnapAccount = {
+  ...createMockInternalAccount(
+    MOCK_ADDRESS_1,
+    'Solana Account',
+    KeyringTypes.snap,
+  ),
+  snap: {
+    id: SOLANA_WALLET_SNAP_ID,
+    name: 'Solana',
+    enabled: true,
+  },
+  options: {
+    entropySource: mockHDKeyring.metadata.id,
+  },
 };
 
-const mockHDKeyring2Metadata = {
-  id: '01JREC6R2ZCCZKQTEYMJ7P0GGT',
-  name: '',
-};
-
-const mockSimpleKeyringMetadata = {
-  id: '01JREC6W64RRX0Y9C15Y8QW3DH',
-  name: '',
-};
-
-const mockSimpleKeyring2Metadata = {
-  id: '01JREC70MCJJNQT13ENMNVYBKM',
-  name: '',
+const mockSnapKeyring = {
+  accounts: [mockSnapAccount.address],
+  type: KeyringTypes.snap,
+  metadata: {
+    id: '01JREC70MCJJNQT13ENMNVYBKK',
+    name: '',
+  },
 };
 
 const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
@@ -89,12 +107,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
             mockHDKeyring2,
             mockSimpleKeyring,
             mockSimpleKeyring2,
-          ],
-          keyringsMetadata: [
-            mockHDKeyringMetadata,
-            mockHDKeyring2Metadata,
-            mockSimpleKeyringMetadata,
-            mockSimpleKeyring2Metadata,
+            mockSnapKeyring,
           ],
         },
         AccountsController: {
@@ -104,6 +117,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
               [mockAccount2.id]: mockAccount2,
               [mockAccount3.id]: mockAccount3,
               [mockAccount4.id]: mockAccount4,
+              [mockSnapAccount.id]: mockSnapAccount,
             },
             selectedAccount: selectedAccount.id,
           },
@@ -117,11 +131,6 @@ const mockStateWithNoSelectedAccount = {
     backgroundState: {
       KeyringController: {
         keyrings: [mockHDKeyring, mockHDKeyring2, mockSimpleKeyring],
-        keyringsMetadata: [
-          mockHDKeyringMetadata,
-          mockHDKeyring2Metadata,
-          mockSimpleKeyringMetadata,
-        ],
       },
       AccountsController: {
         internalAccounts: {
@@ -136,14 +145,6 @@ const mockStateWithNoSelectedAccount = {
     },
   },
 } as unknown as RootState;
-
-const expectedKeyringWithMetadata = (
-  keyring: KeyringObject,
-  metadata: KeyringMetadata,
-): ExtendedKeyring => ({
-  ...keyring,
-  metadata,
-});
 
 describe('multisrp selectors', () => {
   describe('selectHdKeyringIndexByIdOrDefault', () => {
@@ -163,7 +164,7 @@ describe('multisrp selectors', () => {
     it('returns correct index when keyring is found', () => {
       const result = selectHdKeyringIndexByIdOrDefault(
         mockState(),
-        mockHDKeyringMetadata.id,
+        mockHDKeyring.metadata.id,
       );
       expect(result).toBe(0);
     });
@@ -182,25 +183,40 @@ describe('multisrp selectors', () => {
       const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
         mockState(mockAccount2),
       );
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring2, mockHDKeyring2Metadata),
-      );
+      expect(result).toStrictEqual(mockHDKeyring2);
     });
 
     it('returns selected account keyring when it is HD type', () => {
       const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(mockState());
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
-      );
+      expect(result).toStrictEqual(mockHDKeyring);
     });
 
     it('returns first HD keyring when selected account keyring is not HD type', () => {
       const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
         mockState(mockAccount3),
       );
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
+      expect(result).toStrictEqual(mockHDKeyring);
+    });
+  });
+
+  describe('getSnapAccountsByKeyringId', () => {
+    it('returns snap accounts along with hd accounts', () => {
+      const result = getSnapAccountsByKeyringId(
+        mockState(),
+        mockHDKeyring.metadata.id,
       );
+      expect(result).toEqual([mockSnapAccount]);
+    });
+
+    it('returns empty array when no keyringId is provided', () => {
+      // @ts-expect-error - This is a test for the null case
+      const result = getSnapAccountsByKeyringId(mockState(), null);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when keyringId is not found', () => {
+      const result = getSnapAccountsByKeyringId(mockState(), 'non-existent');
+      expect(result).toEqual([]);
     });
   });
 });

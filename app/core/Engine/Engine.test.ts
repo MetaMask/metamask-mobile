@@ -46,6 +46,11 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  rejectOriginApprovals: jest.fn(),
+}));
+
 describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;
@@ -90,6 +95,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('BridgeStatusController');
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -112,8 +118,7 @@ describe('Engine', () => {
         vault: 'vault',
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
-      } as KeyringControllerState,
+      },
       [],
     );
     expect(backupVault).toHaveBeenCalled();
@@ -131,7 +136,6 @@ describe('Engine', () => {
         vault: undefined,
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
       } as KeyringControllerState,
       [],
     );
@@ -275,6 +279,20 @@ describe('Engine', () => {
       conversionRate: 0,
       conversionDate: 0,
       usdConversionRate: null,
+    });
+  });
+
+  it('does not pass initial RemoteFeatureFlagController state to the controller', () => {
+    const state = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 20000000000000,
+      },
+    };
+    const engine = Engine.init(state);
+    expect(engine.datamodel.state.RemoteFeatureFlagController).toStrictEqual({
+      remoteFeatureFlags: {},
+      cacheTimestamp: 0,
     });
   });
 

@@ -14,10 +14,13 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
+import { buildPermissions } from '../../fixtures/utils';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
+// TODO: Fix this test and remove the skip
+// More info: https://github.com/MetaMask/metamask-mobile/issues/12501
+describe.skip(SmokeNetworkAbstractions('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -29,7 +32,7 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

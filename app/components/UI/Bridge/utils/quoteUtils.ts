@@ -4,7 +4,7 @@ import {
 } from '@metamask/bridge-controller';
 import type { BridgeToken } from '../types';
 
-const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
+const DEFAULT_REFRESH_RATE = 30 * 1000; // 30 seconds
 
 /**
  * Gets the refresh rate for quotes based on feature flags and source token
