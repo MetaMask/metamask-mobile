@@ -282,16 +282,14 @@ buildIosDevBuild(){
 	brew install watchman
 	cd ios
 
-  if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
-    scheme="MetaMask-Flask"
-  elif [ "$METAMASK_BUILD_TYPE" = "main" ] ; then
-    scheme="MetaMask"
-  else
-    echo "Unknown mode for iOS dev build: $MODE"
-    exit 1
-  fi
-
 	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
+	scheme="MetaMask"
+
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		scheme="MetaMask-Flask"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+	fi
+
 	echo "exportOptionsPlist: $exportOptionsPlist"
   	echo "Generating archive packages for $scheme"
 	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
