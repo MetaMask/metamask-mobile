@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,6 +17,7 @@ import TextField, {
 import { TextFieldProps } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../util/theme/models';
 import { useStyles } from '../../../../../component-library/hooks';
+import { formatUSPhoneNumber } from '../../utils';
 
 interface PhoneFieldProps
   extends Omit<TextFieldProps, 'size' | 'onChangeText'> {
@@ -75,6 +76,9 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
+// TODO: Add more international phone number formatting logic - This is US only
+const formatPhoneNumber = formatUSPhoneNumber;
+
 const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   (
     {
@@ -89,8 +93,13 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   ) => {
     const { styles, theme } = useStyles(styleSheet, {});
 
+    const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
+
     const handlePhoneNumberChange = (text: string) => {
-      onChangeText(text);
+      const rawValue = text.slice(0, 10).replace(/\D/g, '');
+      const formattedValue = formatPhoneNumber(text);
+      setFormattedPhoneNumber(formattedValue);
+      onChangeText(rawValue);
     };
 
     return (
@@ -112,6 +121,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
             onChangeText={handlePhoneNumberChange}
             style={styles.phoneInput}
             {...textFieldProps}
+            value={formattedPhoneNumber}
           />
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
