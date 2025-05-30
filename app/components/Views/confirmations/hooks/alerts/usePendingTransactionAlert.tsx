@@ -1,5 +1,4 @@
-import React from 'react';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
@@ -51,5 +50,5 @@ export const usePendingTransactionAlert = () => {
         severity: Severity.Warning,
       },
     ];
-  }, [transactions]);
+  }, [transactions, transactionMeta]);
 };
