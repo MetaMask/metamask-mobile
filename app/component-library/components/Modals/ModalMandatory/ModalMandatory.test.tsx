@@ -7,6 +7,7 @@ import { BodyWebViewUri } from './ModalMandatory.types';
 import { Text } from 'react-native';
 import styleSheet from './ModalMandatory.styles';
 import { mockTheme } from '../../../../util/theme';
+import { useNavigation } from '@react-navigation/native';
 
 // Mock the WebView component
 jest.mock('@metamask/react-native-webview', () => ({
@@ -34,6 +35,11 @@ jest.mock('../../BottomSheets/BottomSheet', () => ({
   default: jest.fn(({ children }) => (
     <div data-testid="mock-bottom-sheet">{children}</div>
   )),
+}));
+
+// Mock useNavigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
 }));
 
 describe('ModalMandatory', () => {
@@ -126,7 +132,15 @@ describe('ModalMandatory', () => {
     expect(button.props.disabled).toBe(false);
   });
 
-  it('calls onAccept when button is pressed', () => {
+  it('calls onAccept when button is pressed', async () => {
+    // Mock the navigation object
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    } as unknown as ReturnType<typeof useNavigation>);
+
     const routeWithoutScroll = {
       ...mockRoute,
       params: {
@@ -146,8 +160,8 @@ describe('ModalMandatory', () => {
 
     // Press button
     fireEvent.press(button);
-
-    // expect(mockOnAccept).toHaveBeenCalled();
+    expect(mockRoute.params.onAccept).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('handles close button press', () => {
