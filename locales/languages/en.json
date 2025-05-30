@@ -40,6 +40,11 @@
     },
     "signed_or_submitted": {
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
