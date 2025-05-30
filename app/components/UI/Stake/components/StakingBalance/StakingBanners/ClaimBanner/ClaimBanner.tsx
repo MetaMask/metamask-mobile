@@ -147,7 +147,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
     if (
       shouldAttemptClaim &&
       isStakingSupportedChain &&
-      Number(stakingContract?.chainId) === chainId &&
+      Number(stakingContract?.chainId) === Number(chainId) &&
       !isSubmittingClaimTransaction
     ) {
       setShouldAttemptClaim(false);
