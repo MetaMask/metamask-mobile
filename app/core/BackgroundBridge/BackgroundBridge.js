@@ -251,17 +251,8 @@ export class BackgroundBridge extends EventEmitter {
 
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
-      // In case we want to send, use  new structure
-      /*const memState = this.getState();
-      const selectedAddress = memState.selectedAddress;
+      // In case we want to send, use new structure
 
-      this.sendNotificationEip1193({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: {
-          isUnlocked: true,
-          accounts: [selectedAddress],
-        },
-      });*/
       return;
     }
 
@@ -277,13 +268,8 @@ export class BackgroundBridge extends EventEmitter {
 
     if (this.isRemoteConn) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
-      // In case we want to send, use  new structure
-      /*this.sendNotificationEip1193({
-        method: NOTIFICATION_NAMES.unlockStateChanged,
-        params: {
-          isUnlocked: false,
-        },
-      });*/
+      // In case we want to send, use new structure
+
       return;
     }
 
