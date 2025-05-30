@@ -994,6 +994,40 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 };
 
+ImportFromSecretRecoveryPhrase.propTypes = {
+  /**
+   * The navigator object
+   */
+  navigation: PropTypes.object,
+  /**
+   * The action to update the password set flag
+   * in the redux store
+   */
+  passwordSet: PropTypes.func,
+  /**
+   * The action to set the locktime
+   * in the redux store
+   */
+  setLockTime: PropTypes.func,
+  /**
+   * The action to update the seedphrase backed up flag
+   * in the redux store
+   */
+  seedphraseBackedUp: PropTypes.func,
+  /**
+   * Action to set onboarding wizard step
+   */
+  setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
+};
+
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
