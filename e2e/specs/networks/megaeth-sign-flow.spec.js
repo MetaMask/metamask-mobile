@@ -8,7 +8,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstraction } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -18,7 +18,7 @@ import enContent from '../../../locales/languages/en.json';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
-describe(SmokeNetworkAbstractions('MegaETH Testnet Network Signing'), () => {
+describe(RegressionNetworkAbstraction('MegaETH Testnet Network Signing'), () => {
   const TOKEN_NAME = enContent.unit.megaeth;
   const AMOUNT = '0.0000001';
 
