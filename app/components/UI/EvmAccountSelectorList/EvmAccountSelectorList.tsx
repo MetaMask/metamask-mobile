@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -247,7 +246,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -258,6 +258,19 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        // TODO: Remove once the feature flag selector is available.
+        // This is also temporary for development.
+        if (false) {
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+        }
+
         onNavigateToAccountActions(address);
       };
 
