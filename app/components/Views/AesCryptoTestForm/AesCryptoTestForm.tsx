@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import {
   Encryptor,
-  ENCRYPTION_LIBRARY,
   DERIVATION_OPTIONS_DEFAULT_OWASP2023,
 } from '../../../core/Encryptor';
 import { useTheme } from '../../../util/theme';
