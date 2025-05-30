@@ -134,8 +134,17 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet",
-    "have_existing_wallet": "I have an existing wallet"
+    "delete_current": "Erasing current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "have_existing_wallet": "I have an existing wallet",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -363,7 +372,14 @@
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "Password updated",
-    "successfully_changed": "Your password has been successfully changed"
+    "successfully_changed": "Your password has been successfully changed",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Confirm",
+    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
+    "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel"
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -4118,6 +4134,55 @@
     "transaction_details": "Transaction Details",
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
+  },
+  "account_status": {
+    "account_already_exists": "Account already exists",
+    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Account not found",
+    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Protect your wallet",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "GOOGLE OR APPLE RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "This email and your MetaMask password will help you recover your account and recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },
   "backupAndSync": {
     "title": "Backup and sync",

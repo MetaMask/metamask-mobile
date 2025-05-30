@@ -306,15 +306,7 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      console.log('authType', authType);
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
@@ -324,7 +316,6 @@ const Login: React.FC = () => {
           {
             name: TraceName.AuthenticateUser,
             op: TraceOperation.Login,
-            parentContext: parentSpanRef.current,
           },
           async () => {
             await Authentication.userEntryAuth(password, authType);
