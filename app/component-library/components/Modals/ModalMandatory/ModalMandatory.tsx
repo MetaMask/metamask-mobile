@@ -31,12 +31,14 @@ import {
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
+import { useNavigation } from '@react-navigation/native';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
   const webViewRef = useRef<WebView>(null);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const [isWebViewLoaded, setIsWebViewLoaded] = useState<boolean>(false);
   const [isScrollEnded, setIsScrollEnded] = useState<boolean>(false);
@@ -120,11 +122,14 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   }, []);
 
   const onPress = () => {
-    bottomSheetRef.current?.onCloseBottomSheet(onAccept);
+    navigation.goBack();
+    if (onAccept) {
+      onAccept();
+    }
   };
 
   const onClose = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+    navigation.goBack();
   };
 
   const renderHeader = () => (
