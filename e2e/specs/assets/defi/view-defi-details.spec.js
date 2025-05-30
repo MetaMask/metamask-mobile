@@ -22,6 +22,10 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         testSpecificMock: {
           GET: [mockEvents.GET.defiPositionsWithData],
         },
+        languageAndLocale: {
+          language: 'en',
+          locale: 'en_US',
+        },
       },
       async () => {
         await loginToApp();
@@ -38,8 +42,13 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
           WalletView.defiPositionDetailsContainer,
         );
         await Assertions.checkIfTextIsDisplayed('Aave V3');
+        await Assertions.checkIfTextIsDisplayed('$14.74');
         await Assertions.checkIfTextIsDisplayed('USDT');
+        await Assertions.checkIfTextIsDisplayed('$0.30');
+        await Assertions.checkIfTextIsDisplayed('0.30011 USDT');
         await Assertions.checkIfTextIsDisplayed('WETH');
+        await Assertions.checkIfTextIsDisplayed('$14.44');
+        await Assertions.checkIfTextIsDisplayed('0.00903 WETH');
       },
     );
   });

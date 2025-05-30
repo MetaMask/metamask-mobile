@@ -76,6 +76,10 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         testSpecificMock: {
           GET: [mockEvents.GET.defiPositionsWithData],
         },
+        languageAndLocale: {
+          language: 'en',
+          locale: 'en_US',
+        },
       },
       async () => {
         await loginToApp();
@@ -87,17 +91,25 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
 
         await Assertions.checkIfVisible(WalletView.defiTabContainer);
         await Assertions.checkIfTextIsDisplayed('Aave V2');
+        await Assertions.checkIfTextIsDisplayed('$14.74');
         await Assertions.checkIfTextIsDisplayed('Aave V3');
+        await Assertions.checkIfTextIsDisplayed('$0.33');
         await Assertions.checkIfTextIsNotDisplayed('Uniswap V2');
+        await Assertions.checkIfTextIsNotDisplayed('$4.24');
         await Assertions.checkIfTextIsNotDisplayed('Uniswap V3');
+        await Assertions.checkIfTextIsNotDisplayed('$8.48');
 
         await WalletView.tapOnDeFiNetworksFilter();
         await WalletView.tapTokenNetworkFilterAll();
 
         await Assertions.checkIfTextIsDisplayed('Aave V2');
+        await Assertions.checkIfTextIsDisplayed('$14.74');
         await Assertions.checkIfTextIsDisplayed('Aave V3');
+        await Assertions.checkIfTextIsDisplayed('$0.33');
         await Assertions.checkIfTextIsDisplayed('Uniswap V2');
+        await Assertions.checkIfTextIsDisplayed('$4.24');
         await Assertions.checkIfTextIsDisplayed('Uniswap V3');
+        await Assertions.checkIfTextIsDisplayed('$8.48');
       },
     );
   });
