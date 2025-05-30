@@ -3683,9 +3683,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
-      "body_prefix": "You could earn up to",
-      "body_suffix": "per year by lending your {{tokenSymbol}}.",
-      "start_earning": "Start earning"
+      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
+      "annually": "annually.",
+      "learn_more": "Learn more.",
+      "earn": "Earn"
     },
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"

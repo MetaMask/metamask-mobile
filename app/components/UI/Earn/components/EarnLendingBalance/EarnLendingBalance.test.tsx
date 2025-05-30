@@ -3,11 +3,14 @@ import EarnLendingBalance, { EARN_LENDING_BALANCE_TEST_IDS } from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import useLendingTokenPair from '../../hooks/useLendingTokenPair';
 import { createMockToken } from '../../../Stake/testUtils';
-import { EarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { TokenI } from '../../../Tokens/types';
 import { act, fireEvent } from '@testing-library/react-native';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 
@@ -21,35 +24,71 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useLendingTokenPair');
+const mockEarnTokenPair = jest.fn();
+
+const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  Ethereum: '2.3',
+  USDC: '4.5',
+  USDT: '4.1',
+  DAI: '5.0',
+};
+
+jest.mock('../../hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: (token: TokenI) => {
+      const experiences = [
+        {
+          type: 'STABLECOIN_LENDING',
+          apr: MOCK_APR_VALUES?.[token.symbol] ?? '',
+          estimatedAnnualRewardsFormatted: '',
+          estimatedAnnualRewardsFiatNumber: 0,
+        },
+      ];
+
+      return {
+        ...token,
+        balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+        balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+        balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+        balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+        experiences,
+        tokenUsdExchangeRate: 0,
+        experience: experiences[0],
+      };
+    },
+    getPairedEarnTokens: mockEarnTokenPair,
+  }),
+}));
 
 jest.mock('../../selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
 describe('EarnLendingBalance', () => {
-  const mockDaiMainnet: Partial<EarnTokenDetails> = {
+  const mockUsdcMainnet: Partial<EarnTokenDetails> = {
     ...createMockToken({
-      symbol: 'DAI',
-      address: '0x018008bfb33d285247A21d44E50697654f754e63',
+      symbol: 'USDC',
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       chainId: '0x1',
-      name: 'Dai Stablecoin',
-      balance: '76.04796 DAI',
+      name: 'USDC',
+      balance: '76.04796 USDC',
       balanceFiat: '$76.00',
     }),
-    balanceFormatted: '76.04796 DAI',
+    balanceFormatted: '76.04796 USDC',
   };
 
-  const mockADAIMainnet: Partial<EarnTokenDetails> = {
+  const mockAUSDCMainnet: Partial<EarnTokenDetails> = {
     ...createMockToken({
-      symbol: 'ADAI',
-      address: '0x018008bfb33d285247A21d44E50697654f754e63',
+      symbol: 'AUSDC',
+      address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
       chainId: '0x1',
-      name: 'Aave v3 DAI',
-      balance: '32.05 ADAI',
-      balanceFiat: '$32.05',
+      name: 'AUSDC',
+      balance: '76.04796 AUSDC',
+      balanceFiat: '$76.00',
     }),
-    balanceFormatted: '32.05 ADAI',
+    balanceFormatted: '76.04796 AUSDC',
   };
 
   const mockInitialState = {
@@ -65,17 +104,14 @@ describe('EarnLendingBalance', () => {
       >
     ).mockReturnValue(true);
 
-    (
-      useLendingTokenPair as jest.MockedFunction<typeof useLendingTokenPair>
-    ).mockReturnValue({
-      lendingToken: mockDaiMainnet,
-      receiptToken: mockADAIMainnet,
-    });
+    mockEarnTokenPair.mockReturnValue(
+      getMockUseEarnTokens(EARN_EXPERIENCES.STABLECOIN_LENDING),
+    );
   });
 
-  it('renders balance and buttons by default', () => {
+  it('renders balance and buttons when user has lending positions', () => {
     const { toJSON, getByTestId } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet as TokenI} />,
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
       { state: mockInitialState },
     );
 
@@ -96,12 +132,9 @@ describe('EarnLendingBalance', () => {
     ).toBeDefined();
   });
 
-  it('hides balances when displayBalance is false', () => {
+  it('hides balances when asset prop is an output token', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <EarnLendingBalance
-        asset={mockDaiMainnet as TokenI}
-        displayBalance={false}
-      />,
+      <EarnLendingBalance asset={mockAUSDCMainnet as TokenI} />,
       { state: mockInitialState },
     );
 
@@ -124,24 +157,19 @@ describe('EarnLendingBalance', () => {
     ).toBeDefined();
   });
 
-  it('hides buttons when displayButtons is false', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <EarnLendingBalance
-        asset={mockDaiMainnet as TokenI}
-        displayButtons={false}
-      />,
-      { state: mockInitialState },
+  it("hides buttons when user does't have lending position", () => {
+    const mockLendingTokenPair = getMockUseEarnTokens(
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
     );
 
-    // Still Rendering Balance
-    expect(
-      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_LABEL),
-    ).toBeDefined();
-    expect(
-      getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.RECEIPT_TOKEN_BALANCE_ASSET_LOGO,
-      ),
-    ).toBeDefined();
+    mockLendingTokenPair.outputToken.balanceMinimalUnit = '0';
+
+    mockEarnTokenPair.mockReturnValue(mockLendingTokenPair);
+
+    const { queryByTestId } = renderWithProvider(
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
+      { state: mockInitialState },
+    );
 
     // Hidden
     expect(
@@ -152,6 +180,31 @@ describe('EarnLendingBalance', () => {
     ).toBeNull();
   });
 
+  it('displays earn empty state cta when user has no lending positions', () => {
+    const mockLendingTokenPair = getMockUseEarnTokens(
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    );
+
+    mockLendingTokenPair.outputToken.balanceMinimalUnit = '0';
+
+    mockEarnTokenPair.mockReturnValue(mockLendingTokenPair);
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
+      { state: mockInitialState },
+    );
+
+    // Hidden
+    expect(getByTestId(EARN_EMPTY_STATE_CTA_TEST_ID)).toBeDefined();
+    expect(
+      getByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockLendingTokenPair.earnToken.symbol,
+        }),
+      ),
+    ).toBeDefined();
+  });
+
   it('does not render if stablecoin lending feature flag disabled', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -160,10 +213,7 @@ describe('EarnLendingBalance', () => {
     ).mockReturnValue(false);
 
     const { toJSON } = renderWithProvider(
-      <EarnLendingBalance
-        asset={mockDaiMainnet as TokenI}
-        displayButtons={false}
-      />,
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
       { state: mockInitialState },
     );
 
@@ -171,8 +221,12 @@ describe('EarnLendingBalance', () => {
   });
 
   it('navigates to deposit screen when deposit more is pressed', async () => {
+    const mockLendingTokenPair = getMockUseEarnTokens(
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    );
+
     const { getByTestId } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet as TokenI} />,
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
       { state: mockInitialState },
     );
 
@@ -186,31 +240,19 @@ describe('EarnLendingBalance', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        token: {
-          address: '0x018008bfb33d285247A21d44E50697654f754e63',
-          aggregators: [],
-          balance: '76.04796 DAI',
-          balanceFiat: '$76.00',
-          balanceFormatted: '76.04796 DAI',
-          chainId: '0x1',
-          decimals: 0,
-          image: '',
-          isETH: false,
-          isNative: false,
-          isStaked: false,
-          logo: '',
-          name: 'Dai Stablecoin',
-          symbol: 'DAI',
-          ticker: '',
-        },
+        token: mockLendingTokenPair.earnToken,
       },
       screen: 'Stake',
     });
   });
 
   it('navigates to withdrawal screen when withdraw is pressed', async () => {
+    const mockLendingTokenPair = getMockUseEarnTokens(
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    );
+
     const { getByTestId } = renderWithProvider(
-      <EarnLendingBalance asset={mockDaiMainnet as TokenI} />,
+      <EarnLendingBalance asset={mockUsdcMainnet as TokenI} />,
       { state: mockInitialState },
     );
 
@@ -224,23 +266,7 @@ describe('EarnLendingBalance', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        token: {
-          address: '0x018008bfb33d285247A21d44E50697654f754e63',
-          aggregators: [],
-          balance: '32.05 ADAI',
-          balanceFiat: '$32.05',
-          balanceFormatted: '32.05 ADAI',
-          chainId: '0x1',
-          decimals: 0,
-          image: '',
-          isETH: false,
-          isNative: false,
-          isStaked: false,
-          logo: '',
-          name: 'Aave v3 DAI',
-          symbol: 'ADAI',
-          ticker: '',
-        },
+        token: mockLendingTokenPair.outputToken,
       },
       screen: 'Unstake',
     });

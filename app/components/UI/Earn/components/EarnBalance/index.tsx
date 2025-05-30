@@ -21,13 +21,8 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isLendingToken = getEarnToken(asset);
   const isReceiptToken = getOutputToken(asset);
 
-  if (
-    (isLendingToken || isReceiptToken) &&
-    isReceiptToken?.balanceMinimalUnit !== '0'
-  ) {
-    return (
-      <EarnLendingBalance asset={asset} displayBalance={!isReceiptToken} />
-    );
+  if (isLendingToken || isReceiptToken) {
+    return <EarnLendingBalance asset={asset} />;
   }
 
   return null;

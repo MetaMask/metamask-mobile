@@ -21,14 +21,10 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../../Stake/components/StakingEarnings';
 import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
-import { parseFloatSafe } from '../../Earn/utils';
-import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
@@ -36,9 +32,8 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
-import useEarnTokens from '../../Earn/hooks/useEarnTokens';
-import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+
 export interface TokenDetails {
   contractAddress: string | null;
   tokenDecimal: number | null;
@@ -69,9 +64,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const { styles } = useStyles(styleSheet, {});
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -89,9 +81,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
-  const { getEarnToken, getOutputToken, getPairedEarnTokens } = useEarnTokens();
-  const { earnToken: lendingToken, outputToken: receiptToken } =
-    getPairedEarnTokens(asset);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
@@ -134,9 +123,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     tokenMetadata = tokenSearchResult.token;
   } else {
     tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
-    marketData = !isNonEvmAsset
-      ? evmMarketData?.marketData
-      : nonEvmMarketData;
+    marketData = !isNonEvmAsset ? evmMarketData?.marketData : nonEvmMarketData;
   }
   const tokenDetails = useMemo(
     () =>
@@ -187,24 +174,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     );
   }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
 
-  const hasLendingTokenBalance =
-    lendingToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-    lendingToken?.balanceFiat &&
-    parseFloatSafe(lendingToken?.balanceFiat) > 0;
-
-  const hasReceiptTokenBalance =
-    receiptToken?.balanceFiat && parseFloatSafe(receiptToken?.balanceFiat) > 0;
-
   return (
     <View style={styles.tokenDetailsContainer}>
-      {/* TODO: Abstract StakingEarnings and EarnEmptyStateCta (Earn Lending Experience) into single entrypoint */}
-      {asset.isETH && <StakingEarnings asset={asset} />}
-      {isStablecoinLendingEnabled &&
-        !asset.isETH &&
-        getEarnToken(asset) &&
-        !getOutputToken(asset) &&
-        hasLendingTokenBalance &&
-        !hasReceiptTokenBalance && <EarnEmptyStateCta token={asset} />}
       {(asset.isETH || tokenMetadata || !isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

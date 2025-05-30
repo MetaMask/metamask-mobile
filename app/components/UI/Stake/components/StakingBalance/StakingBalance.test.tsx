@@ -25,6 +25,19 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
+jest.mock('../../hooks/useStakingEarnings', () => ({
+  __esModule: true,
+  default: () => ({
+    annualRewardRate: '2.6%',
+    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewardsFiat: '$5000',
+    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarningsFiat: '$5000',
+    isLoadingEarningsData: false,
+    hasStakedPositions: true,
+  }),
+}));
+
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
 >;
@@ -192,6 +205,9 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
 }));
 
 afterEach(() => {

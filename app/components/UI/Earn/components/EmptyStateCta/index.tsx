@@ -3,12 +3,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EmptyStateCta.styles';
-import Avatar, {
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import { View } from 'react-native-animatable';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -26,19 +22,20 @@ import _ from 'lodash';
 import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import { capitalize } from '../../../../../util/general';
 
 interface EarnEmptyStateCta {
   token: TokenI;
 }
 
+export const EARN_EMPTY_STATE_CTA_TEST_ID = 'earn-empty-state-cta-test-id';
+
 const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const { navigate } = useNavigation();
 
   const { createEventBuilder, trackEvent } = useMetrics();
-
-  const { colors } = theme;
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -73,33 +70,28 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Avatar
-          style={styles.icon}
-          variant={AvatarVariant.Icon}
-          name={IconName.Plant}
-          backgroundColor={colors.success.muted}
-          iconColor={colors.success.default}
-        />
-      </View>
+    <View style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>
       <Text variant={TextVariant.HeadingMD} style={styles.heading}>
         {strings('earn.empty_state_cta.heading', { tokenSymbol: token.symbol })}
       </Text>
       <Text style={styles.body}>
-        {strings('earn.empty_state_cta.body_prefix')}{' '}
-        <Text variant={TextVariant.BodyMDBold} color={TextColor.Success}>
-          {estimatedAnnualRewardsFormatted} ({apr}% {strings('stake.apr')})
-        </Text>{' '}
-        {strings('earn.empty_state_cta.body_suffix', {
+        {strings('earn.empty_state_cta.body', {
           tokenSymbol: token.symbol,
-        })}
+          protocol: capitalize(earnToken?.experience.market?.protocol),
+        })}{' '}
+        <Text variant={TextVariant.BodyMDBold} color={TextColor.Success}>
+          {apr}%
+        </Text>{' '}
+        {strings('earn.empty_state_cta.annually')}{' '}
+        <Text color={TextColor.Primary}>
+          {strings('earn.empty_state_cta.learn_more')}
+        </Text>
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
-        size={ButtonSize.Lg}
+        size={ButtonSize.Md}
         width={ButtonWidthTypes.Full}
-        label={strings('earn.empty_state_cta.start_earning')}
+        label={strings('earn.empty_state_cta.earn')}
         onPress={navigateToLendInputScreen}
       />
     </View>
