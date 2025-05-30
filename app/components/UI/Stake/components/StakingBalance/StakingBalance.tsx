@@ -56,6 +56,7 @@ import { filterExitRequests } from './utils';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
+import StakingEarnings from '../StakingEarnings';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -264,6 +265,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       )}
 
       <View style={styles.container}>{renderStakingContent()}</View>
+      <View style={styles.stakingEarnings}>
+        <StakingEarnings asset={asset} />
+      </View>
     </View>
   );
 };

@@ -10,6 +10,10 @@ const styleSheet = () =>
     container: {
       paddingHorizontal: 16,
     },
+    stakingEarnings: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
     badgeWrapper: {
       alignSelf: 'center',
     },
