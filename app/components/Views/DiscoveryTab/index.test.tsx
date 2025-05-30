@@ -9,11 +9,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigation = {
-//   goBack: jest.fn(),
-//   goForward: jest.fn(),
-//   canGoBack: true,
-//   canGoForward: true,
-//   addListener: jest.fn(),
   navigate: jest.fn(),
 };
 
@@ -61,18 +56,6 @@ const mockInitialState = {
     backgroundState,
   },
 };
-
-// jest.mock('../../../core/Engine', () => ({
-//   context: {
-//     PhishingController: {
-//       maybeUpdateState: jest.fn(),
-//       test: () => ({ result: true, name: 'test' }),
-//     },
-//     CurrencyRateController: {
-//       updateExchangeRate: jest.fn(() => Promise.resolve()),
-//     },
-//   },
-// }));
 
 const mockProps = {
   id: 1,
@@ -130,6 +113,34 @@ describe('DiscoveryTab', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.ASSET_LOADER, {
       chainId: '0x1',
       address: '0x123',
+    });
+  });
+
+  it('should navigate to a site when selecting a URL from the autocomplete', () => {
+    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
+      onSelectProp = onSelect;
+      return 'UrlAutocomplete';
+    });
+
+    const updateTabInfo = jest.fn();
+    renderWithProvider(
+      <NavigationContainer independent>
+        <Stack.Navigator>
+          <Stack.Screen name="Browser">
+            {() => <DiscoveryTab {...mockProps} updateTabInfo={updateTabInfo} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>,
+      { state: mockInitialState }
+    );
+    onSelectProp?.({
+      category: UrlAutocompleteCategory.Sites,
+      name: 'Test Token',
+      url: 'https://metamask.io',
+    });
+    expect(updateTabInfo).toHaveBeenCalledWith(1, {
+      url: 'https://metamask.io',
     });
   });
 });
