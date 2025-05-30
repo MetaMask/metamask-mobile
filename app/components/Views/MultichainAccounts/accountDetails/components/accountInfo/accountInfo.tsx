@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   AlignItems,
   JustifyContent,
@@ -6,6 +6,7 @@ import {
 } from '../../../../../UI/Box/box.types';
 import { Box } from '../../../../../UI/Box/Box';
 import Avatar, {
+  AvatarAccountType,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -18,6 +19,7 @@ import AddressCopy from '../../../../../UI/AddressCopy';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import { formatAddress } from '../../../../../../util/address';
 import { getFormattedAddressFromInternalAccount } from '../../../../../../core/Multichain/utils';
+import { useSelector } from 'react-redux';
 
 interface AccountInfoProps {
   account: InternalAccount;
@@ -27,7 +29,17 @@ export const AccountInfo = ({ account }: AccountInfoProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
 
-  const formattedAddress = getFormattedAddressFromInternalAccount(account);
+  const formattedAddress = useMemo(
+    () => getFormattedAddressFromInternalAccount(account),
+    [account],
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   return (
     <Box flexDirection={FlexDirection.Column} alignItems={AlignItems.center}>
@@ -35,6 +47,7 @@ export const AccountInfo = ({ account }: AccountInfoProps) => {
         style={styles.avatar}
         variant={AvatarVariant.Account}
         accountAddress={formattedAddress}
+        type={accountAvatarType}
       />
       <Text variant={TextVariant.BodyLGMedium} style={styles.address}>
         {account.metadata.name}
