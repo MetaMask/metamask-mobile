@@ -1,6 +1,6 @@
+import { initialState } from '../_mocks_/initialState';
 import { createBridgeControllerState, createBridgeTestState } from './index';
 import { getDefaultBridgeControllerState } from '@metamask/bridge-controller';
-import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
 
 describe('Bridge Test Utilities', () => {

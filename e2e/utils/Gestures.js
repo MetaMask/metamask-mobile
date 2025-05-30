@@ -38,33 +38,26 @@ class Gestures {
     await element.tap();
   }
 
-  /**
-   * Tap an element with text partial text matching before tapping it
-   *
-   * @param {string} textPattern - Regular expression pattern to match the text
-   */
-  static async tapTextBeginingWith(textPattern) {
-    await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
-  }
-
-  /**
-   * Wait for an element to be visible and then tap it.
-   *
-   * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
-   * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
-   */
-  static async waitAndTap(elementID, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0 } = options;
-    const element = await elementID;
+/**
+ * Wait for an element to be visible and then tap it.
+ *
+ * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
+ * @param {Object} [options={}] - Configuration options
+ * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
+ * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
+ * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+ */
+static async waitAndTap(elementID, options = {}) {
+  const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+  const element = await elementID;
+  if (!skipVisibilityCheck) {
     await waitFor(element).toBeVisible().withTimeout(timeout);
-
-    if (delayBeforeTap > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
-    }
-    await element.tap();
   }
+  if (delayBeforeTap > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
+  }
+  await element.tap();
+}
 
   /**
    * Wait for an element at a specific index to be visible and then tap it.

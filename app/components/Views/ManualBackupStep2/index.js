@@ -97,23 +97,11 @@ const ManualBackupStep2 = ({
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
         if (backupFlow) {
-          navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.reset({ routes: [{ name: 'HomeNav' }] });
-            },
-          });
+          navigation.reset({ routes: [{ name: 'HomeNav' }] });
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OptinMetrics', {
-            steps: route.params?.steps,
-            words,
-            onContinue: () => {
-              navigation.navigate('OnboardingSuccess', {
-                showPasswordHint: true,
-              });
-            },
-          });
+          navigation.navigate('OnboardingSuccess');
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(

@@ -60,6 +60,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
