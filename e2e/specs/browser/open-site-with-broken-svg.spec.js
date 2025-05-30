@@ -4,10 +4,11 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {loginToApp} from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {withFixtures} from '../../fixtures/fixture-helper';
-import {SmokeConfirmations} from '../../tags';
+import {Regression} from '../../tags';
 import TestHelpers from '../../helpers';
+import Assertions from "../../utils/Assertions";
 
-describe(SmokeConfirmations('Search for a website with broken SVG and open it'), () => {
+describe(Regression('Search for a website with broken SVG and open it'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -27,7 +28,7 @@ describe(SmokeConfirmations('Search for a website with broken SVG and open it'),
         await Browser.navigateToURL('https://app.ens.domains');
         await Browser.searchForUrl('app.ens.domains');
         await TestHelpers.delay(5000); // Wait for SVG images to load and not crash
-        await expect(element(by.text('E'))).not.toExist(); // Validate that SVG is loaded and text placeholder logo is not displayed
+        await Assertions.checkIfElementWithTextDoesNotExist('E'); // Validate that SVG is loaded and text placeholder logo is not displayed
       },
     );
   });
