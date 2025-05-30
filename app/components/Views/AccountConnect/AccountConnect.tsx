@@ -94,6 +94,7 @@ import {
   KnownCaipNamespace,
   parseCaipAccountId,
   parseCaipChainId,
+  toCaipAccountId,
 } from '@metamask/utils';
 import {
   getAllNamespacesFromCaip25CaveatValue,
@@ -104,6 +105,10 @@ import {
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import AddNewAccount from '../AddNewAccount';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AddNewAccountProps } from '../AddNewAccount/AddNewAccount.types';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -159,7 +164,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
+      // otherwise, if we have supported requested CAIP chain IDs, use those
     } else if (supportedRequestedCaipChainIds.length > 0) {
       return supportedRequestedCaipChainIds;
     }
@@ -246,8 +251,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     promptToCreateSolanaAccount?: boolean;
   };
 
-  // TODO: use this value to show Solana Opt In Flow
-  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
+  const promptToCreateSolanaAccount =
+    hostInfo.metadata.promptToCreateSolanaAccount;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -262,6 +267,15 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  // If it is undefined, it will enter the regular eth account creation flow.
+  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+    | {
+        clientType?: WalletClientType;
+        scope?: CaipChainId;
+      }
+    | undefined
+  >(undefined);
 
   const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
 
@@ -470,7 +484,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
-    
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
@@ -764,6 +778,15 @@ const AccountConnect = (props: AccountConnectProps) => {
       networkAvatars: selectedNetworkAvatars,
       setTabIndex,
       tabIndex,
+      promptToCreateSolanaAccount,
+      onCreateAccount: (clientType, scope) => {
+        setMultichainAccountOptions({
+          clientType,
+          scope,
+        });
+        setScreen(AccountConnectScreens.AddNewAccount);
+        setUserIntent(USER_INTENT.Create);
+      },
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
@@ -775,6 +798,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ensByAccountAddress,
     tabIndex,
     setTabIndex,
+    promptToCreateSolanaAccount,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -840,6 +864,29 @@ const AccountConnect = (props: AccountConnectProps) => {
     [isLoading, handleNetworksSelected, hostnameFromUrlObj, selectedChainIds],
   );
 
+  const renderAddNewAccount = useCallback(
+    (params: AddNewAccountProps) => (
+      <AddNewAccount
+        {...params}
+        onActionComplete={(account: InternalAccount) => {
+          const [scope] = account.scopes;
+          const { namespace, reference } = parseCaipChainId(scope);
+          const caipAccountId = toCaipAccountId(
+            namespace,
+            reference,
+            account.address,
+          );
+          setSelectedAddresses([...selectedAddresses, caipAccountId]);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
+        onBack={() => {
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
+      />
+    ),
+    [selectedAddresses],
+  );
+
   const renderPhishingModal = useCallback(
     () => (
       <Modal
@@ -888,6 +935,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectNetworkSelector:
         return renderMultiConnectNetworkSelectorScreen();
+      case AccountConnectScreens.AddNewAccount:
+        return renderAddNewAccount(multichainAccountOptions ?? {});
     }
   }, [
     screen,
@@ -897,6 +946,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
+    renderAddNewAccount,
+    multichainAccountOptions,
   ]);
 
   return (

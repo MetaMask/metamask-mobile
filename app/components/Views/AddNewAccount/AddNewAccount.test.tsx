@@ -140,11 +140,11 @@ jest.mocked(Engine);
 
 const render = (
   state: RootState,
-  route: AddNewAccountProps['route'] = {},
+  params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
   renderWithProvider(
     <SafeAreaProvider>
-      <AddNewAccount route={route} />
+      <AddNewAccount {...params} />
     </SafeAreaProvider>,
     { state },
   );
@@ -296,10 +296,8 @@ describe('AddNewAccount', () => {
       'suggested name is $expectedName for scope: $scope',
       async ({ scope, clientType, expectedName }) => {
         const { getByPlaceholderText } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         const namePlaceholder = getByPlaceholderText(expectedName);
@@ -310,10 +308,8 @@ describe('AddNewAccount', () => {
 
     it('calls create account with the MultichainWalletSnapClient', async () => {
       const { getByTestId } = render(initialState, {
-        params: {
-          scope: MultichainNetwork.Solana,
-          clientType: WalletClientType.Solana,
-        },
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
       });
 
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -347,10 +343,8 @@ describe('AddNewAccount', () => {
         );
 
         const { getByTestId } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -368,10 +362,8 @@ describe('AddNewAccount', () => {
 
     it('disables buttons while loading', async () => {
       const { getByTestId } = render(initialState, {
-        params: {
-          scope: MultichainNetwork.Solana,
-          clientType: WalletClientType.Solana,
-        },
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
       });
 
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -399,10 +391,8 @@ describe('AddNewAccount', () => {
         );
 
         const { getByText } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         expect(
