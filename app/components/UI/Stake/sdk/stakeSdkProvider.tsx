@@ -2,8 +2,9 @@ import {
   StakingType,
   EarnSdk,
   PooledStakingContract,
-  isSupportedChain,
+  isSupportedPooledStakingChain,
   PooledStakingApiService,
+  EarnEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -48,8 +49,9 @@ export const StakeSDKProvider: React.FC<
   useEffect(() => {
     const initializeSdk = async () => {
       try {
-        if (!chainId || !isSupportedChain(getDecimalChainId(chainId))) {
+        if (!chainId || !isSupportedPooledStakingChain(getDecimalChainId(chainId))) {
           const errorMsg = 'Failed to initialize Staking SDK Service: chainId unsupported';
+          console.log('DEBUG errorMsg', errorMsg);
           trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
           setError(errorMsg);
           return;
@@ -59,17 +61,23 @@ export const StakeSDKProvider: React.FC<
 
         if (!provider) {
           const errorMsg = 'Failed to initialize Staking SDK Service: provider not found';
+          console.log('DEBUG errorMsg', errorMsg);
+
           trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
           setError(errorMsg);
           return;
         }
 
         const newSdk = await EarnSdk.create(provider, {
+          //env: EarnEnvironments.DEV,
           chainId: getDecimalChainId(chainId),
         });
 
+        console.log('DEBUG creating sdk ^^^^^', EarnEnvironments.DEV)
+
         if (!newSdk.contracts?.pooledStaking) {
           const errorMsg = 'Failed to create SDK Service. sdk.contracts.pooledStaking not found';
+          console.log('DEBUG  errorMsg', errorMsg);
           trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
           setError(errorMsg);
           return;
@@ -78,6 +86,8 @@ export const StakeSDKProvider: React.FC<
         setSdk(newSdk);
         setError(undefined);
       } catch (err) {
+        console.log('DEBUG error ^^^^^', (err as Error).message)
+
         const errorMsg = (err as Error).message || 'Unknown error during SDK initialization';
         trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
         setError(errorMsg);

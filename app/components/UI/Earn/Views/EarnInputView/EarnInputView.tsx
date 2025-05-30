@@ -52,6 +52,13 @@ import {
 } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
 
+function logLongMessage(tag: string, message: string) {
+  const chunkSize = 3000; // play safe under 4076
+  for (let i = 0; i < message.length; i += chunkSize) {
+    console.log(tag, message.substring(i, i + chunkSize));
+  }
+}
+
 const EarnInputView = () => {
   // navigation hooks
   const navigation = useNavigation();
@@ -255,6 +262,7 @@ const EarnInputView = () => {
       return;
     }
 
+    console.log('STAKE_ARASH navigating to STAKE_CONFIRMATION')
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -295,11 +303,14 @@ const EarnInputView = () => {
       earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
       isStablecoinLendingEnabled
     ) {
+      logLongMessage('$ARASH handleLendingFlow', 'handleLendingFlow');
+
       await handleLendingFlow();
       return;
     }
 
     // Pooled-Staking Flow
+    logLongMessage('$ARASH handlePooledStakingFlow', 'handlePooledStakingFlow');
     await handlePooledStakingFlow();
   }, [
     earnToken?.experience,
@@ -322,6 +333,12 @@ const EarnInputView = () => {
   };
 
   const getButtonLabel = () => {
+    logLongMessage('$ARASH isNonZeroAmount', JSON.stringify(isNonZeroAmount));
+    logLongMessage('$ARASH isOverMaximum', JSON.stringify(isOverMaximum));
+    logLongMessage('$ARASH isLoadingStakingGasFee', JSON.stringify(isLoadingStakingGasFee));
+    logLongMessage('$ARASH isSubmittingStakeDepositTransaction', JSON.stringify(isSubmittingStakeDepositTransaction));
+    logLongMessage('$ARASH isLoadingVaultMetadata', JSON.stringify(isLoadingVaultMetadata));
+
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
     }
