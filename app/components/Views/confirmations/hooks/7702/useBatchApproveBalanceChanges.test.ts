@@ -86,7 +86,7 @@ describe('useBatchApproveBalanceChanges', () => {
           },
           fiatAmount: null,
           balance: new BigNumber(100),
-          tokenSymbol: 'DIA',
+          tokenSymbol: 'DAI',
         },
       ],
     });
