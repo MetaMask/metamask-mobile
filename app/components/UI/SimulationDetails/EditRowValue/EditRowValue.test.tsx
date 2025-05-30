@@ -1,9 +1,9 @@
 import BigNumber from 'bignumber.js';
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { BalanceChange } from '../../../../UI/SimulationDetails/types';
-import EditRowValue from './edit-row-value';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { BalanceChange } from '../../../UI/SimulationDetails/types';
+import EditRowValue from './EditRowValue';
 import { fireEvent } from '@testing-library/react-native';
 
 const MockEditTexts = {

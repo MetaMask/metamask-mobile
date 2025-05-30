@@ -1,27 +1,27 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import TextField from '../../../../../component-library/components/Form/TextField';
-import { BalanceChange } from '../../../../UI/SimulationDetails/types';
-import { useStyles } from '../../../../hooks/useStyles';
-import BottomModal from '../UI/bottom-modal';
-import styleSheet from './edit-row-value.styles';
+} from '../../../../component-library/components/Texts/Text';
+import TextField from '../../../../component-library/components/Form/TextField';
+import BottomModal from '../../../Views/confirmations/components/UI/bottom-modal';
+import { BalanceChange } from '../../../UI/SimulationDetails/types';
+import { useStyles } from '../../../hooks/useStyles';
+import styleSheet from './EditRowValue.styles';
 
 interface EditRowValueProps {
   balanceChange: BalanceChange;
