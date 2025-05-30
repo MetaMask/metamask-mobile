@@ -70,6 +70,9 @@ const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
       height: 50,
       fontSize: vars.fontSize,
     },
+    currencyContainer: {
+      flex: 1,
+    },
   });
 
 export enum TokenInputAreaType {
@@ -267,9 +270,11 @@ export const TokenInputArea = forwardRef<
               <Skeleton width={80} height={24} />
             ) : (
               <>
-                {token && currencyValue ? (
-                  <Text color={TextColor.Alternative}>{currencyValue}</Text>
-                ) : null}
+                <Box style={styles.currencyContainer}>
+                  {token && amount && Number(amount) > 0 && currencyValue ? (
+                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
+                  ) : null}
+                </Box>
                 {subtitle ? (
                   <Text
                     color={
