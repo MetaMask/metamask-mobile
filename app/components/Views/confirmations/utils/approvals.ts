@@ -69,7 +69,7 @@ export function updateApprovalAmount(
 
   let signature = tokenAddress ? SIGNATURE_PERMIT2 : SIGNATURE_LEGACY;
 
-  if (name === APPROVAL_TYPES.setApprovalForAll) {
+  if (name === APPROVAL_TYPES.increaseAllowance) {
     signature = SIGNATURE_INCREASE_ALLOWANCE;
   }
 
