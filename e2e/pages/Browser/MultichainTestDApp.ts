@@ -128,7 +128,8 @@ class MultichainTestDApp {
   /**
    * Tap a button in the WebView
    */
-  // Detox types are unclear here.
+  // Detox ts scripts unclear here.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async tapButton(elementId: any): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tapWebElement(elementId);
