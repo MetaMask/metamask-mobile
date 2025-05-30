@@ -76,5 +76,17 @@ describe('DepositPhoneField', () => {
 
     expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
     expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
+    })
+  it('should pass additional props to TextField', () => {
+    const placeholder = 'Enter phone number';
+    const { getByPlaceholderText } = render(
+      <DepositPhoneField
+        {...defaultProps}
+        placeholder={placeholder}
+        maxLength={10}
+      />,
+    );
+    const textField = getByPlaceholderText(placeholder);
+    expect(textField).toBeTruthy();
   });
 });
