@@ -16,7 +16,6 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
-import InfoRow from '../../../UI/info-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import { GasSpeed } from '../../../gas/gas-speed';
 import styleSheet from './gas-fee-details.styles';
@@ -114,9 +113,12 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
           </View>
         </AlertRow>
         {isUserFeeLevelExists && (
-          <InfoRow label={strings('transactions.gas_modal.speed')}>
+          <AlertRow
+            alertField={RowAlertKey.PendingTransaction}
+            label={strings('transactions.gas_modal.speed')}
+          >
             <GasSpeed />
-          </InfoRow>
+          </AlertRow>
         )}
       </InfoSection>
       {gasModalVisible && (
