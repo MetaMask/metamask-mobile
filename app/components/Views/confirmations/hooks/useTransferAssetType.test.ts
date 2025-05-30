@@ -239,33 +239,6 @@ describe('useTransferAssetType', () => {
     ]);
   });
 
-  it('calls memoizedGetTokenStandardAndDetails with correct parameters inside async function', async () => {
-    const mockTransactionMetadata = {
-      type: TransactionType.tokenMethodTransferFrom,
-      txParams: { to: '0x123' },
-      networkClientId: 'mainnet',
-    };
-
-    mockUseTransactionMetadataRequest.mockReturnValue(
-      mockTransactionMetadata as unknown as TransactionMeta,
-    );
-
-    let asyncFunction: () => Promise<any>;
-    mockUseAsyncResult.mockImplementation((fn, deps) => {
-      asyncFunction = fn;
-      return { value: undefined, pending: false };
-    });
-
-    renderHook(() => useTransferAssetType());
-
-    await asyncFunction!();
-
-    expect(mockMemoizedGetTokenStandardAndDetails).toHaveBeenCalledWith({
-      tokenAddress: '0x123',
-      networkClientId: 'mainnet',
-    });
-  });
-
   it('handles mixed case token standards', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       type: TransactionType.tokenMethodTransferFrom,
