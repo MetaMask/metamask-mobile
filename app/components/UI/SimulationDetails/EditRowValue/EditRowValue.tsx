@@ -26,7 +26,7 @@ import styleSheet from './EditRowValue.styles';
 interface EditRowValueProps {
   balanceChange: BalanceChange;
   onUpdate: (balanceChange: BalanceChange, val: string) => void;
-  editTexts?: {
+  editTexts: {
     title: string;
     description: string;
   };

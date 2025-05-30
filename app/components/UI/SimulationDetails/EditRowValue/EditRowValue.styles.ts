@@ -25,7 +25,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     wrapper: {
       backgroundColor: theme.colors.background.default,
-      display: 'flex',
       flexDirection: 'column',
       paddingBottom: 32,
       paddingTop: 24,
