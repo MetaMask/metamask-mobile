@@ -272,6 +272,34 @@ class FixtureBuilder {
                     },
                   ],
                 },
+                '0x18c6': {
+                  blockExplorerUrls: [],
+                  chainId: '0x18c6',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: 'custom',
+                      url: 'https://carrot.megaeth.com/rpc',
+                    },
+                  ],
+                },
+                '0x279f':{
+                  blockExplorerUrls: [],
+                  chainId: '0x279f',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Monad Testnet',
+                  nativeCurrency: 'MON',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'monad-testnet',
+                      type: 'custom',
+                      url: 'https://testnet-rpc.monad.xyz',
+                    },
+                  ],
+                },
               },
             },
             PhishingController: {
