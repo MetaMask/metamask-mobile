@@ -140,6 +140,7 @@ describe('MultiSRP Actions', () => {
   describe('addNewHdAccount', () => {
     it('adds a new HD account, sets the selected address and returns the account', async () => {
       mockAddAccounts.mockReturnValue([testAddress]);
+      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
 
       const account = await addNewHdAccount();
 
@@ -150,6 +151,7 @@ describe('MultiSRP Actions', () => {
 
     it('adds a new HD account with a specific keyring ID and sets the selected address', async () => {
       const keyringId = 'test-keyring-id';
+      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
       mockAddAccounts.mockReturnValue([testAddress]);
 
       await addNewHdAccount(keyringId);
@@ -161,6 +163,7 @@ describe('MultiSRP Actions', () => {
     it('adds a new HD account and sets the account label if a name is provided', async () => {
       const accountName = 'Test Account';
       mockAddAccounts.mockReturnValue([testAddress]);
+      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
 
       await addNewHdAccount(undefined, accountName);
 
@@ -176,6 +179,7 @@ describe('MultiSRP Actions', () => {
       const keyringId = 'test-keyring-id';
       const accountName = 'Test Account';
       mockAddAccounts.mockReturnValue([testAddress]);
+      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
 
       await addNewHdAccount(keyringId, accountName);
 
