@@ -11,13 +11,13 @@ import { TextFieldProps } from '../../../../../../component-library/components/F
 import styleSheet from './text-field-with-label.styles';
 
 export type TextFieldWithLabelProps = {
-  error: string | boolean;
-  inputType: string;
+  error?: string | boolean;
+  inputType?: string;
   label: string;
 } & TextFieldProps;
 
 export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
-  const { error, inputType, label, ...restProps } = props;
+  const { error, inputType = 'input', label, ...restProps } = props;
   const { styles, theme } = useStyles(styleSheet, {});
 
   return (

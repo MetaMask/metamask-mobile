@@ -1,8 +1,9 @@
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 
-import Engine from '../../../../../core/Engine';
+import { updateAtomicBatchData } from '../../../../../util/transaction-controller';
 import { BalanceChange } from '../../../../UI/SimulationDetails/types';
+import { ERC20_DEFAULT_DECIMALS } from '../../utils/token';
 import { updateApprovalAmount } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { ApprovalBalanceChange } from './useBatchApproveBalanceChanges';
@@ -22,11 +23,11 @@ export const useBatchApproveBalanceActions = () => {
       const trxn = nestedTransactions[nestedTransactionIndex];
       const data = updateApprovalAmount(
         trxn.data as Hex,
-        (approvalAmount || '0').replace('#', ''),
-        Number(decimals || 0),
+        approvalAmount || '0',
+        Number(decimals || ERC20_DEFAULT_DECIMALS),
       );
 
-      await Engine.context.TransactionController.updateAtomicBatchData({
+      await updateAtomicBatchData({
         transactionId: id,
         transactionData: data,
         transactionIndex: nestedTransactionIndex,
