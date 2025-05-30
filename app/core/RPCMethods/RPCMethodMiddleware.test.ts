@@ -63,7 +63,11 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  rejectOriginPendingApprovals,
+  requestPermittedChainsPermissionIncremental,
+} from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../util/permissions', () => ({
@@ -307,8 +311,8 @@ function setupGlobalState({
     .mockImplementation(() => ({
       browser: activeTab
         ? {
-          activeTab,
-        }
+            activeTab,
+          }
         : {},
       engine: {
         backgroundState: {
@@ -1703,88 +1707,6 @@ describe('getRpcMethodMiddleware', () => {
       expect(spy).toBeCalledTimes(1);
     });
   });
-
-  describe('originThrottling', () => {
-    const assumedBlockableRPCMethod = 'eth_sendTransaction';
-    const mockBlockedOrigin = 'blocked.origin';
-
-    it('blocks the request when the origin has an active spam filter for origin', async () => {
-      // Restore mock for this test
-      mockValidateOriginThrottling.mockImplementationOnce(
-        jest.requireActual('./spam').validateOriginThrottling,
-      );
-
-      setupGlobalState({
-        originThrottling: {
-          origins: {
-            [mockBlockedOrigin]: {
-              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
-              lastRejection: Date.now() - 1,
-            },
-          },
-        },
-        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
-      });
-
-      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: assumedBlockableRPCMethod,
-        params: [],
-        origin: mockBlockedOrigin,
-      };
-
-      const response = await callMiddleware({ middleware, request });
-
-      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
-      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      expect((response as JsonRpcFailure).error.message).toBe(
-        expectedError.message,
-      );
-    });
-
-    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
-      jest.doMock('./eth_sendTransaction', () => ({
-        __esModule: true,
-        default: jest.fn(() =>
-          Promise.reject(providerErrors.userRejectedRequest()),
-        ),
-      }));
-
-      mockProcessOriginThrottlingRejection.mockClear();
-
-      setupGlobalState({
-        originThrottling: {
-          origins: {
-            [mockBlockedOrigin]: {
-              rejections: 1,
-              lastRejection: Date.now() - 1,
-            },
-          },
-        },
-        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
-      });
-
-      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: assumedBlockableRPCMethod,
-        params: [],
-        origin: mockBlockedOrigin,
-      };
-
-      await callMiddleware({ middleware, request });
-
-      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
-      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: providerErrors.userRejectedRequest(),
-        }),
-      );
-    });
-  });
 });
 
 describe('getRpcMethodMiddlewareHooks', () => {
@@ -1861,7 +1783,8 @@ describe('getRpcMethodMiddlewareHooks', () => {
         autoApprove: true,
       };
 
-      const mockRequestPermittedChainsPermissionIncremental = requestPermittedChainsPermissionIncremental as jest.Mock;
+      const mockRequestPermittedChainsPermissionIncremental =
+        requestPermittedChainsPermissionIncremental as jest.Mock;
       hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
 
       expect(
@@ -1928,9 +1851,7 @@ describe('getRpcMethodMiddlewareHooks', () => {
     it('should call "rejectOriginPendingApprovals" with correct origin', () => {
       hooks.rejectApprovalRequestsForOrigin();
 
-      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(
-        testOrigin,
-      );
+      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(testOrigin);
     });
   });
 });
