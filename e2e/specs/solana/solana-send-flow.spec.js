@@ -16,7 +16,7 @@ import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 
 // Test constants
-const SOLANA_ACCOUNT_NAME = 'Solana Account 1';
+const SOLANA_ACCOUNT_NAME = 'Solana Account 2';
 const INVALID_ADDRESS = 'invalid address';
 const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
 const RECIPIENT_ADDRESS = 'EjiyBUWeEXPBJT5cB2jzbm6pmbBxWuyVyVBGasSGgtXt';
