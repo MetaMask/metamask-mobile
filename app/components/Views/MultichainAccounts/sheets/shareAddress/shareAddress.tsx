@@ -46,10 +46,6 @@ export const ShareAddress = () => {
   const { account } = route.params;
   const navigation = useNavigation();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
-  console.log('formattedAddress', formattedAddress);
 
   const blockExplorer:
     | {
@@ -57,15 +53,7 @@ export const ShareAddress = () => {
         title: string;
         blockExplorerName: string;
       }
-    | undefined = useMemo(
-    () =>
-      getMultichainBlockExplorer({
-        selectedAccount: account,
-        providerConfig,
-        networkConfigurations,
-      }),
-    [networkConfigurations, providerConfig, account],
-  );
+    | undefined = useMemo(() => getMultichainBlockExplorer(account), [account]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigation.navigate('Webview', {
@@ -112,14 +100,14 @@ export const ShareAddress = () => {
         flexDirection={FlexDirection.Column}
         alignItems={AlignItems.center}
       >
-        {/* <QRCode
+        <QRCode
           value={formattedAddress}
           size={200}
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           logo={require('../../../../../images/branding/fox.png')}
           logoSize={40}
-        /> */}
-        {/* <QRAccountDisplay accountAddress={formattedAddress} /> */}
+        />
+        <QRAccountDisplay accountAddress={formattedAddress} />
       </Box>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
