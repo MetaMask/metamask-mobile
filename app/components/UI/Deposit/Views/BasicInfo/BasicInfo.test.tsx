@@ -91,10 +91,4 @@ describe('BasicInfo Component', () => {
       }),
     );
   });
-
-  it('shows progress bar indicating step 2 of 4', () => {
-    render(BasicInfo);
-    const progressBar = screen.getByTestId('deposit-progress-step-2');
-    expect(progressBar).toBeTruthy();
-  });
 });

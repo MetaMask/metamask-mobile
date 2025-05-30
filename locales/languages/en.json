@@ -448,7 +448,7 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
-    },
+    }
   },
   "receive": {
     "title": "Receive"

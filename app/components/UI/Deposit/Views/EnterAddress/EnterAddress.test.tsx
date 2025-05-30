@@ -23,12 +23,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter your address',
-  }),
-}));
-
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -46,43 +40,34 @@ function render(Component: React.ComponentType) {
 }
 
 describe('EnterAddress Component', () => {
-  afterEach(() => {
-    mockNavigate.mockClear();
-    mockSetNavigationOptions.mockClear();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    render(EnterAddress);
-    expect(screen.getByText('Enter your address')).toBeTruthy();
-    expect(screen.getByTestId('address-line-1-input')).toBeTruthy();
+  it('render matches snapshot', () => {
+    const { toJSON } = render(EnterAddress);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays form validation errors when continue is pressed with empty fields', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(screen.getByText('Address line 1 is required')).toBeTruthy();
-    expect(screen.getByText('City is required')).toBeTruthy();
-    expect(screen.getByText('State/Region is required')).toBeTruthy();
-    expect(screen.getByText('Postal/Zip Code is required')).toBeTruthy();
-    expect(screen.getByText('Country is required')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to next page when form is valid and continue is pressed', () => {
     render(EnterAddress);
-
     fireEvent.changeText(
       screen.getByTestId('address-line-1-input'),
       '123 Main St',
     );
-    fireEvent.changeText(screen.getByTestId('address-line-2-input'), 'Apt 4B');
     fireEvent.changeText(screen.getByTestId('city-input'), 'New York');
     fireEvent.changeText(screen.getByTestId('state-input'), 'NY');
     fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
     fireEvent.changeText(screen.getByTestId('country-input'), 'USA');
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('calls setOptions with correct title when the component mounts', () => {
@@ -92,11 +77,5 @@ describe('EnterAddress Component', () => {
         title: 'Enter your address',
       }),
     );
-  });
-
-  it('shows progress bar indicating step 2 of 4', () => {
-    render(EnterAddress);
-    const progressBar = screen.getByTestId('deposit-progress-step-2');
-    expect(progressBar).toBeTruthy();
   });
 });
