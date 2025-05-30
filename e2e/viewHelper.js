@@ -118,6 +118,8 @@ export const importWalletWithRecoveryPhrase = async ({
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
+
+  await TestHelpers.delay(3500);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   if (optInToMetrics) {
