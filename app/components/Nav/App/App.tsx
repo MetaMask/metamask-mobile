@@ -136,7 +136,7 @@ import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
-import { AccountDetails } from '../../Views/MultichainAccounts/accountDetails/account-details';
+import { AccountDetails } from '../../Views/MultichainAccounts/accountDetails/accountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/shareAddress';
 
 const clearStackNavigatorOptions = {

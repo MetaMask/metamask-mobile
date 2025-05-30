@@ -1,3 +1,10 @@
+import { isEvmAccountType } from '@metamask/keyring-api';
+import {
+  getBlockExplorerName,
+  findBlockExplorerForNonEvmAccount,
+} from '../../util/networks';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
 /**
  * Base URL of a block explorer.
  */
@@ -74,4 +81,41 @@ export function formatBlockExplorerTransactionUrl(
   txId: string,
 ): string {
   return urls.transaction.replace('{txId}', txId);
+}
+
+/**
+ * Get block explorer information for an account.
+ *
+ * @param selectedAccount - The internal account to get block explorer info for.
+ * @returns Block explorer information including URL, title, and block explorer name, or undefined if no explorer found.
+ */
+export function getMultichainBlockExplorer(selectedAccount: InternalAccount):
+  | {
+      url: string;
+      title: string;
+      blockExplorerName: string;
+    }
+  | undefined {
+  if (selectedAccount) {
+    if (isEvmAccountType(selectedAccount.type)) {
+      return {
+        url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
+        title: 'Etherscan (Multichain)',
+        blockExplorerName: 'Etherscan (Multichain)',
+      };
+    }
+
+    const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+    if (explorer) {
+      return {
+        url: explorer,
+        title: new URL(explorer).hostname,
+        blockExplorerName:
+          getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
+      };
+    }
+    return undefined;
+  }
+
+  return undefined;
 }
