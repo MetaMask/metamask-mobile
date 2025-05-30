@@ -28,12 +28,7 @@ const Root = () => {
     if (initialRoute === null) return;
     navigation.reset({
       index: 0,
-      routes: [
-        {
-          name: Routes.DEPOSIT.BASIC_INFO,
-          params: { animationEnabled: false },
-        },
-      ],
+      routes: [{ name: initialRoute, params: { animationEnabled: false } }],
     });
   });
 
