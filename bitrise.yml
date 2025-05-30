@@ -158,6 +158,11 @@ stages:
       - build_android_main_prod: {}
       - build_android_main_beta: {}
       - build_android_main_rc: {}
+  create_ios_release_new:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -1349,10 +1354,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                echo "MYLOG Running: yarn $YARN_COMMAND"
                 if [ -n "$YARN_COMMAND" ]; then
-                  echo "Running: yarn $YARN_COMMAND"
-                  GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
@@ -1922,7 +1925,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
@@ -2009,6 +2014,33 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: "main"
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
