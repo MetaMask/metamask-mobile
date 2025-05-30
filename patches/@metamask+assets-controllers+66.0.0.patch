@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index df03300..2395419 100644
+index df03300..286741f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -94,8 +94,19 @@ index df03300..2395419 100644
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -770,7 +774,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -726,6 +730,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
+             description: null,
+             image: null,
+             standard: null,
++            error: 'Opensea import error',
+         };
+     }
+     // if we've reached this point, we have successfully fetched some data for nftInformation
+@@ -768,9 +773,10 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+             standard: standard || null,
+             favorite: false,
              tokenURI: tokenURI ?? null,
++            error: 'URI import error',
          };
      }
 -    const isDisplayNFTMediaToggleEnabled = __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f");
@@ -103,7 +114,15 @@ index df03300..2395419 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -872,10 +876,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+@@ -779,6 +785,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+             standard: standard || null,
+             favorite: false,
+             tokenURI: tokenURI ?? null,
++            error: 'URI import error',
+         };
+     }
+     if (hasIpfsTokenURI) {
+@@ -872,10 +879,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
