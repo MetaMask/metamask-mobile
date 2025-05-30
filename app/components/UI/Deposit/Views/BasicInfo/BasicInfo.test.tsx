@@ -23,12 +23,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter your basic info',
-  }),
-}));
-
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -51,20 +45,15 @@ describe('BasicInfo Component', () => {
     mockSetNavigationOptions.mockClear();
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(BasicInfo);
-    expect(screen.getByText('Enter your basic info')).toBeTruthy();
-    expect(screen.getByTestId('first-name-input')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('displays form validation errors when continue is pressed with empty fields', () => {
+  it('snapshot matches validation errors when continue is pressed with empty fields', () => {
     render(BasicInfo);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(screen.getByText('First name is required')).toBeTruthy();
-    expect(screen.getByText('Last name is required')).toBeTruthy();
-    expect(screen.getByText('Phone number is required')).toBeTruthy();
-    expect(screen.getByText('Date of birth is required')).toBeTruthy();
-    expect(screen.getByText('Social security number is required')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -85,7 +74,7 @@ describe('BasicInfo Component', () => {
       screen.getByPlaceholderText('XXX-XX-XXXX'),
       '123456789',
     );
-
+    expect(screen.toJSON()).toMatchSnapshot();
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -100,11 +89,5 @@ describe('BasicInfo Component', () => {
         title: 'Enter your basic info',
       }),
     );
-  });
-
-  it('shows progress bar indicating step 2 of 4', () => {
-    render(BasicInfo);
-    const progressBar = screen.getByTestId('deposit-progress-step-2');
-    expect(progressBar).toBeTruthy();
   });
 });
