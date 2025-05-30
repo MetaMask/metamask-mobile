@@ -1480,7 +1480,7 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
-      - APP_NAME: 'prod-beta'
+      - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
@@ -1494,7 +1494,7 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
-      - APP_NAME: 'prod-rc'
+      - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
