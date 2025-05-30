@@ -4,5 +4,6 @@ export const ChoosePasswordSelectorsIDs = {
   CONFIRM_PASSWORD_INPUT_ID: 'create-password-second-input-field',
   IOS_I_UNDERSTAND_BUTTON_ID: 'password-understand-box',
   ANDROID_I_UNDERSTAND_BUTTON_ID: 'i-understand-text',
+  I_UNDERSTAND_CHECKBOX_ID: 'i-understand-checkbox',
   SUBMIT_BUTTON_ID: 'submit-button',
 };

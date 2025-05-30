@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import Text, {
   TextVariant,
@@ -19,6 +19,8 @@ import Row from '../../..//Ramp/components/Row';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
+import { validateEmail } from '../../utils';
+import { useDepositSDK } from '../../sdk';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
@@ -27,28 +29,45 @@ export const createEnterEmailNavDetails = createNavigationDetails(
 
 const EnterEmail = () => {
   const navigation = useNavigation();
-  const [value, setValue] = useState('');
+  const { email, setEmail } = useDepositSDK();
+  const [validationError, setValidationError] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Enter email' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.enter_email.title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 
-  const { error, sdkMethod: submitEmail, loading } = useDepositSdkMethod();
+  const {
+    error,
+    sdkMethod: submitEmail,
+    loading,
+  } = useDepositSdkMethod('sendUserOtp', email);
 
   const emailInputRef = useRef<TextInput>(null);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
-      await submitEmail(value);
-      navigation.navigate(...createOtpCodeNavDetails());
+      if (validateEmail(email)) {
+        setValidationError(false);
+        await submitEmail();
+
+        if (!error) {
+          navigation.navigate(...createOtpCodeNavDetails());
+        }
+      } else {
+        setValidationError(true);
+      }
     } catch (e) {
       console.error('Error submitting email');
     }
-  };
+  }, [email, error, navigation, submitEmail]);
 
   return (
     <ScreenLayout>
@@ -56,26 +75,31 @@ const EnterEmail = () => {
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <Row style={styles.subtitle}>
-            <Text>{strings('deposit.email_auth.email.description')}</Text>
+            <Text>{strings('deposit.enter_email.description')}</Text>
           </Row>
 
           <View style={styles.field}>
             <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
-              {strings('deposit.email_auth.email.input_label')}
+              {strings('deposit.enter_email.input_label')}
             </Label>
             <TextField
               size={TextFieldSize.Lg}
-              placeholder={strings(
-                'deposit.email_auth.email.input_placeholder',
-              )}
+              placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
               autoCapitalize="none"
               ref={emailInputRef}
-              onChangeText={setValue}
-              value={value}
+              onChangeText={setEmail}
+              value={email}
               keyboardAppearance={theme.themeAppearance}
+              isDisabled={loading}
             />
+            {validationError && (
+              <Text style={{ color: theme.colors.error.default }}>
+                {strings('deposit.enter_email.validation_error')}
+              </Text>
+            )}
+
             {error && (
               <Text style={{ color: theme.colors.error.default }}>{error}</Text>
             )}
@@ -93,8 +117,8 @@ const EnterEmail = () => {
             disabled={loading}
           >
             {loading
-              ? strings('deposit.email_auth.email.loading')
-              : strings('deposit.email_auth.email.submit_button')}
+              ? strings('deposit.enter_email.loading')
+              : strings('deposit.enter_email.submit_button')}
           </StyledButton>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
