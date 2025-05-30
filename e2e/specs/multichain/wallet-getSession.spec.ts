@@ -9,7 +9,7 @@ import { SmokeMultichainApi } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -24,6 +24,7 @@ describe(SmokeMultichainApi('wallet_getSession'), () => {
     it('should successfully receive empty session scopes when there is no existing session', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -86,6 +87,7 @@ describe(SmokeMultichainApi('wallet_getSession'), () => {
     it('should successfully receive result that specifies its permitted session scopes for selected chains', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -158,6 +160,7 @@ describe(SmokeMultichainApi('wallet_getSession'), () => {
     it('should return consistent session data across multiple getSession calls', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -237,6 +240,7 @@ describe(SmokeMultichainApi('wallet_getSession'), () => {
     it('should handle getSession after session has been modified', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },

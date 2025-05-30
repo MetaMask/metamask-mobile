@@ -9,7 +9,7 @@ import TestHelpers from '../../helpers';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -24,6 +24,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should create a session with Ethereum mainnet scope', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -91,6 +92,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should create a session with multiple EVM chains', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -153,6 +155,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should create a session with all available EVM networks', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -217,6 +220,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should handle session creation with no networks selected', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -262,6 +266,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should get session information after creating a session', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -347,6 +352,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
     it('should verify session contains expected chains using helper method', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },

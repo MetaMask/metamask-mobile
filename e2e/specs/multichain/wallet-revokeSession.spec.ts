@@ -9,7 +9,7 @@ import { SmokeMultichainApi } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -52,6 +52,7 @@ describe(SmokeMultichainApi('wallet_revokeSession'), () => {
     it('should return empty object from wallet_getSession call after revoking session', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -140,6 +141,7 @@ describe(SmokeMultichainApi('wallet_revokeSession'), () => {
     it('should prevent wallet_invokeMethod calls after session revoke', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -235,6 +237,7 @@ describe(SmokeMultichainApi('wallet_revokeSession'), () => {
     it('should handle multiple revoke calls gracefully', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },
@@ -307,6 +310,7 @@ describe(SmokeMultichainApi('wallet_revokeSession'), () => {
     it('should handle revoke session when no session exists', async () => {
         await withFixtures(
             {
+                ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                 fixture: new FixtureBuilder().withPopularNetworks().build(),
                 restartDevice: true,
             },

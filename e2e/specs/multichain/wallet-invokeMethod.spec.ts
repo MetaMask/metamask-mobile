@@ -12,7 +12,7 @@ import { SmokeMultichainApi } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
@@ -29,6 +29,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should match selected method to the expected output for eth_chainId', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
@@ -119,6 +120,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should successfully call eth_getBalance method and return balance', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
@@ -189,6 +191,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should successfully call eth_gasPrice method and return gas price', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
@@ -261,6 +264,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should trigger eth_sendTransaction confirmation dialog and reject transaction', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
@@ -343,6 +347,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should verify transaction methods require confirmation', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
@@ -433,6 +438,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
         it('should handle multiple method calls in sequence', async () => {
             await withFixtures(
                 {
+                    ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
                     fixture: new FixtureBuilder().withPopularNetworks().build(),
                     restartDevice: true,
                 },
