@@ -5,6 +5,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const initialState = {
   user: {
@@ -543,7 +544,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = renderStep2();
 
       const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.LEARN_MORE_CHECKBOX_ID,
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
       expect(learnMoreCheckbox).toBeTruthy();
       fireEvent.press(learnMoreCheckbox);
