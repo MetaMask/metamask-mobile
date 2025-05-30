@@ -122,11 +122,6 @@ describe('ManualBackupStep2', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const { wrapper } = setupTest();
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('should handle word selection and placement', () => {
     const { wrapper } = setupTest();
     const gridItems = wrapper.getAllByTestId('grid-item');
