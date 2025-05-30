@@ -72,11 +72,11 @@ export const wallet_watchAsset = async ({
 
   const permittedAccounts = getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
-  const selectedInternalAccountChecksummedAddress =
+  const selectedInternalAccountAddress =
     Engine.context.AccountsController.getSelectedAccount().address;
   // Fallback to wallet address if there is no connected account to Dapp.
   const interactingAddress =
-    permittedAccounts?.[0] || selectedInternalAccountChecksummedAddress;
+    permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
   // *This is an hotfix this logic should live on whatchAsset method on TokensController*
