@@ -155,12 +155,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
