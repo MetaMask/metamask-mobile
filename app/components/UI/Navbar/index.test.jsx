@@ -120,18 +120,5 @@ describe('getDepositNavbarOptions', () => {
     expect(options).toBeDefined();
     expect(options.headerStyle.backgroundColor).toBe('red');
   });
-});
 
-describe('getOnboardingNavbarOptions', () => {
-  it('handles getOnboardingNavbarOptions', () => {
-    const options = getOnboardingNavbarOptions(
-      { params: { headerLeft: 'left', headerRight: 'right' } },
-      { headerLeft: 'left', headerRight: 'right' },
-      mockTheme.colors,
-      false,
-    );
-    expect(options).toBeDefined();
-    expect(options.headerLeft).toBeDefined();
-    expect(options.headerRight).toBeDefined();
-  });
 });

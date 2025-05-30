@@ -7,4 +7,6 @@ export const ManualBackUpStepsSelectorsIDs = {
   CONTINUE_BUTTON: 'manual-backup-step-continue-button',
   DONE_BUTTON: 'manual-backup-step-done-button',
   CONFIRM_PASSWORD_INPUT: 'private-credential-password-input-field',
+  GRID_ITEM: 'grid-item',
+  BACK_BUTTON: 'back-button',
 };
