@@ -4,7 +4,15 @@ import SuccessErrorSheet from '.';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
-// Mock the BottomSheet component
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
+
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => ({
