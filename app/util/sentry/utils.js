@@ -528,7 +528,14 @@ export function deriveSentryEnvironment(
   }
 
   if (metamaskBuildType === 'main') {
-    return metamaskEnvironment;
+    switch (metamaskEnvironment) {
+      case 'beta':
+        return 'main-beta';
+      case 'rc':
+        return 'main-rc';
+      default:
+        return metamaskEnvironment;
+    }
   }
 
   return `${metamaskEnvironment}-${metamaskBuildType}`;
