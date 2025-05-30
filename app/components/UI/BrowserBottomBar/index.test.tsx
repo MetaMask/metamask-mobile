@@ -73,5 +73,8 @@ describe('BrowserBottomBar', () => {
 
     fireEvent.press(getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON));
     expect(toggleOptions).toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(BrowserViewSelectorsIDs.SEARCH_BUTTON));
+    expect(showUrlModal).toHaveBeenCalled();
   });
 });
