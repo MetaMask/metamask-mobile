@@ -224,4 +224,31 @@ describe('useTokenBalancesPolling', () => {
     );
     expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(0);
   });
+
+  it('polls with provided chain ids', () => {
+    renderHookWithProvider(
+      () => useTokenBalancesPolling({ chainIds: ['0x1', '0x89'] }),
+      {
+        state,
+      },
+    );
+
+    const mockedTokenBalancesController = jest.mocked(
+      Engine.context.TokenBalancesController,
+    );
+
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(2);
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenNthCalledWith(
+      1,
+      {
+        chainId: '0x1',
+      },
+    );
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenNthCalledWith(
+      2,
+      {
+        chainId: '0x89',
+      },
+    );
+  });
 });

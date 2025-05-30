@@ -7,6 +7,10 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
+jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -16,9 +20,6 @@ jest.mock('../../../../../../core/Engine', () => ({
     GasFeeController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
     TransactionController: {
       updateTransaction: jest.fn(),
