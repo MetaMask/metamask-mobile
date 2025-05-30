@@ -19,10 +19,6 @@ const mockUseTransactionMetadataRequest =
 const mockUseAsyncResult = useAsyncResult as jest.MockedFunction<
   typeof useAsyncResult
 >;
-const mockMemoizedGetTokenStandardAndDetails =
-  memoizedGetTokenStandardAndDetails as jest.MockedFunction<
-    typeof memoizedGetTokenStandardAndDetails
-  >;
 
 describe('useTransferAssetType', () => {
   beforeEach(() => {
