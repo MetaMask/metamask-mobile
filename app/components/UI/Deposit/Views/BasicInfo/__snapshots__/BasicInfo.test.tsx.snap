@@ -880,7 +880,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                       }
                                       testID="phone-number-input"
-                                      value="1234567890"
+                                      value="(123) 456-7890"
                                     />
                                   </View>
                                 </View>
