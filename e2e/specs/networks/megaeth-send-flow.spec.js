@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstraction } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -18,7 +18,7 @@ import SendView from '../../pages/Send/SendView';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
-describe(SmokeNetworkAbstractions('MegaETH Testnet Network Smoke'), () => {
+describe(RegressionNetworkAbstraction('MegaETH Testnet Network Smoke'), () => {
   const TOKEN_NAME = enContent.unit.megaeth;
   const AMOUNT = '0.0000001';
 
