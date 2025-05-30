@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
@@ -8,7 +8,9 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, { TextColor } from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import images from '../../../../../../images/image-icons';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
@@ -35,52 +37,57 @@ const NftImageAndNetworkBadge = ({
   const { image, tokenId } = nft ?? {};
   const showPlaceholder = !nft || !chainId?.length || !image;
 
+  const onPress = useCallback(() => {
+    navigation.navigate('NftDetailsFullImage', {
+      collectible: nft,
+    });
+  }, [navigation, nft]);
+
   if (showPlaceholder) {
     return (
       <TouchableOpacity
-          onPress={() => {
-            navigation.navigate('NftDetailsFullImage', {
-              collectible: nft,
-            });
-          }}
-        >
-          <View style={styles.noImagePlaceholder}>
-            <Text>{`#${tokenId}`}</Text>
-            <Text color={TextColor.Primary}>Show</Text>
-          </View>
-        </TouchableOpacity>
+        onPress={onPress}
+        style={styles.touchableOpacity}
+        testID="hero-nft-placeholder"
+      >
+        <View style={styles.noImagePlaceholder}>
+          <Text>{`#${tokenId}`}</Text>
+          <Text color={TextColor.Primary}>Show</Text>
+        </View>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        isFirstPartyContractName ? (
-          <Badge
-            imageSource={images.FOX_LOGO}
-            variant={BadgeVariant.Network}
-            isScaled={false}
-            testID="hero-nft-badge-metamask"
-          />
-        ) : (
-          <Badge
-            imageSource={networkImage}
-            name={networkName}
-            variant={BadgeVariant.Network}
-            testID="hero-nft-badge-network"
-          />
-        )
-      }
-      style={styles.nftImageAndNetworkBadge}
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.touchableOpacity}
+      testID="hero-nft-image"
     >
-      <CollectibleMedia
-        collectible={nft}
-        small
-        style={styles.noImagePlaceholder}
-      />
-      {/* TODO: consider <RemoteImage source={{ uri: image }} style={styles.noImagePlaceholder} /> */}
-    </BadgeWrapper>
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          isFirstPartyContractName ? (
+            <Badge
+              imageSource={images.FOX_LOGO}
+              variant={BadgeVariant.Network}
+              isScaled={false}
+              testID="hero-nft-badge-metamask"
+            />
+          ) : (
+            <Badge
+              imageSource={networkImage}
+              name={networkName}
+              variant={BadgeVariant.Network}
+              testID="hero-nft-badge-network"
+            />
+          )
+        }
+      >
+        <CollectibleMedia collectible={nft} style={styles.noImagePlaceholder} />
+        {/* TODO: consider <RemoteImage source={{ uri: image }} style={styles.noImagePlaceholder} /> */}
+      </BadgeWrapper>
+    </TouchableOpacity>
   );
 };
 

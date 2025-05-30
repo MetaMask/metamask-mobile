@@ -7,11 +7,7 @@ const styleSheet = (params: {
   const { theme } = params;
 
   return StyleSheet.create({
-    nftImageAndNetworkBadge: {
-      alignSelf: 'center',
-    },
     noImagePlaceholder: {
-      alignItems: 'center',
       backgroundColor: theme.colors.background.alternative,
       borderColor: theme.colors.border.muted,
       borderWidth: 1,
@@ -19,6 +15,9 @@ const styleSheet = (params: {
       justifyContent: 'center',
       minWidth: 48,
       padding: 4,
+    },
+    touchableOpacity: {
+      alignSelf: 'center',
     },
   });
 };
