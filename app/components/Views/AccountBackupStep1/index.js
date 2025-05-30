@@ -165,11 +165,7 @@ const AccountBackupStep1 = (props) => {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.navigate('OptinMetrics', {
-      onContinue: () => {
-        props.navigation.navigate('OnboardingSuccess');
-      },
-    });
+    props.navigation.navigate('OnboardingSuccess');
   };
 
   const showRemindLater = () => {
