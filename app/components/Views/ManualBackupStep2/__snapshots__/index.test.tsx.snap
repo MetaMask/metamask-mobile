@@ -192,15 +192,15 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                         "",
                         "accident",
                         "acoustic",
-                        "",
+                        "announce",
                         "artefact",
                         "attitude",
                         "bachelor",
-                        "broccoli",
-                        "business",
                         "",
+                        "business",
+                        "category",
                         "champion",
-                        "cinnamon",
+                        "",
                       ]
                     }
                     getItem={[Function]}
@@ -467,12 +467,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "paddingHorizontal": 8,
                                   "paddingVertical": 4,
                                 },
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b7bbc8",
-                                  "borderWidth": 2,
-                                  "opacity": 1,
-                                },
+                                false,
                                 false,
                                 {
                                   "width": 194.8051948051948,
@@ -509,7 +504,9 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "lineHeight": 24,
                                 }
                               }
-                            />
+                            >
+                              ••••••
+                            </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={[Function]}
@@ -740,7 +737,12 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "paddingHorizontal": 8,
                                   "paddingVertical": 4,
                                 },
-                                false,
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderWidth": 2,
+                                  "opacity": 1,
+                                },
                                 false,
                                 {
                                   "width": 194.8051948051948,
@@ -777,9 +779,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "lineHeight": 24,
                                 }
                               }
-                            >
-                              ••••••
-                            </Text>
+                            />
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={[Function]}
@@ -882,12 +882,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "paddingHorizontal": 8,
                                   "paddingVertical": 4,
                                 },
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b7bbc8",
-                                  "borderWidth": 2,
-                                  "opacity": 1,
-                                },
+                                false,
                                 false,
                                 {
                                   "width": 194.8051948051948,
@@ -924,7 +919,9 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "lineHeight": 24,
                                 }
                               }
-                            />
+                            >
+                              ••••••
+                            </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={[Function]}
@@ -1013,7 +1010,12 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "paddingHorizontal": 8,
                                   "paddingVertical": 4,
                                 },
-                                false,
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc8",
+                                  "borderWidth": 2,
+                                  "opacity": 1,
+                                },
                                 false,
                                 {
                                   "width": 194.8051948051948,
@@ -1050,9 +1052,7 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                                   "lineHeight": 24,
                                 }
                               }
-                            >
-                              ••••••
-                            </Text>
+                            />
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -1106,89 +1106,89 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
                         }
                       }
                     >
-                      announce
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={[Function]}
-                    style={
-                      [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderColor": "#4459ff",
-                          "borderRadius": 8,
-                          "borderWidth": 1,
-                          "color": "#4459ff",
-                          "flexDirection": "row",
-                          "height": 40,
-                          "justifyContent": "center",
-                          "margin": 8,
-                          "paddingHorizontal": 8,
-                          "paddingVertical": 4,
-                        },
-                        false,
-                        {
-                          "width": 192.30769230769232,
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 16,
-                          "fontWeight": "500",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      category
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={[Function]}
-                    style={
-                      [
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderColor": "#4459ff",
-                          "borderRadius": 8,
-                          "borderWidth": 1,
-                          "color": "#4459ff",
-                          "flexDirection": "row",
-                          "height": 40,
-                          "justifyContent": "center",
-                          "margin": 8,
-                          "paddingHorizontal": 8,
-                          "paddingVertical": 4,
-                        },
-                        false,
-                        {
-                          "width": 192.30769230769232,
-                        },
-                      ]
-                    }
-                  >
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 16,
-                          "fontWeight": "500",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
                       abstract
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#4459ff",
+                          "borderRadius": 8,
+                          "borderWidth": 1,
+                          "color": "#4459ff",
+                          "flexDirection": "row",
+                          "height": 40,
+                          "justifyContent": "center",
+                          "margin": 8,
+                          "paddingHorizontal": 8,
+                          "paddingVertical": 4,
+                        },
+                        false,
+                        {
+                          "width": 192.30769230769232,
+                        },
+                      ]
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      cinnamon
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#4459ff",
+                          "borderRadius": 8,
+                          "borderWidth": 1,
+                          "color": "#4459ff",
+                          "flexDirection": "row",
+                          "height": 40,
+                          "justifyContent": "center",
+                          "margin": 8,
+                          "paddingHorizontal": 8,
+                          "paddingVertical": 4,
+                        },
+                        false,
+                        {
+                          "width": 192.30769230769232,
+                        },
+                      ]
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      broccoli
                     </Text>
                   </TouchableOpacity>
                 </View>
