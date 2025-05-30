@@ -7,7 +7,7 @@ import { Hex } from '@metamask/utils';
 import I18n from '../../../../../locales/i18n';
 import { formatAmount, formatAmountMaxPrecision } from '../../../UI/SimulationDetails/formatAmount';
 import { RootState } from '../../../../reducers';
-import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
+import { selectConversionRateByChainId, selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toBigNumber } from '../../../../util/number';
@@ -18,6 +18,7 @@ import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { ERC20_DEFAULT_DECIMALS, fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import useNetworkInfo from './useNetworkInfo';
 
 interface TokenAmountProps {
   /**
@@ -30,6 +31,7 @@ interface TokenAmount {
   amountPrecise: string | undefined;
   amount: string | undefined;
   fiat: string | undefined;
+  usdValue: string | undefined;
 }
 
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
@@ -54,6 +56,10 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       selectConversionRateByChainId(state, chainId as Hex),
     ) ?? 1,
   );
+  const { networkNativeCurrency } = useNetworkInfo(chainId as Hex);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const usdConversionRate =
+    currencyRates?.[networkNativeCurrency as string]?.usdConversionRate ?? 0;
 
   const tokenAddress = safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
   const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
@@ -63,6 +69,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       amountPrecise: undefined,
       amount: undefined,
       fiat: undefined,
+      usdValue: undefined,
     };
   }
 
@@ -74,6 +81,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   const amount = calcTokenAmount(value ?? '0', Number(decimals ?? ERC20_DEFAULT_DECIMALS));
 
   let fiat;
+  let usdValue;
 
   switch (transactionType) {
     case TransactionType.simpleSend:
@@ -82,6 +90,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
     case TransactionType.stakingUnstake: {
       // Native
       fiat = amount.times(nativeConversionRate);
+      usdValue = amount.times(usdConversionRate).toString();
       break;
     }
     case TransactionType.contractInteraction:
@@ -89,6 +98,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       // ERC20
       const contractExchangeRate = contractExchangeRates?.[tokenAddress]?.price ?? 1;
       fiat = amount.times(nativeConversionRate).times(contractExchangeRate);
+      usdValue = amount.times(contractExchangeRate).times(usdConversionRate).toString();
       break;
     }
     default: {
@@ -100,5 +110,6 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amount: formatAmount(I18n.locale, amount),
     fiat: fiat ? fiatFormatter(fiat) : undefined,
+    usdValue,
   };
 };

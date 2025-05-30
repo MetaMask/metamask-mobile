@@ -1,10 +1,17 @@
-import { useTokenAmount } from './useTokenAmount';
+import { waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   stakingDepositConfirmationState,
   transferConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
-import { waitFor } from '@testing-library/react-native';
+import { useTokenAmount } from './useTokenAmount';
+
+jest.mock('./useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    networkNativeCurrency: 'ETH',
+  })),
+}));
 
 describe('useTokenAmount', () => {
   describe('returns amount and fiat display values', () => {
@@ -18,6 +25,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
+          usdValue: '0.359625',
         });
       });
     });
@@ -32,6 +40,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
+          usdValue: '0.359625',
         });
       });
     });
@@ -46,6 +55,7 @@ describe('useTokenAmount', () => {
           amount: '0.001',
           amountPrecise: '0.001',
           fiat: '$3.60',
+          usdValue: '3.59625',
         });
       });
     });
