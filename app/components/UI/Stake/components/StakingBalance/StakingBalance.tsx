@@ -192,6 +192,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           <ClaimBanner
             claimableAmount={claimableWei}
             style={styles.bannerStyles}
+            asset={asset}
           />
         )}
 

@@ -91,9 +91,7 @@
         ]
       },
       "0x279f": {
-        "blockExplorerUrls": [
-          "https://testnet.monadexplorer.com"
-        ],
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
         "chainId": "0x279f",
         "defaultBlockExplorerUrlIndex": 0,
         "defaultRpcEndpointIndex": 0,
@@ -477,27 +475,29 @@
     "pooled_staking": {
       "exchangeRate": "1",
       "isEligible": false,
-      "pooledStakes": {
-        "account": "",
-        "assets": "0",
-        "exitRequests": [],
-        "lifetimeRewards": "0"
-      },
-      "vaultMetadata": {
-        "apy": "0",
-        "capacity": "0",
-        "feePercent": 0,
-        "totalAssets": "0",
-        "vaultAddress": "0x0000000000000000000000000000000000000000"
-      },
-      "vaultDailyApys": [],
-      "vaultApyAverages": {
-        "oneDay": "0",
-        "oneWeek": "0",
-        "oneMonth": "0",
-        "threeMonths": "0",
-        "sixMonths": "0",
-        "oneYear": "0"
+      "1": {
+        "pooledStakes": {
+          "account": "",
+          "assets": "0",
+          "exitRequests": [],
+          "lifetimeRewards": "0"
+        },
+        "vaultMetadata": {
+          "apy": "0",
+          "capacity": "0",
+          "feePercent": 0,
+          "totalAssets": "0",
+          "vaultAddress": "0x0000000000000000000000000000000000000000"
+        },
+        "vaultDailyApys": [],
+        "vaultApyAverages": {
+          "oneDay": "0",
+          "oneWeek": "0",
+          "oneMonth": "0",
+          "threeMonths": "0",
+          "sixMonths": "0",
+          "oneYear": "0"
+        }
       }
     },
     "stablecoin_lending": {

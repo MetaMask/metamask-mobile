@@ -24,7 +24,7 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { isSupportedPooledStakingChain } from '@metamask/stake-sdk/dist/contracts/PooledStaking/utils.mjs';
+import { isSupportedPooledStakingChain } from '@metamask/stake-sdk';
 import BigNumber from 'bignumber.js';
 import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';

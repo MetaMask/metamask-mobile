@@ -14,7 +14,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "paddingHorizontal": 15,
-        "paddingVertical": 10,
+        "paddingVertical": 14,
       }
     }
     testID="asset-Ethereum"
@@ -173,26 +173,64 @@ exports[`StakingBalance render matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
           "alignSelf": "center",
-          "color": "#121314",
           "flex": 1,
-          "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
-          "fontWeight": "500",
           "justifyContent": "center",
-          "letterSpacing": 0,
-          "lineHeight": 24,
           "marginLeft": 20,
         }
       }
-      testID="staked-ethereum-label"
     >
-      Staked Ethereum
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="staked-ethereum-label"
+      >
+        Staked Ethereum
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ca3542",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            +0.00%
+          </Text>
+        </View>
+      </Text>
+    </View>
     <View
       style={
         {
@@ -486,7 +524,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         "flex": 1,
         "flexDirection": "row",
         "paddingHorizontal": 15,
-        "paddingVertical": 10,
+        "paddingVertical": 14,
       }
     }
     testID="asset-Ethereum"
@@ -645,26 +683,64 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         </View>
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
           "alignSelf": "center",
-          "color": "#121314",
           "flex": 1,
-          "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
-          "fontWeight": "500",
           "justifyContent": "center",
-          "letterSpacing": 0,
-          "lineHeight": 24,
           "marginLeft": 20,
         }
       }
-      testID="staked-ethereum-label"
     >
-      Staked Ethereum
-    </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="staked-ethereum-label"
+      >
+        Staked Ethereum
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ca3542",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            +0.00%
+          </Text>
+        </View>
+      </Text>
+    </View>
     <View
       style={
         {
