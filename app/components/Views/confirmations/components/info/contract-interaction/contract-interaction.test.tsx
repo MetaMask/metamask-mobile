@@ -29,6 +29,10 @@ jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
     .mockReturnValue({ isBatched: true, isBatchedUpgrade: true }),
 }));
 
+jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
@@ -37,9 +41,6 @@ jest.mock('../../../../../../core/Engine', () => {
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
         findNetworkClientIdByChainId: jest.fn(),
-      },
-      TokenListController: {
-        fetchTokenList: jest.fn(),
       },
       GasFeeController: {
         startPolling: jest.fn(),
