@@ -485,15 +485,13 @@ export class BackgroundBridge extends EventEmitter {
       engine: this.multichainEngine,
     });
 
-    // solana account changed notifications
-    // This delay is needed because it's possible for a dapp to not have listeners
-    // setup in time right after a connection is established.
-    // This can be resolved if we amend the caip standards to include a liveliness
-    // handshake as part of the initial connection.
-    setTimeout(
-      () => this.notifySolanaAccountChangedForCurrentAccount(),
-      500,
-    );
+    // This is not delayed like it is in Extension because Mobile does not have to
+    // support externally_connectable but instead only the faked window.postMessage
+    // transport. Unlike externally_connectable's chrome.runtime.connect() API, the
+    // window.postMessage API allows the inpage provider to setup listeners for
+    // messages before attempting to establish the connection meaning that it will
+    // have listeners ready for this solana accountChanged event below.
+    this.notifySolanaAccountChangedForCurrentAccount();
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
