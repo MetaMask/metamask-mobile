@@ -3,8 +3,17 @@ import { fireEvent } from '@testing-library/react-native';
 import SuccessErrorSheet from '.';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { NavigationContainer } from '@react-navigation/native';
 
-// Mock the BottomSheet component
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
+
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => ({
@@ -40,7 +49,9 @@ describe('SuccessErrorSheet', () => {
 
   it('renders correctly with all props', () => {
     const { getByText, toJSON, getByRole } = renderWithProvider(
-      <SuccessErrorSheet route={mockRoute} />,
+      <NavigationContainer>
+        <SuccessErrorSheet route={mockRoute} />
+      </NavigationContainer>,
     );
 
     expect(getByText('Test Title')).toBeTruthy();
