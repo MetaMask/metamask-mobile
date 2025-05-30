@@ -53,13 +53,12 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const render = () => {
-  return renderWithProvider(
+const render = () =>
+  renderWithProvider(
     <SafeAreaProvider>
       <EditAccountName />
     </SafeAreaProvider>,
   );
-};
 
 describe('EditAccountName', () => {
   beforeEach(() => {
