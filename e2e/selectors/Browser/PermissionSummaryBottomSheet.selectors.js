@@ -4,6 +4,7 @@ export const PermissionSummaryBottomSheetSelectorsIDs = {
   CONTAINER: 'permission-summary-container',
   NETWORK_PERMISSIONS_CONTAINER: 'permission-network-permissions-container',
   ACCOUNT_PERMISSION_CONTAINER: 'permission-summary-account-text',
+  BACK_BUTTON: 'permission-summary-back-button',
 };
 
 export const PermissionSummaryBottomSheetSelectorsText = {

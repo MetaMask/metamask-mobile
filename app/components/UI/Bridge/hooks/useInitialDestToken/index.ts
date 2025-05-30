@@ -5,6 +5,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { BridgeRouteParams } from '../../Views/BridgeView';
 import { BridgeViewMode, BridgeToken } from '../../types';
+import { getNativeSourceToken } from '../useInitialSourceToken';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
@@ -18,7 +19,13 @@ export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
 
   if (destToken) return;
 
-  const defaultDestToken = DefaultSwapDestTokens[chainId];
+  let defaultDestToken = DefaultSwapDestTokens[chainId];
+
+  // If the initial source token is the same as the default dest token, set the default dest token to the native token
+  if (initialSourceToken?.address === defaultDestToken?.address) {
+    defaultDestToken = getNativeSourceToken(chainId);
+  }
+
   if (
     isSwap &&
     defaultDestToken &&

@@ -162,6 +162,7 @@ const WatchAssetRequest = ({
     <View style={styles.root} testID={AssetWatcherSelectorsIDs.CONTAINER}>
       <View style={styles.approveTransactionHeaderWrapper}>
         <ApproveTransactionHeader
+          chainId={chainId}
           origin={currentPageInformation?.url}
           url={activeTabUrl}
           from={suggestedAssetMeta.interactingAddress}

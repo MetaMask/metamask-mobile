@@ -21,8 +21,16 @@ import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSna
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import/no-namespace
+import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
+
+jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest
+    .fn()
+    .mockReturnValue({ networkSupporting7702Present: true }),
+}));
 
 // Mock the selectors
 jest.mock('../../../selectors/tokensController', () => ({
@@ -363,8 +371,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'etherscan.io',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
@@ -406,8 +414,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://custom-explorer.com/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'custom-explorer.com',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
@@ -661,6 +669,19 @@ describe('AccountActions', () => {
           screen: 'ConfirmationSwitchAccountType',
         },
       );
+    });
+    it('option should not be displayed if there is no network supporting 7702 for selected address', () => {
+      jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+        pending: false,
+        network7702List: [],
+        networkSupporting7702Present: false,
+      });
+
+      const { queryByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(queryByText('Switch to Smart account')).toBeNull();
     });
   });
 });
