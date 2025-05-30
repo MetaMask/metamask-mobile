@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import { Platform } from 'react-native';
+/* global Platform */
 import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
