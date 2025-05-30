@@ -3,7 +3,7 @@ import { Theme } from '@metamask/design-tokens';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
-const browserTabSharedStyles = ({ theme: { colors, shadows } }: { theme: Theme }) => {
+const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
   const getUrlModalContentPaddingTop = () => {
     if (Device.isAndroid()) {
       return 10;
