@@ -258,6 +258,20 @@ class FixtureBuilder {
                     },
                   ],
                 },
+                '0x18c6': {
+                  blockExplorerUrls: [],
+                  chainId: '0x18c6',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Mega Testnet',
+                  nativeCurrency: 'MegaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'megaeth-testnet',
+                      type: 'custom',
+                      url: 'https://carrot.megaeth.com/rpc',
+                    },
+                  ],
+                },
               },
             },
             PhishingController: {

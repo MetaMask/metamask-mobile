@@ -161,5 +161,15 @@ const CustomNetworks = {
       BlockExplorerUrl: 'https://holesky.etherscan.io/',
     },
   },
+  MegaTestnet: {
+    providerConfig:{
+      type: 'rpc',
+      chainId: '0x18c6',
+      rpcUrl: 'https://carrot.megaeth.com/rpc',
+      nickname: 'Mega Testnet',
+      ticker: 'MegaETH',
+      BlockExplorerUrl: 'https://megaexplorer.xyz/',
+    }
+  }
 };
 export { CustomNetworks, PopularNetworksList };

@@ -2119,6 +2119,7 @@
     "eth": "ETH",
     "sai": "SAI",
     "dai": "DAI",
+    "megaeth":"MEGAETH",
     "negative": "-",
     "divisor": "/",
     "token_id": "#",
