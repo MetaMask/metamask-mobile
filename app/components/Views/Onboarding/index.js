@@ -223,6 +223,10 @@ class Onboarding extends PureComponent {
      */
     route: PropTypes.object,
     /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
      * Function to save onboarding event prior to metrics being enabled
      */
     dispatchSaveOnboardingEvent: PropTypes.func,
@@ -346,10 +350,22 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = () => {
-      this.props.navigation.navigate('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-      });
-      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
+        this.props.navigation.navigate('ChoosePassword', {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        });
+        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+      } else {
+        this.props.navigation.navigate('OptinMetrics', {
+          onContinue: () => {
+            this.props.navigation.replace('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+            });
+            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+          },
+        });
+      }
     };
 
     this.handleExistingUser(action);
@@ -357,10 +373,22 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
-      this.props.navigation.navigate(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-      );
-      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
+        this.props.navigation.push(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        );
+        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+      } else {
+        this.props.navigation.navigate('OptinMetrics', {
+          onContinue: () => {
+            this.props.navigation.replace(
+              Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+            );
+            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+          },
+        });
+      }
     };
     this.handleExistingUser(action);
   };
