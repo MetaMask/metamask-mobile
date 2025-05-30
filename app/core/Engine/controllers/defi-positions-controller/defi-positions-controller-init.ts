@@ -6,6 +6,8 @@ import type { ControllerInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { MetaMetrics } from '../../../Analytics';
+import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 
 /**
  * Initialize the DeFiPositionsController.
@@ -33,6 +35,15 @@ export const defiPositionsControllerInit: ControllerInitFunction<
       );
 
       return isBasicFunctionalityToggleEnabled && featureFlagForDeFi;
+    },
+    trackEvent: ({ event, properties }) => {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder({
+          category: event,
+        })
+          .addProperties(properties)
+          .build(),
+      );
     },
   });
 
