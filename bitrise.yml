@@ -1557,7 +1557,19 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+      - script@1:
+          title: Create apk folder and copy files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                
+                # Create necessary directories
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug"
+                
+                # Copy the debug APK to the expected location
+                cp "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/debug/app-debug.apk" "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
