@@ -244,7 +244,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} shouldNavigateBack={false}>
+    <BottomSheet ref={bottomSheetRef} shouldNavigateBack>
       <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View

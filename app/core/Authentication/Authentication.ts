@@ -29,7 +29,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 ///: BEGIN:ONLY_INCLUDE_IF(beta)
 import {

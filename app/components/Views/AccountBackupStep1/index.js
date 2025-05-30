@@ -160,8 +160,6 @@ const AccountBackupStep1 = (props) => {
   };
 
   const skip = async () => {
-    // eslint-disable-next-line no-console
-    console.log('skip');
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);

@@ -253,7 +253,6 @@ const ImportFromSecretRecoveryPhrase = ({
     };
 
     setBiometricsOption();
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 

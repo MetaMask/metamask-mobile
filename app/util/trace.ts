@@ -175,7 +175,6 @@ export function trace<T>(
   if (!fn) {
     return startTrace(request);
   }
-
   return traceCallback(request, fn);
 }
 

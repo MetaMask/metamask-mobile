@@ -390,6 +390,7 @@ const Login: React.FC = () => {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
+
         if (isMetricsEnabled()) {
           navigation.reset({
             index: 0,

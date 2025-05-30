@@ -30,7 +30,11 @@ import {
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset } from '../../../actions/user';
+import {
+  loadingSet,
+  loadingUnset,
+  UserActionType,
+} from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -393,7 +397,7 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
           });
         } else {
-          this.props.navigation.navigate('ChoosePassword', {
+          this.props.navigation.push('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
