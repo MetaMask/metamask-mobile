@@ -972,7 +972,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
                   style={styles.checkbox}
-                  testID={ImportFromSeedSelectorsIDs.LEARN_MORE_CHECKBOX_ID}
+                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                   label={
                     <View style={styles.learnMoreTextContainer}>
                       <Text
@@ -985,6 +985,7 @@ const ImportFromSecretRecoveryPhrase = ({
                         variant={TextVariant.BodySM}
                         color={TextColor.Primary}
                         onPress={learnMoreLink}
+                        testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
                       >
                         {' ' + strings('reset_password.learn_more')}
                       </Text>
