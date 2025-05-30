@@ -127,6 +127,12 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
+
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
