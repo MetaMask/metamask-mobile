@@ -4,8 +4,8 @@ import { createMockInternalAccount, createMockUuidFromAddress } from '../../acco
 import { backgroundState } from '../../initial-root-state';
 import { mockNetworkState } from '../../network';
 
-const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-const MOCK_ADDRESS_TOKEN_CONTRACT = '0xae2eee9Bd39cbcf2ceC908D053A3e0bC970b8889';
+const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'.toLowerCase();
+const MOCK_ADDRESS_TOKEN_CONTRACT = '0xae2eee9Bd39cbcf2ceC908D053A3e0bC970b8889'.toLowerCase();
 const expectedUuid = createMockUuidFromAddress(
   MOCK_ADDRESS.toLowerCase(),
 );
@@ -16,11 +16,11 @@ const internalAccount1 = createMockInternalAccount(
 
 const MOCK_TOKEN_ID = '12345';
 
-const mockTransactionNft = {
+const MOCK_TX_NFT_TRANSFER = {
   id: '123-345-678',
   type: TransactionType.tokenMethodTransfer,
   txParams: {
-    data: `0x23b872dd000000000000000000000000${MOCK_ADDRESS.slice(2)}000000000000000000000000${MOCK_ADDRESS_TOKEN_CONTRACT.slice(2)}000000000000000000000000000000000000000000000000000000000${MOCK_TOKEN_ID}`,
+    data: `0x23b872dd000000000000000000000000c4955c0d639d99699bfd7ec54d9fafee40e4d272000000000000000000000000ae2eee9bd39cbcf2cec908d053a3e0bc970b88890000000000000000000000000000000000000000000000000000000000003039`,
     from: MOCK_ADDRESS,
     to: MOCK_ADDRESS_TOKEN_CONTRACT,
     value: '0x01',
@@ -88,8 +88,11 @@ export const MOCK_STATE_NFT = {
           },
         },
         allNftContracts: {
-          [MOCK_ADDRESS]: {
-            '0x1': [],
+          [MOCK_ADDRESS_TOKEN_CONTRACT]: {
+            '0x1': [{
+              address: MOCK_ADDRESS_TOKEN_CONTRACT,
+              name: 'Test Dapp NFTs',
+            }],
           },
         },
       },
@@ -98,7 +101,7 @@ export const MOCK_STATE_NFT = {
         displayNftMedia: true,
       } as Partial<PreferencesState>,
       TransactionController: {
-        transactions: [mockTransactionNft],
+        transactions: [MOCK_TX_NFT_TRANSFER],
       },
     },
   },
