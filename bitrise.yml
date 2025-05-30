@@ -1556,12 +1556,26 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
                     fi
                 fi
+      - script@1:
+          title: Create outputs zip
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
+                # Create a temporary directory for the outputs
+                mkdir -p $BITRISE_DEPLOY_DIR/outputs
+                # Copy the APK files to the temporary directory
+                cp -r android/app/build/outputs/* $BITRISE_DEPLOY_DIR/outputs/
+                # Create the zip file
+                cd $BITRISE_DEPLOY_DIR
+                zip -r outputs.zip outputs/
+                # Clean up the temporary directory
+                rm -rf outputs/
       - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-            - deploy_path: android/app/build/outputs
-            - is_compress: true
-          title: Save Android build
+            - deploy_path: $BITRISE_DEPLOY_DIR/outputs.zip
+            - is_compress: false
+          title: Deploy outputs zip
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
