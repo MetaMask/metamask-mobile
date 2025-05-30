@@ -23,9 +23,7 @@ import {
 } from '../../../util/networks';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
@@ -37,7 +35,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
-  toFormattedAddress,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -51,7 +48,6 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
-import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -79,14 +75,10 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  const existingKeyrings = useSelector(selectKeyrings);
-
-  const keyringId = useMemo(() => {
-    const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(toFormattedAddress(selectedAccount.address)),
-    );
-    return keyring?.metadata.id;
-  }, [existingKeyrings, selectedAccount.address]);
+  const keyringId = useMemo(
+    () => selectedAccount.options.entropySource,
+    [selectedAccount.options.entropySource],
+  );
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -120,9 +112,7 @@ const AccountActions = () => {
       }
       return undefined;
     }
-  }, [
-    selectedAccount,
-  ]);
+  }, [selectedAccount]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
