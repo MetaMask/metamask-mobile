@@ -58,7 +58,7 @@ const StakingDeposit = () => {
     <>
       <TokenHero />
       <StakingDetails />
-      <GasFeesDetails />
+      <GasFeesDetails disableUpdate />
       <InfoSectionAccordion
         onStateChange={handleAdvancedDetailsToggledEvent}
         header={strings('stake.advanced_details')}
