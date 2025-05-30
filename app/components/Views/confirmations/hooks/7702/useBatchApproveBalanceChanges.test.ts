@@ -42,7 +42,7 @@ const mockApprovalRow = [
     isApproval: true,
     isUnlimitedApproval: false,
     nestedTransactionIndex: -1,
-    tokenSymbol: 'DIA',
+    tokenSymbol: 'DAI',
   },
 ];
 
