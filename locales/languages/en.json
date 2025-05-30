@@ -40,6 +40,11 @@
     },
     "signed_or_submitted": {
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -1939,7 +1944,8 @@
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
       "gas_limit_too_low": "Gas limit must be greater than 21000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
-      "no_zero_value": "{{field}} must be greater than 0"
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
     }
   },
   "smart_transactions": {
