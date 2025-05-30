@@ -13,6 +13,7 @@ import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';
 import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
+import BasicInfo from '../Views/BasicInfo';
 
 interface DepositParamList {
   [key: string]:
@@ -24,11 +25,11 @@ interface DepositParamList {
 
 const Stack = createStackNavigator<DepositParamList>();
 
-const BasicInfo = () => (
+const EnterAddress = () => (
   <View>
     {/* eslint-disable-next-line react-native/no-inline-styles */}
     <Text style={{ textAlign: 'center', marginTop: 40 }}>
-      Basic Info form placeholder
+      Enter address form placeholder
     </Text>
   </View>
 );
@@ -72,6 +73,11 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.BASIC_INFO}
         component={BasicInfo}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ENTER_ADDRESS}
+        component={EnterAddress}
         options={getAnimationOptions}
       />
     </Stack.Navigator>
