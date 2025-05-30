@@ -173,7 +173,7 @@ const ManualBackupStep2 = ({
 
         // Clear selection completely if this was the last word
         const remaining = updatedGrid.filter((w) => w !== '');
-        setSelectedSlot(remaining.length === 0 ? null : null); // ← always reset for top-down behavior
+        setSelectedSlot(null); // ← always reset for top-down behavior
         return;
       }
 
