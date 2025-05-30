@@ -6,10 +6,11 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     buttons: {
-      width: '48%',
+      flex: 1,
     },
     buttonSection: {
       flexDirection: 'row',
+      gap: 12,
       justifyContent: 'space-between',
       width: '100%',
     },
