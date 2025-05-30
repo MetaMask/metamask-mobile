@@ -1,4 +1,4 @@
-import { isSupportedChain } from '@metamask/stake-sdk';
+import { isSupportedPooledStakingChain } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
@@ -67,7 +67,7 @@ export const getSupportedEarnTokens = (
 ) =>
   Object.values(tokens).filter(({ isETH, isStaked, symbol, chainId }) => {
     // We only support staking on Ethereum
-    if (isETH && !isSupportedChain(getDecimalChainId(chainId))) return false;
+    if (isETH && !isSupportedPooledStakingChain(getDecimalChainId(chainId))) return false;
     if (isStaked) return false;
 
     const {

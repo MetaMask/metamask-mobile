@@ -2,8 +2,9 @@ import {
   StakingType,
   EarnSdk,
   PooledStakingContract,
-  isSupportedChain,
+  isSupportedPooledStakingChain,
   PooledStakingApiService,
+  EarnEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -48,7 +49,7 @@ export const StakeSDKProvider: React.FC<
   useEffect(() => {
     const initializeSdk = async () => {
       try {
-        if (!chainId || !isSupportedChain(getDecimalChainId(chainId))) {
+        if (!chainId || !isSupportedPooledStakingChain(getDecimalChainId(chainId))) {
           const errorMsg = 'Failed to initialize Staking SDK Service: chainId unsupported';
           trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
           setError(errorMsg);
@@ -65,6 +66,7 @@ export const StakeSDKProvider: React.FC<
         }
 
         const newSdk = await EarnSdk.create(provider, {
+          //env: EarnEnvironments.DEV,
           chainId: getDecimalChainId(chainId),
         });
 
