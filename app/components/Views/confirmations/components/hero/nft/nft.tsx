@@ -14,8 +14,6 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import images from '../../../../../../images/image-icons';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
-// TODO: consider
-// import RemoteImage from '../../../../../Base/RemoteImage';
 import { useNft } from '../../../hooks/nft/useNft';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { Hero } from '../hero';
@@ -62,37 +60,26 @@ const NftImageAndNetworkBadge = ({
     <TouchableOpacity
       onPress={onPress}
       style={styles.touchableOpacity}
-      testID="hero-nft-image"
     >
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
-          isFirstPartyContractName ? (
-            <Badge
-              imageSource={images.FOX_LOGO}
-              variant={BadgeVariant.Network}
-              isScaled={false}
-              testID="hero-nft-badge-metamask"
-            />
-          ) : (
-            <Badge
-              imageSource={networkImage}
-              name={networkName}
-              variant={BadgeVariant.Network}
-              testID="hero-nft-badge-network"
-            />
-          )
+          <Badge
+            imageSource={networkImage}
+            name={networkName}
+            variant={BadgeVariant.Network}
+            testID="hero-nft-badge-network"
+          />
         }
       >
         <CollectibleMedia collectible={nft} style={styles.noImagePlaceholder} />
-        {/* TODO: consider <RemoteImage source={{ uri: image }} style={styles.noImagePlaceholder} /> */}
       </BadgeWrapper>
     </TouchableOpacity>
   );
 };
 
 export const HeroNft = () => {
-  const { chainId, isFirstPartyContractName, name, nft } = useNft();
+  const { chainId, name, nft } = useNft();
   const { tokenId } = nft ?? {};
 
   return (
@@ -101,7 +88,6 @@ export const HeroNft = () => {
         <NftImageAndNetworkBadge
           chainId={chainId}
           nft={nft}
-          isFirstPartyContractName={isFirstPartyContractName}
         />
       }
       title={name}
