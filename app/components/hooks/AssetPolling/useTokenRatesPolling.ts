@@ -29,21 +29,30 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         )
       : [currentChainId];
 
-  const chainIdsToPoll = chainIds ?? filteredChainIds;
+  const chainIdsToPoll = isEvmSelected
+    ? [
+        {
+          chainIds: filteredChainIds as Hex[],
+        },
+      ]
+    : [];
 
   const { TokenRatesController } = Engine.context;
+
+  let providedChainIds;
+  if (chainIds) {
+    providedChainIds = chainIds.map((chainId) => ({
+      chainIds: [chainId],
+    }));
+  }
+
+  const input = providedChainIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
-    input: isEvmSelected
-      ? [
-          {
-            chainIds: chainIdsToPoll as Hex[],
-          },
-        ]
-      : [],
+    input,
   });
 };
 
