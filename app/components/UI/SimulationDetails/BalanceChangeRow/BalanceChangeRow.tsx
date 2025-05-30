@@ -19,11 +19,16 @@ interface BalanceChangeRowProperties extends ViewProps {
   balanceChange: BalanceChange;
   enableEdit?: boolean;
   onUpdate?: (balanceChange: BalanceChange, val: string) => void;
+  editTexts?: {
+    title: string;
+    description: string;
+  };
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   balanceChange,
   enableEdit,
+  editTexts,
   label,
   onUpdate,
   showFiat,
@@ -43,7 +48,11 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       <View style={styles.pillContainer}>
         <View style={styles.pills}>
           {enableEdit && onUpdate && (
-            <EditRowValue balanceChange={balanceChange} onUpdate={onUpdate} />
+            <EditRowValue
+              balanceChange={balanceChange}
+              editTexts={editTexts}
+              onUpdate={onUpdate}
+            />
           )}
           <AmountPill
             asset={asset}

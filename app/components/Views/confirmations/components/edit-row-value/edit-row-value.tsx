@@ -26,10 +26,15 @@ import styleSheet from './edit-row-value.styles';
 interface EditRowValueProps {
   balanceChange: BalanceChange;
   onUpdate: (balanceChange: BalanceChange, val: string) => void;
+  editTexts?: {
+    title: string;
+    description: string;
+  };
 }
 
 const EditRowValue: React.FC<EditRowValueProps> = ({
   balanceChange,
+  editTexts,
   onUpdate,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -66,14 +71,14 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
         <BottomModal onClose={closeModal}>
           <View style={styles.wrapper}>
             <Text style={styles.title} variant={TextVariant.HeadingMD}>
-              {strings('confirm.simulation.edit_approval_limit_title')}
+              {editTexts?.title}
             </Text>
             <Text
               style={styles.text}
               color={TextColor.Alternative}
               variant={TextVariant.BodyMD}
             >
-              {strings('confirm.simulation.edit_approval_limit_description')}
+              {editTexts?.description}
             </Text>
             <TextField
               style={styles.input}
@@ -85,7 +90,7 @@ const EditRowValue: React.FC<EditRowValueProps> = ({
               color={TextColor.Alternative}
               variant={TextVariant.BodyMD}
             >
-              {strings('confirm.simulation.edit_approval_limit_balance_info')}{' '}
+              {strings('confirm.simulation.edit_value_balance_info')}{' '}
               {balanceChange.balance?.toString()} {balanceChange.tokenSymbol}
             </Text>
             <View style={styles.buttonSection}>

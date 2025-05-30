@@ -6,12 +6,19 @@ import { BalanceChange } from '../../../../UI/SimulationDetails/types';
 import EditRowValue from './edit-row-value';
 import { fireEvent } from '@testing-library/react-native';
 
+const MockEditTexts = {
+  title: 'Edit approval limit',
+  description:
+    'Enter the amount that you feel comfortable being spent on your behalf.',
+};
+
 describe('EditRowValue', () => {
   it('renders button icon for editing', async () => {
     const { getByTestId } = renderWithProvider(
       <EditRowValue
         balanceChange={{ amount: new BigNumber('100') } as BalanceChange}
         onUpdate={() => undefined}
+        editTexts={MockEditTexts}
       />,
       {},
     );
@@ -23,6 +30,7 @@ describe('EditRowValue', () => {
       <EditRowValue
         balanceChange={{ amount: new BigNumber('100') } as BalanceChange}
         onUpdate={() => undefined}
+        editTexts={MockEditTexts}
       />,
       {},
     );
@@ -36,6 +44,7 @@ describe('EditRowValue', () => {
       <EditRowValue
         balanceChange={{ amount: new BigNumber('100') } as BalanceChange}
         onUpdate={() => undefined}
+        editTexts={MockEditTexts}
       />,
       {},
     );
@@ -52,6 +61,7 @@ describe('EditRowValue', () => {
       <EditRowValue
         balanceChange={{ amount: new BigNumber('100') } as BalanceChange}
         onUpdate={mockOnUpdate}
+        editTexts={MockEditTexts}
       />,
       {},
     );

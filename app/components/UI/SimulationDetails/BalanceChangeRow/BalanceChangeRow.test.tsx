@@ -74,6 +74,11 @@ describe('BalanceChangeList', () => {
         showFiat={false}
         balanceChange={balanceChangeMock}
         enableEdit
+        editTexts={{
+          title: 'Edit approval limit',
+          description:
+            'Enter the amount that you feel comfortable being spent on your behalf.',
+        }}
         onUpdate={() => undefined}
       />,
     );
