@@ -32,8 +32,14 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
-const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+const ManualBackupStep2 = ({
+  navigation,
+  seedphraseBackedUp,
+  route,
+  dispatchSaveOnboardingEvent,
+}) => {
   const words = route?.params?.words;
   const backupFlow = route?.params?.backupFlow;
   const settingsBackup = route?.params?.settingsBackup;
@@ -95,20 +101,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OptinMetrics', {
-            steps: route.params?.steps,
-            words,
-            onContinue: () => {
-              navigation.navigate('OnboardingSuccess', {
-                backedUpSRP: true,
-              });
-            },
-          });
+          navigation.navigate('OnboardingSuccess');
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
           ).build(),
+          dispatchSaveOnboardingEvent,
         );
       });
     } else {
@@ -162,7 +161,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
         // Clear selection completely if this was the last word
         const remaining = updatedGrid.filter((w) => w !== '');
-        setSelectedSlot(remaining.length === 0 ? null : null); // ← always reset for top-down behavior
+        setSelectedSlot(null); // ← always reset for top-down behavior
         return;
       }
 
@@ -388,10 +387,15 @@ ManualBackupStep2.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(null, mapDispatchToProps)(ManualBackupStep2);
