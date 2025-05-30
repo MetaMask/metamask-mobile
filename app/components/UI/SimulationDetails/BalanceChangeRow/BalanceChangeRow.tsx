@@ -47,7 +47,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
       )}
       <View style={styles.pillContainer}>
         <View style={styles.pills}>
-          {enableEdit && onUpdate && (
+          {enableEdit && onUpdate && editTexts && (
             <EditRowValue
               balanceChange={balanceChange}
               editTexts={editTexts}
