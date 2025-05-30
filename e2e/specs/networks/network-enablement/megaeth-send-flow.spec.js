@@ -1,20 +1,20 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { RegressionNetworkAbstraction } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import WalletView from '../../pages/wallet/WalletView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import Assertions from '../../utils/Assertions';
-import enContent from '../../../locales/languages/en.json';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
+import TestHelpers from '../../../helpers';
+import { Regression } from '../../../tags';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../fixtures/fixture-helper';
+import { CustomNetworks } from '../../../resources/networks.e2e';
+import WalletView from '../../../pages/wallet/WalletView';
+import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
+import Assertions from '../../../utils/Assertions';
+import enContent from '../../../../locales/languages/en.json';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import TransactionConfirmationView from '../../../pages/Send/TransactionConfirmView';
+import AmountView from '../../../pages/Send/AmountView';
+import SendView from '../../../pages/Send/SendView';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
