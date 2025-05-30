@@ -4,7 +4,7 @@ import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
-import { useTokenValues } from '../../../../hooks/useTokenValues';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import InfoSectionAccordion from '../../../../components/UI/info-section-accordion';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import StakingDetails from '../../components/staking-details/staking-details';
@@ -20,15 +20,19 @@ const StakingDeposit = () => {
     trackPageViewedEvent,
     setConfirmationMetric,
   } = useConfirmationMetricEvents();
-  const { tokenAmountDisplayValue } = useTokenValues();
+  const { amount } = useTokenAmount();
   useEffect(() => {
+    if (amount === undefined) {
+      return;
+    }
+
     setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
-        transaction_amount_eth: tokenAmountDisplayValue,
+        transaction_amount_eth: amount,
       },
     });
-  }, [tokenAmountDisplayValue, setConfirmationMetric]);
+  }, [amount, setConfirmationMetric]);
 
   useEffect(() => {
     trackPageViewedEvent();
@@ -54,7 +58,7 @@ const StakingDeposit = () => {
     <>
       <TokenHero />
       <StakingDetails />
-      <GasFeesDetails />
+      <GasFeesDetails disableUpdate />
       <InfoSectionAccordion
         onStateChange={handleAdvancedDetailsToggledEvent}
         header={strings('stake.advanced_details')}
