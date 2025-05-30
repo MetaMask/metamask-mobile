@@ -29,6 +29,7 @@ import { Skeleton } from '../../../component-library/components/Skeleton';
 import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
+import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -64,6 +65,7 @@ export const safeComponentList = {
   ScrollView,
   SnapUITooltip,
   Skeleton,
+  SnapUICopyable,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

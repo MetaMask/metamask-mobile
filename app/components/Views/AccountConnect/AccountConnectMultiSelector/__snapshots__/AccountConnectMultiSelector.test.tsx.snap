@@ -190,6 +190,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           {
             "address": "0x1234",
             "balance": "0x1",
+            "caipAccountId": "eip155:0:0x1234",
             "isSelected": false,
             "name": "Account 1",
             "type": "Simple Key Pair",
@@ -198,6 +199,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           {
             "address": "0x5678",
             "balance": "0x2",
+            "caipAccountId": "eip155:0:0x5678",
             "isSelected": false,
             "name": "Account 2",
             "type": "Simple Key Pair",
@@ -647,6 +649,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           style={
             {
               "flexDirection": "row",
+              "marginBottom": 0,
             }
           }
         >

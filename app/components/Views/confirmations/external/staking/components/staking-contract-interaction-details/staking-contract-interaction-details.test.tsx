@@ -3,14 +3,6 @@ import { stakingDepositConfirmationState, stakingWithdrawalConfirmationState } f
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import StakingContractInteractionDetails from './staking-contract-interaction-details';
 
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('StakingContractInteractionDetails', () => {
   it('renders staking deposit variant', () => {
     const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {

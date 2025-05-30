@@ -57,6 +57,7 @@ import {
 import { selectTokensLength } from '../../../../../../selectors/tokensController';
 import {
   selectAccounts,
+  selectAccountsByChainId,
   selectAccountsLength,
 } from '../../../../../../selectors/accountTrackerController';
 import ShowBlockExplorer from '../../components/ApproveTransactionReview/ShowBlockExplorer';
@@ -341,6 +342,18 @@ class Approve extends PureComponent {
     }
   };
 
+  UNSAFE_componentWillMount = async () => {
+    const { chainId } = this.props;
+    // Force relevant token actions since user may not switched to network yet
+    await Engine.context.TokenDetectionController.detectTokens({
+      chainIds: [chainId],
+    });
+    await Engine.context.TokenListController.fetchTokenList(chainId);
+    await Engine.context.TokenBalancesController.updateBalancesByChainId({
+      chainId,
+    });
+  };
+
   componentWillUnmount = async () => {
     const { approved } = this.state;
     const { transaction } = this.props;
@@ -413,12 +426,13 @@ class Approve extends PureComponent {
   validateGas = (total) => {
     let error;
     const {
+      chainId,
       ticker,
       transaction: { from },
       accounts,
     } = this.props;
 
-    const fromAccount = accounts[safeToChecksumAddress(from)];
+    const fromAccount = accounts[chainId]?.[safeToChecksumAddress(from)] ?? {};
 
     const weiBalance = hexToBN(fromAccount.balance);
     const totalTransactionValue = hexToBN(total);
@@ -963,10 +977,10 @@ class Approve extends PureComponent {
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkId;
+  const networkClientId = transaction?.networkClientId;
 
   return {
-    accounts: selectAccounts(state),
+    accounts: selectAccountsByChainId(state),
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
     transactions: selectTransactions(state),

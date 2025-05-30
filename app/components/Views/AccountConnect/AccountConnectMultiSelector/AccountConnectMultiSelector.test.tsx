@@ -7,6 +7,7 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Brow
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { CaipAccountId } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 const mockOnSubmit = jest.fn();
@@ -55,6 +56,7 @@ const mockAccounts = [
     type: KeyringTypes.simple,
     yOffset: 0,
     isSelected: false,
+    caipAccountId: 'eip155:0:0x1234' as const,
   },
   {
     address: '0x5678',
@@ -63,6 +65,7 @@ const mockAccounts = [
     type: KeyringTypes.simple,
     yOffset: 0,
     isSelected: false,
+    caipAccountId: 'eip155:0:0x5678' as const,
   },
 ];
 
@@ -74,7 +77,7 @@ const mockEnsByAccountAddress = {
 const defaultProps = {
   accounts: mockAccounts,
   ensByAccountAddress: mockEnsByAccountAddress,
-  defaultSelectedAddresses: ['0x1234'],
+  defaultSelectedAddresses: ['eip155:0:0x1234'] as CaipAccountId[],
   onSubmit: mockOnSubmit,
   isLoading: false,
   hostname: 'test.com',
@@ -109,7 +112,7 @@ describe('AccountConnectMultiSelector', () => {
 
   it('disables the select all button when loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} isLoading />,
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} isLoading />,
     );
 
     const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
@@ -120,12 +123,12 @@ describe('AccountConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
   });
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234', '0x5678']} />,
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234', 'eip155:0:0x5678']} />,
     );
 
     const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
@@ -137,12 +140,12 @@ describe('AccountConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234', '0x5678']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234', 'eip155:0:0x5678']);
   });
 
   it('handles account selection correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} />,
       { state: { engine: { backgroundState } } },
     );
 
@@ -156,12 +159,12 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x5678']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x5678']);
   });
 
   it('shows update button when accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
+      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['eip155:0:0x1234']} />,
       { state: { engine: { backgroundState } } },
     );
 
@@ -169,7 +172,7 @@ describe('AccountConnectMultiSelector', () => {
     expect(updateButton).toBeTruthy();
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1234']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
   });
 
   it('shows disconnect button when no accounts are selected', () => {

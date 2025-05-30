@@ -7,19 +7,11 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
-import { debounce } from 'lodash';
 import Engine, { EngineContext } from '../core/Engine';
-import { getPersistentState } from '@metamask/base-controller';
+import { getPersistentState } from './getPersistentState/getPersistentState';
 
 const TIMEOUT = 40000;
-const STORAGE_DEBOUNCE_DELAY = 200;
-
-const debouncedSetItem = debounce(
-  async (key: string, value: string) =>
-    await FilesystemStorage.setItem(key, value, Device.isIos()),
-  STORAGE_DEBOUNCE_DELAY,
-  { leading: false, trailing: true },
-);
+const STORAGE_THROTTLE_DELAY = 200;
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -49,7 +41,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await debouncedSetItem(key, value);
+      return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -130,15 +122,30 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
+const persistOnboardingTransform = createTransform(
+  (inboundState: RootState['onboarding']) => {
+    const { events, ...state } = inboundState;
+    // Reconstruct data to persist
+    return state;
+  },
+  null,
+  { whitelist: ['onboarding'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [
+    persistTransform,
+    persistUserTransform,
+    persistOnboardingTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
+  throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };

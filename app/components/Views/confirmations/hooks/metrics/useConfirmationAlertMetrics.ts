@@ -109,6 +109,8 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
+  [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.PendingTransaction]: 'pending_transaction',
 };
 
 function getAlertName(alertKey: string): string {
