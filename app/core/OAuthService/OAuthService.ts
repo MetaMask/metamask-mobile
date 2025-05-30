@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
