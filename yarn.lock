@@ -5907,10 +5907,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/transaction-controller@^56.2.0":
-  version "56.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-56.2.0.tgz#ade0392ca73b2e0972095bf0beffd417e6df4706"
-  integrity sha512-/GnUnQU6pBoHfpKqWH3x9iMgyiizBk3hx+PQVlf2laU8BLxwVwJYi/gT23tIOoCgGHdFYOvZdH7XtFp1tiLORA==
+"@metamask/transaction-controller@^56.3.0":
+  version "56.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-56.3.0.tgz#7b2e34590a0bd7c77d4c8ebe76361c0e0c0adf64"
+  integrity sha512-q/e0/RkzkDaaGY31B03VPl78hyqUj4xl7XCjBnjj0g7M8zufq987dvdULr3zdJ+hmIXGwy6pXnGwDFLRnIIETQ==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"

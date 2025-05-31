@@ -507,6 +507,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastFetchedBlockNumbers": {},
         "methodData": {},
         "submitHistory": [],
+        "transactionBatches": [],
         "transactions": [],
       },
       "UserStorageController": {
