@@ -265,6 +265,11 @@ buildIosDevBuild(){
 	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 	scheme="MetaMask"
 
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		scheme="MetaMask-Flask"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+	fi
+
 	echo "exportOptionsPlist: $exportOptionsPlist"
   	echo "Generating archive packages for $scheme"
 	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
@@ -597,7 +602,7 @@ buildIos() {
 		fi
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDeviceFlask
+			buildIosDevBuild
 		else
 			buildIosSimulatorFlask
 		fi

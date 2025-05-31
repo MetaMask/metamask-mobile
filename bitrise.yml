@@ -96,6 +96,10 @@ pipelines:
   expo_main_pipeline:
     stages:
       - create_build_main_expo: {}
+  #Flask expo pipeline
+  expo_flask_pipeline:
+    stages:
+      - create_build_flask_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -168,6 +172,11 @@ stages:
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
+  create_build_flask_expo:
+    workflows:
+      - build_android_flask_devbuild: {}
+      - build_ios_flask_devbuild: {}
+      - build_ios_flask_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -1874,7 +1883,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -1891,6 +1900,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
