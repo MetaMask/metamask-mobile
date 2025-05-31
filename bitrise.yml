@@ -77,8 +77,9 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-      - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      # - build_smoke_e2e_ios_android_stage: {}
+      # - run_smoke_e2e_ios_android_stage: {}
+      - create_build_qa_and_expo: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -915,24 +916,6 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - script@1:
           title: Run detox build
           timeout: 1200
           is_always_run: true
@@ -944,23 +927,23 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
-      - save-gradle-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+      - script@1:
+          title: Create outputs.zip with all build outputs
           inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                
+                # Go to the outputs directory
+                cd "$BITRISE_SOURCE_DIR/android/app/build"
+                
+                # Create the zip file containing all outputs
+                zip -r "$BITRISE_SOURCE_DIR/outputs.zip" outputs/
       - deploy-to-bitrise-io@2.2.3:
           inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
+            - pipeline_intermediate_files: outputs.zip:INTERMEDIATE_ANDROID_BUILD_DIR
+            - is_compress: false
+          title: Save outputs.zip
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -1343,18 +1326,18 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
-                elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    yarn build:android:pre-release:bundle
-                elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    yarn build:android:pre-release:bundle:beta
-                elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    yarn build:android:pre-release:bundle:flask
-                else
-                    echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
-                    exit 1
+                    if [ "$IS_SIM_BUILD" = "true" ]; then
+                      if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
+                      else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                      fi
+                    else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
+                    fi
                 fi
       - save-gradle-cache@1: {}
       - script@1:
@@ -1363,8 +1346,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths for release builds
-                           if [ "$IS_DEV_BUILD" = "true" ]; then
-                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
+                if [ "$IS_DEV_BUILD" = "true" ]; then
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug"
+                    TEST_APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/androidTest/prod/debug"
                 else
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                     BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
@@ -1373,32 +1357,51 @@ workflows:
                 # Generate new names based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
 
-                # Rename APK
+                # Rename APKs
                 if [ "$IS_DEV_BUILD" = "true" ]; then
-                    OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
-                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
+                    OLD_APK="$APK_DIR/app-prod-debug.apk"
+                    OLD_TEST_APK="$TEST_APK_DIR/app-prod-debug-androidTest.apk"
+                    NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                    NEW_TEST_APK="$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
+                    mv "$OLD_APK" "$NEW_APK"
+                    mv "$OLD_TEST_APK" "$NEW_TEST_APK"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                    NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                    mv "$OLD_APK" "$NEW_APK"
+                    mv "$OLD_AAB" "$NEW_AAB"
+
+                    # Export paths for deployment only for non-dev builds
+                    envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                    envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                    envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
                 fi
-
-                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
-                mv "$OLD_APK" "$NEW_APK"
-
-                # Rename AAB
-                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                mv "$OLD_AAB" "$NEW_AAB"
 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
-                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                if [ "$IS_DEV_BUILD" = "true" ]; then
+                    envman add --key RENAMED_TEST_APK_FILE --value "$NEW_BASE_NAME-androidTest.apk"
+                    envman add --key TEST_APK_DEPLOY_PATH --value "$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
+                else
+                    envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                fi
                 envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
             - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $TEST_APK_DEPLOY_PATH
+          title: Bitrise Deploy Test APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1509,8 +1512,50 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
+    before_run:
+      - code_setup
     after_run:
       - _android_build_template
+    steps:
+      - script@1:
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
+                node -v
+                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                    if [ "$IS_SIM_BUILD" = "true" ]; then
+                      if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
+                      else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                      fi
+                    else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
+                    fi
+                fi
+      - script@1:
+          title: Create outputs zip
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR
+                # Create a temporary directory for the outputs
+                mkdir -p $BITRISE_DEPLOY_DIR/outputs
+                # Copy the APK files to the temporary directory
+                cp -r android/app/build/outputs/* $BITRISE_DEPLOY_DIR/outputs/
+                # Create the zip file
+                cd $BITRISE_DEPLOY_DIR
+                zip -r outputs.zip outputs/
+                # Clean up the temporary directory
+                rm -rf outputs/
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/outputs.zip
+            - is_compress: false
+          title: Deploy outputs zip
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1874,7 +1919,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:debug:build
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
