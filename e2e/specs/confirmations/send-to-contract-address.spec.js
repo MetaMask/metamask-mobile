@@ -37,7 +37,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder().withGanacheNetwork(buildPermissions(['0x539'])).build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,

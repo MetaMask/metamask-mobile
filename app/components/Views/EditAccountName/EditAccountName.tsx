@@ -153,6 +153,7 @@ const EditAccountName = () => {
               isDisabled
               placeholder={formatAddress(selectedAccount?.address, 'mid')}
               autoFocus
+              testID="input"
             />
           ) : null}
         </View>

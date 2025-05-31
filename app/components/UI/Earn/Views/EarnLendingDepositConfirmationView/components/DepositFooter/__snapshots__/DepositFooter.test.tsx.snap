@@ -1,0 +1,423 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Deposit Footer renders correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "paddingTop": 32,
+    }
+  }
+  testID="depositFooter"
+>
+  <View>
+    <View>
+      <RNSVGSvgView
+        bbHeight={10}
+        bbWidth="auto"
+        focusable={false}
+        height={10}
+        style={
+          [
+            {
+              "backgroundColor": "transparent",
+              "borderWidth": 0,
+            },
+            {
+              "flex": 0,
+              "height": 10,
+              "width": "auto",
+            },
+          ]
+        }
+        width="auto"
+      >
+        <RNSVGGroup
+          fill={
+            {
+              "payload": 4278190080,
+              "type": 0,
+            }
+          }
+        >
+          <RNSVGLine
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+            propList={
+              [
+                "stroke",
+                "strokeWidth",
+              ]
+            }
+            stroke={
+              {
+                "payload": 4282669567,
+                "type": 0,
+              }
+            }
+            strokeWidth={1}
+            testID="progress-stepper-progress-bar"
+            x1="0"
+            x2={250}
+            y1="5"
+            y2="5"
+          />
+          <RNSVGLine
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+            propList={
+              [
+                "stroke",
+                "strokeWidth",
+              ]
+            }
+            stroke={
+              {
+                "payload": 440687103,
+                "type": 0,
+              }
+            }
+            strokeWidth={1}
+            x1="0"
+            x2="100%"
+            y1="5"
+            y2="5"
+          />
+        </RNSVGGroup>
+      </RNSVGSvgView>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "justifyContent": "space-evenly",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 17,
+              "position": "relative",
+            }
+          }
+          testID="progress-stepper-step-0"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 12,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+              testID="progress-stepper-step-icon-pending"
+            >
+              1
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Approve
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 17,
+              "position": "relative",
+            }
+          }
+          testID="progress-stepper-step-1"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#f3f5f9",
+                "borderRadius": 12,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+              testID="progress-stepper-step-icon-pending"
+            >
+              2
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Deposit
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "paddingHorizontal": 16,
+        "paddingVertical": 12,
+      }
+    }
+    testID="bottomsheetfooter"
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="earn-lending-deposit-confirmation-footer-cancel-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 16,
+          "marginTop": 0,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="earn-lending-deposit-confirmation-footer-confirm-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Confirm
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "column",
+        "justifyContent": "center",
+        "marginBottom": 12,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        By continuing, you agree to our 
+      </Text>
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Terms of Use
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+         and 
+        
+
+      </Text>
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "textDecorationLine": "underline",
+          }
+        }
+      >
+        Risk Disclosure
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        .
+      </Text>
+    </View>
+  </View>
+</View>
+`;

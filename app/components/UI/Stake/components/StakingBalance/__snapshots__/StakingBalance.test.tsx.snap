@@ -5,6 +5,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
   testID="staking-balance-container"
 >
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={
@@ -476,6 +477,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
   testID="staking-balance-container"
 >
   <TouchableOpacity
+    disabled={false}
     onLongPress={[Function]}
     onPress={[Function]}
     style={

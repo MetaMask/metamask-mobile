@@ -38,6 +38,7 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
@@ -49,6 +50,7 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`
 };
 
 const MOCK_STORE_STATE = {

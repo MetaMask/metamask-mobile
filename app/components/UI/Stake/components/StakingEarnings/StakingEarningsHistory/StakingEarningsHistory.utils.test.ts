@@ -1,7 +1,7 @@
 import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
-} from '../../../__mocks__/mockData';
+} from '../../../__mocks__/stakeMockData';
 import {
   getEntryTimePeriodGroupInfo,
   fillGapsInEarningsHistory,

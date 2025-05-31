@@ -450,6 +450,8 @@ describe('getRpcMethodMiddleware', () => {
       caveatSpecifications: getCaveatSpecifications({
         listAccounts: mockListAccounts,
         findNetworkClientIdByChainId: jest.fn(),
+        isNonEvmScopeSupported: jest.fn(),
+        getNonEvmAccountAddresses: jest.fn(),
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),

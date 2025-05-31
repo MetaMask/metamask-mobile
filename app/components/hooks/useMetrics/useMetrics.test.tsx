@@ -167,4 +167,15 @@ describe('useMetrics', () => {
       expect(firstResult[key]).toBe(secondResult[key]);
     });
   });
+
+  it('keeps the same reference to the whole object on rerenders', async () => {
+    const { result, rerender } = renderHook(() => useMetrics());
+
+    const firstRender = result.current;
+    rerender();
+    const secondRender = result.current;
+
+    // Assert - object reference is the same after re-render
+    expect(secondRender).toBe(firstRender);
+  });
 });

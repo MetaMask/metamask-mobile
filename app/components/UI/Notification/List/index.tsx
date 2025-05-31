@@ -161,6 +161,7 @@ function useNotificationListProps(props: {
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
+        testID: NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
       };
 
       return { ...listProps, tabLabel: tabLabel ?? '' };

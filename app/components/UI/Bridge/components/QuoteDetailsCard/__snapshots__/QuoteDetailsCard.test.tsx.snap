@@ -313,233 +313,137 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                       style={
                         [
                           {},
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderColor": "#b7bbc866",
-                            "borderRadius": 8,
-                            "borderWidth": 1,
-                            "gap": 12,
-                            "marginBottom": 12,
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 12,
-                          },
+                          undefined,
                         ]
                       }
                     >
                       <View
-                        alignItems="center"
-                        flexDirection="row"
-                        justifyContent="space-between"
                         style={
                           [
+                            {},
                             {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 8,
+                              "borderWidth": 1,
+                              "gap": 12,
+                              "marginBottom": 12,
+                              "overflow": "hidden",
+                              "paddingHorizontal": 16,
+                              "paddingVertical": 12,
                             },
-                            undefined,
                           ]
                         }
                       >
                         <View
                           alignItems="center"
                           flexDirection="row"
+                          justifyContent="space-between"
                           style={
                             [
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
+                                "justifyContent": "space-between",
                               },
-                              {
-                                "flexDirection": "row",
-                                "flexWrap": "wrap",
-                                "maxWidth": "80%",
-                              },
+                              undefined,
                             ]
                           }
                         >
                           <View
                             alignItems="center"
                             flexDirection="row"
-                            gap={2}
                             style={
                               [
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 2,
                                 },
-                                undefined,
-                              ]
-                            }
-                          >
-                            <View
-                              onLayout={[Function]}
-                              style={{}}
-                              testID="badgenetwork"
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "shadowColor": "#0000001a",
-                                    "shadowOffset": {
-                                      "height": 2,
-                                      "width": 0,
-                                    },
-                                    "shadowOpacity": 1,
-                                    "shadowRadius": 4,
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
                                 {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Ethereum Mainnet
-                            </Text>
-                          </View>
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={16}
-                            name="Arrow2Right"
-                            style={
-                              {
-                                "height": 16,
-                                "width": 16,
-                              }
-                            }
-                            width={16}
-                          />
-                          <View
-                            alignItems="center"
-                            flexDirection="row"
-                            gap={2}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 2,
+                                  "flexWrap": "wrap",
+                                  "maxWidth": "80%",
                                 },
-                                undefined,
                               ]
                             }
                           >
                             <View
-                              onLayout={[Function]}
-                              style={{}}
-                              testID="badgenetwork"
-                            >
-                              <View
-                                style={
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={2}
+                              style={
+                                [
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "shadowColor": "#0000001a",
-                                    "shadowOffset": {
-                                      "height": 2,
-                                      "width": 0,
-                                    },
-                                    "shadowOpacity": 1,
-                                    "shadowRadius": 4,
-                                    "width": 24,
-                                  }
-                                }
+                                    "flexDirection": "row",
+                                    "gap": 2,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={{}}
+                                testID="badgenetwork"
                               >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
+                                <View
                                   style={
                                     {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1.5,
                                       "height": 24,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
                                       "width": 24,
                                     }
                                   }
-                                  testID="network-avatar-image"
-                                />
+                                >
+                                  <Image
+                                    onError={[Function]}
+                                    resizeMode="contain"
+                                    source={1}
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    testID="network-avatar-image"
+                                  />
+                                </View>
                               </View>
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
-                              }
-                            >
-                              Optimism
-                            </Text>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "transform": [
-                                {
-                                  "rotate": "undefineddeg",
-                                },
-                              ],
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            accessibilityLabel="Collapse quote details"
-                            accessibilityRole="button"
-                            activeOpacity={0.7}
-                            onPress={[Function]}
-                            testID="expand-quote-details"
-                          >
+                              >
+                                Solana
+                              </Text>
+                            </View>
                             <SvgMock
-                              color="#9ca1af"
+                              color="#121314"
                               fill="currentColor"
                               height={16}
-                              name="ArrowDown"
+                              name="Arrow2Right"
                               style={
                                 {
                                   "height": 16,
@@ -548,375 +452,114 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               }
                               width={16}
                             />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "overflow": "hidden",
-                            },
-                            [
-                              undefined,
-                            ],
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
                             <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={2}
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                Network Fee
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                0.01
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "overflow": "hidden",
-                            },
-                            [
-                              undefined,
-                            ],
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                Time
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                1 min
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {},
-                            undefined,
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "overflow": "hidden",
-                              },
-                              [
-                                undefined,
-                              ],
-                            ]
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-start",
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
-                            >
-                              <View
-                                style={
+                                [
                                   {
                                     "alignItems": "center",
                                     "flexDirection": "row",
-                                  }
-                                }
+                                    "gap": 2,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={{}}
+                                testID="badgenetwork"
                               >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Quote
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Why we recommend this quote tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "borderRadius": 8,
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 12,
+                                      "borderWidth": 1.5,
                                       "height": 24,
                                       "justifyContent": "center",
-                                      "opacity": 1,
+                                      "overflow": "hidden",
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
                                       "width": 24,
                                     }
                                   }
                                 >
-                                  <SvgMock
-                                    color="#9ca1af"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Question"
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                       }
                                     }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                  >
+                                    ?
+                                  </Text>
+                                </View>
                               </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              />
                             </View>
                           </View>
                           <View
                             style={
                               {
-                                "alignItems": "flex-end",
-                                "flex": 1,
+                                "transform": [
+                                  {
+                                    "rotate": "undefineddeg",
+                                  },
+                                ],
                               }
                             }
                           >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
-                                }
-                              }
+                            <TouchableOpacity
+                              accessibilityLabel="Collapse quote details"
+                              accessibilityRole="button"
+                              activeOpacity={0.7}
+                              onPress={[Function]}
+                              testID="expand-quote-details"
                             >
-                              <View
+                              <SvgMock
+                                color="#9ca1af"
+                                fill="currentColor"
+                                height={16}
+                                name="ArrowDown"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
+                                    "height": 16,
+                                    "width": 16,
                                   }
                                 }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  1 ETH = 24.4 USDC
-                                </Text>
-                              </View>
-                            </View>
+                                width={16}
+                              />
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        gap={12}
-                        style={
-                          [
-                            {
-                              "gap": 12,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
                         <View
                           style={
                             [
@@ -971,7 +614,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Price Impact
+                                  Network Fee
                                 </Text>
                               </View>
                             </View>
@@ -1015,7 +658,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  -0.06%
+                                  0.01
                                 </Text>
                               </View>
                             </View>
@@ -1061,53 +704,159 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                 }
                               >
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={4}
+                                <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Time
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  1 min
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {},
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "overflow": "hidden",
+                                },
+                                [
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
                                   }
                                 >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    Quote
+                                  </Text>
                                   <TouchableOpacity
-                                    activeOpacity={0.6}
+                                    accessibilityLabel="Why we recommend this quote tooltip"
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 4,
+                                        "borderRadius": 8,
+                                        "height": 24,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 24,
                                       }
                                     }
-                                    testID="edit-slippage-button"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "CentraNo1-Medium",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Slippage
-                                    </Text>
                                     <SvgMock
                                       color="#9ca1af"
                                       fill="currentColor"
                                       height={16}
-                                      name="Edit"
+                                      name="Question"
                                       style={
                                         {
                                           "height": 16,
@@ -1120,21 +869,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 </View>
                               </View>
                             </View>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "flex-end",
-                                "flex": 1,
-                              }
-                            }
-                          >
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 8,
+                                  "alignItems": "flex-end",
+                                  "flex": 1,
                                 }
                               }
                             >
@@ -1143,30 +882,317 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   {
                                     "alignItems": "center",
                                     "flexDirection": "row",
+                                    "gap": 8,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
                                     }
                                   }
-                                  testID="label"
                                 >
-                                  0.5%
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    1 ETH = 24.4 USDC
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          gap={12}
+                          style={
+                            [
+                              {
+                                "gap": 12,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "overflow": "hidden",
+                                },
+                                [
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    Price Impact
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-end",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    -0.06%
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "overflow": "hidden",
+                                },
+                                [
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={4}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 4,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      activeOpacity={0.6}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 4,
+                                        }
+                                      }
+                                      testID="edit-slippage-button"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Slippage
+                                      </Text>
+                                      <SvgMock
+                                        color="#9ca1af"
+                                        fill="currentColor"
+                                        height={16}
+                                        name="Edit"
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        width={16}
+                                      />
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-end",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    0.5%
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                           </View>
                         </View>
                       </View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Includes 0.875% MM fee
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -1493,233 +1519,137 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                       style={
                         [
                           {},
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderColor": "#b7bbc866",
-                            "borderRadius": 8,
-                            "borderWidth": 1,
-                            "gap": 12,
-                            "marginBottom": 12,
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 12,
-                          },
+                          undefined,
                         ]
                       }
                     >
                       <View
-                        alignItems="center"
-                        flexDirection="row"
-                        justifyContent="space-between"
                         style={
                           [
+                            {},
                             {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 8,
+                              "borderWidth": 1,
+                              "gap": 12,
+                              "marginBottom": 12,
+                              "overflow": "hidden",
+                              "paddingHorizontal": 16,
+                              "paddingVertical": 12,
                             },
-                            undefined,
                           ]
                         }
                       >
                         <View
                           alignItems="center"
                           flexDirection="row"
+                          justifyContent="space-between"
                           style={
                             [
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
+                                "justifyContent": "space-between",
                               },
-                              {
-                                "flexDirection": "row",
-                                "flexWrap": "wrap",
-                                "maxWidth": "80%",
-                              },
+                              undefined,
                             ]
                           }
                         >
                           <View
                             alignItems="center"
                             flexDirection="row"
-                            gap={2}
                             style={
                               [
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 2,
                                 },
-                                undefined,
-                              ]
-                            }
-                          >
-                            <View
-                              onLayout={[Function]}
-                              style={{}}
-                              testID="badgenetwork"
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "shadowColor": "#0000001a",
-                                    "shadowOffset": {
-                                      "height": 2,
-                                      "width": 0,
-                                    },
-                                    "shadowOpacity": 1,
-                                    "shadowRadius": 4,
-                                    "width": 24,
-                                  }
-                                }
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
                                 {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Ethereum Mainnet
-                            </Text>
-                          </View>
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={16}
-                            name="Arrow2Right"
-                            style={
-                              {
-                                "height": 16,
-                                "width": 16,
-                              }
-                            }
-                            width={16}
-                          />
-                          <View
-                            alignItems="center"
-                            flexDirection="row"
-                            gap={2}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
                                   "flexDirection": "row",
-                                  "gap": 2,
+                                  "flexWrap": "wrap",
+                                  "maxWidth": "80%",
                                 },
-                                undefined,
                               ]
                             }
                           >
                             <View
-                              onLayout={[Function]}
-                              style={{}}
-                              testID="badgenetwork"
-                            >
-                              <View
-                                style={
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={2}
+                              style={
+                                [
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 24,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "shadowColor": "#0000001a",
-                                    "shadowOffset": {
-                                      "height": 2,
-                                      "width": 0,
-                                    },
-                                    "shadowOpacity": 1,
-                                    "shadowRadius": 4,
-                                    "width": 24,
-                                  }
-                                }
+                                    "flexDirection": "row",
+                                    "gap": 2,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={{}}
+                                testID="badgenetwork"
                               >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
+                                <View
                                   style={
                                     {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1.5,
                                       "height": 24,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
                                       "width": 24,
                                     }
                                   }
-                                  testID="network-avatar-image"
-                                />
+                                >
+                                  <Image
+                                    onError={[Function]}
+                                    resizeMode="contain"
+                                    source={1}
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    testID="network-avatar-image"
+                                  />
+                                </View>
                               </View>
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
-                                  "fontWeight": "500",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
-                              }
-                            >
-                              Optimism
-                            </Text>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "transform": [
-                                {
-                                  "rotate": "undefineddeg",
-                                },
-                              ],
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            accessibilityLabel="Expand quote details"
-                            accessibilityRole="button"
-                            activeOpacity={0.7}
-                            onPress={[Function]}
-                            testID="expand-quote-details"
-                          >
+                              >
+                                Solana
+                              </Text>
+                            </View>
                             <SvgMock
-                              color="#9ca1af"
+                              color="#121314"
                               fill="currentColor"
                               height={16}
-                              name="ArrowDown"
+                              name="Arrow2Right"
                               style={
                                 {
                                   "height": 16,
@@ -1728,49 +1658,65 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               }
                               width={16}
                             />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "overflow": "hidden",
-                            },
-                            [
-                              undefined,
-                            ],
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
                             <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={2}
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 2,
+                                  },
+                                  undefined,
+                                ]
                               }
                             >
+                              <View
+                                onLayout={[Function]}
+                                style={{}}
+                                testID="badgenetwork"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderColor": "#ffffff",
+                                      "borderRadius": 12,
+                                      "borderWidth": 1.5,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                      "width": 24,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ?
+                                  </Text>
+                                </View>
+                              </View>
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -1783,170 +1729,43 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                                testID="label"
-                              >
-                                Network Fee
-                              </Text>
+                              />
                             </View>
                           </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
-                          }
-                        >
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
+                                "transform": [
+                                  {
+                                    "rotate": "undefineddeg",
+                                  },
+                                ],
                               }
                             }
                           >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
+                            <TouchableOpacity
+                              accessibilityLabel="Expand quote details"
+                              accessibilityRole="button"
+                              activeOpacity={0.7}
+                              onPress={[Function]}
+                              testID="expand-quote-details"
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <SvgMock
+                                color="#9ca1af"
+                                fill="currentColor"
+                                height={16}
+                                name="ArrowDown"
                                 style={
                                   {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "height": 16,
+                                    "width": 16,
                                   }
                                 }
-                                testID="label"
-                              >
-                                0.01
-                              </Text>
-                            </View>
+                                width={16}
+                              />
+                            </TouchableOpacity>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "overflow": "hidden",
-                            },
-                            [
-                              undefined,
-                            ],
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                Time
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                                testID="label"
-                              >
-                                1 min
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {},
-                            undefined,
-                          ]
-                        }
-                      >
                         <View
                           style={
                             [
@@ -2001,42 +1820,8 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  Quote
+                                  Network Fee
                                 </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Why we recommend this quote tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#9ca1af"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Question"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>
@@ -2079,7 +1864,111 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  1 ETH = 24.4 USDC
+                                  0.01
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              [
+                                undefined,
+                              ],
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Time
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  1 min
                                 </Text>
                               </View>
                             </View>
@@ -2089,84 +1978,247 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           style={
                             [
                               {},
-                              {
-                                "bottom": 0,
-                                "height": 30,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                              },
+                              undefined,
                             ]
                           }
                         >
-                          <RNSVGSvgView
-                            bbHeight="30"
-                            bbWidth="100%"
-                            focusable={false}
-                            height="30"
+                          <View
                             style={
                               [
                                 {
-                                  "backgroundColor": "transparent",
-                                  "borderWidth": 0,
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "overflow": "hidden",
                                 },
-                                {
-                                  "flex": 0,
-                                  "height": 30,
-                                  "width": "100%",
-                                },
+                                [
+                                  undefined,
+                                ],
                               ]
                             }
-                            width="100%"
                           >
-                            <RNSVGGroup
-                              fill={
+                            <View
+                              style={
                                 {
-                                  "payload": 4278190080,
-                                  "type": 0,
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
                                 }
                               }
                             >
-                              <RNSVGDefs>
-                                <RNSVGLinearGradient
-                                  gradient={
-                                    [
-                                      0,
-                                      16777215,
-                                      1,
-                                      -1,
-                                    ]
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
                                   }
-                                  gradientTransform={null}
-                                  gradientUnits={0}
-                                  name="fadeGradient"
-                                  x1="0"
-                                  x2="0"
-                                  y1="0"
-                                  y2="1"
-                                />
-                              </RNSVGDefs>
-                              <RNSVGRect
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    Quote
+                                  </Text>
+                                  <TouchableOpacity
+                                    accessibilityLabel="Why we recommend this quote tooltip"
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "borderRadius": 8,
+                                        "height": 24,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 24,
+                                      }
+                                    }
+                                  >
+                                    <SvgMock
+                                      color="#9ca1af"
+                                      fill="currentColor"
+                                      height={16}
+                                      name="Question"
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "flex-end",
+                                  "flex": 1,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 8,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    testID="label"
+                                  >
+                                    1 ETH = 24.4 USDC
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {},
+                                {
+                                  "bottom": 0,
+                                  "height": 30,
+                                  "left": 0,
+                                  "position": "absolute",
+                                  "right": 0,
+                                },
+                              ]
+                            }
+                          >
+                            <RNSVGSvgView
+                              bbHeight="30"
+                              bbWidth="100%"
+                              focusable={false}
+                              height="30"
+                              style={
+                                [
+                                  {
+                                    "backgroundColor": "transparent",
+                                    "borderWidth": 0,
+                                  },
+                                  {
+                                    "flex": 0,
+                                    "height": 30,
+                                    "width": "100%",
+                                  },
+                                ]
+                              }
+                              width="100%"
+                            >
+                              <RNSVGGroup
                                 fill={
                                   {
-                                    "brushRef": "fadeGradient",
-                                    "type": 1,
+                                    "payload": 4278190080,
+                                    "type": 0,
                                   }
                                 }
-                                height="30"
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width="100%"
-                                x="0"
-                                y="0"
-                              />
-                            </RNSVGGroup>
-                          </RNSVGSvgView>
+                              >
+                                <RNSVGDefs>
+                                  <RNSVGLinearGradient
+                                    gradient={
+                                      [
+                                        0,
+                                        16777215,
+                                        1,
+                                        -1,
+                                      ]
+                                    }
+                                    gradientTransform={null}
+                                    gradientUnits={0}
+                                    name="fadeGradient"
+                                    x1="0"
+                                    x2="0"
+                                    y1="0"
+                                    y2="1"
+                                  />
+                                </RNSVGDefs>
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "brushRef": "fadeGradient",
+                                      "type": 1,
+                                    }
+                                  }
+                                  height="30"
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width="100%"
+                                  x="0"
+                                  y="0"
+                                />
+                              </RNSVGGroup>
+                            </RNSVGSvgView>
+                          </View>
                         </View>
                       </View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Includes 0.875% MM fee
+                      </Text>
                     </View>
                   </View>
                 </View>

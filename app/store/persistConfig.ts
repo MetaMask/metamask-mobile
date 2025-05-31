@@ -8,7 +8,7 @@ import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
 import Engine, { EngineContext } from '../core/Engine';
-import { getPersistentState } from '@metamask/base-controller';
+import { getPersistentState } from './getPersistentState/getPersistentState';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -122,12 +122,26 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
+const persistOnboardingTransform = createTransform(
+  (inboundState: RootState['onboarding']) => {
+    const { events, ...state } = inboundState;
+    // Reconstruct data to persist
+    return state;
+  },
+  null,
+  { whitelist: ['onboarding'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [
+    persistTransform,
+    persistUserTransform,
+    persistOnboardingTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,

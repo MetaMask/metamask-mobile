@@ -75,7 +75,7 @@ export const wallet_addEthereumChain = async ({
     ticker,
   } = params;
 
-  const switchToNetworkAndMetrics = async (network, isAddNetworkFlow) => {
+  const switchToNetworkAndMetrics = async (network) => {
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
@@ -107,7 +107,6 @@ export const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-      isAddNetworkFlow,
       autoApprove: shouldAddOrUpdateNetwork,
       hooks,
     });
@@ -152,7 +151,6 @@ export const wallet_addEthereumChain = async ({
         rpcEndpoints: rpcResult.updatedArray,
         defaultRpcEndpointIndex: rpcResult.index,
       },
-      false,
     );
 
     res.result = null;
@@ -282,23 +280,7 @@ export const wallet_addEthereumChain = async ({
         .build(),
     );
   }
-  switchToNetworkAndMetrics(newNetworkConfiguration, true);
+  switchToNetworkAndMetrics(newNetworkConfiguration);
 
   res.result = null;
-};
-
-export const addEthereumChainHandler = {
-  methodNames: [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN],
-  implementation: wallet_addEthereumChain,
-  hookNames: {
-    addNetwork: true,
-    updateNetwork: true,
-    getNetworkConfigurationByChainId: true,
-    setActiveNetwork: true,
-    requestUserApproval: true,
-    getCurrentChainIdForDomain: true,
-    getCaveat: true,
-    requestPermittedChainsPermissionIncrementalForOrigin: true,
-    rejectApprovalRequestsForOrigin: true,
-  },
 };

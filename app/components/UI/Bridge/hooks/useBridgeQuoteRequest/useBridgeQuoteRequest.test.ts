@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';

@@ -63,6 +63,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
+      maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
     },
     list: {
       width: '100%',
@@ -174,7 +175,7 @@ export default class SelectComponent extends PureComponent {
     return (
       <View style={baseStyles.flexGrow}>
         <TouchableOpacity onPress={this.showPicker}
-        testID={this.props.testID}>
+          testID={this.props.testID}>
           <View style={styles.dropdown}>
             <Text style={styles.selectedOption} numberOfLines={1}>
               {this.getSelectedValue()}

@@ -65,7 +65,7 @@ describe('switchToNetwork', () => {
       test: 'test',
     };
     const origin = 'test';
-    const isAddNetworkFlow = false;
+    const autoApprove = false;
 
     await switchToNetwork({
       network: [networkClientId, network],
@@ -73,7 +73,7 @@ describe('switchToNetwork', () => {
       requestUserApproval,
       analytics,
       origin,
-      isAddNetworkFlow,
+      autoApprove,
       hooks: mockHooks,
     });
 

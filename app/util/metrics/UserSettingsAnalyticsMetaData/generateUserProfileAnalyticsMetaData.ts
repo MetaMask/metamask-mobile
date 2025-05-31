@@ -4,6 +4,7 @@ import {
   UserProfileMetaData,
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 
 /**
  * Generate user profile analytics meta data
@@ -18,7 +19,9 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   const appThemeStyle =
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
-      reduxState?.security?.dataCollectionForMarketing;
+    reduxState?.security?.dataCollectionForMarketing;
+
+  const hdKeyrings = selectHDKeyrings(reduxState);
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -40,9 +43,11 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
-    [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
+    [UserProfileProperty.HAS_MARKETING_CONSENT]:
+      isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
+    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
   };
 };
 

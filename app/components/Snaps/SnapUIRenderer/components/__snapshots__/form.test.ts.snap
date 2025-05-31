@@ -121,7 +121,7 @@ exports[`SnapUIForm will render 1`] = `
                         "paddingVertical": 0,
                       }
                     }
-                    testID="input"
+                    testID="input-snap-ui-input"
                     value=""
                   />
                 </View>
@@ -302,7 +302,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                         "paddingVertical": 0,
                       }
                     }
-                    testID="input"
+                    testID="input-snap-ui-input"
                     value="abc"
                   />
                 </View>

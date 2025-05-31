@@ -31,3 +31,19 @@ export const selectDepositProviderFrontendAuth = createSelector(
     return depositProviderFrontendAuth ?? null;
   },
 );
+
+export const selectDepositEntrypoints = createSelector(
+  selectDepositConfig,
+  (depositConfig) => {
+    const depositEntrypoints = depositConfig?.entrypoints;
+    return depositEntrypoints;
+  },
+);
+
+export const selectDepositEntrypointWalletActions = createSelector(
+  selectDepositEntrypoints,
+  (depositEntrypoints) => {
+    const depositEntrypointWalletActions = depositEntrypoints?.walletActions;
+    return depositEntrypointWalletActions ?? false;
+  },
+);

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -65,6 +65,13 @@ const RegionsView = () => {
     clearUnsupportedRegion,
   } = useRegions();
 
+  const [isPristine, setIsPristine] = useState(true);
+
+  const handleRegionSelectorPress = useCallback(() => {
+    setIsPristine(false);
+    showRegionModal();
+  }, [showRegionModal, setIsPristine]);
+
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
@@ -100,6 +107,26 @@ const RegionsView = () => {
   const handleOnPress = useCallback(() => {
     navigation.navigate(...createBuildQuoteNavDetails());
   }, [navigation]);
+
+  useEffect(() => {
+    if (
+      selectedRegion &&
+      !selectedRegion.unsupported &&
+      ((isBuy && selectedRegion.support.buy) ||
+        (isSell && selectedRegion.support.sell)) &&
+      isPristine
+    ) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
+            params: { showBack: false },
+          },
+        ],
+      });
+    }
+  }, [handleOnPress, selectedRegion, isPristine, isBuy, isSell, navigation]);
 
   const handleRegionPress = useCallback(
     (region: Region) => {
@@ -164,7 +191,7 @@ const RegionsView = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           <TouchableOpacity
-            onPress={showRegionModal}
+            onPress={handleRegionSelectorPress}
             accessibilityRole="button"
             accessible
           >

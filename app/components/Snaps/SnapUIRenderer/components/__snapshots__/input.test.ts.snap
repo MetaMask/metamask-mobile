@@ -108,7 +108,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="testInput-snap-ui-input"
                   value=""
                 />
               </View>
@@ -233,7 +233,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  testID="input"
+                  testID="testInput-snap-ui-input"
                   value="initial value"
                 />
               </View>

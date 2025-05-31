@@ -44,6 +44,15 @@ describe('SnapPermissions', () => {
   const endowmentExtendRuntimeTitle = 'Extend runtime';
   const snapDialogTitle = 'Display custom dialogs';
   const snapManageAccountsTitle = 'Add and control Ethereum accounts';
+  const endowmentSignatureInsightTitle = 'Display signature insights modal';
+  const endowmentprotocolTitle = 'Provide protocol data for one or more chains';
+  const snapGetPreferencesTitle =
+    'See information like your preferred language and fiat currency';
+  const endowmentLifecycleHooksTitle = 'Use lifecycle hooks';
+  const endowmentNameLookupTitle = 'Provide domain and address lookups';
+  const endowmentPageHomeTitle = 'Display a custom screen';
+  const walletSnapTitleOne = 'Connect to @metamask/bip32-example-snap';
+  const walletSnapTitleTwo = 'Connect to @metamask/bip44-example-snap';
 
   const mockCoinTypes = [
     { coinType: 0 }, // Bitcoin
@@ -408,6 +417,67 @@ describe('SnapPermissions', () => {
         invoker: 'npm:@metamask/snap-simple-keyring-snap',
         parentCapability: 'snap_manageAccounts',
       },
+      'endowment:signature-insight': {
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:signature-insight',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:protocol': {
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:protocol',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      snap_getPreferences: {
+        caveats: null,
+        date: mockDate2,
+        id: '_jJdNdRnD5pXD728ngmHY',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        parentCapability: 'snap_getPreferences',
+      },
+      'endowment:lifecycle-hooks': {
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:lifecycle-hooks',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:name-lookup': {
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:name-lookup',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:page-home': {
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:page-home',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: null,
+        date: mockDate2,
+      },
+      wallet_snap: {
+        id: 'MuqnOW-7BRg94sRDmVnDK',
+        parentCapability: 'wallet_snap',
+        invoker: 'npm:@metamask/unknown-example-snap',
+        caveats: [
+          {
+            type: 'snapIds',
+            value: {
+              'npm:@metamask/bip32-example-snap': {
+                version: '0.34.1-flask.1',
+              },
+              'npm:@metamask/bip44-example-snap': {
+                version: '0.34.1-flask.1',
+              },
+            },
+          },
+        ],
+        date: mockDate2,
+      },
     };
 
     const { getAllByTestId } = render(
@@ -418,7 +488,7 @@ describe('SnapPermissions', () => {
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-    expect(permissionCells.length).toBe(22);
+    expect(permissionCells.length).toBe(30);
     expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
     expect(permissionCellDates[0].props.children).toBe(
       'Approved on May 24 at 5:35 pm',
@@ -519,8 +589,58 @@ describe('SnapPermissions', () => {
     expect(permissionCellDates[20].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
-    expect(permissionCellTitles[21].props.children).toBe(snapManageAccountsTitle);
+    expect(permissionCellTitles[21].props.children).toBe(
+      snapManageAccountsTitle,
+    );
     expect(permissionCellDates[21].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[22].props.children).toBe(
+      endowmentSignatureInsightTitle,
+    );
+    expect(permissionCellDates[22].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[23].props.children).toBe(
+      endowmentprotocolTitle,
+    );
+    expect(permissionCellDates[23].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[24].props.children).toBe(
+      snapGetPreferencesTitle,
+    );
+    expect(permissionCellDates[24].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[25].props.children).toBe(
+      endowmentLifecycleHooksTitle,
+    );
+    expect(permissionCellDates[25].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[26].props.children).toBe(
+      endowmentNameLookupTitle,
+    );
+    expect(permissionCellDates[26].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[27].props.children).toBe(
+      endowmentPageHomeTitle,
+    );
+    expect(permissionCellDates[27].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[28].props.children).toBe(
+      walletSnapTitleOne,
+    );
+    expect(permissionCellDates[28].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[29].props.children).toBe(
+      walletSnapTitleTwo,
+    );
+    expect(permissionCellDates[29].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
   });

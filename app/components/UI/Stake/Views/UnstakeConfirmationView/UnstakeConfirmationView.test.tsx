@@ -5,7 +5,7 @@ import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
-import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

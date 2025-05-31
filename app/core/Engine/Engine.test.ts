@@ -95,6 +95,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('BridgeStatusController');
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -117,8 +118,7 @@ describe('Engine', () => {
         vault: 'vault',
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
-      } as KeyringControllerState,
+      },
       [],
     );
     expect(backupVault).toHaveBeenCalled();
@@ -136,7 +136,6 @@ describe('Engine', () => {
         vault: undefined,
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
       } as KeyringControllerState,
       [],
     );

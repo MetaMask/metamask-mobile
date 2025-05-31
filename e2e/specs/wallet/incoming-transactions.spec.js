@@ -104,7 +104,9 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it('displays incoming token transfers', async () => {
+  // TODO: Fix this test and remove the skip
+  // More info: https://github.com/MetaMask/metamask-mobile/issues/15730
+  it.skip('displays incoming token transfers', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

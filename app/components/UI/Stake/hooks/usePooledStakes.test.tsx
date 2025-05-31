@@ -1,6 +1,6 @@
 import { PooledStakeExitRequest } from '@metamask/stake-sdk';
 
-import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/mockData';
+import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import {

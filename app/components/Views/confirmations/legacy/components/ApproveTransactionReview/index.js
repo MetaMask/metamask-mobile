@@ -79,7 +79,7 @@ import {
   selectProviderTypeByChainId,
   selectRpcUrlByChainId,
 } from '../../../../../../selectors/networkController';
-import { selectTokenList } from '../../../../../../selectors/tokenListController';
+import { selectERC20TokensByChain } from '../../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../../../../selectors/accountTrackerController';
 import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../../selectors/confirmTransaction';
@@ -351,7 +351,7 @@ class ApproveTransactionReview extends PureComponent {
     const { chainId } = this.props;
     const {
       // We need to extract transaction.transaction here to retrieve up-to-date nonce
-      transaction: { origin, to, data, from, transaction },
+      transaction: { origin, to, data, from, transaction, networkClientId },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -394,7 +394,7 @@ class ApproveTransactionReview extends PureComponent {
     // The tokenList addresses we get from state are not checksum addresses
     // also, the tokenList we get does not contain the tokenStandard, so even if the token exists in tokenList we will
     // need to fetch it using getTokenDetails
-    const contract = tokenList[to];
+    const contract = tokenList?.[to];
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -412,8 +412,12 @@ class ApproveTransactionReview extends PureComponent {
       createdSpendCap = isReadyToApprove;
     } else {
       try {
-        const result = await getTokenDetails(to, from, encodedDecimalAmount);
-
+        const result = await getTokenDetails(
+          to,
+          from,
+          encodedDecimalAmount,
+          networkClientId,
+        );
         const { standard, name, decimals, symbol } = result;
 
         if (isNFTTokenStandard(standard)) {
@@ -422,7 +426,11 @@ class ApproveTransactionReview extends PureComponent {
           tokenStandard = standard;
         } else {
           const erc20TokenBalance =
-            await AssetsContractController.getERC20BalanceOf(to, from);
+            await AssetsContractController.getERC20BalanceOf(
+              to,
+              from,
+              networkClientId,
+            );
           tokenDecimals = decimals;
           tokenSymbol = symbol;
           tokenStandard = standard;
@@ -464,9 +472,6 @@ class ApproveTransactionReview extends PureComponent {
       },
     });
 
-    const token = Object.values(tokenList).filter(
-      (token) => token.address === to,
-    );
 
     this.setState(
       {
@@ -480,7 +485,6 @@ class ApproveTransactionReview extends PureComponent {
           tokenValue: encodedDecimalAmount,
           tokenStandard,
           tokenBalance,
-          tokenImage: token[0]?.iconUrl,
         },
         spenderAddress,
         encodedHexAmount,
@@ -809,7 +813,6 @@ class ApproveTransactionReview extends PureComponent {
         tokenValue,
         tokenDecimals,
         tokenBalance,
-        tokenImage,
       },
       tokenSpendValue,
       fetchingUpdateDone,
@@ -823,7 +826,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to, id: transactionId },
+      transaction: { origin, from, to, id: transactionId, networkClientId },
       chainId,
       over,
       gasEstimateType,
@@ -844,8 +847,11 @@ class ApproveTransactionReview extends PureComponent {
       networkConfigurations,
       isNativeTokenBuySupported,
       isGasEstimateStatusIn,
+      tokenList,
     } = this.props;
 
+    // Get token image directly from tokenList or render Identicon
+    const tokenImage = tokenList?.[to]?.iconUrl || to;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(chainId);
 
@@ -904,6 +910,8 @@ class ApproveTransactionReview extends PureComponent {
               origin={origin}
               url={activeTabUrl}
               from={from}
+              chainId={chainId}
+              networkClientId={networkClientId}
               asset={{
                 address: to,
                 symbol: tokenSymbol,
@@ -1364,7 +1372,7 @@ const mapStateToProps = (state) => {
     primaryCurrency: state.settings.primaryCurrency,
     activeTabUrl: getActiveTabUrl(state),
     chainId,
-    tokenList: selectTokenList(state),
+    tokenList: selectERC20TokensByChain(state)?.[chainId]?.data,
     isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
       chainId,
       getRampNetworks(state),

@@ -3,7 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
 import StakingEarningsHistoryButton from './StakingEarningsHistoryButton';
 
 const mockNavigate = jest.fn();

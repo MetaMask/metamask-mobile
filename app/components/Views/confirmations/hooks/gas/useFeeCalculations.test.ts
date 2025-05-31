@@ -17,6 +17,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../utils/token', () => ({
+  ...jest.requireActual('../../../../utils/token'),
+  fetchErc20Decimals: jest.fn().mockResolvedValue(18),
+}));
+
 describe('useFeeCalculations', () => {
   const transactionMeta =
     stakingDepositConfirmationState.engine.backgroundState.TransactionController
@@ -39,13 +44,11 @@ describe('useFeeCalculations', () => {
         state: clonedStateWithoutTxParams,
       },
     );
-    expect(result.current).toMatchInlineSnapshot(`
-            {
-              "estimatedFeeFiat": "$0.00",
-              "estimatedFeeNative": "0 ETH",
-              "preciseNativeFeeInHex": "0x0",
-            }
-          `);
+
+    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeNative).toBe('0 ETH');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x0');
+    expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
   it('returns fee calculations', async () => {
@@ -55,13 +58,11 @@ describe('useFeeCalculations', () => {
         state: stakingDepositConfirmationState,
       },
     );
-    expect(result.current).toMatchInlineSnapshot(`
-        {
-          "estimatedFeeFiat": "$0.34",
-          "estimatedFeeNative": "0.0001 ETH",
-          "preciseNativeFeeInHex": "0x5572e9c22d00",
-        }
-      `);
+
+    expect(result.current.estimatedFeeFiat).toBe('$0.34');
+    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
+    expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
   it('returns fee calculations less than $0.01', async () => {
@@ -81,13 +82,11 @@ describe('useFeeCalculations', () => {
         state: clonedStakingDepositConfirmationState,
       },
     );
-    expect(result.current).toMatchInlineSnapshot(`
-        {
-          "estimatedFeeFiat": "< $0.01",
-          "estimatedFeeNative": "0.0001 ETH",
-          "preciseNativeFeeInHex": "0x5572e9c22d00",
-        }
-      `);
+
+    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
+    expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
   it('returns null as estimatedFeeFiat if conversion rate is not available', async () => {
@@ -109,13 +108,11 @@ describe('useFeeCalculations', () => {
         state: clonedStakingDepositConfirmationState,
       },
     );
-    expect(result.current).toMatchInlineSnapshot(`
-        {
-          "estimatedFeeFiat": null,
-          "estimatedFeeNative": "0.0001 ETH",
-          "preciseNativeFeeInHex": "0x5572e9c22d00",
-        }
-      `);
+
+    expect(result.current.estimatedFeeFiat).toBe(null);
+    expect(result.current.estimatedFeeNative).toBe(null);
+    expect(result.current.preciseNativeFeeInHex).toBe(null);
+    expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
   it('returns fee calculations including layer1GasFee (L1 + L2)', async () => {
@@ -133,14 +130,12 @@ describe('useFeeCalculations', () => {
         state: clonedStateWithLayer1GasFee,
       },
     );
+
     // The expected values are the sum of the original estimatedFee and layer1GasFee
     // The original estimatedFee is 0x5572e9c22d00, so the sum is 0x5572e9c23d00
-    expect(result.current).toMatchInlineSnapshot(`
-      {
-        "estimatedFeeFiat": "$0.34",
-        "estimatedFeeNative": "0.0001 ETH",
-        "preciseNativeFeeInHex": "0x5572e9c23d00",
-      }
-    `);
+    expect(result.current.estimatedFeeFiat).toBe('$0.34');
+    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c23d00');
+    expect(result.current.calculateGasEstimate).toBeDefined();
   });
 });

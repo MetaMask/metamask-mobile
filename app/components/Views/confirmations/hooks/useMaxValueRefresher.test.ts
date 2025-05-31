@@ -11,14 +11,6 @@ import { useFeeCalculations } from './gas/useFeeCalculations';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
 }));

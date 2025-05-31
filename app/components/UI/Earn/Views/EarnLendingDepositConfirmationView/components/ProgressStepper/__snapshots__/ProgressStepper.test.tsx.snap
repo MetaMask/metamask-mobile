@@ -1,0 +1,1036 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProgressStepper renders correctly 1`] = `
+<View>
+  <RNSVGSvgView
+    bbHeight={10}
+    bbWidth="auto"
+    focusable={false}
+    height={10}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 0,
+          "height": 10,
+          "width": "auto",
+        },
+      ]
+    }
+    width="auto"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    >
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        testID="progress-stepper-progress-bar"
+        x1="0"
+        x2={250}
+        y1="5"
+        y2="5"
+      />
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 440687103,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        x1="0"
+        x2="100%"
+        y1="5"
+        y2="5"
+      />
+    </RNSVGGroup>
+  </RNSVGSvgView>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-0"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          1
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Approve
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-1"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          2
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Deposit
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ProgressStepper renders first and second step complete state when active step is 2 1`] = `
+<View>
+  <RNSVGSvgView
+    bbHeight={10}
+    bbWidth="auto"
+    focusable={false}
+    height={10}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 0,
+          "height": 10,
+          "width": "auto",
+        },
+      ]
+    }
+    width="auto"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    >
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        testID="progress-stepper-progress-bar"
+        x1="0"
+        x2={750}
+        y1="5"
+        y2="5"
+      />
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 440687103,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        x1="0"
+        x2="100%"
+        y1="5"
+        y2="5"
+      />
+    </RNSVGGroup>
+  </RNSVGSvgView>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-0"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+        testID="progress-stepper-step-icon-completed"
+      >
+        <SvgMock
+          color="#ffffff"
+          fill="currentColor"
+          height={16}
+          name="Check"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Approve
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-1"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+        testID="progress-stepper-step-icon-completed"
+      >
+        <SvgMock
+          color="#ffffff"
+          fill="currentColor"
+          height={16}
+          name="Check"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Deposit
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ProgressStepper renders first step complete and second step pending state when active step is 1 1`] = `
+<View>
+  <RNSVGSvgView
+    bbHeight={10}
+    bbWidth="auto"
+    focusable={false}
+    height={10}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 0,
+          "height": 10,
+          "width": "auto",
+        },
+      ]
+    }
+    width="auto"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    >
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        testID="progress-stepper-progress-bar"
+        x1="0"
+        x2={500}
+        y1="5"
+        y2="5"
+      />
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 440687103,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        x1="0"
+        x2="100%"
+        y1="5"
+        y2="5"
+      />
+    </RNSVGGroup>
+  </RNSVGSvgView>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-0"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+        testID="progress-stepper-step-icon-completed"
+      >
+        <SvgMock
+          color="#ffffff"
+          fill="currentColor"
+          height={16}
+          name="Check"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Approve
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-1"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          2
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Deposit
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ProgressStepper renders first step loading when isLoading prop set to true for firt step 1`] = `
+<View>
+  <RNSVGSvgView
+    bbHeight={10}
+    bbWidth="auto"
+    focusable={false}
+    height={10}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 0,
+          "height": 10,
+          "width": "auto",
+        },
+      ]
+    }
+    width="auto"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    >
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        testID="progress-stepper-progress-bar"
+        x1="0"
+        x2={250}
+        y1="5"
+        y2="5"
+      />
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 440687103,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        x1="0"
+        x2="100%"
+        y1="5"
+        y2="5"
+      />
+    </RNSVGGroup>
+  </RNSVGSvgView>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-0"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+        testID="progress-stepper-step-icon-loading"
+      >
+        <View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "bottom": 0,
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <ActivityIndicator
+              color="#ffffff"
+              size="small"
+            />
+          </View>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Approve
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-1"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          2
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Deposit
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ProgressStepper renders first step pending state when active step is 0 1`] = `
+<View>
+  <RNSVGSvgView
+    bbHeight={10}
+    bbWidth="auto"
+    focusable={false}
+    height={10}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 0,
+          "height": 10,
+          "width": "auto",
+        },
+      ]
+    }
+    width="auto"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    >
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        testID="progress-stepper-progress-bar"
+        x1="0"
+        x2={250}
+        y1="5"
+        y2="5"
+      />
+      <RNSVGLine
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+        propList={
+          [
+            "stroke",
+            "strokeWidth",
+          ]
+        }
+        stroke={
+          {
+            "payload": 440687103,
+            "type": 0,
+          }
+        }
+        strokeWidth={1}
+        x1="0"
+        x2="100%"
+        y1="5"
+        y2="5"
+      />
+    </RNSVGGroup>
+  </RNSVGSvgView>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-0"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          1
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Approve
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 17,
+          "position": "relative",
+        }
+      }
+      testID="progress-stepper-step-1"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 12,
+            "height": 24,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="progress-stepper-step-icon-pending"
+        >
+          2
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Deposit
+      </Text>
+    </View>
+  </View>
+</View>
+`;

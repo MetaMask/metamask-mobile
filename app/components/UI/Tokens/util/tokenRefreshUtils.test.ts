@@ -84,9 +84,25 @@ describe('performEvmRefresh', () => {
 
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledWith([
+      { chainId: '0x1', nativeCurrency: 'ETH' },
+      { chainId: '0x2', nativeCurrency: 'BNB' },
+    ]);
 
     expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('filters network configurations when updating token exchange rates', async () => {
+    // This is a rare edge-case. NetworkConfigurations should have a native currency
+    const invalidNetworkConfiguration = {
+      '0x1': { chainId: '0x1', nativeCurrency: undefined as unknown as string },
+    } as const;
+    const currencies = ['ETH'];
+
+    await performEvmRefresh(invalidNetworkConfiguration, currencies);
+    expect(
+      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+    ).toHaveBeenCalledWith([]); // This controller handles when there is no chains to update
   });
 
   it('should catch and log error if any action fails', async () => {

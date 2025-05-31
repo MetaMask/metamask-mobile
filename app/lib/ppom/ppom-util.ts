@@ -98,7 +98,7 @@ async function validateRequest(
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {
-    if (isTransaction && !transactionId) {
+    if (isTransaction && !transactionId && !securityAlertId) {
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
@@ -175,6 +175,56 @@ async function validateWithAPI(
   }
 }
 
+function getTransactionIdForSecurityAlertId(securityAlertId?: string) {
+  if (!securityAlertId) return;
+  const confirmation =
+    Engine.context.TransactionController.state.transactions.find(
+      (meta) =>
+        (
+          meta.securityAlertResponse as SecurityAlertResponse & {
+            securityAlertId: string;
+          }
+        )?.securityAlertId === securityAlertId,
+    );
+  return confirmation?.id;
+}
+
+function updateSecurityResultForTransaction(
+  transactionId: string | undefined,
+  response: SecurityAlertResponse,
+  updateControllerState: boolean = false,
+  securityAlertId?: string,
+) {
+  store.dispatch(setTransactionSecurityAlertResponse(transactionId, response));
+
+  if (updateControllerState) {
+    updateSecurityAlertResponse(
+      transactionId as string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { ...response, securityAlertId } as any,
+    );
+  }
+}
+
+function fetchTransactionIdAndUpdateSecurityResultForTransaction(
+  response: SecurityAlertResponse,
+  updateControllerState?: boolean,
+  securityAlertId?: string,
+) {
+  const intervalId = setInterval(() => {
+    const transactionId = getTransactionIdForSecurityAlertId(securityAlertId);
+    if (transactionId) {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+      clearInterval(intervalId);
+    }
+  }, 100);
+}
+
 function setSecurityAlertResponse(
   request: PPOMRequest,
   response: SecurityAlertResponse,
@@ -185,15 +235,18 @@ function setSecurityAlertResponse(
   }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
-    store.dispatch(
-      setTransactionSecurityAlertResponse(transactionId, response),
-    );
-
-    if (updateControllerState) {
-      updateSecurityAlertResponse(
-        transactionId as string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { ...response, securityAlertId } as any,
+    if (securityAlertId && !transactionId) {
+      fetchTransactionIdAndUpdateSecurityResultForTransaction(
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+    } else {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
       );
     }
   } else {
@@ -244,8 +297,7 @@ function clearSignatureSecurityAlertResponse() {
 }
 
 function createValidatorForSecurityAlertId(securityAlertId: string) {
-  return (req: PPOMRequest, transactionId?: string) =>
-    validateRequest(req, transactionId, securityAlertId);
+  return (req: PPOMRequest) => validateRequest(req, undefined, securityAlertId);
 }
 
 export default {

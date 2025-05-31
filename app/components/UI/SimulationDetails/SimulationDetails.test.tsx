@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -9,10 +9,34 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import {
+  batchApprovalConfirmation,
+  generateContractInteractionState,
+  getAppStateForConfirmation,
+} from '../../../util/test/confirm-data-helpers';
+// eslint-disable-next-line import/no-namespace
+import * as BatchApprovalUtils from '../../Views/confirmations/hooks/7702/useBatchApproveBalanceChanges';
 import AnimatedSpinner from '../AnimatedSpinner';
 import SimulationDetails from './SimulationDetails';
 import useBalanceChanges from './useBalanceChanges';
 import { AssetType } from './types';
+
+const approvalData = [
+  {
+    asset: {
+      type: 'ERC20' as AssetType.ERC20 | AssetType.ERC721 | AssetType.ERC1155,
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
+      chainId: '0x1' as Hex,
+    },
+    amount: new BigNumber('-0.00001'),
+    fiatAmount: null,
+    isApproval: true,
+    isAllApproval: false,
+    isUnlimitedApproval: false,
+    nestedTransactionIndex: 0,
+  },
+];
 
 const FIRST_PARTY_CONTRACT_ADDRESS_1_MOCK =
   '0x0439e60F02a8900a951603950d8D4527f400C3f1';
@@ -59,6 +83,14 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../AnimatedSpinner');
 jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
@@ -81,7 +113,7 @@ describe('SimulationDetails', () => {
       value: [],
     });
 
-    render(
+    renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -91,6 +123,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(animatedSpinnerMock).toHaveBeenCalled();
@@ -99,7 +132,7 @@ describe('SimulationDetails', () => {
   describe("doesn't render", () => {
     it('chain is not supported', () => {
       expect(
-        render(
+        renderWithProvider(
           <SimulationDetails
             transaction={
               {
@@ -112,13 +145,14 @@ describe('SimulationDetails', () => {
             }
             enableMetrics={false}
           />,
+          { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
     });
 
     it('simulation is disabled', () => {
       expect(
-        render(
+        renderWithProvider(
           <SimulationDetails
             transaction={
               {
@@ -131,6 +165,7 @@ describe('SimulationDetails', () => {
             }
             enableMetrics={false}
           />,
+          { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
     });
@@ -138,7 +173,7 @@ describe('SimulationDetails', () => {
 
   describe('renders error', () => {
     it('if transaction will be reverted', () => {
-      const { getByText } = render(
+      const { getByText } = renderWithProvider(
         <SimulationDetails
           transaction={
             {
@@ -151,13 +186,14 @@ describe('SimulationDetails', () => {
           }
           enableMetrics={false}
         />,
+        { state: generateContractInteractionState },
       );
 
       expect(getByText('This transaction is likely to fail')).toBeDefined();
     });
 
     it('if simulation is failed', () => {
-      const { getByText } = render(
+      const { getByText } = renderWithProvider(
         <SimulationDetails
           transaction={
             {
@@ -170,6 +206,7 @@ describe('SimulationDetails', () => {
           }
           enableMetrics={false}
         />,
+        { state: generateContractInteractionState },
       );
 
       expect(
@@ -179,7 +216,7 @@ describe('SimulationDetails', () => {
   });
 
   it('renders if no balance change', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -189,6 +226,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(getByText('No changes predicted for your wallet')).toBeDefined();
@@ -226,7 +264,7 @@ describe('SimulationDetails', () => {
       ],
     });
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <SimulationDetails
         transaction={
           {
@@ -236,6 +274,7 @@ describe('SimulationDetails', () => {
         }
         enableMetrics={false}
       />,
+      { state: generateContractInteractionState },
     );
 
     expect(
@@ -244,5 +283,53 @@ describe('SimulationDetails', () => {
     expect(
       getByTestId('simulation-details-balance-change-list-incoming'),
     ).toBeDefined();
+  });
+
+  it('renders approval rows for batched transaction if they exist', async () => {
+    useBalanceChangesMock.mockReturnValue({
+      pending: false,
+      value: [
+        {
+          amount: new BigNumber('-0.00001'),
+          asset: {
+            address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+            chainId: '0x1',
+            tokenId: undefined,
+            type: AssetType.ERC20,
+          },
+          fiatAmount: -0.00000999877,
+        },
+        {
+          amount: new BigNumber('0.000009'),
+          asset: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+            tokenId: undefined,
+            type: AssetType.ERC20,
+          },
+          fiatAmount: 0.000008998623,
+        },
+      ],
+    });
+    jest
+      .spyOn(BatchApprovalUtils, 'useBatchApproveBalanceChanges')
+      .mockReturnValue({ value: approvalData, pending: false });
+
+    const { getByText } = renderWithProvider(
+      <SimulationDetails
+        transaction={
+          {
+            id: mockTransactionId,
+            simulationData: simulationDataMock,
+          } as TransactionMeta
+        }
+        enableMetrics={false}
+      />,
+      { state: getAppStateForConfirmation(batchApprovalConfirmation) },
+    );
+    await waitFor(() => {
+      expect(getByText('You approve')).toBeTruthy();
+      expect(getByText('- 0.00001')).toBeTruthy();
+    });
   });
 });

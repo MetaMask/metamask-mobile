@@ -60,9 +60,17 @@ function getAssetAmount(
 }
 
 // Fetches the decimals for the given token address.
-async function fetchErc20Decimals(address: Hex, networkClientId: string): Promise<number> {
+async function fetchErc20Decimals(
+  address: Hex,
+  networkClientId: string,
+): Promise<number> {
   try {
-    const { decimals } = await getTokenDetails(address,undefined,undefined,networkClientId);
+    const { decimals } = await getTokenDetails(
+      address,
+      undefined,
+      undefined,
+      networkClientId,
+    );
     return decimals ? parseInt(decimals, 10) : ERC20_DEFAULT_DECIMALS;
   } catch {
     return ERC20_DEFAULT_DECIMALS;
@@ -78,7 +86,9 @@ async function fetchAllErc20Decimals(
     ...new Set(addresses.map((address) => address.toLowerCase() as Hex)),
   ];
   const allDecimals = await Promise.all(
-    uniqueAddresses.map((address) => fetchErc20Decimals(address, networkClientId)),
+    uniqueAddresses.map((address) =>
+      fetchErc20Decimals(address, networkClientId),
+    ),
   );
   return Object.fromEntries(
     allDecimals.map((decimals, i) => [uniqueAddresses[i], decimals]),
@@ -190,7 +200,9 @@ export default function useBalanceChanges({
   simulationData?: SimulationData;
   networkClientId: string;
 }): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate = useSelector((state: RootState) => selectConversionRateByChainId(state, chainId)) as number;
+  const nativeFiatRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =

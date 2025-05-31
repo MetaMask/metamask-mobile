@@ -15,10 +15,12 @@ import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import GeneralAlertBanner from '../general-alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer } from '../footer';
+import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 
 const ConfirmWrapped = ({
@@ -32,22 +34,25 @@ const ConfirmWrapped = ({
 
   return (
     <ConfirmationContextProvider>
-      <AlertsContextProvider alerts={alerts}>
-        <QRHardwareContextProvider>
-          <LedgerContextProvider>
-            <Title />
-            <ScrollView style={styles.scrollView} nestedScrollEnabled>
-              <TouchableWithoutFeedback>
-                <>
-                  <GeneralAlertBanner />
-                  <Info route={route} />
-                </>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-            <Footer />
-          </LedgerContextProvider>
-        </QRHardwareContextProvider>
-      </AlertsContextProvider>
+      <ConfirmationAssetPollingProvider>
+        <AlertsContextProvider alerts={alerts}>
+          <QRHardwareContextProvider>
+            <LedgerContextProvider>
+              <Title />
+              <ScrollView style={styles.scrollView} nestedScrollEnabled>
+                <TouchableWithoutFeedback>
+                  <>
+                    <GeneralAlertBanner />
+                    <Info route={route} />
+                  </>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+              <Footer />
+              <Splash />
+            </LedgerContextProvider>
+          </QRHardwareContextProvider>
+        </AlertsContextProvider>
+      </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );
 };
@@ -78,7 +83,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   return (
     <BottomSheet
-      onClose={onReject}
+      onClose={() => onReject()}
       shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}

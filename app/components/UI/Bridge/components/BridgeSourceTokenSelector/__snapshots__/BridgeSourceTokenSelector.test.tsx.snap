@@ -796,7 +796,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               [
                                 {
                                   "address": "0x0000000000000000000000000000000000000002",
-                                  "balance": "2",
+                                  "balance": "2.0",
                                   "balanceFiat": "$200000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -807,7 +807,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000003",
-                                  "balance": "5",
+                                  "balance": "5.0",
                                   "balanceFiat": "$80000",
                                   "chainId": "0xa",
                                   "decimals": 18,
@@ -818,7 +818,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000000",
-                                  "balance": "20",
+                                  "balance": "20.0",
                                   "balanceFiat": "$40000",
                                   "chainId": "0xa",
                                   "decimals": 18,
@@ -829,7 +829,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000001",
-                                  "balance": "1",
+                                  "balance": "1.0",
                                   "balanceFiat": "$20000",
                                   "chainId": "0x1",
                                   "decimals": 18,
@@ -840,7 +840,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 },
                                 {
                                   "address": "0x0000000000000000000000000000000000000000",
-                                  "balance": "3",
+                                  "balance": "3.0",
                                   "balanceFiat": "$6000",
                                   "chainId": "0x1",
                                   "decimals": 18,

@@ -26,7 +26,7 @@ import Logger from '../../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../../util/blockaid';
 import Device from '../../../../../../util/device';
-import { isMultiLayerFeeNetwork } from '../../../../../../util/networks';
+import { isMultiLayerFeeNetwork, isPerDappSelectedNetworkEnabled } from '../../../../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
@@ -60,6 +60,7 @@ import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
@@ -612,6 +613,7 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
+                          origin={isPerDappSelectedNetworkEnabled() ? origin : undefined }
                         />
                       </View>
                     )}

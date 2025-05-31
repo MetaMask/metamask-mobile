@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
@@ -25,7 +25,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -33,6 +32,7 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
+import EarnBalance from '../../Earn/components/EarnBalance';
 
 interface BalanceProps {
   asset: TokenI;
@@ -108,23 +108,32 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     );
   }, [asset, styles.ethLogo]);
 
+  const isDisabled = useMemo(
+    () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
+    [asset.chainId, asset.isNative],
+  );
+
+  const handlePress = useCallback(
+    () =>
+      !asset.isNative &&
+      navigation.navigate('AssetDetails', {
+        chainId: asset.chainId,
+        address: asset.address,
+      }),
+    [asset.address, asset.chainId, asset.isNative, navigation],
+  );
+
   return (
     <View style={styles.wrapper}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('asset_overview.your_balance')}
       </Text>
       <AssetElement
+        disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
-        onPress={() =>
-          !asset.isETH &&
-          !asset.isNative &&
-          navigation.navigate('AssetDetails', {
-            chainId: asset.chainId,
-            address: asset.address,
-          })
-        }
+        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
@@ -143,7 +152,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
-      {asset?.isETH && <StakingBalance asset={asset} />}
+      <EarnBalance asset={asset} />
     </View>
   );
 };

@@ -174,20 +174,18 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
       data={
         [
           {
-            "chainId": "0x1",
-            "id": "0x1",
+            "caipChainId": "eip155:1",
+            "id": "eip155:1",
             "imageSource": 1,
             "isSelected": false,
             "name": "Ethereum Mainnet",
-            "rpcUrl": "https://mainnet.infura.io/v3",
           },
           {
-            "chainId": "0x89",
-            "id": "0x89",
+            "caipChainId": "eip155:137",
+            "id": "eip155:137",
             "imageSource": 1,
             "isSelected": false,
             "name": "Polygon",
-            "rpcUrl": "https://polygon-rpc.com",
           },
         ]
       }
@@ -556,6 +554,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
           style={
             {
               "flexDirection": "row",
+              "marginBottom": 0,
             }
           }
         >

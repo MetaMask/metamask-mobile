@@ -34,6 +34,7 @@ const mockAccount: Account = {
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
+  caipAccountId: `eip155:0:${internalAccount2.address}`
 };
 
 jest.mock('../../../core/Engine', () => {

@@ -5,6 +5,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 export enum WalletActionType {
   Buy = 'Buy',
   Sell = 'Sell',
+  Deposit = 'Deposit',
   Swap = 'Swap',
   Bridge = 'Bridge',
   Send = 'Send',

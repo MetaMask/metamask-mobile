@@ -1,7 +1,7 @@
 import React from 'react';
 import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 import useStakingEarningsHistory from '../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/stakeMockData';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
 import { getStakingNavbar } from '../../../Navbar';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';

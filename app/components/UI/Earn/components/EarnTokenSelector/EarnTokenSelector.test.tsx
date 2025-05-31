@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import EarnTokenSelector from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { TokenI } from '../../../../UI/Tokens/types';
 

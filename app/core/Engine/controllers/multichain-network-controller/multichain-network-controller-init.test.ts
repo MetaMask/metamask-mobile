@@ -16,15 +16,18 @@ describe('multichain network controller init', () => {
   const multichainNetworkControllerClassMock = jest.mocked(
     MultichainNetworkController,
   );
-  let initRequestMock: jest.Mocked<
-    ControllerInitRequest<MultichainNetworkControllerMessenger>
-  >;
+  let initRequestMock: ControllerInitRequest<MultichainNetworkControllerMessenger> & {
+    fetchFunction: typeof fetch;
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
     const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = {
+      ...buildControllerInitRequestMock(baseControllerMessenger),
+      fetchFunction: global.fetch,
+    };
   });
 
   it('returns controller instance', () => {
@@ -49,6 +52,7 @@ describe('multichain network controller init', () => {
       multichainNetworkConfigurationsByChainId: {},
       selectedMultichainNetworkChainId: BtcScope.Mainnet,
       isEvmSelected: false,
+      networksWithTransactionActivity: {},
     };
 
     // Update mock with initial state

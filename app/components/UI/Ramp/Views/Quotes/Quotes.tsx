@@ -869,7 +869,7 @@ function Quotes() {
   if (
     !isFetchingQuotes &&
     quotesByPriceWithoutError.length === 0 &&
-    customActions?.length === 0
+    (!customActions || customActions.length === 0)
   ) {
     if (!isExpanded) {
       return (
