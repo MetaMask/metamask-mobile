@@ -103,6 +103,28 @@ describe('Main', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
+  it('shows network changed toast message correctly', () => {
+    const state = {
+      ...initialState,
+      settings: {
+        passwordResetInProgress: false,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          SnapController: {
+            snaps: {},
+          },
+          NftController: {
+            allNfts: {},
+          },
+        },
+      },
+    };
+    const { getByText } = renderWithProvider(<Main />, { state });
+    expect(getByText('Network')).toBeTruthy();
+  });
   describe('useSwapConfirmedEvent', () => {
     it('queues transactionMeta ids correctly', () => {
       const result = renderUseSwapConfirmedEventHook({
