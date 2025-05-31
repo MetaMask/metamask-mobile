@@ -3,6 +3,7 @@
 // Third party dependencies.
 import React, {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
@@ -13,6 +14,8 @@ import {
   StyleProp,
   View,
   ViewStyle,
+  Keyboard,
+  KeyboardEvent,
 } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -51,11 +54,26 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value - TAB_BAR_HEIGHT }],
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    const translateYProgressValue =
+      keyboardHeight > 0
+        ? translateYProgress.value / 2
+        : translateYProgress.value;
+    const translateY =
+      translateYProgressValue -
+      (keyboardHeight > 0 ? 0 : TAB_BAR_HEIGHT) -
+      keyboardHeight;
+    return {
+      transform: [
+        {
+          translateY,
+        },
+      ],
+    };
+  });
   const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
     useMemo(
       () => [styles.base, animatedStyle],
@@ -218,6 +236,23 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       </>
     );
   };
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      'keyboardWillShow',
+      (e: KeyboardEvent) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      },
+    );
+    const hideSubscription = Keyboard.addListener('keyboardWillHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   if (!toastOptions) {
     return null;
