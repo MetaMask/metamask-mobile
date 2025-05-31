@@ -970,7 +970,6 @@ const ImportFromSecretRecoveryPhrase = ({
                       </Text>
                     </View>
                   }
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
               </View>
 
