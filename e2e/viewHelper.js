@@ -99,31 +99,6 @@ export const skipNotificationsDeviceSettings = async () => {
 };
 
 /**
- * Wait for an element to be enabled.
- * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
- * @param {number} maxRetries - The maximum number of retries.
- * @param {number} delay - The delay between retries in ms.
- */
-export const waitForElementToBeEnabled = async (
-  element,
-  maxRetries = 10,
-  delay = 2500,
-) => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      if (await Assertions.checkIfEnabled(element)) {
-        return;
-      }
-    } catch {
-      console.log('Element is not enabled');
-    } finally {
-      await TestHelpers.delay(delay);
-    }
-  }
-  throw new Error('Element not enabled after max retries');
-};
-
-/**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
  * @async
@@ -145,42 +120,29 @@ export const importWalletWithRecoveryPhrase = async ({
   await acceptTermOfUse();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  console.log('optInToMetrics prompt');
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  console.log('optInToMetrics closed');
   await TestHelpers.delay(3500);
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  console.log('cleared secret recovery phrase input box');
-
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
 
-  console.log('entered secret recovery phrase');
-
-  await waitForElementToBeEnabled(ImportWalletView.continueButton, 20);
-
+  await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  console.log('tapped continue button');
 
   await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
-  console.log('entered password');
-
   await CreatePasswordView.tapIUnderstandCheckBox();
-  console.log('tapped understand checkbox');
-
   await CreatePasswordView.tapCreatePasswordButton();
-  console.log('tapped create password button');
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
@@ -193,7 +155,6 @@ export const importWalletWithRecoveryPhrase = async ({
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals();
-  console.log('closed onboarding modals');
 };
 
 export const CreateNewWallet = async () => {
