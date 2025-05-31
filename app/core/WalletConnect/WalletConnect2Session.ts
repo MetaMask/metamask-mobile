@@ -570,7 +570,6 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
-      const id = trx.transactionMeta.id;
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
@@ -586,7 +585,9 @@ class WalletConnect2Session {
         ],
       };
 
-      ppomUtil.validateRequest(reqObject, id);
+      ppomUtil.validateRequest(reqObject, {
+        transactionMeta: trx.transactionMeta,
+      });
       const hash = await trx.result;
 
       await this.approveRequest({ id: requestEvent.id + '', result: hash });

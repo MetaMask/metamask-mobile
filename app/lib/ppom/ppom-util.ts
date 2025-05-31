@@ -1,3 +1,4 @@
+import { createProjectLogger } from '@metamask/utils';
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
 import {
@@ -12,6 +13,8 @@ import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
 import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 import {
+  TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionMeta,
   TransactionParams,
   normalizeTransactionParams,
 } from '@metamask/transaction-controller';
@@ -22,21 +25,35 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+import { Messenger } from '@metamask/base-controller';
+import { SignatureStateChange } from '@metamask/signature-controller';
+import cloneDeep from 'lodash/cloneDeep';
 
 export interface PPOMRequest {
   method: string;
   params: unknown[];
+
+  // Optional
+  id?: number | string;
+  jsonrpc?: string;
   origin?: string;
 }
 
-const TRANSACTION_METHOD = 'eth_sendTransaction';
-const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
+export type PPOMMessenger = Messenger<
+  never,
+  SignatureStateChange | TransactionControllerUnapprovedTransactionAddedEvent
+>;
+
+const log = createProjectLogger('ppom-util');
+
+const METHOD_SEND_TRANSACTION = 'eth_sendTransaction';
+const TRANSACTION_METHODS = [METHOD_SEND_TRANSACTION, 'eth_sendRawTransaction'];
 export const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
 export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
-  TRANSACTION_METHOD,
+  METHOD_SEND_TRANSACTION,
   'eth_signTypedData',
   'eth_signTypedData_v1',
   'eth_signTypedData_v3',
@@ -58,8 +75,13 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
 
 async function validateRequest(
   req: PPOMRequest,
-  transactionId?: string,
-  securityAlertId?: string,
+  {
+    transactionMeta = {} as TransactionMeta,
+    securityAlertId,
+  }: {
+    transactionMeta?: TransactionMeta;
+    securityAlertId?: string;
+  } = {},
 ) {
   const {
     AccountsController,
@@ -74,11 +96,12 @@ async function validateRequest(
   );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
+
   if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
-  if (req.method === 'eth_sendTransaction') {
+  if (req.method === METHOD_SEND_TRANSACTION) {
     const internalAccounts = AccountsController.listAccounts();
     const { from: fromAddress, to: toAddress } = req
       ?.params?.[0] as Partial<TransactionParams>;
@@ -95,6 +118,7 @@ async function validateRequest(
   }
 
   const isTransaction = isTransactionRequest(req);
+  const transactionId = transactionMeta?.id;
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {
@@ -110,7 +134,9 @@ async function validateRequest(
       { securityAlertId },
     );
 
-    const normalizedRequest = normalizeRequest(req);
+    const normalizedRequest = normalizeRequest(req, transactionMeta);
+
+    log('Normalized request', normalizedRequest);
 
     securityAlertResponse = isSecurityAlertsAPIEnabled()
       ? await validateWithAPI(ppomController, chainId, normalizedRequest)
@@ -258,33 +284,68 @@ function isTransactionRequest(request: PPOMRequest) {
   return TRANSACTION_METHODS.includes(request.method);
 }
 
-function sanitizeRequest(request: PPOMRequest): PPOMRequest {
+function normalizeSignatureRequest(request: PPOMRequest): PPOMRequest {
   // This is a temporary fix to prevent a PPOM bypass
   if (
-    request.method === METHOD_SIGN_TYPED_DATA_V4 ||
-    request.method === METHOD_SIGN_TYPED_DATA_V3
+    request.method !== METHOD_SIGN_TYPED_DATA_V4 &&
+    request.method !== METHOD_SIGN_TYPED_DATA_V3
   ) {
-    if (Array.isArray(request.params)) {
-      return {
-        ...request,
-        params: request.params.slice(0, 2),
-      };
-    }
+    return request;
   }
-  return request;
+
+  if (!Array.isArray(request.params)) {
+    return request;
+  }
+
+  return {
+    ...request,
+    params: request.params.slice(0, 2),
+  };
 }
 
-function normalizeRequest(request: PPOMRequest): PPOMRequest {
-  if (request.method !== TRANSACTION_METHOD) {
-    return sanitizeRequest(request);
+function normalizeRequest(
+  request: PPOMRequest,
+  transactionMeta?: TransactionMeta
+): PPOMRequest {
+  let normalizedRequest = cloneDeep(request);
+
+  normalizedRequest = normalizeSignatureRequest(normalizedRequest);
+
+  normalizedRequest = normalizeTransactionRequest(
+    normalizedRequest,
+    transactionMeta,
+  );
+
+  return normalizedRequest;
+}
+
+function normalizeTransactionRequest(
+  request: PPOMRequest,
+  transactionMeta?: TransactionMeta,
+): PPOMRequest {
+  if (request.method !== METHOD_SEND_TRANSACTION) {
+    return request;
   }
 
   request.origin = request.origin
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
-  const transactionParams = (request.params?.[0] || {}) as TransactionParams;
-  const normalizedParams = normalizeTransactionParams(transactionParams);
+  const txParams = (Array.isArray(request.params) ? request.params[0] : {}) as TransactionParams;
+
+  // Provide the estimated gas to PPOM rather than relying on PPOM to estimate the gas values
+  txParams.gas = transactionMeta?.txParams?.gas;
+  txParams.gasPrice = transactionMeta?.txParams?.maxFeePerGas ?? transactionMeta?.txParams?.gasPrice;
+
+  // Remove unused request params for PPOM
+  delete txParams.gasLimit;
+  delete txParams.maxFeePerGas;
+  delete txParams.maxPriorityFeePerGas;
+  delete txParams.type;
+
+  const normalizedParams = normalizeTransactionParams(txParams);
+
+  log('Normalized transaction params', normalizedParams);
 
   return {
     ...request,
@@ -297,7 +358,7 @@ function clearSignatureSecurityAlertResponse() {
 }
 
 function createValidatorForSecurityAlertId(securityAlertId: string) {
-  return (req: PPOMRequest) => validateRequest(req, undefined, securityAlertId);
+  return (req: PPOMRequest) => validateRequest(req, { securityAlertId });
 }
 
 export default {

@@ -559,7 +559,9 @@ class Confirm extends PureComponent {
       ],
     };
 
-    ppomUtil.validateRequest(reqObject, id);
+    ppomUtil.validateRequest(reqObject, {
+      transactionMeta,
+    });
   };
 
   componentDidUpdate = (prevProps, prevState) => {
