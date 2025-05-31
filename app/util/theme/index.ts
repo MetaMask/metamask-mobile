@@ -121,15 +121,15 @@ export const useAppTheme = (): Theme => {
   const brandColors = brandColor;
 
   const setDarkStatusBar = () => {
+    StatusBar.setTranslucent(true);
     StatusBar.setBarStyle('light-content', true);
-    Device.isAndroid() &&
-      StatusBar.setBackgroundColor(darkTheme.colors.background.default);
+    StatusBar.setBackgroundColor('transparent');
   };
 
   const setLightStatusBar = () => {
-    StatusBar.setBarStyle('dark-content', true);
-    Device.isAndroid() &&
-      StatusBar.setBackgroundColor(lightTheme.colors.background.default);
+    StatusBar.setTranslucent(true);
+    StatusBar.setBarStyle('light-content', true);
+    StatusBar.setBackgroundColor('transparent');
   };
 
   switch (appTheme) {
