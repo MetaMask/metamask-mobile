@@ -251,8 +251,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     promptToCreateSolanaAccount?: boolean;
   };
 
+  const solanaAccountExistsInWallet = useMemo(() => {
+    return accounts.some(({ caipAccountId }) => {
+      const { chain } = parseCaipAccountId(caipAccountId);
+      return chain.namespace === KnownCaipNamespace.Solana;
+    });
+  }, [accounts]);
+
   const promptToCreateSolanaAccount =
-    hostInfo.metadata.promptToCreateSolanaAccount;
+    hostInfo.metadata.promptToCreateSolanaAccount &&
+    !solanaAccountExistsInWallet;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
