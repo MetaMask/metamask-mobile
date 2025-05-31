@@ -10,7 +10,6 @@ import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
-import Device from '../device';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
