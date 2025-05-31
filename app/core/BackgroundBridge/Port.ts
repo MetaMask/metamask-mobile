@@ -17,16 +17,10 @@ class Port extends EventEmitter {
     this._isMainFrame = isMainFrame;
   }
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  postMessage = (msg: any, origin = '*') => {
+  postMessage = (msg: object, origin = '*') => {
     if (this._window?.postMessage) {
       // Use React Native WebView's direct postMessage (bypasses window.postMessage)
-      this._window.postMessage(JSON.stringify({
-        ...msg,
-        _metamaskSecure: true,
-        timestamp: Date.now()
-      }));
+      this._window.postMessage(JSON.stringify(msg));
     } else {
       // Fallback to injected JavaScript (vulnerable)
       const js = this._isMainFrame
