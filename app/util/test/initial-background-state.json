@@ -170,6 +170,7 @@
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
+    "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
