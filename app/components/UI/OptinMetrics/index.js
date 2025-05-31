@@ -516,7 +516,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -526,7 +525,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
       </View>
     );
