@@ -6,6 +6,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { strings } from '../../../../locales/i18n';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -91,6 +92,7 @@ describe('ManualBackupStep2', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
+      reset: jest.fn(),
     });
 
     const wrapper = renderWithProvider(
@@ -162,7 +164,7 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  it('should navigate to HomeNav when seed phrase is valid and backupFlow is true', () => {
+  it('should navigate to HomeNav when seed phrase is valid and backupFlow is true', async () => {
     const { wrapper, mockNavigate } = setupTest();
 
     const missingWordOne = wrapper.getByTestId(
@@ -216,12 +218,19 @@ describe('ManualBackupStep2', () => {
       params: {
         title: expect.any(String),
         description: expect.any(String),
-        primaryButtonLabel: expect.any(String),
+        primaryButtonLabel: strings('manual_backup_step_2.success-button'),
         type: 'success',
         onClose: expect.any(Function),
         onPrimaryButtonPress: expect.any(Function),
         closeOnPrimaryButtonPress: false,
       },
     });
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    expect(continueButton.props.disabled).toBe(true);
   });
 });
