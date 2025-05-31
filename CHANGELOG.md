@@ -6,32 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
 
-- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
+- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))	
 
 ### Fixed
 - fix(bridge): show "Auto" slippage for Solana swaps
-- fix(bridge): add insufficient balance check for Solana swaps
-- fix(bridge): disable Solana as destination network if no Solana account exists
-- fix(swap): fix default swap destination token when USDC is the source token
-- fix(bridge): prevent quote error during bridge destination account selection
-- fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))
-- fix(multi-srp): display multichain accounts in SRP list ([#14724](https://github.com/MetaMask/metamask-mobile/pull/14724))
-- fix(confirmations): remove transaction simulations from wallet initiated send flow ([#14994](https://github.com/MetaMask/metamask-mobile/pull/14994))
-- fix(bridge): add auto slippage option and improve slippage selection UI ([#15159](https://github.com/MetaMask/metamask-mobile/pull/15159))
-- fix(bridge): implement dynamic refresh rate in QuoteExpiredModal ([#15157](https://github.com/MetaMask/metamask-mobile/pull/15157))
-- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
+- fix(bridge): add insufficient balance check for Solana swaps	
+- fix(bridge): disable Solana as destination network if no Solana account exists	
+- fix(swap): fix default swap destination token when USDC is the source token	
+- fix(bridge): prevent quote error during bridge destination account selection	
+- fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))	
+- fix(multi-srp): display multichain accounts in SRP list ([#14724](https://github.com/MetaMask/metamask-mobile/pull/14724))	
+- fix(confirmations): remove transaction simulations from wallet initiated send flow ([#14994](https://github.com/MetaMask/metamask-mobile/pull/14994))	
+- fix(bridge): add auto slippage option and improve slippage selection UI ([#15159](https://github.com/MetaMask/metamask-mobile/pull/15159))	
+- fix(bridge): implement dynamic refresh rate in QuoteExpiredModal ([#15157](https://github.com/MetaMask/metamask-mobile/pull/15157))	
+- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))	
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
-
-### Changed
-- feat: update minimum version modal UI ([#15567](https://github.com/MetaMask/metamask-mobile/pull/15567))
+- fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
 
 ### Added
-
+- feat: update minimum version modal UI ([#15567](https://github.com/MetaMask/metamask-mobile/pull/15567))
 - feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
 - feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
+
+## [7.46.2]
+
+### Fixed 
+- fix: Json rpc and invalid transaction type envelope errors ([#15538](https://github.com/MetaMask/metamask-mobile/pull/15538)
 
 ## [7.46.1]
 
@@ -72,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
+
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
@@ -5434,7 +5437,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.2...HEAD
+[7.46.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...v7.46.2
 [7.46.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.0...v7.46.1
 [7.46.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...v7.46.0
 [7.45.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.0...v7.45.1
