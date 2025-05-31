@@ -27,6 +27,9 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { connect } from 'react-redux';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -201,22 +204,33 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1B = (props) => {
-  const { navigation, route } = props;
+  const { navigation, route, dispatchSaveOnboardingEvent } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
-  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => <View />,
+        },
+        colors,
+      ),
+    );
   }, [navigation, route, colors]);
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+    props.navigation.navigate('ManualBackupStep1', {
+      ...props.route.params,
+      settingsBackup: true,
+    });
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
       ).build(),
+      dispatchSaveOnboardingEvent,
     );
   };
 
@@ -236,8 +250,11 @@ const AccountBackupStep1B = (props) => {
   const showWhySecureWallet = () => setWhySecureWalletModal(true);
   const hideWhySecureWallet = () => setWhySecureWalletModal(false);
 
-  const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
-  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+  const showWhatIsSeedphrase = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
@@ -377,10 +394,6 @@ const AccountBackupStep1B = (props) => {
           </View>
         </View>
       </ActionModal>
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
-      />
     </SafeAreaView>
   );
 };
@@ -394,6 +407,14 @@ AccountBackupStep1B.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
-export default AccountBackupStep1B;
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountBackupStep1B);
