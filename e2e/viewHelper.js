@@ -140,10 +140,12 @@ export const importWalletWithRecoveryPhrase = async ({
 
   console.log('entered secret recovery phrase');
 
-  await TestHelpers.delay(3500);
+  await TestHelpers.delay(15000);
 
   await ImportWalletView.tapContinueButton();
   console.log('tapped continue button');
+
+  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
