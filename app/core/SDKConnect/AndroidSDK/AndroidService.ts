@@ -474,6 +474,7 @@ export default class AndroidService extends EventEmitter2 {
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
+      navigation: null,
       ...defaultBridgeParams,
     });
 

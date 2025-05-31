@@ -72,6 +72,8 @@ import {
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { createAsyncWalletMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
+import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 
 const legacyNetworkId = () => {
@@ -100,6 +102,7 @@ export class BackgroundBridge extends EventEmitter {
     remoteConnHost,
     isMMSDK,
     channelId,
+    navigation,
   }) {
     super();
     this.url = url;
@@ -116,6 +119,7 @@ export class BackgroundBridge extends EventEmitter {
     this.channelId = channelId;
     this.deprecatedNetworkVersions = {};
     this.createMiddleware = getRpcMethodMiddleware;
+    this.navigation = navigation;
 
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
@@ -285,11 +289,16 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
-    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
-      'SelectedNetworkController:getNetworkClientIdForDomain',
-      origin,
-    );
+  async getProviderNetworkState(
+    origin = METAMASK_DOMAIN,
+    requestNetworkClientId,
+  ) {
+    const networkClientId =
+      requestNetworkClientId ??
+      Engine.controllerMessenger.call(
+        'SelectedNetworkController:getNetworkClientIdForDomain',
+        origin,
+      );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
@@ -635,6 +644,12 @@ export class BackgroundBridge extends EventEmitter {
       );
     }
     ///: END:ONLY_INCLUDE_IF
+
+    // Origin throttling middleware for spam filtering
+    engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    // Middleware to handle wallet_xxx requests
+    engine.push(createAsyncWalletMiddleware());
 
     // user-facing RPC methods
     engine.push(

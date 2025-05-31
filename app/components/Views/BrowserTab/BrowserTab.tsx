@@ -962,6 +962,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
             analytics: {},
           }),
         isMainFrame,
+        navigation,
       });
       backgroundBridgeRef.current = newBridge;
     },
