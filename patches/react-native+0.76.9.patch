@@ -9,7 +9,7 @@ index f01d96e..e48f8fb 100644
 +const Platform = require('../Utilities/Platform');
 +
 +// Set up Hardened JavaScript on iOS JSC before RN
-+if (Platform.OS === 'ios' && !global?.HermesInternal) {
++if (false) {
 +  require('./setUpSes');
 +}
 +

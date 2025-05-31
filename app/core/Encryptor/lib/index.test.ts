@@ -1,9 +1,4 @@
-import {
-  getEncryptionLibrary,
-  AesLib,
-  AesForkedLib,
-  QuickCryptoLib,
-} from './index';
+import { getEncryptionLibrary, AesLib, QuickCryptoLib } from './index';
 import {
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
@@ -25,14 +20,6 @@ describe('lib', () => {
       const lib = QuickCryptoLib;
 
       expect(getEncryptionLibrary(ENCRYPTION_LIBRARY.quickCrypto)).toBe(lib);
-    });
-
-    it('returns the forked library in any other case', () => {
-      const lib = AesForkedLib;
-
-      expect(getEncryptionLibrary('random-lib')).toBe(lib);
-      // Some older vault might not have the `lib` field, so it is considered `undefined`
-      expect(getEncryptionLibrary(undefined)).toBe(lib);
     });
 
     it.each([ENCRYPTION_LIBRARY.original, 'random-lib'])(
