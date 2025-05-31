@@ -190,6 +190,7 @@ describe('ManualBackupStep2', () => {
     const gridItems = wrapper.getAllByTestId(
       ManualBackUpStepsSelectorsIDs.GRID_ITEM,
     );
+
     mockWords.reverse().forEach((_, index) => {
       fireEvent.press(gridItems[index]);
     });
@@ -256,6 +257,10 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(click);
     });
 
+    expect(missingWordItemOne.props.style.color).not.toBe('#4459ff');
+    expect(missingWordItemTwo.props.style.color).not.toBe('#4459ff');
+    expect(missingWordItemThree.props.style.color).not.toBe('#4459ff');
+
     // Press continue button
     const continueButton = wrapper.getByTestId(
       ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
@@ -282,6 +287,26 @@ describe('ManualBackupStep2', () => {
     });
 
     expect(continueButton.props.disabled).toBe(true);
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    // Fill words incorrectly
+    const gridItems = wrapper.getAllByTestId(
+      ManualBackUpStepsSelectorsIDs.GRID_ITEM,
+    );
+
+    mockWords.forEach((_, index) => {
+      fireEvent.press(gridItems[index], index);
+    });
+
+    expect(continueButton.props.disabled).toBe(true);
+
+    expect(missingWordItemOne.props.style.color).toBe('#4459ff');
+    expect(missingWordItemTwo.props.style.color).toBe('#4459ff');
+    expect(missingWordItemThree.props.style.color).toBe('#4459ff');
   });
 
   it('check when words have empty array', async () => {
