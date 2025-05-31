@@ -1,12 +1,12 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
-import Engine from '../../../core/Engine';
-import { selectRecentTokenSearches } from '../../../selectors/tokenSearchDiscoveryController';
+import Engine from '../../../../core/Engine';
+import { selectRecentTokenSearches } from '../../../../selectors/tokenSearchDiscoveryController';
 import { TokenSearchResponseItem } from '@metamask/token-search-discovery-controller';
-import { tokenSearchDiscoveryEnabled } from '../../../selectors/featureFlagController/tokenSearchDiscovery';
+import { tokenSearchDiscoveryEnabled } from '../../../../selectors/featureFlagController/tokenSearchDiscovery';
 
-const SEARCH_DEBOUNCE_DELAY = 150;
+const SEARCH_DEBOUNCE_DELAY = 250;
 const MINIMUM_QUERY_LENGTH = 2;
 export const MAX_RESULTS = '20';
 
