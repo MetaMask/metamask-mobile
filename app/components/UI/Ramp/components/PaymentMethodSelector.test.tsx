@@ -1,3 +1,4 @@
+//app/components/UI/Ramp/components/PaymentMethodSelector.test.tsx
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PaymentMethodSelector from './PaymentMethodSelector';
@@ -11,14 +12,17 @@ const defaultState = {
   },
 };
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      icon: { default: '#000' },
-      border: { muted: '#ccc' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { brandColors, lightTheme } = require('@metamask/design-tokens');
+  return {
+    useTheme: jest.fn().mockReturnValue({
+      colors: {
+        icon: { default: brandColors.black },
+        border: { muted: lightTheme.colors.border.muted },
+      },
+    }),
+  };
+});
 
 const mockProps = {
   name: 'Debit or Credit',
