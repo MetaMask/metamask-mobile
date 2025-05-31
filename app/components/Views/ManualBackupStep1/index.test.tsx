@@ -82,6 +82,14 @@ describe('ManualBackupStep1', () => {
     },
   };
 
+  const mockRouteOne = {
+    params: {
+      words: mockWords,
+      backupFlow: true,
+      settingsBackup: true,
+    },
+  };
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -185,6 +193,47 @@ describe('ManualBackupStep1', () => {
       <Provider store={storeOs}>
         <ManualBackupStep1
           route={mockRoute}
+          navigation={{
+            navigate: mockNavigate,
+            goBack: mockGoBack,
+            setOptions: mockSetOptions,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            isFocused: jest.fn(),
+          }}
+        />
+      </Provider>,
+    );
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
+  const setupTestMockRouteOne = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
+
+    storeOs.dispatch = mockDispatch;
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+    });
+
+    const wrapper = renderWithProvider(
+      <Provider store={storeOs}>
+        <ManualBackupStep1
+          route={mockRouteOne}
           navigation={{
             navigate: mockNavigate,
             goBack: mockGoBack,
@@ -363,5 +412,17 @@ describe('ManualBackupStep1', () => {
         settingsBackup: true,
       });
     });
+  });
+
+  it('should render with mock route one', async () => {
+    const { wrapper } = setupTestMockRouteOne();
+    expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
+
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
   });
 });
