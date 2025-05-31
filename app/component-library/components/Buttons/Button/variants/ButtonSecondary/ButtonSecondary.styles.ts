@@ -23,9 +23,9 @@ const styleSheet = (params: {
   const { style, isDanger, pressed, overridePressedColor } = vars;
   const colorObj = isDanger ? colors.error : colors.primary;
 
-  const pressedColor = pressed
-    ? overridePressedColor || colorObj.alternative
-    : 'transparent';
+  const overrideColor = overridePressedColor ?? colorObj.alternative;
+
+  const pressedColor = pressed ? overrideColor : 'transparent';
 
   return StyleSheet.create({
     base: Object.assign(
