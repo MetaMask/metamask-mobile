@@ -17,15 +17,9 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  findBlockExplorerForNonEvmAccount,
-  getBlockExplorerName,
-} from '../../../util/networks';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
@@ -53,6 +47,7 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
+import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -98,30 +93,10 @@ const AccountActions = () => {
         title: string;
         blockExplorerName: string;
       }
-    | undefined = useMemo(() => {
-    if (selectedAccount) {
-      if (isEvmAccountType(selectedAccount.type)) {
-        return {
-          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
-          title: 'Etherscan (Multichain)',
-          blockExplorerName: 'Etherscan (Multichain)',
-        };
-      }
-
-      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
-      if (explorer) {
-        return {
-          url: explorer,
-          title: new URL(explorer).hostname,
-          blockExplorerName:
-            getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-        };
-      }
-      return undefined;
-    }
-  }, [
-    selectedAccount,
-  ]);
+    | undefined = useMemo(
+    () => getMultichainBlockExplorer(selectedAccount),
+    [selectedAccount],
+  );
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -427,18 +402,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
