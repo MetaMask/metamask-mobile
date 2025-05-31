@@ -2341,7 +2341,8 @@
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn More",
+    "password": "Password"
   },
   "manual_backup_step_2": {
     "steps": "Step {{currentStep}} of {{totalSteps}}",

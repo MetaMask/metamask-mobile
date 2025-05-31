@@ -9,4 +9,6 @@ export const ManualBackUpStepsSelectorsIDs = {
   CONFIRM_PASSWORD_INPUT: 'private-credential-password-input-field',
   GRID_ITEM: 'grid-item',
   BACK_BUTTON: 'back-button',
+  WORD_ITEM: 'manual-backup-step-1-word',
+  BLUR_BUTTON: 'blur-button',
 };
