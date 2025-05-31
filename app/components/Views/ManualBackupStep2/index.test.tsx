@@ -161,4 +161,67 @@ describe('ManualBackupStep2', () => {
       },
     });
   });
+
+  it('should navigate to HomeNav when seed phrase is valid and backupFlow is true', () => {
+    const { wrapper, mockNavigate } = setupTest();
+
+    const missingWordOne = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
+    );
+    const missingWordItemOne = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-0`,
+    );
+    const missingWordTwo = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-1`,
+    );
+    const missingWordItemTwo = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-1`,
+    );
+    const missingWordThree = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-2`,
+    );
+    const missingWordItemThree = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-2`,
+    );
+
+    const missingWordOrder = [
+      { click: missingWordOne, text: missingWordItemOne.props.children },
+      { click: missingWordTwo, text: missingWordItemTwo.props.children },
+      { click: missingWordThree, text: missingWordItemThree.props.children },
+    ];
+
+    const sortMissingOrder = missingWordOrder.sort(
+      (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
+    );
+
+    // Verify that the missing words are actually from mockWords
+    sortMissingOrder.forEach(({ text }) => {
+      expect(mockWords).toContain(text);
+    });
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    // Press continue button
+    const continueButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(continueButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SuccessErrorSheet',
+      params: {
+        title: expect.any(String),
+        description: expect.any(String),
+        primaryButtonLabel: expect.any(String),
+        type: 'success',
+        onClose: expect.any(Function),
+        onPrimaryButtonPress: expect.any(Function),
+        closeOnPrimaryButtonPress: false,
+      },
+    });
+  });
 });

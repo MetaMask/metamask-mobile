@@ -281,6 +281,7 @@ const ManualBackupStep2 = ({
           return (
             <TouchableOpacity
               key={i}
+              testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={[
                 styles.missingWord,
                 isUsed && styles.selectedWord,
@@ -291,6 +292,7 @@ const ManualBackupStep2 = ({
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Default : TextColor.Primary}
+                testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
               >
                 {word}
               </Text>
