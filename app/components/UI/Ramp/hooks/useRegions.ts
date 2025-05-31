@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { isEqual } from 'lodash';
 import Routes from '../../../../constants/navigation/Routes';
@@ -31,13 +31,14 @@ export default function useRegions() {
     isSell,
   } = useRampSDK();
 
-  const [isDetecting, setisDetecting] = useState(!selectedRegion);
-
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
 
   const updatedRegion = useMemo(() => {
-    if (!selectedRegion || !data) return null;
+    if (!data) return null;
+    if (!selectedRegion) {
+      return findDetectedRegion(data);
+    }
     const allRegions: Region[] = data.reduce(
       (acc: Region[], region: Region) => [
         ...acc,
@@ -64,16 +65,6 @@ export default function useRegions() {
       });
     }
   }, [navigation, route.name]);
-
-  useEffect(() => {
-    if (!data || selectedRegion || !isDetecting) return;
-    const detectedRegion = findDetectedRegion(data);
-    if (detectedRegion) {
-      setSelectedRegion(detectedRegion);
-    }
-
-    setisDetecting(false);
-  }, [data, navigation, selectedRegion, setSelectedRegion, isDetecting]);
 
   useEffect(() => {
     if (!updatedRegion) return;
@@ -115,7 +106,6 @@ export default function useRegions() {
   return {
     data,
     isFetching,
-    isDetecting,
     error,
     query: queryGetCountries,
     selectedRegion,
