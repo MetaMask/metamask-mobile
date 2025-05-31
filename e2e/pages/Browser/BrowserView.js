@@ -203,6 +203,13 @@ class Browser {
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
     await waitForTestDappToLoad();
   }
+
+  async searchForUrl(url) {
+    await this.tapUrlInputBox();
+    await device.disableSynchronization(); // because animations makes typing into the browser slow
+    await Gestures.replaceTextInField(this.urlInputBoxID, url);
+    await device.enableSynchronization(); // re-enabling synchronization
+  }
 }
 
 export default new Browser();
