@@ -1,146 +1,142 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+
+const { height } = Dimensions.get('window');
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      marginTop: 16,
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 32,
-    },
-    onBoardingWrapper: {
-      paddingHorizontal: 20,
-    },
-    action: {
-      fontSize: 18,
-      marginBottom: 16,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
-    infoWrapper: {
-      marginBottom: 16,
-      justifyContent: 'center',
-    },
-    info: {
-      fontSize: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-      paddingHorizontal: 6,
-    },
-    seedPhraseWrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 8,
-      flexDirection: 'row',
+      flexDirection: 'column',
       justifyContent: 'space-between',
-      borderColor: colors.border.default,
-      borderWidth: 1,
-      marginBottom: 24,
-    },
-    seedPhraseWrapperComplete: {
-      borderColor: colors.success.default,
-    },
-    seedPhraseWrapperError: {
-      borderColor: colors.error.default,
-    },
-    colLeft: {
-      paddingTop: 18,
-      paddingLeft: 27,
-      paddingBottom: 4,
-      alignItems: 'flex-start',
-    },
-    colRight: {
-      paddingTop: 18,
-      paddingRight: 27,
-      paddingBottom: 4,
-      alignItems: 'flex-end',
-    },
-    wordBoxWrapper: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 14,
-    },
-    wordWrapper: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      width: Device.isMediumDevice() ? 75 : 95,
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
-      borderWidth: 1,
-      borderRadius: 34,
-      borderStyle: 'dashed',
-      marginLeft: 4,
-    },
-    word: {
-      fontSize: 14,
-      color: colors.text.default,
-      lineHeight: 14,
-      textAlign: 'center',
-    },
-    selectableWord: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      color: colors.text.default,
-      width: 95,
-      backgroundColor: colors.background.default,
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      marginBottom: 6,
-      borderRadius: 13,
-      textAlign: 'center',
-    },
-    selectableWordText: {
-      textAlign: 'center',
-      fontSize: 14,
-      lineHeight: 14,
-      color: colors.text.default,
-    },
-    words: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: Device.isMediumDevice()
-        ? 'space-around'
-        : 'space-between',
-    },
-    successRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    successText: {
-      fontSize: 12,
-      color: colors.success.default,
-      marginLeft: 4,
+      height: '100%',
+      rowGap: 16,
     },
     selectedWord: {
-      backgroundColor: colors.icon.muted,
-      borderWidth: 1,
-      borderColor: colors.icon.muted,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 0,
     },
     selectedWordText: {
       color: colors.text.default,
     },
-    currentWord: {
+    seedPhraseContainer: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 10,
+      height: 'auto',
+      flexDirection: 'column',
+      marginBottom: 16,
+      padding: 16,
+      gap: 4,
+    },
+    statusContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      gap: 16,
+      padding: 16,
+      width: '100%',
+    },
+    emptySlot: {
+      backgroundColor: colors.background.default,
+      opacity: 1,
+      borderColor: colors.border.default,
+      borderWidth: 2,
+    },
+    selectedSlotBox: {
+      borderColor: colors.primary.default,
+      borderWidth: 2,
+    },
+    missingWords: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    },
+    missingWord: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      margin: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background.default,
       borderWidth: 1,
       borderColor: colors.primary.default,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 40,
+      color: colors.primary.default,
     },
-    confirmedWord: {
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-      borderStyle: 'solid',
+    missingWordText: {
+      color: colors.primary.default,
     },
-    wordBoxIndex: {
+    missingWordTextSelected: {
       color: colors.text.default,
+    },
+    gridItem: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: Platform.OS === 'ios' ? 4 : 3,
+      height: 40,
+      fontSize: 14,
+      color: colors.text.default,
+      ...fontStyles.normal,
+      opacity: 0.5,
+      margin: Platform.OS === 'ios' ? 4 : 3,
+    },
+    gridContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 4,
+    },
+    gridItemIndex: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      fontSize: 14,
+    },
+    gridItemText: {
+      fontSize: 14,
+      color: colors.text.default,
+      ...fontStyles.normal,
+    },
+    content: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      rowGap: 16,
+      height: height - 290,
+    },
+    headerLeft: {
+      marginLeft: 16,
+    },
+    statusButton: {
+      width: '100%',
+    },
+    statusDescription: {
+      textAlign: 'left',
+      alignSelf: 'flex-start',
+      width: '100%',
+    },
+    actionView: {
+      flex: 1,
+    },
+    buttonContainer: {
+      paddingHorizontal: 0,
     },
   });
 
