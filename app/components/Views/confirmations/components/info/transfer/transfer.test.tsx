@@ -7,6 +7,18 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
+jest.mock('../../../hooks/useTokenAmount', () => ({
+  useTokenAmount: jest.fn(() => ({
+    usdValue: '3.359625',
+  })),
+}));
+
+jest.mock('../../../hooks/useTransferAssetType', () => ({
+  useTransferAssetType: jest.fn(() => ({
+    assetType: 'erc20',
+  })),
+}));
+
 jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
@@ -68,6 +80,7 @@ describe('Transfer', () => {
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
+  const mockSetConfirmationMetric = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -78,6 +91,7 @@ describe('Transfer', () => {
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
+      setConfirmationMetric: mockSetConfirmationMetric,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -102,6 +116,12 @@ describe('Transfer', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+    });
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        transaction_transfer_usd_value: '3.359625',
+        asset_type: 'erc20',
+      },
     });
   });
 });
