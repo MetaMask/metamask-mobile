@@ -6,8 +6,7 @@ import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
-import generateUserSettingsAnalyticsMetaData
-  from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 export class AppStateEventListener {
   private appStateSubscription:
@@ -52,18 +51,36 @@ export class AppStateEventListener {
         store: ReduxService.store,
       });
       const metrics = MetaMetrics.getInstance();
+
+      // Check if wallet is unlocked before collecting user settings
+      const state = ReduxService.store.getState();
+      const isWalletUnlocked =
+        state?.engine?.backgroundState?.KeyringController?.isUnlocked;
+
+      // Only collect user settings analytics when wallet is unlocked
+      let consolidatedTraits;
+      if (isWalletUnlocked) {
+        consolidatedTraits = {
+          ...generateDeviceAnalyticsMetaData(),
+          ...generateUserSettingsAnalyticsMetaData(),
+        };
+      } else {
+        // Only collect device analytics when wallet is locked
+        consolidatedTraits = {
+          ...generateDeviceAnalyticsMetaData(),
+        };
+      }
+
       // identify user with the latest traits
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
       metrics.addTraitsToUser(consolidatedTraits).catch((error) => {
         Logger.error(
           error as Error,
           'AppStateManager: Error adding traits to user',
         );
       });
-      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED);
+      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.APP_OPENED,
+      );
       if (attribution) {
         const { attributionId, utm, ...utmParams } = attribution;
         DevLogger.log(
