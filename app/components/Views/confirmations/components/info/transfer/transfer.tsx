@@ -6,6 +6,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
+import { useIsNft } from '../../../hooks/nft/useIsNft';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
@@ -15,6 +16,7 @@ import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/adv
 import TokenHero from '../../rows/transactions/token-hero';
 import NetworkRow from '../../rows/transactions/network-row';
 import styleSheet from './transfer.styles';
+import { HeroNft } from '../../hero/nft/nft';
 
 const Transfer = () => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -26,9 +28,15 @@ const Transfer = () => {
   useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
+  const { isNft } = useIsNft();
+
   return (
     <View>
-      <TokenHero />
+      {isNft ? (
+        <HeroNft />
+      ) : (
+        <TokenHero />
+      )}
       <FromTo />
       <NetworkRow />
       <View style={styles.simulationsDetailsContainer}>
