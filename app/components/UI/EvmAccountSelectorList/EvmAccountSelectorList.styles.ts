@@ -15,7 +15,7 @@ const styleSheet = () =>
       alignItems: 'flex-end',
       flexDirection: 'column',
     },
-    balanceLabel: { textAlign: 'right' },
+    balanceLabel: { textAlign: 'right', fontWeight: '500' },
   });
 
 export default styleSheet;
