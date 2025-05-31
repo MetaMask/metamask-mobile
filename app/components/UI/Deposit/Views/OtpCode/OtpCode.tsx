@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { TextInput, View } from 'react-native';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { TextInput, TouchableOpacity, View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
@@ -20,17 +20,24 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
+import Row from '../../../Ramp/components/Row';
 
 export const createOtpCodeNavDetails = createNavigationDetails(
   Routes.DEPOSIT.OTP_CODE,
 );
 
 const CELL_COUNT = 6;
+const COOLDOWN_TIME = 30;
 
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { email, setAuthToken } = useDepositSDK();
+  const [resendButtonState, setResendButtonState] = useState<
+    'resend' | 'cooldown'
+  >('resend');
+  const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     navigation.setOptions(
@@ -57,6 +64,11 @@ const OtpCode = () => {
     response,
   } = useDepositSdkMethod('verifyUserOtp', email, value);
 
+  const { sdkMethod: resendOtp, loading: resendLoading } = useDepositSdkMethod(
+    'sendUserOtp',
+    email,
+  );
+
   useEffect(() => {
     inputRef.current?.focus();
   }, [inputRef]);
@@ -75,6 +87,32 @@ const OtpCode = () => {
 
     saveTokenAndNavigate();
   }, [response, setAuthToken, navigation]);
+
+  useEffect(() => {
+    if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
+      timerRef.current = setTimeout(() => {
+        setCooldownSeconds((prev) => prev - 1);
+      }, 1000);
+    } else if (cooldownSeconds === 0) {
+      setResendButtonState('resend');
+      setCooldownSeconds(COOLDOWN_TIME);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [resendButtonState, cooldownSeconds]);
+
+  const handleResend = useCallback(async () => {
+    try {
+      setResendButtonState('cooldown');
+      await resendOtp();
+    } catch (e) {
+      setResendButtonState('resend');
+    }
+  }, [resendOtp]);
 
   const handleSubmit = useCallback(async () => {
     if (!loading && value.length === CELL_COUNT) {
@@ -114,6 +152,30 @@ const OtpCode = () => {
           {error && (
             <Text style={{ color: theme.colors.error.default }}>{error}</Text>
           )}
+
+          <Row style={styles.resendButtonContainer}>
+            {resendButtonState === 'resend' ? (
+              <>
+                <Text style={styles.resendButtonText}>
+                  {strings('deposit.otp_code.resend_code_description')}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleResend}
+                  disabled={resendLoading}
+                >
+                  <Text style={styles.resendButton}>
+                    {strings('deposit.otp_code.resend_code_button')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : resendButtonState === 'cooldown' ? (
+              <Text style={styles.resendButtonText}>
+                {strings('deposit.otp_code.resend_cooldown', {
+                  seconds: cooldownSeconds,
+                })}
+              </Text>
+            ) : null}
+          </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
 
