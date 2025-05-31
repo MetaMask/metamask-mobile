@@ -18,7 +18,7 @@ import SendView from '../../../pages/Send/SendView';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
-describe(RegressionNetworkAbstraction('MegaETH Testnet Network Smoke'), () => {
+describe(Regression('MegaETH Testnet Network Smoke'), () => {
   const TOKEN_NAME = enContent.unit.megaeth;
   const AMOUNT = '0.0000001';
 
@@ -39,7 +39,9 @@ describe(RegressionNetworkAbstraction('MegaETH Testnet Network Smoke'), () => {
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.scrollToBottomOfNetworkList();
+        //Verify testnet toggle is enabled
         await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+        //Change network to MegaETH Testnet
         await NetworkListModal.changeNetworkTo(MEGAETH_TESTNET);
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await Assertions.checkIfElementToHaveText(
@@ -47,19 +49,21 @@ describe(RegressionNetworkAbstraction('MegaETH Testnet Network Smoke'), () => {
           MEGAETH_TESTNET,
         );
         await NetworkEducationModal.tapGotItButton();
-
         await TabBarComponent.tapActions();
+        //Click Send button
         await WalletActionsBottomSheet.tapSendButton();
-
+        //Enter Recipient address
         await SendView.inputAddress(RECIPIENT);
+        //Click Next button
         await SendView.tapNextButton();
-
+        // Enter amount
         await AmountView.typeInTransactionAmount(AMOUNT);
+        // Click Next button
         await AmountView.tapNextButton();
-
+        // Click Confirm button
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-
+        // Verify the amount and token name
         await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
