@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   Alert,
@@ -7,11 +7,13 @@ import {
   ListRenderItem,
   View,
   ViewStyle,
+  ImageSourcePropType,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import Cell, {
@@ -46,6 +48,19 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constant
 import { toHex } from '@metamask/controller-utils';
 import { CaipAccountId, Hex } from '@metamask/utils';
 import { parseAccountId } from '@walletconnect/utils';
+import { selectNetworksWithActivity } from '../../../selectors/multichainNetworkController';
+import {
+  getNetworkImageSource,
+  isRemoveGnsEnabled,
+} from '../../../util/networks';
+import { AvatarNetworkProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
+
+interface AvatarNetworksInfoProps extends AvatarNetworkProps {
+  name: string;
+  imageSource: ImageSourcePropType;
+  chainId: string;
+  totalFiatBalance: number | undefined;
+}
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -79,8 +94,19 @@ const CaipAccountSelectorList = ({
   );
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
+  const networksWithTransactionActivity = useSelector(
+    selectNetworksWithActivity,
+  );
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance, tokens }: Assets,
+      address: string,
+      networksInfo: AvatarNetworksInfoProps[],
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
@@ -96,26 +122,53 @@ const CaipAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {isRemoveGnsEnabled() && networksInfo && (
+            <View style={styles.networkTokensContainer}>
+              <AvatarGroup
+                avatarPropsList={networksInfo
+                  .slice()
+                  .reverse()
+                  .map((networkInfo, index) => ({
+                    ...networkInfo,
+                    variant: AvatarVariant.Network,
+                    imageSource: networkInfo.imageSource,
+                    testID: `avatar-group-${index}`,
+                  }))}
+                maxStackedAvatars={4}
+                renderOverflowCounter={false}
+              />
+            </View>
+          )}
+
+          {!isRemoveGnsEnabled() && (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Short}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+                color={privacyMode ? TextColor.Alternative : TextColor.Default}
+              >
+                {tokenTicker}
+              </SensitiveText>
+              {tokens && (
+                <AvatarGroup
+                  avatarPropsList={tokens.map((tokenObj) => ({
+                    ...tokenObj,
+                    variant: AvatarVariant.Token,
+                  }))}
+                />
+              )}
+            </>
           )}
         </View>
       );
     },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
+    [
+      styles.balancesContainer,
+      styles.balanceLabel,
+      privacyMode,
+      styles.networkTokensContainer,
+    ],
   );
 
   const onLongPress = useCallback(
@@ -214,7 +267,9 @@ const CaipAccountSelectorList = ({
     [navigate],
   );
 
-  const renderAccountItem: ListRenderItem<Account> = useCallback(
+  const renderAccountItem: ListRenderItem<
+    Account & { networksWithActivity: AvatarNetworksInfoProps[] }
+  > = useCallback(
     ({
       item: {
         name,
@@ -224,6 +279,7 @@ const CaipAccountSelectorList = ({
         isSelected,
         balanceError,
         caipAccountId,
+        networksWithActivity,
       },
       index,
     }) => {
@@ -256,7 +312,8 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });
@@ -299,7 +356,8 @@ const CaipAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets &&
+              renderAccountBalances(assets, address, networksWithActivity))}
         </Cell>
       );
     },
@@ -345,11 +403,62 @@ const CaipAccountSelectorList = ({
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
+  const accountsWithNetworkInfo = useMemo(() => {
+    if (!accounts || !Array.isArray(accounts)) {
+      return [];
+    }
+
+    return accounts.map((account) => {
+      const currentAccount = account?.address.toLowerCase() || '';
+
+      if (!currentAccount) {
+        return { ...account, networksWithActivity: [] };
+      }
+
+      const chainsWithActivityByAddress =
+        networksWithTransactionActivity?.[currentAccount]?.activeChains;
+
+      if (!chainsWithActivityByAddress?.length) {
+        return { ...account, networksWithActivity: [] };
+      }
+
+      const networksWithActivity = chainsWithActivityByAddress.map(
+        (chainId) => ({
+          imageSource: getNetworkImageSource({
+            chainId: toHex(chainId),
+          }),
+        }),
+      );
+
+      return { ...account, networksWithActivity };
+    });
+  }, [accounts, networksWithTransactionActivity]);
+
+  const fetchAccountsWithActivity = useCallback(async () => {
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      isRemoveGnsEnabled() &&
+      accounts.length > 0 &&
+      isBasicFunctionalityEnabled
+    ) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts, isBasicFunctionalityEnabled]);
+
   return (
     <FlatList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}
-      data={accounts}
+      data={accountsWithNetworkInfo}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.

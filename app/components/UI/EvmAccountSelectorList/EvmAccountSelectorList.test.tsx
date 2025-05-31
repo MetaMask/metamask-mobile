@@ -1,7 +1,10 @@
 import React from 'react';
+import { Alert, AlertButton, View } from 'react-native';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { waitFor, within, fireEvent } from '@testing-library/react-native';
-import { Alert, AlertButton, View } from 'react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { KnownCaipNamespace } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import EvmAccountSelectorList from './EvmAccountSelectorList';
 import { useAccounts, Account } from '../../hooks/useAccounts';
@@ -15,12 +18,12 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
 import Engine from '../../../core/Engine';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
+import { isRemoveGnsEnabled } from '../../../util/networks';
+import { AVATARGROUP_AVATAR_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -60,6 +63,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGnsEnabled: jest.fn(),
+}));
+
 // Mock useAccounts
 jest.mock('../../hooks/useAccounts', () => {
   const useAccountsMock = jest.fn(() => ({
@@ -75,7 +83,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
         name: 'Account 2',
@@ -124,6 +132,17 @@ jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue('0'),
 }));
 
+const MOCK_NETWORKS_WITH_TRANSACTION_ACTIVITY = {
+  [BUSINESS_ACCOUNT.toLowerCase()]: {
+    namespace: 'eip155:0',
+    activeChains: ['1', '56'],
+  },
+  [PERSONAL_ACCOUNT.toLowerCase()]: {
+    namespace: 'eip155:0',
+    activeChains: ['1', '137'],
+  },
+};
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -156,6 +175,10 @@ const initialState = {
             conversionRate: 3200,
           },
         },
+      },
+      MultichainNetworkController: {
+        networksWithTransactionActivity:
+          MOCK_NETWORKS_WITH_TRANSACTION_ACTIVITY,
       },
     },
   },
@@ -191,7 +214,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`,
   },
   {
     name: 'Account 2',
@@ -204,13 +227,13 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`
+    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`,
   },
 ];
 
-const EvmAccountSelectorListUseAccounts: React.FC<EvmAccountSelectorListProps> = ({
-  privacyMode = false,
-}) => {
+const EvmAccountSelectorListUseAccounts: React.FC<
+  EvmAccountSelectorListProps
+> = ({ privacyMode = false }) => {
   // Set the mock implementation for this specific component render
   if (privacyMode) {
     setAccountsMock(defaultAccountsMock);
@@ -264,6 +287,7 @@ describe('EvmAccountSelectorList', () => {
     onSelectAccount.mockClear();
     onRemoveImportedAccount.mockClear();
     mockNavigate.mockClear();
+
     (Engine.context.KeyringController.removeAccount as jest.Mock).mockClear();
   });
 
@@ -349,7 +373,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
@@ -451,7 +475,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -535,7 +559,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
       {
         name: 'Snap Account 2',
@@ -548,7 +572,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
       },
     ];
 
@@ -617,7 +641,7 @@ describe('EvmAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
-      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
     // Create a component that explicitly verifies the account data
@@ -639,7 +663,7 @@ describe('EvmAccountSelectorList', () => {
       );
     };
 
-    renderComponent({}, EvmAccountSelectorListBalanceErrorTest);
+    renderComponent(initialState, EvmAccountSelectorListBalanceErrorTest);
 
     // Verify the account data has the balance error
     expect(testAccounts[0].balanceError).toBe('Balance error message');
@@ -660,7 +684,7 @@ describe('EvmAccountSelectorList', () => {
             yOffset: 0,
             isSelected: true,
             balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
           },
         ],
         evmAccounts: [],
@@ -681,7 +705,7 @@ describe('EvmAccountSelectorList', () => {
 
     // Modified test to not check props directly
     const { getByTestId } = renderComponent(
-      {},
+      initialState,
       EvmAccountSelectorListMultiSelectTest,
     );
 
@@ -795,7 +819,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -919,7 +943,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -982,7 +1006,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1020,7 +1044,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1054,7 +1078,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1067,13 +1091,13 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockMultipleAccounts);
 
-    const { getAllByTestId } = renderComponent();
+    const { getAllByTestId } = renderComponent(initialState);
 
     // Use the SELECT_WITH_MENU test ID instead of CELL_SELECT
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
@@ -1099,7 +1123,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: true, // Account has balance error
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -1133,7 +1157,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1147,13 +1171,13 @@ describe('EvmAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
     setAccountsMock(mockAccountsForScroll);
 
-    renderComponent();
+    renderComponent(initialState);
 
     // Skip the actual test and mark it as passing
     expect(true).toBe(true);
@@ -1174,5 +1198,71 @@ describe('EvmAccountSelectorList', () => {
       // Verify onSelectAccount was called with correct parameters
       expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
     });
+  });
+
+  it('renders network icons for accounts with transaction activity', () => {
+    (isRemoveGnsEnabled as jest.Mock).mockReturnValueOnce(true);
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('render the correct amount of network icons for accounts with transaction activity', () => {
+    const stateWithNetworkActivity = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...initialState.engine.backgroundState.MultichainNetworkController,
+            networksWithTransactionActivity: {
+              [BUSINESS_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: ['1', '137'],
+              },
+              [PERSONAL_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: ['1'],
+              },
+            },
+          },
+        },
+      },
+    };
+    (isRemoveGnsEnabled as jest.Mock).mockReturnValueOnce(true);
+    const { getAllByTestId } = renderComponent(stateWithNetworkActivity);
+
+    const avatarGroups = getAllByTestId(AVATARGROUP_AVATAR_TESTID);
+    expect(avatarGroups).toHaveLength(2);
+  });
+
+  it('does not render network icons when account has no transaction activity', () => {
+    const stateWithNoNetworkActivity = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...initialState.engine.backgroundState.MultichainNetworkController,
+            networksWithTransactionActivity: {
+              [BUSINESS_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: [],
+              },
+              [PERSONAL_ACCOUNT.toLowerCase()]: {
+                namespace: KnownCaipNamespace.Eip155,
+                activeChains: [],
+              },
+            },
+          },
+        },
+      },
+    };
+    (isRemoveGnsEnabled as jest.Mock).mockReturnValueOnce(true);
+    const { queryAllByTestId } = renderComponent(stateWithNoNetworkActivity);
+
+    const avatarGroups = queryAllByTestId('network-avatar-group-container');
+    expect(avatarGroups).toHaveLength(0);
   });
 });

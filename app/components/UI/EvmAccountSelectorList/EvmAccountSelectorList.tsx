@@ -1,18 +1,19 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Alert,
   InteractionManager,
   ListRenderItem,
   View,
   ViewStyle,
+  ImageSourcePropType,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-
 
 // External dependencies.
 import Cell, {
@@ -33,6 +34,11 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  getNetworkImageSource,
+  isRemoveGnsEnabled,
+} from '../../../util/networks';
+import { selectNetworksWithActivity } from '../../../selectors/multichainNetworkController';
 
 // Internal dependencies.
 import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
@@ -42,6 +48,14 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { AvatarNetworkProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
+
+interface AvatarNetworksInfoProps extends AvatarNetworkProps {
+  name: string;
+  imageSource: ImageSourcePropType;
+  chainId: string;
+  totalFiatBalance: number | undefined;
+}
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -81,6 +95,13 @@ const EvmAccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
+  const networksWithTransactionActivity = useSelector(
+    selectNetworksWithActivity,
+  );
+
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
   const getKeyExtractor = ({ address }: Account) => address;
 
   const selectedAddressesLookup = useMemo(() => {
@@ -93,7 +114,11 @@ const EvmAccountSelectorList = ({
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance, tokens }: Assets,
+      address: string,
+      networksInfo: AvatarNetworksInfoProps[],
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
@@ -109,27 +134,92 @@ const EvmAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {isRemoveGnsEnabled() && networksInfo && networksInfo.length > 0 && (
+            <View
+              testID="network-avatar-group-container"
+              style={styles.networkTokensContainer}
+            >
+              <AvatarGroup
+                avatarPropsList={networksInfo
+                  .slice()
+                  .reverse()
+                  .map(
+                    (
+                      networksWithActivity: AvatarNetworksInfoProps,
+                      index: number,
+                    ) => ({
+                      ...networksWithActivity,
+                      variant: AvatarVariant.Network,
+                      imageSource: networksWithActivity.imageSource,
+                      testID: `network-avatar-group-${index}`,
+                    }),
+                  )}
+                maxStackedAvatars={4}
+                renderOverflowCounter={false}
+              />
+            </View>
+          )}
+
+          {!isRemoveGnsEnabled() && (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Short}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+                color={privacyMode ? TextColor.Alternative : TextColor.Default}
+              >
+                {tokenTicker}
+              </SensitiveText>
+              {tokens && (
+                <AvatarGroup
+                  avatarPropsList={tokens.map((tokenObj) => ({
+                    ...tokenObj,
+                    variant: AvatarVariant.Token,
+                  }))}
+                />
+              )}
+            </>
           )}
         </View>
       );
     },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
+    [
+      styles.balancesContainer,
+      styles.balanceLabel,
+      privacyMode,
+      styles.networkTokensContainer,
+    ],
   );
+
+  const accountsWithNetworkInfo = useMemo(() => {
+    if (!accounts || !Array.isArray(accounts)) {
+      return [];
+    }
+
+    return accounts.map((account) => {
+      const currentAccount = account?.address.toLowerCase();
+
+      if (!currentAccount) {
+        return { ...account, networksWithActivity: [] };
+      }
+
+      const chainsWithActivityByAddress =
+        networksWithTransactionActivity?.[currentAccount]?.activeChains;
+
+      if (!chainsWithActivityByAddress?.length) {
+        return { ...account, networksWithActivity: [] };
+      }
+
+      const networksWithActivity = chainsWithActivityByAddress.map(
+        (chainId) => ({
+          imageSource: getNetworkImageSource({
+            chainId: toHex(chainId),
+          }),
+        }),
+      );
+      return { ...account, networksWithActivity };
+    });
+  }, [accounts, networksWithTransactionActivity]);
 
   const onLongPress = useCallback(
     ({
@@ -213,9 +303,19 @@ const EvmAccountSelectorList = ({
     [navigate],
   );
 
-  const renderAccountItem: ListRenderItem<Account> = useCallback(
+  const renderAccountItem: ListRenderItem<
+    Account & { networksWithActivity: AvatarNetworksInfoProps[] }
+  > = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        networksWithActivity,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -247,7 +347,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -290,7 +391,8 @@ const EvmAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets &&
+              renderAccountBalances(assets, address, networksWithActivity))}
         </Cell>
       );
     },
@@ -336,11 +438,31 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
 
+  const fetchAccountsWithActivity = useCallback(async () => {
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      isRemoveGnsEnabled() &&
+      accounts.length > 0 &&
+      isBasicFunctionalityEnabled
+    ) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts, isBasicFunctionalityEnabled]);
+
   return (
     <FlatList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}
-      data={accounts}
+      data={accountsWithNetworkInfo}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.

@@ -5361,6 +5361,20 @@
     "@solana/addresses" "^2.0.0"
     lodash "^4.17.21"
 
+"@metamask/multichain-network-controller@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.7.0.tgz#1be6fe10fa71f5333686be16b953e5a76c705cd3"
+  integrity sha512-kgxU0Ce5qQdynBd2l+Uo6428VcIdbD8N3W+tUdeymgGkdVlNkyRdTUAyZLNFVUpP9KVkvksCQqXVN1CwU35UCw==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.8.0"
+    "@metamask/keyring-api" "^17.4.0"
+    "@metamask/keyring-internal-api" "^6.0.1"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.2.0"
+    "@solana/addresses" "^2.0.0"
+    lodash "^4.17.21"
+
 "@metamask/multichain-transactions-controller@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-1.0.0.tgz#698cc8a2ba5784c2a364461af23cc69873493f62"

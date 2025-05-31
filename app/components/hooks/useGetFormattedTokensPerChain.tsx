@@ -22,7 +22,8 @@ import {
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { selectSelectedNonEvmNetworkChainId } from '../../selectors/multichainNetworkController';
-interface AllTokens {
+
+export interface AllTokens {
   [chainId: string]: {
     [tokenAddress: string]: Token[];
   };
@@ -36,13 +37,13 @@ export interface TokensWithBalances {
   tokenBalanceFiat: number;
 }
 
-interface AddressMapping {
+export interface AddressMapping {
   [chainId: string]: {
     [tokenAddress: string]: string;
   };
 }
 
-interface TokenBalancesMapping {
+export interface TokenBalancesMapping {
   [address: string]: AddressMapping;
 }
 
