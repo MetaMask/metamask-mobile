@@ -77,6 +77,13 @@ describe('ManualBackupStep2', () => {
     },
   };
 
+  const mockRouteEmptyWords = {
+    params: {
+      words: [],
+      steps: ['one', 'two', 'three'],
+    },
+  };
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -99,6 +106,49 @@ describe('ManualBackupStep2', () => {
       <Provider store={store}>
         <ManualBackupStep2
           route={mockRoute}
+          navigation={{
+            navigate: mockNavigate,
+            goBack: mockGoBack,
+            setOptions: mockSetOptions,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            isFocused: jest.fn(),
+          }}
+        />
+      </Provider>,
+    );
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
+
+  const setupTestEmptyWords = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
+
+    store.dispatch = mockDispatch;
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      reset: jest.fn(),
+    });
+
+    const wrapper = renderWithProvider(
+      <Provider store={store}>
+        <ManualBackupStep2
+          route={mockRouteEmptyWords}
           navigation={{
             navigate: mockNavigate,
             goBack: mockGoBack,
@@ -232,5 +282,18 @@ describe('ManualBackupStep2', () => {
     });
 
     expect(continueButton.props.disabled).toBe(true);
+  });
+
+  it('check when words have empty array', async () => {
+    const { wrapper } = setupTestEmptyWords();
+
+    // Press continue button
+    const continueButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(continueButton);
+
+    expect(continueButton).toBeTruthy();
   });
 });
