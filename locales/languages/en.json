@@ -110,7 +110,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet setup",
+    "title": "Let’s get started!",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -142,7 +142,8 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet"
+    "delete_current": "Deleting current wallet",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Congratulations!",
@@ -167,7 +168,7 @@
     "title2": "Manage your digital assets",
     "title3": "Your gateway to web3",
     "subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
-    "subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
     "get_started": "Get started"
   },
@@ -3442,10 +3443,11 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
   "terms_of_use_modal": {
-    "title": "Review our latest Terms of Use",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
-    "accept_helper_description": "Please scroll to read all sections"
+    "accept_helper_description": "Please scroll to read all sections",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "Get the newest features",

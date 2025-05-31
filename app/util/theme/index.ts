@@ -10,7 +10,6 @@ import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
-import Device from '../device';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -121,15 +120,15 @@ export const useAppTheme = (): Theme => {
   const brandColors = brandColor;
 
   const setDarkStatusBar = () => {
+    StatusBar.setTranslucent(true);
     StatusBar.setBarStyle('light-content', true);
-    Device.isAndroid() &&
-      StatusBar.setBackgroundColor(darkTheme.colors.background.default);
+    StatusBar.setBackgroundColor('transparent');
   };
 
   const setLightStatusBar = () => {
-    StatusBar.setBarStyle('dark-content', true);
-    Device.isAndroid() &&
-      StatusBar.setBackgroundColor(lightTheme.colors.background.default);
+    StatusBar.setTranslucent(true);
+    StatusBar.setBarStyle('light-content', true);
+    StatusBar.setBackgroundColor('transparent');
   };
 
   switch (appTheme) {
