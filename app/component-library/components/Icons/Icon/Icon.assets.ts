@@ -273,6 +273,8 @@ import webtrafficSVG from './assets/web-traffic.svg';
 import widgetsSVG from './assets/widgets.svg';
 import wifioffSVG from './assets/wifi-off.svg';
 import wifiSVG from './assets/wifi.svg';
+import dangerSolidSVG from './assets/danger-solid.svg';
+import successSolidSVG from './assets/success.svg';
 import xSVG from './assets/x.svg';
 
 /**
@@ -548,5 +550,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Widgets]: widgetsSVG,
   [IconName.WifiOff]: wifioffSVG,
   [IconName.Wifi]: wifiSVG,
+  [IconName.DangerSolid]: dangerSolidSVG,
+  [IconName.SuccessSolid]: successSolidSVG,
   [IconName.X]: xSVG,
 };
