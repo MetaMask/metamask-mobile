@@ -133,6 +133,9 @@ export const importWalletWithRecoveryPhrase = async ({
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
+
+  await TestHelpers.delay(3500);
+
   await ImportWalletView.tapContinueButton();
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
