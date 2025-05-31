@@ -1,4 +1,6 @@
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -18,6 +20,7 @@ import {
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
   renderAccountName,
+  getTokenDetails,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -31,7 +34,6 @@ import {
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../store', () => ({
   store: {
@@ -66,6 +68,14 @@ jest.mock('../../core/Engine', () => {
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
         state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+      },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({
+          symbol: 'USDC',
+          decimals: 6,
+          standard: 'ERC20',
+          balance: 100000,
+        }),
       },
     },
   };
@@ -596,5 +606,16 @@ describe('isHDOrFirstPartySnapAccount', () => {
         },
       }),
     ).toBe(false);
+  });
+});
+
+describe('getTokenDetails,', () => {
+  it('return token details including balanec for ERC20 tokens', async () => {
+    expect(await getTokenDetails('0x123', '0x0')).toEqual({
+      symbol: 'USDC',
+      decimals: 6,
+      standard: 'ERC20',
+      balance: 100000,
+    });
   });
 });

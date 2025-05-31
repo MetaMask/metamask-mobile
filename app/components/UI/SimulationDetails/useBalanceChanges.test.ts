@@ -3,14 +3,15 @@ import { renderHook } from '@testing-library/react-hooks';
 import { BigNumber } from 'bignumber.js';
 import {
   SimulationData,
+  SimulationTokenBalanceChange,
   SimulationTokenStandard,
 } from '@metamask/transaction-controller';
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 
 import { getTokenDetails } from '../../../util/address';
+import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 import useBalanceChanges from './useBalanceChanges';
 import { FIAT_UNAVAILABLE, AssetType } from './types';
-import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -64,8 +65,8 @@ const DIFFERENCE_ETH_MOCK: Hex = '0x1234567890123456789';
 const CHAIN_ID_MOCK = '0x123';
 
 const dummyBalanceChange = {
-  previousBalance: '0xIGNORE' as Hex,
-  newBalance: '0xIGNORE' as Hex,
+  previousBalance: '0x0' as Hex,
+  newBalance: '0x0' as Hex,
 };
 
 const PENDING_PROMISE = () =>
@@ -204,8 +205,45 @@ describe('useBalanceChanges', () => {
             tokenId: undefined,
             chainId: CHAIN_ID_MOCK,
           },
+          balance: new BigNumber(0),
+          decimals: 3,
           amount: new BigNumber('-0.017'),
           fiatAmount: -0.0255,
+          tokenSymbol: undefined,
+        },
+      ]);
+      expect(changes[0].amount.toString()).toBe('-0.017');
+    });
+
+    it('returns balance, tokenSymbol if previous values are defined', async () => {
+      const { result, waitForNextUpdate } = setupHook([
+        {
+          previousBalance: '0x5' as Hex,
+          newBalance: '0x0' as Hex,
+          difference: '0x11',
+          isDecrease: true,
+          address: ERC20_TOKEN_ADDRESS_1_MOCK,
+          standard: SimulationTokenStandard.erc20,
+          tokenSymbol: 'ETH',
+        } as SimulationTokenBalanceChange,
+      ]);
+
+      await waitForNextUpdate();
+
+      const changes = result.current.value;
+      expect(changes).toEqual([
+        {
+          asset: {
+            address: ERC20_TOKEN_ADDRESS_1_MOCK,
+            type: AssetType.ERC20,
+            tokenId: undefined,
+            chainId: CHAIN_ID_MOCK,
+          },
+          balance: new BigNumber('0.005'),
+          decimals: 3,
+          amount: new BigNumber('-0.017'),
+          fiatAmount: -0.0255,
+          tokenSymbol: 'ETH',
         },
       ]);
       expect(changes[0].amount.toString()).toBe('-0.017');
@@ -261,8 +299,11 @@ describe('useBalanceChanges', () => {
             tokenId: TOKEN_ID_1_MOCK,
             chainId: CHAIN_ID_MOCK,
           },
+          balance: new BigNumber(0),
+          decimals: 0,
           amount: new BigNumber('-1'),
           fiatAmount: FIAT_UNAVAILABLE,
+          tokenSymbol: undefined,
         },
       ]);
     });
