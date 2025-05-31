@@ -74,6 +74,7 @@ import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -94,12 +95,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
-  const isNonEvmAsset = resultChainId === asset.chainId ;
+  const isNonEvmAsset = resultChainId === asset.chainId;
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const selectedInternalAccount = useSelector(
-    selectSelectedInternalAccount,
-  );
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -196,22 +195,32 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       },
     });
 
-    if (asset.chainId !== selectedChainId) {
-      const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
+    // For EVM networks, switch the network if needed
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Skip network switching for Solana assets
+    const isSolanaAsset = isNonEvmAsset && asset.chainId === SolScope.Mainnet;
+    if (!isSolanaAsset) {
+      ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+      if (asset.chainId !== selectedChainId) {
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
+        const networkConfiguration =
+          NetworkController.getNetworkConfigurationByChainId(
+            asset.chainId as Hex,
+          );
+
+        const networkClientId =
+          networkConfiguration?.rpcEndpoints?.[
+            networkConfiguration.defaultRpcEndpointIndex
+          ]?.networkClientId;
+
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
         );
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      );
+      }
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     }
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
     if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
@@ -307,35 +316,36 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isEthOrNative = asset.isETH || asset.isNative;
 
   if (isMultichainAsset) {
-    balance = asset.balance ? formatWithThreshold(
-      parseFloat(asset.balance),
-      minimumDisplayThreshold,
-      I18n.locale,
-      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-    ) : 0;
+    balance = asset.balance
+      ? formatWithThreshold(
+          parseFloat(asset.balance),
+          minimumDisplayThreshold,
+          I18n.locale,
+          { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+        )
+      : 0;
   } else if (isEthOrNative) {
     balance = renderFromWei(
       // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
       accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
   } else {
-
     const multiChainTokenBalanceHex =
       itemAddress &&
       multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
         chainId as Hex
       ]?.[itemAddress as Hex];
     const tokenBalanceHex = multiChainTokenBalanceHex;
-    if(!isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)) {
+    if (
+      !isEvmAccountType(selectedInternalAccount?.type as KeyringAccountType)
+    ) {
       balance = asset.balance || 0;
-    }else {
+    } else {
       balance =
-      itemAddress && tokenBalanceHex
-        ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-        : 0;
+        itemAddress && tokenBalanceHex
+          ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
+          : 0;
     }
-
-
   }
 
   const mainBalance = asset.balanceFiat || '';
