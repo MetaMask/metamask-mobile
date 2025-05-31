@@ -4,9 +4,6 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { buildPermissions } from '../../../fixtures/utils';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestHelpers from '../../../helpers';
-import WalletView from '../../../pages/wallet/WalletView';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { Regression } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
@@ -31,19 +28,14 @@ describe(Regression('Monad Testnet Network Signing'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withPopularNetworks()
+          .withMonadTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x279f']),
-          )
+            buildPermissions(['0x279f']))
           .build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        await NetworkListModal.changeNetworkTo(MONAD_TESTNET);
-        await NetworkEducationModal.tapGotItButton();
 
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
