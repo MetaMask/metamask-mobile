@@ -10,7 +10,7 @@ import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../util/ENSUtils';
-import { formatAddress } from '../../../../util/address';
+import { formatAddress, toFormattedAddress } from '../../../../util/address';
 import { useStyles } from '../../../../component-library/hooks';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import {
@@ -115,7 +115,8 @@ const AccountsConnectedItemList = ({
         Engine.context.AccountsController.getAccountByAddress(address);
       const account = accounts.find(
         (accountData: Account) =>
-          accountData.address.toLowerCase() === address.toLowerCase(),
+          toFormattedAddress(accountData.address) ===
+          toFormattedAddress(address),
       );
       const avatarProps = {
         variant: AvatarVariant.Account as const,

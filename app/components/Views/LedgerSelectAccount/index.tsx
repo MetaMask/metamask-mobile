@@ -40,6 +40,7 @@ import {
 } from '../../../core/Ledger/constants';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
+import { toFormattedAddress } from '../../../util/address';
 
 interface OptionType {
   key: string;
@@ -193,7 +194,7 @@ const LedgerSelectAccount = () => {
     if (LEDGER_LEGACY_PATH === (await getHDPath())) {
       const ledgerAccounts = await getLedgerAccounts();
       const newAddedAccounts = ledgerAccounts.filter(
-        (account) => !existingAccounts.includes(account.toLowerCase()),
+        (account) => !existingAccounts.includes(toFormattedAddress(account)),
       );
 
       if (newAddedAccounts.length > 0) {

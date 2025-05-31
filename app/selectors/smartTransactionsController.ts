@@ -74,7 +74,8 @@ export const selectPendingSmartTransactionsBySender = createDeepEqualSelector(
       .filter((stx) => {
         const { txParams } = stx;
         return (
-          txParams?.from.toLowerCase() === selectedAddress?.toLowerCase() &&
+          selectedAddress &&
+          txParams?.from.toLowerCase() === selectedAddress.toLowerCase() &&
           ![
             SmartTransactionStatuses.SUCCESS,
             SmartTransactionStatuses.CANCELLED,

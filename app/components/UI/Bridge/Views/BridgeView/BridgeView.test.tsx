@@ -37,6 +37,24 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          selectedAccount: '30786334-3935-4563-b064-363339643939',
+          accounts: {
+            '30786334-3935-4563-b064-363339643939': {
+              id: '30786334-3935-4563-b064-363339643939',
+              address: '0x1234567890123456789012345678901234567890',
+              name: 'Account 1',
+              type: 'eip155:eoa',
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+          },
+        },
+      },
+    },
     GasFeeController: {
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
@@ -129,9 +147,8 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
 }));
 
 jest.mock('../../../../../util/address', () => ({
-  isHardwareAccount: jest.fn().mockReturnValue(false),
-  formatAddress: jest.fn().mockImplementation((address) => address),
-  getLabelTextByAddress: jest.fn().mockReturnValue(''),
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 describe('BridgeView', () => {
@@ -679,7 +696,9 @@ describe('BridgeView', () => {
 
       // Wait for the banner text to appear
       await waitFor(() => {
-        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+        expect(
+          getByText(strings('bridge.hardware_wallet_not_supported')),
+        ).toBeTruthy();
       });
     });
   });
@@ -780,4 +799,3 @@ describe('BridgeView', () => {
     });
   });
 });
-

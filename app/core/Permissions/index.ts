@@ -30,6 +30,7 @@ import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { toFormattedAddress } from '../../util/address';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -51,7 +52,8 @@ const captureKeyringTypesWithMissingIdentities = (
   const accountsMissingIdentities = accounts.filter(
     (address) =>
       !internalAccounts.some(
-        (account) => account.address.toLowerCase() === address.toLowerCase(),
+        (account) =>
+          toFormattedAddress(account.address) === toFormattedAddress(address),
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
@@ -86,12 +88,14 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
   return accounts.sort((firstAddress, secondAddress) => {
     const firstAccount = internalAccounts.find(
       (internalAccount) =>
-        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+        toFormattedAddress(internalAccount.address) ===
+        toFormattedAddress(firstAddress),
     );
 
     const secondAccount = internalAccounts.find(
       (internalAccount) =>
-        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+        toFormattedAddress(internalAccount.address) ===
+        toFormattedAddress(secondAddress),
     );
 
     if (!firstAccount) {
@@ -258,7 +262,10 @@ export const addPermittedAccounts = (
   origin: string,
   accounts: CaipAccountId[],
   evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
+  nonEvmNetworkConfigurationsByChainId: Record<
+    Hex,
+    MultichainNetworkConfiguration
+  >,
 ) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
@@ -281,7 +288,10 @@ export const addPermittedAccounts = (
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
-  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId(
+    evmNetworkConfigurationsByChainId,
+    nonEvmNetworkConfigurationsByChainId,
+  );
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
