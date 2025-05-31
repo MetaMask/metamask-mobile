@@ -17,6 +17,7 @@ import { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
@@ -24,7 +25,12 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
-const AddressCopy = () => {
+interface AddressCopyProps {
+  account?: InternalAccount;
+  iconColor?: IconColor;
+}
+
+const AddressCopy = ({ account, iconColor }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
@@ -44,11 +50,12 @@ const AddressCopy = () => {
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const accountToUse = account || selectedInternalAccount;
 
   const copyAccountToClipboard = async () => {
-    if (selectedInternalAccount?.address) {
+    if (accountToUse?.address) {
       await ClipboardManager.setString(
-        getFormattedAddressFromInternalAccount(selectedInternalAccount),
+        getFormattedAddressFromInternalAccount(accountToUse),
       );
     }
     handleShowAlert({
@@ -73,7 +80,7 @@ const AddressCopy = () => {
         <Icon
           name={IconName.Copy}
           size={IconSize.Lg}
-          color={IconColor.Default}
+          color={iconColor || IconColor.Default}
         />
       </TouchableOpacity>
     </View>
