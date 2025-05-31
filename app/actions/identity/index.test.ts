@@ -4,6 +4,8 @@ import {
   performSignOut,
   setIsBackupAndSyncFeatureEnabled,
   syncInternalAccountsWithUserStorage,
+  setHasAccountSyncingSyncedAtLeastOnce,
+  setIsAccountSyncingReadyToBeDispatched,
 } from '.';
 import Engine from '../../core/Engine';
 
@@ -17,6 +19,8 @@ jest.mock('../../core/Engine', () => ({
     UserStorageController: {
       setIsBackupAndSyncFeatureEnabled: jest.fn(),
       syncInternalAccountsWithUserStorage: jest.fn(),
+      setHasAccountSyncingSyncedAtLeastOnce: jest.fn(),
+      setIsAccountSyncingReadyToBeDispatched: jest.fn(),
     },
   },
 }));
@@ -96,6 +100,36 @@ describe('Identity actions', () => {
     expect(
       Engine.context.UserStorageController.syncInternalAccountsWithUserStorage,
     ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('sets hasAccountSyncingSyncedAtLeastOnce', async () => {
+    (
+      Engine.context.UserStorageController
+        .setHasAccountSyncingSyncedAtLeastOnce as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await setHasAccountSyncingSyncedAtLeastOnce(true);
+
+    expect(
+      Engine.context.UserStorageController
+        .setHasAccountSyncingSyncedAtLeastOnce,
+    ).toHaveBeenCalledWith(true);
+    expect(result).toBeUndefined();
+  });
+
+  it('sets isAccountSyncingReadyToBeDispatched', async () => {
+    (
+      Engine.context.UserStorageController
+        .setIsAccountSyncingReadyToBeDispatched as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await setIsAccountSyncingReadyToBeDispatched(true);
+
+    expect(
+      Engine.context.UserStorageController
+        .setIsAccountSyncingReadyToBeDispatched,
+    ).toHaveBeenCalledWith(true);
     expect(result).toBeUndefined();
   });
 });

@@ -5563,13 +5563,12 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-14.0.0.tgz#f006ff2f3fea33318d613c9c87f9e9545041994a"
-  integrity sha512-cjgibCaf2h297yN84ceUxL2uqapi/dyTWlK5O6ZDwDDDisvOUmDMN/h4ZaJA8fhQwf4lAeBSqyp4K/x9FLjHHw==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-f6dbfb00":
+  version "15.0.0-preview-f6dbfb00"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-f6dbfb00.tgz#e2c4879db4c5c880a260253a129e636dd4e6491a"
+  integrity sha512-sw6TfJcM6xG8HdVv2SxWuerL/6dzZhCeWjYaiTnPk6eagBRYayi3aHO6E2jL0NFPrTRyX/Hi1bU8V2In8heUuA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^17.4.0"
     "@metamask/snaps-sdk" "^6.22.0"
     "@metamask/snaps-utils" "^9.2.0"
     "@noble/ciphers" "^0.5.2"
