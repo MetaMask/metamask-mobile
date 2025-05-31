@@ -39,6 +39,7 @@ export const acceptTermOfUse = async () => {
   await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
+  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
