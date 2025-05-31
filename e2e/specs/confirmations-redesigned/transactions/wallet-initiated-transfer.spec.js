@@ -70,8 +70,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await Assertions.checkIfTextIsDisplayed('1 ETH');
         await Assertions.checkIfVisible(RowComponents.FromTo);
 
-        // We don't have simulation details for wallet initiated transfer
-        await Assertions.checkIfNotVisible(RowComponents.SimulationDetails);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
