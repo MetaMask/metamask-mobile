@@ -213,17 +213,6 @@ const buildInpageBridgeTask = {
   },
 };
 
-const nodeifyTask = {
-  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-  title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping nodeifying npm packages.');
-    }
-    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
-  },
-};
-
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
@@ -345,7 +334,6 @@ const prepareDependenciesTask = {
         updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
-        nodeifyTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
