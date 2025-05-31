@@ -44,11 +44,6 @@ import {
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
-import { useFocusEffect } from '@react-navigation/native';
-///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
 
@@ -88,47 +83,16 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
-  ///: END:ONLY_INCLUDE_IF
-
-const homePageUrl = useCallback(
-  () =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // TODO remove after we release Solana dapp connectivity
-  useFocusEffect(
-    useCallback(() => {
-      if (isSolanaAccount(currentSelectedAccount)) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Network,
-          networkImageSource: require('../../../images/solana-logo.png'),
-          labelOptions: [
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.title',
-              )} \n`,
-              isBold: true,
-            },
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.message',
-              )}`,
-            },
-          ],
-        });
-      }
-    }, [toastRef, currentSelectedAccount]),
-  );
-  ///: END:ONLY_INCLUDE_IF
 
   const newTab = useCallback(
     (url, linkType) => {
@@ -243,7 +207,14 @@ const homePageUrl = useCallback(
       hasAccounts.current = true;
       prevSiteHostname.current = newHostname;
     }
-  }, [currentUrl, browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+  }, [
+    currentUrl,
+    browserUrl,
+    accounts,
+    ensByAccountAddress,
+    accountAvatarType,
+    toastRef,
+  ]);
 
   // componentDidMount
   useEffect(
@@ -419,14 +390,7 @@ const homePageUrl = useCallback(
             homePageUrl={homePageUrl()}
           />
         )),
-    [
-      tabs,
-      shouldShowTabs,
-      newTab,
-      homePageUrl,
-      updateTabInfo,
-      showTabsView,
-    ],
+    [tabs, shouldShowTabs, newTab, homePageUrl, updateTabInfo, showTabsView],
   );
 
   return (
@@ -490,7 +454,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';
