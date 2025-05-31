@@ -51,6 +51,15 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:build
     ```
 
+  - **Using prebuilds**
+
+    Instead of building apps localy, you can download prebuilt `.app`/`.apk` files from Runway buckets and run the tests against them.
+
+    After downloading the prebuilt apps, paths to them should be set through the following environment variables:
+    - `PREBULT_IOS_APP_PATH` for iOS
+    - `PREBULT_ANDROID_APP_PATH` for Android
+    - `PREBULT_ANDROID_TEST_APP_PATH` for Android test app
+
 - **Run All Tests Locally**:
   - **iOS Debug**:
 
