@@ -4645,6 +4645,18 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
+"@metamask-previews/earn-controller@0.14.0-preview-e9f8bc88":
+  version "0.14.0-preview-e9f8bc88"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/earn-controller/-/earn-controller-0.14.0-preview-e9f8bc88.tgz#049758e8c5ad753c4671731b6d93fe03790b567a"
+  integrity sha512-eib3Ph/od08wMNYOHUA53MWsYhHV6zcwg+xUNNmvPI0ByEwMtmTORqvP44Sq0bnruCch+V0DLAD47ILkuga71w==
+  dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/stake-sdk" "3.2.0"
+    reselect "^5.1.1"
+
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
@@ -4881,7 +4893,7 @@
 
 "@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0", "@metamask/controller-utils@^11.8.0", "@metamask/controller-utils@^11.9.0":
   version "11.9.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.9.0.tgz#fefe04fa53d6f0f808f756eaa079b02d256be4b1"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/controller-utils/-/controller-utils-11.9.0.tgz#fefe04fa53d6f0f808f756eaa079b02d256be4b1"
   integrity sha512-rfOVI+wPO7WIcwsY5b/1fx44GSYIKsSgvIEUjpfF6YkI5TvbJiXKGKSHkKT1wwl0otq/k6qeM5hn3GuTOCiYwg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
@@ -4900,16 +4912,6 @@
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
-
-"@metamask/earn-controller@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-0.13.0.tgz#4fb05d563351ead7fe0dc153c7b6b6d453346fb7"
-  integrity sha512-Dn6+johhYnjb4DK6DG9RLyJJ0BRmQobZuJwYHbX3DgkC3Y1hVoPnXEqQYPfIEvHZQFHo1A8XhGl0HTjAQvvSGg==
-  dependencies:
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.7.0"
-    "@metamask/stake-sdk" "^1.0.0"
 
 "@metamask/eip1193-permission-middleware@^0.1.0":
   version "0.1.0"
@@ -5863,10 +5865,10 @@
   resolved "https://registry.npmjs.org/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.30.4.tgz#d29b185836a5371280fb8621e8fa970e163459f0"
   integrity sha512-Ym1N+CwAkUL/bt3rd+HOg3V5YliDzjn6QCXSz7IS4pWCt8licBQbz/AG2HIaXqG7EtIocuo3ESAzxQdbw7PMnQ==
 
-"@metamask/stake-sdk@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-1.0.0.tgz#44f599a0b9a785a03c5c40a2dffd9f463045de0e"
-  integrity sha512-AjpQq2fstCpqcgMuIAW1VLaKdUmmdR5zQCJz1KgaXVkp9MFCa3GWfrgfZynN2S+h+39hst/2KNHHOeJrGWYGGw==
+"@metamask/stake-sdk@3.2.0", "@metamask/stake-sdk@^3.2.0":
+  version "3.2.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/stake-sdk/-/stake-sdk-3.2.0.tgz#30b52ad6c190f4473d44ae2106b7346aaaa2e28f"
+  integrity sha512-llrtdY7k+P93Tu67N8bJxiQ4tXqZPPXOL+8ltZ854wf2P7vZOsdBXMO9dZOeLEjf3lCebNaIgZMddDbXP39tmQ==
 
 "@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0", "@metamask/superstruct@^3.2.1":
   version "3.2.1"

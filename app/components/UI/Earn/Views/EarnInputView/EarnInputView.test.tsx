@@ -1,6 +1,10 @@
 import { BNToHex } from '@metamask/controller-utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import {
+  ChainId,
+  LendingProvider,
+  PooledStakingContract,
+} from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
@@ -144,11 +148,28 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
+const mockLendingContracts = {
+  aave: {
+    '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2': {
+      estimateDepositGas: jest.fn(),
+      encodeDepositTransactionData: jest.fn(),
+      estimateWithdrawGas: jest.fn(),
+      encodeWithdrawTransactionData: jest.fn(),
+      estimateUnderlyingTokenApproveGas: jest.fn(),
+      encodeUnderlyingTokenApproveTransactionData: jest.fn(),
+      underlyingTokenAllowance: jest.fn(),
+      maxWithdraw: jest.fn(),
+      maxDeposit: jest.fn(),
+    } as unknown as LendingProvider,
+  },
+};
+
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
-      setSdkType: jest.fn(),
       stakingContract: mockPooledStakingContractService,
+      lendingContracts: mockLendingContracts,
+      networkClientId: 'hoodi',
     };
     return stakeContext;
   }),
@@ -163,13 +184,14 @@ jest.mock('../../../Stake/hooks/useBalance', () => ({
   }),
 }));
 
-jest.mock('../../../Stake/hooks/useStakingGasFee', () => ({
+jest.mock('../../../Earn/hooks/useEarnGasFee', () => ({
   __esModule: true,
   default: () => ({
-    estimatedGasFeeWei: mockGasFeeBN,
-    isLoadingStakingGasFee: false,
-    isStakingGasFeeError: false,
-    refreshGasValues: jest.fn(),
+    estimatedEarnGasFeeWei: mockGasFeeBN,
+    isLoadingEarnGasFee: false,
+    isEarnGasFeeError: false,
+    refreshEarnGasValues: jest.fn(),
+    getEstimatedEarnGasFee: jest.fn(),
   }),
 }));
 
