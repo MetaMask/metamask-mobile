@@ -173,6 +173,7 @@ const DeleteWalletModal = () => {
               autoCapitalize="none"
               value={deleteText}
               keyboardAppearance={themeAppearance}
+              testID={DeleteWalletModalSelectorsIDs.INPUT}
             />
           </View>
           <View style={styles.buttonContainer}>

@@ -79,6 +79,10 @@ describe('DeleteWalletModal', () => {
 
   it('signs the user out when deleting the wallet', async () => {
     const { getByTestId } = renderComponent(mockInitialState);
+    fireEvent.changeText(
+      getByTestId(DeleteWalletModalSelectorsIDs.INPUT),
+      'erase',
+    );
     fireEvent.press(
       getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
     );
@@ -90,7 +94,10 @@ describe('DeleteWalletModal', () => {
 
   it('sets completedOnboarding to false when deleting the wallet', async () => {
     const { getByTestId } = renderComponent(mockInitialState);
-
+    fireEvent.changeText(
+      getByTestId(DeleteWalletModalSelectorsIDs.INPUT),
+      'erase',
+    );
     fireEvent.press(
       getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
     );

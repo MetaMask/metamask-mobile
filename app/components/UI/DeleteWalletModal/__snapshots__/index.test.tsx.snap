@@ -634,7 +634,7 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                                           "paddingVertical": 0,
                                         }
                                       }
-                                      testID="input"
+                                      testID="delete-wallet-inputbox"
                                       value=""
                                     />
                                   </View>
