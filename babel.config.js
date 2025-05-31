@@ -1,8 +1,13 @@
+const ReactCompilerConfig = {
+  target: '18'
+};
+
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   ignore: [/\/ses\.cjs$/, /\/ses-hermes\.cjs$/],
   presets: ['babel-preset-expo'],
   plugins: [
+    ['babel-plugin-react-compiler', ReactCompilerConfig],
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
   ],
