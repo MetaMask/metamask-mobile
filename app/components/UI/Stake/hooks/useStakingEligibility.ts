@@ -5,7 +5,6 @@ import Engine from '../../../../core/Engine';
 
 const useStakingEligibility = () => {
   const isEligible = useSelector(pooledStakingSelectors.selectEligibility);
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

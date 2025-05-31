@@ -41,16 +41,22 @@ import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import {
-  CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
-  getErc20SpendingLimit,
-} from '../../utils/tempLending';
+// import {
+//   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
+//   getErc20SpendingLimit,
+// } from '../../utils/tempLending';
 import BigNumber from 'bignumber.js';
-import { isSupportedLendingTokenByChainId } from '../../utils';
+import {
+  EARN_LENDING_ACTIONS,
+  EarnTokenDetails,
+} from '../../types/lending.types';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import Engine from '../../../../../core/Engine';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -88,9 +94,9 @@ const EarnInputView = () => {
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const earnToken = getTokenWithBalanceAndApr(token);
+  const { getEarnToken } = useEarnTokens();
+  const earnToken = getEarnToken(token);
   const {
     isFiat,
     currentCurrency,
@@ -109,15 +115,15 @@ const EarnInputView = () => {
     annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultMetadata,
+    isLoadingEarnMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
     getDepositTxGasPercentage,
     estimatedGasFeeWei,
-    isLoadingStakingGasFee,
+    isLoadingEarnGasFee,
   } = useEarnInputHandlers({
-    earnToken,
+    earnToken: earnToken as EarnTokenDetails,
     conversionRate,
     exchangeRate,
   });
@@ -125,6 +131,7 @@ const EarnInputView = () => {
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId: earnToken?.chainId },
     });
   };
 
@@ -138,18 +145,23 @@ const EarnInputView = () => {
 
     if (!tokenContractAddress || !earnToken?.chainId) return;
 
-    const allowanceMinimalTokenUnit = await getErc20SpendingLimit(
-      activeAccount.address,
-      tokenContractAddress,
-      earnToken.chainId,
-    );
+    const allowanceMinimalTokenUnitBN =
+      await Engine.context.EarnController.getLendingTokenAllowance(
+        earnToken.experience.market?.protocol,
+        earnToken.experience.market?.underlying?.address,
+      );
+
+    const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN
+      ? allowanceMinimalTokenUnitBN.toString()
+      : '0';
 
     const needsAllowanceIncrease = new BigNumber(
       allowanceMinimalTokenUnit ?? '',
     ).isLessThan(amountTokenMinimalUnitString);
 
     const lendingPoolContractAddress =
-      CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS[earnToken.chainId] ?? '';
+      CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
+      '';
 
     navigation.navigate(Routes.EARN.ROOT, {
       screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
@@ -162,12 +174,11 @@ const EarnInputView = () => {
         annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
-        // TODO: Replace hardcoded protocol in future iteration.
-        lendingProtocol: 'AAVE v3',
+        lendingProtocol: earnToken?.experience?.market?.protocol,
         lendingContractAddress: lendingPoolContractAddress,
         action: needsAllowanceIncrease
-          ? EARN_INPUT_VIEW_ACTIONS.ALLOWANCE_INCREASE
-          : EARN_INPUT_VIEW_ACTIONS.LEND,
+          ? EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE
+          : EARN_LENDING_ACTIONS.DEPOSIT,
       },
     });
   }, [
@@ -179,6 +190,7 @@ const EarnInputView = () => {
     annualRewardsToken,
     earnToken?.address,
     earnToken?.chainId,
+    earnToken?.experience,
     navigation,
     token,
   ]);
@@ -210,6 +222,7 @@ const EarnInputView = () => {
           annualRewardRate,
           estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
           estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+          chainId: earnToken?.chainId,
         },
       });
       return;
@@ -264,6 +277,7 @@ const EarnInputView = () => {
         annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
+        chainId: earnToken?.chainId,
       },
     });
 
@@ -282,6 +296,7 @@ const EarnInputView = () => {
     annualRewardsToken,
     attemptDepositTransaction,
     createEventBuilder,
+    earnToken?.chainId,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -293,7 +308,7 @@ const EarnInputView = () => {
   const handleEarnPress = useCallback(async () => {
     // Stablecoin Lending Flow
     if (
-      earnToken?.experience === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
       isStablecoinLendingEnabled
     ) {
       await handleLendingFlow();
@@ -303,7 +318,7 @@ const EarnInputView = () => {
     // Pooled-Staking Flow
     await handlePooledStakingFlow();
   }, [
-    earnToken?.experience,
+    earnToken?.experience?.type,
     isStablecoinLendingEnabled,
     handlePooledStakingFlow,
     handleLendingFlow,
@@ -328,7 +343,7 @@ const EarnInputView = () => {
     }
     if (isOverMaximum.isOverMaximumToken) {
       return strings('stake.not_enough_token', {
-        ticker: earnToken.ticker ?? earnToken.symbol,
+        ticker: earnToken?.ticker ?? earnToken?.symbol,
       });
     }
     if (isOverMaximum.isOverMaximumEth) {
@@ -391,16 +406,13 @@ const EarnInputView = () => {
   const navBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
+
   const title = useMemo(() => {
-    if (
-      isStablecoinLendingEnabled &&
-      token?.chainId &&
-      isSupportedLendingTokenByChainId(token.symbol, token.chainId)
-    ) {
+    if (isStablecoinLendingEnabled) {
       return strings('earn.deposit');
     }
     return strings('stake.stake');
-  }, [isStablecoinLendingEnabled, token.chainId, token.symbol]);
+  }, [isStablecoinLendingEnabled]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -440,7 +452,7 @@ const EarnInputView = () => {
         amountToken={amountToken}
         amountFiatNumber={amountFiatNumber}
         isFiat={isFiat}
-        ticker={token.ticker ?? token.symbol}
+        asset={token}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
@@ -455,7 +467,10 @@ const EarnInputView = () => {
       />
       <View style={styles.rewardsRateContainer}>
         {isStablecoinLendingEnabled ? (
-          <EarnTokenSelector token={token} />
+          <EarnTokenSelector
+            token={token}
+            action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+          />
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}
@@ -468,7 +483,7 @@ const EarnInputView = () => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultMetadata}
+            isLoading={isLoadingEarnMetadata}
           />
         )}
       </View>
@@ -512,7 +527,7 @@ const EarnInputView = () => {
             isOverMaximum.isOverMaximumToken ||
             isOverMaximum.isOverMaximumEth ||
             !isNonZeroAmount ||
-            isLoadingStakingGasFee ||
+            isLoadingEarnGasFee ||
             isSubmittingStakeDepositTransaction
           }
           width={ButtonWidthTypes.Full}

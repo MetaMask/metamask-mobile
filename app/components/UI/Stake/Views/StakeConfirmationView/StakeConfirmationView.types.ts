@@ -6,6 +6,7 @@ interface StakeConfirmationViewRouteParams {
   annualRewardsETH: string;
   annualRewardsFiat: string;
   annualRewardRate: string;
+  chainId: string;
 }
 
 export interface StakeConfirmationViewProps {

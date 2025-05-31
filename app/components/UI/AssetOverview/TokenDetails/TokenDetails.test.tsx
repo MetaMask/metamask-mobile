@@ -19,11 +19,6 @@ import * as reactRedux from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
-
-jest.mock('../../Earn/constants/tempLendingConstants', () => ({
-  USER_HAS_LENDING_POSITIONS: false,
-}));
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -191,8 +186,6 @@ describe('TokenDetails', () => {
           return {};
         case selectIsEvmNetworkSelected:
           return true;
-        case selectStablecoinLendingEnabledFlag:
-          return false;
         default:
           return undefined;
       }
@@ -252,7 +245,6 @@ describe('TokenDetails', () => {
         },
       },
     } as const;
-
 
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       if (typeof selectorOrCallback === 'function') {
@@ -379,8 +371,6 @@ describe('TokenDetails', () => {
           return 'ETH';
         case selectMultichainAssetsRates:
           return {};
-        case selectStablecoinLendingEnabledFlag:
-          return true;
         default:
           return undefined;
       }

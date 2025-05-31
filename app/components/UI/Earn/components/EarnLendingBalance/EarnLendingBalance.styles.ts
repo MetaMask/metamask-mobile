@@ -28,6 +28,10 @@ const styleSheet = () =>
       borderRadius: 16,
       overflow: 'hidden',
     },
+    EarnEmptyStateCta: {
+      paddingTop: 8,
+      paddingHorizontal: 16,
+    },
   });
 
 export default styleSheet;

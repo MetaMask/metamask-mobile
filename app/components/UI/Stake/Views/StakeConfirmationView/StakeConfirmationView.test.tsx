@@ -92,6 +92,7 @@ describe('StakeConfirmationView', () => {
           annualRewardRate: '2.6%',
           annualRewardsETH: '0.00026 ETH',
           annualRewardsFiat: '$0.68',
+          chainId: '1',
         },
         name: 'params',
       },
