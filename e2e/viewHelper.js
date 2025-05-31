@@ -99,6 +99,31 @@ export const skipNotificationsDeviceSettings = async () => {
 };
 
 /**
+ * Wait for an element to be enabled.
+ * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
+ * @param {number} maxRetries - The maximum number of retries.
+ * @param {number} delay - The delay between retries in ms.
+ */
+export const waitForElementToBeEnabled = async (
+  element,
+  maxRetries = 10,
+  delay = 2500,
+) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      if (await Assertions.checkIfEnabled(element)) {
+        return;
+      }
+    } catch {
+      console.log('Element is not enabled');
+    } finally {
+      await TestHelpers.delay(delay);
+    }
+  }
+  throw new Error('Element not enabled after max retries');
+};
+
+/**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
  * @async
@@ -140,7 +165,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   console.log('entered secret recovery phrase');
 
-  await TestHelpers.delay(15000);
+  await waitForElementToBeEnabled(ImportWalletView.continueButton, 20);
 
   await ImportWalletView.tapContinueButton();
   console.log('tapped continue button');
