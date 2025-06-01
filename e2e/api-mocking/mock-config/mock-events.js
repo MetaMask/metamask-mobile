@@ -75,8 +75,7 @@ export const mockEvents = {
             signatures: true,
             staking_confirmations: true,
             contract_interaction: true,
-            // Regardless of the redesigned flags, transfer is disabled for now
-            transfer: false,
+            transfer: true,
           },
         },
       ],

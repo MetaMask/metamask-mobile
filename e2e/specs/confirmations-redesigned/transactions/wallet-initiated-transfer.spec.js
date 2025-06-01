@@ -13,6 +13,7 @@ import {
 import Assertions from '../../../utils/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -26,7 +27,10 @@ const AMOUNT = '1';
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   const testSpecificMock = {
     POST: [SEND_ETH_SIMULATION_MOCK],
-    GET: [SIMULATION_ENABLED_NETWORKS_MOCK],
+    GET: [
+      SIMULATION_ENABLED_NETWORKS_MOCK,
+      mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations,
+    ],
   };
 
   beforeAll(async () => {
