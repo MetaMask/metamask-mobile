@@ -5,7 +5,7 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
-import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
 import Icon, {
