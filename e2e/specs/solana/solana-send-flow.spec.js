@@ -33,21 +33,13 @@ describe(
       await TestHelpers.launchApp();
     });
 
-    it('should import wallet with Solana support', async () => {
+    it('should import wallet with a Solana account', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
+        ignoreSolanaFeatureSheet: false,
+        viewOrCreateSolanaAccount: true,
       });
-    });
-    const itif = (condition) => (condition ? it : it.skip);
-
-    it('should navigate through Solana onboarding and create a Solana account', async () => {
-      await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAddAccountButton();
-      await AddAccountBottomSheet.tapAddSolanaAccount();
-      await AddNewHdAccountComponent.tapConfirm();
       await NetworkEducationModal.tapGotItButton();
-      // Assert account created, which is an existing account with SOL
-      await Assertions.checkIfTextIsDisplayed(SOLANA_ACCOUNT_NAME);
     });
 
     it('should validate recipient address format correctly', async () => {
@@ -60,7 +52,6 @@ describe(
       );
       // Snap UI components prove tricky for testID's
       await SnapSendActionSheet.tapCancelButton();
-
     });
 
     it('should successfully transfer SOL to a valid recipient address', async () => {

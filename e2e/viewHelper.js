@@ -42,7 +42,7 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
-export const closeOnboardingModals = async () => {
+export const closeOnboardingModals = async (ignoreSolanaFeatureSheet = true, viewOrCreateSolanaAccount = false) => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
@@ -69,14 +69,16 @@ have to have all these workarounds in the tests
 
     console.log('The marketing toast is not visible');
   }
-
-  // Handle Solana New feature sheet
-  try {
+  
+  if (ignoreSolanaFeatureSheet) {
+    // Handle Solana New feature sheet
     await SolanaNewFeatureSheet.tapNotNowButton();
-  } catch {
-    /* eslint-disable no-console */
+    console.log('Solana New feature sheet is not visible');
+  }
 
-    console.log('The new Solana feature modal is not visible');
+  if (viewOrCreateSolanaAccount) {
+    // Handle Solana New feature sheet
+    await SolanaNewFeatureSheet.tapCreateAccountButton();
   }
 };
 
@@ -113,6 +115,8 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  ignoreSolanaFeatureSheet = true,
+  viewOrCreateSolanaAccount = false,
 } = {}) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
@@ -124,6 +128,9 @@ export const importWalletWithRecoveryPhrase = async ({
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
+
+  
+  
 
   await TestHelpers.delay(3500);
   await acceptTermOfUse();
@@ -145,7 +152,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await EnableAutomaticSecurityChecksView.tapNoThanks();
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals();
+  await closeOnboardingModals(ignoreSolanaFeatureSheet, viewOrCreateSolanaAccount);
 };
 
 export const CreateNewWallet = async () => {
