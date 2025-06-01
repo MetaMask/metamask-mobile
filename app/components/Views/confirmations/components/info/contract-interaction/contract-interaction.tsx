@@ -25,7 +25,6 @@ const ContractInteraction = () => {
       <AccountNetworkInfo />
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails
-        containerStyles={{ paddingBottom: 8 }}
         transaction={transactionMetadata as TransactionMeta}
         enableMetrics={false}
         isTransactionsRedesign

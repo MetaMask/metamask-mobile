@@ -109,6 +109,7 @@ const AdvancedDetailsRow = () => {
                     >
                       <Text
                         // Keep this onPress to prevent the scroll view from being dismissed
+                        // eslint-disable-next-line no-empty-function
                         onPress={() => {}}
                       >
                         {data}

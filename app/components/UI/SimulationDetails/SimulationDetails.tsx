@@ -27,7 +27,6 @@ import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
-  containerStyles?: StyleProp<ViewStyle>;
   enableMetrics: boolean;
   isTransactionsRedesign?: boolean;
   transaction: TransactionMeta;
@@ -128,11 +127,10 @@ const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
   children?: React.ReactNode;
-  containerStyles?: StyleProp<ViewStyle>;
-}> = ({ inHeader, children, isTransactionsRedesign, containerStyles }) => {
+}> = ({ inHeader, children, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   return (
-    <View style={containerStyles ?? {}}>
+    <View style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}>
       <View style={[styles.container]}>
         <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
           {inHeader}
@@ -153,7 +151,6 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   transaction,
   enableMetrics = false,
   isTransactionsRedesign = false,
-  containerStyles,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   const {
@@ -181,7 +178,6 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   if (loading) {
     return (
       <SimulationDetailsLayout
-        containerStyles={containerStyles}
         inHeader={
           <AnimatedSpinner
             testID="simulation-details-spinner"
@@ -206,10 +202,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
 
   if (error) {
     return (
-      <SimulationDetailsLayout
-        containerStyles={containerStyles}
-        isTransactionsRedesign={isTransactionsRedesign}
-      >
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
         <ErrorContent
           error={error}
           isTransactionsRedesign={isTransactionsRedesign}
@@ -222,10 +215,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const empty = balanceChanges.length === 0;
   if (empty) {
     return (
-      <SimulationDetailsLayout
-        containerStyles={containerStyles}
-        isTransactionsRedesign={isTransactionsRedesign}
-      >
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
         <EmptyContent />
       </SimulationDetailsLayout>
     );
@@ -235,10 +225,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const incoming = balanceChanges.filter((bc) => !bc.amount.isNegative());
 
   return (
-    <SimulationDetailsLayout
-      containerStyles={containerStyles}
-      isTransactionsRedesign={isTransactionsRedesign}
-    >
+    <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
         {isBatched && <BatchApprovalRow />}
         <BalanceChangeList

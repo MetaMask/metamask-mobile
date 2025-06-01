@@ -33,7 +33,6 @@ const Transfer = () => {
       <NetworkRow />
       {isDappTransfer && (
         <SimulationDetails
-          containerStyles={{ paddingBottom: 8 }}
           transaction={transactionMetadata as TransactionMeta}
           enableMetrics
           isTransactionsRedesign
