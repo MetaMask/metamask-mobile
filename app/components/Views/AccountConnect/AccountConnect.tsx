@@ -483,7 +483,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
-    
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
@@ -872,8 +872,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         scope={scope}
         clientType={clientType}
         onActionComplete={(account: InternalAccount) => {
-          const [scope] = account.scopes;
-          const { namespace, reference } = parseCaipChainId(scope);
+          const [accountScope] = account.scopes;
+          const { namespace, reference } = parseCaipChainId(accountScope);
           const caipAccountId = toCaipAccountId(
             namespace,
             reference,
@@ -949,6 +949,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
+    renderAddNewAccount,
     multichainAccountOptions,
   ]);
 
