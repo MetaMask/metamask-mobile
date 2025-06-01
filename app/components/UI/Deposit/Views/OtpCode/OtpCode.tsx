@@ -28,16 +28,18 @@ export const createOtpCodeNavDetails = createNavigationDetails(
 
 const CELL_COUNT = 6;
 const COOLDOWN_TIME = 30;
+const MAX_RESET_ATTEMPTS = 3;
 
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { email, setAuthToken } = useDepositSDK();
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown'
+    'resend' | 'cooldown' | 'contactSupport'
   >('resend');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [resetAttemptCount, setResetAttemptCount] = useState(0);
 
   useEffect(() => {
     navigation.setOptions(
@@ -107,18 +109,27 @@ const OtpCode = () => {
 
   const handleResend = useCallback(async () => {
     try {
+      if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
+        setResendButtonState('contactSupport');
+        return;
+      }
+      setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
       await resendOtp();
     } catch (e) {
       setResendButtonState('resend');
     }
-  }, [resendOtp]);
+  }, [resendOtp, resetAttemptCount]);
 
   const handleSubmit = useCallback(async () => {
     if (!loading && value.length === CELL_COUNT) {
       await submitCode();
     }
   }, [loading, submitCode, value.length]);
+
+  const handleContactSupport = useCallback(() => {
+    // navigate user to the contact support screen
+  }, []);
 
   return (
     <ScreenLayout>
@@ -174,6 +185,12 @@ const OtpCode = () => {
                   seconds: cooldownSeconds,
                 })}
               </Text>
+            ) : resendButtonState === 'contactSupport' ? (
+              <TouchableOpacity onPress={handleContactSupport}>
+                <Text style={styles.contactSupportButton}>
+                  {strings('deposit.otp_code.contact_support')}
+                </Text>
+              </TouchableOpacity>
             ) : null}
           </Row>
         </ScreenLayout.Content>

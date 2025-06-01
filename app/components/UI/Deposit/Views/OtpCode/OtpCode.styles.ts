@@ -44,6 +44,10 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.info.default,
       marginLeft: 4,
     },
+    contactSupportButton: {
+      color: theme.colors.info.default,
+      marginLeft: 4,
+    },
   });
 };
 
