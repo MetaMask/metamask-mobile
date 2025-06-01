@@ -6,19 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { fireEvent } from '@testing-library/react-native';
-import configureStore from '../../../util/test/configureStore';
-import { Provider } from 'react-redux';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
-
-jest.mock('../../../actions/wizard', () => ({
-  setOnboardingWizardStep: jest.fn(),
-}));
-
-jest.mock('../../../actions/onboarding', () => ({
-  saveOnboardingEvent: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -37,8 +27,6 @@ jest.mock('../../../util/device', () => ({
 jest.mock('../../../core/Engine', () => ({
   hasFunds: () => false,
 }));
-
-const mockStore = configureStore([]);
 
 describe('AccountBackupStep1', () => {
   afterEach(() => {
@@ -66,19 +54,15 @@ describe('AccountBackupStep1', () => {
       reset: jest.fn(),
     });
 
-    const store = mockStore; // Mocked Redux store
-
     const wrapper = renderWithProvider(
-      <Provider store={store}>
-        <AccountBackupStep1
-          navigation={{
-            navigate: mockNavigate,
-            goBack: mockGoBack,
-            setOptions: mockSetOptions,
-          }}
-          route={{}}
-        />
-      </Provider>,
+      <AccountBackupStep1
+        navigation={{
+          navigate: mockNavigate,
+          goBack: mockGoBack,
+          setOptions: mockSetOptions,
+        }}
+        route={{}}
+      />,
       {
         state: initialState,
       },

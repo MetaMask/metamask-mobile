@@ -78,6 +78,31 @@ describe('SkipAccountSecurityModal', () => {
     };
   };
 
+  const setupTestWithoutParams = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      reset: jest.fn(),
+    });
+
+    const wrapper = renderWithProvider(<SkipAccountSecurityModal route={{}} />);
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+    };
+  };
+
   it('should render correctly', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
@@ -85,6 +110,20 @@ describe('SkipAccountSecurityModal', () => {
 
   it('should render cta actions', () => {
     const { wrapper } = setupTest();
+
+    const cancelButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.skip_button_cancel'),
+    });
+    const confirmButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.skip_button_confirm'),
+    });
+
+    expect(cancelButton).toBeTruthy();
+    expect(confirmButton).toBeTruthy();
+  });
+
+  it('should render cta actions without params', () => {
+    const { wrapper } = setupTestWithoutParams();
 
     const cancelButton = wrapper.getByRole('button', {
       name: strings('account_backup_step_1.skip_button_cancel'),
