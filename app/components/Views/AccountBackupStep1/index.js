@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   View,
@@ -113,28 +113,33 @@ const AccountBackupStep1 = (props) => {
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [navigation, colors, styles.headerLeft],
+  );
+
   useEffect(() => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
       gesturesEnabled: false,
     });
-  }, [navigation, route, colors, styles.headerLeft]);
+  }, [navigation, route, colors, headerLeft]);
 
   useEffect(
     () => {
