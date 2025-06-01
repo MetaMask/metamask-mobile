@@ -77,8 +77,9 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-      - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      - create_build_qa_and_expo: {}
+      # - build_smoke_e2e_ios_android_stage: {}
+      # - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -1502,6 +1503,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_devbuild:
+    before_run:
+      - code_setup
+      - set_commit_hash
     envs:
       - IS_DEV_BUILD: 'true'
       - METAMASK_BUILD_TYPE: 'main'
@@ -1510,11 +1514,38 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
     after_run:
-      - _android_build_template
+      - notify_failure
+    steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          title: Run debug build
+          timeout: 1200
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/setup-ccache.sh
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
+      - save-gradle-cache@1: {}
     meta:
       bitrise.io:
-        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
   build_android_flask_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
