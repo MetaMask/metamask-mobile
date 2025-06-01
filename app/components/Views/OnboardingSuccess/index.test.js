@@ -10,13 +10,17 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 import { waitFor } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { Linking } from 'react-native';
+import AppConstants from '../../../core/AppConstants';
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
@@ -48,12 +52,37 @@ const mockProviderConfig = {
 };
 
 describe('OnboardingSuccess', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockNavigate.mockClear();
+  });
+
   it('should render correctly', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
     const { toJSON } = renderWithProvider(
       <OnboardingSuccess navigation={useNavigation()} />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly when noSRP is true', () => {
+    useSelector.mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+    const { toJSON } = renderWithProvider(
+      <OnboardingSuccess navigation={useNavigation()} noSRP />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly when backedUpSRP is true', () => {
+    useSelector.mockImplementation((selector) => {
+      if (selector === selectProviderConfig) return mockProviderConfig;
+    });
+    const { toJSON } = renderWithProvider(
+      <OnboardingSuccess navigation={useNavigation()} backedUpSRP />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -79,4 +108,26 @@ describe('OnboardingSuccess', () => {
       });
     });
   });
+
+  it('should navigate to the default settings screen when the manage default settings button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccess navigation={useNavigation()} onDone={jest.fn()} />,
+    );
+    const button = getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON);
+    button.props.onPress();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    }
+    );
+  });
+
+  it('should navigate to the learn more screen when the learn more link is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccess navigation={useNavigation()} onDone={jest.fn()} />,
+    );
+    const button = getByTestId(OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID);
+    button.props.onPress();
+    expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.WHAT_IS_SRP);
+  });
+  
 });
