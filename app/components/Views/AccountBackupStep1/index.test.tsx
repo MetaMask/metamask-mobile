@@ -3,6 +3,9 @@ import AccountBackupStep1 from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../locales/i18n';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { fireEvent } from '@testing-library/react-native';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -15,6 +18,15 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn(),
   };
 });
+
+jest.mock('../../../util/device', () => ({
+  isIos: jest.fn(),
+  isAndroid: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  hasFunds: () => false,
+}));
 
 describe('AccountBackupStep1', () => {
   afterEach(() => {
@@ -67,5 +79,48 @@ describe('AccountBackupStep1', () => {
   it('should render correctly', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render title and explanation text', () => {
+    jest.mock('../../../core/Engine', () => ({
+      hasFunds: () => true,
+    }));
+    const { wrapper, mockNavigate } = setupTest();
+    const title = wrapper.getByText(strings('account_backup_step_1.title'));
+    expect(title).toBeTruthy();
+
+    const explanationText = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
+    );
+    expect(explanationText).toBeTruthy();
+    fireEvent.press(explanationText);
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SeedphraseModal',
+    });
+  });
+
+  it('should render cta actions', () => {
+    const { wrapper, mockNavigate } = setupTest();
+    const reminderButton = wrapper.getByText(
+      strings('account_backup_step_1.remind_me_later'),
+    );
+    expect(reminderButton).toBeTruthy();
+
+    fireEvent.press(reminderButton);
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SkipAccountSecurityModal',
+      params: {
+        onConfirm: expect.any(Function),
+        onCancel: expect.any(Function),
+      },
+    });
+
+    const continueButton = wrapper.getByText(
+      strings('account_backup_step_1.cta_text'),
+    );
+    expect(continueButton).toBeTruthy();
+
+    fireEvent.press(continueButton);
+    expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
   });
 });

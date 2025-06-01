@@ -217,6 +217,7 @@ const AccountBackupStep1 = (props) => {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Primary}
                   onPress={showWhatIsSeedphrase}
+                  testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
                 >
                   {strings('account_backup_step_1.info_text_1_2')}
                 </Text>{' '}
