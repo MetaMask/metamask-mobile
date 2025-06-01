@@ -140,11 +140,11 @@ jest.mocked(Engine);
 
 const render = (
   state: RootState,
-  props: AddNewAccountProps,
+  params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
   renderWithProvider(
     <SafeAreaProvider>
-      <AddNewAccount {...props} />
+      <AddNewAccount {...params} />
     </SafeAreaProvider>,
     { state },
   );
