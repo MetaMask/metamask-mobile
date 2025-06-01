@@ -42,7 +42,7 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
-export const closeOnboardingModals = async (ignoreSolanaFeatureSheet = true, viewOrCreateSolanaAccount = false) => {
+export const closeOnboardingModals = async () => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
@@ -69,16 +69,14 @@ have to have all these workarounds in the tests
 
     console.log('The marketing toast is not visible');
   }
-  
-  if (ignoreSolanaFeatureSheet) {
-    // Handle Solana New feature sheet
-    await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log('Solana New feature sheet is not visible');
-  }
 
-  if (viewOrCreateSolanaAccount) {
-    // Handle Solana New feature sheet
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
+  // Handle Solana New feature sheet
+  try {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The new Solana feature modal is not visible');
   }
 };
 
@@ -115,8 +113,6 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
-  ignoreSolanaFeatureSheet = true,
-  viewOrCreateSolanaAccount = false,
 } = {}) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
@@ -128,9 +124,6 @@ export const importWalletWithRecoveryPhrase = async ({
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
-
-  
-  
 
   await TestHelpers.delay(3500);
   await acceptTermOfUse();
@@ -152,7 +145,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await EnableAutomaticSecurityChecksView.tapNoThanks();
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals(ignoreSolanaFeatureSheet, viewOrCreateSolanaAccount);
+  await closeOnboardingModals();
 };
 
 export const CreateNewWallet = async () => {
