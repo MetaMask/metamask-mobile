@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
@@ -53,7 +53,6 @@ const mockProviderConfig = {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     mockNavigate.mockClear();
   });
 
@@ -114,7 +113,7 @@ describe('OnboardingSuccess', () => {
       <OnboardingSuccess navigation={useNavigation()} onDone={jest.fn()} />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON);
-    button.props.onPress();
+    fireEvent.press(button);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.SUCCESS_FLOW, {
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     }
@@ -126,7 +125,7 @@ describe('OnboardingSuccess', () => {
       <OnboardingSuccess navigation={useNavigation()} onDone={jest.fn()} />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID);
-    button.props.onPress();
+    fireEvent.press(button);
     expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.WHAT_IS_SRP);
   });
   
