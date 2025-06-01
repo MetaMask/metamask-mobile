@@ -28,13 +28,31 @@ import styles from './Settings.styles';
 
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../component-library/components/List/ListItemColumn';
+import { useDepositSDK, withDepositSDK } from '../../../Deposit/sdk';
+
+const providerName = 'Transak';
 
 function Settings() {
   const navigation = useNavigation();
-  const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
+  const {
+    selectedRegion,
+    setSelectedRegion,
+    isInternalBuild: isInternalBuildRamp,
+  } = useRampSDK();
+  const {
+    isInternalBuild: isInternalBuildDeposit,
+    clearAuthToken,
+    isAuthenticated,
+    checkExistingToken,
+  } = useDepositSDK();
   const { colors } = useAppTheme();
   const style = styles();
   const trackEvent = useAnalytics();
+
+  useEffect(() => {
+    checkExistingToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     navigation.setOptions(
@@ -53,6 +71,10 @@ function Settings() {
     });
     setSelectedRegion(null);
   }, [setSelectedRegion, trackEvent]);
+
+  const handleResetDepositAuth = useCallback(() => {
+    clearAuthToken();
+  }, [clearAuthToken]);
 
   return (
     <KeyboardAvoidingView
@@ -89,9 +111,36 @@ function Settings() {
                 />
               ) : null}
             </Row>
-            {isInternalBuild ? (
+            {isInternalBuildRamp ? (
               <Row>
                 <ActivationKeys />
+              </Row>
+            ) : null}
+            {isInternalBuildDeposit ? (
+              <Row>
+                {isAuthenticated ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleResetDepositAuth}
+                    label={strings(
+                      'app_settings.fiat_on_ramp.deposit_provider_logout_button',
+                      {
+                        providerName,
+                      },
+                    )}
+                  />
+                ) : (
+                  <Text>
+                    {strings(
+                      'app_settings.fiat_on_ramp.deposit_provider_logged_out',
+                      {
+                        providerName,
+                      },
+                    )}
+                  </Text>
+                )}
               </Row>
             ) : null}
           </ScreenLayout.Content>
@@ -100,4 +149,4 @@ function Settings() {
     </KeyboardAvoidingView>
   );
 }
-export default withRampSDK(Settings);
+export default withDepositSDK(withRampSDK(Settings));

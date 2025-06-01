@@ -18,8 +18,15 @@ import {
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
+  resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
+
+const isDevelopment =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.RAMP_DEV_BUILD === 'true';
+const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -32,6 +39,8 @@ export interface DepositSDK {
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   checkExistingToken: () => Promise<boolean>;
+  clearAuthToken: () => void;
+  isInternalBuild?: boolean;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -109,6 +118,15 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
+  const clearAuthToken = useCallback(async () => {
+    await resetProviderToken();
+    setAuthTokenState(undefined);
+    setIsAuthenticated(false);
+    if (sdk) {
+      sdk.clearAccessToken();
+    }
+  }, [sdk]);
+
   const contextValue = useMemo(
     (): DepositSDK => ({
       sdk,
@@ -121,6 +139,8 @@ export const DepositSDKProvider = ({
       authToken,
       setAuthToken,
       checkExistingToken,
+      clearAuthToken,
+      isInternalBuild: isDevelopmentOrInternalBuild,
     }),
     [
       sdk,
@@ -131,6 +151,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
+      clearAuthToken,
     ],
   );
 
@@ -146,3 +167,12 @@ export const useDepositSDK = () => {
   }
   return contextValue;
 };
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const withDepositSDK = (Component: React.FC) => (props: any) =>
+  (
+    <DepositSDKProvider>
+      <Component {...props} />
+    </DepositSDKProvider>
+  );
