@@ -1,10 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import BasicInfo from './BasicInfo';
+import EnterAddress from './EnterAddress';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -28,7 +27,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.DEPOSIT.BASIC_INFO,
+      name: Routes.DEPOSIT.ENTER_ADDRESS,
     },
     {
       state: {
@@ -40,54 +39,42 @@ function render(Component: React.ComponentType) {
   );
 }
 
-describe('BasicInfo Component', () => {
-  afterEach(() => {
-    mockNavigate.mockClear();
-    mockSetNavigationOptions.mockClear();
+describe('EnterAddress Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('render matches snapshot', () => {
-    render(BasicInfo);
-    expect(screen.toJSON()).toMatchSnapshot();
+    const { toJSON } = render(EnterAddress);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('snapshot matches validation errors when continue is pressed with empty fields', () => {
-    render(BasicInfo);
+  it('displays form validation errors when continue is pressed with empty fields', () => {
+    render(EnterAddress);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.toJSON()).toMatchSnapshot();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to address page when form is valid and continue is pressed', () => {
-    render(BasicInfo);
-
-    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
-    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+  it('navigates to next page when form is valid and continue is pressed', () => {
+    render(EnterAddress);
     fireEvent.changeText(
-      screen.getByPlaceholderText('(234) 567-8910'),
-      '1234567890',
+      screen.getByTestId('address-line-1-input'),
+      '123 Main St',
     );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('MM/DD/YYYY'),
-      '01/01/1990',
-    );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('XXX-XX-XXXX'),
-      '123456789',
-    );
-    expect(screen.toJSON()).toMatchSnapshot();
+    fireEvent.changeText(screen.getByTestId('city-input'), 'New York');
+    fireEvent.changeText(screen.getByTestId('state-input'), 'NY');
+    fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
+    fireEvent.changeText(screen.getByTestId('country-input'), 'USA');
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createEnterAddressNavDetails(),
-    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('calls setOptions with correct title when the component mounts', () => {
-    render(BasicInfo);
+    render(EnterAddress);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your basic info',
+        title: 'Enter your address',
       }),
     );
   });
