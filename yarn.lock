@@ -4680,10 +4680,10 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-2f320f7a":
-  version "6.0.3-preview-2f320f7a"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-2f320f7a.tgz#88f677a3a129fae7be59339daf38142c6c7a5d69"
-  integrity sha512-k6sEyBKI7M87c7Szh1ayVQ+hb9gT+imSGHvM3IOs1fssGS3l2mbEh5HWVh7QGgBlnmMmpJjM4zrvXhseHW+PvQ==
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-2723071f":
+  version "6.0.3-preview-2723071f"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-2723071f.tgz#745fae55070c9051a97bea21f9d8cb057272531d"
+  integrity sha512-g1fwxXT/esh+pvITht5FhNy8k06xFmz2M2KyJYGjQfbavNxcpUQ3v5xYWz6icSMu4AoUIvDFOT7dz/1HKe6DLA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
@@ -5576,10 +5576,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2f320f7a":
-  version "15.0.0-preview-2f320f7a"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-2f320f7a.tgz#599ebf33058317cdd5b3d7ea49fc694553d9b0df"
-  integrity sha512-E56ijXmY5hpCrCOgthdd5QcFNK8QJ8VGrRMu5okHouc0XJdd8P14Kd8mXlilBnjPseMTqvndfMnHREjI4IvCdA==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2723071f":
+  version "15.0.0-preview-2723071f"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-2723071f.tgz#6d98ff014be4c87bbec45048c3527873402c7256"
+  integrity sha512-5K/u4t2+5/gZuyuTJZo94EHpLZFQLKd7PEOV9cEWXdWKjDAr/ykiJqbqHooTIofjvmniti2VT2yW2xqfXFO53A==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^17.4.0"
