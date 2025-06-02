@@ -559,6 +559,11 @@ export const getRpcMethodMiddleware = ({
                       Engine.context.PermissionController,
                       { origin: channelId ?? hostname },
                       req.params[0],
+                      {
+                        metadata: {
+                          isEip1193Request: true,
+                        },
+                      },
                     ),
                 },
               )
@@ -626,6 +631,11 @@ export const getRpcMethodMiddleware = ({
                         value: getDefaultCaip25CaveatValue(),
                       },
                     ],
+                  },
+                },
+                {
+                  metadata: {
+                    isEip1193Request: true,
                   },
                 },
               );
