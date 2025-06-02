@@ -42,6 +42,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -82,6 +83,7 @@ const EvmAccountSelectorList = ({
     shallowEqual,
   );
   const getKeyExtractor = ({ address }: Account) => address;
+  const useMultichainAccountDesign = useSelector(selectMultichainAccountsState1Enabled)
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
@@ -258,6 +260,19 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        if (useMultichainAccountDesign){
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+          return 
+
+        }
+
         onNavigateToAccountActions(address);
       };
 
