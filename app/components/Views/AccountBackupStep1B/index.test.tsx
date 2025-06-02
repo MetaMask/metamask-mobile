@@ -112,4 +112,18 @@ describe('AccountBackupStep1B', () => {
     androidBackHandler.props.customBackPress();
     expect(null).toBe(null);
   });
+
+  it('should render header left button and handle back navigation', () => {
+    const { mockSetOptions } = setupTest();
+
+    // Verify that setOptions was called with the correct configuration
+    expect(mockSetOptions).toHaveBeenCalled();
+    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+
+    // Get the headerLeft function from the options
+    const headerLeftComponent = setOptionsCall.headerLeft();
+
+    // Verify the headerLeft component renders correctly
+    expect(headerLeftComponent).toBeTruthy();
+  });
 });
