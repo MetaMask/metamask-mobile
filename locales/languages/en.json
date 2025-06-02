@@ -4164,5 +4164,63 @@
     },
     "show_more": "more",
     "show_less": "less"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }
