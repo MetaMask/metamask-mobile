@@ -30,11 +30,29 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
   
-  // Exclude MMKV directory from iCloud and iTunes backup
-  NSString *mmkvPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/mmkv"];
-  NSURL *mmkvURL = [NSURL fileURLWithPath:mmkvPath];
+  // Exclude MMKV directories from iCloud and iTunes backup
+  NSString *libraryPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library"];
+  NSFileManager *fileManager = [NSFileManager defaultManager];
   NSError *error = nil;
-  [mmkvURL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:&error];
+  
+  // Get all files in the Library directory
+  NSArray *files = [fileManager contentsOfDirectoryAtPath:libraryPath error:&error];
+  if (error) {
+    NSLog(@"Failed to read Library directory: %@", error);
+  } else {
+    // Filter for MMKV files and exclude them from backup
+    for (NSString *file in files) {
+      if ([file hasPrefix:@"mmkv."] || [file hasPrefix:@"com.tencent.mmkv."]) {
+        NSString *filePath = [libraryPath stringByAppendingPathComponent:file];
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        NSError *excludeError = nil;
+        [fileURL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:&excludeError];
+        if (excludeError) {
+          NSLog(@"Failed to exclude MMKV file %@ from backup: %@", file, excludeError);
+        }
+      }
+    }
+  }
   
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
