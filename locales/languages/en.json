@@ -470,6 +470,22 @@
       "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
       "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
       "button": "Get started"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
     }
   },
   "receive": {
@@ -2394,7 +2410,8 @@
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn More",
+    "password": "Password"
   },
   "manual_backup_step_2": {
     "steps": "Step {{currentStep}} of {{totalSteps}}",

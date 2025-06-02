@@ -6,6 +6,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import { strings } from '../../../../locales/i18n';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -76,6 +77,13 @@ describe('ManualBackupStep2', () => {
     },
   };
 
+  const mockRouteEmptyWords = {
+    params: {
+      words: [],
+      steps: ['one', 'two', 'three'],
+    },
+  };
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -91,12 +99,56 @@ describe('ManualBackupStep2', () => {
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
+      reset: jest.fn(),
     });
 
     const wrapper = renderWithProvider(
       <Provider store={store}>
         <ManualBackupStep2
           route={mockRoute}
+          navigation={{
+            navigate: mockNavigate,
+            goBack: mockGoBack,
+            setOptions: mockSetOptions,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            isFocused: jest.fn(),
+          }}
+        />
+      </Provider>,
+    );
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
+
+  const setupTestEmptyWords = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
+
+    store.dispatch = mockDispatch;
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      reset: jest.fn(),
+    });
+
+    const wrapper = renderWithProvider(
+      <Provider store={store}>
+        <ManualBackupStep2
+          route={mockRouteEmptyWords}
           navigation={{
             navigate: mockNavigate,
             goBack: mockGoBack,
@@ -138,6 +190,7 @@ describe('ManualBackupStep2', () => {
     const gridItems = wrapper.getAllByTestId(
       ManualBackUpStepsSelectorsIDs.GRID_ITEM,
     );
+
     mockWords.reverse().forEach((_, index) => {
       fireEvent.press(gridItems[index]);
     });
@@ -160,5 +213,112 @@ describe('ManualBackupStep2', () => {
         closeOnPrimaryButtonPress: true,
       },
     });
+  });
+
+  it('should navigate to HomeNav when seed phrase is valid and backupFlow is true', async () => {
+    const { wrapper, mockNavigate } = setupTest();
+
+    const missingWordOne = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-0`,
+    );
+    const missingWordItemOne = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-0`,
+    );
+    const missingWordTwo = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-1`,
+    );
+    const missingWordItemTwo = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-1`,
+    );
+    const missingWordThree = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-2`,
+    );
+    const missingWordItemThree = wrapper.getByTestId(
+      `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-2`,
+    );
+
+    const missingWordOrder = [
+      { click: missingWordOne, text: missingWordItemOne.props.children },
+      { click: missingWordTwo, text: missingWordItemTwo.props.children },
+      { click: missingWordThree, text: missingWordItemThree.props.children },
+    ];
+
+    const sortMissingOrder = missingWordOrder.sort(
+      (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
+    );
+
+    // Verify that the missing words are actually from mockWords
+    sortMissingOrder.forEach(({ text }) => {
+      expect(mockWords).toContain(text);
+    });
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    expect(missingWordItemOne.props.style.color).not.toBe('#4459ff');
+    expect(missingWordItemTwo.props.style.color).not.toBe('#4459ff');
+    expect(missingWordItemThree.props.style.color).not.toBe('#4459ff');
+
+    // Press continue button
+    const continueButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(continueButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SuccessErrorSheet',
+      params: {
+        title: expect.any(String),
+        description: expect.any(String),
+        primaryButtonLabel: strings('manual_backup_step_2.success-button'),
+        type: 'success',
+        onClose: expect.any(Function),
+        onPrimaryButtonPress: expect.any(Function),
+        closeOnPrimaryButtonPress: false,
+      },
+    });
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    expect(continueButton.props.disabled).toBe(true);
+
+    // Click the missing words in order
+    sortMissingOrder.forEach(({ click }) => {
+      fireEvent.press(click);
+    });
+
+    // Fill words incorrectly
+    const gridItems = wrapper.getAllByTestId(
+      ManualBackUpStepsSelectorsIDs.GRID_ITEM,
+    );
+
+    mockWords.forEach((_, index) => {
+      fireEvent.press(gridItems[index], index);
+    });
+
+    expect(continueButton.props.disabled).toBe(true);
+
+    expect(missingWordItemOne.props.style.color).toBe('#4459ff');
+    expect(missingWordItemTwo.props.style.color).toBe('#4459ff');
+    expect(missingWordItemThree.props.style.color).toBe('#4459ff');
+  });
+
+  it('check when words have empty array', async () => {
+    const { wrapper } = setupTestEmptyWords();
+
+    // Press continue button
+    const continueButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(continueButton);
+
+    expect(continueButton).toBeTruthy();
   });
 });

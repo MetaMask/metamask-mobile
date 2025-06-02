@@ -21,6 +21,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,6 +97,7 @@ const SkipAccountSecurityModal = ({ route }) => {
   const sheetRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const navigation = useNavigation();
 
   const [skipCheckbox, setSkipCheckbox] = useState(false);
 
@@ -104,14 +106,14 @@ const SkipAccountSecurityModal = ({ route }) => {
   };
 
   const onConfirmAction = () => {
-    if (route && route.params && route.params.onConfirm) {
-      sheetRef.current?.onCloseBottomSheet?.(route.params.onConfirm);
+    if (route?.params?.onConfirm) {
+      navigation.goBack(route.params.onConfirm);
     }
   };
 
   const onCancelAction = () => {
-    if (route && route.params && route.params.onCancel) {
-      sheetRef.current?.onCloseBottomSheet?.(route.params.onCancel);
+    if (route?.params?.onCancel) {
+      navigation.goBack(route.params.onCancel);
     }
   };
 

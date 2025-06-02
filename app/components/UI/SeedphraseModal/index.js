@@ -1,9 +1,8 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import ActionContent from '../ActionModal/ActionContent';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextVariant,
@@ -14,6 +13,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,6 +68,7 @@ const SeedphraseModal = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef(null);
+  const navigation = useNavigation();
 
   const seedPhrasePoints = [
     strings('account_backup_step_1.seedPhrase_point_1'),
@@ -76,7 +77,8 @@ const SeedphraseModal = () => {
   ];
 
   const hideWhatIsSeedphrase = () => {
-    bottomSheetRef.current?.onCloseBottomSheet?.();
+    // bottomSheetRef.current?.onCloseBottomSheet?.();
+    navigation.goBack();
   };
 
   return (

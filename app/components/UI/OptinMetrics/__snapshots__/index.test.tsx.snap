@@ -54,11 +54,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
@@ -106,44 +105,27 @@ exports[`OptinMetrics render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
+                  "marginHorizontal": 16,
                   "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
                 }
               }
             >
-              <View />
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
                 }
-              }
-            />
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View />
+              >
+                OptinMetrics
+              </Text>
             </View>
           </View>
         </View>
@@ -332,6 +314,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingTop": 24,
                         }
                       }
                       testID="meta-metrics-container"
@@ -345,6 +328,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingTop": 24,
                           }
                         }
                       >
@@ -719,7 +703,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -767,7 +750,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}

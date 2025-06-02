@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import SuccessErrorSheet from '.';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -39,6 +40,7 @@ describe('SuccessErrorSheet', () => {
       closeOnPrimaryButtonPress: true,
       closeOnSecondaryButtonPress: true,
       descriptionAlign: 'center' as const,
+      reverseButtonOrder: true,
     },
   };
 
@@ -64,5 +66,31 @@ describe('SuccessErrorSheet', () => {
     expect(mockRoute.params.onSecondaryButtonPress).toHaveBeenCalled();
 
     expect(toJSON).toMatchSnapshot();
+  });
+
+  it('renders correctly with error type', () => {
+    const mockErrorRoute = {
+      params: {
+        title: <Text>Test Title</Text>,
+        description: <Text>Test Description</Text>,
+        type: 'error' as const,
+        icon: IconName.CircleX,
+        onPrimaryButtonPress: jest.fn(),
+        onSecondaryButtonPress: jest.fn(),
+        onClose: jest.fn(),
+        customButton: <Text>Custom Button</Text>,
+        closeOnPrimaryButtonPress: false,
+        closeOnSecondaryButtonPress: false,
+        descriptionAlign: 'center' as const,
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <SuccessErrorSheet route={mockErrorRoute} />,
+    );
+
+    expect(getByText('Test Title')).toBeTruthy();
+    expect(getByText('Test Description')).toBeTruthy();
+    expect(getByText('Custom Button')).toBeTruthy();
   });
 });
