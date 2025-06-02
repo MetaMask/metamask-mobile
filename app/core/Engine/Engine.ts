@@ -998,14 +998,39 @@ export class Engine {
           },
         },
         contactSyncing: {
-          onContactUpdated: (/*profileId*/) => {
-            // TODO: Implement
+          onContactUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.CONTACTS_SYNC_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
           },
-          onContactDeleted: (/*profileId*/) => {
-            // TODO: Implement
+          onContactDeleted: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.CONTACTS_SYNC_DELETED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
           },
-          onContactSyncErroneousSituation(/*profileId, situationMessage*/) {
-            // TODO: Implement
+          onContactSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.CONTACTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
+                })
+                .build(),
+            );
           },
         },
       },
