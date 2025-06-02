@@ -37,7 +37,6 @@ describe('useFeeCalculations', () => {
   });
 
   afterEach(() => {
-    // Ensure mocks are reset after each test
     mockIsTestNet.mockReturnValue(false);
   });
 
