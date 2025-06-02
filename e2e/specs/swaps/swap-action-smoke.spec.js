@@ -230,21 +230,17 @@ describe(SmokeTrade('Swap from Actions'), () => {
       SWAP_COMPLETED: 'Swap Completed',
       SWAPS_OPENED: 'Swaps Opened',
       QUOTES_RECEIVED: 'Quotes Received',
+      // SWAP_PAGE_VIEWED: 'Swap Page Viewed', - this event is not sent in the current implementation, but it should be working. We should create an issue to fix it.
     };
 
     // METAMETRICS EVENTS
-    const events = await getEventsPayloads(mockServer, [
-      EVENT_NAMES.SWAP_STARTED,
-      EVENT_NAMES.SWAP_COMPLETED,
-      EVENT_NAMES.SWAPS_OPENED,
-      EVENT_NAMES.QUOTES_RECEIVED,
-    ]);
+    const events = await getEventsPayloads(mockServer, Object.values(EVENT_NAMES));
 
     const softAssert = new SoftAssert();
 
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(events, 8),
-      'Should have 8 events for 2 swaps',
+      `Events: Should have 8 events (2 for each type)`, // TODO: change to 10 when SWAP_PAGE_VIEWED is fixed
     );
 
     // Assert Swaps Opened events
