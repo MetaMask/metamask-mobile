@@ -1534,17 +1534,37 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 ./scripts/cache/setup-ccache.sh
                 node -v
                 
-                # First run the React Native build process
-                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:pre-build
+                # Build debug APK first
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 
-                # Then build both debug and test APKs
-                cd android && ./gradlew assembleDebug assembleDebugAndroidTest && cd ..
+                # Verify the debug build worked and directory exists
+                ls -la android/app/build/outputs/apk/prod/debug/
                 
-                # Create outputs directory if it doesn't exist
-                mkdir -p android/app/build/outputs
+                # Now build the test APK
+                cd android && ./gradlew assembleDebugAndroidTest && cd ..
+                
+                # Verify final output
+                ls -la android/app/build/outputs/apk/
+      - script@1:
+          title: Verify outputs directory
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                
+                # Check if directory exists and show contents
+                if [ -d "android/app/build/outputs" ]; then
+                  echo "Outputs directory exists"
+                  ls -R android/app/build/outputs/
+                else
+                  echo "Creating outputs directory"
+                  mkdir -p android/app/build/outputs
+                fi
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
