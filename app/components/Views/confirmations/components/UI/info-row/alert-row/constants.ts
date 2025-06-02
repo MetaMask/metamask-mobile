@@ -4,5 +4,5 @@ export enum RowAlertKey {
   EstimatedFee = 'estimatedFee',
   RequestFrom = 'requestFrom',
   PendingTransaction = 'pendingTransaction',
-  BatchApprovals = 'BatchApprovals',
+  BatchedApprovals = 'batchedApprovals',
 }

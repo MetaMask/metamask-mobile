@@ -25,7 +25,7 @@ const BatchApprovalRow = () => {
     useBatchApproveBalanceChanges() ?? {};
   const { fieldAlerts } = useAlerts();
   const alertSelected = fieldAlerts.find(
-    (a) => a.field === RowAlertKey.BatchApprovals,
+    (a) => a.field === RowAlertKey.BatchedApprovals,
   );
 
   const { onApprovalAmountUpdate } = useBatchApproveBalanceActions();

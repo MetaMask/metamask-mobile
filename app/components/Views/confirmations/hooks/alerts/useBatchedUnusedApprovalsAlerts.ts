@@ -206,7 +206,7 @@ export const useBatchedUnusedApprovalsAlerts = () => {
     return [
       {
         isBlocking: true,
-        field: RowAlertKey.BatchApprovals,
+        field: RowAlertKey.BatchedApprovals,
         key: AlertKeys.BatchedUnusedApprovals,
         message: strings('alert_system.batched_unused_approvals.message'),
         title: strings('alert_system.batched_unused_approvals.title'),
