@@ -145,9 +145,9 @@ const PermissionsSummary = ({
     onCancel?.();
   };
 
-  const handleEditAccountsButtonPress = () => {
+  const handleEditAccountsButtonPress = useCallback(() => {
     onEdit?.();
-  };
+  }, [onEdit]);
 
   const handleEditNetworksButtonPress = () => {
     onEditNetworks?.();
