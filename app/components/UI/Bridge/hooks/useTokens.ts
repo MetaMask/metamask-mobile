@@ -39,11 +39,14 @@ export function useTokens({
   // Combine and filter tokens in a single pass
   const tokensWithoutBalance = (topTokens ?? []).concat(remainingTokens ?? []).filter(token => {
     const tokenKey = `${token.address}-${token.chainId}`;
-    return !tokensWithBalanceSet.has(tokenKey) && !excludedTokensSet.has(tokenKey);
+    return !tokensWithBalanceSet.has(tokenKey);
   });
 
-  // Combine tokens with balance and filtered tokens
-  const tokens = tokensWithBalance.concat(tokensWithoutBalance);
+  // Combine tokens with balance and filtered tokens and filter out excluded tokens
+  const tokens = tokensWithBalance.concat(tokensWithoutBalance).filter(token => {
+    const tokenKey = `${token.address}-${token.chainId}`;
+    return !excludedTokensSet.has(tokenKey);
+  });
 
   return { tokens, pending };
 }
