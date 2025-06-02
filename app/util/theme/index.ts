@@ -11,6 +11,7 @@ import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
+import { setBackgroundColorAsync } from 'expo-navigation-bar';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -125,6 +126,9 @@ export const useAppTheme = (): Theme => {
     if (Device.isAndroid()) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
+      // set with opacity '01' to make it transparent, '00' and 'transparent' does not work
+      // https://github.com/expo/expo/issues/19887
+      setBackgroundColorAsync('#00000001');
     }
   };
 
@@ -133,6 +137,9 @@ export const useAppTheme = (): Theme => {
     if (Device.isAndroid()) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
+      // set with opacity '01' to make it transparent, '00' and 'transparent' does not work
+      // https://github.com/expo/expo/issues/19887
+      setBackgroundColorAsync('#00000001');
     }
   };
 
