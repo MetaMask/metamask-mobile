@@ -14,15 +14,15 @@ import EditRowValue from '../EditRowValue';
 import styleSheet from './BalanceChangeRow.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {
-  label?: string;
-  showFiat?: boolean;
   balanceChange: BalanceChange;
-  enableEdit?: boolean;
-  onUpdate?: (balanceChange: BalanceChange, val: string) => void;
   editTexts?: {
     title: string;
     description: string;
   };
+  enableEdit?: boolean;
+  label?: string;
+  onUpdate?: (balanceChange: BalanceChange, val: string) => void;
+  showFiat?: boolean;
 }
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
