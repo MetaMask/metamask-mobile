@@ -85,7 +85,6 @@ import Text, {
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { useMetrics } from '../../hooks/useMetrics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
@@ -116,7 +115,6 @@ const ImportFromSecretRecoveryPhrase = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const seedPhraseInputRefs = useRef([]);
   const confirmPasswordInput = useRef();
@@ -255,41 +253,45 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
+  const headerLeft = () => (
+    <TouchableOpacity
+      onPress={onBackPress}
+      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
+    >
+      <Icon
+        name={IconName.ArrowLeft}
+        size={24}
+        color={colors.text.default}
+        style={styles.headerLeft}
+      />
+    </TouchableOpacity>
+  );
+
+  const headerRight = () =>
+    currentStep === 0 ? (
+      <TouchableOpacity
+        onPress={onQrCodePress}
+        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+      >
+        <Icon
+          name={IconName.Scan}
+          size={24}
+          color={colors.text.default}
+          onPress={onQrCodePress}
+          style={styles.headerRight}
+        />
+      </TouchableOpacity>
+    ) : (
+      <View />
+    );
+
   const updateNavBar = () => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={onBackPress}
-              testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-            >
-              <Icon
-                name={IconName.ArrowLeft}
-                size={24}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
-          headerRight: () =>
-            currentStep === 0 ? (
-              <TouchableOpacity
-                onPress={onQrCodePress}
-                testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
-              >
-                <Icon
-                  name={IconName.Scan}
-                  size={24}
-                  color={colors.text.default}
-                  onPress={onQrCodePress}
-                  style={styles.headerRight}
-                />
-              </TouchableOpacity>
-            ) : (
-              <View />
-            ),
+          headerLeft,
+          headerRight,
         },
         colors,
         false,
@@ -403,7 +405,6 @@ const ImportFromSecretRecoveryPhrase = ({
         const newData = seedPhrase.filter((_, idx) => idx !== index);
         setSeedPhrase(newData);
       }
-      return;
     }
   };
 
@@ -716,15 +717,13 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   onFocus={(e) => {
                                     if (
-                                      e &&
-                                      e.currentTarget &&
-                                      e.target &&
-                                      e.currentTarget.setNativeProps
+                                      e?.target &&
+                                      e?.currentTarget?.setNativeProps
                                     ) {
-                                      e.currentTarget.setNativeProps({
+                                      e?.currentTarget?.setNativeProps({
                                         selection: {
-                                          start: e.target.value?.length ?? 0,
-                                          end: e.target.value?.length ?? 0,
+                                          start: e?.target?.value?.length ?? 0,
+                                          end: e?.target?.value?.length ?? 0,
                                         },
                                       });
                                     }

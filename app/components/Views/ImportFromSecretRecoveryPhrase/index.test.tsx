@@ -738,12 +738,11 @@ describe('handleOnFocus', () => {
   });
 
   it('should not clear error when focusing new input with no previous errors', () => {
-    const { getByPlaceholderText, getByTestId, queryByText, getByText } =
-      renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
+    const { getByPlaceholderText, getByTestId, queryByText } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
 
     // Enter invalid seed phrase
     const input = getByPlaceholderText(
@@ -829,17 +828,16 @@ describe('handleOnFocus', () => {
   });
 
   it('should handle new word input correctly', () => {
-    const getInput = (index: number) => {
-      return getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      );
-    };
-
     const { getByPlaceholderText, getByTestId } = renderScreen(
       ImportFromSecretRecoveryPhrase,
       { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
       { state: initialState },
     );
+
+    const getInput = (index: number) =>
+      getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      );
 
     // Enter invalid seed phrase
     const input = getByPlaceholderText(
