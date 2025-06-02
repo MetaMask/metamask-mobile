@@ -31,7 +31,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
-import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
@@ -41,7 +40,10 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
@@ -55,12 +57,11 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const keyringOfSelectedAccount = useSelector(
-    getHdKeyringOfSelectedAccountOrPrimaryKeyring,
-  );
   const [keyringId, setKeyringId] = useState<string>(
-    keyringOfSelectedAccount.metadata.id,
+    // This is safe because it is added by the accounts controller now since 29.0.1
+    selectedInternalAccount!.options.entropySource as string,
   );
   const hdKeyrings = useSelector(selectHDKeyrings);
   const hasMultipleSRPs = hdKeyrings.length > 1;

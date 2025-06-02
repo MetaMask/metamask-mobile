@@ -1,6 +1,5 @@
 import {
   selectHdKeyringIndexByIdOrDefault,
-  getHdKeyringOfSelectedAccountOrPrimaryKeyring,
   getSnapAccountsByKeyringId,
 } from './index';
 import { RootState } from '../../reducers';
@@ -167,35 +166,6 @@ describe('multisrp selectors', () => {
         mockHDKeyring.metadata.id,
       );
       expect(result).toBe(0);
-    });
-  });
-
-  describe('getHdKeyringOfSelectedAccountOrPrimaryKeyring', () => {
-    it('returns first HD keyring when no account is selected', () => {
-      expect(() =>
-        getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-          mockStateWithNoSelectedAccount,
-        ),
-      ).toThrow('No selected account or hd keyrings');
-    });
-
-    it('returns correct HD keyring when the selected account is from the second HD keyring', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount2),
-      );
-      expect(result).toStrictEqual(mockHDKeyring2);
-    });
-
-    it('returns selected account keyring when it is HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(mockState());
-      expect(result).toStrictEqual(mockHDKeyring);
-    });
-
-    it('returns first HD keyring when selected account keyring is not HD type', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockState(mockAccount3),
-      );
-      expect(result).toStrictEqual(mockHDKeyring);
     });
   });
 
