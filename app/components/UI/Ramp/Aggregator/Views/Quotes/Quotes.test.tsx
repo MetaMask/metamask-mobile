@@ -127,7 +127,7 @@ let mockUseParamsValues = {
 };
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParamsValues,
 }));
 

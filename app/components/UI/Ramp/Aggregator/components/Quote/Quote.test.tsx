@@ -16,7 +16,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../../selectors/preferencesController', () => ({
-  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  ...jest.requireActual('../../../../../../selectors/preferencesController'),
   selectIpfsGateway: jest.fn(),
 }));
 

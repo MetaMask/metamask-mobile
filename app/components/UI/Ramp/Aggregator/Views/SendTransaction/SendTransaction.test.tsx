@@ -306,13 +306,13 @@ let mockUseParamsValues: {
 };
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
 jest.mock('../../../../../../util/transaction-controller', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../../util/transaction-controller'),
+  ...jest.requireActual('../../../../../../util/transaction-controller'),
   addTransaction: jest.fn(),
 }));
 

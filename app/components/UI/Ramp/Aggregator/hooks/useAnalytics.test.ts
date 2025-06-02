@@ -4,7 +4,7 @@ import useAnalytics from './useAnalytics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../../../core/Analytics', () => ({
-  ...jest.requireActual('../../../../core/Analytics'),
+  ...jest.requireActual('../../../../../core/Analytics'),
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),

@@ -8,7 +8,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../../selectors/preferencesController', () => ({
-  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  ...jest.requireActual('../../../../../../selectors/preferencesController'),
   selectIpfsGateway: jest.fn(),
 }));
 
