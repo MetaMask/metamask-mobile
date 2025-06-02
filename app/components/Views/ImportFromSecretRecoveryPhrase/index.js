@@ -86,6 +86,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { useMetrics } from '../../hooks/useMetrics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { CommonActions } from '@react-navigation/native';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -532,10 +533,23 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        navigation.reset({
+        const resetAction = CommonActions.reset({
           index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+            },
+          ],
         });
+        if (isMetricsEnabled()) {
+          navigation.dispatch(resetAction);
+        } else {
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.dispatch(resetAction);
+            },
+          });
+        }
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -1033,7 +1047,8 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(

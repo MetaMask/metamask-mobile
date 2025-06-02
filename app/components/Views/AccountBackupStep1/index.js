@@ -41,6 +41,8 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { CommonActions } from '@react-navigation/native';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,12 +167,30 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     !onboardingWizard && props.setOnboardingWizardStep(1);
-    props.navigation.navigate('OnboardingSuccess');
+
+    const resetAction = CommonActions.reset({
+      index: 1,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+        },
+      ],
+    });
+    if (isMetricsEnabled()) {
+      props.navigation.dispatch(resetAction);
+    } else {
+      props.navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          props.navigation.dispatch(resetAction);
+        },
+      });
+    }
   };
 
   const showRemindLater = () => {
@@ -287,7 +307,8 @@ AccountBackupStep1.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1);

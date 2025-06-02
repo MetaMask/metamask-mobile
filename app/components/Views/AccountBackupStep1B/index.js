@@ -416,7 +416,8 @@ AccountBackupStep1B.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(AccountBackupStep1B);
