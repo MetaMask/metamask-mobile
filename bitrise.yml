@@ -1548,10 +1548,10 @@ workflows:
                 # First build the debug APK
                 export METAMASK_ENVIRONMENT='debug'
                 export METAMASK_BUILD_TYPE='main'
-                yarn test:e2e:android:build
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 
                 # Now build the test APK
-                cd android && ./gradlew assembleAndroidTest -DtestBuildType=debug && cd ..
+                cd android && ./gradlew assembleDebugAndroidTest && cd ..
       - script@1:
           title: Verify outputs directory
           is_always_run: true
