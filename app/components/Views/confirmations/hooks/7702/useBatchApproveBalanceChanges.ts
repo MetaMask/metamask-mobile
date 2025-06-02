@@ -1,21 +1,25 @@
-import BigNumber from 'bignumber.js';
 import {
   BatchTransactionParams,
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
 } from '@metamask/transaction-controller';
 import { add0x, Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { useMemo } from 'react';
 
 import useBalanceChanges from '../../../../UI/SimulationDetails/useBalanceChanges';
 import { BalanceChange } from '../../../../UI/SimulationDetails/types';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../utils/confirm';
-import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
-import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import {
+  memoizedGetTokenStandardAndDetails,
+  TokenDetailsERC20,
+} from '../../utils/token';
+import { parseApprovalTransactionData } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
+  tokenSymbol?: string;
   isAll: boolean;
   isUnlimited: boolean;
   nestedTransactionIndex: number;
@@ -30,11 +34,16 @@ export function useBatchApproveBalanceChanges(): {
   value: ApprovalBalanceChange[];
 } {
   const transactionMeta = useTransactionMetadataRequest();
-  const { chainId, nestedTransactions, networkClientId } =
-    transactionMeta ?? {};
+  const {
+    chainId,
+    nestedTransactions,
+    networkClientId,
+    txParams: { from },
+  } = transactionMeta ?? { txParams: {} };
 
   const { value: simulationBalanceChanges, pending: pendingSimulationChanges } =
     useBatchApproveSimulationBalanceChanges({
+      from: from as Hex,
       nestedTransactions,
     });
 
@@ -70,56 +79,27 @@ export function useBatchApproveBalanceChanges(): {
 }
 
 function useBatchApproveSimulationBalanceChanges({
+  from,
   nestedTransactions,
 }: {
+  from?: Hex;
   nestedTransactions?: BatchTransactionParams[];
 }) {
   return useAsyncResult(
     async () =>
       buildSimulationTokenBalanceChanges({
+        from,
         nestedTransactions,
       }),
     [nestedTransactions],
   );
 }
 
-export function parseApprovalTransactionData(data: Hex):
-  | {
-      amountOrTokenId?: BigNumber;
-      isApproveAll?: boolean;
-      isRevokeAll?: boolean;
-    }
-  | undefined {
-  const transactionDescription = parseStandardTokenTransactionData(data);
-  const { args, name } = transactionDescription ?? {};
-
-  if (
-    !['approve', 'increaseAllowance', 'setApprovalForAll'].includes(name ?? '')
-  ) {
-    return undefined;
-  }
-
-  const rawAmountOrTokenId =
-    args?._value ?? // ERC-20 - approve
-    args?.increment; // Fiat Token V2 - increaseAllowance
-
-  const amountOrTokenId = rawAmountOrTokenId
-    ? new BigNumber(rawAmountOrTokenId?.toString())
-    : undefined;
-
-  const isApproveAll = name === 'setApprovalForAll' && args?._approved === true;
-  const isRevokeAll = name === 'setApprovalForAll' && args?._approved === false;
-
-  return {
-    amountOrTokenId,
-    isApproveAll,
-    isRevokeAll,
-  };
-}
-
 async function buildSimulationTokenBalanceChanges({
+  from,
   nestedTransactions,
 }: {
+  from?: Hex;
   nestedTransactions?: BatchTransactionParams[];
 }): Promise<ApprovalSimulationBalanceChange[]> {
   const balanceChanges: ApprovalSimulationBalanceChange[] = [];
@@ -138,6 +118,7 @@ async function buildSimulationTokenBalanceChanges({
 
     const tokenData = await memoizedGetTokenStandardAndDetails({
       tokenAddress: to,
+      userAddress: from,
     });
 
     if (!tokenData?.standard) {
@@ -176,8 +157,9 @@ async function buildSimulationTokenBalanceChanges({
       isUnlimited,
       newBalance: '0x0',
       nestedTransactionIndex: i,
-      previousBalance: '0x0',
+      previousBalance: toHex((tokenData as TokenDetailsERC20).balance ?? '0x0'),
       standard,
+      tokenSymbol: tokenData.symbol,
     };
 
     balanceChanges.push(balanceChange);
