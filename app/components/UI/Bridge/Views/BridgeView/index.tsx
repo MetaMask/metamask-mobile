@@ -349,7 +349,7 @@ const BridgeView = () => {
     if (shouldDisplayKeypad && !isLoading) {
       return (
         <Box style={styles.buttonContainer}>
-          <Text color={TextColor.Primary}>
+          <Text color={TextColor.Alternative}>
             {strings('bridge.select_amount')}
           </Text>
         </Box>
@@ -359,7 +359,7 @@ const BridgeView = () => {
     if (isLoading) {
       return (
         <Box style={styles.buttonContainer}>
-          <Text color={TextColor.Primary}>
+          <Text color={TextColor.Alternative}>
             {strings('bridge.fetching_quote')}
           </Text>
         </Box>
