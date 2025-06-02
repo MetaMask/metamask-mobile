@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useRef,
   useContext,
+  useMemo,
 } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -89,11 +90,16 @@ import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
+const SRP_LENGTHS = [12, 15, 18, 21, 24];
+
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const IOS_REJECTED_BIOMETRICS_ERROR =
   'Error: The user name or passphrase you entered is not correct.';
 
 const SPACE_CHAR = ' ';
+
+const checkValidSeedWord = (text) => wordlist.includes(text);
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -142,12 +148,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
 
-  const isSRPContinueButtonDisabled = () =>
-    seedPhraseLength !== 12 &&
-    seedPhraseLength !== 15 &&
-    seedPhraseLength !== 18 &&
-    seedPhraseLength !== 21 &&
-    seedPhraseLength !== 24;
+  const isSRPContinueButtonDisabled = useMemo(
+    () => !SRP_LENGTHS.includes(seedPhraseLength),
+    [seedPhraseLength],
+  );
 
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
@@ -159,9 +163,7 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
-  const checkValidSeedWord = useCallback((text) => wordlist.includes(text), []);
-
-  const [isAnyWordError, setIsAnyNewWordError] = useState(false);
+  const [errorWordIndexes, setErrorWordIndexes] = useState([]);
 
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
@@ -179,14 +181,14 @@ const ImportFromSecretRecoveryPhrase = ({
         const splitArray = text.trim().split(' ');
 
         if (splitArray.length > 1) {
-          const isAllValid = splitArray.reduce(
-            (acc, item) => acc && checkValidSeedWord(item),
-            true,
+          setErrorWordIndexes(
+            splitArray.reduce((acc, x) => {
+              if (checkValidSeedWord(x)) {
+                acc.push(x);
+              }
+              return acc;
+            }, []),
           );
-
-          if (!isAllValid) {
-            setIsAnyNewWordError(true);
-          }
         }
 
         let totalLength = seedPhrase.length + splitArray.length;
@@ -210,13 +212,7 @@ const ImportFromSecretRecoveryPhrase = ({
         });
       }
     },
-    [
-      error,
-      seedPhrase,
-      setSeedPhrase,
-      setNextSeedPhraseInputFocusedIndex,
-      checkValidSeedWord,
-    ],
+    [error, seedPhrase, setSeedPhrase, setNextSeedPhraseInputFocusedIndex],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -422,13 +418,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const validateSeedPhrase = () => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
     const seedPhraseLength = seedPhrase.length;
-    if (
-      seedPhraseLength !== 12 &&
-      seedPhraseLength !== 15 &&
-      seedPhraseLength !== 18 &&
-      seedPhraseLength !== 21 &&
-      seedPhraseLength !== 24
-    ) {
+    if (!SRP_LENGTHS.includes(seedPhraseLength)) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -455,11 +445,14 @@ const ImportFromSecretRecoveryPhrase = ({
     setCurrentStep(currentStep + 1);
   };
 
-  const isContinueButtonDisabled = () =>
-    password === '' ||
-    confirmPassword === '' ||
-    password !== confirmPassword ||
-    !learnMore;
+  const isContinueButtonDisabled = useMemo(
+    () =>
+      password === '' ||
+      confirmPassword === '' ||
+      password !== confirmPassword ||
+      !learnMore,
+    [password, confirmPassword, learnMore],
+  );
 
   const toggleShowPassword = (index) => {
     setShowPasswordIndex((prev) => {
@@ -576,47 +569,15 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
-  const getSecureWord = useCallback(
-    (word, index) => {
-      const isValidSeedWord = checkValidSeedWord(word);
-
-      return word &&
-        (showAllSeedPhrase ? false : seedPhraseInputFocusedIndex !== index) &&
-        isValidSeedWord
-        ? '***'
-        : word;
-    },
-    [seedPhraseInputFocusedIndex, showAllSeedPhrase, checkValidSeedWord],
-  );
-
   useEffect(() => {
     seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
     (index) => {
-      if (seedPhraseInputFocusedIndex !== index) {
-        setError('');
-        const focusOutWord = seedPhrase[seedPhraseInputFocusedIndex];
-
-        if (
-          isAnyWordError ||
-          (focusOutWord && !checkValidSeedWord(focusOutWord))
-        ) {
-          setIsAnyNewWordError(false);
-          setError(strings('import_from_seed.spellcheck_error'));
-        }
-      }
       setSeedPhraseInputFocusedIndex(index);
     },
-    [
-      seedPhrase,
-      seedPhraseInputFocusedIndex,
-      setError,
-      isAnyWordError,
-      checkValidSeedWord,
-      setSeedPhraseInputFocusedIndex,
-    ],
+    [setSeedPhraseInputFocusedIndex],
   );
 
   return (
@@ -722,9 +683,9 @@ const ImportFromSecretRecoveryPhrase = ({
                                       {index + 1}.
                                     </Text>
                                   }
-                                  value={getSecureWord(item, index)}
+                                  value={item}
                                   secureTextEntry={
-                                    checkValidSeedWord(item) &&
+                                    !errorWordIndexes.includes(index) &&
                                     (showAllSeedPhrase
                                       ? false
                                       : seedPhraseInputFocusedIndex !== index)
@@ -751,7 +712,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   textAlignVertical="center"
                                   showSoftInputOnFocus
                                   blurOnSubmit={false}
-                                  isError={!checkValidSeedWord(item)}
+                                  isError={errorWordIndexes.includes(index)}
                                   autoCapitalize="none"
                                   numberOfLines={1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
@@ -806,10 +767,10 @@ const ImportFromSecretRecoveryPhrase = ({
                   <Button
                     variant={ButtonVariants.Primary}
                     label={strings('import_from_seed.continue')}
-                    onPress={() => handleContinueImportFlow()}
+                    onPress={handleContinueImportFlow}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
-                    isDisabled={isSRPContinueButtonDisabled() || Boolean(error)}
+                    isDisabled={isSRPContinueButtonDisabled || Boolean(error)}
                     testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
                   />
                 </View>
@@ -846,6 +807,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     secureTextEntry={showPasswordIndex.includes(0)}
                     returnKeyType={'next'}
                     autoCapitalize="none"
+                    autoComplete="new-password"
                     keyboardAppearance={themeAppearance || 'light'}
                     placeholderTextColor={colors.text.muted}
                     onSubmitEditing={jumpToConfirmPassword}
@@ -905,6 +867,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     size={TextFieldSize.Lg}
                     onChangeText={onPasswordConfirmChange}
                     secureTextEntry={showPasswordIndex.includes(1)}
+                    autoComplete="new-password"
                     returnKeyType={'next'}
                     autoCapitalize="none"
                     value={confirmPassword}
@@ -931,16 +894,11 @@ const ImportFromSecretRecoveryPhrase = ({
                     }
                     isDisabled={password === ''}
                   />
-                  {password !== '' &&
-                    confirmPassword !== '' &&
-                    password !== confirmPassword && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Error}
-                      >
-                        {strings('import_from_seed.password_error')}
-                      </Text>
-                    )}
+                  {isError && (
+                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                      {strings('import_from_seed.password_error')}
+                    </Text>
+                  )}
                 </View>
 
                 {renderSwitch()}
@@ -979,9 +937,9 @@ const ImportFromSecretRecoveryPhrase = ({
                   variant={ButtonVariants.Primary}
                   label={strings('import_from_seed.confirm')}
                   onPress={onPressImport}
-                  disabled={isContinueButtonDisabled()}
+                  disabled={isContinueButtonDisabled}
                   size={ButtonSize.Lg}
-                  isDisabled={isContinueButtonDisabled()}
+                  isDisabled={isContinueButtonDisabled}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 />
               </View>
