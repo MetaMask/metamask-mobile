@@ -1138,8 +1138,14 @@ export class BackgroundBridge extends EventEmitter {
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
       );
-    } catch {
-      // noop
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+        return;
+      } else {
+        throw err;
+      }
     }
     if (!caip25Caveat) {
       return;
