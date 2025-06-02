@@ -188,6 +188,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {string[]} [options.dappPaths] - The dapp paths to use.
  * @param {Object} [options.testSpecificMock] - The test specific mock to use.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
@@ -207,6 +208,7 @@ export async function withFixtures(options, testSuite) {
     dappPaths,
     testSpecificMock,
     launchArgs,
+    languageAndLocale,
   } = options;
 
   const fixtureServer = new FixtureServer();
@@ -288,8 +290,7 @@ export async function withFixtures(options, testSuite) {
       const contracts =
         smartContract instanceof Array ? smartContract : [smartContract];
 
-      const hardfork =
-        localNodeOptsNormalized[0].options.hardfork || 'prague';
+      const hardfork = localNodeOptsNormalized[0].options.hardfork || 'prague';
       for (const contract of contracts) {
         await seeder.deploySmartContract(contract, hardfork);
       }
@@ -335,6 +336,7 @@ export async function withFixtures(options, testSuite) {
           mockServerPort: `${mockServerPort}`,
           ...(launchArgs || {}),
         },
+        languageAndLocale,
       });
     }
 

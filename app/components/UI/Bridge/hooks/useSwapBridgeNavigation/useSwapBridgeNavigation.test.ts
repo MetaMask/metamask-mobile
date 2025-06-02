@@ -9,6 +9,7 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
+import { ethers } from 'ethers';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -280,7 +281,7 @@ describe('useSwapBridgeNavigation', () => {
         screen: 'BridgeView',
         params: {
           token: {
-            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
             image: '',
@@ -313,7 +314,7 @@ describe('useSwapBridgeNavigation', () => {
         screen: 'BridgeView',
         params: {
           token: {
-            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
             image: '',
