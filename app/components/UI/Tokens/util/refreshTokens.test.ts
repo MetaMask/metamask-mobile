@@ -2,7 +2,6 @@ import { refreshTokens } from './refreshTokens';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -118,13 +117,11 @@ describe('refreshTokens', () => {
   });
 
   it('should call updateBalance with selectedAccount ID when EVM is not selected', async () => {
-    const selectedAccount = { id: 'test-account-id' } as InternalAccount;
-
     await refreshTokens({
       isEvmSelected: false,
       evmNetworkConfigurationsByChainId: {},
       nativeCurrencies: [],
-      selectedAccount,
+      selectedAccountId: 'test-account-id',
     });
 
     expect(
@@ -137,7 +134,7 @@ describe('refreshTokens', () => {
       isEvmSelected: false,
       evmNetworkConfigurationsByChainId: {},
       nativeCurrencies: [],
-      selectedAccount: undefined,
+      selectedAccountId: undefined,
     });
 
     expect(
