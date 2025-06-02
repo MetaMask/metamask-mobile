@@ -141,8 +141,8 @@
     "scan_step_3": "Click on “Sync with Mobile”",
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
-    "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet",
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
@@ -279,13 +279,13 @@
     "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
-    "reset_wallet": "Erase wallet",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
     "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, erase wallet",
+    "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
-    "are_you_sure": "Are you sure you want to erase your wallet?",
+    "are_you_sure": "Are you sure?",
     "your_current_wallet": "Your wallet, accounts, and assets will be",
     "removed_from": " permanently removed from this app",
     "this_action": "This action cannot be undone.",
@@ -299,8 +299,22 @@
     "vault_error": "Error: Cannot unlock without a previous vault.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
-    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
-    
+    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
