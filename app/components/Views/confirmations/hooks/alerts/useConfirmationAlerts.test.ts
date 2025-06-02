@@ -161,10 +161,10 @@ describe('useConfirmationAlerts', () => {
       ...mockBlockaidAlerts,
       ...mockDomainMisMatchAlerts,
       ...mockInsufficientBalanceAlert,
+      ...mockBatchedUnusedApprovalsAlert,
       ...mockPendingTransactionAlert,
       ...mockSignedOrSubmittedAlert,
       ...mockUpgradeAccountAlert,
-      ...mockBatchedUnusedApprovalsAlert,
     ]);
   });
 });

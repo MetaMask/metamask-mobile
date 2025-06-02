@@ -20,7 +20,7 @@ import styleSheet from './inline-alert.styles';
 
 export interface InlineAlertProps {
   /** Alert object */
-  alert: Alert;
+  alertObj: Alert;
   /** Additional styles to apply to the inline alert */
   style?: ViewStyle;
 }
@@ -47,16 +47,16 @@ const getTextColor = (severity: Severity) => {
   }
 };
 
-export default function InlineAlert({ alert, style }: InlineAlertProps) {
+export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
   const { showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
-  const severity = alert.severity ?? Severity.Info;
+  const severity = alertObj.severity ?? Severity.Info;
 
   const handleInlineAlertClick = () => {
-    if (!alert) return;
-    setAlertKey(alert.key);
+    if (!alertObj) return;
+    setAlertKey(alertObj.key);
     showAlertModal();
-    trackInlineAlertClicked(alert.field);
+    trackInlineAlertClicked(alertObj.field);
   };
 
   const { colors } = useTheme();

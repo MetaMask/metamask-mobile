@@ -15,11 +15,9 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
 }));
 
-const ALERT_KEY_DEFAULT = 'DEFAULT_ALERT';
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
 const ALERT_KEY_WARNING = 'WARNING_ALERT';
 const ALERT_KEY_INFO = 'INFO_ALERT';
-const ALERT_FIELD_DEFAULT = 'field_default';
 const ALERT_FIELD_DANGER = 'field_danger';
 const ALERT_FIELD_WARNING = 'field_warning';
 const ALERT_FIELD_INFO = 'field_info';
@@ -64,8 +62,8 @@ describe('InlineAlert', () => {
     });
   });
 
-  const renderComponent = (alert: Alert = mockAlerts[0]) =>
-    render(<InlineAlert alert={alert} />);
+  const renderComponent = (alertObj: Alert = mockAlerts[0]) =>
+    render(<InlineAlert alertObj={alertObj} />);
 
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = renderComponent();

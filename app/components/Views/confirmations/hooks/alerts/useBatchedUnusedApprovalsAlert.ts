@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import {
   NestedTransactionMetadata,
@@ -14,11 +13,14 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
-import { parseApprovalTransactionData } from '../../utils/approvals';
+import {
+  parseApprovalTransactionData,
+  ParsedApprovalTransactionData,
+} from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 function getParsedDataAndTokenAddress(transaction: NestedTransactionMetadata): {
-  parseResult?: any;
+  parseResult?: ParsedApprovalTransactionData;
   actualTokenAddress?: Hex;
 } {
   const { data, to } = transaction;
@@ -134,7 +136,7 @@ async function extractApprovals(
     const { parseResult, actualTokenAddress } =
       getParsedDataAndTokenAddress(transaction);
 
-    if (actualTokenAddress == undefined) {
+    if (actualTokenAddress === undefined) {
       return;
     }
 
