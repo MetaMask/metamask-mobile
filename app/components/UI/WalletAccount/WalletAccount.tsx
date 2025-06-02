@@ -90,7 +90,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
-        <AddressCopy />
+        <AddressCopy account={selectedAccount} />
         <ButtonIcon
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}
