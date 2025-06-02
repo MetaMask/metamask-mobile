@@ -109,8 +109,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
-  const evmNetworkConfigurationsByChainId = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const nonEvmNetworkConfigurationsByChainId = useSelector(selectNonEvmNetworkConfigurationsByChainId);
+  const evmNetworkConfigurationsByChainId = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const nonEvmNetworkConfigurationsByChainId = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
   const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -424,7 +428,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         );
 
         if (accountsToAdd.length > 0) {
-          addPermittedAccounts(hostname, accountsToAdd, evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+          addPermittedAccounts(
+            hostname,
+            accountsToAdd,
+            evmNetworkConfigurationsByChainId,
+            nonEvmNetworkConfigurationsByChainId,
+          );
           newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
         }
 
@@ -696,6 +705,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
@@ -706,6 +716,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isRenderedAsBottomSheet,
       accounts,
       handleSelectAccountAddressesFromEditView,
+      handleCreateAccount,
     ],
   );
 
@@ -722,6 +733,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
         showDisconnectAllButton={false}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
