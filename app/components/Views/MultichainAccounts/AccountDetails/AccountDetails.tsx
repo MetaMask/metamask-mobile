@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { BaseAccountDetails } from './2accountTypes/2baseAccountDetails';
+import { BaseAccountDetails } from './AccountTypes/BaseAccountDetails';
 
 interface AccountDetailsProps {
   route: {
