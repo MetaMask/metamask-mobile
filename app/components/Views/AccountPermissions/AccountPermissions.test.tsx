@@ -49,6 +49,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
+    scopes: ['eip155:0'],
   },
   {
     name: MOCK_EVM_ACCOUNT_2_NAME,
@@ -62,6 +63,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
+    scopes: ['eip155:0'],
   },
 ];
 
@@ -208,6 +210,16 @@ const mockInitialState = (
       ...backgroundState,
       MultichainNetworkController: {
         multichainNetworkConfigurationsByChainId: {},
+        networksWithTransactionActivity: {
+          [MOCK_EVM_ACCOUNT_1.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '56'],
+          },
+          [MOCK_EVM_ACCOUNT_2.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '137'],
+          },
+        },
       },
       PermissionController: {
         subjects: {
@@ -474,10 +486,7 @@ describe('AccountPermissions', () => {
         }}
       />,
       {
-        state: mockInitialState([
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          '0xd018538C87232FF95acbCe4870629b75640a78E7',
-        ]),
+        state: mockInitialState([MOCK_EVM_ACCOUNT_1, MOCK_EVM_ACCOUNT_2]),
       },
     );
 

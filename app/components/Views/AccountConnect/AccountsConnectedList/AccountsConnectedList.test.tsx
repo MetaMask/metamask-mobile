@@ -27,6 +27,7 @@ const mockAccounts: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: true,
+    scopes: ['eip155:1'],
   },
   {
     address: '0x456',
@@ -36,6 +37,7 @@ const mockAccounts: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: false,
+    scopes: ['eip155:1'],
   },
 ];
 
