@@ -370,6 +370,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={
@@ -772,6 +773,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={
@@ -1970,6 +1972,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={
@@ -2372,6 +2375,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={
@@ -2807,6 +2811,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={
@@ -3209,6 +3214,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           "marginTop": 4,
                         }
                       }
+                      testID="network-container"
                     >
                       <View
                         style={

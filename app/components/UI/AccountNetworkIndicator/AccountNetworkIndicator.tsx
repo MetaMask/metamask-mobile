@@ -20,7 +20,7 @@ const AccountNetworkIndicator = ({
   );
 
   return (
-    <View style={styles.networkTokensContainer}>
+    <View style={styles.networkTokensContainer} testID="network-container">
       <AvatarGroup
         avatarPropsList={networksWithTransactionActivity
           .slice()

@@ -13,23 +13,6 @@ import {
   expectedUuid2,
 } from '../../../util/test/accountsControllerTestUtils';
 
-const mockAccounts = [
-  {
-    address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-    balance: '0x0',
-    name: 'Account 1',
-  },
-  {
-    address: '0x2B5634C42055806a59e9107ED44D43c426E58258',
-    balance: '0x0',
-    name: 'Account 2',
-  },
-];
-
-const mockEnsByAccountAddress = {
-  '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
-};
-
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -81,10 +64,29 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(mockInitialState),
 }));
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getLabelTextByAddress: jest.fn(() => 'Account 1'),
+}));
+
 jest.mock('../../../components/hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
-    accounts: mockAccounts,
-    ensByAccountAddress: mockEnsByAccountAddress,
+    accounts: [
+      {
+        address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        balance: '0x0',
+        name: 'Account 1',
+      },
+      {
+        address: '0x2B5634C42055806a59e9107ED44D43c426E58258',
+        balance: '0x0',
+        name: 'Account 2',
+      },
+    ],
+    ensByAccountAddress: {
+      '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
+      '0x2B5634C42055806a59e9107ED44D43c426E58258': '',
+    },
     isLoading: false,
   }),
 }));

@@ -357,6 +357,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -372,8 +373,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
@@ -580,6 +581,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -594,8 +596,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 1.5,
+                              "borderRadius": 4,
+                              "borderWidth": 2,
                               "height": 16,
                               "overflow": "hidden",
                               "width": 16,
@@ -886,6 +888,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -901,8 +904,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 1.5,
+                              "borderRadius": 4,
+                              "borderWidth": 2,
                               "height": 16,
                               "justifyContent": "center",
                               "overflow": "hidden",
@@ -2097,6 +2100,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                         "flexDirection": "row",
                       }
                     }
+                    testID="avatar-group-container"
                   >
                     <View
                       style={
@@ -2111,8 +2115,8 @@ exports[`PermissionsSummary should render only the account permissions card when
                           {
                             "backgroundColor": "#ffffff",
                             "borderColor": "#ffffff",
-                            "borderRadius": 8,
-                            "borderWidth": 1.5,
+                            "borderRadius": 4,
+                            "borderWidth": 2,
                             "height": 16,
                             "overflow": "hidden",
                             "width": 16,
@@ -2794,6 +2798,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                         "flexDirection": "row",
                       }
                     }
+                    testID="avatar-group-container"
                   >
                     <View
                       style={
@@ -2809,8 +2814,8 @@ exports[`PermissionsSummary should render only the network permissions card when
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderColor": "#ffffff",
-                            "borderRadius": 8,
-                            "borderWidth": 1.5,
+                            "borderRadius": 4,
+                            "borderWidth": 2,
                             "height": 16,
                             "justifyContent": "center",
                             "overflow": "hidden",
@@ -3430,6 +3435,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3445,8 +3451,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
@@ -3653,6 +3659,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -3667,8 +3674,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 1.5,
+                              "borderRadius": 4,
+                              "borderWidth": 2,
                               "height": 16,
                               "overflow": "hidden",
                               "width": 16,
@@ -3959,6 +3966,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           "flexDirection": "row",
                         }
                       }
+                      testID="avatar-group-container"
                     >
                       <View
                         style={
@@ -3974,8 +3982,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
-                              "borderWidth": 1.5,
+                              "borderRadius": 4,
+                              "borderWidth": 2,
                               "height": 16,
                               "justifyContent": "center",
                               "overflow": "hidden",

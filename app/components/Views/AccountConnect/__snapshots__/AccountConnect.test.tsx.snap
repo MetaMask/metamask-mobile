@@ -730,6 +730,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -744,8 +745,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "overflow": "hidden",
                                     "width": 16,
@@ -1047,6 +1048,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -1062,8 +1064,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
@@ -2002,6 +2004,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -2016,8 +2019,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "overflow": "hidden",
                                     "width": 16,
@@ -2319,6 +2322,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -2334,8 +2338,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
@@ -3274,6 +3278,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3288,8 +3293,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "overflow": "hidden",
                                     "width": 16,
@@ -3591,6 +3596,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3606,8 +3612,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
+                                    "borderRadius": 4,
+                                    "borderWidth": 2,
                                     "height": 16,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
