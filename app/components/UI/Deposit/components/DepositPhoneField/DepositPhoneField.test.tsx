@@ -1,6 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
+import { formatUSPhoneNumber } from '../../utils';
+
+jest.mock('../../utils', () => ({
+  formatUSPhoneNumber: jest.fn(),
+}));
 
 const DEPOSIT_PHONE_FIELD_TEST_ID = 'deposit-phone-field-test-id';
 
@@ -17,57 +22,39 @@ describe('DepositPhoneField', () => {
     jest.clearAllMocks();
   });
 
-  it('should render default settings correctly', () => {
+  it('render should match snapshot', () => {
     const { toJSON } = render(<DepositPhoneField {...defaultProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render DepositPhoneField with correct label', () => {
-    const { getByText } = render(<DepositPhoneField {...defaultProps} />);
-    const label = getByText('Phone Number');
-    expect(label).toBeTruthy();
-  });
-
-  it('should render TextField component with correct props', () => {
-    const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
-    const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
-    expect(textField).toBeTruthy();
-  });
-
-  it('should render default country code and flag', () => {
-    const { getByText } = render(<DepositPhoneField {...defaultProps} />);
-    const flag = getByText('🇺🇸');
-    expect(flag).toBeTruthy();
-    const countryCode = getByText('+1');
-    expect(countryCode).toBeTruthy();
-  });
-
-  it('should render custom country code and flag when provided', () => {
+  it('custom flags and country codes should match snapshot', () => {
     const customProps = {
       ...defaultProps,
       countryCode: '44',
       countryFlag: '🇬🇧',
     };
-    const { getByText } = render(<DepositPhoneField {...customProps} />);
-    const flag = getByText('🇬🇧');
-    expect(flag).toBeTruthy();
-    const countryCode = getByText('+44');
-    expect(countryCode).toBeTruthy();
+    const { toJSON } = render(<DepositPhoneField {...customProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render error text when error prop is provided', () => {
+  it('error message should match snapshot', () => {
     const errorMessage = 'Invalid phone number';
-    const { getByText } = render(
+    const { toJSON } = render(
       <DepositPhoneField {...defaultProps} error={errorMessage} />,
     );
-    const error = getByText(errorMessage);
-    expect(error).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should not render error text when error prop is not provided', () => {
-    const { queryByText } = render(<DepositPhoneField {...defaultProps} />);
-    const error = queryByText(/invalid|error/i);
-    expect(error).toBeNull();
+  it('additional props should match snapshot', () => {
+    const placeholder = 'Enter phone number';
+    const { toJSON } = render(
+      <DepositPhoneField
+        {...defaultProps}
+        placeholder={placeholder}
+        maxLength={10}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call onChangeText when text input changes', () => {
@@ -78,16 +65,12 @@ describe('DepositPhoneField', () => {
     expect(mockOnChangeText).toHaveBeenCalledWith(phoneNumber);
   });
 
-  it('should pass additional props to TextField', () => {
-    const placeholder = 'Enter phone number';
-    const { getByPlaceholderText } = render(
-      <DepositPhoneField
-        {...defaultProps}
-        placeholder={placeholder}
-        maxLength={10}
-      />,
-    );
-    const textField = getByPlaceholderText(placeholder);
-    expect(textField).toBeTruthy();
+  it('should call formatUSPhoneNumber and pass raw value to onChangeText', () => {
+    const { getByTestId } = render(<DepositPhoneField {...defaultProps} />);
+    const textField = getByTestId(DEPOSIT_PHONE_FIELD_TEST_ID);
+    const inputPhoneNumber = '1234567890';
+    fireEvent.changeText(textField, inputPhoneNumber);
+    expect(formatUSPhoneNumber).toHaveBeenCalledWith(inputPhoneNumber);
+    expect(mockOnChangeText).toHaveBeenCalledWith(inputPhoneNumber);
   });
 });

@@ -1,9 +1,10 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import BasicInfo, { createEnterAddressNavDetails } from './BasicInfo';
+import BasicInfo from './BasicInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

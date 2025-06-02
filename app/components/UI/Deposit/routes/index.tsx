@@ -9,11 +9,10 @@ import Root from '../Views/Root';
 import Routes from '../../../../constants/navigation/Routes';
 import BuildQuote from '../Views/BuildQuote';
 import EnterEmail from '../Views/EnterEmail';
-import { View } from 'react-native';
-import Text from '../../../../component-library/components/Texts/Text';
 import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
+import EnterAddress from '../Views/EnterAddress';
 
 interface DepositParamList {
   [key: string]:
@@ -24,15 +23,6 @@ interface DepositParamList {
 }
 
 const Stack = createStackNavigator<DepositParamList>();
-
-const EnterAddress = () => (
-  <View>
-    {/* eslint-disable-next-line react-native/no-inline-styles */}
-    <Text style={{ textAlign: 'center', marginTop: 40 }}>
-      Enter address form placeholder
-    </Text>
-  </View>
-);
 
 const getAnimationOptions = ({
   route,
