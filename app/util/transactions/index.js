@@ -490,10 +490,11 @@ export async function getTransactionActionKey(transaction, chainId) {
     if (name) return name;
   }
 
+  console.log('SALIM ...............', transaction.toSmartContract);
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, chainId, networkClientId);
+      : await isSmartContractAddress(to, chainId);
 
   const authorizationAddress = authorizationList?.[0]?.address;
   const isDowngrade =
