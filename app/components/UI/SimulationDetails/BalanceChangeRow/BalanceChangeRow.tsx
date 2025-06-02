@@ -27,8 +27,8 @@ interface BalanceChangeRowProperties extends ViewProps {
 
 const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
   balanceChange,
-  enableEdit,
   editTexts,
+  enableEdit,
   label,
   onUpdate,
   showFiat,
