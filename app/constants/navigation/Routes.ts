@@ -30,6 +30,8 @@ const Routes = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
+    PROVIDER_WEBVIEW: 'ProviderWebview',
+    ORDER_CONFIRMATION: 'OrderConfirmation',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
