@@ -18,7 +18,8 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { getNetworksConfigured } from '../../util/metrics/MultichainAPI/getNetworksConfigured';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -145,13 +146,11 @@ export const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    switchToNetworkAndMetrics(
-      {
-        ...existingNetworkConfiguration,
-        rpcEndpoints: rpcResult.updatedArray,
-        defaultRpcEndpointIndex: rpcResult.index,
-      },
-    );
+    switchToNetworkAndMetrics({
+      ...existingNetworkConfiguration,
+      rpcEndpoints: rpcResult.updatedArray,
+      defaultRpcEndpointIndex: rpcResult.index,
+    });
 
     res.result = null;
     return;
@@ -279,6 +278,10 @@ export const wallet_addEthereumChain = async ({
         })
         .build(),
     );
+
+    MetaMetrics.getInstance().addTraitsToUser({
+      [UserProfileProperty.CHAIN_IDS]: getNetworksConfigured(chainId),
+    });
   }
   switchToNetworkAndMetrics(newNetworkConfiguration);
 

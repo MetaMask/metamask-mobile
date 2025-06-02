@@ -48,6 +48,8 @@ import {
 } from '@metamask/network-controller';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { getNetworksConfigured } from '../../../util/metrics/MultichainAPI/getNetworksConfigured';
 
 export interface SafeChain {
   chainId: string;
@@ -58,7 +60,7 @@ export interface SafeChain {
 
 export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
   formattedRpcUrl?: string | null;
-  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>,
+  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>;
 };
 
 interface NetworkProps {
@@ -99,7 +101,7 @@ const NetworkModals = (props: NetworkProps) => {
     onAccept,
     autoSwitchNetwork,
   } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
@@ -376,6 +378,10 @@ const NetworkModals = (props: NetworkProps) => {
           })
           .build(),
       );
+
+      addTraitsToUser({
+        [UserProfileProperty.CHAIN_IDS]: getNetworksConfigured(chainId),
+      });
     } else if (safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
@@ -392,6 +398,10 @@ const NetworkModals = (props: NetworkProps) => {
           .addSensitiveProperties({ rpcUrl: safeRPCUrl })
           .build(),
       );
+
+      addTraitsToUser({
+        [UserProfileProperty.CHAIN_IDS]: getNetworksConfigured(chainId),
+      });
     } else {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }
@@ -464,7 +474,10 @@ const NetworkModals = (props: NetworkProps) => {
             <View style={styles.root}>
               <NetworkVerificationInfo
                 customNetworkInformation={customNetworkInformation}
-                onReject={() => { onReject?.(); onClose(); }}
+                onReject={() => {
+                  onReject?.();
+                  onClose();
+                }}
                 onConfirm={addNetwork}
                 isCustomNetwork={!showPopularNetworkModal}
               />

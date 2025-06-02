@@ -5,6 +5,7 @@ import {
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 /**
  * Generate user profile analytics meta data
@@ -22,6 +23,10 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     reduxState?.security?.dataCollectionForMarketing;
 
   const hdKeyrings = selectHDKeyrings(reduxState);
+
+  const chainIds = Object.values(selectNetworkConfigurations(reduxState)).map(
+    (n) => n.chainId,
+  );
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -48,6 +53,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
     [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
+    [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
 };
 
