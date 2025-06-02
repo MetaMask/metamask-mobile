@@ -114,6 +114,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
     }
 
     const result: BridgeToken[] = [];
+    const remainingTokens: BridgeToken[] = [];
     const addedAddresses = new Set<string>();
     const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssets?.map((asset) => asset.address) || [];
 
@@ -127,12 +128,6 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
 
       if (!addedAddresses.has(normalizedAddress)) {
         addedAddresses.add(normalizedAddress);
-        // Remove the token from bridgeTokens using all possible address formats
-        delete bridgeTokens[normalizedAddress];
-        if (!isSolanaChainId(token.chainId)) {
-          delete bridgeTokens[toChecksumHexAddress(token.address)];
-          delete bridgeTokens[token.address];
-        }
         result.push(token);
         return true;
       }
@@ -156,22 +151,17 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
     // Then add remaining unique bridge tokens until we reach the limit
     if (result.length < MAX_TOP_TOKENS) {
       for (const token of Object.values(bridgeTokens)) {
-        if (result.length >= MAX_TOP_TOKENS) break;
-        const tokenAdded = addTokenIfNotExists(token);
-        
-        // If the token wasn't added, it means it's a duplicate, so we remove it from the bridgeTokens object
-        if (!tokenAdded) {
-          const normalizedAddress = isSolanaChainId(token.chainId)
-            ? token.address
-            : token.address.toLowerCase();
-          delete bridgeTokens[normalizedAddress];
+        if (result.length >= MAX_TOP_TOKENS) {
+          remainingTokens.push(token);
+        } else {
+          addTokenIfNotExists(token);
         }
       }
     }
 
     return { 
       topTokens: result, 
-      remainingTokens: Object.values(bridgeTokens)
+      remainingTokens
     };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
