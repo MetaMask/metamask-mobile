@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
 
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -64,13 +65,22 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const navigation = useNavigation();
   const { onReject } = useConfirmActions();
 
   const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
+    navigation.setOptions({
+      headerShown: false,
+    });
     return null;
   }
+
+  // Keep this navigation option to prevent Android navigation flickering
+  navigation.setOptions({
+    headerShown: true,
+  });
 
   if (isFlatConfirmation) {
     return (
