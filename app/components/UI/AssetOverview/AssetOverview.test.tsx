@@ -662,5 +662,68 @@ describe('AssetOverview', () => {
       expect(mainBalance.props.children).toBe('1500');
       expect(secondaryBalance.props.children).toBe('0 ETH');
     });
+
+    it('should not switch networks when sending a Solana asset', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        {
+          state: {
+            ...mockInitialState,
+            engine: {
+              ...mockInitialState.engine,
+              backgroundState: {
+                ...mockInitialState.engine.backgroundState,
+                MultichainNetworkController: {
+                  selectedMultichainNetworkChainId: SolScope.Mainnet,
+                },
+                MultichainAssetsRatesController: {
+                  conversionRates: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                      rate: '151.23',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
+      // Network switching should not be called for Solana assets
+      expect(
+        Engine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).not.toHaveBeenCalled();
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).not.toHaveBeenCalled();
+
+      // Should navigate directly to SendFlowView
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
   });
 });
