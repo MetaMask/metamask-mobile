@@ -219,7 +219,8 @@
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
-    "transactions": []
+    "transactions": [],
+    "transactionBatches": []
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
