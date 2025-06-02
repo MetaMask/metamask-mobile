@@ -52,6 +52,11 @@ jest.mock('react-native', () => {
   };
 });
 
+// Mock Math.random to return deterministic values
+const mockMath = Object.create(global.Math);
+mockMath.random = () => 0.5;
+global.Math = mockMath;
+
 describe('ManualBackupStep2', () => {
   const mockWords = [
     'abstract',
@@ -243,8 +248,16 @@ describe('ManualBackupStep2', () => {
       { click: missingWordThree, text: missingWordItemThree.props.children },
     ];
 
+    // Get the original positions of the missing words in mockWords
+    const missingWordPositions = missingWordOrder.map(({ text }) =>
+      mockWords.indexOf(text),
+    );
+
+    // Sort the missing words based on their original positions
     const sortMissingOrder = missingWordOrder.sort(
-      (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
+      (a, b) =>
+        missingWordPositions[mockWords.indexOf(a.text)] -
+        missingWordPositions[mockWords.indexOf(b.text)],
     );
 
     // Verify that the missing words are actually from mockWords

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -209,17 +209,19 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const headerLeft = useCallback(() => <View />, []);
+
   useEffect(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => <View />,
+          headerLeft,
         },
         colors,
       ),
     );
-  }, [navigation, route, colors]);
+  }, [navigation, route, colors, headerLeft]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', {
