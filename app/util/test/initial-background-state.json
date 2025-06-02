@@ -20,12 +20,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AppMetadataController": {
-    "currentAppVersion": "",
-    "currentMigrationVersion": 0,
-    "previousAppVersion": "",
-    "previousMigrationVersion": 0
-  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -225,7 +219,8 @@
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
-    "transactions": []
+    "transactions": [],
+    "transactionBatches": []
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
