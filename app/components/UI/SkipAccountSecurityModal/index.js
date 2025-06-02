@@ -106,14 +106,16 @@ const SkipAccountSecurityModal = ({ route }) => {
   };
 
   const onConfirmAction = () => {
+    navigation.goBack();
     if (route?.params?.onConfirm) {
-      navigation.goBack(route.params.onConfirm);
+      route.params.onConfirm();
     }
   };
 
   const onCancelAction = () => {
+    navigation.goBack();
     if (route?.params?.onCancel) {
-      navigation.goBack(route.params.onCancel);
+      route.params.onCancel();
     }
   };
 
