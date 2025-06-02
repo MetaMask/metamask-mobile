@@ -18,8 +18,39 @@ import { RootState } from '../reducers';
 
 jest.mock('./preferencesController');
 jest.mock('./multichainNetworkController');
-jest.mock('./accountsController');
 jest.mock('./multichain');
+jest.mock('./networkController', () => ({
+  selectEvmChainId: jest.fn(),
+  selectEvmTicker: jest.fn(),
+  selectSelectedNonEvmNetworkSymbol: jest.fn(),
+  selectIsEvmNetworkSelected: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectIsAllNetworks: jest.fn(),
+  selectIsPopularNetwork: jest.fn(),
+  selectChainId: jest.fn(),
+  selectNetworkConfigurations: jest.fn(),
+  selectProviderConfig: jest.fn(),
+}));
+jest.mock('./accountsController', () => ({
+  ...jest.requireActual('./accountsController'),
+  selectSelectedInternalAccountAddress: jest.fn(),
+  selectSelectedInternalAccount: jest.fn(),
+}));
+jest.mock('./tokensController', () => ({
+  selectAllTokens: jest.fn(),
+  selectTokens: jest.fn(),
+}));
+jest.mock('./accountTrackerController', () => ({
+  selectAccountsByChainId: jest.fn(),
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+  selectAccountBalanceByChainId: jest.fn(),
+}));
+jest.mock('./currencyRateController', () => ({
+  selectConversionRateFoAllChains: jest.fn(),
+  selectCurrencyRates: jest.fn(),
+  selectCurrentCurrency: jest.fn(),
+  selectConversionRate: jest.fn(),
+}));
 jest.mock('../store', () => ({
   store: { getState: jest.fn() },
 }));
