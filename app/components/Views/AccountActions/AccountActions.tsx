@@ -57,9 +57,6 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-import { selectKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -85,14 +82,10 @@ const AccountActions = () => {
   }, []);
 
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  const existingKeyrings = useSelector(selectKeyrings);
-
-  const keyringId = useMemo(() => {
-    const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(selectedAccount.address.toLowerCase()),
-    );
-    return keyring?.metadata.id;
-  }, [existingKeyrings, selectedAccount.address]);
+  const keyringId = useMemo(
+    () => selectedAccount.options.entropySource,
+    [selectedAccount.options.entropySource],
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
@@ -267,8 +260,8 @@ const AccountActions = () => {
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -304,8 +297,8 @@ const AccountActions = () => {
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
