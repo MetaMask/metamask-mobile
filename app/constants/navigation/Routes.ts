@@ -27,7 +27,9 @@ const Routes = {
     BUILD_QUOTE: 'BuildQuote',
     ENTER_EMAIL: 'EnterEmail',
     OTP_CODE: 'OtpCode',
-    ID_VERIFY: 'IdVerify',
+    VERIFY_IDENTITY: 'VerifyIdentity',
+    BASIC_INFO: 'BasicInfo',
+    ENTER_ADDRESS: 'EnterAddress',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',

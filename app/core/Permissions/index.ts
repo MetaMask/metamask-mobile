@@ -28,6 +28,8 @@ import {
 } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -255,6 +257,8 @@ export const getCaip25Caveat = (origin: string) => {
 export const addPermittedAccounts = (
   origin: string,
   accounts: CaipAccountId[],
+  evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
 ) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
@@ -277,11 +281,7 @@ export const addPermittedAccounts = (
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
-  const evmNetworkConfigurationsByChainId =
-    Engine.context.NetworkController.state.networkConfigurationsByChainId;
-  const networkConfigurations = getNetworkConfigurationsByCaipChainId(
-    evmNetworkConfigurationsByChainId,
-  );
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
