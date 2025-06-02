@@ -155,6 +155,7 @@
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 		</activity>
+    <activity android:name=".TestActivity" android:exported="false" />
 		<!-- Explicitly opt-in to safe browsing -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
 		<!-- Branch keys -->

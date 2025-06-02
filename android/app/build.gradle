@@ -315,6 +315,8 @@ dependencies {
          exclude module: "protobuf-lite"
      }
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.6.1'
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
     // Add these dependencies for androidTest
     androidTestImplementation "com.google.guava:guava:31.1-android"
