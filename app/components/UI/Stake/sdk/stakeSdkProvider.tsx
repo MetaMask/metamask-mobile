@@ -4,13 +4,13 @@ import {
   PooledStakingContract,
   isSupportedPooledStakingChain,
   PooledStakingApiService,
-  EarnEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
   createContext,
   useEffect,
   PropsWithChildren,
+  useMemo,
 } from 'react';
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
@@ -48,54 +48,60 @@ export const StakeSDKProvider: React.FC<
 
   useEffect(() => {
     const initializeSdk = async () => {
+      let errorMsg = '';
+      let errorType = '';
       try {
         if (!chainId || !isSupportedPooledStakingChain(getDecimalChainId(chainId))) {
-          const errorMsg = 'Failed to initialize Staking SDK Service: chainId unsupported';
-          trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
-          setError(errorMsg);
+          errorMsg = 'Failed to initialize Staking SDK Service: chainId unsupported';
+          errorType = 'Staking SDK Initialization Failed';
           return;
         }
 
         const provider = getProviderByChainId(chainId);
 
         if (!provider) {
-          const errorMsg = 'Failed to initialize Staking SDK Service: provider not found';
-          trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
-          setError(errorMsg);
+          errorMsg = 'Failed to initialize Staking SDK Service: provider not found';
+          errorType = 'Staking SDK Initialization Failed';
           return;
         }
 
         const newSdk = await EarnSdk.create(provider, {
-          //env: EarnEnvironments.DEV,
           chainId: getDecimalChainId(chainId),
         });
 
         if (!newSdk.contracts?.pooledStaking) {
-          const errorMsg = 'Failed to create SDK Service. sdk.contracts.pooledStaking not found';
-          trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
-          setError(errorMsg);
+          errorMsg = 'Failed to create SDK Service. sdk.contracts.pooledStaking not found';
+          errorType = 'Staking SDK Initialization Failed';
           return;
         }
 
         setSdk(newSdk);
         setError(undefined);
+
       } catch (err) {
-        const errorMsg = (err as Error).message || 'Unknown error during SDK initialization';
-        trackErrorAsAnalytics('Staking SDK Initialization Failed', errorMsg);
-        setError(errorMsg);
+        errorMsg = (err as Error).message || 'Unknown error during SDK initialization';
+        errorType = 'Staking SDK Initialization Failed';
+      } finally {
+        if (errorMsg) {
+          trackErrorAsAnalytics(errorType, errorMsg);
+          setError(errorMsg);
+        }
       }
     };
 
     initializeSdk();
   }, [chainId, sdkType]);
 
-  const stakeContextValue: Stake = {
-    stakingContract: sdk?.contracts?.pooledStaking || undefined,
-    sdkType,
-    setSdkType,
-    networkClientId,
-    error,
-  };
+  const stakeContextValue = useMemo(
+    (): Stake => ({
+      stakingContract: sdk?.contracts?.pooledStaking || undefined,
+      sdkType,
+      setSdkType,
+      networkClientId,
+      error,
+    }),
+    [sdk?.contracts?.pooledStaking?.contract?.address ,sdkType, networkClientId]
+  );
 
   return (
     <StakeContext.Provider value={stakeContextValue}>

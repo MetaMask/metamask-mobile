@@ -37,6 +37,9 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
     setIsStakingGasFeeError(false);
     try {
       const result = await GasFeeController.fetchGasFeeEstimates();
+      // Important to have stakingContract in dependency array of the useCallback
+      // useCallback function has a closure over stakingContract at the time it’s defined
+      // when stakingContract changes, the callback function will not be updated
       if (!stakingContract) {
         throw new Error('Staking contract is not available');
       }
@@ -80,8 +83,12 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
   }, [depositValueWei, stakingContract, selectedAddress]);
 
   useEffect(() => {
+    if (!stakingContract) {
+      return
+    }
+
     fetchDepositGasValues();
-  }, [fetchDepositGasValues]);
+  }, [fetchDepositGasValues, stakingContract?.chainId, stakingContract?.contract?.address]);
 
   return {
     estimatedGasFeeWei,
