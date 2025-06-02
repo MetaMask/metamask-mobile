@@ -1,4 +1,5 @@
 import React from 'react';
+import { cloneDeep } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -103,5 +104,15 @@ describe('Transfer', () => {
       addBackButton: true,
       theme: expect.any(Object),
     });
+  });
+
+  it('renders simulation details if transfer initiated by dapp', () => {
+    const state = cloneDeep(transferConfirmationState);
+    state.engine.backgroundState.TransactionController.transactions[0].origin = 'https://dapp.com';
+    const { getByText } = renderWithProvider(<Transfer />, {
+      state,
+    });
+
+    expect(getByText('Estimated changes')).toBeDefined();
   });
 });
