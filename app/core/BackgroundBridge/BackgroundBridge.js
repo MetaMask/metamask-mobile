@@ -118,7 +118,6 @@ export class BackgroundBridge extends EventEmitter {
     this.channelId = channelId;
     this.deprecatedNetworkVersions = {};
     this.createMiddleware = getRpcMethodMiddleware;
-    this.navigation = navigation;
 
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
