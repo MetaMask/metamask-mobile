@@ -10,7 +10,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -37,7 +37,7 @@ interface OnboardingSuccessProps {
   noSRP?: boolean;
 }
 
-const OnboardingSuccess = ({
+export const OnboardingSuccessComponent = ({
   onDone,
   backedUpSRP,
   noSRP,
@@ -218,6 +218,28 @@ const OnboardingSuccess = ({
         </View>
       </View>
     </ScrollView>
+  );
+};
+
+const OnboardingSuccess = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params ?? {
+    backedUpSRP: false,
+    noSRP: false,
+  };
+
+  const { backedUpSRP, noSRP } = params as {
+    backedUpSRP: boolean;
+    noSRP: boolean;
+  };
+
+  return (
+    <OnboardingSuccessComponent
+      backedUpSRP={backedUpSRP}
+      noSRP={noSRP}
+      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
+    />
   );
 };
 
