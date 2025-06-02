@@ -15,8 +15,8 @@ export function getApiAnalytics(isMultichainRequest: boolean) {
     : MetaMetricsRequestedThrough.EthereumProvider;
 
   const method = isMultichainRequest
-    ? MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS
-    : MESSAGE_TYPE.WALLET_CREATE_SESSION;
+    ? MESSAGE_TYPE.WALLET_CREATE_SESSION
+    : MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS;
 
   return {
     api_source: api,
