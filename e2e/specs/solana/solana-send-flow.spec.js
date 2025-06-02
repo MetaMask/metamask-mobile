@@ -30,8 +30,7 @@ describe(
     it('should import wallet with a Solana account', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
-        ignoreSolanaFeatureSheet: false,
-        viewOrCreateSolanaAccount: true,
+        solanaSheetAction: 'viewAccount',
       });
       await NetworkEducationModal.tapGotItButton();
     });
