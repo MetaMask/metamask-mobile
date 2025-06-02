@@ -127,7 +127,8 @@ import { parseCaipAccountId } from '@metamask/utils';
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
+const TAG = 'ensdebug';
+export const BrowserTab: React.FC<BrowserTabProps> = ({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -439,8 +440,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
             handleIpfsContentError?.message,
           );
         } else {
-          Logger.error(handleIpfsContentError, 'Failed to resolve ENS name');
+          Logger.log(handleIpfsContentError, 'Failed to resolve ENS name');
         }
+
+        console.log(TAG, 'handleIpfsContent error', err);
 
         if (
           handleIpfsContentError?.message?.startsWith(
@@ -1090,6 +1093,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
   const handleEnsUrl = useCallback(
     async (ens: string) => {
+      console.log(TAG, 'handleEnsUrl func');
       try {
         webviewRef.current?.stopLoading();
 
@@ -1123,6 +1127,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
   const onSubmitEditing = useCallback(
     async (text: string) => {
+      console.log(TAG, 'onSubmitEdit');
       if (!text) return;
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
