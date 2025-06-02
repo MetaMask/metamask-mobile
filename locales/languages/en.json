@@ -4007,8 +4007,12 @@
       "resources": "Resources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
@@ -4021,6 +4025,7 @@
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
