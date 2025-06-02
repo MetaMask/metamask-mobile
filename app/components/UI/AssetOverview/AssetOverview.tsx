@@ -73,8 +73,11 @@ import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
-import { SolScope } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  KeyringAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 
 interface AssetOverviewProps {
   asset: TokenI;
