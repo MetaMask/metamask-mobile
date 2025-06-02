@@ -6,7 +6,7 @@ import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { Alert } from '../../types/alerts';
-import { useBatchedUnusedApprovalsAlerts } from './useBatchedUnusedApprovalsAlerts';
+import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -18,18 +18,18 @@ function useTransactionAlerts(): Alert[] {
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
-  const batchedUnusedApprovalsAlerts = useBatchedUnusedApprovalsAlerts();
+  const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
 
   return useMemo(
     () => [
       ...insufficientBalanceAlert,
-      ...batchedUnusedApprovalsAlerts,
+      ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
     ],
     [
       insufficientBalanceAlert,
-      batchedUnusedApprovalsAlerts,
+      batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
     ],

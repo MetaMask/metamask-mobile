@@ -165,7 +165,7 @@ function findUnusedApprovals(approvals: Hex[], tokenOutflows: Hex[]): Hex[] {
   return approvals.filter((approval) => !tokenOutflows.includes(approval));
 }
 
-export const useBatchedUnusedApprovalsAlerts = () => {
+export const useBatchedUnusedApprovalsAlert = () => {
   const transactionMetadata = useTransactionMetadataRequest();
 
   const nestedTransactions = transactionMetadata?.nestedTransactions;
