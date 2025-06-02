@@ -1528,7 +1528,7 @@ workflows:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
-          title: Run debug build
+          title: Run debug and test build
           timeout: 1200
           is_always_run: true
           inputs:
@@ -1536,7 +1536,11 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
+                # Build debug APK
                 GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                
+                # Build test APK
+                cd android && ./gradlew assembleAndroidTest && cd ..
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
