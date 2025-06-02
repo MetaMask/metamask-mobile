@@ -115,6 +115,7 @@ function validateCapabilities(sendCalls: SendCalls) {
 }
 
 function validateUpgrade(keyringType?: KeyringTypes) {
+  // Not allow upgrade if user has disabled smart account upgrade prompts
   if (
     Engine.context.PreferencesController.state
       .dismissSmartAccountSuggestionEnabled
@@ -125,6 +126,7 @@ function validateUpgrade(keyringType?: KeyringTypes) {
     );
   }
 
+  // Not allow upgrade for hardware wallet accounts
   if (keyringType && !SUPPORTED_KEYRING_TYPES.includes(keyringType)) {
     throw new JsonRpcError(
       EIP5792ErrorCode.RejectedUpgrade,
