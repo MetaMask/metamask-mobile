@@ -78,27 +78,32 @@ const ManualBackupStep1 = ({
 
   const steps = MANUAL_BACKUP_STEPS;
 
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [colors, navigation, styles.headerLeft],
+  );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
     );
-  }, [colors, navigation, route, styles.headerLeft]);
+  }, [colors, navigation, route, headerLeft]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -214,6 +219,7 @@ const ManualBackupStep1 = ({
         <TouchableOpacity
           onPress={revealSeedPhrase}
           style={styles.blurContainer}
+          testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
         >
           <ImageBackground
             source={require('../../../images/blur.png')}
@@ -256,7 +262,7 @@ const ManualBackupStep1 = ({
             </View>
             <View style={styles.field}>
               <TextField
-                placeholder={'Password'}
+                placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
                 secureTextEntry
@@ -353,6 +359,7 @@ const ManualBackupStep1 = ({
                     ellipsizeMode="tail"
                     numberOfLines={1}
                     style={styles.word}
+                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                   >
                     {item}
                   </Text>

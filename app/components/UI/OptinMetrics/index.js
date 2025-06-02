@@ -8,6 +8,7 @@ import {
   Alert,
   Linking,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -53,6 +54,7 @@ const createStyles = ({ colors }) =>
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
+      paddingTop: 24,
     },
     checkbox: {
       display: 'flex',
@@ -185,21 +187,11 @@ class OptinMetrics extends PureComponent {
         };
       });
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors;
-    navigation.setOptions(getOptinMetricsNavbarOptions(colors, false));
-  };
-
   componentDidMount() {
-    this.updateNavBar();
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
   componentDidUpdate(_, prevState) {
-    // Update the navbar
-    this.updateNavBar();
-
     const { scrollViewContentHeight, isEndReached, scrollViewHeight } =
       this.state;
 
@@ -515,7 +507,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -525,7 +516,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
-          disabled={!isActionEnabled}
         />
       </View>
     );
@@ -566,7 +556,10 @@ class OptinMetrics extends PureComponent {
   onScroll = ({ nativeEvent }) => {
     if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
-    const paddingAllowance = 16;
+    const paddingAllowance = Platform.select({
+      ios: 16,
+      android: 32,
+    });
     const endThreshold =
       nativeEvent.contentSize.height -
       nativeEvent.layoutMeasurement.height -
@@ -664,6 +657,9 @@ class OptinMetrics extends PureComponent {
 }
 
 OptinMetrics.contextType = ThemeContext;
+OptinMetrics.navigationOptions = {
+  headerShown: false,
+};
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,

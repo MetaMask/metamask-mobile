@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   FlatList,
   Dimensions,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ActionView from '../../UI/ActionView';
@@ -54,30 +53,35 @@ const ManualBackupStep2 = ({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [sortedSlots, setSortedSlots] = useState([]);
 
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity
+        testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
+        onPress={() => navigation.goBack()}
+      >
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [colors, navigation, styles.headerLeft],
+  );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity
-              testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
-              onPress={() => navigation.goBack()}
-            >
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
     );
-  }, [colors, navigation, route, styles.headerLeft]);
+  }, [colors, navigation, route, headerLeft]);
 
   useEffect(() => {
     updateNavBar();
@@ -123,7 +127,8 @@ const ManualBackupStep2 = ({
     if (showStatusBottomSheet) return;
 
     const rows = [0, 1, 2, 3];
-    const randomRows = rows.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const sortedRows = rows.toSorted(() => 0.5 - Math.random());
+    const randomRows = sortedRows.slice(0, 3);
     const indexesToEmpty = randomRows.map((row) => {
       const col = Math.floor(Math.random() * 3);
       return row * 3 + col;
@@ -140,7 +145,7 @@ const ManualBackupStep2 = ({
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(indexesToEmpty);
-    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+    const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
     setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
@@ -150,7 +155,7 @@ const ManualBackupStep2 = ({
       const updatedGrid = [...gridWords];
       if (sortedSlots.length === 0) {
         const indexesToEmpty = [...emptySlots];
-        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+        const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
         setSortedSlots(sortedIndexes);
       }
 
@@ -159,9 +164,6 @@ const ManualBackupStep2 = ({
       if (existingIndex !== -1) {
         updatedGrid[existingIndex] = '';
         setGridWords(updatedGrid);
-
-        // Clear selection completely if this was the last word
-        const remaining = updatedGrid.filter((w) => w !== '');
         setSelectedSlot(null); // ← always reset for top-down behavior
         return;
       }
@@ -222,41 +224,39 @@ const ManualBackupStep2 = ({
 
   const renderGrid = useCallback(
     () => (
-      <>
-        <View style={[styles.seedPhraseContainer]}>
-          <FlatList
-            data={gridWords}
-            numColumns={3}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item, index }) => {
-              // eslint-disable-next-line no-console
-              const isEmpty = emptySlots.includes(index);
-              const isSelected = selectedSlot === index;
+      <View style={[styles.seedPhraseContainer]}>
+        <FlatList
+          data={gridWords}
+          numColumns={3}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({ item, index }) => {
+            // eslint-disable-next-line no-console
+            const isEmpty = emptySlots.includes(index);
+            const isSelected = selectedSlot === index;
 
-              return (
-                <TouchableOpacity
-                  key={index}
-                  testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
-                  style={[
-                    styles.gridItem,
-                    isEmpty && styles.emptySlot,
-                    isSelected && styles.selectedSlotBox,
-                    {
-                      width: innerWidth / 3.85,
-                    },
-                  ]}
-                  onPress={() => handleSlotPress(index)}
-                >
-                  <Text style={styles.gridItemIndex}>{index + 1}.</Text>
-                  <Text style={styles.gridItemText}>
-                    {isEmpty ? item : '••••••'}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-      </>
+            return (
+              <TouchableOpacity
+                key={index}
+                testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
+                style={[
+                  styles.gridItem,
+                  isEmpty && styles.emptySlot,
+                  isSelected && styles.selectedSlotBox,
+                  {
+                    width: innerWidth / 3.85,
+                  },
+                ]}
+                onPress={() => handleSlotPress(index)}
+              >
+                <Text style={styles.gridItemIndex}>{index + 1}.</Text>
+                <Text style={styles.gridItemText}>
+                  {isEmpty ? item : '••••••'}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
     ),
     [
       styles.seedPhraseContainer,
@@ -280,7 +280,8 @@ const ManualBackupStep2 = ({
           const isUsed = gridWords.includes(word);
           return (
             <TouchableOpacity
-              key={i}
+              key={word}
+              testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={[
                 styles.missingWord,
                 isUsed && styles.selectedWord,
@@ -291,6 +292,7 @@ const ManualBackupStep2 = ({
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Default : TextColor.Primary}
+                testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
               >
                 {word}
               </Text>

@@ -12,6 +12,7 @@ import {
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import { View } from 'react-native';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -121,4 +122,13 @@ describe('getDepositNavbarOptions', () => {
     expect(options.headerStyle.backgroundColor).toBe('red');
   });
 
+  it('handles getOnboardingNavbarOptions', () => {
+    const options = getOnboardingNavbarOptions(
+      mockNavigation,
+      { headerLeft: () => <View />, headerRight: () => <View /> },
+      mockTheme.colors,
+      true,
+    );
+    expect(options).toBeDefined();
+  });
 });

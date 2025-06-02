@@ -154,7 +154,11 @@ const OnboardingSuccess = ({
           </Text>
 
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            <Text color={TextColor.Primary} onPress={handleLink}>
+            <Text
+              color={TextColor.Primary}
+              onPress={handleLink}
+              testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
+            >
               {strings('onboarding_success.learn_how')}{' '}
             </Text>
             {strings('onboarding_success.import_description2')}
@@ -170,6 +174,7 @@ const OnboardingSuccess = ({
         <TouchableOpacity
           style={[styles.linkWrapper]}
           onPress={goToDefaultSettings}
+          testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
         >
           <View style={styles.row}>
             <Icon

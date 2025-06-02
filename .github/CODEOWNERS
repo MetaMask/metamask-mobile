@@ -69,6 +69,7 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
 **/MultichainAccounts/**                                    @MetaMask/accounts-engineers
+**/multichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers

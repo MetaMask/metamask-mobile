@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`HintModal should render correctly 1`] = `
-<ForwardRef>
+exports[`SkipAccountSecurityModal should render correctly 1`] = `
+<div
+  data-testid="mock-bottom-sheet"
+>
   <View
     style={
       {
@@ -14,21 +16,35 @@ exports[`HintModal should render correctly 1`] = `
       }
     }
   >
-    <Icon
+    <SvgMock
+      color="#121314"
+      fill="currentColor"
+      height={24}
       name="DangerSolid"
-      size="24"
       style={
         {
           "alignSelf": "center",
           "color": "#ca3542",
+          "height": 24,
           "marginBottom": 16,
+          "width": 24,
         }
       }
       testID="skip-backup-warning"
+      width={24}
     />
     <Text
-      color="Default"
-      variant="sHeadingMD"
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
     >
       Skip account security?
     </Text>
@@ -43,24 +59,52 @@ exports[`HintModal should render correctly 1`] = `
       }
       testID="skip-backup-modal"
     >
-      <Checkbox
-        isChecked={false}
+      <TouchableOpacity
+        disabled={false}
         onPress={[Function]}
         style={
           {
+            "alignItems": "center",
+            "flexDirection": "row",
             "height": 18,
             "marginRight": 12,
             "marginTop": 3,
+            "opacity": 1,
             "width": 18,
           }
         }
         testID="skip-backup-check"
-      />
+      >
+        <View
+          accessibilityRole="checkbox"
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#121314",
+              "borderRadius": 4,
+              "borderWidth": 2,
+              "height": 20,
+              "justifyContent": "center",
+              "width": 20,
+            }
+          }
+        />
+      </TouchableOpacity>
       <Text
-        color="Default"
+        accessibilityRole="text"
         onPress={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
         testID="skip-backup-text"
-        variant="sBodySM"
       >
         If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.
       </Text>
@@ -76,35 +120,87 @@ exports[`HintModal should render correctly 1`] = `
         }
       }
     >
-      <Button
-        label="Secure now"
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
         onPress={[Function]}
-        size="48"
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 12,
+            "borderWidth": 1,
             "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
           }
         }
         type="Secondary"
-        variant="Secondary"
-        width="full"
-      />
-      <Button
-        isDisabled={true}
-        label="Skip"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Secure now
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={true}
         onPress={[Function]}
-        size="48"
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           {
+            "alignItems": "center",
+            "alignSelf": "stretch",
             "backgroundColor": "#ca3542",
+            "borderRadius": 12,
             "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "opacity": 0.5,
+            "paddingHorizontal": 16,
           }
         }
         type="Primary"
-        variant="Primary"
-        width="full"
-      />
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Skip
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
-</ForwardRef>
+</div>
 `;
