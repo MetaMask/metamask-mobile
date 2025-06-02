@@ -1,4 +1,4 @@
-import { cloneDeep, merge } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { TransactionParams } from '@metamask/transaction-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';

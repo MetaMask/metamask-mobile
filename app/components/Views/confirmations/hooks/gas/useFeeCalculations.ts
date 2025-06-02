@@ -35,7 +35,7 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
   const nativeConversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId as Hex, true),
   );
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets)
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const { supportsEIP1559 } = useSupportsEIP1559(transactionMeta);
   const fiatFormatter = useFiatFormatter();
   const { maxFeePerGas, maxPriorityFeePerGas } =
