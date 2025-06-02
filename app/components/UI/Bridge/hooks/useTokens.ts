@@ -1,6 +1,5 @@
 import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
-import { useMemo } from 'react';
 import { useTopTokens } from './useTopTokens';
 import { BridgeToken } from '../types';
 
@@ -29,28 +28,22 @@ export function useTokens({
 
   const { topTokens, remainingTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
-  const tokensWithoutBalance = useMemo(() => {
-    const allTokens = (topTokens ?? []).concat(remainingTokens ?? []);
-    return allTokens.filter((token) => !tokensWithBalance.some(
-      (t) => t.address === token.address && t.chainId === token.chainId
-    ));
-  }, [topTokens, remainingTokens, tokensWithBalance]);
-
-  const uniqueTokens = useMemo(
-    () => tokensWithBalance.concat(tokensWithoutBalance),
-    [tokensWithBalance, tokensWithoutBalance]
+  // Create Sets for O(1) lookups
+  const tokensWithBalanceSet = new Set(
+    tokensWithBalance.map(token => `${token.address}-${token.chainId}`)
+  );
+  const excludedTokensSet = new Set(
+    tokensToExclude?.map(token => `${token.address}-${token.chainId}`) ?? []
   );
 
-  const filteredTokens = useMemo(
-    () => uniqueTokens.filter((token) => {
-      // filter out tokens that are in the tokensToExclude array
-      const isSelectedToken = tokensToExclude?.some(
-        (t) => t.address === token.address && t.chainId === token.chainId
-      );
-      return !isSelectedToken;
-    }),
-    [uniqueTokens, tokensToExclude]
-  );
+  // Combine and filter tokens in a single pass
+  const tokensWithoutBalance = (topTokens ?? []).concat(remainingTokens ?? []).filter(token => {
+    const tokenKey = `${token.address}-${token.chainId}`;
+    return !tokensWithBalanceSet.has(tokenKey) && !excludedTokensSet.has(tokenKey);
+  });
 
-  return { tokens: filteredTokens, pending };
+  // Combine tokens with balance and filtered tokens
+  const tokens = tokensWithBalance.concat(tokensWithoutBalance);
+
+  return { tokens, pending };
 }
