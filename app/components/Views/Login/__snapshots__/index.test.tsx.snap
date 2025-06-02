@@ -345,7 +345,7 @@ exports[`Login should render correctly 1`] = `
                 }
               }
             >
-              Erase wallet
+              Forgot password?
             </Text>
           </Text>
         </View>
@@ -713,7 +713,7 @@ exports[`Login should render with different logo on password input 1`] = `
                 }
               }
             >
-              Erase wallet
+              Forgot password?
             </Text>
           </Text>
         </View>
