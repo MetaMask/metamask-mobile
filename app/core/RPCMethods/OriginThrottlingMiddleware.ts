@@ -16,9 +16,10 @@ import {
   validateOriginThrottling,
 } from './spam';
 
-export function createOriginThrottlingMiddleware(navigation: {
-  navigate: (route: string, params: Record<string, unknown>) => void;
-}): JsonRpcMiddleware<JsonRpcParams, Json> {
+export function createOriginThrottlingMiddleware(): JsonRpcMiddleware<
+  JsonRpcParams,
+  Json
+> {
   return (
     req: JsonRpcRequest<JsonRpcParams>,
     res: PendingJsonRpcResponse<Json>,
@@ -35,7 +36,6 @@ export function createOriginThrottlingMiddleware(navigation: {
             code?: number;
           },
           store,
-          navigation,
         });
       }
       callback();

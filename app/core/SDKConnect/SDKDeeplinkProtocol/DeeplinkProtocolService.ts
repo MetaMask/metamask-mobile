@@ -110,7 +110,6 @@ export default class DeeplinkProtocolService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sendMessage: (msg: any) => this.sendMessage(msg),
-      navigation: null,
       ...defaultBridgeParams,
     });
 

@@ -102,7 +102,6 @@ export class BackgroundBridge extends EventEmitter {
     remoteConnHost,
     isMMSDK,
     channelId,
-    navigation,
   }) {
     super();
     this.url = url;

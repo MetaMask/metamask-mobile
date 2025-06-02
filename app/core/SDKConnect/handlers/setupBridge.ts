@@ -81,7 +81,6 @@ export const setupBridge = ({
     isMainFrame: true,
     isWalletConnect: false,
     wcRequestActions: undefined,
-    navigation: null,
   });
 
   return backgroundBridge;
