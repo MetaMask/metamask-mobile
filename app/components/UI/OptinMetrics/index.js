@@ -54,6 +54,7 @@ const createStyles = ({ colors }) =>
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
+      paddingTop: 24,
     },
     checkbox: {
       display: 'flex',
@@ -186,21 +187,11 @@ class OptinMetrics extends PureComponent {
         };
       });
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors;
-    navigation.setOptions(getOptinMetricsNavbarOptions(colors, false));
-  };
-
   componentDidMount() {
-    this.updateNavBar();
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
   componentDidUpdate(_, prevState) {
-    // Update the navbar
-    this.updateNavBar();
-
     const { scrollViewContentHeight, isEndReached, scrollViewHeight } =
       this.state;
 
@@ -666,6 +657,9 @@ class OptinMetrics extends PureComponent {
 }
 
 OptinMetrics.contextType = ThemeContext;
+OptinMetrics.navigationOptions = {
+  headerShown: false,
+};
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
