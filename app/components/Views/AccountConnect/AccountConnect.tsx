@@ -470,7 +470,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
-    
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
