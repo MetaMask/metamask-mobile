@@ -19,7 +19,11 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: BridgeToken[] | undefined, pending: boolean } => {
+export const useTopTokens = ({ chainId }: UseTopTokensProps): { 
+  topTokens: BridgeToken[] | undefined, 
+  remainingTokens: BridgeToken[] | undefined,
+  pending: boolean 
+} => {
   const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
@@ -104,9 +108,9 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
   }, [chainId]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
-  const topTokens = useMemo(() => {
+  const { topTokens, remainingTokens } = useMemo(() => {
     if (!bridgeTokens) {
-      return [];
+      return { topTokens: [], remainingTokens: [] };
     }
 
     const result: BridgeToken[] = [];
@@ -123,6 +127,12 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
 
       if (!addedAddresses.has(normalizedAddress)) {
         addedAddresses.add(normalizedAddress);
+        // Remove the token from bridgeTokens using all possible address formats
+        delete bridgeTokens[normalizedAddress];
+        if (!isSolanaChainId(token.chainId)) {
+          delete bridgeTokens[toChecksumHexAddress(token.address)];
+          delete bridgeTokens[token.address];
+        }
         result.push(token);
         return true;
       }
@@ -147,12 +157,27 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     if (result.length < MAX_TOP_TOKENS) {
       for (const token of Object.values(bridgeTokens)) {
         if (result.length >= MAX_TOP_TOKENS) break;
-        addTokenIfNotExists(token);
+        const tokenAdded = addTokenIfNotExists(token);
+        
+        // If the token wasn't added, it means it's a duplicate, so we remove it from the bridgeTokens object
+        if (!tokenAdded) {
+          const normalizedAddress = isSolanaChainId(token.chainId)
+            ? token.address
+            : token.address.toLowerCase();
+          delete bridgeTokens[normalizedAddress];
+        }
       }
     }
 
-    return result;
+    return { 
+      topTokens: result, 
+      remainingTokens: Object.values(bridgeTokens)
+    };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
+  return { 
+    topTokens, 
+    remainingTokens,
+    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false 
+  };
 };

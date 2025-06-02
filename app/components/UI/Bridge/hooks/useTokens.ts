@@ -27,20 +27,18 @@ export function useTokens({
     chainIds: balanceChainIds
   });
 
-  const { topTokens, pending } = useTopTokens({ chainId: topTokensChainId });
+  const { topTokens, remainingTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
-  const topTokensFiltered = useMemo(() =>
-    topTokens
-      // filter out tokens that are already in the tokensWithBalance array
-      ?.filter((token) => !tokensWithBalance.some(
-        (t) => t.address === token.address && t.chainId === token.chainId
-      )) ?? [],
-    [topTokens, tokensWithBalance]
-  );
+  const tokensWithoutBalance = useMemo(() => {
+    const allTokens = [...(topTokens ?? []), ...(remainingTokens ?? [])];
+    return allTokens.filter((token) => !tokensWithBalance.some(
+      (t) => t.address === token.address && t.chainId === token.chainId
+    ));
+  }, [topTokens, remainingTokens, tokensWithBalance]);
 
   const uniqueTokens = useMemo(
-    () => [...tokensWithBalance, ...topTokensFiltered],
-    [tokensWithBalance, topTokensFiltered]
+    () => [...tokensWithBalance, ...tokensWithoutBalance],
+    [tokensWithBalance, tokensWithoutBalance]
   );
 
   const filteredTokens = useMemo(
