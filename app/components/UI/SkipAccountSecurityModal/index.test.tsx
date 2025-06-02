@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
+import { Platform } from 'react-native';
 
 const mockOnConfirm = jest.fn();
 const mockOnCancel = jest.fn();
@@ -137,6 +138,8 @@ describe('SkipAccountSecurityModal', () => {
   });
 
   it('should render cta actions and actions are called', () => {
+    Platform.OS = 'android';
+
     const { wrapper, mockGoBack } = setupTest();
 
     const cancelButton = wrapper.getByRole('button', {
@@ -161,5 +164,27 @@ describe('SkipAccountSecurityModal', () => {
 
     fireEvent.press(confirmButton);
     expect(mockGoBack).toHaveBeenCalledWith(mockOnConfirm);
+  });
+
+  it('should handle onCancel when route params are not provided', () => {
+    const { wrapper, mockGoBack } = setupTestWithoutParams();
+
+    const cancelButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.skip_button_cancel'),
+    });
+
+    fireEvent.press(cancelButton);
+    expect(mockGoBack).toHaveBeenCalledTimes(0);
+  });
+
+  it('should handle onConfirm when route params are not provided', () => {
+    const { wrapper, mockGoBack } = setupTestWithoutParams();
+
+    const confirmButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.skip_button_confirm'),
+    });
+
+    fireEvent.press(confirmButton);
+    expect(mockGoBack).toHaveBeenCalledTimes(0);
   });
 });
