@@ -1,1 +1,1 @@
-export { AccountInfo as default } from './accountInfo';
+export { AccountInfo as default } from './AccountInfo';

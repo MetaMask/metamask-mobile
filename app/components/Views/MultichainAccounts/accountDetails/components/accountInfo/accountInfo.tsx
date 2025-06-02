@@ -10,7 +10,7 @@ import Avatar, {
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './accountInfo.styles';
+import styleSheet from './AccountInfo.styles';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';

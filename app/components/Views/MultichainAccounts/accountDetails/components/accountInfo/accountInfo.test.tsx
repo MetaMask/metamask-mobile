@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccountInfo } from './accountInfo';
+import { AccountInfo } from './AccountInfo';
 import {
   createMockInternalAccount,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
