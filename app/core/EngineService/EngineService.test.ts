@@ -6,6 +6,7 @@ import { type KeyringControllerState } from '@metamask/keyring-controller';
 import NavigationService from '../NavigationService';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
+import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY } from './constants';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -111,14 +112,17 @@ jest.mock('../Engine', () => {
 
 describe('EngineService', () => {
   let engineService: EngineService;
+  let mockDispatch: jest.Mock;
 
   beforeEach(() => {
+    mockDispatch = jest.fn();
     jest.clearAllMocks();
     jest.resetAllMocks();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         engine: { backgroundState: { KeyringController: {} } },
       }),
+      dispatch: mockDispatch,
     } as unknown as ReduxStore);
 
     engineService = new EngineService();
@@ -141,7 +145,6 @@ describe('EngineService', () => {
         },
       );
     });
-
   });
 
   it('should log Engine initialization with empty state', async () => {
@@ -187,6 +190,47 @@ describe('EngineService', () => {
       // Navigates to vault recovery
       expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
         routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    });
+  });
+
+  describe('updateBatcher', () => {
+    it('should batch initial state key', async () => {
+      engineService.start();
+
+      // @ts-expect-error - accessing private property for testing
+      engineService.updateBatcher.add(INIT_BG_STATE_KEY);
+
+      // Wait for batcher to process
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
+      });
+    });
+
+    it('should batch multiple update keys', async () => {
+      engineService.start();
+
+      const keys = [
+        'KeyringController',
+        'PreferencesController',
+        'NetworkController',
+      ];
+
+      // Add each key
+      keys.forEach((key) => {
+        // @ts-expect-error - accessing private property for testing
+        engineService.updateBatcher.add(key);
+      });
+
+      // Wait for batcher to process and verify each key in order
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledTimes(keys.length);
+        keys.forEach((key, index) => {
+          expect(mockDispatch).toHaveBeenNthCalledWith(index + 1, {
+            type: UPDATE_BG_STATE_KEY,
+            payload: { key },
+          });
+        });
       });
     });
   });

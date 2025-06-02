@@ -34,7 +34,11 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+
+import {
+  appendURLParams,
+  isTokenDiscoveryBrowserEnabled,
+} from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -44,6 +48,9 @@ import {
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
+///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
 
@@ -92,20 +99,23 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
-  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
   const newTab = useCallback(
     (url, linkType) => {
       // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
       if (tabs.length >= MAX_BROWSER_TABS) {
         navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
       } else {
+        const newTabUrl = isTokenDiscoveryBrowserEnabled()
+          ? undefined
+          : url || homePageUrl();
         // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(url || homePageUrl(), linkType);
+        createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, homePageUrl, createNewTab],
+    [tabs, navigation, createNewTab, homePageUrl],
   );
+
+  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -377,19 +387,29 @@ export const Browser = (props) => {
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => (
-          <BrowserTab
-            id={tab.id}
-            key={`tab_${tab.id}`}
-            initialUrl={tab.url}
-            linkType={tab.linkType}
-            updateTabInfo={updateTabInfo}
-            showTabs={showTabsView}
-            newTab={newTab}
-            isInTabsView={shouldShowTabs}
-            homePageUrl={homePageUrl()}
-          />
-        )),
+        .map((tab) =>
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+            <BrowserTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              initialUrl={tab.url}
+              linkType={tab.linkType}
+              updateTabInfo={updateTabInfo}
+              showTabs={showTabsView}
+              newTab={newTab}
+              isInTabsView={shouldShowTabs}
+              homePageUrl={homePageUrl()}
+            />
+          ) : (
+            <DiscoveryTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              showTabs={showTabsView}
+              newTab={newTab}
+              updateTabInfo={updateTabInfo}
+            />
+          ),
+        ),
     [tabs, shouldShowTabs, newTab, homePageUrl, updateTabInfo, showTabsView],
   );
 
