@@ -141,8 +141,7 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
     networksWithTransactionActivity,
     account,
   ): { caipChainId: string; imageSource: ImageSourcePropType }[] => {
-    ``;
-    if (!account || !account.scopes || account.scopes.length === 0) {
+    if (!account || !account?.scopes || account?.scopes?.length === 0) {
       return [];
     }
 
