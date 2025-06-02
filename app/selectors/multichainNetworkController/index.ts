@@ -1,15 +1,17 @@
+import { ImageSourcePropType } from 'react-native';
+import { createSelector } from 'reselect';
 import {
   MultichainNetworkControllerState,
   NON_EVM_TESTNET_IDS,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
-import { RootState } from '../../reducers';
-import { createSelector } from 'reselect';
+import { toHex } from '@metamask/controller-utils';
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, EthScope } from '@metamask/keyring-api';
+import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
-import { ImageSourcePropType } from 'react-native';
 import { createDeepEqualSelector } from '../util';
+import { getNetworkImageSource } from '../../util/networks';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -57,16 +59,26 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     };
 
     // TODO: Add support for non-EVM testnets
-    const networks: Record<CaipChainId, MultichainNetworkConfiguration> = multichainNetworkControllerState.multichainNetworkConfigurationsByChainId || {};
+    const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
+      multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+      {};
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
       Object.keys(networks)
         .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
-        .reduce((filteredNetworks: Record<CaipChainId, MultichainNetworkConfiguration>, key: string) => {
-          // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
-          filteredNetworks[key] = networks[key];
-          return filteredNetworks;
-      },
-    {});
+        .reduce(
+          (
+            filteredNetworks: Record<
+              CaipChainId,
+              MultichainNetworkConfiguration
+            >,
+            key: string,
+          ) => {
+            // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
+            filteredNetworks[key] = networks[key];
+            return filteredNetworks;
+          },
+          {},
+        );
 
     return Object.fromEntries(
       Object.entries(nonEvmNetworks).map(([key, network]) => [
@@ -117,4 +129,55 @@ export const selectNetworksWithActivity = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.networksWithTransactionActivity,
+);
+
+export const getActiveNetworksByScopes = createDeepEqualSelector(
+  [
+    selectNetworksWithActivity,
+    (_state: RootState, account: { address: string; scopes: CaipChainId[] }) =>
+      account,
+  ],
+  (
+    networksWithTransactionActivity,
+    account,
+  ): { caipChainId: string; imageSource: ImageSourcePropType }[] => {
+    ``;
+    if (!account || !account.scopes || account.scopes.length === 0) {
+      return [];
+    }
+
+    const chainsWithActivityByAddress =
+      networksWithTransactionActivity[account?.address.toLowerCase()]
+        ?.activeChains;
+
+    if (account.scopes.includes(EthScope.Eoa) && chainsWithActivityByAddress) {
+      return chainsWithActivityByAddress.map((chainNumber) => {
+        const caipChainId = toHex(chainNumber);
+        return {
+          caipChainId,
+          imageSource: getNetworkImageSource({ chainId: caipChainId }),
+        };
+      });
+    }
+
+    if (account.scopes.includes(SolScope.Mainnet)) {
+      return [
+        {
+          caipChainId: SolScope.Mainnet,
+          imageSource: getNetworkImageSource({ chainId: SolScope.Mainnet }),
+        },
+      ];
+    }
+
+    if (account.scopes.includes(BtcScope.Mainnet)) {
+      return [
+        {
+          caipChainId: BtcScope.Mainnet,
+          imageSource: getNetworkImageSource({ chainId: BtcScope.Mainnet }),
+        },
+      ];
+    }
+
+    return [];
+  },
 );

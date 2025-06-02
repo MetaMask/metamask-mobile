@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   Alert,
@@ -12,17 +12,16 @@ import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { formatAddress, getLabelTextByAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -44,8 +43,9 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
-import { CaipAccountId, Hex } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex } from '@metamask/utils';
 import { parseAccountId } from '@walletconnect/utils';
+import AccountNetworkIndicator from '../AccountNetworkIndicator/AccountNetworkIndicator';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -70,6 +70,9 @@ const CaipAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
@@ -80,14 +83,16 @@ const CaipAccountSelectorList = ({
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance }: Assets,
+      partialAccount: { address: string; scopes: CaipChainId[] },
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}
@@ -96,22 +101,7 @@ const CaipAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
-          )}
+          <AccountNetworkIndicator partialAccount={partialAccount} />
         </View>
       );
     },
@@ -224,9 +214,14 @@ const CaipAccountSelectorList = ({
         isSelected,
         balanceError,
         caipAccountId,
+        scopes,
       },
       index,
     }) => {
+      const partialAccount = {
+        address,
+        scopes,
+      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
@@ -256,7 +251,8 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });
@@ -299,7 +295,7 @@ const CaipAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets && renderAccountBalances(assets, partialAccount))}
         </Cell>
       );
     },
@@ -344,6 +340,22 @@ const CaipAccountSelectorList = ({
       accountsLengthRef.current = accounts.length;
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+
+  const fetchAccountsWithActivity = useCallback(async () => {
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (accounts.length > 0 && isBasicFunctionalityEnabled) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts.length, isBasicFunctionalityEnabled]);
 
   return (
     <FlatList

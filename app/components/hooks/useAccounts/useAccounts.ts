@@ -171,6 +171,7 @@ const useAccounts = ({
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
           isSelected,
+          scopes: internalAccount.scopes,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
           assets:
@@ -181,7 +182,7 @@ const useAccounts = ({
               : undefined,
           balanceError: accountBalance.balanceError,
           // This only works for EOAs
-          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`
+          caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
         };
         // Calculate height of the account item.
         yOffset += 78;

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Alert,
   InteractionManager,
@@ -7,23 +7,22 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { formatAddress, getLabelTextByAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -42,6 +41,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import AccountNetworkIndicator from '../AccountNetworkIndicator';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -74,6 +74,9 @@ const EvmAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
@@ -93,14 +96,16 @@ const EvmAccountSelectorList = ({
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance }: Assets,
+      partialAccount: { address: string; scopes: CaipChainId[] },
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}
@@ -109,22 +114,7 @@ const EvmAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
-          )}
+          <AccountNetworkIndicator partialAccount={partialAccount} />
         </View>
       );
     },
@@ -215,9 +205,13 @@ const EvmAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: { name, address, assets, type, isSelected, balanceError, scopes },
       index,
     }) => {
+      const partialAccount = {
+        address,
+        scopes,
+      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
@@ -247,7 +241,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -290,7 +285,7 @@ const EvmAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets && renderAccountBalances(assets, partialAccount))}
         </Cell>
       );
     },
@@ -335,6 +330,22 @@ const EvmAccountSelectorList = ({
       accountsLengthRef.current = accounts.length;
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
+
+  const fetchAccountsWithActivity = useCallback(async () => {
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (accounts.length > 0 && isBasicFunctionalityEnabled) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts.length, isBasicFunctionalityEnabled]);
 
   return (
     <FlatList

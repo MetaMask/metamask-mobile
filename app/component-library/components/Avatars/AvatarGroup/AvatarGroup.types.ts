@@ -62,6 +62,11 @@ export interface AvatarGroupProps extends ViewProps {
    * - Please refer to the constants file for the mappings.
    */
   spaceBetweenAvatars?: number;
+  /**
+   * Optional boolean to render the overflow counter.
+   * @default true
+   */
+  renderOverflowCounter?: boolean;
 }
 export interface AvatarGroupStyleSheetVars
   extends Pick<AvatarGroupProps, 'style'> {

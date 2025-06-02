@@ -11,13 +11,6 @@ import { StyleSheet } from 'react-native';
  */
 const styleSheet = () =>
   StyleSheet.create({
-    balancesContainer: {
-      alignItems: 'flex-end',
-      flexDirection: 'column',
-    },
-    balanceLabel: {
-      textAlign: 'right',
-    },
     networkTokensContainer: {
       marginTop: 4,
     },
