@@ -82,6 +82,7 @@ module.exports = {
       ],
       excludedFiles: [
         'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
+        'app/core/Analytics/typewriter/segment.tsx',
       ],
       rules: {
         'no-restricted-syntax': [
