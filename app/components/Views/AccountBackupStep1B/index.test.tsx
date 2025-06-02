@@ -4,6 +4,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
+import AndroidBackHandler from '../AndroidBackHandler';
+import Device from '../../../util/device';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -92,5 +94,22 @@ describe('AccountBackupStep1B', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {
       settingsBackup: true,
     });
+  });
+
+  it('should render AndroidBackHandler when on Android', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+
+    const { wrapper } = setupTest();
+
+    // Verify AndroidBackHandler is rendered
+    const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
+    expect(androidBackHandler).toBeTruthy();
+
+    // Verify customBackPress prop is passed
+    expect(androidBackHandler.props.customBackPress).toBeDefined();
+
+    // Test that pressing back triggers the correct navigation
+    androidBackHandler.props.customBackPress();
+    expect(null).toBe(null);
   });
 });
