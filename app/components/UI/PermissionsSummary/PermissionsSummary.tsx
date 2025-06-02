@@ -101,7 +101,7 @@ const PermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
-  promptToCreateSolanaAccount,
+  promptToCreateSolanaAccount = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -552,6 +552,43 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
+  const renderAccountsConnectedList = useCallback(
+    (
+      accountsConnectedTabKey: string,
+      restAccountsConnectedTabProps: Record<string, unknown>,
+    ) =>
+      promptToCreateSolanaAccount ? (
+        <AccountConnectCreateInitialAccount
+          key={accountsConnectedTabKey}
+          onCreateAccount={() => {
+            onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+          }}
+          {...restAccountsConnectedTabProps}
+        />
+      ) : (
+        <AccountsConnectedList
+          key={accountsConnectedTabKey}
+          selectedAddresses={accountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+      ),
+    [
+      accountAddresses,
+      ensByAccountAddress,
+      accounts,
+      privacyMode,
+      networkAvatars,
+      handleEditAccountsButtonPress,
+      promptToCreateSolanaAccount,
+      onCreateAccount,
+    ],
+  );
+
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
       accountsConnectedTabProps;
@@ -563,25 +600,9 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        {promptToCreateSolanaAccount ? (
-          <AccountConnectCreateInitialAccount
-            key={accountsConnectedTabKey}
-            onCreateAccount={() => {
-              onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
-            }}
-            {...restAccountsConnectedTabProps}
-          />
-        ) : (
-          <AccountsConnectedList
-            key={accountsConnectedTabKey}
-            selectedAddresses={accountAddresses}
-            ensByAccountAddress={ensByAccountAddress}
-            accounts={accounts}
-            privacyMode={privacyMode}
-            networkAvatars={networkAvatars}
-            handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-            {...restAccountsConnectedTabProps}
-          />
+        {renderAccountsConnectedList(
+          accountsConnectedTabKey,
+          restAccountsConnectedTabProps,
         )}
         <View
           key={permissionsTabKey}

@@ -78,6 +78,11 @@ const AddNewAccount = ({
   }, [hdKeyrings, keyringId]);
 
   const handleOnBack = () => {
+    if (showSRPList) {
+      setShowSRPList(false);
+      return;
+    }
+
     if (onBack) {
       onBack();
     } else {
@@ -165,13 +170,7 @@ const AddNewAccount = ({
               ? strings('accounts.select_secret_recovery_phrase')
               : addAccountTitle
           }
-          onBack={() => {
-            if (showSRPList) {
-              setShowSRPList(false);
-              return;
-            }
-            handleOnBack();
-          }}
+          onBack={handleOnBack}
         />
         {showSRPList ? (
           <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />

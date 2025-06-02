@@ -251,12 +251,14 @@ const AccountConnect = (props: AccountConnectProps) => {
     promptToCreateSolanaAccount?: boolean;
   };
 
-  const solanaAccountExistsInWallet = useMemo(() => {
-    return accounts.some(({ caipAccountId }) => {
-      const { chain } = parseCaipAccountId(caipAccountId);
-      return chain.namespace === KnownCaipNamespace.Solana;
-    });
-  }, [accounts]);
+  const solanaAccountExistsInWallet = useMemo(
+    () =>
+      accounts.some(({ caipAccountId }) => {
+        const { chain } = parseCaipAccountId(caipAccountId);
+        return chain.namespace === KnownCaipNamespace.Solana;
+      }),
+    [accounts],
+  );
 
   const promptToCreateSolanaAccount =
     hostInfo.metadata.promptToCreateSolanaAccount &&
@@ -872,27 +874,32 @@ const AccountConnect = (props: AccountConnectProps) => {
     [isLoading, handleNetworksSelected, hostnameFromUrlObj, selectedChainIds],
   );
 
+  const handleAccountSelection = useCallback(
+    (account: InternalAccount) => {
+      const [scope] = account.scopes;
+      const { namespace, reference } = parseCaipChainId(scope);
+      const caipAccountId = toCaipAccountId(
+        namespace,
+        reference,
+        account.address,
+      );
+      setSelectedAddresses([...selectedAddresses, caipAccountId]);
+      setScreen(AccountConnectScreens.SingleConnect);
+    },
+    [selectedAddresses],
+  );
+
   const renderAddNewAccount = useCallback(
     (params: AddNewAccountProps) => (
       <AddNewAccount
         {...params}
-        onActionComplete={(account: InternalAccount) => {
-          const [scope] = account.scopes;
-          const { namespace, reference } = parseCaipChainId(scope);
-          const caipAccountId = toCaipAccountId(
-            namespace,
-            reference,
-            account.address,
-          );
-          setSelectedAddresses([...selectedAddresses, caipAccountId]);
-          setScreen(AccountConnectScreens.SingleConnect);
-        }}
+        onActionComplete={handleAccountSelection}
         onBack={() => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
       />
     ),
-    [selectedAddresses],
+    [handleAccountSelection],
   );
 
   const renderPhishingModal = useCallback(
