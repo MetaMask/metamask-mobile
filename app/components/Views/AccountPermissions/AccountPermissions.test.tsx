@@ -137,6 +137,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountsController: {
       listAccounts: jest.fn(() => MOCK_USE_ACCOUNTS_RETURN),
+      listMultichainAccounts: jest.fn(() => MOCK_INTERNAL_ACCOUNTS),
       getAccountByAddress: jest.fn((address: string) =>
         MOCK_INTERNAL_ACCOUNTS.find((account) => account.address === address),
       ),
@@ -251,13 +252,6 @@ const mockInitialState = (
     } as any,
   },
 });
-
-const evmNetworkConfigurationsByChainId =
-  mockInitialState().engine?.backgroundState?.NetworkController
-    ?.networkConfigurationsByChainId;
-const nonEvmNetworkConfigurationsByChainId =
-  mockInitialState().engine?.backgroundState?.MultichainNetworkController
-    ?.multichainNetworkConfigurationsByChainId;
 
 describe('AccountPermissions', () => {
   beforeEach(() => {
@@ -438,8 +432,6 @@ describe('AccountPermissions', () => {
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
       'test',
       ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
     );
   });
 
@@ -469,8 +461,6 @@ describe('AccountPermissions', () => {
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
       'test',
       ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
     );
     expect(mockRemovePermittedAccounts).not.toHaveBeenCalled();
   });
@@ -536,8 +526,6 @@ describe('AccountPermissions', () => {
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith(
       'test',
       ['eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7'],
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
     );
     expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
       '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
