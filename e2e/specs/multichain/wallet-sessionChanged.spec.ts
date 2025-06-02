@@ -61,20 +61,11 @@ describe(SmokeMultichainApi('wallet_sessionChanged'), () => {
 
                 const webview = MultichainTestDApp.getWebView();
 
-                // Get initial sessionChanged history count
-                let initialHistoryCount = 0;
-                const existingEntry = webview.element(by.web.id('wallet-session-changed-0'));
-                // Check if there's already a sessionChanged event
-                const entryExists = await existingEntry.scrollToView()
-                    .then(() => true)
-                    .catch(() => false);
-                initialHistoryCount = entryExists ? 1 : 0;
-
                 // Modify session by creating a new session with different networks
                 // This simulates updating permissions (adding Arbitrum, keeping Ethereum, removing Polygon)
                 const modifiedNetworks = [
                     MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-                    MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE
+                    MultichainUtilities.CHAIN_IDS.BASE,
                 ];
 
                 const modifyResult = await MultichainTestDApp.createSessionWithNetworks(modifiedNetworks);
