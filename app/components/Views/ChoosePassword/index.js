@@ -260,7 +260,6 @@ class ChoosePassword extends PureComponent {
   updateNavBar = () => {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    const marginLeft = 16;
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
