@@ -40,6 +40,11 @@
     },
     "signed_or_submitted": {
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -427,6 +432,22 @@
       "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
       "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
       "button": "Get started"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
     }
   },
   "receive": {
@@ -1934,7 +1955,8 @@
       "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
       "gas_limit_too_low": "Gas limit must be greater than 21000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
-      "no_zero_value": "{{field}} must be greater than 0"
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
     }
   },
   "smart_transactions": {
@@ -3982,8 +4004,12 @@
       "resources": "Resources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
@@ -3996,6 +4022,7 @@
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"

@@ -17,14 +17,14 @@ import {
   JsonMap,
   IMetaMetricsEvent,
 } from '../../../Analytics/MetaMetrics.types';
-import type {
-  TransactionEventHandlerRequest,
-  TransactionMetrics,
-} from './types';
 import {
   getNetworkRpcUrl,
   extractRpcDomain,
 } from '../../../../util/rpc-domain-utils';
+import type {
+  TransactionEventHandlerRequest,
+  TransactionMetrics,
+} from './types';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -178,14 +178,17 @@ export async function generateDefaultTransactionMetrics(
         ...gasFeeProperties,
         status,
         source: 'MetaMask Mobile',
-        transaction_type: getTransactionTypeValue(type),
+        transaction_contract_method: await getTransactionContractMethod(
+          transactionMeta,
+        ),
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
+        transaction_type: getTransactionTypeValue(type),
       },
       sensitiveProperties: {
-        value: transactionMeta.txParams.value,
-        to_address: transactionMeta.txParams.to,
         from_address: transactionMeta.txParams.from,
+        to_address: transactionMeta.txParams.to,
+        value: transactionMeta.txParams.value,
       },
     },
     getConfirmationMetricProperties(
@@ -260,4 +263,12 @@ function getGasMetricProperties(transactionMeta: TransactionMeta) {
     gas_fee_presented: presentedGasFeeOptions,
     gas_fee_selected: userFeeLevel,
   };
+}
+
+async function getTransactionContractMethod(transactionMeta: TransactionMeta) {
+  const methodData = await getMethodData(
+    transactionMeta.txParams.data ?? '',
+    transactionMeta.networkClientId,
+  );
+  return methodData?.name ? [methodData.name] : [];
 }
