@@ -1,6 +1,6 @@
 // Third parties dependencies
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 // External dependencies
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -21,12 +21,11 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 interface AddressCopyProps {
-  account?: InternalAccount;
+  account: InternalAccount;
   iconColor?: IconColor;
 }
 
@@ -49,15 +48,11 @@ const AddressCopy = ({ account, iconColor }: AddressCopyProps) => {
   /**
    * A string that represents the selected address
    */
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const accountToUse = account || selectedInternalAccount;
 
   const copyAccountToClipboard = async () => {
-    if (accountToUse?.address) {
-      await ClipboardManager.setString(
-        getFormattedAddressFromInternalAccount(accountToUse),
-      );
-    }
+    await ClipboardManager.setString(
+      getFormattedAddressFromInternalAccount(account),
+    );
     handleShowAlert({
       isVisible: true,
       autodismiss: 1500,
