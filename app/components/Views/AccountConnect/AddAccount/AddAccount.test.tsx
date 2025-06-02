@@ -22,10 +22,10 @@ describe('AddAccountSelection', () => {
       />,
     );
 
-    expect(getByText('Connect Accounts')).toBeTruthy();
+    expect(getByText('Connect accounts')).toBeTruthy();
     expect(getByText('Create a new account')).toBeTruthy();
-    expect(getByText('Add new account')).toBeTruthy();
-    expect(getByText('Add Solana account')).toBeTruthy();
+    expect(getByText('Ethereum account')).toBeTruthy();
+    expect(getByText('Solana account')).toBeTruthy();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -50,7 +50,7 @@ describe('AddAccountSelection', () => {
       />,
     );
 
-    fireEvent.press(getByText('Add new account'));
+    fireEvent.press(getByText('Ethereum account'));
     expect(mockOnCreateAccount).toHaveBeenCalledWith();
   });
 
@@ -62,7 +62,7 @@ describe('AddAccountSelection', () => {
       />,
     );
 
-    fireEvent.press(getByText('Add Solana account'));
+    fireEvent.press(getByText('Solana account'));
     expect(mockOnCreateAccount).toHaveBeenCalledWith(
       WalletClientType.Solana,
       SolScope.Mainnet,
