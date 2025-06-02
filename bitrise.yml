@@ -1536,8 +1536,15 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                # Build both debug and test APKs
+                
+                # First run the React Native build process
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:pre-build
+                
+                # Then build both debug and test APKs
                 cd android && ./gradlew assembleDebug assembleDebugAndroidTest && cd ..
+                
+                # Create outputs directory if it doesn't exist
+                mkdir -p android/app/build/outputs
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
