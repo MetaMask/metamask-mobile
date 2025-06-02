@@ -96,6 +96,8 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
@@ -388,8 +390,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
 
       const chainIds = Object.keys(
-        hostInfo.permissions['endowment:caip25'].caveats[0].value
-          .optionalScopes,
+        hostInfo.permissions[Caip25EndowmentPermissionName]?.caveats?.find(
+          ({ type }) => type === Caip25CaveatType,
+        )?.value?.optionalScopes ?? {},
       );
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;

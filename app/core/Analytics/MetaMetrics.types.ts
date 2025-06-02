@@ -166,10 +166,11 @@ export interface IDeleteRegulationStatus {
   dataDeletionRequestStatus: DataDeleteStatus;
 }
 
-// TODO: validate if there's a better location for this
-// we don't seem to use the same convention here vs extension
 /**
- * The API type used to perform a request
+ * The API type used to perform a request to MetaMask Mobile
+ * @description Indicates whether the request came through the Ethereum Provider API or the Multichain API
+ * @see MetaMetricsRequestedThrough.EthereumProvider - Standard EIP-1193 provider API
+ * @see MetaMetricsRequestedThrough.MultichainApi - MetaMask's Multichain API
  */
 export enum MetaMetricsRequestedThrough {
   EthereumProvider = 'ethereum_provider',

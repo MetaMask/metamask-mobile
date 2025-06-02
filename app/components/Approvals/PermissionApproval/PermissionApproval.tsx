@@ -7,7 +7,10 @@ import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
-import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import { getApiAnalytics } from '../../../core/Analytics/helpers/getApiAnalytics';
 
 export interface PermissionApprovalProps {
@@ -48,10 +51,10 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
-    //Gets CAIP2 chain ids from the request
-    const caip2ChainIds = Object.keys(
-      approvalRequest?.requestData?.permissions['endowment:caip25']?.caveats[0]
-        ?.value?.optionalScopes,
+    const chainIds = Object.keys(
+      requestData.permissions[Caip25EndowmentPermissionName]?.caveats?.find(
+        ({ type }: { type: string }) => type === Caip25CaveatType,
+      )?.value?.optionalScopes ?? {},
     );
 
     const isMultichainRequest =
@@ -62,7 +65,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
         .addProperties({
           number_of_accounts: totalAccounts,
           source: eventSource,
-          chain_id_list: caip2ChainIds,
+          chain_id_list: chainIds,
           ...getApiAnalytics(isMultichainRequest),
         })
         .build(),
