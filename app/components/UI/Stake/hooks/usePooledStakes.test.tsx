@@ -1,5 +1,4 @@
-import { PooledStakeExitRequest } from '@metamask/stake-sdk';
-
+import { PooledStakeExitRequest, ChainId } from '@metamask/stake-sdk';
 import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -61,18 +60,22 @@ const renderHook = (state?: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         EarnController: {
-          ...mockInitialEarnControllerState,
           pooled_staking: {
-            ...mockInitialEarnControllerState.pooled_staking,
-            pooledStakes: state?.pooledStakes,
-            exchangeRate: state?.exchangeRate,
+            isEligible: true,
+            [ChainId.ETHEREUM]: {
+              ...mockInitialEarnControllerState.pooled_staking,
+              pooledStakes: state?.pooledStakes,
+              exchangeRate: state?.exchangeRate,
+            },
           },
         },
       },
     },
   };
 
-  return renderHookWithProvider(() => usePooledStakes(), { state: mockState });
+  return renderHookWithProvider(() => usePooledStakes(ChainId.ETHEREUM), {
+    state: mockState,
+  });
 };
 
 describe('usePooledStakes', () => {

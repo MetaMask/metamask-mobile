@@ -81,6 +81,7 @@ describe('UnstakeConfirmationView', () => {
         params: {
           amountWei: '4999820000000000000',
           amountFiat: '12894.52',
+          chainId: '1',
         },
       },
     };
