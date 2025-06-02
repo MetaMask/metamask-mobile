@@ -1,10 +1,6 @@
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../reducers';
-import {
-  selectInternalAccounts,
-  selectSelectedInternalAccount,
-} from '../accountsController';
+import { selectInternalAccounts } from '../accountsController';
 import { selectHDKeyrings } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 import { KeyringObject } from '@metamask/keyring-controller';

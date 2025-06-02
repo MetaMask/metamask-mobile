@@ -125,26 +125,6 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
     },
   } as unknown as RootState);
 
-const mockStateWithNoSelectedAccount = {
-  engine: {
-    backgroundState: {
-      KeyringController: {
-        keyrings: [mockHDKeyring, mockHDKeyring2, mockSimpleKeyring],
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            [mockAccount1.id]: mockAccount1,
-            [mockAccount2.id]: mockAccount2,
-            [mockAccount3.id]: mockAccount3,
-          },
-          selectedAccount: undefined,
-        },
-      },
-    },
-  },
-} as unknown as RootState;
-
 describe('multisrp selectors', () => {
   describe('selectHdKeyringIndexByIdOrDefault', () => {
     it('returns 0 when no keyringId is provided', () => {
