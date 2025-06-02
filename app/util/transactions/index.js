@@ -490,7 +490,6 @@ export async function getTransactionActionKey(transaction, chainId) {
     if (name) return name;
   }
 
-  console.log('SALIM ...............', transaction.toSmartContract);
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
