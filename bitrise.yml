@@ -2264,6 +2264,9 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
+      EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3'
+    - opts:
+        is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
@@ -2303,16 +2306,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.46.1
+      VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1862
+      VERSION_NUMBER: 1891
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.46.1
+      FLASK_VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1810
+      FLASK_VERSION_NUMBER: 1891
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
