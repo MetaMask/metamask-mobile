@@ -5,14 +5,11 @@ import {
   waitFor,
   screen,
 } from '@testing-library/react-native';
-import {
-  FEATURE_ANNOUNCEMENT_TOGGLE_TEST_ID,
-  FeatureAnnouncementToggle,
-} from './FeatureAnnouncementToggle';
+import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
 // eslint-disable-next-line import/no-namespace
 import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { CUSTOM_NOTIFICATIONS_ROW_SWITCH_TEST_ID } from './CustomNotificationsRow';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockVar = any;
@@ -64,7 +61,9 @@ describe('FeatureAnnouncementToggle', () => {
     arrangeMocks();
     render(<FeatureAnnouncementToggle />);
     expect(
-      screen.getByTestId(FEATURE_ANNOUNCEMENT_TOGGLE_TEST_ID),
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+      ),
     ).toBeTruthy();
   });
 
@@ -72,9 +71,7 @@ describe('FeatureAnnouncementToggle', () => {
     const mocks = arrangeMocks();
     render(<FeatureAnnouncementToggle />);
     const toggleSwitch = screen.getByTestId(
-      CUSTOM_NOTIFICATIONS_ROW_SWITCH_TEST_ID(
-        FEATURE_ANNOUNCEMENT_TOGGLE_TEST_ID,
-      ),
+      NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
     );
 
     fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });

@@ -102,7 +102,7 @@ exports[`ActionView should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#6a737d",
+                  "borderColor": "#686e7d",
                   "borderWidth": 1,
                 },
                 [
@@ -131,13 +131,13 @@ exports[`ActionView should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                   },
                   undefined,
                 ],
@@ -163,7 +163,7 @@ exports[`ActionView should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 [
@@ -194,13 +194,13 @@ exports[`ActionView should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],

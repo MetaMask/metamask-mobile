@@ -47,7 +47,7 @@ exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#141618",
+              "borderColor": "#121314",
               "borderRadius": 4,
               "borderWidth": 2,
               "height": 20,

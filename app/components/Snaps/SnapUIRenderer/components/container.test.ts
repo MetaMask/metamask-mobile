@@ -104,6 +104,8 @@ describe('container', () => {
             "props": {
               "isSnapAction": false,
               "onCancel": [MockFunction],
+              "testID": "default-snap-footer-button",
+              "variant": "Secondary",
             },
           },
           "element": "Box",

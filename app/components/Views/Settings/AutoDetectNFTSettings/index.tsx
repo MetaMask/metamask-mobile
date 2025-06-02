@@ -34,16 +34,23 @@ const AutoDetectNFTSettings = () => {
         PreferencesController.setDisplayNftMedia(value);
       }
       PreferencesController.setUseNftDetection(value);
-      const traits = {
+
+      addTraitsToUser({
+        ...(value && {
+          [UserProfileProperty.ENABLE_OPENSEA_API]: value
+            ? UserProfileProperty.ON
+            : UserProfileProperty.OFF,
+        }),
         [UserProfileProperty.NFT_AUTODETECTION]: value
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
-      };
-      addTraitsToUser(traits);
+      });
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED)
           .addProperties({
-            ...traits,
+            ...(value && { [UserProfileProperty.ENABLE_OPENSEA_API]: value }),
+            [UserProfileProperty.NFT_AUTODETECTION]: value,
             location: 'app_settings',
           })
           .build(),

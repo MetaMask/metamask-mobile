@@ -2,7 +2,8 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () => StyleSheet.create({
   sheet: {
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
+    paddingBottom: 20
   },
   infoIconWrap: {
     display: 'flex',

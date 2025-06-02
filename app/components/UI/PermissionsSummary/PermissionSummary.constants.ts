@@ -1,0 +1,4 @@
+export const MAX_VISIBLE_ITEMS = 3.5;
+export const SCALE_FACTOR = 0.85;
+export const ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT = 75;
+export const BOTTOM_SHEET_BASE_HEIGHT = 460;

@@ -122,6 +122,7 @@ const QRTabSwitcher = () => {
 
       <View style={styles.overlay}>
         <HeaderBase
+          style={styles.header}
           endAccessory={
             <ButtonIcon
               iconName={IconName.Close}
@@ -131,6 +132,7 @@ const QRTabSwitcher = () => {
           }
         >
           {selectedIndex === QRTabSwitcherScreens.Receive ? (
+            // @ts-expect-error proptypes components requires ts-expect-error
             <NavbarTitle
               // @ts-expect-error proptypes components requires ts-expect-error
               title={strings(`receive.title`)}

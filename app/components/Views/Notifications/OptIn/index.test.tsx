@@ -97,10 +97,51 @@ describe('OptIn', () => {
     jest.resetAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('should render with the expected fields', () => {
     arrangeMockOptInHooks();
-    const { toJSON } = renderWithProvider(<OptIn />);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(<OptIn />);
+
+    // Title
+    expect(
+      getByText(strings('notifications.activation_card.title')),
+    ).toBeTruthy();
+
+    // Main description
+    expect(
+      getByText(strings('notifications.activation_card.description_1')),
+    ).toBeTruthy();
+
+    // Secondary description
+    expect(
+      getByText(strings('notifications.activation_card.description_2'), {
+        exact: false,
+      }),
+    ).toBeTruthy();
+    expect(
+      getByText(strings('notifications.activation_card.learn_more'), {
+        exact: false,
+      }),
+    ).toBeTruthy();
+
+    // Preference/Settings information
+    expect(
+      getByText(strings('notifications.activation_card.manage_preferences_1'), {
+        exact: false,
+      }),
+    ).toBeTruthy();
+    expect(
+      getByText(strings('notifications.activation_card.manage_preferences_2'), {
+        exact: false,
+      }),
+    ).toBeTruthy();
+
+    // Buttons
+    expect(
+      getByText(strings('notifications.activation_card.cancel')),
+    ).toBeTruthy();
+    expect(
+      getByText(strings('notifications.activation_card.cta')),
+    ).toBeTruthy();
   });
 
   it('calls enableNotifications when the button is pressed', async () => {
@@ -108,7 +149,7 @@ describe('OptIn', () => {
     const { getByText } = renderWithProvider(<OptIn />);
 
     const button = getByText(strings('notifications.activation_card.cta'));
-    expect(button).toBeDefined();
+    expect(button).toBeTruthy();
     act(() => fireEvent.press(button));
 
     expect(mocks.mockClick).toHaveBeenCalled();
@@ -119,7 +160,7 @@ describe('OptIn', () => {
     const { getByText } = renderWithProvider(<OptIn />);
 
     const button = getByText(strings('notifications.activation_card.cancel'));
-    expect(button).toBeDefined();
+    expect(button).toBeTruthy();
     act(() => fireEvent.press(button));
 
     expect(mocks.mockCancel).toHaveBeenCalled();
@@ -137,6 +178,6 @@ describe('OptIn', () => {
     const loader = screen.getByText(
       strings('app_settings.enabling_notifications'),
     );
-    expect(loader).toBeDefined();
+    expect(loader).toBeTruthy();
   });
 });

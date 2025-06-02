@@ -8,6 +8,7 @@ const PORTFOLIO_URL =
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
+const MULTICHAIN_API = process.env.MULTICHAIN_API || false;
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -23,6 +24,7 @@ export default {
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
   },
+  MULTICHAIN_API,
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -92,6 +94,7 @@ export default {
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
+    DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -137,6 +140,7 @@ export default {
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: 'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts'
   },
   DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
@@ -215,6 +219,7 @@ export default {
     'price-api',
     'price.api',
     'phishing-detection',
+    'dapp-scanning',
     'infura.io',
     'static.metafi',
     'static.cx',
@@ -225,4 +230,5 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
+  TOKEN_DISCOVERY_BROWSER_ENABLED: process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
 } as const;

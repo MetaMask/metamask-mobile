@@ -29,7 +29,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
@@ -109,13 +109,13 @@ exports[`TokenIcon component should Render correctly 7`] = `
     style={
       [
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontSize": 22,
         },
         undefined,

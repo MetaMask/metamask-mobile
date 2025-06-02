@@ -14,11 +14,15 @@ import { getChainFeatureFlags, getSwapsLiveness } from './utils';
 import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
+import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
+import { invert } from 'lodash';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
 export const getFeatureFlagChainId = (chainId) =>
-  __DEV__ && allowedTestnetChainIds.includes(chainId)
+  typeof __DEV__ !== 'undefined' &&
+  __DEV__ &&
+  allowedTestnetChainIds.includes(chainId)
     ? NETWORKS_CHAIN_ID.MAINNET
     : chainId;
 
@@ -74,17 +78,11 @@ export const swapsLivenessMultichainSelector = createSelector(
 /**
  * Returns if smart transactions are enabled in feature flags
  */
-const DEVICE_KEY = 'mobileActive';
 export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   (swapsState) => {
     const globalFlags = swapsState.featureFlags;
-
-    const isEnabled = Boolean(
-      globalFlags?.smart_transactions?.mobile_active &&
-        globalFlags?.smartTransactions?.[DEVICE_KEY],
-    );
-
+    const isEnabled = Boolean(globalFlags?.smartTransactions?.mobileActive);
     return isEnabled;
   },
 );
@@ -94,11 +92,12 @@ export const swapsSmartTxFlagEnabled = createSelector(
  */
 export const selectSwapsChainFeatureFlags = createSelector(
   swapsStateSelector,
-  chainIdSelector,
+  (_state, transactionChainId) =>
+    transactionChainId || selectEvmChainId(_state),
   (swapsState, chainId) => ({
-    ...swapsState[chainId].featureFlags,
+    ...(swapsState[chainId]?.featureFlags || {}),
     smartTransactions: {
-      ...(swapsState[chainId].featureFlags?.smartTransactions || {}),
+      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
       ...(swapsState.featureFlags?.smartTransactions || {}),
     },
   }),
@@ -242,8 +241,15 @@ export const swapsTokensSelector = createSelector(
   },
 );
 
-const topAssets = (state) =>
-  state.engine.backgroundState.SwapsController.topAssets;
+export const topAssets = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.topAssets,
+);
+
+export const selectChainCache = createSelector(
+  selectSwapsControllerState,
+  (swapsControllerState) => swapsControllerState.chainCache,
+);
 
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
@@ -385,24 +391,43 @@ function swapsReducer(state = initialState, action) {
         };
       }
 
-      const chainFeatureFlags = getChainFeatureFlags(featureFlags, chainId);
-      const liveness = getSwapsLiveness(featureFlags, chainId);
-
-      const chain = {
-        ...data,
-        featureFlags: chainFeatureFlags,
-        isLive: liveness,
-      };
-
-      return {
+      const newState = {
         ...state,
-        [chainId]: chain,
-        [rawChainId]: chain,
         featureFlags: {
           smart_transactions: featureFlags.smart_transactions,
           smartTransactions: featureFlags.smartTransactions,
         },
       };
+
+      // Invert CHAIN_ID_TO_NAME_MAP to get chain name to ID mapping
+      // It will be e.g. { 'ethereum': '0x1', 'bsc': '0x38' }
+      const chainNameToIdMap = invert(CHAIN_ID_TO_NAME_MAP);
+
+      // Save chain-specific feature flags for each chain
+      Object.keys(featureFlags).forEach((chainName) => {
+        const chainIdForName = chainNameToIdMap[chainName];
+
+        if (
+          chainIdForName &&
+          featureFlags[chainName] &&
+          typeof featureFlags[chainName] === 'object'
+        ) {
+          const chainFeatureFlags = featureFlags[chainName];
+          const chainLiveness = getSwapsLiveness(featureFlags, chainIdForName);
+
+          newState[chainIdForName] = {
+            ...state[chainIdForName],
+            featureFlags: chainFeatureFlags,
+            isLive: chainLiveness,
+          };
+
+          if (chainIdForName === chainId && rawChainId !== chainId) {
+            newState[rawChainId] = newState[chainIdForName];
+          }
+        }
+      });
+
+      return newState;
     }
     case SWAPS_SET_HAS_ONBOARDED: {
       return {

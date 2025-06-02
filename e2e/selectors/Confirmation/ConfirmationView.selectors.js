@@ -31,4 +31,21 @@ export const ConfirmationPageSectionsSelectorIDs = {
   SIWE_SIGNING_ACCOUNT_INFO_SECTION: 'siwe-signing-account-info-section',
   MESSAGE_SECTION: 'message-section',
   STAKING_DETAILS_SECTION: 'staking-details-section',
+  INLINE_ALERT: 'inline-alert',
 };
+
+export const ConfirmAlertModalSelectorsIDs = {
+  CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
+  CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
+  CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
+};
+
+export const AlertModalSelectorsIDs = {
+  ALERT_MODAL_CHECKBOX: 'alert-modal-checkbox',
+  ALERT_MODAL_GOT_IT_BUTTON: 'alert-modal-got-it-button',
+};
+
+export const AlertModalSelectorsText = {
+  ALERT_ORIGIN_MISMATCH_TITLE: enContent.alert_system.domain_mismatch.title,
+};
+

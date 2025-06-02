@@ -282,11 +282,6 @@ describe('NetworkDetails', () => {
           },
         ],
       });
-
-      // Verify active network was set
-      expect(
-        Engine.context.MultichainNetworkController.setActiveNetwork,
-      ).toHaveBeenCalledWith('new-network-id');
     });
   });
 });

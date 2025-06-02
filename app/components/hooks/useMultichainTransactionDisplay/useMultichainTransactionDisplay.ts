@@ -1,19 +1,32 @@
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import I18n from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { formatUnits } from 'ethers/lib/utils';
 
 type Fee = Transaction['fees'][0]['asset'];
 type Token = Transaction['from'][0]['asset'];
 
+export const getMultichainTxFees = (transaction: Transaction) => {
+  const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
+  const priorityFee =
+    transaction?.fees?.find((fee) => fee.type === 'priority') ?? null;
+
+  return { baseFee, priorityFee };
+};
 
 export function useMultichainTransactionDisplay({
   transaction,
   userAddress,
+  bridgeHistoryItem,
 }: {
   transaction: Transaction;
   userAddress: string;
+  bridgeHistoryItem?: BridgeHistoryItem;
 }) {
   const locale = I18n.locale;
+  const isBridgeTx =
+    transaction.type === TransactionType.Send && bridgeHistoryItem;
 
   const transactionFromEntry = transaction.from?.find(
     (entry) => entry?.address === userAddress,
@@ -22,9 +35,7 @@ export function useMultichainTransactionDisplay({
     (entry) => entry?.address === userAddress,
   );
 
-  const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
-  const priorityFee =
-    transaction?.fees?.find((fee) => fee.type === 'priority') ?? null;
+  const { baseFee, priorityFee } = getMultichainTxFees(transaction);
 
   let from = null;
   let to = null;
@@ -63,7 +74,22 @@ export function useMultichainTransactionDisplay({
       '0.00001',
       { locale, isNegative: true },
     ),
-  }[transaction.type];
+    'bridge': parseAssetWithThreshold(
+      bridgeHistoryItem
+        ? {
+            unit: bridgeHistoryItem.quote.srcAsset.symbol,
+            type: bridgeHistoryItem.quote.srcAsset.assetId,
+            amount: formatUnits(
+              bridgeHistoryItem.quote.srcTokenAmount,
+              bridgeHistoryItem.quote.srcAsset.decimals,
+            ),
+            fungible: true,
+          }
+        : null,
+      '0.00001',
+      { locale, isNegative: true },
+    ),
+  }[isBridgeTx ? 'bridge' : transaction.type];
 
   return {
     ...transaction,

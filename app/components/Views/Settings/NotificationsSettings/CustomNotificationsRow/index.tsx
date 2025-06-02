@@ -11,10 +11,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 
-export const CUSTOM_NOTIFICATIONS_ROW_TEST_ID = 'custom-notifications-row';
-export const CUSTOM_NOTIFICATIONS_ROW_SWITCH_TEST_ID = (
-  testID = CUSTOM_NOTIFICATIONS_ROW_TEST_ID,
-) => `${testID}--switch`;
+export const NOTIFICATION_SWITCH = 'notifications-switch';
+export const CUSTOM_NOTIFICATIONS_ROW_SWITCH_CONTAINER_TEST_ID = (
+  testID = NOTIFICATION_SWITCH,
+) => `${testID}--container`;
 
 interface CustomNotificationsRowProps {
   title: string;
@@ -31,14 +31,17 @@ const CustomNotificationsRow = ({
   icon,
   isEnabled,
   toggleCustomNotificationsEnabled,
-  testID,
+  testID = NOTIFICATION_SWITCH,
 }: CustomNotificationsRowProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
 
   return (
-    <View style={styles.container} testID={testID}>
+    <View
+      style={styles.container}
+      testID={CUSTOM_NOTIFICATIONS_ROW_SWITCH_CONTAINER_TEST_ID(testID)}
+    >
       <Icon
         name={icon}
         style={styles.icon}
@@ -65,7 +68,7 @@ const CustomNotificationsRow = ({
         thumbColor={theme.brandColors.white}
         style={styles.switch}
         ios_backgroundColor={colors.border.muted}
-        testID={CUSTOM_NOTIFICATIONS_ROW_SWITCH_TEST_ID(testID)}
+        testID={testID}
       />
     </View>
   );

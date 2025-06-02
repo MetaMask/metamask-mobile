@@ -1,3 +1,7 @@
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
@@ -33,4 +37,30 @@ export function getLocalTestDappPort() {
 
 export function getMockServerPort() {
   return getServerPort(DEFAULT_MOCKSERVER_PORT);
+}
+
+export function buildPermissions(chainIds) {
+  // default mainnet
+  const optionalScopes = { 'eip155:1': { accounts: [] } };
+
+  for (const chainId of chainIds) {
+    optionalScopes[`eip155:${parseInt(chainId)}`] = {
+      accounts: [],
+    };
+  }
+  return {
+    [Caip25EndowmentPermissionName]: {
+      caveats: [
+        {
+          type: Caip25CaveatType,
+          value: {
+            optionalScopes,
+            requiredScopes: {},
+            sessionProperties: {},
+            isMultichainOrigin: false,
+          },
+        },
+      ],
+    },
+  };
 }

@@ -9,7 +9,7 @@ import { Stake } from '../../sdk/stakeSdkProvider';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../../__mocks__/mockData';
+import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../../__mocks__/stakeMockData';
 
 const MOCK_ADDRESS_1 = '0x0123456789abcdef0123456789abcdef01234567';
 const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';

@@ -11,10 +11,7 @@ import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
-import {
-  DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
-  DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
-} from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
+import { DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
 import {
   FlexDirection,
   JustifyContent,
@@ -32,7 +29,7 @@ const localStyles = StyleSheet.create({
     flexDirection: FlexDirection.Row,
     alignItems: AlignItems.center,
     justifyContent: JustifyContent.center,
-    gap: 4,
+    gap: 8,
   },
 });
 
@@ -45,6 +42,8 @@ interface SnapUIFooterButtonProps {
   snapVariant: ButtonProps['variant'];
   disabled?: boolean;
   loading?: boolean;
+  children: React.ReactNode;
+  testID?: string;
 }
 
 export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
@@ -56,16 +55,29 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   isSnapAction = false,
   variant = ButtonVariants.Primary,
   snapVariant,
+  testID,
   ...props
 }) => {
   const theme = useTheme();
   const { handleEvent, snapId } = useSnapInterfaceContext();
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
+  const hideSnapBranding = snapMetadata.hideSnapBranding;
 
   const { styles } = useStyles(styleSheet, {
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
   });
+
+  // Override and use custom styles for Snap action buttons
+  const customButtonStyles = {
+    ...styles,
+    button: {
+      ...styles.button,
+      ...(isSnapAction && !hideSnapBranding && snapVariant !== 'destructive'
+        ? { backgroundColor: theme.colors.icon.default }
+        : {}),
+    },
+  };
 
   const handleSnapAction = () => {
     handleEvent({
@@ -77,8 +89,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const handlePress = isSnapAction ? handleSnapAction : onCancel!;
 
-  const hideSnapBranding = snapMetadata.hideSnapBranding;
-
   const brandedButtonVariant = isSnapAction
     ? ButtonVariants.Primary
     : ButtonVariants.Secondary;
@@ -88,10 +98,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const buttonLabel = () => {
     if (loading) {
       return (
-        <ActivityIndicator
-          size="small"
-          color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
-        />
+        <ActivityIndicator size="small" color={theme.colors.primary.inverse} />
       );
     } else if (isSnapAction && !hideSnapBranding) {
       return (
@@ -99,7 +106,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
-            color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
+            color={theme.colors.primary.inverse}
           >
             {children}
           </Text>
@@ -111,7 +118,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
         color={
           variant === ButtonVariants.Primary
-            ? DEFAULT_BUTTONPRIMARY_LABEL_COLOR
+            ? theme.colors.primary.inverse
             : theme.colors.primary.default
         }
       >
@@ -128,8 +135,9 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       isDisabled={disabled}
       label={buttonLabel()}
       size={ButtonSize.Lg}
-      style={styles.button}
+      style={customButtonStyles.button}
       isDanger={snapVariant === 'destructive'}
+      testID={testID ?? `${name}-snap-footer-button`}
     />
   );
 };

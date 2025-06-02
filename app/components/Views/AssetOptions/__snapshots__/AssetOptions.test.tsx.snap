@@ -52,7 +52,8 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Export"
             style={
@@ -73,7 +74,8 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Export"
             style={
@@ -94,7 +96,8 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="DocumentCode"
             style={
@@ -115,7 +118,8 @@ exports[`AssetOptions Component matches the snapshot 1`] = `
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Trash"
             style={
@@ -188,7 +192,8 @@ exports[`AssetOptions Component should match the snapshot when portfolio view is
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Export"
             style={
@@ -209,7 +214,8 @@ exports[`AssetOptions Component should match the snapshot when portfolio view is
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Export"
             style={
@@ -230,7 +236,8 @@ exports[`AssetOptions Component should match the snapshot when portfolio view is
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="DocumentCode"
             style={
@@ -251,7 +258,8 @@ exports[`AssetOptions Component should match the snapshot when portfolio view is
           onPress={[Function]}
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
+            fill="currentColor"
             height={20}
             name="Trash"
             style={

@@ -2,10 +2,12 @@
  * Mock events for gas fee API responses.
  */
 
+import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 import {
   suggestedGasApiResponses,
   suggestedGasFeesApiGanache,
 } from '../mock-responses/gas-api-responses.json';
+import defiPositionsWithData from '../mock-responses/defi-api-response-data.json';
 
 export const mockEvents = {
   /**
@@ -45,7 +47,14 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: false } },
+        {
+          confirmation_redesign: {
+            signatures: false,
+            staking_confirmations: false,
+            contract_interaction: false,
+            transfer: false,
+          },
+        },
       ],
       responseCode: 200,
     },
@@ -61,8 +70,48 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: true } },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_interaction: true,
+            // Regardless of the redesigned flags, transfer is disabled for now
+            transfer: false,
+          },
+        },
       ],
+      responseCode: 200,
+    },
+
+    // TODO: Remove when this feature is no longer behind a feature flag
+    remoteFeatureFlagsDefiPositionsEnabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          assetsDefiPositionsEnabled: true,
+        },
+      ],
+      responseCode: 200,
+    },
+
+    defiPositionsWithNoData: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { data: [] },
+      responseCode: 200,
+    },
+
+    defiPositionsError: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      responseCode: 500,
+    },
+
+    defiPositionsWithData: {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { data: defiPositionsWithData },
       responseCode: 200,
     },
   },
@@ -109,6 +158,11 @@ export const mockEvents = {
         ],
       },
       responseCode: 201,
+    },
+
+    segmentTrack: {
+      urlEndpoint: E2E_METAMETRICS_TRACK_URL,
+      responseCode: 200,
     },
   },
 };

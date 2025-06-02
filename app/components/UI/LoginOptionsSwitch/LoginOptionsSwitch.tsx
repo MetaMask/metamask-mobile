@@ -1,14 +1,18 @@
 import React, { useCallback, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { BIOMETRY_TYPE } from 'react-native-keychain';
+import { AUTHENTICATION_TYPE, BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 
 interface Props {
-  shouldRenderBiometricOption: BIOMETRY_TYPE | null;
+  shouldRenderBiometricOption:
+    | BIOMETRY_TYPE
+    | AUTHENTICATION_TYPE
+    | string
+    | null;
   biometryChoiceState: boolean;
   onUpdateBiometryChoice: (biometryEnabled: boolean) => void;
   onUpdateRememberMe: (rememberMeEnabled: boolean) => void;

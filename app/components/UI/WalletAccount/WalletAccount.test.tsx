@@ -34,17 +34,21 @@ const mockAccount: Account = {
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
+  caipAccountId: `eip155:0:${internalAccount2.address}`
 };
 
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  const { MOCK_KEYRING_CONTROLLER_STATE: mockKeyringControllerState } =
+    jest.requireActual('../../../util/test/keyringControllerTestUtils');
   return {
     context: {
       AccountsController: {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+      KeyringController: { state: mockKeyringControllerState },
     },
   };
 });

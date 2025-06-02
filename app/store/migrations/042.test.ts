@@ -406,6 +406,25 @@ describe('Migration #042', () => {
     );
   });
 
+  it('should capture exception if AccountsController.internalAccounts.selectedAccount is undefined', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    };
+    migrate(oldState);
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 42: selectedAccount will be undefined because newSelectedAccountId is undefined. selectedAddress: undefined, addressMap[selectedAddress]: undefined',
+    );
+  });
+
   it('should handle cases with no duplicates correctly', () => {
     const uniqueState = {
       internalAccounts: {

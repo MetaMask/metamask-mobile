@@ -4,6 +4,7 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 import { useAccounts } from '../../../hooks/useAccounts';
 import { RootState } from '../../../../reducers';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 
 export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
@@ -32,15 +33,25 @@ export function useNotificationAccountListProps(addresses: string[]) {
 }
 
 export function useAccountProps() {
-  const { accounts } = useAccounts();
+  const accountAddresses = useSelector(getValidNotificationAccounts);
+  const { accounts: allAccounts } = useAccounts();
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const accountAddresses = useMemo(
-    () => accounts.map((a) => a.address),
-    [accounts],
+
+  const accounts = useMemo(
+    () =>
+      accountAddresses
+        .map((addr) => {
+          const account = allAccounts.find(
+            (a) => a.address.toLowerCase() === addr.toLowerCase(),
+          );
+          return account;
+        })
+        .filter(<T,>(val: T | undefined): val is T => Boolean(val)),
+    [accountAddresses, allAccounts],
   );
 
   return {

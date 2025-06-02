@@ -31,6 +31,13 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+// Mock InteractionManager to run callbacks immediately in tests
+const { InteractionManager } = jest.requireActual('react-native');
+
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
+
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {

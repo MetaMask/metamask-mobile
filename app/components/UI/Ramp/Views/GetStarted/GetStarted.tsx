@@ -98,6 +98,7 @@ const GetStarted: React.FC = () => {
         });
         return;
       }
+
       if (selectedRegion) {
         navigation.reset({
           index: 0,

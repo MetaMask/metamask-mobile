@@ -7,6 +7,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text/Text.types';
+import { typography } from '@metamask/design-tokens';
 
 function getTextColor(color: TextElement['props']['color']) {
   switch (color) {
@@ -23,23 +24,29 @@ function getTextColor(color: TextElement['props']['color']) {
     case 'warning':
       return TextColor.Warning;
     default:
-      return 'inherit';
+      return null;
   }
 }
 
-function getFontWeight(color: TextElement['props']['fontWeight']) {
-  switch (color) {
+function getFontWeight(
+  color: TextElement['props']['fontWeight'],
+  inheritedWeight?: string,
+) {
+  switch (color ?? inheritedWeight) {
     case 'bold':
-      return 'bold';
+      return typography.sBodyMDBold.fontWeight;
     case 'medium':
-      return 'medium';
+      return typography.sBodyMDMedium.fontWeight;
     case 'regular':
     default:
-      return 'normal';
+      return typography.sBodyMD.fontWeight;
   }
 }
 
-const alignText = (alignment: TextElement['props']['alignment']) => {
+function getTextAlignment(
+  alignment: TextElement['props']['alignment'],
+  inheritedAlignment?: string,
+) {
   switch (alignment) {
     case 'start':
       return 'left';
@@ -48,26 +55,58 @@ const alignText = (alignment: TextElement['props']['alignment']) => {
     case 'end':
       return 'right';
     default:
-      return 'left';
+      return inheritedAlignment ?? 'left';
   }
-};
+}
+
+function getTextVariant(
+  size: TextElement['props']['size'],
+  inheritedVariant?: string,
+) {
+  switch (size) {
+    case 'md':
+      return TextVariant.BodyMD;
+    case 'sm':
+      return TextVariant.BodySM;
+    default:
+      return inheritedVariant ?? TextVariant.BodyMD;
+  }
+}
 
 export const text: UIComponentFactory<TextElement> = ({
   element: e,
   ...params
-}) => ({
-  element: 'Text',
-  children: mapTextToTemplate(
-    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    {
-      size: e.props.size,
-      ...params,
+}) => {
+  const textColor = getTextColor(e.props.color) ?? params.textColor;
+  const textVariant = getTextVariant(e.props.size, params.textVariant);
+  const textFontWeight = getFontWeight(
+    e.props.fontWeight,
+    params.textFontWeight,
+  );
+  const textAlignment = getTextAlignment(
+    e.props.alignment,
+    params.textAlignment,
+  );
+  return {
+    element: 'Text',
+    children: mapTextToTemplate(
+      getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+      {
+        ...params,
+        textSize: e.props.size,
+        textColor,
+        textVariant,
+        textFontWeight,
+        textAlignment,
+      },
+    ),
+    props: {
+      variant: textVariant,
+      color: textColor,
+      style: {
+        fontWeight: textFontWeight,
+        textAlign: textAlignment,
+      },
     },
-  ),
-  props: {
-    variant: e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
-    fontWeight: getFontWeight(e.props.fontWeight),
-    color: getTextColor(e.props.color),
-    textAlign: alignText(e.props.alignment),
-  },
-});
+  };
+};

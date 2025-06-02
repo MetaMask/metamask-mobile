@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../../../helpers';
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
@@ -11,7 +11,7 @@ import Assertions from '../../../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -38,6 +38,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
 
         // Navigate to chain permissions and add Sepolia
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
 
@@ -45,6 +46,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await NetworkConnectMultiSelector.tapBackButton();
 
         // Verify changes were discarded by checking chain permissions again
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Deselect Ethereum mainnet (should be the only chain selected)

@@ -3,8 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { mockTheme } from '../../../../util/theme';
-import { getFontStyleVariant, FontWeight } from '../../Texts/Text/Text.utils';
+import { getFontFamily } from '../../Texts/Text/';
 
 // Internal dependencies.
 import SelectValue from './SelectValue';
@@ -24,11 +23,7 @@ describe('SelectValue', () => {
       <SelectValue label={SAMPLE_SELECTVALUE_PROPS.label} />,
     );
 
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT]
-        .fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT);
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
@@ -37,10 +32,8 @@ describe('SelectValue', () => {
       <SelectValue description={SAMPLE_SELECTVALUE_PROPS.description} />,
     );
 
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT]
-        .fontWeight as FontWeight,
-      'normal',
+    const fontFamily = getFontFamily(
+      DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT,
     );
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);

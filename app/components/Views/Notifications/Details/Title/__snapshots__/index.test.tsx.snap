@@ -9,7 +9,6 @@ exports[`Header should render correctly 1`] = `
       "marginTop": 4,
     }
   }
-  testID="notification-details-header"
 >
   Notification Announcement
   This is a mock of description

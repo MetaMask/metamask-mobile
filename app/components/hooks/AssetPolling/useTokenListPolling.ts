@@ -9,10 +9,7 @@ import {
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-import {
-  selectERC20TokensByChain,
-  selectTokenList,
-} from '../../../selectors/tokenListController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
@@ -22,10 +19,7 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const currentChainId = useSelector(selectEvmChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
-
-  // Selectors returning state updated by the polling
-  const tokenList = useSelector(selectTokenList);
-  const tokenListByChain = useSelector(selectERC20TokensByChain);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
@@ -35,21 +29,25 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         )
       : [currentChainId];
 
-  const chainIdsToPoll = chainIds ?? filteredChainIds;
+  const chainIdsToPoll = isEvmSelected
+    ? filteredChainIds.map((chainId) => ({ chainId: chainId as Hex }))
+    : [];
 
   const { TokenListController } = Engine.context;
+
+  let providedChainIds;
+  if (chainIds) {
+    providedChainIds = chainIds.map((chainId) => ({ chainId: chainId as Hex }));
+  }
+
+  const input = providedChainIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenListController.startPolling.bind(TokenListController),
     stopPollingByPollingToken:
       TokenListController.stopPollingByPollingToken.bind(TokenListController),
-    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex })),
+    input,
   });
-
-  return {
-    tokenList,
-    tokenListByChain,
-  };
 };
 
 export default useTokenListPolling;

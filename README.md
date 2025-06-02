@@ -20,14 +20,17 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
 - [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
+- [Performance](./docs/readme/performance.md)
+- [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
+- [E2E Testing Segment Events](./docs/testing/e2e/segment-events.md)
 
 ## Getting started
 
 ### Using Expo (recommended)
 
-Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native enviornment setup, developers only need to download a precompiled develpoment build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
+Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native environment setup, developers only need to download a precompiled development build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
 
 #### Expo Environment Setup
 
@@ -54,23 +57,27 @@ yarn watch
 
 #### Download and install the development build
 
-#### For internal developers
-- Access Runway via Okta and go to the Expo bucket either on the iOS or Android section. From there you will see the available development builds (android-expo-dev-build.apk or ios-expo-dev-build.ipa).
-- For Android:
-  - Install the .apk on your Android device or simulator.
-- For iOS:
-  - Device: you need to have your iPhone registered with our Apple dev account. If you have it, you can install the .ipa on your device.
-  - Simulator: please follow the [native development section](https://github.com/MetaMask/metamask-mobile?tab=readme-ov-file#native-development) and run `yarn setup` and `yarn start:ios` as the .ipa will not work for now, we are working on having an .app that works on simulators.
+- Expo development builds are hosted in [Runway](https://www.runway.team/) buckets and are made available to all contributors through the public bucket links below. A new build is generated every time a PR is merged into the `main` branch.
 
-##### [SOON] For external developers (we are testing the new dev builds and will make them publicly available soon after)
+- For Android:
+  - Download and install an `.apk` file from this [Runway bucket](https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss) onto your Android device or emulator.
+- For iOS:
+  - Physical device
+    - Your test device needs to first be registered with our Apple developer account.
+    - Once registered, download and install an `.ipa` file from this [Runway bucket](https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=) onto your device.
+  - Simulator
+    - Download and install an `.app` file from this [Runway bucket](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=) onto your simulator.
+    - Note: Our `.app` files are zipped and hosted under `Additional Artifacts` in the bucket. Since this hosting additional artifacts in public buckets is a relatively new feature, contributors may find that some builds are missing additional artifacts. Under the hood, these are usually associated with failed or aborted Bitrise builds. We are working with the Runway team to better filter out these builds and are subject to change in the future.
 
 #### Load the app
 
 If on a simulator:
+
 - use the initial expo screen that appears when starting the development to choose the bundler url
 - OR press "a" for Android or "i" for iOS on the terminal where the bundler is running
 
 If on a physical device:
+
 - Use the camera app to scan the QR code presented by the bundler running on the terminal
 
 That's it! This will work for any javascript development, if you need to develop or modify native code please see the next section.
@@ -96,7 +103,7 @@ cd metamask-mobile
 
 ##### Firebase Messaging Setup
 
-MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you’ll need configuration files for both iOS and Android platforms.
+MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you'll need configuration files for both iOS and Android platforms.
 
 ###### Internal Contributor instructions
 
@@ -106,18 +113,19 @@ MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To in
 ###### External Contributor instructions
 
 As an external contributor, you need to provide your own Firebase project configuration files:
+
 - **`GoogleService-Info.plist`** (iOS)
 - **`google-services.json`** (Android)
 
-1.	Create a Free Firebase Project
-    - Set up a Firebase project in the Firebase Console.
-    - Configure the project with a client package name matching `io.metamask` (IMPORTANT). 
-2.	Add Configuration Files
-    - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
-    - `android/app/google-services.json` (for Android)
-    - `ios/GoogleServices/GoogleService-Info.plist` directory (for iOS)
+1. Create a Free Firebase Project
+   - Set up a Firebase project in the Firebase Console.
+   - Configure the project with a client package name matching `io.metamask` (IMPORTANT).
+2. Add Configuration Files
+   - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
+   - `android/app/google-services.json` (for Android)
+   - `ios/GoogleServices/GoogleService-Info.plist` directory (for iOS)
 3. Create the correct base64 environments variables.
-  
+
 ```bash
 # Generate Android Base64 Version of Google Services
 export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env
@@ -127,6 +135,7 @@ export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleServi
 ```
 
 [!CAUTION]
+
 > In case you don't provide your own Firebase project config file or run the steps above, you will face the error `No matching client found for package name 'io.metamask'`.
 
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.

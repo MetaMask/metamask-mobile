@@ -15,6 +15,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
@@ -25,7 +26,6 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   });
 
   it('sends a failing contract transaction', async () => {
-
     const testSpecificMock  = {
         GET: [
           mockEvents.GET.suggestedGasFeesApiGanache
@@ -36,7 +36,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

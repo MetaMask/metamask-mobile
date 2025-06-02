@@ -91,6 +91,8 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 
 const Stack = createStackNavigator();
 
@@ -138,11 +140,13 @@ const Main = (props) => {
 
   useEffect(() => {
     stopIncomingTransactionPolling();
-
-    if (showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling([chainId]);
-    }
-  }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
+    startIncomingTransactionPolling();
+  }, [
+    chainId,
+    networkClientId,
+    showIncomingTransactionsNetworks,
+    props.networkConfigurations,
+  ]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -185,11 +189,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.chainId]);
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.chainId],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -449,7 +453,9 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );
@@ -511,6 +517,10 @@ Main.propTypes = {
    * ID of the global network client
    */
   networkClientId: PropTypes.string,
+  /**
+   * Network configurations
+   */
+  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -520,6 +530,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

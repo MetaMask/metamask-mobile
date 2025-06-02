@@ -5,7 +5,7 @@ import {
   ResultType,
   SecurityAlertResponse,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
@@ -56,7 +56,11 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   description: 'Validating the confirmation in progress.',
 };
 
-async function validateRequest(req: PPOMRequest, transactionId?: string) {
+async function validateRequest(
+  req: PPOMRequest,
+  transactionId?: string,
+  securityAlertId?: string,
+) {
   const {
     AccountsController,
     NetworkController,
@@ -70,25 +74,21 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
-  if (
-    !ppomController ||
-    !isBlockaidFeatEnabled ||
-    !isConfirmationMethod
-  ) {
+  if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
   if (req.method === 'eth_sendTransaction') {
     const internalAccounts = AccountsController.listAccounts();
-    const toAddress: string | undefined = (
-      req?.params?.[0] as Record<string, string>
-    ).to;
+    const { from: fromAddress, to: toAddress } = req
+      ?.params?.[0] as Partial<TransactionParams>;
 
     if (
       internalAccounts.some(
         ({ address }: { address: string }) =>
           address?.toLowerCase() === toAddress?.toLowerCase(),
-      )
+      ) &&
+      toAddress !== fromAddress
     ) {
       return;
     }
@@ -98,7 +98,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {
-    if (isTransaction && !transactionId) {
+    if (isTransaction && !transactionId && !securityAlertId) {
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
@@ -107,6 +107,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       req,
       SECURITY_ALERT_RESPONSE_IN_PROGRESS,
       transactionId,
+      { securityAlertId },
     );
 
     const normalizedRequest = normalizeRequest(req);
@@ -129,6 +130,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
     setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
+      securityAlertId,
     });
   }
 }
@@ -173,20 +175,79 @@ async function validateWithAPI(
   }
 }
 
+function getTransactionIdForSecurityAlertId(securityAlertId?: string) {
+  if (!securityAlertId) return;
+  const confirmation =
+    Engine.context.TransactionController.state.transactions.find(
+      (meta) =>
+        (
+          meta.securityAlertResponse as SecurityAlertResponse & {
+            securityAlertId: string;
+          }
+        )?.securityAlertId === securityAlertId,
+    );
+  return confirmation?.id;
+}
+
+function updateSecurityResultForTransaction(
+  transactionId: string | undefined,
+  response: SecurityAlertResponse,
+  updateControllerState: boolean = false,
+  securityAlertId?: string,
+) {
+  store.dispatch(setTransactionSecurityAlertResponse(transactionId, response));
+
+  if (updateControllerState) {
+    updateSecurityAlertResponse(
+      transactionId as string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { ...response, securityAlertId } as any,
+    );
+  }
+}
+
+function fetchTransactionIdAndUpdateSecurityResultForTransaction(
+  response: SecurityAlertResponse,
+  updateControllerState?: boolean,
+  securityAlertId?: string,
+) {
+  const intervalId = setInterval(() => {
+    const transactionId = getTransactionIdForSecurityAlertId(securityAlertId);
+    if (transactionId) {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+      clearInterval(intervalId);
+    }
+  }, 100);
+}
+
 function setSecurityAlertResponse(
   request: PPOMRequest,
   response: SecurityAlertResponse,
   transactionId?: string,
-  { updateControllerState }: { updateControllerState?: boolean } = {},
+  {
+    updateControllerState,
+    securityAlertId,
+  }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
-    store.dispatch(
-      setTransactionSecurityAlertResponse(transactionId, response),
-    );
-
-    if (updateControllerState) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateSecurityAlertResponse(transactionId as string, response as any);
+    if (securityAlertId && !transactionId) {
+      fetchTransactionIdAndUpdateSecurityResultForTransaction(
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+    } else {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
     }
   } else {
     store.dispatch(setSignatureRequestSecurityAlertResponse(response));
@@ -235,7 +296,12 @@ function clearSignatureSecurityAlertResponse() {
   store.dispatch(setSignatureRequestSecurityAlertResponse());
 }
 
+function createValidatorForSecurityAlertId(securityAlertId: string) {
+  return (req: PPOMRequest) => validateRequest(req, undefined, securityAlertId);
+}
+
 export default {
   validateRequest,
+  createValidatorForSecurityAlertId,
   clearSignatureSecurityAlertResponse,
 };

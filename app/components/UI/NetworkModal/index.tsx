@@ -46,6 +46,8 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
+import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { Hex } from '@metamask/utils';
 
 export interface SafeChain {
   chainId: string;
@@ -54,12 +56,15 @@ export interface SafeChain {
   rpc: string[];
 }
 
+export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
+  formattedRpcUrl?: string | null;
+  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>,
+};
+
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  networkConfiguration: any;
+  networkConfiguration: NetworkConfigurationOptions;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -67,6 +72,9 @@ interface NetworkProps {
   onNetworkSwitch?: () => void;
   showPopularNetworkModal: boolean;
   safeChains?: SafeChain[];
+  onReject?: () => void;
+  onAccept?: () => void;
+  autoSwitchNetwork?: boolean;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -79,6 +87,7 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
+      failoverRpcUrls,
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
@@ -86,6 +95,9 @@ const NetworkModals = (props: NetworkProps) => {
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
     safeChains,
+    onReject,
+    onAccept,
+    autoSwitchNetwork,
   } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -132,48 +144,18 @@ const NetworkModals = (props: NetworkProps) => {
         [customNetworkInformation.chainId]: true,
       });
     } else {
+      const normalizedTokenNetworkFilter = Object.fromEntries(
+        Object.entries(tokenNetworkFilter).map(([key, value]) => [
+          key,
+          Boolean(value),
+        ]),
+      );
       PreferencesController.setTokenNetworkFilter({
-        ...tokenNetworkFilter,
+        ...normalizedTokenNetworkFilter,
         [customNetworkInformation.chainId]: true,
       });
     }
   }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
-
-  const addNetwork = async () => {
-    const isValidUrl = validateRpcUrl(rpcUrl);
-    if (showPopularNetworkModal) {
-      // track popular network
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
-          .addProperties({
-            chain_id: toHex(chainId),
-            source: 'Popular network list',
-            symbol: ticker,
-          })
-          .build(),
-      );
-    } else if (safeChains) {
-      const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
-        rpcUrl,
-        safeChains,
-      );
-      // track custom network, this shouldn't be in popular networks modal
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
-          .addProperties({
-            chain_id: toHex(safeChain.chainId),
-            source: { anonymous: true, value: 'Custom Network Added' },
-            symbol: safeChain.nativeCurrency.symbol,
-          })
-          .addSensitiveProperties({ rpcUrl: safeRPCUrl })
-          .build(),
-      );
-    } else {
-      Logger.log('MetaMetrics - Unable to capture custom network');
-    }
-
-    setNetworkAdded(isValidUrl);
-  };
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -220,11 +202,11 @@ const NetworkModals = (props: NetworkProps) => {
   }, [checkNetwork]);
 
   const closeModal = async () => {
-    const { NetworkController, MultichainNetworkController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
-    const existingNetwork = networkConfigurationByChainId[chainId];
+    const existingNetwork = networkConfigurationByChainId[chainId as Hex];
     let networkClientId;
 
     if (existingNetwork) {
@@ -244,7 +226,7 @@ const NetworkModals = (props: NetworkProps) => {
           ?.networkClientId;
     } else {
       const addedNetwork = await NetworkController.addNetwork({
-        chainId,
+        chainId: chainId as Hex,
         blockExplorerUrls: [blockExplorerUrl],
         defaultRpcEndpointIndex: 0,
         defaultBlockExplorerUrlIndex: 0,
@@ -253,6 +235,7 @@ const NetworkModals = (props: NetworkProps) => {
         rpcEndpoints: [
           {
             url: rpcUrl,
+            failoverUrls: failoverRpcUrls,
             name: nickname,
             type: RpcEndpointType.Custom,
           },
@@ -266,10 +249,10 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (networkClientId) {
       onUpdateNetworkFilter();
-      await MultichainNetworkController.setActiveNetwork(networkClientId);
     }
 
     onClose();
+    onAccept?.();
   };
 
   const handleExistingNetwork = async (
@@ -298,6 +281,7 @@ const NetworkModals = (props: NetworkProps) => {
   const handleNewNetwork = async (
     networkId: `0x${string}`,
     networkRpcUrl: string,
+    networkFailoverRpcUrls: string[] | undefined,
     name: string,
     nativeCurrency: string,
     networkBlockExplorerUrl: string,
@@ -315,11 +299,12 @@ const NetworkModals = (props: NetworkProps) => {
       rpcEndpoints: [
         {
           url: networkRpcUrl,
+          failoverUrls: networkFailoverRpcUrls,
           name,
           type: RpcEndpointType.Custom,
         },
       ],
-    } as AddNetworkFields;
+    } satisfies AddNetworkFields;
 
     return NetworkController.addNetwork(networkConfig);
   };
@@ -340,7 +325,7 @@ const NetworkModals = (props: NetworkProps) => {
   const switchNetwork = async () => {
     const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const existingNetwork = networkConfigurationByChainId[chainId];
+    const existingNetwork = networkConfigurationByChainId[chainId as Hex];
 
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
@@ -350,8 +335,9 @@ const NetworkModals = (props: NetworkProps) => {
       await handleExistingNetwork(existingNetwork, chainId);
     } else {
       const addedNetwork = await handleNewNetwork(
-        chainId,
+        chainId as Hex,
         rpcUrl,
+        failoverRpcUrls,
         nickname,
         ticker,
         blockExplorerUrl,
@@ -374,6 +360,47 @@ const NetworkModals = (props: NetworkProps) => {
         : navigation.goBack();
     }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
+    onAccept?.();
+  };
+
+  const addNetwork = async () => {
+    const isValidUrl = validateRpcUrl(rpcUrl);
+    if (showPopularNetworkModal) {
+      // track popular network
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(chainId),
+            source: 'Popular network list',
+            symbol: ticker,
+          })
+          .build(),
+      );
+    } else if (safeChains) {
+      const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
+        rpcUrl,
+        safeChains,
+      );
+      // track custom network, this shouldn't be in popular networks modal
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(safeChain.chainId),
+            source: { anonymous: true, value: 'Custom Network Added' },
+            symbol: safeChain.nativeCurrency.symbol,
+          })
+          .addSensitiveProperties({ rpcUrl: safeRPCUrl })
+          .build(),
+      );
+    } else {
+      Logger.log('MetaMetrics - Unable to capture custom network');
+    }
+
+    if (autoSwitchNetwork) {
+      switchNetwork();
+    } else {
+      setNetworkAdded(isValidUrl);
+    }
   };
 
   return (
@@ -437,7 +464,7 @@ const NetworkModals = (props: NetworkProps) => {
             <View style={styles.root}>
               <NetworkVerificationInfo
                 customNetworkInformation={customNetworkInformation}
-                onReject={onClose}
+                onReject={() => { onReject?.(); onClose(); }}
                 onConfirm={addNetwork}
                 isCustomNetwork={!showPopularNetworkModal}
               />

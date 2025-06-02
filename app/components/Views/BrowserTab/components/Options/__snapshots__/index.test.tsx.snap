@@ -36,7 +36,7 @@ exports[`Options should render homepage options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,
@@ -48,7 +48,7 @@ exports[`Options should render homepage options correctly 1`] = `
         {
           "bottom": 90,
           "right": 5,
-          "shadowColor": "#0000001A",
+          "shadowColor": "#0000001a",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -67,7 +67,7 @@ exports[`Options should render homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -93,7 +93,7 @@ exports[`Options should render homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -103,6 +103,7 @@ exports[`Options should render homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -111,7 +112,7 @@ exports[`Options should render homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -124,7 +125,7 @@ exports[`Options should render homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -132,7 +133,7 @@ exports[`Options should render homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",
@@ -143,91 +144,6 @@ exports[`Options should render homepage options correctly 1`] = `
         testID="browser-options-menu-new-tab"
       >
         New tab
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#0376c9",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
-            "borderRadius": 5,
-            "flex": 0,
-            "marginRight": 10,
-            "padding": 3,
-          }
-        }
-      >
-        <Text
-          allowFontScaling={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 16,
-              },
-              {
-                "alignSelf": "center",
-                "color": "#0376c9",
-                "fontSize": 18,
-                "textAlign": "center",
-              },
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </View>
-      <Text
-        numberOfLines={2}
-        style={
-          {
-            "alignSelf": "center",
-            "color": "#0376c9",
-            "flex": 1,
-            "fontSize": 16,
-            "justifyContent": "center",
-            "lineHeight": 16,
-            "marginTop": 3,
-          }
-        }
-        testID="browser-options-menu-open-favorites"
-      >
-        Go to Favorites
       </Text>
     </TouchableOpacity>
   </View>
@@ -270,7 +186,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,
@@ -282,7 +198,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         {
           "bottom": 90,
           "right": 5,
-          "shadowColor": "#0000001A",
+          "shadowColor": "#0000001a",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -301,7 +217,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -327,7 +243,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -337,6 +253,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -345,7 +262,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -358,7 +275,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -366,7 +283,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",
@@ -386,7 +303,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -412,7 +329,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -422,6 +339,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -430,7 +348,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -451,7 +369,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",
@@ -471,7 +389,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -497,7 +415,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -507,6 +425,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -515,7 +434,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -536,7 +455,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",
@@ -556,7 +475,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -582,7 +501,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -592,91 +511,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 16,
-              },
-              {
-                "alignSelf": "center",
-                "color": "#0376c9",
-                "fontSize": 18,
-                "textAlign": "center",
-              },
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </View>
-      <Text
-        numberOfLines={2}
-        style={
-          {
-            "alignSelf": "center",
-            "color": "#0376c9",
-            "flex": 1,
-            "fontSize": 16,
-            "justifyContent": "center",
-            "lineHeight": 16,
-            "marginTop": 3,
-          }
-        }
-        testID="browser-options-menu-open-favorites"
-      >
-        Go to Favorites
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#0376c9",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
-            "borderRadius": 5,
-            "flex": 0,
-            "marginRight": 10,
-            "padding": 3,
-          }
-        }
-      >
-        <Text
-          allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -685,7 +520,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -706,7 +541,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",
@@ -726,7 +561,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 4,
             "flex": 1,
             "height": 40,
@@ -752,7 +587,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -762,6 +597,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -770,7 +606,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
               },
               {
                 "alignSelf": "center",
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontSize": 18,
                 "textAlign": "center",
               },
@@ -791,7 +627,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "color": "#0376c9",
+            "color": "#4459ff",
             "flex": 1,
             "fontSize": 16,
             "justifyContent": "center",

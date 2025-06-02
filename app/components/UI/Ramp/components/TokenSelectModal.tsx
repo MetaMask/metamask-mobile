@@ -27,6 +27,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { selectTokenSelectors } from '../../../../../e2e/selectors/Ramps/SelectToken.selectors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -158,7 +159,7 @@ function TokenSelectModal({
     [searchString, modalStyles.emptyList],
   );
 
-  const handleSearchTextChange = useCallback((text) => {
+  const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
     if (list.current) {
       list.current.scrollToOffset({ animated: false, offset: 0 });
@@ -194,11 +195,7 @@ function TokenSelectModal({
           >
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
-                <Icon
-                  name="ios-search"
-                  size={20}
-                  style={modalStyles.searchIcon}
-                />
+                <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
                   ref={searchInput}
                   style={modalStyles.input}
@@ -208,11 +205,12 @@ function TokenSelectModal({
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
                   onChangeText={handleSearchTextChange}
+                  testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
                 />
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>
                     <Icon
-                      name="ios-close-circle"
+                      name="close-circle"
                       size={20}
                       style={modalStyles.searchIcon}
                       color={colors.icon.default}

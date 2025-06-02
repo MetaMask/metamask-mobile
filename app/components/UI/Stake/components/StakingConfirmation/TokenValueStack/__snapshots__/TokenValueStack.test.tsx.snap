@@ -132,7 +132,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -175,8 +175,8 @@ exports[`TokenValueStack render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -192,12 +192,12 @@ exports[`TokenValueStack render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

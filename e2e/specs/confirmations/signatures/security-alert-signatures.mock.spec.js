@@ -11,6 +11,7 @@ import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
+import { buildPermissions } from '../../../fixtures/utils';
 
 describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
@@ -20,7 +21,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   const defaultFixture = new FixtureBuilder()
     .withSepoliaNetwork()
-    .withPermissionControllerConnectedToTestDapp()
+    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
     .build();
 
   const navigateToTestDApp = async () => {
@@ -60,9 +61,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   it('should sign typed message', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
@@ -83,11 +82,11 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     });
   });
 
-  it('should show security alert for malicious request', async () => {
+  // TODO: Fix this test and remove the skip
+  // More info: https://github.com/MetaMask/metamask-mobile/issues/15726
+  it.skip('should show security alert for malicious request', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,

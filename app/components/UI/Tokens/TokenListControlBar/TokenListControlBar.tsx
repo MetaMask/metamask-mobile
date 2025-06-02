@@ -67,9 +67,7 @@ export const TokenListControlBar = ({
           label={
             <Text style={styles.controlButtonText} numberOfLines={1}>
               {isAllNetworks && isPopularNetwork && isEvmSelected
-                ? `${strings('app_settings.popular')} ${strings(
-                    'app_settings.networks',
-                  )}`
+                ? strings('wallet.popular_networks')
                 : networkName ?? strings('wallet.current_network')}
             </Text>
           }
@@ -92,7 +90,12 @@ export const TokenListControlBar = ({
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
             onPress={goToAddToken}
             iconName={IconName.Add}
-            style={styles.controlIconButton}
+            style={
+              isEvmSelected
+                ? styles.controlIconButton
+                : styles.controlIconButtonDisabled
+            }
+            disabled={!isEvmSelected}
           />
         </View>
       </View>

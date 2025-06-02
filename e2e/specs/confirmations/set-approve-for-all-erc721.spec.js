@@ -16,6 +16,8 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -25,16 +27,23 @@ describe(SmokeConfirmations('ERC721 token'), () => {
   });
 
   it('approve all ERC721 tokens', async () => {
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
+        testSpecificMock,
       },
       async ({ contractRegistry }) => {
         const nftsAddress = await contractRegistry.getContractAddress(

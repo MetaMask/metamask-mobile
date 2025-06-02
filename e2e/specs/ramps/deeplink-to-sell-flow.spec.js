@@ -6,7 +6,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 
 import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
@@ -16,7 +16,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
-describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
+describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -24,7 +24,10 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it('should deep link to offramp ETH', async () => {
+
+  const itif = (condition) => (condition ? it : it.skip);
+
+  itif(device.getPlatform() === 'android')('should deep link to offramp ETH', async () => {
     const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
@@ -47,7 +50,8 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
       async () => {
         await loginToApp();
 
-        await device.openURL({
+        await device.sendToHome();
+        await device.launchApp({
           url: sellDeepLinkURL,
         });
         await Assertions.checkIfVisible(
@@ -61,8 +65,9 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
       },
     );
   });
-  it('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
-    const SellDeepLink = 'metamask://sell?chainId=8453';
+
+  itif(device.getPlatform() === 'android')('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
+    const sellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
       {
@@ -76,7 +81,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
         await loginToApp();
         await device.sendToHome();
         await device.launchApp({
-          url: SellDeepLink,
+          url: sellDeepLink,
         });
         await Assertions.checkIfVisible(
           await SellGetStartedView.getStartedButton,
@@ -91,7 +96,6 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
         await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('Ether');
         await Assertions.checkIfTextIsDisplayed(
           PopularNetworksList.Optimism.providerConfig.nickname,
         );

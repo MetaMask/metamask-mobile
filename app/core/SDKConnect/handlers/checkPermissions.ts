@@ -1,9 +1,16 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
+import {
+  Caip25EndowmentPermissionName,
+  Caip25CaveatType,
+} from '@metamask/chain-agnostic-permission';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../Engine';
-import { getPermittedAccounts } from '../../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
@@ -11,6 +18,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import { Platform } from 'react-native';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -34,7 +42,7 @@ export const checkPermissions = async ({
       connection.originatorInfo,
     );
 
-    const permittedAccounts = await getPermittedAccounts(connection.channelId);
+    const permittedAccounts = getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions permittedAccounts`, permittedAccounts);
 
     if (permittedAccounts.length > 0) {
@@ -88,22 +96,31 @@ export const checkPermissions = async ({
       return allowed;
     }
 
-    const accountPermission = permissionsController.getPermission(
+    const caip25Permission = permissionsController.getPermission(
       connection.channelId,
-      'eth_accounts',
+      Caip25EndowmentPermissionName,
     );
     const moreAccountPermission = permissionsController.getPermissions(
       connection.channelId,
     );
     DevLogger.log(
-      `checkPermissions accountPermission`,
-      accountPermission,
+      `checkPermissions caip25Permission`,
+      caip25Permission,
       moreAccountPermission,
     );
-    if (!accountPermission) {
+    if (!caip25Permission) {
       connection.approvalPromise = permissionsController.requestPermissions(
         { origin: connection.channelId },
-        { eth_accounts: {} },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
+        },
         {
           preserveExistingPermissions: false,
         },
@@ -111,7 +128,16 @@ export const checkPermissions = async ({
     }
 
     const res = await connection.approvalPromise;
-    const accounts = await getPermittedAccounts(connection.channelId);
+    if (Platform.OS === 'ios') {
+      // A UI crash happening on ios from AccountConnect.tsx which is triggered by permissionsController.getPermission().
+      // Seems to be a race condition between the connect being accepted and the approvalPromise being resolved.
+      // Adding a small delay seems to fix the issue.
+      // *** Assertion failure in -[RCTNativeAnimatedNodesManager disconnectAnimatedNodes:childTag:](), metamask-mobile/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m:142
+      // Exception thrown while executing UI block: 'childNode' is a required parameter
+      // 0x14146e100 - GPUProcessProxy::gpuProcessExited: reason=IdleExit
+      await wait(100);
+    }
+    const accounts = getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions approvalPromise completed`, res);
     return accounts.length > 0;
   } catch (err) {

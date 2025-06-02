@@ -10,14 +10,41 @@
       "title": "High risk request",
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
-      "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
+      "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
+      "title_blockaid": "Your assets may be at risk",
+      "blockaid": {
+        "message": "If you confirm this request, you could lose your assets. We recommend that you cancel this request.",
+        "message1": "If you confirm this request, you’re allowing a scammer to withdraw and spend your assets. You won’t get them back.",
+        "message2": "You’re sending your assets to a scammer. If you continue, you’ll lose those assets.",
+        "message3": "If you continue, all the assets you’ve listed on OpenSea could be at risk.",
+        "message4": "If you continue, all the assets you’ve listed on Blur could be at risk.",
+        "message5": "You’re interacting with a malicious site. If you continue, you will lose your assets."
+      }
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
     "review_alert": "Review alert",
+    "upgrade_account": {
+      "title": "Updating your account",
+      "message": "You're updating your account to a smart account. You'll keep the same account address while unlocking faster transactions and lower network fees.",
+      "learn_more": "Learn more"
+    },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
       "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "A previous transaction is still being signed or submitted."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -69,10 +96,11 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search by site or address",
+    "placeholder": "Search by token, site or address",
     "recents": "Recents",
     "favorites": "Favorites",
-    "sites": "Sites"
+    "sites": "Sites",
+    "tokens": "Tokens"
   },
   "navigation": {
     "back": "Back",
@@ -381,7 +409,46 @@
     "network_missing_id": "Missing chain id."
   },
   "deposit": {
-    "title": "Deposit"
+    "title": "Deposit",
+    "enter_email": {
+      "title": "Enter your email",
+      "description": "We'll send a six-digit code to your email to check it's you.",
+      "input_label": "Email",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Send email",
+      "loading": "Sending email...",
+      "validation_error": "Please enter a valid email address"
+    },
+    "otp_code": {
+      "title": "Enter six-digit code",
+      "description": "Enter the 6-digit code we sent to {{email}}. If you don't see it in your inbox, check your spam folder.",
+      "submit_button": "Submit",
+      "loading": "Verifying code...",
+      "invalid_code_error": "Invalid code",
+      "validation_error": "Please enter a valid code"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
+      "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
+      "button": "Get started"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
+    }
   },
   "receive": {
     "title": "Receive"
@@ -417,7 +484,7 @@
       "subtitle": "Available in select regions"
     },
     "fund": {
-      "title": "Fund your wallet", 
+      "title": "Fund your wallet",
       "subtitle": "Add or transfer tokens to get started"
     },
     "cashout": {
@@ -427,6 +494,22 @@
     "aggregated": {
       "title": "Your balance is aggregated",
       "subtitle": "Control your balance view in settings"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
+    },
+    "solana": {
+      "title": "Solana is now supported",
+      "subtitle": "Create a Solana account to get started"
+    },
+    "backupAndSync": {
+      "title": "Introducing backup and sync",
+      "subtitle": "Back up your accounts and sync settings."
     }
   },
   "wallet": {
@@ -434,6 +517,7 @@
     "tokens": "Tokens",
     "collectible": "Collectible",
     "collectibles": "NFTs",
+    "defi": "DeFi",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -463,7 +547,8 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
-    "current_network": "Current Network",
+    "current_network": "Current network",
+    "popular_networks": "Popular networks",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
@@ -515,7 +600,7 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
-    "unable_to_find_conversion_rate": "unable to find conversion rate",
+    "unable_to_find_conversion_rate": "no conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
@@ -597,6 +682,19 @@
       "custom_security_tips": "Security Tips"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
+    "no_positions": "No positions yet",
+    "error_cannot_load_page": "We could not load this page.",
+    "error_visit_again": "Try visiting again later.",
+    "single_token": "{{symbol}} only",
+    "two_tokens": "{{symbol}} +1 other",
+    "multiple_tokens": "{{symbol}} +{{count}} others",
+    "supply": "Supplied",
+    "stake": "Staked",
+    "borrow": "Borrowed",
+    "reward": "Rewards"
+  },
   "terms_and_conditions": {
     "title": "Terms and Conditions",
     "description": "By proceeding, you agree to these ",
@@ -677,7 +775,8 @@
     "circulating_supply": "Circulating supply",
     "all_time_high": "All time high",
     "all_time_low": "All time low",
-    "fully_diluted": "Fully diluted"
+    "fully_diluted": "Fully diluted",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -711,6 +810,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
@@ -736,7 +836,7 @@
     "select_accounts_description": "Select the account(s) to use on this site:",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
-    "add":"Add",
+    "add": "Add",
     "cancel": "Cancel",
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
@@ -772,7 +872,17 @@
     "add_new_hd_account_helper_text": "The Secret Recovery Phrase your new account will be generated from",
     "accounts": "accounts",
     "show_accounts": "Show",
-    "hide_accounts": "Hide"
+    "hide_accounts": "Hide",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Failed to create {{clientType}} account"
+    }
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -831,8 +941,6 @@
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
     "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
-    "enabling_profile_sync": "Enabling profile syncing...",
-    "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -953,9 +1061,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -972,6 +1082,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",
@@ -1101,6 +1212,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
@@ -1157,7 +1273,13 @@
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
           "snap_dialog": "Display custom dialogs",
-          "snap_manageAccounts": "Add and control Ethereum accounts"
+          "snap_manageAccounts": "Add and control Ethereum accounts",
+          "endowment:signature-insight": "Display signature insights modal",
+          "endowment:protocol": "Provide protocol data for one or more chains",
+          "snap_getPreferences": "See information like your preferred language and fiat currency",
+          "endowment:lifecycle-hooks": "Use lifecycle hooks",
+          "endowment:name-lookup": "Provide domain and address lookups",
+          "endowment:page-home": "Display a custom screen"
         }
       }
     },
@@ -1471,6 +1593,7 @@
     "gas_fee_slow": "SLOW",
     "hex_data": "Hex Data",
     "custom_nonce": "Nonce",
+    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
     "this_is_an_advanced": "This is an advanced feature used to cancel or speed up any pending transactions.",
     "current_suggested_nonce": "Current suggested nonce:",
     "edit_transaction_nonce": "Edit transaction nonce",
@@ -1650,7 +1773,6 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
-    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -1692,7 +1814,13 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp connection coming soon",
+        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1749,6 +1877,7 @@
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Smart contract interaction",
     "swaps_transaction": "Swaps transaction",
+    "bridge_transaction": "Bridge",
     "approve": "Approve",
     "increase_allowance": "Increase Allowance",
     "set_approval_for_all": "Set Approval For All",
@@ -1791,8 +1920,44 @@
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
     "transaction_id": "Transaction ID",
+    "network": "Network",
+    "request_from": "Request from",
     "network_fee": "Network Fee",
-    "network_fee_tooltip": "Amount paid to process the transaction on network."
+    "network_fee_tooltip": "Amount paid to process the transaction on network.",
+    "smart_account_upgrade": "Upgrade to smart account",
+    "smart_account_downgrade": "Switch to standard account",
+    "batched_transactions": "Batched transactions",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -1943,6 +2108,9 @@
     "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
     "connect_an_account": "Connect an account"
   },
+  "account_dapp_connections": {
+    "account_summary_header": "Connect this website with MetaMask"
+  },
   "select": {
     "cancel": "Cancel",
     "done": "Done"
@@ -2033,7 +2201,7 @@
     "description_one": "You'll now be able to view your account in MetaMask."
   },
   "import_new_secret_recovery_phrase": {
-    "title":"Import Secret Recovery Phrase",
+    "title": "Import Secret Recovery Phrase",
     "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
     "subtitle": "Paste your secret recovery phrase",
     "cta_text": "Continue",
@@ -2044,18 +2212,18 @@
     "24_word_option": "I have a 24 word phrase",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
-    "error_empty_message":"You need to enter your secret recovery phrase.",
+    "error_empty_message": "You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
-    "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
-    "error_srp_word_error_1": "Word ", 
+    "error_srp_is_case_sensitive": "Invalid input! Secret Recovery Phrase is case sensitive.",
+    "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
     "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
+    "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"
-
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
@@ -2073,7 +2241,8 @@
     "info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
     "info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
     "cta_text": "Create Password",
-    "creating_password": "Creating password..."
+    "creating_password": "Creating password...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Remind me later",
@@ -2227,7 +2396,15 @@
     "continue_on_your_own": "continuing at your own risk.",
     "file_an_issue_intro": "If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
     "file_an_issue": "please file an issue.",
-    "back_to_safety": "Back to safety"
+    "back_to_safety": "Back to safety",
+    "site_might_be_harmful": "This website might be harmful",
+    "metamask_flagged_site": "MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.",
+    "you_may_proceed_anyway": "You may also",
+    "proceed_anyway": "proceed anyway",
+    "but_please_do_so_at_your_own_risk": "but please do so at your own risk.",
+    "report_detection_problem": "Report a detection problem",
+    "share_on_twitter": "If you found this helpful, share on X!",
+    "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
   "notifications": {
     "timeout": "Timeout",
@@ -2706,6 +2883,7 @@
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "insufficient_balance": "This amount is higher than your balance",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
@@ -2813,6 +2991,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Get the",
       "best_price": "best price",
@@ -3235,7 +3414,7 @@
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or",
     "non_evm_first_description": "The native asset on this network is {{ticker}}. It is used for transaction fees.",
-    "non_evm_second_description": "You will loose your assets if you try to send them from or to another network."
+    "non_evm_second_description": "You will lose your assets if you try to send them from or to another network."
   },
   "download_files": {
     "error": "Failed to download attachment.",
@@ -3244,15 +3423,6 @@
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
     "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
-  },
-  "profile_sync": {
-    "title": "Profile Sync",
-    "disable_warning": "If you turn off profile sync, you won’t be able to receive notifications.",
-    "enable_description": "Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. ",
-    "enable_description2": " to learn more.",
-    "enable_privacy_link": "Learn how we protect your privacy",
-    "bottomSheetTurnOn": "Turning on Profile Sync",
-    "bottomSheetTurnOff": "Turning off Profile Sync"
   },
   "turn_off_remember_me": {
     "title": "Enter your password to turn off Remember me",
@@ -3278,10 +3448,9 @@
     "accept_helper_description": "Please scroll to read all sections"
   },
   "update_needed": {
-    "title": "Updates needed",
-    "description": "We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.",
-    "primary_action": "Update to latest version",
-    "secondary_action": "Remind me later"
+    "title": "Get the newest features",
+    "description": "We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.",
+    "primary_action": "Update to latest version"
   },
   "enable_automatic_security_check_modal": {
     "title": "Automatically check for security updates?",
@@ -3456,14 +3625,20 @@
     "connect_hardware_wallet": "Connect an account",
     "import_wallet_or_account": "Import a wallet or account",
     "add_account": "Create a new account",
+    "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
-    "import_srp":"Secret Recovery Phrase",
+    "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
     "add_bitcoin_account_testnet": "Bitcoin testnet account",
     "add_bitcoin_account_mainnet": "Bitcoin account",
-    "add_solana_account": "Solana account"
+    "add_solana_account": "Solana account",
+    "switch_to_smart_account": "Switch to Smart account",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3481,6 +3656,19 @@
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
     "show_display_nft_media_content_5": "Settings > Security and privacy."
+  },
+  "solana_new_feature_content": {
+    "title": "Solana on MetaMask",
+    "create_solana_account": "Create Solana account",
+    "not_now": "Not now",
+    "view_solana_account": "View Solana account",
+    "feature_1_title": "Send, receive, and swap tokens",
+    "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
+    "feature_2_title": "Import Solana accounts",
+    "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
+    "feature_3_title": "More features coming soon",
+    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
+    "learn_more": "Learn more about Solana accounts"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3514,7 +3702,35 @@
       "body_prefix": "You could earn up to",
       "body_suffix": "per year by lending your {{tokenSymbol}}.",
       "start_earning": "Start earning"
-    }
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+    },
+    "deposit": "Deposit",
+    "approve": "Approve",
+    "approval": "Approval",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "transaction_submitted": "Transaction Submitted",
+    "every_minute": "Every minute",
+    "immediate": "Immediate",
+    "apr": "APR",
+    "protocol": "Protocol",
+    "receive_tooltip": "receive tooltip",
+    "button": "button",
+    "receive": "Receive",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Expected yearly increase of the value of your deposit, based on the reward rate over the past week.",
+        "part_two": "Note: APR changes over time."
+      },
+      "protocol": "A lending protocol is a smart contract that lets you lend tokens to earn rewards. It also lets users borrow tokens by putting up other tokens as collateral, against a fee which is paid to lenders.",
+      "reward_frequency": "Frequency at which your rewards are accounted for.",
+      "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
+      "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "Stake",
@@ -3542,8 +3758,10 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
+    "not_enough_token": "Not enough {{ticker}}",
     "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
+    "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
     "no_minimum_required": "No minimum required.",
     "earn_eth_rewards": "Earn ETH rewards.",
@@ -3604,7 +3822,9 @@
     "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
-      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      "eth": {
+        "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      }
     },
     "use_max": "Use max",
     "estimated_unstaking_time": "1 to 11 days",
@@ -3644,12 +3864,17 @@
     "basic_functionality": "Basic functionality",
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",
+    "manage_networks_body3": "click here.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
     "functionality_body2": " to learn more.",
     "sheet": {
       "title_off": "Turn off basic functionality",
       "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "description_off2": "Turning this off also disables all features within",
+      "description_off2_related_features1": "security and privacy, backup and sync",
+      "description_off2_related_features1_and": "and",
+      "description_off2_related_features2": "notifications.",
       "title_on": "Turn on basic functionality",
       "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, notifications, and others) are important to the web3 experience.",
       "checkbox_label": "I understand and want to continue",
@@ -3731,30 +3956,42 @@
       "primary_type": "Primary type",
       "request_from": "Request from",
       "signing_in_with": "Signing in with",
-      "spender": "Spender"
+      "spender": "Spender",
+      "now": "Now",
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
       "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
-      "signature_siwe": "Sign-in request"
+      "signature_siwe": "Sign-in request",
+      "contract_interaction": "Transaction request",
+      "transfer": "Transfer request",
+      "switch_account_type": "Account update"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
-      "signature_siwe": "A site wants you to sign in to prove you own this account."
+      "signature_siwe": "A site wants you to sign in to prove you own this account.",
+      "contract_interaction": "Review request details before you confirm.",
+      "switch_to_smart_account": "You're switching to a smart account.",
+      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
     "message": "Message",
     "personal_sign_tooltip": "This site is asking for your signature",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
+    "smart_account": "Smart Account",
+    "smart_contract": "Smart contract",
+    "standard_account": "Standard Account",
     "siwe_message": {
       "url": "URL",
       "network": "Network",
@@ -3767,8 +4004,12 @@
       "resources": "Resources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
@@ -3779,13 +4020,40 @@
       "label_change_type_receive": "You receive",
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
+      "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Smart Account",
+      "standardAccountLabel": "Standard Account",
+      "switch": "Switch",
+      "splashpage": {
+        "accept": "Yes",
+        "betterTransaction": "Faster transactions, lower fees",
+        "betterTransactionDescription": "Save time and money by processing transactions together.",
+        "featuresDescription": "Keep the same account address, and you can switch back anytime.",
+        "payToken": "Pay with any token, any time",
+        "payTokenDescription": "Use the tokens you already have to cover network fees.",
+        "reject": "No",
+        "requestFor": "Request for",
+        "sameAccount": "Same account, smarter features.",
+        "splashTitle": "Use smart account?",
+        "upgradeBannerDescription": "Same address. Smarter features.",
+        "upgradeBannerTitle": "Switch to smart account"
+      },
+      "includes_transaction": "Includes {{transactionCount}} transactions"
+    },
     "unlimited": "Unlimited",
-    "none": "None"
+    "all": "All",
+    "none": "None",
+    "advanced_details": "Advanced details",
+    "interacting_with": "Interacting with",
+    "review": "Review",
+    "transferRequest": "Transfer request"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -3806,6 +4074,8 @@
   },
   "bridge": {
     "continue": "Continue",
+    "confirm_bridge": "Confirm Bridge",
+    "confirm_swap": "Confirm Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
@@ -3814,8 +4084,143 @@
     "one_network": "1 network",
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
-    "slippage": "Slippage",
+    "see_all": "See all",
     "apply": "Apply",
-    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    "slippage": "Slippage",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
+    "network_fee": "Network Fee",
+    "estimated_time": "Estimated Time",
+    "quote": "Quote",
+    "quote_details": "Quote Details",
+    "price_impact": "Price Impact",
+    "time": "Time",
+    "quote_info_content": "This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
+    "quote_info_title": "Why we recommend this quote",
+    "see_other_quotes": "See other quotes",
+    "receive_at": "Receive at",
+    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+    "insufficient_funds": "Insufficient funds",
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge",
+    "submitting_transaction": "Submitting",
+    "fetching_quote": "Fetching quote",
+    "fee_disclaimer": "Includes 0.875% MM fee",
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+  },
+  "bridge_transaction_details": {
+    "status": "Status",
+    "date": "Date",
+    "total_gas_fee": "Total gas fee",
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer",
+    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
+    "transaction_details": "Transaction Details",
+    "bridge_to_chain": "Bridge to {{chainName}}",
+    "recipient": "Recipient"
+  },
+  "backupAndSync": {
+    "title": "Backup and sync",
+    "description": "Back up your accounts and sync settings.",
+    "enabling": "Enabling backup and sync",
+    "disabling": "Disabling backup and sync",
+    "enable": {
+      "title": "Turn on backup and sync",
+      "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.",
+      "updatePreferences": "You can update your preferences at any time in",
+      "settingsPath": "Settings > Backup and sync."
+    },
+    "privacyLink": "Learn how we protect your privacy",
+    "features": {
+      "accounts": "Accounts"
+    },
+    "manageWhatYouSync": {
+      "title": "Manage what you sync",
+      "description": "Turn on what’s synced between your devices."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Select an asset"
+    },
+    "hideSentitiveInfo": {
+      "message": "Hide sensitive information"
+    },
+    "doNotShare": {
+      "message": "Do not share this with anyone"
+    },
+    "revealSensitiveContent": {
+      "message": "Reveal sensitive content"
+    },
+    "show_more": "more",
+    "show_less": "less"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

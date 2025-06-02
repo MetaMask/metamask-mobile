@@ -85,14 +85,19 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('CollectibleContractElement Snapshot', () => {
-  it('renders correctly', () => {
+describe('CollectibleContractElement', () => {
+  it('render matches snapshot', () => {
     // Provide the props that are required by the component.
     const onPressMock = jest.fn();
     const removeFavoriteMock = jest.fn();
 
     const props = {
-      asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
+      asset: {
+        favorites: false,
+        name: 'AssetName',
+        logo: 'asset-logo.png',
+        address: '0xdef',
+      },
       contractCollectibles: [
         { address: '0xdef', tokenId: '1', name: 'Collectible1' },
         { address: '0xdef', tokenId: '2', name: 'Collectible2' },
@@ -115,36 +120,73 @@ describe('CollectibleContractElement Snapshot', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render collectible', () => {
-    // Provide the props that are required by the component.
-    const onPressMock = jest.fn();
-    const removeFavoriteMock = jest.fn();
+  describe('List element', () => {
+    it('shows collectibles list when collectiblesVisible is true', () => {
+      // Provide the props that are required by the component.
+      const onPressMock = jest.fn();
+      const removeFavoriteMock = jest.fn();
 
-    const props = {
-      asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
-      contractCollectibles: [
-        { address: '0xdef', tokenId: '1', name: 'Collectible1' },
-        { address: '0xdef', tokenId: '2', name: 'Collectible2' },
-        { address: '0xdef', tokenId: '3', name: 'Collectible3' },
-        { address: '0xdef', tokenId: '4', name: 'Collectible4' },
-      ],
-      collectiblesVisible: true,
-      onPress: onPressMock,
-      removeFavoriteCollectible: removeFavoriteMock,
-    };
+      const props = {
+        asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
+        contractCollectibles: [
+          { address: '0xdef', tokenId: '1', name: 'Collectible1' },
+          { address: '0xdef', tokenId: '2', name: 'Collectible2' },
+          { address: '0xdef', tokenId: '3', name: 'Collectible3' },
+          { address: '0xdef', tokenId: '4', name: 'Collectible4' },
+        ],
+        collectiblesVisible: true,
+        onPress: onPressMock,
+        removeFavoriteCollectible: removeFavoriteMock,
+      };
 
-    const { getAllByTestId } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <CollectibleContractElement {...props} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
+      const { getAllByTestId } = render(
+        <Provider store={store}>
+          <ThemeContext.Provider value={mockTheme}>
+            <CollectibleContractElement {...props} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
 
-    expect(getAllByTestId('collectible-Collectible1-1')).toBeTruthy();
+      expect(getAllByTestId('collectible-Collectible1-1')).toBeTruthy();
+      expect(getAllByTestId('collectible-Collectible2-2')).toBeTruthy();
+      expect(getAllByTestId('collectible-Collectible3-3')).toBeTruthy();
+      expect(getAllByTestId('collectible-Collectible4-4')).toBeTruthy();
 
-    fireEvent.press(getAllByTestId('collectible-Collectible1-1')[0]);
+      fireEvent.press(getAllByTestId('collectible-Collectible1-1')[0]);
 
-    expect(onPressMock).toHaveBeenCalled();
+      expect(onPressMock).toHaveBeenCalled();
+    });
+
+    it('hides collectibles list when pressed', async () => {
+      const onPressMock = jest.fn();
+      const removeFavoriteMock = jest.fn();
+
+      const props = {
+        asset: {
+          favorites: false,
+          name: 'AssetName',
+          logo: 'asset-logo.png',
+          address: '0xdef',
+        },
+        contractCollectibles: [
+          { address: '0xdef', tokenId: '1', name: 'Collectible11' },
+        ],
+        collectiblesVisible: true,
+        onPress: onPressMock,
+        removeFavoriteCollectible: removeFavoriteMock,
+      };
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <ThemeContext.Provider value={mockTheme}>
+            <CollectibleContractElement {...props} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+      fireEvent.press(
+        getByTestId('collectible-contract-element-0xdef-AssetName'),
+      );
+      expect(queryByTestId('collectible-Collectible11-1')).toBeNull();
+    });
   });
 });

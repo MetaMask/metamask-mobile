@@ -204,7 +204,7 @@ class NetworksSettings extends PureComponent {
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
+      await updateIncomingTransactions();
     }, 1000);
   };
 

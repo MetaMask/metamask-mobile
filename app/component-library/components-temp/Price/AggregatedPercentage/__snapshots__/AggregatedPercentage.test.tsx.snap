@@ -13,12 +13,12 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#1c8234",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 14,
+        "color": "#1c7e33",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 16,
         "fontWeight": "500",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
     testID="formatted-value-price-test-id"
@@ -29,12 +29,12 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#1c8234",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 14,
+        "color": "#1c7e33",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 16,
         "fontWeight": "500",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
     testID="formatted-percentage-test-id"

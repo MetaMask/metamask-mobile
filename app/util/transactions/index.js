@@ -9,7 +9,11 @@ import {
   ERC721,
   ERC1155,
 } from '@metamask/controller-utils';
-import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
+import {
+  isEIP1559Transaction,
+  TransactionType,
+  TransactionEnvelopeType,
+} from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -52,6 +56,7 @@ import {
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
+import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -71,8 +76,11 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 export const SWAPS_TRANSACTION_ACTION_KEY = 'swapsTransaction';
+export const BRIDGE_TRANSACTION_ACTION_KEY = 'bridgeTransaction';
 export const INCREASE_ALLOWANCE_ACTION_KEY = 'increaseAllowance';
 export const SET_APPROVE_FOR_ALL_ACTION_KEY = 'setapprovalforall';
+export const UPGRADE_SMART_ACCOUNT_ACTION_KEY = 'upgradeSmartAccount';
+export const DOWNGRADE_SMART_ACCOUNT_ACTION_KEY = 'downgradeSmartAccount';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
@@ -93,6 +101,7 @@ export const TRANSACTION_TYPES = {
   SENT_TOKEN: 'transaction_sent_token',
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
+  BRIDGE_TRANSACTION: 'bridge_transaction',
 };
 
 const MULTIPLIER_HEX = 16;
@@ -126,9 +135,15 @@ const reviewActionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.tx_review_set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
-  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
-  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
+  [TransactionType.stakingClaim]: strings(
+    'transactions.tx_review_staking_claim',
+  ),
+  [TransactionType.stakingDeposit]: strings(
+    'transactions.tx_review_staking_deposit',
+  ),
+  [TransactionType.stakingUnstake]: strings(
+    'transactions.tx_review_staking_unstake',
+  ),
 };
 
 /**
@@ -142,15 +157,39 @@ const actionKeys = {
     'transactions.smart_contract_interaction',
   ),
   [SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
+  [BRIDGE_TRANSACTION_ACTION_KEY]: strings('transactions.bridge_transaction'),
   [APPROVE_ACTION_KEY]: strings('transactions.approve'),
   [INCREASE_ALLOWANCE_ACTION_KEY]: strings('transactions.increase_allowance'),
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
-  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
-  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
+  [UPGRADE_SMART_ACCOUNT_ACTION_KEY]: strings(
+    'transactions.smart_account_upgrade',
+  ),
+  [DOWNGRADE_SMART_ACCOUNT_ACTION_KEY]: strings(
+    'transactions.smart_account_downgrade',
+  ),
+  [TransactionType.stakingClaim]: strings(
+    'transactions.tx_review_staking_claim',
+  ),
+  [TransactionType.stakingDeposit]: strings(
+    'transactions.tx_review_staking_deposit',
+  ),
+  [TransactionType.stakingUnstake]: strings(
+    'transactions.tx_review_staking_unstake',
+  ),
 };
+
+/**
+ * Checks if a transaction is a legacy transaction by examining its type.
+ * Legacy transactions are identified by the TransactionEnvelopeType.legacy type.
+ *
+ * @param {object} transactionMeta - The transaction metadata to check
+ * @returns {boolean} true if the transaction is a legacy transaction, false otherwise
+ */
+export function isLegacyTransaction(transactionMeta) {
+  return transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
+}
 
 /**
  * Generates transfer data for specified method
@@ -334,7 +373,10 @@ export async function getMethodData(data, networkClientId) {
   }
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await handleMethodData(fourByteSignature, networkClientId);
+    const registryObject = await handleMethodData(
+      fourByteSignature,
+      networkClientId,
+    );
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -352,7 +394,11 @@ export async function getMethodData(data, networkClientId) {
  * @param {string | undefined} networkClientId - ID of the network client
  * @returns {Promise<boolean>} - Whether the given address is a contract
  */
-export async function isSmartContractAddress(address, chainId, networkClientId = undefined) {
+export async function isSmartContractAddress(
+  address,
+  chainId,
+  networkClientId = undefined,
+) {
   if (!address) return false;
 
   address = toChecksumAddress(address);
@@ -360,14 +406,18 @@ export async function isSmartContractAddress(address, chainId, networkClientId =
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokenList[address]
+    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
+      ?.data?.[address]
   ) {
     return Promise.resolve(true);
   }
 
   const { NetworkController } = Engine.context;
-  const finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
-  const ethQuery = new EthQuery(NetworkController.getNetworkClientById(finalNetworkClientId).provider);
+  const finalNetworkClientId =
+    networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(finalNetworkClientId).provider,
+  );
 
   const code = address
     ? await query(ethQuery, 'getCode', [address])
@@ -410,9 +460,15 @@ export async function isCollectibleAddress(address, tokenId) {
 export async function getTransactionActionKey(transaction, chainId) {
   const { networkClientId, type } = transaction ?? {};
   const txParams = transaction.txParams ?? transaction.transaction ?? {};
-  const { data, to } = txParams;
+  const { authorizationList, data, to } = txParams;
 
-  if ([TransactionType.stakingClaim, TransactionType.stakingDeposit, TransactionType.stakingUnstake].includes(type)) {
+  if (
+    [
+      TransactionType.stakingClaim,
+      TransactionType.stakingDeposit,
+      TransactionType.stakingUnstake,
+    ].includes(type)
+  ) {
     return type;
   }
 
@@ -422,6 +478,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (to === getSwapsContractAddress(chainId)) {
     return SWAPS_TRANSACTION_ACTION_KEY;
+  }
+
+  if (transaction.type === TransactionType.bridge) {
+    return BRIDGE_TRANSACTION_ACTION_KEY;
   }
 
   // if data in transaction try to get method data
@@ -434,6 +494,23 @@ export async function getTransactionActionKey(transaction, chainId) {
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
       : await isSmartContractAddress(to, chainId, networkClientId);
+
+  const authorizationAddress = authorizationList?.[0]?.address;
+  const isDowngrade =
+    Boolean(authorizationAddress) &&
+    authorizationAddress === EIP_7702_REVOKE_ADDRESS;
+
+  if (isDowngrade) {
+    return DOWNGRADE_SMART_ACCOUNT_ACTION_KEY;
+  }
+
+  const isUpgrade =
+    Boolean(authorizationAddress) &&
+    authorizationAddress !== EIP_7702_REVOKE_ADDRESS;
+
+  if (isUpgrade) {
+    return UPGRADE_SMART_ACCOUNT_ACTION_KEY;
+  }
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
@@ -467,17 +544,18 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
     const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
+
     return incoming
       ? selfSent
         ? currencySymbol
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-          ? strings('transactions.received_unit', { unit: currencySymbol })
-          : strings('transactions.received_ether')
+        ? strings('transactions.received_unit', { unit: currencySymbol })
+        : strings('transactions.received_ether')
       : currencySymbol
-        ? strings('transactions.sent_unit', { unit: currencySymbol })
-        : strings('transactions.sent_ether');
+      ? strings('transactions.sent_unit', { unit: currencySymbol })
+      : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -610,8 +688,8 @@ export const calculateAmountsEIP1559 = ({
   gasFeeMinNative,
   gasFeeMaxNative,
   gasFeeMaxConversion,
-  gasFeeMinHex,
   gasFeeMaxHex,
+  gasFeeMinHex,
 }) => {
   // amount numbers
   const amountConversion = getValueFromWeiHex({
@@ -1047,7 +1125,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1143,6 +1221,7 @@ export const parseTransactionEIP1559 = (
       gasFeeMinConversion,
       renderableGasFeeMinConversion,
       gasFeeMaxNative,
+      gasFeeMaxHex,
       renderableGasFeeMaxNative,
       gasFeeMaxConversion,
       renderableGasFeeMaxConversion,
@@ -1243,6 +1322,7 @@ export const parseTransactionEIP1559 = (
     gasFeeMinConversion,
     renderableGasFeeMinConversion,
     gasFeeMaxNative,
+    gasFeeMaxHex,
     renderableGasFeeMaxNative,
     gasFeeMaxConversion,
     renderableGasFeeMaxConversion,
@@ -1551,7 +1631,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-        swapsUtils.getSwapsContractAddress(chainId)))
+          swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 
@@ -1602,4 +1682,16 @@ export const getIsNativeTokenTransferred = (txParams) =>
  */
 export function isNFTTokenStandard(tokenStandard) {
   return [ERC721, ERC1155].includes(tokenStandard);
+}
+
+/**
+ * Get a transaction by its ID
+ * @param {string} transactionId - The ID of the transaction to get
+ * @param {TransactionController} transactionController - The transaction controller
+ * @returns {TransactionMeta} The transaction meta object
+ */
+export function getTransactionById(transactionId, transactionController) {
+  return transactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
 }

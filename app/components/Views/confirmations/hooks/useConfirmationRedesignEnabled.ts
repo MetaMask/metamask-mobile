@@ -5,43 +5,32 @@ import {
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import {
-  type ConfirmationRedesignRemoteFlags,
+  ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
-import {
-  isExternalHardwareAccount,
-  isHardwareAccount,
-} from '../../../../util/address';
+} from '../../../../selectors/featureFlagController/confirmations';
+import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
+import {
+  REDESIGNED_SIGNATURE_TYPES,
+  REDESIGNED_TRANSACTION_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../constants/confirmations';
 import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-
-const REDESIGNED_SIGNATURE_TYPES = [
-  ApprovalType.EthSignTypedData,
-  ApprovalType.PersonalSign,
-];
-
-const REDESIGNED_TRANSACTION_TYPES = [
-  TransactionType.stakingDeposit,
-  TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-];
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
-  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
-  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
-    !isExternalHardwareAccount(fromAddress)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
   );
 }
 
@@ -70,7 +59,26 @@ function isRedesignedTransaction({
   }
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
-    return confirmationRedesignFlags?.staking_transactions;
+    return confirmationRedesignFlags?.staking_confirmations;
+  }
+
+  if (transactionMetadata?.type === TransactionType.contractInteraction) {
+    return confirmationRedesignFlags?.contract_interaction;
+  }
+
+  if (
+    transactionMetadata?.type === TransactionType.revokeDelegation ||
+    transactionMetadata?.type === TransactionType.batch
+  ) {
+    return true;
+  }
+
+  if (
+    REDESIGNED_TRANSFER_TYPES.includes(
+      transactionMetadata?.type as TransactionType,
+    )
+  ) {
+    return confirmationRedesignFlags?.transfer;
   }
 
   return false;
@@ -91,7 +99,6 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
-        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,

@@ -3,6 +3,7 @@ import { UIComponentFactory } from './types';
 
 export const address: UIComponentFactory<AddressElement> = ({
   element: e,
+  textColor,
 }) => ({
   element: 'SnapUIAddress',
   props: {
@@ -11,5 +12,6 @@ export const address: UIComponentFactory<AddressElement> = ({
     truncate: e.props.truncate,
     displayName: e.props.displayName,
     avatar: e.props.avatar,
+    color: textColor,
   },
 });

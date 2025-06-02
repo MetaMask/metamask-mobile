@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -30,7 +31,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     const requestData = approvalRequest?.requestData;
 
-    if (!requestData?.permissions?.eth_accounts) return;
+    if (!requestData?.permissions?.[Caip25EndowmentPermissionName]) return;
 
     const {
       metadata: { id },

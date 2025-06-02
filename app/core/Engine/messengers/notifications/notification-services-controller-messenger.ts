@@ -7,29 +7,29 @@ export function getNotificationServicesControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'NotificationServicesController',
     allowedActions: [
-      // Keyring Controller Requests
+      // Keyring Actions
+      'KeyringController:withKeyring',
       'KeyringController:getState',
-      'KeyringController:getAccounts',
-      // Auth Controller Requests
+      // Auth Actions
       'AuthenticationController:getBearerToken',
       'AuthenticationController:isSignedIn',
       'AuthenticationController:performSignIn',
-      // User Storage Controller Requests
+      // Storage Actions
       'UserStorageController:getStorageKey',
       'UserStorageController:performGetStorage',
       'UserStorageController:performSetStorage',
-      // Push Notification Controller Requests
+      // Push Actions
       'NotificationServicesPushController:enablePushNotifications',
       'NotificationServicesPushController:disablePushNotifications',
-      'NotificationServicesPushController:updateTriggerPushNotifications',
       'NotificationServicesPushController:subscribeToPushNotifications',
+      'NotificationServicesPushController:updateTriggerPushNotifications',
     ],
     allowedEvents: [
-      // Keyring Controller Events
+      // Keyring Events
       'KeyringController:stateChange',
       'KeyringController:lock',
       'KeyringController:unlock',
-      // Push Notification Controller Events
+      // Push Notification Events
       'NotificationServicesPushController:onNewNotifications',
       'NotificationServicesPushController:stateChange',
     ],

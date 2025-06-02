@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
@@ -530,7 +531,7 @@ class ResetPassword extends PureComponent {
     return (
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={'padding'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
           <View style={styles.confirmPasswordWrapper}>

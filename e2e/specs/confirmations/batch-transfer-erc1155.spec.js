@@ -16,6 +16,8 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
@@ -25,16 +27,23 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
   });
 
   it('batch transfer ERC1155 tokens', async () => {
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: ERC1155_CONTRACT,
+        testSpecificMock,
       },
       async ({ contractRegistry }) => {
         const erc1155Address = await contractRegistry.getContractAddress(

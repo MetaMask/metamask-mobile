@@ -3,6 +3,8 @@ import {
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
+  TransactionType,
+  type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { NetworkController } from '@metamask/network-controller';
@@ -17,21 +19,32 @@ import { TransactionControllerInitMessenger } from '../../messengers/transaction
 import { ControllerInitRequest } from '../../types';
 import { TransactionControllerInit } from './transaction-controller-init';
 import {
-  handleTransactionAdded,
-  handleTransactionApproved,
-  handleTransactionConfirmed,
-  handleTransactionDropped,
-  handleTransactionFailed,
-  handleTransactionRejected,
-  handleTransactionSubmitted,
-} from './transaction-event-handlers';
+  handleTransactionAddedEventForMetrics,
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+} from './event-handlers/metrics';
+import { Hex } from '@metamask/utils';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
 jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
-jest.mock('./transaction-event-handlers');
+jest.mock('./event-handlers/metrics');
+jest.mock('../../../../util/transactions', () => ({
+  getTransactionById: jest.fn((_id) => ({
+    id: _id,
+    chainId: '0x1',
+    status: 'approved',
+    time: 123,
+    txParams: {
+      from: '0x123',
+    },
+    networkClientId: 'selectedNetworkClientId',
+  })),
+}));
 
 /**
  * Build a mock NetworkController.
@@ -56,7 +69,6 @@ function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
   ControllerInitRequest<
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
@@ -91,17 +103,21 @@ describe('Transaction Controller Init', () => {
     selectSwapsChainFeatureFlags,
   );
   const getGlobalChainIdMock = jest.mocked(getGlobalChainId);
-  const handleTransactionApprovedMock = jest.mocked(handleTransactionApproved);
-  const handleTransactionConfirmedMock = jest.mocked(
-    handleTransactionConfirmed,
+  const handleTransactionApprovedEventForMetricsMock = jest.mocked(
+    handleTransactionApprovedEventForMetrics,
   );
-  const handleTransactionDroppedMock = jest.mocked(handleTransactionDropped);
-  const handleTransactionFailedMock = jest.mocked(handleTransactionFailed);
-  const handleTransactionRejectedMock = jest.mocked(handleTransactionRejected);
-  const handleTransactionSubmittedMock = jest.mocked(
-    handleTransactionSubmitted,
+  const handleTransactionFinalizedEventForMetricsMock = jest.mocked(
+    handleTransactionFinalizedEventForMetrics,
   );
-  const handleTransactionAddedMock = jest.mocked(handleTransactionAdded);
+  const handleTransactionRejectedEventForMetricsMock = jest.mocked(
+    handleTransactionRejectedEventForMetrics,
+  );
+  const handleTransactionSubmittedEventForMetricsMock = jest.mocked(
+    handleTransactionSubmittedEventForMetrics,
+  );
+  const handleTransactionAddedEventForMetricsMock = jest.mocked(
+    handleTransactionAddedEventForMetrics,
+  );
 
   /**
    * Extract a constructor option passed to the controller.
@@ -243,6 +259,13 @@ describe('Transaction Controller Init', () => {
   it('publish hook calls submitSmartTransactionHook', () => {
     const MOCK_TRANSACTION_META = {
       id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
     } as TransactionMeta;
 
     const hooks = testConstructorOption('hooks');
@@ -251,10 +274,60 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
+      undefined,
+      MOCK_TRANSACTION_META.chainId,
+    );
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
         transactionMeta: MOCK_TRANSACTION_META,
+        shouldUseSmartTransaction: true,
+      }),
+    );
+  });
+
+  it('publishBatch hook calls submitBatchSmartTransactionHook', () => {
+    const mockTransactionMeta = {
+      id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
+    };
+
+    const getTransactionByIdMock = jest.requireMock('../../../../util/transactions').getTransactionById;
+    getTransactionByIdMock.mockReturnValue(mockTransactionMeta);
+
+    selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+    const submitBatchSmartTransactionHookMock = jest.requireMock('../../../../util/smart-transactions/smart-publish-hook').submitBatchSmartTransactionHook;
+    submitBatchSmartTransactionHookMock.mockResolvedValue({ results: [{ transactionHash: '0xhash' }] });
+
+    const hooks = testConstructorOption('hooks');
+
+    const mockTransactions = [
+      {
+        id: '123',
+        signedTx: '0x1234' as Hex,
+      },
+    ];
+
+    hooks?.publishBatch?.({
+      transactions:
+        mockTransactions as unknown as PublishBatchHookTransaction[],
+      from: '0x123',
+      networkClientId: 'selectedNetworkClientId',
+    });
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalled();
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactions: mockTransactions,
         shouldUseSmartTransaction: true,
       }),
     );
@@ -281,6 +354,22 @@ describe('Transaction Controller Init', () => {
 
     expect(isEnabledFn?.()).toBe(true);
     expect(updateTransactionsProp).toBe(true);
+  });
+
+  it('determines if automatic gas fee update is enabled based on transaction type', () => {
+    const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+    const isEnabledFn = option as ({ type }: { type: string }) => boolean;
+
+    // Redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+      true,
+    );
+
+    // Non-redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.bridge })).toBe(false);
   });
 
   it('gets network state from network controller on option getNetworkState', () => {
@@ -313,58 +402,69 @@ describe('Transaction Controller Init', () => {
 
     TransactionControllerInit(requestMock);
 
-    // Verify all events are subscribed
-    expect(Object.keys(subscribeCallbacks).length).toBe(7);
-
     const mockTransactionMeta = {
       id: '123',
       status: 'approved',
     } as TransactionMeta;
 
-    subscribeCallbacks['TransactionController:transactionApproved']({
-      transactionMeta: mockTransactionMeta,
+    const handlerContext = {
+      getState: expect.any(Function),
+      initMessenger: expect.any(Object),
+      smartTransactionsController: expect.any(Object),
+    };
+
+    const eventHandlerMap = [
+      {
+        event: 'TransactionController:transactionApproved',
+        handler: handleTransactionApprovedEventForMetricsMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:transactionConfirmed',
+        handler: handleTransactionFinalizedEventForMetricsMock,
+        payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:transactionDropped',
+        handler: handleTransactionFinalizedEventForMetricsMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:transactionFailed',
+        handler: handleTransactionFinalizedEventForMetricsMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:transactionRejected',
+        handler: handleTransactionRejectedEventForMetricsMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:transactionSubmitted',
+        handler: handleTransactionSubmittedEventForMetricsMock,
+        payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+      {
+        event: 'TransactionController:unapprovedTransactionAdded',
+        handler: handleTransactionAddedEventForMetricsMock,
+        payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
+      },
+    ];
+
+    // Verify all events are subscribed
+    expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
+
+    // Test each event handler
+    eventHandlerMap.forEach(({ event, handler, payload, expectedArgs }) => {
+      subscribeCallbacks[event](payload);
+      expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
-
-    expect(handleTransactionApprovedMock).toHaveBeenCalledWith(
-      mockTransactionMeta,
-      expect.objectContaining({
-        getTransactionMetricProperties: expect.any(Function),
-      }),
-    );
-
-    subscribeCallbacks['TransactionController:transactionConfirmed'](
-      mockTransactionMeta,
-    );
-    expect(handleTransactionConfirmedMock).toHaveBeenCalledWith(
-      mockTransactionMeta,
-      expect.objectContaining({
-        getTransactionMetricProperties: expect.any(Function),
-      }),
-    );
-
-    subscribeCallbacks['TransactionController:transactionDropped']({
-      transactionMeta: mockTransactionMeta,
-    });
-    expect(handleTransactionDroppedMock).toHaveBeenCalled();
-
-    subscribeCallbacks['TransactionController:transactionFailed']({
-      transactionMeta: mockTransactionMeta,
-    });
-    expect(handleTransactionFailedMock).toHaveBeenCalled();
-
-    subscribeCallbacks['TransactionController:transactionRejected']({
-      transactionMeta: mockTransactionMeta,
-    });
-    expect(handleTransactionRejectedMock).toHaveBeenCalled();
-
-    subscribeCallbacks['TransactionController:transactionSubmitted']({
-      transactionMeta: mockTransactionMeta,
-    });
-    expect(handleTransactionSubmittedMock).toHaveBeenCalled();
-
-    subscribeCallbacks['TransactionController:unapprovedTransactionAdded'](
-      mockTransactionMeta,
-    );
-    expect(handleTransactionAddedMock).toHaveBeenCalled();
   });
 });

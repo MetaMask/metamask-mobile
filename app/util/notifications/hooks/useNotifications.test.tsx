@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 
 // eslint-disable-next-line import/no-namespace
@@ -11,6 +11,7 @@ import {
 import * as Selectors from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import {
+  useContiguousLoading,
   useDisableNotifications,
   useEnableNotifications,
   useListNotifications,
@@ -317,5 +318,70 @@ describe('useNotifications - useResetNotifications()', () => {
     });
 
     expect(hook.result.current.error).toBeDefined();
+  });
+});
+
+describe('useNotifications - useContiguousLoading()', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  const arrangeHook = (loading1: boolean, loading2: boolean) =>
+    renderHook(
+      ({ loadingParam1, loadingParam2 }) =>
+        useContiguousLoading(loadingParam1, loadingParam2),
+      {
+        initialProps: { loadingParam1: loading1, loadingParam2: loading2 },
+      },
+    );
+
+  const assertResultAfterMs = (
+    ms: number,
+    result: ReturnType<typeof arrangeHook>['result'],
+    expectedValue: boolean,
+  ) => {
+    act(() => {
+      jest.advanceTimersByTime(ms);
+    });
+    expect(result.current).toBe(expectedValue);
+  };
+
+  it('returns true when either loadingParam1 or loadingParam2 is true', () => {
+    const { result, rerender } = arrangeHook(true, false);
+    expect(result.current).toBe(true);
+
+    rerender({ loadingParam1: false, loadingParam2: true });
+    expect(result.current).toBe(true);
+  });
+
+  it('returns false after both loadingParam1 and loadingParam2 are false and delay has passed', () => {
+    const { result, rerender } = arrangeHook(true, false);
+    expect(result.current).toBe(true);
+
+    // Toggle both loading states off
+    rerender({ loadingParam1: false, loadingParam2: false });
+    expect(result.current).toBe(true);
+
+    // Wait for contiguous loading to expire
+    assertResultAfterMs(100, result, false);
+  });
+
+  it('remains true if loadingParam1 or loadingParam2 becomes true again before delay expires', () => {
+    const { result, rerender } = arrangeHook(true, false);
+    expect(result.current).toBe(true);
+
+    // Toggle both loading states off
+    rerender({ loadingParam1: false, loadingParam2: false });
+    expect(result.current).toBe(true);
+
+    // Wait a little, but not long enough to contiguous loading to expire
+    assertResultAfterMs(50, result, true);
+
+    // Rerender with loading set to true
+    rerender({ loadingParam1: false, loadingParam2: true });
+    expect(result.current).toBe(true);
+
+    // Now if we we wait, it should still remain true since loading params are enabled
+    assertResultAfterMs(200, result, true);
   });
 });

@@ -138,7 +138,7 @@ describe('networks', () => {
         const result = formatBlockExplorerAddressUrl(urls, address);
 
         expect(result).toBe(
-          'https://explorer.solana.com/address/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+          'https://solscan.io/account/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
         );
       });
 
@@ -150,7 +150,7 @@ describe('networks', () => {
         const result = formatBlockExplorerAddressUrl(urls, address);
 
         expect(result).toBe(
-          'https://explorer.solana.com/address/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH?cluster=devnet',
+          'https://solscan.io/account/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH?cluster=devnet',
         );
       });
 
@@ -162,7 +162,7 @@ describe('networks', () => {
         const result = formatBlockExplorerAddressUrl(urls, address);
 
         expect(result).toBe(
-          'https://explorer.solana.com/address/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH?cluster=testnet',
+          'https://solscan.io/account/HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH?cluster=testnet',
         );
       });
     });
@@ -222,7 +222,7 @@ describe('networks', () => {
         const result = formatBlockExplorerUrl(urls.transaction, 'txId', txId);
 
         expect(result).toBe(
-          'https://explorer.solana.com/tx/4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE',
+          'https://solscan.io/tx/4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE',
         );
       });
 
@@ -235,7 +235,7 @@ describe('networks', () => {
         const result = formatBlockExplorerUrl(urls.transaction, 'txId', txId);
 
         expect(result).toBe(
-          'https://explorer.solana.com/tx/4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE?cluster=testnet',
+          'https://solscan.io/tx/4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE?cluster=testnet',
         );
       });
     });
@@ -259,7 +259,7 @@ describe('networks', () => {
       it('verifies Solana base URL formats', () => {
         const solanaUrls =
           MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet];
-        expect(solanaUrls.url).toBe('https://explorer.solana.com');
+        expect(solanaUrls.url).toBe('https://solscan.io');
       });
     });
   });

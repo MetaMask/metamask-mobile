@@ -150,7 +150,13 @@ exports[`AccountRightButton should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`AccountRightButton should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -524,7 +531,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                                   "height": 32,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
-                                  "shadowColor": "#0000001A",
+                                  "shadowColor": "#0000001a",
                                   "shadowOffset": {
                                     "height": 2,
                                     "width": 0,

@@ -1,5 +1,5 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from './smart-publish-hook';
+import { Hex } from '@metamask/utils';
 import TransactionTypes from '../../core/TransactionTypes';
 import {
   getIsSwapApproveTransaction,
@@ -13,6 +13,7 @@ import {
   Fees,
 } from '@metamask/smart-transactions-controller/dist/types';
 import type { BaseControllerMessenger } from '../../core/Engine';
+import { isProduction } from '../environment';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
@@ -149,4 +150,19 @@ export const getGasIncludedTransactionFees = (quote: GasIncludedQuote) => {
     };
   }
   return transactionFees;
+};
+
+export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
+  // Allow in non-production environments.
+  if (!isProduction()) {
+    return true;
+  }
+
+  const hostname = rpcUrl && new URL(rpcUrl).hostname;
+
+  return (
+    hostname?.endsWith('.infura.io') ||
+    hostname?.endsWith('.binance.org') ||
+    false
+  );
 };

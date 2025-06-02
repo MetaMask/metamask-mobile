@@ -1,8 +1,6 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-*                                    @MetaMask/mobile-devs
-
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
 
@@ -16,7 +14,6 @@ app/selectors/featureFlagController/*                       @MetaMask/mobile-pla
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
 bitrise.yml                                                 @MetaMask/mobile-platform
-yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -32,6 +29,7 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
+app/core/DeeplinkManager   @MetaMask/mobile-platform
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
@@ -39,12 +37,16 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
+app/components/UI/Deposit/           @MetaMask/ramp
 
 # Confirmation Team
-app/components/Views/confirmations   @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
-app/core/Analytics/events/confirmations   @MetaMask/confirmations
-ppom                                 @MetaMask/confirmations
+app/components/Views/confirmations                          @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
+app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
+app/core/Analytics/events/confirmations                     @MetaMask/confirmations
+ppom                                                        @MetaMask/confirmations
+app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
 app/actions/sdk   @MetaMask/sdk-devs
@@ -52,7 +54,6 @@ app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs
 app/components/Views/SDK   @MetaMask/sdk-devs
 app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs
 app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs
-app/core/DeeplinkManager   @MetaMask/sdk-devs
 app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs
 app/core/SDKConnect   @MetaMask/sdk-devs
 app/core/WalletConnect   @MetaMask/sdk-devs
@@ -63,6 +64,12 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
+app/core/SnapKeyring                                        @MetaMask/accounts-engineers
+
+# Multichain Accounts
+**/multichain-accounts/**                                   @MetaMask/accounts-engineers
+**/MultichainAccounts/**                                    @MetaMask/accounts-engineers
+**/multichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
@@ -77,10 +84,6 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 **/notification/** @MetaMask/notifications
 
 # Identity Team
-app/actions/identity @MetaMask/identity
-app/util/identity @MetaMask/identity
-app/components/UI/ProfileSyncing @MetaMask/identity
-e2e/specs/identity @MetaMask/identity
 **/Identity/** @MetaMask/identity
 **/identity/** @MetaMask/identity
 
@@ -100,13 +103,16 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
 
 # Wallet API Platform Team
- app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
+app/core/RPCMethods/                 @MetaMask/wallet-api-platform-engineers
+app/util/permissions/                @MetaMask/wallet-api-platform-engineers
 
-# Staking Team
-app/components/UI/Stake              @MetaMask/metamask-staking
-app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
-app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
-app/selectors/earnController         @MetaMask/metamask-staking
+# Earn Team
+app/components/UI/Stake              @MetaMask/metamask-earn
+app/core/Engine/controllers/earn-controller @MetaMask/metamask-earn
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
+app/selectors/earnController         @MetaMask/metamask-earn
+**/Earn/**                           @MetaMask/metamask-earn
+**/earn/**                           @MetaMask/metamask-earn
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -124,6 +130,7 @@ app/components/UI/CollectibleMedia @MetaMask/metamask-assets
 app/components/UI/CollectibleModal @MetaMask/metamask-assets
 app/components/UI/CollectibleOverview @MetaMask/metamask-assets
 app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
+app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
 app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
@@ -136,6 +143,8 @@ app/components/Views/DetectedTokens @MetaMask/metamask-assets
 app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
 app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
+app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
+app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux
@@ -162,3 +171,9 @@ app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
+
+# Snapshots – no code owners assigned
+# This allows anyone with write access to approve changes to any *.snap files.
+# ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.
+# ⚠️ Important: This rule must remain at the bottom of the CODEOWNERS file to take precedence over more specific path-based rules.
+**/*.snap

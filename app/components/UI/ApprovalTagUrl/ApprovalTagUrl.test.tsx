@@ -48,4 +48,19 @@ describe('ApprovalTagUrl', () => {
 
     expect(queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeNull();
   });
+
+  it('renders origin when only origin is provided', () => {
+    const { toJSON, getByTestId } = renderWithProvider(
+      <ApprovalTagUrl
+        from={ADDRESS_MOCK}
+        origin={DOMAIN_MOCK}
+        url=""
+        sdkDappMetadata={{ url: '', icon: '' }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
+  });
 });

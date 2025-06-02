@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { View, FlatList, RefreshControl } from 'react-native';
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import { View, RefreshControl, Dimensions } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import {
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  selectPrivacyMode,
+} from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
 import Text, {
   TextColor,
@@ -15,34 +19,54 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 
+export interface FlashListAssetKey {
+  address: string;
+  chainId: string | undefined;
+  isStaked: boolean | undefined;
+}
+
 interface TokenListProps {
-  tokens: TokenI[];
+  tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
   isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   goToAddToken: () => void;
   showPercentageChange?: boolean;
-  showNetworkBadge?: boolean;
+  setShowScamWarningModal: () => void;
 }
 
 export const TokenList = ({
-  tokens,
+  tokenKeys,
   refreshing,
   isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
   goToAddToken,
   showPercentageChange = true,
-  showNetworkBadge = true,
+  setShowScamWarningModal,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
 
-  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
+  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
+
+  const { width: deviceWidth } = Dimensions.get('window');
+
+  const itemHeight = 70; // Adjust this to match TokenListItem height
+  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
+
+  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
+
+  useLayoutEffect(() => {
+    listRef.current?.recomputeViewableItems();
+  }, [isTokenNetworkFilterEqualCurrentNetwork]);
 
   const handleLink = () => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -50,25 +74,46 @@ export const TokenList = ({
     });
   };
 
-  return tokens?.length ? (
-    <FlatList
+  const renderTokenListItem = useCallback(
+    ({ item }: { item: FlashListAssetKey }) => (
+      <TokenListItem
+        assetKey={item}
+        showRemoveMenu={showRemoveMenu}
+        setShowScamWarningModal={setShowScamWarningModal}
+        privacyMode={privacyMode}
+        showPercentageChange={showPercentageChange}
+      />
+    ),
+    [
+      showRemoveMenu,
+      setShowScamWarningModal,
+      privacyMode,
+      showPercentageChange,
+    ],
+  );
+
+  return tokenKeys?.length ? (
+    <FlashList
+      ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokens}
-      renderItem={({ item }) => (
-        <TokenListItem
-          asset={item}
-          showRemoveMenu={showRemoveMenu}
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-          privacyMode={privacyMode}
-          showPercentageChange={showPercentageChange}
-          showNetworkBadge={showNetworkBadge}
-        />
-      )}
-      keyExtractor={(_, index) => index.toString()}
+      data={tokenKeys}
+      estimatedItemSize={itemHeight}
+      estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
+      removeClippedSubviews
+      viewabilityConfig={{
+        waitForInteraction: true,
+        itemVisiblePercentThreshold: 50,
+        minimumViewTime: 1000,
+      }}
+      decelerationRate={0}
+      disableAutoLayout
+      renderItem={renderTokenListItem}
+      keyExtractor={(item) => {
+        const staked = item.isStaked ? 'staked' : 'unstaked';
+        return `${item.address}-${item.chainId}-${staked}`;
+      }}
       ListFooterComponent={
         <TokenListFooter
-          tokens={tokens}
           goToAddToken={goToAddToken}
           isAddTokenEnabled={isAddTokenEnabled}
         />
@@ -81,6 +126,7 @@ export const TokenList = ({
           onRefresh={onRefresh}
         />
       }
+      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
     />
   ) : (
     <View style={styles.emptyView}>
@@ -96,6 +142,6 @@ export const TokenList = ({
           {strings('wallet.show_tokens_without_balance')}
         </Text>
       </View>
-    </View> // TO see tokens without balance, Click here.
+    </View>
   );
 };

@@ -150,7 +150,13 @@ exports[`AddAccountActions renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`AddAccountActions renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -342,7 +349,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                             testID="sheet-header-back-button"
                           >
                             <SvgMock
-                              color="#141618"
+                              color="#121314"
+                              fill="currentColor"
                               height={16}
                               name="ArrowLeft"
                               style={
@@ -359,8 +367,8 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Bold",
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Bold",
                               "fontSize": 18,
                               "fontWeight": "700",
                               "letterSpacing": 0,
@@ -384,12 +392,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#6a737d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "color": "#686e7d",
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -403,19 +412,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-new-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -427,9 +437,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -446,19 +456,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-add-solana-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -470,9 +481,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -489,19 +500,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-add-bitcoin-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -513,9 +525,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -532,19 +544,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-add-bitcoin-testnet-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Add"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -556,9 +569,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -572,12 +585,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#6a737d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "color": "#686e7d",
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -591,19 +605,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-srp-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Wallet"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -615,9 +630,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -634,19 +649,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-import-account"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Key"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -658,9 +674,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -674,12 +690,13 @@ exports[`AddAccountActions renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#6a737d",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 12,
+                              "color": "#686e7d",
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -693,19 +710,20 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
                           testID="add-account-add-hardware-wallet"
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
+                            fill="currentColor"
                             height={20}
                             name="Hardware"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "height": 20,
                                 "marginHorizontal": 16,
                                 "width": 20,
@@ -717,9 +735,9 @@ exports[`AddAccountActions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
