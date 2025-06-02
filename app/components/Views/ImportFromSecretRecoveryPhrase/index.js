@@ -163,7 +163,7 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
-  const [errorWordIndexes, setErrorWordIndexes] = useState([]);
+  const [errorWordIndexes, setErrorWordIndexes] = useState({});
 
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
@@ -173,36 +173,35 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleSeedPhraseChange = useCallback(
     (text, index) => {
-      if (error) setError('');
-
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
         // handle use pasting multiple words / whole seed phrase separated by spaces
         const splitArray = text.trim().split(' ');
 
-        if (splitArray.length > 1) {
-          setErrorWordIndexes(
-            splitArray.reduce((acc, x) => {
-              if (checkValidSeedWord(x)) {
-                acc.push(x);
-              }
-              return acc;
-            }, []),
-          );
-        }
+        const currentErrorWordIndexes = { ...errorWordIndexes };
+        splitArray.reduce((acc, x, currentIndex) => {
+          if (checkValidSeedWord(x)) {
+            currentErrorWordIndexes[index + currentIndex] = false;
+          } else {
+            currentErrorWordIndexes[index + currentIndex] = true;
+          }
+          return acc;
+        }, []);
 
-        let totalLength = seedPhrase.length + splitArray.length;
         setSeedPhrase((prev) => {
           const endSlices = prev.slice(index + 1);
           if (endSlices.length === 0 && isEndWithSpace) {
             endSlices.push('');
-            totalLength++;
+          } else if (isEndWithSpace) {
+            endSlices.unshift('');
           }
+
           return [...prev.slice(0, index), ...splitArray, ...endSlices];
           // input the array into the correct index
         });
 
-        setNextSeedPhraseInputFocusedIndex(totalLength - 1);
+        setErrorWordIndexes(currentErrorWordIndexes);
+        setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
       } else {
         setSeedPhrase((prev) => {
           // update the word at the correct index
@@ -212,7 +211,12 @@ const ImportFromSecretRecoveryPhrase = ({
         });
       }
     },
-    [error, seedPhrase, setSeedPhrase, setNextSeedPhraseInputFocusedIndex],
+    [
+      setSeedPhrase,
+      setNextSeedPhraseInputFocusedIndex,
+      setErrorWordIndexes,
+      errorWordIndexes,
+    ],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -393,9 +397,11 @@ const ImportFromSecretRecoveryPhrase = ({
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (seedPhrase[index] === '') {
+        if (index > 0) {
+          setNextSeedPhraseInputFocusedIndex(index - 1);
+        }
         const newData = seedPhrase.filter((_, idx) => idx !== index);
         setSeedPhrase(newData);
-        setNextSeedPhraseInputFocusedIndex(newData.length - 1);
       }
       return;
     }
@@ -570,14 +576,33 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
+    if (Object.values(errorWordIndexes).some((value) => value)) {
+      setError(strings('import_from_seed.spellcheck_error'));
+    } else {
+      setError('');
+    }
+  }, [errorWordIndexes]);
+
+  useEffect(() => {
     seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
     (index) => {
+      if (!checkValidSeedWord(seedPhrase[seedPhraseInputFocusedIndex])) {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: true,
+        }));
+      } else {
+        setErrorWordIndexes((prev) => ({
+          ...prev,
+          [seedPhraseInputFocusedIndex]: false,
+        }));
+      }
       setSeedPhraseInputFocusedIndex(index);
     },
-    [setSeedPhraseInputFocusedIndex],
+    [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
   );
 
   return (
@@ -685,23 +710,31 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    !errorWordIndexes.includes(index) &&
-                                    (showAllSeedPhrase
-                                      ? false
-                                      : seedPhraseInputFocusedIndex !== index)
+                                    (!showAllSeedPhrase ||
+                                      !errorWordIndexes[index]) &&
+                                    seedPhraseInputFocusedIndex !== index
                                   }
-                                  onFocus={() => {
+                                  onFocus={(e) => {
+                                    if (
+                                      e &&
+                                      e.currentTarget &&
+                                      e.target &&
+                                      e.currentTarget.setNativeProps
+                                    ) {
+                                      e.currentTarget.setNativeProps({
+                                        selection: {
+                                          start: e.target.value?.length ?? 0,
+                                          end: e.target.value?.length ?? 0,
+                                        },
+                                      });
+                                    }
                                     handleOnFocus(index);
                                   }}
                                   onChangeText={(text) =>
                                     handleSeedPhraseChange(text, index)
                                   }
                                   placeholderTextColor={colors.text.muted}
-                                  autoFocus={
-                                    showAllSeedPhrase
-                                      ? false
-                                      : index === seedPhrase.length - 1
-                                  }
+                                  // autoFocus={index === seedPhrase.length - 1}
                                   onSubmitEditing={(e) => {
                                     handleKeyPress(e, index, true);
                                   }}
@@ -711,8 +744,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   autoComplete="off"
                                   textAlignVertical="center"
                                   showSoftInputOnFocus
-                                  blurOnSubmit={false}
-                                  isError={errorWordIndexes.includes(index)}
+                                  isError={errorWordIndexes[index]}
                                   autoCapitalize="none"
                                   numberOfLines={1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
