@@ -31,7 +31,7 @@ interface TokenAmount {
   amountPrecise: string | undefined;
   amount: string | undefined;
   fiat: string | undefined;
-  usdValue: string | undefined;
+  usdValue: string | null;
 }
 
 const useTokenDecimals = (tokenAddress: Hex, networkClientId?: NetworkClientId) => useAsyncResult(
@@ -69,7 +69,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       amountPrecise: undefined,
       amount: undefined,
       fiat: undefined,
-      usdValue: undefined,
+      usdValue: null,
     };
   }
 
@@ -81,7 +81,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   const amount = calcTokenAmount(value ?? '0', Number(decimals ?? ERC20_DEFAULT_DECIMALS));
 
   let fiat;
-  let usdValue;
+  let usdValue = null;
 
   switch (transactionType) {
     case TransactionType.simpleSend:
@@ -90,15 +90,18 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
     case TransactionType.stakingUnstake: {
       // Native
       fiat = amount.times(nativeConversionRate);
-      usdValue = amount.times(usdConversionRate).toString();
+      const usdAmount = amount.times(usdConversionRate);
+      usdValue = usdAmount.isZero() ? null : usdAmount.toFixed(2);
       break;
     }
     case TransactionType.contractInteraction:
     case TransactionType.tokenMethodTransfer: {
       // ERC20
-      const contractExchangeRate = contractExchangeRates?.[tokenAddress]?.price ?? 1;
+      const contractExchangeRate = contractExchangeRates?.[tokenAddress]?.price ?? 0;
       fiat = amount.times(nativeConversionRate).times(contractExchangeRate);
-      usdValue = amount.times(contractExchangeRate).times(usdConversionRate).toString();
+
+      const usdAmount = amount.times(contractExchangeRate).times(usdConversionRate);
+      usdValue = usdAmount.isZero() ? null : usdAmount.toFixed(2);
       break;
     }
     default: {
