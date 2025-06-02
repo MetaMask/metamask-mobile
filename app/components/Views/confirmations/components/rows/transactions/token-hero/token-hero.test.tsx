@@ -8,14 +8,6 @@ import { merge } from 'lodash';
 import { RootState } from '../../../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../../../util/conversions';
 
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('TokenHero', () => {
   it('displays avatar, amount, and fiat values for a simple send transfer', async () => {
     const state: DeepPartial<RootState> = merge(

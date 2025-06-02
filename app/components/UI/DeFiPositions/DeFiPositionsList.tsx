@@ -28,10 +28,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
-
-export const DEFI_POSITIONS_CONTAINER = 'defi_positions_container';
-export const DEFI_POSITIONS_LIST = 'defi_positions_list';
-
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -127,11 +124,11 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   }
 
   return (
-    <View testID={DEFI_POSITIONS_CONTAINER}>
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
       <DeFiPositionsControlBar />
       <View>
         <FlatList
-          testID={DEFI_POSITIONS_LIST}
+          testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
           data={formattedDeFiPositions}
           renderItem={({ item: { chainId, protocolAggregate } }) => (
             <DeFiPositionsListItem
