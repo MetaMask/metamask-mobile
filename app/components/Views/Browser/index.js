@@ -208,12 +208,12 @@ const homePageUrl = useCallback(
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
-      const permittedAccounts = getPermittedAccounts(hostnameForToastCheck);
-      const activeAccountAddress = permittedAccounts?.[0];
+      const permittedEvmAccounts = getPermittedAccounts(hostnameForToastCheck);
+      const activeAccountAddress = permittedEvmAccounts?.[0];
 
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
-          accountAddress: activeAccountAddress,
+          caipAccountId: `eip155:0:${activeAccountAddress}`,
           accounts,
           ensByAccountAddress,
         });
