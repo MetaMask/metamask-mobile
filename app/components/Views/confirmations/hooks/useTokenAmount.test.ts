@@ -196,7 +196,7 @@ describe('ERC20 token transactions', () => {
   });
 });
 
-describe('Edge cases and improved readability', () => {
+describe('Edge cases', () => {
   it('handles very small USD amounts that result in zero', async () => {
     const smallExchangeRateState = merge({}, transferConfirmationState, {
       engine: {
