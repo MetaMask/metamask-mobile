@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import processOrder from './index';
+import processOrder from '.';
 import Logger from '../../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 import { FiatOrder } from '../../../../../reducers/fiatOrders/types';

@@ -6,7 +6,7 @@ import {
   DepositSDKContext,
   DepositSDKProvider,
   useDepositSDK,
-} from './index';
+} from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 

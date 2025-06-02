@@ -26,7 +26,7 @@ import {
   getNotificationDetails,
   stateHasOrder,
   sortQuotes,
-} from './index';
+} from '.';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
 import { getOrders } from '../../../../../reducers/fiatOrders';

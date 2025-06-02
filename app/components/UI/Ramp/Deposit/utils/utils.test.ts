@@ -1,4 +1,4 @@
-import { formatUSPhoneNumber } from './index';
+import { formatUSPhoneNumber } from '.';
 
 describe('formatUSPhoneNumber', () => {
   it('should return empty string for empty input', () => {
