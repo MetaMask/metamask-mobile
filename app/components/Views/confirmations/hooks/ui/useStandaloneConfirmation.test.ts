@@ -9,14 +9,6 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useStandaloneConfirmation } from './useStandaloneConfirmation';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('useStandaloneConfirmation', () => {
   it('returns true for staking confirmation', async () => {
     const { result } = renderHookWithProvider(useStandaloneConfirmation, {
