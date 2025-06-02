@@ -664,14 +664,6 @@ const AccountConnect = (props: AccountConnectProps) => {
           hideSheet();
           break;
         }
-        case USER_INTENT.Create: {
-          handleCreateAccount();
-          break;
-        }
-        case USER_INTENT.CreateMultiple: {
-          handleCreateAccount(true);
-          break;
-        }
         case USER_INTENT.Cancel: {
           hideSheet(() => cancelPermissionRequest(permissionRequestId));
           break;
@@ -795,7 +787,6 @@ const AccountConnect = (props: AccountConnectProps) => {
           scope,
         });
         setScreen(AccountConnectScreens.AddNewAccount);
-        setUserIntent(USER_INTENT.Create);
       },
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
