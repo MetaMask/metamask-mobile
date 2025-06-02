@@ -1536,11 +1536,8 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                # Build debug APK
-                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
-                
-                # Build test APK
-                cd android && ./gradlew assembleAndroidTest && cd ..
+                # Build both debug and test APKs
+                cd android && ./gradlew assembleDebug assembleDebugAndroidTest && cd ..
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
