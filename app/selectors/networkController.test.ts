@@ -16,6 +16,10 @@ import {
 import { RootState } from '../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
+jest.mock('../networkController', () => ({
+  selectTicker: jest.fn(),
+}));
+
 describe('networkSelectors', () => {
   const mockState = {
     engine: {
