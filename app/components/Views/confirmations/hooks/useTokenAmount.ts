@@ -93,7 +93,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       // Native
       fiat = amount.times(nativeConversionRate);
       const usdAmount = amount.times(usdConversionRate);
-      usdValue = usdConversionRateFromCurrencyRates ? null : usdAmount.toFixed(2);
+      usdValue = usdConversionRateFromCurrencyRates ? usdAmount.toFixed(2): null;
       break;
     }
     case TransactionType.contractInteraction:
@@ -103,7 +103,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       fiat = amount.times(nativeConversionRate).times(contractExchangeRate);
 
       const usdAmount = amount.times(contractExchangeRate).times(usdConversionRate);
-      usdValue = usdConversionRateFromCurrencyRates ? null : usdAmount.toFixed(2);
+      usdValue = usdConversionRateFromCurrencyRates ? usdAmount.toFixed(2) : null;
       break;
     }
     default: {
