@@ -30,14 +30,14 @@ export function useTokens({
   const { topTokens, remainingTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
   const tokensWithoutBalance = useMemo(() => {
-    const allTokens = [...(topTokens ?? []), ...(remainingTokens ?? [])];
+    const allTokens = (topTokens ?? []).concat(remainingTokens ?? []);
     return allTokens.filter((token) => !tokensWithBalance.some(
       (t) => t.address === token.address && t.chainId === token.chainId
     ));
   }, [topTokens, remainingTokens, tokensWithBalance]);
 
   const uniqueTokens = useMemo(
-    () => [...tokensWithBalance, ...tokensWithoutBalance],
+    () => tokensWithBalance.concat(tokensWithoutBalance),
     [tokensWithBalance, tokensWithoutBalance]
   );
 
