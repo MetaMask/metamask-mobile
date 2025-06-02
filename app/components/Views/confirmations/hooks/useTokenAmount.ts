@@ -58,8 +58,10 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
   );
   const { networkNativeCurrency } = useNetworkInfo(chainId as Hex);
   const currencyRates = useSelector(selectCurrencyRates);
-  const usdConversionRate =
-    currencyRates?.[networkNativeCurrency as string]?.usdConversionRate ?? 0;
+  const usdConversionRateFromCurrencyRates =
+    currencyRates?.[networkNativeCurrency as string]?.usdConversionRate;
+  const usdConversionRate = usdConversionRateFromCurrencyRates ?? 0;
+
 
   const tokenAddress = safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
   const { value: decimals, pending } = useTokenDecimals(tokenAddress, networkClientId);
@@ -91,7 +93,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       // Native
       fiat = amount.times(nativeConversionRate);
       const usdAmount = amount.times(usdConversionRate);
-      usdValue = usdAmount.isZero() ? null : usdAmount.toFixed(2);
+      usdValue = usdConversionRateFromCurrencyRates ? null : usdAmount.toFixed(2);
       break;
     }
     case TransactionType.contractInteraction:
@@ -101,7 +103,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       fiat = amount.times(nativeConversionRate).times(contractExchangeRate);
 
       const usdAmount = amount.times(contractExchangeRate).times(usdConversionRate);
-      usdValue = usdAmount.isZero() ? null : usdAmount.toFixed(2);
+      usdValue = usdConversionRateFromCurrencyRates ? null : usdAmount.toFixed(2);
       break;
     }
     default: {

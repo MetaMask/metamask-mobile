@@ -29,7 +29,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
-          usdValue: '0.36',
+          usdValue: null,
         });
       });
     });
@@ -44,7 +44,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
-          usdValue: '0.36',
+          usdValue: null,
         });
       });
     });
@@ -59,7 +59,7 @@ describe('useTokenAmount', () => {
           amount: '0.001',
           amountPrecise: '0.001',
           fiat: '$3.60',
-          usdValue: '3.60',
+          usdValue: null,
         });
       });
     });
@@ -106,7 +106,7 @@ describe('ERC20 token transactions', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$539.44', // 0.1 * 3596.25 * 1.5
-        usdValue: '539.44',
+        usdValue: null,
       });
     });
   });
@@ -190,7 +190,7 @@ describe('ERC20 token transactions', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$719.25', // 0.1 * 3596.25 * 2.0
-        usdValue: '719.25', // 0.1 * 2.0 * 3596.25
+        usdValue: null,
       });
     });
   });
@@ -229,8 +229,7 @@ describe('Edge cases', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.usdValue).not.toBe(null);
-      expect(result.current.usdValue).toBe('0.00'); // Very small amounts round to '0.00'
+      expect(result.current.usdValue).toBe(null);
     });
   });
 
@@ -244,7 +243,7 @@ describe('Edge cases', () => {
         amount: '0.0001',
         amountPrecise: '0.0001',
         fiat: '$0.36',
-        usdValue: '0.36',
+        usdValue: null,
       });
     });
   });
@@ -279,6 +278,38 @@ describe('Edge cases', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$0',
+        usdValue: null,
+      });
+    });
+  });
+
+  it('calculates USD value when usdConversionRateFromCurrencyRates is not available', async () => {
+    const stateWithoutUsdRate = merge({}, transferConfirmationState, {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionDate: 1732887955.694,
+                conversionRate: 3596.25,
+                // No usdConversionRate property
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: stateWithoutUsdRate,
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        amount: '0.0001',
+        amountPrecise: '0.0001',
+        fiat: '$0.36',
         usdValue: null,
       });
     });
