@@ -114,7 +114,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
     }
 
     const result: BridgeToken[] = [];
-    const remainingTokens: BridgeToken[] = [];
+    const remainingTokensList: BridgeToken[] = [];
     const addedAddresses = new Set<string>();
     const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssets?.map((asset) => asset.address) || [];
 
@@ -152,7 +152,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
     if (result.length < MAX_TOP_TOKENS) {
       for (const token of Object.values(bridgeTokens)) {
         if (result.length >= MAX_TOP_TOKENS) {
-          remainingTokens.push(token);
+          remainingTokensList.push(token);
         } else {
           addTokenIfNotExists(token);
         }
@@ -161,7 +161,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
 
     return { 
       topTokens: result, 
-      remainingTokens
+      remainingTokens: remainingTokensList
     };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
