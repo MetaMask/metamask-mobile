@@ -34,6 +34,7 @@ const BatchApprovalRow = () => {
     return null;
   }
 
+  console.log('===========================', alertSelected);
   return (
     <>
       {approveBalanceChanges.map((balanceChange, index) => (
@@ -47,7 +48,7 @@ const BatchApprovalRow = () => {
         />
       ))}
       {alertSelected && (
-        <InlineAlert alert={alertSelected} style={InlineAlertStyle} />
+        <InlineAlert alertObj={alertSelected} style={InlineAlertStyle} />
       )}
     </>
   );
