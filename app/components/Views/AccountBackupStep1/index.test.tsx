@@ -9,6 +9,7 @@ import { fireEvent } from '@testing-library/react-native';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -29,6 +30,10 @@ jest.mock('../../../util/device', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   hasFunds: jest.fn(),
+}));
+
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
 }));
 
 describe('AccountBackupStep1', () => {
@@ -194,5 +199,66 @@ describe('AccountBackupStep1', () => {
 
     // Verify that goBack was called
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  describe('skip functionality', () => {
+    it('should handle skip when onboarding wizard exists', async () => {
+      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue({
+        someData: 'exists',
+      });
+
+      const { wrapper, mockNavigate } = setupTest();
+
+      // Find and press the "Remind me later" button
+      const remindLaterButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+      fireEvent.press(remindLaterButton);
+
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'RootModalFlow' &&
+          call[1].screen === 'SkipAccountSecurityModal',
+      )[1].params;
+
+      // Call the onConfirm function (skip)
+      await modalParams.onConfirm();
+
+      // Verify navigation to OnboardingSuccess
+      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+
+      // Verify onboarding wizard step was not set
+      expect(mockNavigate).not.toHaveBeenCalledWith('OnboardingSuccess', {
+        step: 1,
+      });
+    });
+
+    it('should handle skip when onboarding wizard does not exist', async () => {
+      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { wrapper, mockNavigate } = setupTest();
+
+      // Find and press the "Remind me later" button
+      const remindLaterButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+      fireEvent.press(remindLaterButton);
+
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'RootModalFlow' &&
+          call[1].screen === 'SkipAccountSecurityModal',
+      )[1].params;
+
+      // Call the onConfirm function (skip)
+      await modalParams.onConfirm();
+
+      // Verify navigation to OnboardingSuccess
+      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+    });
   });
 });
