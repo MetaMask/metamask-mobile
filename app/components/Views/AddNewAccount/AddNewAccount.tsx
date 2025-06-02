@@ -59,11 +59,17 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const [keyringId, setKeyringId] = useState<string>(
-    // This is safe because it is added by the accounts controller now since 29.0.1
-    selectedInternalAccount!.options.entropySource as string,
-  );
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const [primaryKeyringId] = hdKeyrings;
+  const initialKeyringIdToUse = useMemo(() => {
+    // The accounts controller now adds the entropySource to to hd accounts since 29.0.1
+    // if it is not a hd account, we use the primary keyring id
+    return (
+      (selectedInternalAccount!.options.entropySource as string) ??
+      primaryKeyringId.metadata.id
+    );
+  }, [selectedInternalAccount, primaryKeyringId]);
+  const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
   const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
