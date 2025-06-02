@@ -21,9 +21,9 @@ export function parseApprovalTransactionData(data: Hex):
     }
   | undefined {
   const transactionDescription = parseStandardTokenTransactionData(data);
-  const { args, name } = transactionDescription ?? {};
+  const { args, name } = transactionDescription ?? { name: '' };
 
-  if (!APPROVALS_LIST.includes(name ?? '') || !name) {
+  if (!APPROVALS_LIST.includes(name)) {
     return undefined;
   }
 
