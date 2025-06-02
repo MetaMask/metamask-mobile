@@ -1551,7 +1551,7 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 
                 # Now build the test APK
-                cd android && ./gradlew assembleDebugAndroidTest && cd ..
+                cd android && GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs='-Xmx6g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8'" ./gradlew --no-daemon assembleDebugAndroidTest && cd ..
       - script@1:
           title: Verify outputs directory
           is_always_run: true
