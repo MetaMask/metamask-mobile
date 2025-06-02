@@ -11,6 +11,12 @@ import {
   validateOriginThrottling,
 } from './spam';
 
+jest.mock('../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
+
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
 const SCAM_ORIGIN_MOCK = 'scam.origin';
 const RPC_REQUEST_MOCK = {
@@ -168,7 +174,6 @@ describe('utils', () => {
           },
         },
       });
-      NavigationService.navigation = { navigate: jest.fn() };
       const error = new Error('User rejected request');
       processOriginThrottlingRejection({
         req: RPC_REQUEST_MOCK,

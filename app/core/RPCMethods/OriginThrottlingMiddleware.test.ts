@@ -14,16 +14,14 @@ jest.mock('./spam', () => ({
 const jsonrpc = '2.0' as const;
 
 describe('createOriginThrottlingMiddleware', () => {
-  const mockNavigation = { navigate: jest.fn() };
-
   it('returns a middleware function', async () => {
-    const middleware = createOriginThrottlingMiddleware(mockNavigation);
+    const middleware = createOriginThrottlingMiddleware();
     expect(middleware).toBeDefined();
   });
 
   it('middleware invoked function validateOriginThrottling for all requests', async () => {
     const engine = new JsonRpcEngine();
-    const middleware = createOriginThrottlingMiddleware(mockNavigation);
+    const middleware = createOriginThrottlingMiddleware();
     engine.push(middleware);
 
     await engine.handle({
@@ -37,7 +35,7 @@ describe('createOriginThrottlingMiddleware', () => {
 
   it('middleware does not invoked function processOriginThrottlingRejection if response is successful', async () => {
     const engine = new JsonRpcEngine();
-    const middleware = createOriginThrottlingMiddleware(mockNavigation);
+    const middleware = createOriginThrottlingMiddleware();
     engine.push(middleware);
     const nextMiddleware = jest
       .fn()
@@ -58,7 +56,7 @@ describe('createOriginThrottlingMiddleware', () => {
 
   it('middleware invoked function processOriginThrottlingRejection if response has error', async () => {
     const engine = new JsonRpcEngine();
-    const middleware = createOriginThrottlingMiddleware(mockNavigation);
+    const middleware = createOriginThrottlingMiddleware();
     engine.push(middleware);
     const nextMiddleware = jest
       .fn()
