@@ -12,15 +12,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 // QRAccountDisplay is mocked because it uses the safeview context.
 // This is a workaround to render the component.
 jest.mock('../../../QRAccountDisplay', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const actualReact = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View, Text, TouchableOpacity } = require('react-native');
+  const actualReact = jest.requireActual('react');
+  const {
+    View,
+    Text,
+    TouchableOpacity: RNTouchableOpacity,
+  } = jest.requireActual('react-native');
 
   return function MockQRAccountDisplay({
     accountAddress,
@@ -47,7 +48,7 @@ jest.mock('../../../QRAccountDisplay', () => {
         accountAddress,
       ),
       actualReact.createElement(
-        TouchableOpacity,
+        RNTouchableOpacity,
         {
           onPress: handleCopy,
           testID: 'qr-account-display-copy-button',
@@ -61,7 +62,6 @@ jest.mock('../../../QRAccountDisplay', () => {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 let mockAccount = internalAccount1;
-('0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272');
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -137,9 +137,8 @@ jest.mock('../../../../../core/Engine', () => {
 
 // Mock QRCode component to render something visible
 jest.mock('react-native-qrcode-svg', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const actualReact = require('react');
-  const { Text } = require('react-native');
+  const actualReact = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
   return function MockQRCode({ value }: { value: string }) {
     return actualReact.createElement(
       Text,
@@ -151,8 +150,7 @@ jest.mock('react-native-qrcode-svg', () => {
 
 // Mock ToastContext to prevent context errors in QRAccountDisplay
 jest.mock('../../../../../component-library/components/Toast', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const actualReact = require('react');
+  const actualReact = jest.requireActual('react');
   return {
     ToastContext: actualReact.createContext({
       toastRef: { current: null },
@@ -230,7 +228,9 @@ describe('ShareAddress', () => {
     );
 
     expect(backButton).toBeTruthy();
-    fireEvent.press(backButton!);
+    if (backButton) {
+      fireEvent.press(backButton);
+    }
     expect(mockGoBack).toHaveBeenCalled();
   });
 
