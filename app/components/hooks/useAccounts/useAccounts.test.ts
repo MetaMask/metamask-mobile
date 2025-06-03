@@ -39,7 +39,7 @@ const MOCK_ACCOUNT_1: Account = {
   },
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
-  isLoading: false,
+  isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
@@ -52,7 +52,7 @@ const MOCK_ACCOUNT_2: Account = {
   },
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
-  isLoading: false,
+  isLoadingAccount: false,
 };
 
 const MOCK_STORE_STATE = {

@@ -234,7 +234,7 @@ const EvmAccountSelectorList = ({
         type,
         isSelected,
         balanceError,
-        isLoading: isLoadingAccount,
+        isLoadingAccount,
       },
       index,
     }) => {

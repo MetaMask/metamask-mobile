@@ -57,7 +57,7 @@ const mockAccounts = [
     yOffset: 0,
     isSelected: false,
     caipAccountId: 'eip155:0:0x1234' as const,
-    isLoading: false,
+    isLoadingAccount: false,
   },
   {
     address: '0x5678',
@@ -67,7 +67,7 @@ const mockAccounts = [
     yOffset: 0,
     isSelected: false,
     caipAccountId: 'eip155:0:0x5678' as const,
-    isLoading: false,
+    isLoadingAccount: false,
   },
 ];
 

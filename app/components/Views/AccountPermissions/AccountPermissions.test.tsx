@@ -49,7 +49,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
-    isLoading: false,
+    isLoadingAccount: false,
   },
   {
     name: MOCK_EVM_ACCOUNT_2_NAME,
@@ -63,7 +63,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
-    isLoading: false,
+    isLoadingAccount: false,
   },
 ];
 

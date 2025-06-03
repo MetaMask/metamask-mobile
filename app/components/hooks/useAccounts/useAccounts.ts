@@ -121,7 +121,7 @@ const useAccounts = ({
       {
         displayBalance: string;
         balanceError: string | undefined;
-        isLoading: boolean;
+        isLoadingAccount: boolean;
       }
     > = {};
 
@@ -139,7 +139,7 @@ const useAccounts = ({
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,
-        isLoading: balanceForAccount.isLoading,
+        isLoadingAccount: balanceForAccount.isLoadingAccount,
       };
     });
 
@@ -184,7 +184,7 @@ const useAccounts = ({
           balanceError: accountBalance.balanceError,
           // This only works for EOAs
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
-          isLoading: accountBalance.isLoading,
+          isLoadingAccount: accountBalance.isLoadingAccount,
         };
         // Calculate height of the account item.
         yOffset += 78;

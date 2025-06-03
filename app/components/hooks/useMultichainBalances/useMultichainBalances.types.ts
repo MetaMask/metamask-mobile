@@ -12,7 +12,7 @@ export interface MultichainBalancesData {
   shouldShowAggregatedPercentage: boolean;
   isPortfolioVieEnabled: boolean;
   aggregatedBalance: AggregatedPercentageProps;
-  isLoading: boolean;
+  isLoadingAccount: boolean;
 }
 
 export interface UseAllAccountsMultichainBalancesHook {

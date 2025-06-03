@@ -58,7 +58,7 @@ export interface Account {
   /**
    * Boolean that indicates if the account is loading.
    */
-  isLoading: boolean;
+  isLoadingAccount: boolean;
 }
 
 /**

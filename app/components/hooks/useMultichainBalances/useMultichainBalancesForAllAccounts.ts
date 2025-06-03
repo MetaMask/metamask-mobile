@@ -113,7 +113,8 @@ const useMultichainBalancesForAllAccounts =
           isPortfolioVieEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(account),
           // if the totalNativeTokenBalance is undefined, it means that the account is loading
-          isLoading: accountBalanceData.totalNativeTokenBalance === undefined,
+          isLoadingAccount:
+            accountBalanceData.totalNativeTokenBalance === undefined,
         };
       }
 

@@ -35,7 +35,7 @@ const mockAccount: Account = {
   yOffset: 0,
   isSelected: true,
   caipAccountId: `eip155:0:${internalAccount2.address}`,
-  isLoading: false,
+  isLoadingAccount: false,
 };
 
 jest.mock('../../../core/Engine', () => {
