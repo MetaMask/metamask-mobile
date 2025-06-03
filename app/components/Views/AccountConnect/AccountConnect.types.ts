@@ -1,5 +1,6 @@
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { ImageSourcePropType } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import {
   AvatarSize,
   AvatarVariant,
@@ -17,7 +18,12 @@ export enum AccountConnectScreens {
 
 export interface AccountConnectParams {
   hostInfo: {
-    metadata: { origin: string; id: string, isEip1193Request?: boolean, promptToCreateSolanaAccount?: boolean };
+    metadata: {
+      origin: string;
+      id: string;
+      isEip1193Request?: boolean;
+      promptToCreateSolanaAccount?: boolean;
+    };
     permissions: RequestedPermissions;
   };
   permissionRequestId: string;
@@ -40,4 +46,5 @@ export interface NetworkAvatarProps {
   name: string;
   imageSource: ImageSourcePropType;
   variant: AvatarVariant;
+  caipChainId: CaipChainId;
 }

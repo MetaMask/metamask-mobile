@@ -177,13 +177,19 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
+      // otherwise, if we have supported requested CAIP chain IDs, use those
     } else if (supportedRequestedCaipChainIds.length > 0) {
       return supportedRequestedCaipChainIds;
     }
     // otherwise, use all available networks
     return allNetworksList;
-  }, [isEip1193Request, allNetworksList, isOriginWalletConnect, isOriginMMSDKRemoteConn, supportedRequestedCaipChainIds]);
+  }, [
+    isEip1193Request,
+    allNetworksList,
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    supportedRequestedCaipChainIds,
+  ]);
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
     defaultSelectedChainIds,
@@ -196,6 +202,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         name: networkConfigurations[selectedChainId]?.name || '',
         imageSource: getNetworkImageSource({ chainId: selectedChainId }),
         variant: AvatarVariant.Network,
+        caipChainId: selectedChainId,
       })),
     [networkConfigurations, selectedChainIds],
   );
@@ -707,12 +714,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-        ...selectedAccount,
-        name:
-          isDefaultAccountName(selectedAccount.name) && ensName
-            ? ensName
-            : selectedAccount.name,
-      }
+          ...selectedAccount,
+          name:
+            isDefaultAccountName(selectedAccount.name) && ensName
+              ? ensName
+              : selectedAccount.name,
+        }
       : undefined;
     return (
       <AccountConnectSingle

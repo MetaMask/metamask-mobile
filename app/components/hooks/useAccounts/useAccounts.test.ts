@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 
@@ -38,7 +39,8 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
+  scopes: [EthScope.Eoa],
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
@@ -50,7 +52,8 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`
+  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
+  scopes: [EthScope.Eoa],
 };
 
 const MOCK_STORE_STATE = {
@@ -142,5 +145,13 @@ describe('useAccounts', () => {
       await waitForNextUpdate();
     });
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
+  });
+
+  it('return scopes for evm accounts', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+    expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
   });
 });

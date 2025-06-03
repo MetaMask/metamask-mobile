@@ -357,46 +357,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 "flexDirection": "row",
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
-                              testID="avatargroup-avatar-container-0"
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                          </View>
+                          />
                         </View>
                       </View>
                     </View>
@@ -3430,46 +3391,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                 "flexDirection": "row",
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
-                              testID="avatargroup-avatar-container-0"
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                          </View>
+                          />
                         </View>
                       </View>
                     </View>
