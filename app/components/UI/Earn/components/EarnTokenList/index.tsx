@@ -42,6 +42,7 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
+import BN4 from 'bnjs4';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -206,6 +207,34 @@ const EarnTokenList = () => {
     [earnTokens],
   );
 
+  const tokensSortedByHighestYield = useMemo(() => {
+    if (!tokens?.length) return [];
+
+    const tokensWithoutBalance: EarnTokenDetails[] = [];
+    const tokensWithBalance: EarnTokenDetails[] = [];
+
+    tokens?.forEach((token) => {
+      const hasTokenBalance = new BN4(token.balanceMinimalUnit).gt(new BN4(0));
+
+      if (hasTokenBalance) {
+        tokensWithBalance.push(token);
+        return;
+      }
+
+      tokensWithoutBalance.push(token);
+    });
+
+    const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
+      [...tokensToSort].sort(
+        (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
+      );
+
+    return [
+      ...sortByHighestApr(tokensWithBalance),
+      ...sortByHighestApr(tokensWithoutBalance),
+    ];
+  }, [tokens]);
+
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
@@ -224,7 +253,7 @@ const EarnTokenList = () => {
                 variant={UPSELL_BANNER_VARIANTS.HEADER}
               />
             )}
-            {tokens?.map(
+            {tokensSortedByHighestYield?.map(
               (token) =>
                 token?.chainId && (
                   <View
