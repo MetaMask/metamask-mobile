@@ -4644,17 +4644,6 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/foundryup@0.0.0-preview-de21a3fe":
-  version "0.0.0-preview-de21a3fe"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/foundryup/-/foundryup-0.0.0-preview-de21a3fe.tgz#91944186ccbd07996d1797758fc6af9e5c12c08d"
-  integrity sha512-6f5i/H4dVpgaUMTkvcCXx/4IvQdzn7HLmtb5l8UGHWPjJj+EBPtpehBRiwr1qM+OMd8yjUWtsrLqBO7Kd67SEg==
-  dependencies:
-    minipass "^7.1.2"
-    tar "^7.4.3"
-    unzipper "^0.12.3"
-    yargs "^17.7.2"
-    yargs-parser "^21.1.1"
-
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
@@ -5177,6 +5166,17 @@
   dependencies:
     is-hex-prefixed "1.0.0"
     strip-hex-prefix "1.0.0"
+
+"@metamask/foundryup@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/foundryup/-/foundryup-1.0.0.tgz#379e85ed4db43d3084f04c0b7dda08595050cd17"
+  integrity sha512-LrFr6WdAhYaeWEWONZFmW7RlkrLFVPeQqVCSSqhEP+5NlZA6QrYrSTS8APgybxNN6iwaN/4FNCfnMDPNSC2YUA==
+  dependencies:
+    minipass "^7.1.2"
+    tar "^7.4.3"
+    unzipper "^0.12.3"
+    yargs "^17.7.2"
+    yargs-parser "^21.1.1"
 
 "@metamask/gas-fee-controller@^23.0.0":
   version "23.0.0"
