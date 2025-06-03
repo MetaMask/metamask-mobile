@@ -16,6 +16,7 @@ const styleSheet = () =>
       flexDirection: 'column',
     },
     balanceLabel: { textAlign: 'right', fontWeight: '500' },
+    titleText: { fontWeight: '500' },
   });
 
 export default styleSheet;
