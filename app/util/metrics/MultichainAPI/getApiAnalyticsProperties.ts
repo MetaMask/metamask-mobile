@@ -1,5 +1,5 @@
-import { MESSAGE_TYPE } from '../../createTracingMiddleware';
-import { MetaMetricsRequestedThrough } from '../MetaMetrics.types';
+import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
+import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics.types';
 
 /**
  * Returns analytics data based on whether the request is multichain or not.
@@ -9,7 +9,7 @@ import { MetaMetricsRequestedThrough } from '../MetaMetrics.types';
  * @property {MetaMetricsRequestedThrough} api_source - The API source (MultichainApi or EthereumProvider)
  * @property {MESSAGE_TYPE} method - The method type (ETH_REQUEST_ACCOUNTS or WALLET_CREATE_SESSION)
  */
-export function getApiAnalytics(isMultichainRequest: boolean) {
+export function getApiAnalyticsProperties(isMultichainRequest: boolean) {
   const api = isMultichainRequest
     ? MetaMetricsRequestedThrough.MultichainApi
     : MetaMetricsRequestedThrough.EthereumProvider;

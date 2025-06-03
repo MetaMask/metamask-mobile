@@ -96,17 +96,17 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import {
-  Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
+  getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
-import { getApiAnalytics } from '../../../core/Analytics/helpers/getApiAnalytics';
+import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -389,10 +389,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
-      const chainIds = Object.keys(
-        hostInfo.permissions[Caip25EndowmentPermissionName]?.caveats?.find(
-          ({ type }) => type === Caip25CaveatType,
-        )?.value?.optionalScopes ?? {},
+      const chainIds = getAllScopesFromPermission(
+        hostInfo.permissions[Caip25EndowmentPermissionName],
       );
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
@@ -404,7 +402,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             source: eventSource,
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
-            ...getApiAnalytics(isMultichainRequest),
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );
@@ -513,7 +511,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             source: eventSource,
             chain_id_list: selectedChainIds,
             referrer: request.metadata.origin,
-            ...getApiAnalytics(isMultichainRequest),
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );

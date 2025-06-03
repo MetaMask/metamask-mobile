@@ -7,7 +7,6 @@ import {
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { RestrictedMethods } from '../../../core/Permissions/constants';
 
 /**
  * Enum to track states of the connect screen.
@@ -28,14 +27,11 @@ export interface AccountConnectParams {
       promptToCreateSolanaAccount?: boolean;
     };
     permissions: {
-      [Caip25EndowmentPermissionName]?: {
+      [Caip25EndowmentPermissionName]: {
         parentCapability: string;
-        caveats: [{ type: string; value: Caip25CaveatValue }] | null;
+        caveats: [{ type: string; value: Caip25CaveatValue }];
       };
-      [RestrictedMethods.eth_accounts]?: {
-        parentCapability: string;
-      };
-    };
+    } & Record<string, unknown>;
   };
   permissionRequestId: string;
 }

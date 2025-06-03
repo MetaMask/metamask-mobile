@@ -8,10 +8,10 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
-  Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
-import { getApiAnalytics } from '../../../core/Analytics/helpers/getApiAnalytics';
+import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -51,10 +51,8 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
-    const chainIds = Object.keys(
-      requestData.permissions[Caip25EndowmentPermissionName]?.caveats?.find(
-        ({ type }: { type: string }) => type === Caip25CaveatType,
-      )?.value?.optionalScopes ?? {},
+    const chainIds = getAllScopesFromPermission(
+      requestData.permissions[Caip25EndowmentPermissionName],
     );
 
     const isMultichainRequest =
@@ -66,7 +64,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
           number_of_accounts: totalAccounts,
           source: eventSource,
           chain_id_list: chainIds,
-          ...getApiAnalytics(isMultichainRequest),
+          ...getApiAnalyticsProperties(isMultichainRequest),
         })
         .build(),
     );
