@@ -190,7 +190,6 @@ export const useBatchedUnusedApprovalsAlert = () => {
     return getTokensWithDecrease(simulationDataArray);
   }, [simulationDataArray]);
 
-  console.log('======================', approvals, tokenOutflows);
   const unusedApprovals = useMemo(() => {
     if (!approvals) {
       return [];
@@ -208,7 +207,7 @@ export const useBatchedUnusedApprovalsAlert = () => {
 
     return [
       {
-        isBlocking: true,
+        isBlocking: false,
         field: RowAlertKey.BatchedApprovals,
         key: AlertKeys.BatchedUnusedApprovals,
         message: strings('alert_system.batched_unused_approvals.message'),

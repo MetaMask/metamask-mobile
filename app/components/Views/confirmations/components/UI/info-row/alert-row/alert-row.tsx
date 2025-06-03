@@ -43,7 +43,7 @@ const AlertRow = ({
   };
 
   const inlineAlert = alertSelected ? (
-    <InlineAlert alert={alertSelected} />
+    <InlineAlert alertObj={alertSelected} />
   ) : null;
 
   return (

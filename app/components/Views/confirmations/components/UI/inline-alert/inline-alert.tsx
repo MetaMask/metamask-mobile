@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
@@ -52,12 +52,12 @@ export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const severity = alertObj.severity ?? Severity.Info;
 
-  const handleInlineAlertClick = () => {
+  const handleInlineAlertClick = useCallback(() => {
     if (!alertObj) return;
     setAlertKey(alertObj.key);
     showAlertModal();
     trackInlineAlertClicked(alertObj.field);
-  };
+  }, [alertObj, setAlertKey, showAlertModal, trackInlineAlertClicked]);
 
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
