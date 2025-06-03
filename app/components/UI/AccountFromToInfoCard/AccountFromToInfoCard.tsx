@@ -11,7 +11,10 @@ import {
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { safeToChecksumAddress } from '../../../util/address';
+import {
+  safeToChecksumAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
@@ -19,7 +22,6 @@ import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../util/general';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
@@ -66,7 +68,9 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         }
       } else {
         const accountWithMatchingFromAddress = internalAccounts.find(
-          (account) => toLowerCaseEquals(account.address, fromAddress),
+          (account) =>
+            toFormattedAddress(account.address) ===
+            toFormattedAddress(fromAddress),
         );
 
         const newName = accountWithMatchingFromAddress
@@ -103,8 +107,10 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
           setToAccountName(toEns);
         }
       } else {
-        const accountWithMatchingToAddress = internalAccounts.find((account) =>
-          toLowerCaseEquals(account.address, toAddress),
+        const accountWithMatchingToAddress = internalAccounts.find(
+          (account) =>
+            toFormattedAddress(account.address) ===
+            toFormattedAddress(toAddress),
         );
 
         const newName = accountWithMatchingToAddress
@@ -171,7 +177,11 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     <View style={styles.container}>
       {fromAddress && (
         <AddressFrom
-          chainId={isPerDappSelectedNetworkEnabled() ? transactionState?.chainId : undefined}
+          chainId={
+            isPerDappSelectedNetworkEnabled()
+              ? transactionState?.chainId
+              : undefined
+          }
           asset={selectedAsset}
           from={fromAddress}
           origin={origin}

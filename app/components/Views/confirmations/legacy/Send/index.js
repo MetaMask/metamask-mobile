@@ -36,7 +36,7 @@ import {
   generateTransferData,
 } from '../../../../../util/transactions';
 import Logger from '../../../../../util/Logger';
-import { getAddress } from '../../../../../util/address';
+import { getAddress, toFormattedAddress } from '../../../../../util/address';
 import { MAINNET } from '../../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -427,8 +427,10 @@ class Send extends PureComponent {
     }
 
     newTxMeta.from = selectedAddress;
-    const fromAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, selectedAddress),
+    const fromAccount = internalAccounts.find(
+      (account) =>
+        toFormattedAddress(account.address) ===
+        toFormattedAddress(selectedAddress),
     );
     newTxMeta.transactionFromName = fromAccount.metadata.name;
     this.props.setTransactionObject(newTxMeta);
