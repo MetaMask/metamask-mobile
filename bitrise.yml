@@ -972,7 +972,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      # - install_foundry
+      - install_foundry
     after_run:
       - notify_failure
     steps:
@@ -1067,7 +1067,7 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
-      # - install_foundry
+      - install_foundry
     after_run:
       - notify_failure
     steps:
@@ -1222,7 +1222,7 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
-      # - install_foundry
+      - install_foundry
     after_run:
       - notify_failure
     steps:
