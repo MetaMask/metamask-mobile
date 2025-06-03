@@ -56,7 +56,7 @@ describe(Regression('Monad Testnet Network - Signing Flows'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withMonadTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x279f']),
           )
@@ -84,7 +84,7 @@ describe(Regression('Monad Testnet Network - Signing Flows'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withMonadTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x279f']),
           )
@@ -111,7 +111,7 @@ describe(Regression('Monad Testnet Network - Signing Flows'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withMonadTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x279f']),
           )
