@@ -150,12 +150,30 @@ const AccountConnect = (props: AccountConnectProps) => {
     (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
   );
 
+  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
+
+  const { origin: channelIdOrHostname } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
+  const isChannelId = isUUID(channelIdOrHostname);
+
+  const sdkConnection = SDKConnect.getInstance().getConnection({
+    channelId: channelIdOrHostname,
+  });
+
+  const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
+
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
   const { isEip1193Request } = hostInfo.metadata;
 
   const defaultSelectedChainIds = useMemo(() => {
-    // For EIP-1193 requests (injected Ethereum provider requests),
+    // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
     // we only want to show EIP-155 (Ethereum) compatible chains
-    if (isEip1193Request) {
+    if (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
@@ -165,7 +183,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
     // otherwise, use all available networks
     return allNetworksList;
-  }, [isEip1193Request, allNetworksList, supportedRequestedCaipChainIds]);
+  }, [isEip1193Request, allNetworksList, isOriginWalletConnect, isOriginMMSDKRemoteConn, supportedRequestedCaipChainIds]);
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
     defaultSelectedChainIds,
@@ -238,27 +256,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
-
-  const { origin: channelIdOrHostname } = hostInfo.metadata as {
-    id: string;
-    origin: string;
-    promptToCreateSolanaAccount?: boolean;
-  };
-
-  // TODO: use this value to show Solana Opt In Flow
-  // const promptToCreateSolanaAccount = hostInfo.metadata.promptToCreateSolanaAccount;
-
-  const isChannelId = isUUID(channelIdOrHostname);
-
-  const sdkConnection = SDKConnect.getInstance().getConnection({
-    channelId: channelIdOrHostname,
-  });
-
-  const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
-
-  const isOriginWalletConnect =
-    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -470,7 +467,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
-    
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
@@ -710,12 +707,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
+        ...selectedAccount,
+        name:
+          isDefaultAccountName(selectedAccount.name) && ensName
+            ? ensName
+            : selectedAccount.name,
+      }
       : undefined;
     return (
       <AccountConnectSingle

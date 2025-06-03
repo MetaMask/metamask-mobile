@@ -184,10 +184,7 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [
-      selectedAddress,
-      keyringId,
-    ],
+    [selectedAddress, keyringId],
   );
 
   useEffect(() => {
@@ -582,8 +579,8 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = (privCredentialName: string) => (
-    <View style={styles.warningWrapper}>
-      <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
+    <View style={[styles.rowWrapper, styles.warningWrapper]}>
+      <View style={[styles.warningRowWrapper]}>
         <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>

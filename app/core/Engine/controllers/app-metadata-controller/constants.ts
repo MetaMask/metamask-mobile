@@ -1,6 +1,5 @@
-import type { AppMetadataControllerState } from '@metamask/app-metadata-controller';
+import { AppMetadataControllerState } from '@metamask/app-metadata-controller';
 
-// Default AppMetadataControllerState
 export const defaultAppMetadataControllerState: AppMetadataControllerState = {
   currentAppVersion: '',
   previousAppVersion: '',

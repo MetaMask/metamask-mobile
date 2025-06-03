@@ -34,8 +34,10 @@ if (typeof global.self === 'undefined') {
 if (typeof __dirname === 'undefined') global.__dirname = '/';
 if (typeof __filename === 'undefined') global.__filename = '';
 if (typeof process === 'undefined') {
+  // Polyfill process if it's not available
   global.process = require('process');
 } else {
+  // Merge polyfill with process without overriding existing properties
   const bProcess = require('process');
   for (const p in bProcess) {
     if (!(p in process)) {
@@ -55,10 +57,6 @@ if (typeof localStorage !== 'undefined') {
   // eslint-disable-next-line no-undef
   localStorage.debug = isDev ? '*' : '';
 }
-
-// If using the crypto shim, uncomment the following line to ensure
-// crypto is loaded first, so it can populate global.crypto
-// require('crypto')
 
 if (enableApiCallLogs || isTest) {
   (async () => {

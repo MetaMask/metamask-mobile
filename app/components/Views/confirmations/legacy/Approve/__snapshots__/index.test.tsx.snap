@@ -808,7 +808,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                   [
                                                     [
                                                       {
-                                                        "borderRadius": 100,
+                                                        "borderRadius": 12,
                                                         "justifyContent": "center",
                                                         "padding": 15,
                                                       },
@@ -869,7 +869,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                   [
                                                     [
                                                       {
-                                                        "borderRadius": 100,
+                                                        "borderRadius": 12,
                                                         "justifyContent": "center",
                                                         "padding": 15,
                                                       },

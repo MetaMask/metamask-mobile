@@ -12,7 +12,7 @@ import { useFeeCalculations } from './useFeeCalculations';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { useGasFeeEstimateLevelOptions } from './useGasFeeEstimateLevelOptions';
-import '../../utils/time'
+import '../../utils/time';
 
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../utils/time', () => ({

@@ -277,6 +277,17 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
+ * judge address is a private key account or not
+ *
+ * @param {InternalAccount} account - InternalAccount object
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isPrivateKeyAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === KeyringTypes.simple;
+}
+
+
+/**
  * Checks if an address is an ethereum one.
  *
  * @param address - An address.
@@ -719,7 +730,7 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  const { standard, name, symbol, decimals } = tokenData;
+  const { standard, name, symbol, decimals, balance } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
@@ -731,6 +742,7 @@ export const getTokenDetails = async (
     symbol,
     decimals,
     standard,
+    balance,
   };
 };
 

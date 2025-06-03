@@ -34,7 +34,8 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+
+import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -48,6 +49,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { useFocusEffect } from '@react-navigation/native';
+import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
@@ -101,6 +103,17 @@ const homePageUrl = useCallback(
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+  const newTab = useCallback((url, linkType) => {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else {
+      const newTabUrl = isTokenDiscoveryBrowserEnabled() ? undefined : url || homePageUrl();
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(newTabUrl, linkType);
+    }
+  }, [tabs, navigation, createNewTab, homePageUrl]);
+
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -129,19 +142,6 @@ const homePageUrl = useCallback(
     }, [toastRef, currentSelectedAccount]),
   );
   ///: END:ONLY_INCLUDE_IF
-
-  const newTab = useCallback(
-    (url, linkType) => {
-      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
-      if (tabs.length >= MAX_BROWSER_TABS) {
-        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-      } else {
-        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(url || homePageUrl(), linkType);
-      }
-    },
-    [tabs, navigation, homePageUrl, createNewTab],
-  );
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -208,12 +208,12 @@ const homePageUrl = useCallback(
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
-      const permittedAccounts = getPermittedAccounts(hostnameForToastCheck);
-      const activeAccountAddress = permittedAccounts?.[0];
+      const permittedEvmAccounts = getPermittedAccounts(hostnameForToastCheck);
+      const activeAccountAddress = permittedEvmAccounts?.[0];
 
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
-          accountAddress: activeAccountAddress,
+          caipAccountId: `eip155:0:${activeAccountAddress}`,
           accounts,
           ensByAccountAddress,
         });
@@ -407,9 +407,10 @@ const homePageUrl = useCallback(
       tabs
         .filter((tab) => !tab.isArchived)
         .map((tab) => (
+          (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
           <BrowserTab
-            id={tab.id}
             key={`tab_${tab.id}`}
+            id={tab.id}
             initialUrl={tab.url}
             linkType={tab.linkType}
             updateTabInfo={updateTabInfo}
@@ -417,7 +418,15 @@ const homePageUrl = useCallback(
             newTab={newTab}
             isInTabsView={shouldShowTabs}
             homePageUrl={homePageUrl()}
-          />
+          />) : (
+            <DiscoveryTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              showTabs={showTabsView}
+              newTab={newTab}
+              updateTabInfo={updateTabInfo}
+            />
+          )
         )),
     [
       tabs,

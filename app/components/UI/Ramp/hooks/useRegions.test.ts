@@ -8,7 +8,11 @@ type DeepPartial<BaseType> = {
 };
 
 const mockUseRampSDKInitialValues: DeepPartial<RampSDK> = {
-  selectedRegion: { id: 'test-region-id', unsupported: false },
+  selectedRegion: {
+    id: 'test-region-id',
+    unsupported: false,
+    support: { buy: true, sell: true },
+  },
   setSelectedRegion: jest.fn(),
   unsupportedRegion: undefined,
   setUnsupportedRegion: jest.fn(),
@@ -75,10 +79,13 @@ describe('useRegions', () => {
     expect(result.current).toEqual({
       data: null,
       isFetching: true,
-      isDetecting: false,
       error: null,
       query: mockQueryGetCountries,
-      selectedRegion: { id: 'test-region-id', unsupported: false },
+      selectedRegion: {
+        id: 'test-region-id',
+        unsupported: false,
+        support: { sell: true, buy: true },
+      },
       unsupportedRegion: undefined,
       clearUnsupportedRegion: expect.any(Function),
     });
@@ -99,10 +106,13 @@ describe('useRegions', () => {
     expect(result.current).toEqual({
       data: null,
       isFetching: false,
-      isDetecting: false,
       error: 'error-fetching-regions',
       query: mockQueryGetCountries,
-      selectedRegion: { id: 'test-region-id', unsupported: false },
+      selectedRegion: {
+        id: 'test-region-id',
+        unsupported: false,
+        support: { sell: true, buy: true },
+      },
       unsupportedRegion: undefined,
       clearUnsupportedRegion: expect.any(Function),
     });
@@ -114,8 +124,16 @@ describe('useRegions', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
         data: [
-          { id: 'detected-1', detected: true },
-          { id: 'region-2', detected: false },
+          {
+            id: 'detected-1',
+            detected: true,
+            support: { buy: true, sell: true },
+          },
+          {
+            id: 'region-2',
+            detected: false,
+            support: { buy: true, sell: true },
+          },
         ],
         error: null,
         isFetching: false,
@@ -127,6 +145,7 @@ describe('useRegions', () => {
     expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith({
       id: 'detected-1',
       detected: true,
+      support: { buy: true, sell: true },
     });
   });
 
@@ -140,9 +159,18 @@ describe('useRegions', () => {
             id: 'country-1',
             detected: true,
             states: [
-              { id: 'state-1', detected: false },
-              { id: 'state-2', detected: true },
+              {
+                id: 'state-1',
+                detected: false,
+                support: { buy: true, sell: true },
+              },
+              {
+                id: 'state-2',
+                detected: true,
+                support: { buy: true, sell: true },
+              },
             ],
+            support: { buy: true, sell: true },
           },
           { id: 'region-2', detected: false },
         ],
@@ -156,6 +184,7 @@ describe('useRegions', () => {
     expect(mockUseRampSDKValues.setSelectedRegion).toHaveBeenCalledWith({
       id: 'state-2',
       detected: true,
+      support: { buy: true, sell: true },
     });
   });
 
@@ -168,8 +197,16 @@ describe('useRegions', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
         data: [
-          { id: 'unsupported-region', unsupported: true },
-          { id: 'region-2', unsupported: false },
+          {
+            id: 'unsupported-region',
+            unsupported: true,
+            support: { buy: false, sell: false },
+          },
+          {
+            id: 'region-2',
+            unsupported: false,
+            support: { buy: true, sell: true },
+          },
         ],
         error: null,
         isFetching: false,
@@ -182,6 +219,7 @@ describe('useRegions', () => {
     expect(mockUseRampSDKValues.setUnsupportedRegion).toHaveBeenCalledWith({
       id: 'unsupported-region',
       unsupported: true,
+      support: { buy: false, sell: false },
     });
   });
 
@@ -191,6 +229,7 @@ describe('useRegions', () => {
     mockUseRampSDKValues.selectedRegion = {
       id: 'unsupported-sell-region',
       unsupported: false,
+      support: { buy: true, sell: true },
     };
     const mockQueryGetCountries = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
@@ -220,6 +259,7 @@ describe('useRegions', () => {
     mockUseRampSDKValues.selectedRegion = {
       id: 'unsupported-buy-region',
       unsupported: false,
+      support: { sell: true, buy: true },
     };
     const mockQueryGetCountries = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([

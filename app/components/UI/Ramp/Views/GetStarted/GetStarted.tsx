@@ -30,7 +30,7 @@ const GetStarted: React.FC = () => {
     isBuy,
     setIntent,
   } = useRampSDK();
-  const { selectedRegion, isDetecting } = useRegions();
+  const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
   const params = useParams<RampIntent>();
@@ -99,7 +99,6 @@ const GetStarted: React.FC = () => {
         return;
       }
 
-      if (isDetecting) return;
       if (selectedRegion) {
         navigation.reset({
           index: 0,
@@ -117,10 +116,7 @@ const GetStarted: React.FC = () => {
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    // omitting isDetecting because it will trigger a re-render that we don't want
-    // isDetecting,
     getStarted,
     isNetworkRampSupported,
     navigation,

@@ -452,3 +452,5 @@ export const TokenListItem = React.memo(
     );
   },
 );
+
+TokenListItem.displayName = 'TokenListItem';

@@ -20,12 +20,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AppMetadataController": {
-    "currentAppVersion": "",
-    "currentMigrationVersion": 0,
-    "previousAppVersion": "",
-    "previousMigrationVersion": 0
-  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -170,6 +164,7 @@
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
+    "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
@@ -225,7 +220,8 @@
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
-    "transactions": []
+    "transactions": [],
+    "transactionBatches": []
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {

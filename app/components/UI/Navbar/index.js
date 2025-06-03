@@ -684,18 +684,62 @@ export function getOnboardingNavbarOptions(
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle
+ * @param {Object} themeColors - The theme colors object
+ * @param {string} backgroundColor - The color to overwrite the background color
+ * @param {boolean} showLogo - Whether to show the logo
+ * @param {string} logoColor - The color to overwrite the logo color
  */
-export function getTransparentOnboardingNavbarOptions(themeColors) {
+export function getTransparentOnboardingNavbarOptions(
+  themeColors,
+  backgroundColor = undefined,
+  showLogo = true,
+  logoColor = undefined,
+) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: backgroundColor || themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
     metamaskName: {
       width: 70,
       height: 35,
-      tintColor: themeColors.text.default,
+      tintColor: logoColor || themeColors.text.default,
+    },
+  });
+  return {
+    headerTitle: () =>
+      showLogo ? (
+        <View style={styles.metamaskNameTransparentWrapper}>
+          <Image
+            source={metamask_name}
+            style={innerStyles.metamaskName}
+            resizeMethod={'auto'}
+          />
+        </View>
+      ) : null,
+    headerLeft: () => <View />,
+    headerRight: () => <View />,
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
+/**
+ * Function that returns a Carousel navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle
+ * @param {string} currentTabColor - The color of the current tab
+ */
+export function getOnboardingCarouselNavbarOptions(currentTabColor) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: currentTabColor,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    metamaskName: {
+      width: 70,
+      height: 35,
     },
   });
   return {
@@ -718,6 +762,7 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
+ * @param {Object} themeColors - The theme colors object
  */
 export function getTransparentBackOnboardingNavbarOptions(themeColors) {
   const innerStyles = StyleSheet.create({
@@ -1051,7 +1096,7 @@ export function getWalletNavbarOptions(
           testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           style={styles.addressCopyWrapper}
         >
-          <AddressCopy />
+          <AddressCopy account={selectedInternalAccount} />
         </View>
         {isNotificationsFeatureEnabled() && (
           <View>

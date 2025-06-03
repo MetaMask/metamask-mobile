@@ -41,6 +41,9 @@ const styleSheet = (params: {
       flexDirection: 'column',
       gap: 16,
     },
+    redesignedRowContainer: {
+      paddingBottom: 8,
+    },
   });
 };
 

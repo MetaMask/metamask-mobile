@@ -61,6 +61,7 @@ const baseTransactionControllerMock = {
     backgroundState: {
       TransactionController: {
         transactions: [],
+        transactionBatches: [],
         methodData: {},
         lastFetchedBlockNumbers: {},
         submitHistory: [],

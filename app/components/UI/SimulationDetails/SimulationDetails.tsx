@@ -27,9 +27,9 @@ import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
-  transaction: TransactionMeta;
   enableMetrics: boolean;
   isTransactionsRedesign?: boolean;
+  transaction: TransactionMeta;
 }
 
 /**
@@ -130,11 +130,13 @@ const SimulationDetailsLayout: React.FC<{
 }> = ({ inHeader, children, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   return (
-    <View style={styles.container}>
-      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
-        {inHeader}
-      </HeaderLayout>
-      {children}
+    <View style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}>
+      <View style={[styles.container]}>
+        <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
+          {inHeader}
+        </HeaderLayout>
+        {children}
+      </View>
     </View>
   );
 };
