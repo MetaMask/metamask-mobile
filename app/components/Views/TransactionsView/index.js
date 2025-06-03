@@ -133,7 +133,7 @@ const TransactionsView = ({
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
-            toFormattedAddress(safeToChecksumAddress(tx.txParams.from)) ===
+            toFormattedAddress(tx.txParams.from) ===
               toFormattedAddress(selectedAddress) &&
             tx.txParams.nonce === nonce,
         );

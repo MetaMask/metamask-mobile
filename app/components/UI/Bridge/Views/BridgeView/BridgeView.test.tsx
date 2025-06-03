@@ -47,6 +47,7 @@ jest.mock('../../../../../core/Engine', () => ({
               address: '0x1234567890123456789012345678901234567890',
               name: 'Account 1',
               type: 'eip155:eoa',
+              scopes: 'eip155:0',
               metadata: {
                 lastSelected: 0,
               },

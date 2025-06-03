@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -253,7 +252,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -323,9 +323,11 @@ const EvmAccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedAddressLower = toFormattedAddress(selectedAddresses[0]);
+        const selectedFormattedAddress = toFormattedAddress(
+          selectedAddresses[0],
+        );
         selectedAccount = accounts.find(
-          (acc) => toFormattedAddress(acc.address) === selectedAddressLower,
+          (acc) => toFormattedAddress(acc.address) === selectedFormattedAddress,
         );
       }
       // Fall back to the account with isSelected flag if no override or match found
