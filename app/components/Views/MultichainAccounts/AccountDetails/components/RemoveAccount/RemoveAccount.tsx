@@ -5,7 +5,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './2RemoveAccount.styles';
+import styleSheet from './RemoveAccount.styles';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
