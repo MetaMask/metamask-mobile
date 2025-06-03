@@ -8,7 +8,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
-import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -42,12 +41,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { wipeTransactions } from '../../../../util/transaction-controller';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { wipeBridgeStatus } from '../../../UI/Bridge/utils';
+import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -242,14 +239,6 @@ class AdvancedSettings extends PureComponent {
      * Boolean to disable smart account upgrade prompts
      */
     dismissSmartAccountSuggestionEnabled: PropTypes.bool,
-    /**
-     * Selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-     * Chain ID
-     */
-    chainId: PropTypes.string,
   };
 
   scrollView = React.createRef();
@@ -302,14 +291,6 @@ class AdvancedSettings extends PureComponent {
 
   displayResetAccountModal = () => {
     this.setState({ resetModalVisible: true });
-  };
-
-  resetAccount = () => {
-    const { navigation, selectedAddress, chainId } = this.props;
-
-    wipeBridgeStatus(selectedAddress, chainId);
-    wipeTransactions();
-    navigation.navigate('WalletView');
   };
 
   cancelResetAccount = () => {
@@ -396,23 +377,11 @@ class AdvancedSettings extends PureComponent {
             style={styles.inner}
             testID={AdvancedViewSelectorsIDs.CONTAINER}
           >
-            <ActionModal
-              modalVisible={resetModalVisible}
-              confirmText={strings('app_settings.reset_account_confirm_button')}
-              cancelText={strings('app_settings.reset_account_cancel_button')}
-              onCancelPress={this.cancelResetAccount}
-              onRequestClose={this.cancelResetAccount}
-              onConfirmPress={this.resetAccount}
-            >
-              <View style={styles.modalView}>
-                <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
-                  {strings('app_settings.reset_account_modal_title')}
-                </Text>
-                <Text style={styles.modalText}>
-                  {strings('app_settings.reset_account_modal_message')}
-                </Text>
-              </View>
-            </ActionModal>
+            <ResetAccountModal
+              resetModalVisible={resetModalVisible}
+              cancelResetAccount={this.cancelResetAccount}
+              styles={styles}
+            />
             <View style={[styles.setting, styles.firstSetting]}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.reset_account')}
@@ -549,7 +518,6 @@ const mapStateToProps = (state) => ({
   ),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
