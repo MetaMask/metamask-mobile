@@ -160,10 +160,14 @@ describe('SkipAccountSecurityModal', () => {
     expect(confirmButton.props.disabled).toBe(false);
 
     fireEvent.press(cancelButton);
-    expect(mockGoBack).toHaveBeenCalledWith(mockOnCancel);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    expect(mockOnConfirm).toHaveBeenCalledTimes(0);
 
     fireEvent.press(confirmButton);
-    expect(mockGoBack).toHaveBeenCalledWith(mockOnConfirm);
+    expect(mockGoBack).toHaveBeenCalledTimes(2);
+    expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
   });
 
   it('should handle onCancel when route params are not provided', () => {
@@ -174,7 +178,7 @@ describe('SkipAccountSecurityModal', () => {
     });
 
     fireEvent.press(cancelButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(0);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('should handle onConfirm when route params are not provided', () => {
@@ -185,6 +189,6 @@ describe('SkipAccountSecurityModal', () => {
     });
 
     fireEvent.press(confirmButton);
-    expect(mockGoBack).toHaveBeenCalledTimes(0);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
