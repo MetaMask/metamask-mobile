@@ -1,4 +1,10 @@
-import React, { useRef, useCallback, useEffect, useReducer } from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useEffect,
+  useReducer,
+  useMemo,
+} from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -86,8 +92,7 @@ const EarnTokenList = () => {
 
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
-  const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
-    useEarnTokens();
+  const { earnTokens, earnOutputTokens } = useEarnTokens();
 
   const tokens = includeReceiptTokens ? earnOutputTokens : earnTokens;
 
@@ -191,6 +196,16 @@ const EarnTokenList = () => {
     );
   };
 
+  const highestAvailableApr = useMemo(
+    () =>
+      earnTokens?.reduce((highestApr, token) => {
+        const parsedApr = parseFloat(token?.experience?.apr);
+
+        return parsedApr > highestApr ? parsedApr : highestApr;
+      }, 0),
+    [earnTokens],
+  );
+
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
@@ -203,8 +218,8 @@ const EarnTokenList = () => {
           <>
             {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
               <UpsellBanner
-                primaryText={strings('stake.you_could_earn')}
-                secondaryText={earnableTotalFiatFormatted}
+                primaryText={strings('stake.you_could_earn_up_to')}
+                secondaryText={`${highestAvailableApr.toString()}%`}
                 tertiaryText={strings('stake.per_year_on_your_tokens')}
                 variant={UPSELL_BANNER_VARIANTS.HEADER}
               />
