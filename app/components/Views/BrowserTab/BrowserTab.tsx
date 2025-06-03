@@ -161,6 +161,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
+  const [shouldShowAutocomplete, setShouldShowAutocomplete] = useState(false);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
@@ -1248,7 +1249,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-
+      setShouldShowAutocomplete(false);
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -1276,7 +1277,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    * Hide the autocomplete results
    */
   const hideAutocomplete = useCallback(
-    () => autocompleteRef.current?.hide(),
+    () => {
+      autocompleteRef.current?.hide()
+      setShouldShowAutocomplete(false)
+    },
     [],
   );
 
@@ -1291,6 +1295,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
+    setShouldShowAutocomplete(true)
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
   }, []);
 
@@ -1391,6 +1396,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
       <KeyboardAvoidingView
+        enabled={shouldShowAutocomplete}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
