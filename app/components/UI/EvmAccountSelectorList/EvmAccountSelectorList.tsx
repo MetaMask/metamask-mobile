@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -83,7 +82,9 @@ const EvmAccountSelectorList = ({
     shallowEqual,
   );
   const getKeyExtractor = ({ address }: Account) => address;
-  const useMultichainAccountDesign = useSelector(selectMultichainAccountsState1Enabled)
+  const useMultichainAccountDesign = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
@@ -249,7 +250,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -260,7 +262,7 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
-        if (useMultichainAccountDesign){
+        if (useMultichainAccountDesign) {
           const account =
             Engine.context.AccountsController.getAccountByAddress(address);
 
@@ -269,8 +271,7 @@ const EvmAccountSelectorList = ({
           navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
             account,
           });
-          return 
-
+          return;
         }
 
         onNavigateToAccountActions(address);
@@ -310,18 +311,20 @@ const EvmAccountSelectorList = ({
       );
     },
     [
-      onNavigateToAccountActions,
-      accountAvatarType,
-      onSelectAccount,
-      renderAccountBalances,
       ensByAccountAddress,
       isLoading,
-      selectedAddressesLookup,
+      isSelectionDisabled,
       isMultiSelect,
       isSelectWithoutMenu,
+      selectedAddressesLookup,
+      accountAvatarType,
       renderRightAccessory,
-      isSelectionDisabled,
+      renderAccountBalances,
       onLongPress,
+      onSelectAccount,
+      useMultichainAccountDesign,
+      onNavigateToAccountActions,
+      navigate,
     ],
   );
 
