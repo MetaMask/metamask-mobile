@@ -32,6 +32,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { ethers } from 'ethers';
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -461,7 +462,7 @@ describe('WalletActions', () => {
         bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
           image: '',

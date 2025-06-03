@@ -55,7 +55,7 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
+import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import {
   BOTTOM_SHEET_BASE_HEIGHT,
@@ -95,10 +95,17 @@ const PermissionsSummary = ({
   onChooseFromPermittedNetworks = () => undefined,
   setTabIndex = () => undefined,
   tabIndex = 0,
+  showAccountsOnly = false,
+  showPermissionsOnly = false,
 }: PermissionsSummaryProps) => {
+  const nonTabView = showAccountsOnly || showPermissionsOnly;
+  const fullNonTabView = showAccountsOnly && showPermissionsOnly;
+
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {
     isRenderedAsBottomSheet,
+    nonTabView,
+    fullNonTabView,
   });
   const navigation = useNavigation();
   const { navigate } = navigation;
@@ -152,7 +159,9 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() && isAlreadyConnected ? (
+    return isPerDappSelectedNetworkEnabled() &&
+      isAlreadyConnected &&
+      !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
@@ -549,7 +558,7 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedItemList
+        <AccountsConnectedList
           key={accountsConnectedTabKey}
           selectedAddresses={accountAddresses}
           ensByAccountAddress={ensByAccountAddress}
@@ -606,7 +615,14 @@ const PermissionsSummary = ({
               {strings('permissions.non_permitted_network_description')}
             </TextComponent>
           )}
-          <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+          {!nonTabView ? (
+            <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+          ) : (
+            <View style={styles.container}>
+              {showAccountsOnly && renderAccountPermissionsRequestInfoCard()}
+              {showPermissionsOnly && renderNetworkPermissionsRequestInfoCard()}
+            </View>
+          )}
         </View>
         <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (

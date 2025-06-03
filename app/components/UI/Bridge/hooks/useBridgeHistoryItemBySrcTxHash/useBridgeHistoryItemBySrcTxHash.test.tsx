@@ -1,6 +1,6 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeHistoryItemBySrcTxHash } from '.';
-import { initialState } from '../../../../../components/UI/Bridge/_mocks_/initialState';
 import { cloneDeep } from 'lodash';
 
 describe('useBridgeHistoryItemBySrcTxHash', () => {

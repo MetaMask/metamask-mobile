@@ -24,6 +24,12 @@ const Routes = {
   DEPOSIT: {
     ID: 'Deposit',
     ROOT: 'DepositRoot',
+    BUILD_QUOTE: 'BuildQuote',
+    ENTER_EMAIL: 'EnterEmail',
+    OTP_CODE: 'OtpCode',
+    VERIFY_IDENTITY: 'VerifyIdentity',
+    BASIC_INFO: 'BasicInfo',
+    ENTER_ADDRESS: 'EnterAddress',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -121,6 +127,14 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    MULTICHAIN_ACCOUNT_DETAILS: {
+      EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
+      EDIT_WALLET_NAME: 'EditWalletName',
+      SHARE_ADDRESS: 'ShareAddress',
+      DELETE_ACCOUNT: 'DeleteAccount',
+      REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
+      REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
+    },
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -200,6 +214,9 @@ const Routes = {
   },
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',
+  },
+  MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_DETAILS: 'MultichainAccountDetails',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

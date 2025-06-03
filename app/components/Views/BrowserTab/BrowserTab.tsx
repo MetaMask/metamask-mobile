@@ -55,6 +55,7 @@ import {
   getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -122,11 +123,12 @@ import {
 } from '../../../util/phishingDetection';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
+import { parseCaipAccountId } from '@metamask/utils';
 
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = ({
+export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -186,13 +188,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const backgroundBridgeRef = useRef<{
     url: string;
     hostname: string;
-    sendNotification: (payload: unknown) => void;
+    sendNotificationEip1193: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
   }>();
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
+
   const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
@@ -201,6 +204,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       hostname,
     );
     return permittedAcc;
+  }, isEqual);
+  const permittedCaipAccountAddressesList = useSelector((state: RootState) => {
+    const permissionsControllerState = selectPermissionControllerState(state);
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const permittedAccountIds = getPermittedCaipAccountIdsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds);
+    const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
+      const { address } = parseCaipAccountId(accountId);
+      return address;
+    });
+    return permittedAccountAddresses;
   }, isEqual);
 
   const favicon = useFavicon(resolvedUrlRef.current);
@@ -233,7 +250,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const notifyAllConnections = useCallback((payload: unknown) => {
-    backgroundBridgeRef.current?.sendNotification(payload);
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
   }, []);
 
   /**
@@ -1389,7 +1406,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedEvmAccountsList}
+            connectedAccounts={permittedCaipAccountAddressesList}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}
@@ -1486,7 +1503,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       </KeyboardAvoidingView>
     </ErrorBoundary>
   );
-};
+});
 
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,

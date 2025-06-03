@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TransactionReview from '.';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+// eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../../util/blockaid';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -81,12 +82,10 @@ jest.mock('../../../../../../core/Engine', () => {
             {
               type: KeyringTypes.hd,
               accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              }
             },
           ],
         },

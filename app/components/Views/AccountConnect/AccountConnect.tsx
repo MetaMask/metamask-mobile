@@ -64,7 +64,6 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
-  NetworkAvatarProps,
 } from './AccountConnect.types';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
@@ -97,14 +96,17 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import {
+  Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
+  getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -122,10 +124,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
-
-  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
-    NetworkAvatarProps[]
-  >([]);
 
   const requestedCaip25CaveatValue = useMemo(
     () => getRequestedCaip25CaveatValue(hostInfo.permissions),
@@ -155,29 +153,54 @@ const AccountConnect = (props: AccountConnectProps) => {
     (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
   );
 
-  const defaultSelectedChainIds =
-    supportedRequestedCaipChainIds.length > 0
-      ? supportedRequestedCaipChainIds
-      : allNetworksList;
+  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const [selectedChainIds, _setSelectedChainIds] = useState<CaipChainId[]>(
-    defaultSelectedChainIds as CaipChainId[],
-  );
-  const setSelectedChainIds = useCallback(
-    (newSelectedChainIds: CaipChainId[]) => {
-      _setSelectedChainIds(newSelectedChainIds);
+  const { origin: channelIdOrHostname } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
 
-      const newNetworkAvatars = newSelectedChainIds.map(
-        (newSelectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[newSelectedChainId]?.name || '',
-          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
-          variant: AvatarVariant.Network,
-        }),
+  const isChannelId = isUUID(channelIdOrHostname);
+
+  const sdkConnection = SDKConnect.getInstance().getConnection({
+    channelId: channelIdOrHostname,
+  });
+
+  const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
+
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
+  const { isEip1193Request } = hostInfo.metadata;
+
+  const defaultSelectedChainIds = useMemo(() => {
+    // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
+    // we only want to show EIP-155 (Ethereum) compatible chains
+    if (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) {
+      return allNetworksList.filter((chain) =>
+        chain.includes(KnownCaipNamespace.Eip155),
       );
-      setSelectedNetworkAvatars(newNetworkAvatars);
-    },
-    [networkConfigurations, setSelectedNetworkAvatars],
+      // otherwise, if we have supported requested CAIP chain IDs, use those
+    } else if (supportedRequestedCaipChainIds.length > 0) {
+      return supportedRequestedCaipChainIds;
+    }
+    // otherwise, use all available networks
+    return allNetworksList;
+  }, [isEip1193Request, allNetworksList, isOriginWalletConnect, isOriginMMSDKRemoteConn, supportedRequestedCaipChainIds]);
+
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+    defaultSelectedChainIds,
+  );
+
+  const selectedNetworkAvatars = useMemo(
+    () =>
+      selectedChainIds.map((selectedChainId) => ({
+        size: AvatarSize.Xs,
+        name: networkConfigurations[selectedChainId]?.name || '',
+        imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+        variant: AvatarVariant.Network,
+      })),
+    [networkConfigurations, selectedChainIds],
   );
 
   // all accounts that match the requested namespaces
@@ -236,23 +259,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
-
-  const { origin: channelIdOrHostname } = hostInfo.metadata as {
-    id: string;
-    origin: string;
-  };
-
-  const isChannelId = isUUID(channelIdOrHostname);
-
-  const sdkConnection = SDKConnect.getInstance().getConnection({
-    channelId: channelIdOrHostname,
-  });
-
-  const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
-
-  const isOriginWalletConnect =
-    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -297,22 +303,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { hostname: hostnameFromUrlObj, protocol: protocolFromUrlObj } =
     getUrlObj(urlWithProtocol);
-
-  useEffect(() => {
-    // Create network avatars for all enabled networks
-    const networkAvatars = Object.values(networkConfigurations).map(
-      (network) => ({
-        size: AvatarSize.Xs,
-        name: network.name || '',
-        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
-        variant: AvatarVariant.Network,
-      }),
-    );
-
-    setSelectedNetworkAvatars(networkAvatars);
-
-    // No need to update selectedChainIds here since it's already initialized with all networks
-  }, [networkConfigurations]);
 
   useEffect(() => {
     let url = dappUrl || channelIdOrHostname || '';
@@ -396,11 +386,22 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
+      const chainIds = getAllScopesFromPermission(
+        hostInfo.permissions[Caip25EndowmentPermissionName] ?? {
+          caveats: [],
+        },
+      );
+
+      const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
             source: eventSource,
+            chain_id_list: chainIds,
+            referrer: channelIdOrHostname,
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );
@@ -411,6 +412,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       trackEvent,
       createEventBuilder,
       eventSource,
+      hostInfo.metadata.isEip1193Request,
+      hostInfo.permissions,
     ],
   );
 
@@ -480,8 +483,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         ),
       },
     };
+
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
+
+    const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
     try {
       setIsLoading(true);
@@ -502,6 +508,9 @@ const AccountConnect = (props: AccountConnectProps) => {
             // TODO: Fix this. Not accurate
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
+            chain_id_list: selectedChainIds,
+            referrer: request.metadata.origin,
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );
@@ -719,12 +728,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
+        ...selectedAccount,
+        name:
+          isDefaultAccountName(selectedAccount.name) && ensName
+            ? ensName
+            : selectedAccount.name,
+      }
       : undefined;
     return (
       <AccountConnectSingle

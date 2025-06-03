@@ -9,11 +9,15 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { Splash } from './splash';
 
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
+    TransactionController: {
+      getTransactions: jest.fn().mockReturnValue([]),
     },
   },
 }));

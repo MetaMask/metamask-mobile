@@ -26,7 +26,7 @@ export function use7702TransactionType() {
   return {
     isDowngrade,
     isUpgrade,
-    isBatched: !isUpgrade && Boolean(nestedTransactions?.length),
+    isBatched: Boolean(nestedTransactions?.length),
     isBatchedUpgrade: isUpgrade && Boolean(nestedTransactions?.length),
     isUpgradeOnly,
   };

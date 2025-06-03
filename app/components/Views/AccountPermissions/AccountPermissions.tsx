@@ -23,6 +23,7 @@ import {
   getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
   getPermittedCaipChainIdsByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -135,7 +136,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccountsList,
     hostname,
   );
-  const permittedCaipAccountIds = uniq(
+  const permittedCaipAccountIds = useMemo(() => {
+    const unsortedPermittedAccounts = uniq(
     nonRemappedPermittedAccounts.map((caipAccountId) => {
       const {
         address,
@@ -146,8 +148,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return `eip155:0:${address}` as CaipAccountId;
       }
       return caipAccountId;
-    }),
-  );
+    }));
+
+    return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
+  }, [nonRemappedPermittedAccounts]);
 
   const permittedCaipChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
@@ -618,7 +622,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={permittedCaipAccountIds}
+        // This is only okay because permittedCaipAccountIds is sorted by lastSelected already
+        selectedAddresses={permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []}
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
