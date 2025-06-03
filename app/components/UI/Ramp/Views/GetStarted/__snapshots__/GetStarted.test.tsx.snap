@@ -599,7 +599,7 @@ exports[`GetStarted renders correctly 1`] = `
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -1257,7 +1257,7 @@ exports[`GetStarted renders correctly 2`] = `
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -2330,7 +2330,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
