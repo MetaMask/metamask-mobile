@@ -6,7 +6,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
-  getOnboardingNavbarOptions,
   getOnboardingCarouselNavbarOptions,
   getTransparentOnboardingNavbarOptions,
 } from '.';
@@ -120,5 +119,4 @@ describe('getDepositNavbarOptions', () => {
     expect(options).toBeDefined();
     expect(options.headerStyle.backgroundColor).toBe('red');
   });
-
 });

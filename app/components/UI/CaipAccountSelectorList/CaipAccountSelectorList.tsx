@@ -32,7 +32,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import {
   removeAccountsFromPermissions,
-  sortAccountsByLastSelected,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -44,8 +44,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
-import { CaipAccountId, Hex } from '@metamask/utils';
-import { parseAccountId } from '@walletconnect/utils';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -155,21 +154,15 @@ const CaipAccountSelectorList = ({
                   const nextCaipAccountIds = selectedAddresses.filter(
                     (selectedAddress) => selectedAddress !== caipAccountId,
                   );
-                  const nextAddresses = nextCaipAccountIds.map(
-                    (nextCaipAccountId) => {
-                      const { address: nextAddress } =
-                        parseAccountId(nextCaipAccountId);
-                      return nextAddress as Hex;
-                    },
-                  );
+                  const [nextCaipAccountId] =
+                    sortMultichainAccountsByLastSelected(nextCaipAccountIds);
 
-                  const nextAddressesSorted =
-                    sortAccountsByLastSelected(nextAddresses);
+                  const nextAddress = nextCaipAccountId ? parseCaipAccountId(nextCaipAccountId).address : '';
                   const selectedAccountAddress = accounts.find(
                     (acc) => acc.isSelected,
                   )?.address;
                   nextActiveAddress =
-                    nextAddressesSorted[0] || selectedAccountAddress || '';
+                  nextAddress || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
