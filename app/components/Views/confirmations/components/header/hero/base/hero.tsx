@@ -54,17 +54,17 @@ interface HeroProps {
 }
 
 /**
- * Hero component
+ * HeroBase component
  * @example
  *
- * <Hero
+ * <HeroBase
  *   componentAsset={<Asset />}
  *   subtitle="Subtitle"
  *   title={<Title />}
  *   tooltipModalProps={{ hasTooltip: true, isEnabled: true, content: 'Tooltip content', title: 'Tooltip title', testId: 'tooltip-modal' }}
  * />
  */
-export const Hero = ({
+export const HeroBase = ({
   componentAsset,
   subtitle,
   title,

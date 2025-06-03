@@ -1,1 +1,1 @@
-export { Hero } from './hero';
+export { HeroBase } from './hero';

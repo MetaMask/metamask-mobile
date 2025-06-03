@@ -15,7 +15,7 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import CollectibleMedia from '../../../../../../UI/CollectibleMedia';
 import { useNft } from '../../../../hooks/nft/useNft';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
-import { Hero } from '../base/hero';
+import { HeroBase } from '../base/hero';
 import styleSheet from './nft.styles';
 
 const NftImageAndNetworkBadge = ({
@@ -77,7 +77,7 @@ export const HeroNft = () => {
   const { tokenId } = nft ?? {};
 
   return (
-    <Hero
+    <HeroBase
       componentAsset={<NftImageAndNetworkBadge chainId={chainId} nft={nft} />}
       title={name}
       subtitle={`#${tokenId}`}
