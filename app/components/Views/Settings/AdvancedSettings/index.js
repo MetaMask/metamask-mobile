@@ -48,6 +48,7 @@ import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { wipeBridgeStatus } from '../../../UI/Bridge/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -307,17 +308,7 @@ class AdvancedSettings extends PureComponent {
   resetAccount = () => {
     const { navigation, selectedAddress, chainId } = this.props;
 
-    Engine.context.BridgeStatusController.wipeBridgeStatus({
-      address: selectedAddress,
-      ignoreNetwork: false,
-    });
-    // Solana addresses are case-sensitive, so we can only do this for EVM
-    if (!isSolanaChainId(chainId)) {
-      Engine.context.BridgeStatusController.wipeBridgeStatus({
-        address: selectedAddress.toLowerCase(),
-        ignoreNetwork: false,
-      });
-    }
+    wipeBridgeStatus(selectedAddress, chainId);
     wipeTransactions();
     navigation.navigate('WalletView');
   };

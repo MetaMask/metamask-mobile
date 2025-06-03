@@ -1,5 +1,5 @@
 import '../_mocks_/initialState';
-import { isBridgeAllowed } from './index';
+import { isBridgeAllowed, wipeBridgeStatus } from './index';
 import AppConstants from '../../../../core/AppConstants';
 import {
   ARBITRUM_CHAIN_ID,
@@ -13,6 +13,9 @@ import {
   ZKSYNC_ERA_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import { Hex } from '@metamask/utils';
+import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import Engine from '../../../../core/Engine';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 jest.mock('../../../../core/AppConstants', () => ({
   BRIDGE: {
@@ -20,7 +23,21 @@ jest.mock('../../../../core/AppConstants', () => ({
   },
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    BridgeStatusController: {
+      wipeBridgeStatus: jest.fn(),
+    },
+  },
+}));
+
+const mockWipeBridgeStatus = Engine.context.BridgeStatusController.wipeBridgeStatus as jest.MockedFunction<typeof Engine.context.BridgeStatusController.wipeBridgeStatus>;
+
 describe('Bridge Utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('isBridgeAllowed', () => {
     const supportedChainIds: Hex[] = [
       ETH_CHAIN_ID,
@@ -70,6 +87,36 @@ describe('Bridge Utils', () => {
           '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Hex,
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('wipeBridgeStatus', () => {
+    const testAddress = '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571';
+    const testAddressLowercase = testAddress.toLowerCase();
+    const evmChainId = ETH_CHAIN_ID;
+
+    it('should call wipeBridgeStatus twice for EVM chains (original and lowercase address)', () => {
+      wipeBridgeStatus(testAddress, evmChainId);
+
+      expect(mockWipeBridgeStatus).toHaveBeenCalledTimes(2);
+      expect(mockWipeBridgeStatus).toHaveBeenNthCalledWith(1, {
+        address: testAddress,
+        ignoreNetwork: false,
+      });
+      expect(mockWipeBridgeStatus).toHaveBeenNthCalledWith(2, {
+        address: testAddressLowercase,
+        ignoreNetwork: false,
+      });
+    });
+
+    it('should call wipeBridgeStatus only once for Solana chains (original address only)', () => {
+      wipeBridgeStatus(testAddress, SolScope.Mainnet);
+
+      expect(mockWipeBridgeStatus).toHaveBeenCalledTimes(1);
+      expect(mockWipeBridgeStatus).toHaveBeenCalledWith({
+        address: testAddress,
+        ignoreNetwork: false,
+      });
     });
   });
 });
