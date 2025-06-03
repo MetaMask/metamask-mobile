@@ -143,9 +143,6 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  
-  
-
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -160,9 +157,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
-  // Should dismiss Automatic Security checks screen
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
+  
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(solanaSheetAction);
