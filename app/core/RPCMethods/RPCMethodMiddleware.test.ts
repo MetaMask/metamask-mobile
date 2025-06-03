@@ -964,6 +964,11 @@ describe('getRpcMethodMiddleware', () => {
             ],
           },
         },
+        {
+          metadata: {
+            isEip1193Request: true
+          }
+        }
       );
     });
   });
