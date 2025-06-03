@@ -99,6 +99,38 @@ export function toFormattedAddress(address: string) {
 }
 
 /**
+ * Compares two addresses for equality, handling both EVM and non-EVM addresses appropriately.
+ *
+ * @param {string} address1 - The first address to compare
+ * @param {string} address2 - The second address to compare
+ * @returns {boolean} - Returns true if addresses are equal, false otherwise.
+ * For EVM addresses, comparison is case-insensitive. For non-EVM addresses, comparison is case-sensitive.
+ * Returns false if addresses are of different types (one EVM, one non-EVM) or if either address is falsy.
+ */
+export function areAddressesEqual(address1: string, address2: string) {
+  if (!address1 || !address2) {
+    return false;
+  }
+
+  const isAddress1Eth = isEthAddress(address1);
+  const isAddress2Eth = isEthAddress(address2);
+
+  // If one is an ETH address and the other is not, return false
+  if (isAddress1Eth !== isAddress2Eth) {
+    return false;
+  }
+
+  // If both are ETH addresses, do a lowercase comparison
+  if (isAddress1Eth && isAddress2Eth) {
+    return address1.toLowerCase() === address2.toLowerCase();
+  }
+
+  // If both are not ETH addresses, do a raw comparison.
+  // This is important for non-EVM addresses since they are case sensitive.
+  return address1 === address2;
+}
+
+/**
  * Returns short address format
  *
  * @param {String} address - String corresponding to an address
