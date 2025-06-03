@@ -2244,6 +2244,9 @@ workflows:
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
 app:
   envs:
+  - opts:
+        is_expand: false
+      MULTICHAIN_API: true
     - opts:
         is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: true
@@ -2255,7 +2258,7 @@ app:
       PORTFOLIO_VIEW: true
     - opts:
         is_expand: false
-      MM_PER_DAPP_SELECTED_NETWORK: false
+      MM_PER_DAPP_SELECTED_NETWORK: true
     - opts:
         is_expand: false
       MM_CHAIN_PERMISSIONS: true
