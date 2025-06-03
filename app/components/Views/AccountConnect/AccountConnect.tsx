@@ -390,7 +390,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
 
       const chainIds = getAllScopesFromPermission(
-        hostInfo.permissions[Caip25EndowmentPermissionName],
+        hostInfo.permissions[Caip25EndowmentPermissionName] ?? {
+          caveats: [],
+        },
       );
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;

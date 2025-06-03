@@ -7,6 +7,7 @@ import {
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
+import { RequestedPermissions } from '@metamask/permission-controller';
 
 /**
  * Enum to track states of the connect screen.
@@ -27,11 +28,11 @@ export interface AccountConnectParams {
       promptToCreateSolanaAccount?: boolean;
     };
     permissions: {
-      [Caip25EndowmentPermissionName]: {
+      [Caip25EndowmentPermissionName]?: {
         parentCapability: string;
         caveats: [{ type: string; value: Caip25CaveatValue }];
       };
-    } & Record<string, unknown>;
+    } & RequestedPermissions;
   };
   permissionRequestId: string;
 }
