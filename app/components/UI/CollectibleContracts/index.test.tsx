@@ -184,6 +184,9 @@ describe('CollectibleContracts', () => {
           },
           PreferencesController: {
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
@@ -301,6 +304,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
@@ -418,6 +424,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           } as unknown as PreferencesState,
           NftController: {
             allNfts: {
@@ -496,6 +505,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
             selectedAddress: CURRENT_ACCOUNT,
             identities: {
               [CURRENT_ACCOUNT]: {
@@ -554,6 +566,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
             selectedAddress: CURRENT_ACCOUNT,
             identities: {
               [CURRENT_ACCOUNT]: {
@@ -632,6 +647,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
@@ -735,7 +753,11 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           },
+
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
@@ -847,6 +869,9 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
