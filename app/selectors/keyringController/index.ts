@@ -47,9 +47,12 @@ export const hasMultipleHDKeyrings = createDeepEqualSelector(
 export const selectFlattenedKeyringAccounts = createDeepEqualSelector(
   selectKeyrings,
   (keyrings: KeyringControllerState['keyrings']) => {
-    const flattenedKeyringAccounts = keyrings.flatMap(
-      (keyring) => keyring.accounts,
-    );
+    const flattenedKeyringAccounts = keyrings?.flatMap((keyring) => {
+      if (keyring.accounts) {
+        return keyring.accounts;
+      }
+      return [];
+    });
     return flattenedKeyringAccounts;
   },
 );
