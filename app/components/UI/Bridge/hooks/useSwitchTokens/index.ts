@@ -11,6 +11,7 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import Engine from '../../../../../core/Engine';
+import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
 
 export const useSwitchTokens = () => {
   const dispatch = useDispatch();
@@ -48,6 +49,8 @@ export const useSwitchTokens = () => {
       dispatch(setDestToken(sourceToken));
 
       if (sourceToken.chainId !== destToken.chainId) {
+        dispatch(setSelectedDestChainId(sourceToken.chainId));
+
         if (isSolanaChainId(destToken.chainId)) {
           await onNonEvmNetworkChange(destToken.chainId as CaipChainId);
         } else {
