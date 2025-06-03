@@ -35,9 +35,7 @@ type JSONRPCRequest = JsonRpcRequest & {
 
 export const getAccounts = async () => {
   const { AccountsController } = Engine.context;
-  const addresses = (AccountsController.listAccounts() ?? []).map(
-    (acc) => acc.address,
-  );
+  const addresses = AccountsController.listAccounts().map((acc) => acc.address);
   return Promise.resolve(addresses);
 };
 

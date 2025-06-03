@@ -27,11 +27,7 @@ import {
   PermissionController,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
-import {
-  blockTagParamIndex,
-  getAllNetworks,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -46,10 +42,7 @@ import {
 } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
+import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -105,7 +98,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin?: string, networkClientId?: string) => any;
+  getProviderState: (origin?: string, networkClientId?: string,) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -543,7 +536,8 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getAccounts: (...args) =>
+                  getPermittedAccounts(origin, ...args),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions,
                 ) =>
@@ -600,10 +594,7 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const networkProviderState = await getProviderState(
-          origin,
-          req.networkClientId,
-        );
+        const networkProviderState = await getProviderState(origin, req.networkClientId);
         res.result = networkProviderState.networkVersion;
       },
       eth_requestAccounts: async () => {
