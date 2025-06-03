@@ -42,9 +42,8 @@ export const selectInternalAccounts = createDeepEqualSelector(
   selectAccountsControllerState,
   selectFlattenedKeyringAccounts,
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
-    console.log('orderedKeyringAccounts', orderedKeyringAccounts);
     const keyringAccountsMap = new Map(
-      orderedKeyringAccounts?.map((account, index) => [
+      orderedKeyringAccounts.map((account, index) => [
         account.toLowerCase(),
         index,
       ]),
