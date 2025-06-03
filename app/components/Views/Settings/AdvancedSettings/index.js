@@ -46,6 +46,8 @@ import { wipeTransactions } from '../../../../util/transaction-controller';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -240,6 +242,14 @@ class AdvancedSettings extends PureComponent {
      * Boolean to disable smart account upgrade prompts
      */
     dismissSmartAccountSuggestionEnabled: PropTypes.bool,
+    /**
+     * Selected address
+     */
+    selectedAddress: PropTypes.string,
+    /**
+     * Chain ID
+     */
+    chainId: PropTypes.string,
   };
 
   scrollView = React.createRef();
@@ -295,7 +305,19 @@ class AdvancedSettings extends PureComponent {
   };
 
   resetAccount = () => {
-    const { navigation } = this.props;
+    const { navigation, selectedAddress, chainId } = this.props;
+
+    Engine.context.BridgeStatusController.wipeBridgeStatus({
+      address: selectedAddress,
+      ignoreNetwork: false,
+    });
+    // Solana addresses are case-sensitive, so we can only do this for EVM
+    if (!isSolanaChainId(chainId)) {
+      Engine.context.BridgeStatusController.wipeBridgeStatus({
+        address: selectedAddress.toLowerCase(),
+        ignoreNetwork: false,
+      });
+    }
     wipeTransactions();
     navigation.navigate('WalletView');
   };
@@ -537,6 +559,7 @@ const mapStateToProps = (state) => ({
   ),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
