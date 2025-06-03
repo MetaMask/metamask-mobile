@@ -34,7 +34,11 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appendURLParams } from '../../../util/browser';
+
+import {
+  appendURLParams,
+  isTokenDiscoveryBrowserEnabled,
+} from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -45,9 +49,7 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
-import { useFocusEffect } from '@react-navigation/native';
+import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
@@ -88,47 +90,14 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
-  ///: END:ONLY_INCLUDE_IF
-
-const homePageUrl = useCallback(
-  () =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
-
-  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // TODO remove after we release Solana dapp connectivity
-  useFocusEffect(
-    useCallback(() => {
-      if (isSolanaAccount(currentSelectedAccount)) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Network,
-          networkImageSource: require('../../../images/solana-logo.png'),
-          labelOptions: [
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.title',
-              )} \n`,
-              isBold: true,
-            },
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.message',
-              )}`,
-            },
-          ],
-        });
-      }
-    }, [toastRef, currentSelectedAccount]),
-  );
-  ///: END:ONLY_INCLUDE_IF
 
   const newTab = useCallback(
     (url, linkType) => {
@@ -136,12 +105,17 @@ const homePageUrl = useCallback(
       if (tabs.length >= MAX_BROWSER_TABS) {
         navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
       } else {
+        const newTabUrl = isTokenDiscoveryBrowserEnabled()
+          ? undefined
+          : url || homePageUrl();
         // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-        createNewTab(url || homePageUrl(), linkType);
+        createNewTab(newTabUrl, linkType);
       }
     },
-    [tabs, navigation, homePageUrl, createNewTab],
+    [tabs, navigation, createNewTab, homePageUrl],
   );
+
+  const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -208,12 +182,12 @@ const homePageUrl = useCallback(
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
-      const permittedAccounts = getPermittedAccounts(hostnameForToastCheck);
-      const activeAccountAddress = permittedAccounts?.[0];
+      const permittedEvmAccounts = getPermittedAccounts(hostnameForToastCheck);
+      const activeAccountAddress = permittedEvmAccounts?.[0];
 
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
-          accountAddress: activeAccountAddress,
+          caipAccountId: `eip155:0:${activeAccountAddress}`,
           accounts,
           ensByAccountAddress,
         });
@@ -243,7 +217,14 @@ const homePageUrl = useCallback(
       hasAccounts.current = true;
       prevSiteHostname.current = newHostname;
     }
-  }, [currentUrl, browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+  }, [
+    currentUrl,
+    browserUrl,
+    accounts,
+    ensByAccountAddress,
+    accountAvatarType,
+    toastRef,
+  ]);
 
   // componentDidMount
   useEffect(
@@ -406,27 +387,30 @@ const homePageUrl = useCallback(
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => (
-          <BrowserTab
-            id={tab.id}
-            key={`tab_${tab.id}`}
-            initialUrl={tab.url}
-            linkType={tab.linkType}
-            updateTabInfo={updateTabInfo}
-            showTabs={showTabsView}
-            newTab={newTab}
-            isInTabsView={shouldShowTabs}
-            homePageUrl={homePageUrl()}
-          />
-        )),
-    [
-      tabs,
-      shouldShowTabs,
-      newTab,
-      homePageUrl,
-      updateTabInfo,
-      showTabsView,
-    ],
+        .map((tab) =>
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+            <BrowserTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              initialUrl={tab.url}
+              linkType={tab.linkType}
+              updateTabInfo={updateTabInfo}
+              showTabs={showTabsView}
+              newTab={newTab}
+              isInTabsView={shouldShowTabs}
+              homePageUrl={homePageUrl()}
+            />
+          ) : (
+            <DiscoveryTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              showTabs={showTabsView}
+              newTab={newTab}
+              updateTabInfo={updateTabInfo}
+            />
+          ),
+        ),
+    [tabs, shouldShowTabs, newTab, homePageUrl, updateTabInfo, showTabsView],
   );
 
   return (
@@ -490,7 +474,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

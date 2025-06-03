@@ -49,7 +49,6 @@ ignores:
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
-  - 'rn-nodeify'
 
   ## Unused devDependencies to investigate
   - '@metamask/swappable-obj-proxy'
