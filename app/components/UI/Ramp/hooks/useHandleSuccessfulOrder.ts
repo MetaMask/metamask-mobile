@@ -9,7 +9,6 @@ import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../reducers/fiatOrders';
-import { toLowerCaseEquals } from '../../../../util/general';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails, stateHasOrder } from '../utils';
@@ -19,6 +18,7 @@ import { selectAccountsByChainId } from '../../../../selectors/accountTrackerCon
 import Routes from '../../../../constants/navigation/Routes';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { Token } from '@metamask/assets-controllers';
+import { areAddressesEqual } from '../../../../util/address';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -49,7 +49,7 @@ function useHandleSuccessfulOrder() {
 
       if (
         !tokens.find((stateToken: Token) =>
-          toLowerCaseEquals(stateToken.address, address),
+          areAddressesEqual(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({
