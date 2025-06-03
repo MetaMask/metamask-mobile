@@ -648,7 +648,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': true,
+              '0x1': 'true',
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -754,7 +754,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': true,
+              '0x1': 'true',
             },
           },
 
@@ -870,7 +870,7 @@ describe('CollectibleContracts', () => {
             useNftDetection: true,
             displayNftMedia: true,
             tokenNetworkFilter: {
-              '0x1': true,
+              '0x1': 'true',
             },
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
