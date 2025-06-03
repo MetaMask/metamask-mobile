@@ -247,7 +247,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -309,7 +309,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -617,7 +617,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -679,7 +679,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
