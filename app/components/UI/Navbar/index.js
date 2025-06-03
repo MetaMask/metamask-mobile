@@ -1103,7 +1103,7 @@ export function getWalletNavbarOptions(
           testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           style={styles.addressCopyWrapper}
         >
-          <AddressCopy />
+          <AddressCopy account={selectedInternalAccount} />
         </View>
         {isNotificationsFeatureEnabled() && (
           <View>

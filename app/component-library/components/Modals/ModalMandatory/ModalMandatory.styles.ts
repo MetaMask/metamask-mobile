@@ -3,7 +3,6 @@ import { StyleSheet, Dimensions, TextStyle, Platform } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import { getFontFamily, TextVariant } from '../../Texts/Text';
 import { typography } from '@metamask/design-tokens';
-import { colors as commonColors } from '../../../../styles/common';
 
 const screenHeight = Dimensions.get('window').height;
 /**
@@ -72,14 +71,14 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 40,
       height: 40,
       borderRadius: 40 / 2,
-      backgroundColor: commonColors.modalScrollButton,
+      backgroundColor: colors.icon.default,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 10,
       position: 'absolute',
       bottom: 175,
       right: 32,
-      boxShadow: `0px 3px 8px ${commonColors.modalScrollButton}`,
+      boxShadow: `0px 3px 8px ${colors.icon.default}`,
     },
     footerHelpText: {
       marginTop: 16,

@@ -298,6 +298,7 @@ export const initialState = {
       },
       TransactionController: {
         transactions: [],
+        transactionBatches: [],
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {

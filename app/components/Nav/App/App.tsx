@@ -712,12 +712,10 @@ const AppFlow = () => {
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
-      {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
-        <Stack.Screen
-          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-          component={ModalSwitchAccountType}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+        component={ModalSwitchAccountType}
+      />
     </Stack.Navigator>
   );
 };
