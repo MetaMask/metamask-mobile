@@ -23,6 +23,7 @@ import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
+import NestedTransactionData from '../nested-transaction-data/nested-transaction-data';
 import styleSheet from './advanced-details-row.styles';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
@@ -95,7 +96,7 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!(isUpgradeOnly || isDowngrade) && (
+            {!(isUpgradeOnly || isDowngrade || isBatched) && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
@@ -121,6 +122,7 @@ const AdvancedDetailsRow = () => {
                 </InfoRow>
               </InfoSection>
             )}
+            {isBatched && <NestedTransactionData />}
             {showNonceModal && (
               <CustomNonceModal
                 proposedNonce={proposedNonce}
