@@ -29,6 +29,7 @@ import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   PermissionDoesNotExistError,
+  RequestedPermissions,
 } from '@metamask/permission-controller';
 import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
@@ -64,6 +65,7 @@ import {
 } from '@metamask/signature-controller';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { createAsyncWalletMiddleware } from './createAsyncWalletMiddleware';
+import requestEthereumAccounts from './eth-request-accounts';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -554,11 +556,10 @@ export const getRpcMethodMiddleware = ({
                       origin,
                       requestedPermissions,
                     ),
-                  requestPermissionsForOrigin:
-                    Engine.context.PermissionController.requestPermissions.bind(
-                      Engine.context.PermissionController,
+                  requestPermissionsForOrigin: (requestedPermissions) =>
+                    Engine.context.PermissionController.requestPermissions(
                       { origin: channelId ?? hostname },
-                      req.params[0],
+                      requestedPermissions,
                       {
                         metadata: {
                           isEip1193Request: true,
@@ -611,48 +612,59 @@ export const getRpcMethodMiddleware = ({
           const networkProviderState = await getProviderState(origin, req.networkClientId);
           res.result = networkProviderState.networkVersion;
         },
-        eth_requestAccounts: async () => {
-          const { params } = req;
-
-          const permittedAccounts = await getPermittedAccounts(origin);
-
-          if (!params?.force && permittedAccounts.length) {
-            res.result = permittedAccounts;
-          } else {
-            try {
-              checkTabActive();
-              await Engine.context.PermissionController.requestPermissions(
-                { origin },
-                {
-                  [Caip25EndowmentPermissionName]: {
-                    caveats: [
-                      {
-                        type: Caip25CaveatType,
-                        value: getDefaultCaip25CaveatValue(),
+        eth_requestAccounts: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        new Promise<any>((resolve, reject) => {
+          requestEthereumAccounts
+            .implementation(
+              req,
+              res,
+              next,
+              (err: Error) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(undefined);
+              },
+              {
+                getAccounts: (opts?: { ignoreLock?: boolean; }) =>
+                  getPermittedAccounts(origin, opts),
+                getCaip25PermissionFromLegacyPermissionsForOrigin: (
+                  requestedPermissions: RequestedPermissions,
+                ) =>
+                  getCaip25PermissionFromLegacyPermissions(
+                    origin,
+                    requestedPermissions,
+                  ),
+                requestPermissionsForOrigin: (requestedPermissions) =>
+                  Engine.context.PermissionController.requestPermissions(
+                    { origin: channelId ?? hostname },
+                    requestedPermissions,
+                    {
+                      metadata: {
+                        isEip1193Request: true,
                       },
-                    ],
+                    },
+                  ),
+                  getUnlockPromise: () => {
+                    if (Engine.context.KeyringController.isUnlocked()) {
+                      return Promise.resolve();
+                    }
+                    return new Promise((resolve) => {
+                      Engine.controllerMessenger.subscribeOnceIf(
+                        'KeyringController:unlock',
+                        resolve,
+                        () => true,
+                      );
+                    });
                   },
-                },
-                {
-                  metadata: {
-                    isEip1193Request: true,
-                  },
-                },
-              );
-              DevLogger.log(`eth_requestAccounts requestPermissions`);
-              const acc = getPermittedAccounts(origin);
-              DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
-              res.result = acc;
-            } catch (error) {
-              DevLogger.log(`eth_requestAccounts error`, error);
-              if (error) {
-                throw providerErrors.userRejectedRequest(
-                  'User denied account authorization.',
-                );
-              }
-            }
-          }
-        },
+              },
+            )
+            ?.then(resolve)
+            .catch(reject);
+        }),
+        eth_accounts: getEthAccounts,
         eth_coinbase: getEthAccounts,
         parity_defaultAccount: getEthAccounts,
         eth_sendTransaction: async () => {

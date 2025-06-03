@@ -52,11 +52,9 @@ import { getCaip25Caveat, getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
-import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import createTracingMiddleware, {
   MESSAGE_TYPE,
 } from '../createTracingMiddleware';
-import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -529,72 +527,6 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
-    // Unrestricted/permissionless RPC method implementations.
-    engine.push(
-      createEip1193MethodMiddleware({
-        // Permission-related
-        getAccounts: (...args) => getPermittedAccounts(origin, ...args),
-        getCaip25PermissionFromLegacyPermissionsForOrigin: (
-          requestedPermissions,
-        ) =>
-          getCaip25PermissionFromLegacyPermissions(
-            origin,
-            requestedPermissions,
-          ),
-        getPermissionsForOrigin: PermissionController.getPermissions.bind(
-          PermissionController,
-          origin,
-        ),
-        requestPermissionsForOrigin: (requestedPermissions) =>
-          PermissionController.requestPermissions(
-            { origin },
-            requestedPermissions,
-            {
-              metadata: {
-                isEip1193Request: true,
-              },
-            },
-          ),
-        revokePermissionsForOrigin: (permissionKeys) => {
-          try {
-            PermissionController.revokePermissions({
-              [origin]: permissionKeys,
-            });
-          } catch (e) {
-            // we dont want to handle errors here because
-            // the revokePermissions api method should just
-            // return `null` if the permissions were not
-            // successfully revoked or if the permissions
-            // for the origin do not exist
-          }
-        },
-        // network configuration-related
-        updateCaveat: PermissionController.updateCaveat.bind(
-          PermissionController,
-          origin,
-        ),
-        getUnlockPromise: () => {
-          if (KeyringController.isUnlocked()) {
-            return Promise.resolve();
-          }
-          return new Promise((resolve) => {
-            Engine.controllerMessenger.subscribeOnceIf(
-              'KeyringController:unlock',
-              resolve,
-              () => true,
-            );
-          });
-        },
-      }),
-    );
-
-    // Legacy RPC methods that need to be implemented ahead of the permission middleware
-    engine.push(
-      createEthAccountsMethodMiddleware({
-        getAccounts: (...args) => getPermittedAccounts(origin, ...args),
-      }),
-    );
-
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
@@ -611,15 +543,6 @@ export class BackgroundBridge extends EventEmitter {
       });
     }
     ///: END:ONLY_INCLUDE_IF
-
-    // Append PermissionController middleware
-    engine.push(
-      Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
-        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin,
-      }),
-    );
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
@@ -744,13 +667,6 @@ export class BackgroundBridge extends EventEmitter {
           'eth_accounts',
         ]),
       ),
-    );
-
-    engine.push(
-      createMultichainMethodMiddleware({
-        // getProviderState handler related
-        getProviderState: this.getProviderState.bind(this),
-      }),
     );
 
     try {

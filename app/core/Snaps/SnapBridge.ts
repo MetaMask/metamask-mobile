@@ -165,12 +165,6 @@ export default class SnapBridge {
     const { PermissionController } = context;
 
     engine.push(
-      PermissionController.createPermissionMiddleware({
-        origin: this.snapId,
-      }),
-    );
-
-    engine.push(
       snapMethodMiddlewareBuilder(
         context,
         controllerMessenger,
