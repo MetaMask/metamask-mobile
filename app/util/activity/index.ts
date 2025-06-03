@@ -12,11 +12,23 @@ export const isFromOrToSelectedAddress = (
   from: string,
   to: string,
   selectedAddress: string,
-): boolean =>
-  (from
-    ? toFormattedAddress(from) === toFormattedAddress(selectedAddress)
-    : false) ||
-  (to ? toFormattedAddress(to) === toFormattedAddress(selectedAddress) : false);
+): boolean => {
+  if (!selectedAddress) {
+    return false;
+  }
+
+  const formattedSelectedAddress = toFormattedAddress(selectedAddress);
+
+  if (from && toFormattedAddress(from) === formattedSelectedAddress) {
+    return true;
+  }
+
+  if (to && toFormattedAddress(to) === formattedSelectedAddress) {
+    return true;
+  }
+
+  return false;
+};
 
 /**
  * Determines if a transaction was executed in the current chain/network
