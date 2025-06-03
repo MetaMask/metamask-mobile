@@ -319,10 +319,6 @@ exports[`Browser should render correctly 1`] = `
                       testID="browser-screen"
                     >
                       BrowserTab
-                      BrowserTab
-                      BrowserTab
-                      BrowserTab
-                      BrowserTab
                     </View>
                   </View>
                 </View>
