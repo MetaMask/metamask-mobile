@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet, TextStyle } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -11,7 +11,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import AssetElement from '../../../AssetElement';
 import BadgeWrapper, {
   BadgePosition,
@@ -21,6 +24,7 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
@@ -33,6 +37,126 @@ import PercentageChange from '../../../../../component-library/components-temp/P
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import BigNumber from 'bignumber.js';
+import { Theme } from '../../../../../util/theme/models';
+import EarnMaintenanceBanner from '../EarnMaintenanceBanner';
+
+const lendingEarningsStylesheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
+    stakingEarningsContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 24,
+    },
+    title: {
+      paddingBottom: 8,
+    } as TextStyle,
+    keyValueRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+    },
+    keyValuePrimaryTextWrapper: {
+      flexDirection: 'row',
+    },
+    keyValuePrimaryTextWrapperCentered: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    keyValuePrimaryText: {
+      color: colors.text.alternative,
+    },
+    keyValueSecondaryText: {
+      alignItems: 'flex-end',
+    },
+  });
+};
+
+interface LendingEarningsProps {
+  asset: TokenI;
+}
+
+const LendingEarnings = ({ asset }: LendingEarningsProps) => {
+  const { styles } = useStyles(lendingEarningsStylesheet, {});
+
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+  );
+
+  const { getPairedEarnTokens } = useEarnTokens();
+
+  const { earnToken, outputToken } = getPairedEarnTokens(asset);
+
+  return (
+    <View style={styles.stakingEarningsContainer}>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {strings('stake.your_earnings')}
+      </Text>
+      <View>
+        {isStablecoinLendingServiceInterruptionBannerEnabled && (
+          <EarnMaintenanceBanner />
+        )}
+        {/* Annual Rate */}
+        <View style={styles.keyValueRow}>
+          <View style={styles.keyValuePrimaryTextWrapper}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.keyValuePrimaryText}
+            >
+              {strings('stake.annual_rate')}
+            </Text>
+          </View>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+            {`${earnToken?.experience?.apr}% ${strings('earn.apr')}`}
+          </Text>
+        </View>
+        <View style={styles.keyValueRow}>
+          <View style={styles.keyValuePrimaryTextWrapperCentered}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.keyValuePrimaryText}
+            >
+              {strings('stake.lifetime_rewards')}
+            </Text>
+          </View>
+          <View style={styles.keyValueSecondaryText}>
+            <Text variant={TextVariant.BodyMD}>
+              {outputToken?.experience?.estimatedAnnualRewardsFormatted}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {outputToken?.experience?.estimatedAnnualRewardsTokenFormatted}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.keyValueRow}>
+          <View style={styles.keyValuePrimaryTextWrapperCentered}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('stake.estimated_annual_earnings')}
+            </Text>
+          </View>
+          <View style={styles.keyValueSecondaryText}>
+            <Text variant={TextVariant.BodyMD}>
+              {outputToken?.experience?.estimatedAnnualRewardsFormatted}
+            </Text>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {outputToken?.experience?.estimatedAnnualRewardsTokenFormatted}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -169,6 +293,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
           )}
         </View>
       )}
+      <LendingEarnings asset={asset} />
     </View>
   );
 };
