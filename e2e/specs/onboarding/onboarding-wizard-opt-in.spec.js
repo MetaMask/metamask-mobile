@@ -13,7 +13,6 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/wallet/LoginView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -62,20 +61,6 @@ describe(
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
-    it('should dismiss the onboarding wizard', async () => {
-      // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
-      try {
-        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-        await OnboardingWizardModal.tapNoThanksButton();
-        await Assertions.checkIfNotVisible(
-          OnboardingWizardModal.stepOneContainer,
-        );
-      } catch {
-        //
-      }
-    });
-
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
@@ -121,22 +106,6 @@ describe(
       await Assertions.checkIfVisible(LoginView.container);
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
-    });
-
-    it('should dismiss the onboarding wizard after logging in', async () => {
-      // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
-      try {
-        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-        await OnboardingWizardModal.tapNoThanksButton();
-        await Assertions.checkIfNotVisible(
-          OnboardingWizardModal.stepOneContainer,
-        );
-      } catch {
-        /* eslint-disable no-console */
-
-        console.log('The onboarding wizard is not visible');
-      }
     });
 
     it('should verify metametrics is turned off', async () => {
