@@ -189,10 +189,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const handleConfirm = async () => {
     if (
-      !receiptToken?.address ||
-      !receiptToken?.experience?.market?.underlying.address ||
       !amountTokenMinimalUnit ||
-      !receiptToken?.chainId
+      !receiptToken?.address ||
+      !receiptToken?.chainId ||
+      !receiptToken?.experience?.market?.underlying.address ||
+      !receiptToken?.experience?.market?.protocol
     )
       return;
 
@@ -319,7 +320,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   label: (
                     <ContractTag
                       contractAddress={lendingContractAddress}
-                      contractName={lendingProtocol}
+                      contractName={capitalize(lendingProtocol)}
                       useBlockieIcon={useBlockieIcon}
                     />
                   ),

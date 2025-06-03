@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -367,7 +368,9 @@ const EarnLendingDepositConfirmationView = () => {
         <DepositInfoSection
           token={token}
           lendingContractAddress={lendingContractAddress}
-          lendingProtocol={lendingProtocol}
+          lendingProtocol={capitalize(
+            lendingProtocol ?? strings('earn.unknown'),
+          )}
           amountTokenMinimalUnit={amountTokenMinimalUnit}
           amountFiatNumber={parseFloatSafe(amountFiat)}
         />
