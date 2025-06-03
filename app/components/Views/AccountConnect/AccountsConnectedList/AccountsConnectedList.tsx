@@ -60,7 +60,6 @@ const AccountsConnectedItemList = ({
   networkAvatars: NetworkAvatarProps[];
   handleEditAccountsButtonPress: () => void;
 }) => {
-  console.log('selected addresses:', selectedAddresses);
   const HEIGHT_BY_ACCOUNTS_LENGTH =
     selectedAddresses.length * ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT;
   const MAX_HEIGHT =
