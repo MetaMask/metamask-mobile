@@ -46,6 +46,11 @@ jest.mock('../Engine', () => ({
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
       isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
+    PreferencesController: {
+      state: {
+        dismissSmartAccountSuggestionEnabled: false,
+      },
+    },
   },
   controllerMessenger: {
     call: jest.fn().mockImplementation((type) => {
@@ -222,6 +227,17 @@ describe('processSendCalls', () => {
         networkClientId: 'linea',
       } as JsonRpcRequest);
     }).rejects.toThrow('EIP-7702 upgrade not supported on account');
+  });
+
+  it('throw error if user has enabled preference dismissSmartAccountSuggestionEnabled', async () => {
+    Engine.context.PreferencesController.state.dismissSmartAccountSuggestionEnabled =
+      true;
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, {
+        ...MOCK_REQUEST,
+        networkClientId: 'linea',
+      } as JsonRpcRequest);
+    }).rejects.toThrow('EIP-7702 upgrade disabled by the user');
   });
 
   describe('getCallsStatus', () => {

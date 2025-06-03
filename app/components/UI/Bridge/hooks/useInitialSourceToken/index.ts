@@ -6,7 +6,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selector
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { getNativeAssetForChainId } from '@metamask/bridge-controller';
+import { getNativeAssetForChainId, isSolanaChainId } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
@@ -15,8 +15,11 @@ import { SolScope } from '@metamask/keyring-api';
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
 
+  // getNativeAssetForChainId returns zero address for Solana, we need the assetId to get balances properly for native SOL
+  const address = isSolanaChainId(chainId) ? nativeAsset.assetId : nativeAsset.address;
+
   const nativeSourceTokenFormatted: BridgeToken = {
-    address: nativeAsset.address,
+    address,
     name: nativeAsset.name ?? '',
     symbol: nativeAsset.symbol,
     image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl : '',
