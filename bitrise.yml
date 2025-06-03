@@ -100,6 +100,10 @@ pipelines:
   expo_flask_pipeline:
     stages:
       - create_build_flask_expo: {}
+  #QA expo pipeline
+  expo_flask_pipeline:
+    stages:
+      - create_build_qa_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -177,6 +181,11 @@ stages:
       - build_android_flask_devbuild: {}
       - build_ios_flask_devbuild: {}
       - build_ios_flask_simbuild: {}
+  create_build_qa_expo:
+    workflows:
+      - build_android_qa_devbuild: {}
+      - build_ios_qa_devbuild: {}
+      - build_ios_qa_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -1553,6 +1562,20 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'prod'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_qa:
       before_run:
         - code_setup
@@ -2057,6 +2080,17 @@ workflows:
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
     after_run:
       - _ios_build_template
+  build_ios_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
@@ -2067,6 +2101,18 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
   build_ios_qa:
