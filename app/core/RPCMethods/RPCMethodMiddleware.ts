@@ -632,7 +632,7 @@ export const getRpcMethodMiddleware = ({
                     origin,
                     requestedPermissions,
                   ),
-                requestPermissionsForOrigin: (requestedPermissions) =>
+                requestPermissionsForOrigin: (requestedPermissions: RequestedPermissions) =>
                   Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
                     requestedPermissions,
