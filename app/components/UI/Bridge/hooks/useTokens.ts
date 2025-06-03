@@ -28,23 +28,25 @@ export function useTokens({
 
   const { topTokens, remainingTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
+  const getTokenKey = (token: { address: string; chainId: Hex | CaipChainId }) => `${token.address}-${token.chainId}`;
+
   // Create Sets for O(1) lookups
   const tokensWithBalanceSet = new Set(
-    tokensWithBalance.map(token => `${token.address}-${token.chainId}`)
+    tokensWithBalance.map(token => getTokenKey(token))
   );
   const excludedTokensSet = new Set(
-    tokensToExclude?.map(token => `${token.address}-${token.chainId}`) ?? []
+    tokensToExclude?.map(token => getTokenKey(token)) ?? []
   );
 
   // Combine and filter tokens in a single pass
   const tokensWithoutBalance = (topTokens ?? []).concat(remainingTokens ?? []).filter(token => {
-    const tokenKey = `${token.address}-${token.chainId}`;
+    const tokenKey = getTokenKey(token);
     return !tokensWithBalanceSet.has(tokenKey);
   });
 
   // Combine tokens with balance and filtered tokens and filter out excluded tokens
   const tokens = tokensWithBalance.concat(tokensWithoutBalance).filter(token => {
-    const tokenKey = `${token.address}-${token.chainId}`;
+    const tokenKey = getTokenKey(token);
     return !excludedTokensSet.has(tokenKey);
   });
 
