@@ -65,7 +65,7 @@ import {
   SCALE_FACTOR,
 } from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import { parseCaipAccountId } from '@metamask/utils';
+import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -548,12 +548,14 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
-  const filteredAccountAddresses = useMemo(() => {
-    return accountAddresses.filter((address) => {
-      const { chainId } = parseCaipAccountId(address);
-      return !NON_EVM_TESTNET_IDS.includes(chainId);
-    });
-  }, [accountAddresses]);
+  const filteredAccountAddresses = useMemo(
+    () =>
+      accountAddresses.filter((address) => {
+        const { chainId: caipChainId } = parseCaipAccountId(address);
+        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      }),
+    [accountAddresses],
+  );
 
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
