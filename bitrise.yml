@@ -887,7 +887,14 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
-
+  install_foundry:
+    steps:
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
   android_e2e_build:
     before_run:
       - code_setup
@@ -965,6 +972,7 @@ workflows:
     before_run:
       - setup
       - prep_environment
+      - install_foundry
     after_run:
       - notify_failure
     steps:
@@ -990,12 +998,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - script@1:
-          title: Install foundry
-          inputs:
-            - content: |-
-                #!/bin/bash
-                yarn install:foundryup
+      # - script@1:
+      #     title: Install foundry
+      #     inputs:
+      #       - content: |-
+      #           #!/bin/bash
+      #           yarn install:foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1059,6 +1067,7 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
+      - install_foundry
     after_run:
       - notify_failure
     steps:
@@ -1086,12 +1095,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - script@1:
-          title: Install foundry
-          inputs:
-            - content: |-
-                #!/bin/bash
-                yarn install:foundryup
+      # - script@1:
+      #     title: Install foundry
+      #     inputs:
+      #       - content: |-
+      #           #!/bin/bash
+      #           yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1213,6 +1222,7 @@ workflows:
       - setup
       - install_applesimutils
       - prep_environment
+      - install_foundry
     after_run:
       - notify_failure
     steps:
@@ -1240,12 +1250,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - script@1:
-          title: Install foundry
-          inputs:
-            - content: |-
-                #!/bin/bash
-                yarn install:foundryup
+      # - script@1:
+      #     title: Install foundry
+      #     inputs:
+      #       - content: |-
+      #           #!/bin/bash
+      #           yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
