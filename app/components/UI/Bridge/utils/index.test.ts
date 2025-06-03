@@ -13,9 +13,8 @@ import {
   ZKSYNC_ERA_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import { Hex } from '@metamask/utils';
-import { CaipChainId, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 
 jest.mock('../../../../core/AppConstants', () => ({
   BRIDGE: {
