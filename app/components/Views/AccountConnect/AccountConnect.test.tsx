@@ -633,7 +633,6 @@ describe('AccountConnect', () => {
                   promptToCreateSolanaAccount: true,
                 },
                 permissions: {
-                  // @ts-expect-error partial object
                   [Caip25EndowmentPermissionName]: {
                     parentCapability: Caip25EndowmentPermissionName,
                     caveats: [
@@ -651,7 +650,7 @@ describe('AccountConnect', () => {
                         },
                       },
                     ],
-                  } as PermissionConstraint,
+                  },
                 },
               },
               permissionRequestId: 'test',
