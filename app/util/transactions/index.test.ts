@@ -41,12 +41,16 @@ import {
   getTransactionById,
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
-  isLegacyTransaction
+  isLegacyTransaction,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
-import { TransactionType, TransactionEnvelopeType, TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  TransactionEnvelopeType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
 
@@ -1141,6 +1145,23 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     expect(actionKey).toBe(DOWNGRADE_SMART_ACCOUNT_ACTION_KEY);
   });
 
+  it('calls findNetworkClientIdByChainId when toSmartContract is undefined', async () => {
+    const spyOnFindNetworkClientIdByChainId = jest.spyOn(
+      Engine.context.NetworkController,
+      'findNetworkClientIdByChainId',
+    );
+
+    const transaction = {
+      txParams: {
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    await getTransactionActionKey(transaction, chainId);
+    expect(spyOnFindNetworkClientIdByChainId).toHaveBeenCalledWith('1');
+  });
+
   it.each([
     TransactionType.stakingClaim,
     TransactionType.stakingDeposit,
@@ -1334,6 +1355,8 @@ describe('Transactions utils :: isLegacyTransaction', () => {
 
   it('returns false for transactionMeta without txParams', () => {
     const transactionMeta = {};
-    expect(isLegacyTransaction(transactionMeta as Partial<TransactionMeta>)).toBe(false);
+    expect(
+      isLegacyTransaction(transactionMeta as Partial<TransactionMeta>),
+    ).toBe(false);
   });
 });
