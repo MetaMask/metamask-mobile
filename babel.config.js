@@ -1,13 +1,31 @@
 const ReactCompilerConfig = {
-  target: '18'
+  target: '18',
 };
 
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   ignore: [/\/ses\.cjs$/, /\/ses-hermes\.cjs$/],
   presets: ['babel-preset-expo'],
+  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    ['babel-plugin-react-compiler', ReactCompilerConfig],
+    [
+      'react-compiler',
+      {
+        target: '18',
+        sources: (filename) => {
+          // Match file paths to include in the React Compiler.
+          const filePaths = [
+            'app/components/UI/Tokens/TokenList/TokenListItem',
+            // 'app/components/Views/Root/index',
+          ];
+          const isMatch = filePaths.some((path) => filename.includes(path));
+          if (isMatch) {
+            console.log('HELLO!', filename);
+          }
+          return isMatch;
+        },
+      },
+    ],
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
   ],
