@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_STATE_NFT } from '../../../../../util/test/mock-data/root-state/nft';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { MOCK_STATE_NFT } from '../../../../../../util/test/mock-data/root-state/nft';
 import { Hero } from './hero';
 
 describe('Hero', () => {

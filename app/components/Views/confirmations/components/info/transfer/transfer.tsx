@@ -16,7 +16,7 @@ import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/adv
 import TokenHero from '../../rows/transactions/token-hero';
 import NetworkRow from '../../rows/transactions/network-row';
 import styleSheet from './transfer.styles';
-import { HeroNft } from '../../hero/nft/nft';
+import { HeroNft } from '../../header/hero/nft/nft';
 
 const Transfer = () => {
   const transactionMetadata = useTransactionMetadataRequest();
