@@ -1,7 +1,7 @@
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
-import { isHardwareAccount } from '../util/address';
+import { areAddressesEqual, isHardwareAccount } from '../util/address';
 import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
   SmartTransaction,
@@ -75,7 +75,7 @@ export const selectPendingSmartTransactionsBySender = createDeepEqualSelector(
         const { txParams } = stx;
         return (
           selectedAddress &&
-          txParams?.from.toLowerCase() === selectedAddress.toLowerCase() &&
+          areAddressesEqual(txParams?.from, selectedAddress) &&
           ![
             SmartTransactionStatuses.SUCCESS,
             SmartTransactionStatuses.CANCELLED,

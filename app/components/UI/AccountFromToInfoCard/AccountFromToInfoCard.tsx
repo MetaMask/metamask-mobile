@@ -11,10 +11,7 @@ import {
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import {
-  safeToChecksumAddress,
-  toFormattedAddress,
-} from '../../../util/address';
+import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
@@ -36,7 +33,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     ensRecipient,
   } = transactionState;
 
-  const fromAddress = safeToChecksumAddress(rawFromAddress);
+  const fromAddress = toFormattedAddress(rawFromAddress);
 
   const [toAddress, setToAddress] = useState(transactionTo || to);
   const [fromAccountName, setFromAccountName] = useState<string>();
@@ -68,9 +65,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         }
       } else {
         const accountWithMatchingFromAddress = internalAccounts.find(
-          (account) =>
-            toFormattedAddress(account.address) ===
-            toFormattedAddress(fromAddress),
+          (account) => areAddressesEqual(account.address, fromAddress),
         );
 
         const newName = accountWithMatchingFromAddress
@@ -107,10 +102,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
           setToAccountName(toEns);
         }
       } else {
-        const accountWithMatchingToAddress = internalAccounts.find(
-          (account) =>
-            toFormattedAddress(account.address) ===
-            toFormattedAddress(toAddress),
+        const accountWithMatchingToAddress = internalAccounts.find((account) =>
+          areAddressesEqual(account.address, toAddress),
         );
 
         const newName = accountWithMatchingToAddress

@@ -30,7 +30,7 @@ import { selectPermissionControllerState } from '../../../../selectors/snaps/per
 import { getPermittedEvmAddressesByHostname } from '../../../../core/Permissions';
 import { useFavicon } from '../../../hooks/useFavicon';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { toFormattedAddress } from '../../../../util/address';
+import { areAddressesEqual } from '../../../../util/address';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -58,9 +58,8 @@ const TabThumbnail = ({
   // This only works for EVM currently
   const activeAddress = permittedAccountsByHostname[0];
   const internalAccounts = useSelector(selectInternalAccounts);
-  const selectedAccount = internalAccounts.find(
-    (account) =>
-      toFormattedAddress(account.address) === toFormattedAddress(activeAddress),
+  const selectedAccount = internalAccounts.find((account) =>
+    areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);

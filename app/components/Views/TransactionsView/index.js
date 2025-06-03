@@ -16,10 +16,7 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
 } from '../../../util/activity';
-import {
-  safeToChecksumAddress,
-  toFormattedAddress,
-} from '../../../util/address';
+import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import {
   selectChainId,
@@ -127,14 +124,13 @@ const TransactionsView = ({
 
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
-        if (!toFormattedAddress(from) === toFormattedAddress(selectedAddress)) {
+        if (!areAddressesEqual(from, selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
-            toFormattedAddress(tx.txParams.from) ===
-              toFormattedAddress(selectedAddress) &&
+            areAddressesEqual(tx.txParams.from, selectedAddress) &&
             tx.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {

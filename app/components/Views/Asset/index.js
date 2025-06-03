@@ -31,11 +31,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import {
-  safeToChecksumAddress,
-  toFormattedAddress,
-} from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -330,8 +326,8 @@ class Asset extends PureComponent {
     } = tx;
 
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -340,7 +336,7 @@ class Asset extends PureComponent {
       }
       if (isTransfer) {
         return this.props.tokens.find(({ address }) =>
-          toLowerCaseEquals(address, transferInformation.contractAddress),
+          areAddressesEqual(address, transferInformation.contractAddress),
         );
       }
 
@@ -359,8 +355,8 @@ class Asset extends PureComponent {
       transferInformation,
     } = tx;
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -429,17 +425,16 @@ class Asset extends PureComponent {
       });
 
       submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (
-          toFormattedAddress(from) !== toFormattedAddress(this.selectedAddress)
-        ) {
+        if (!areAddressesEqual(from, this.selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (confirmedTransaction) =>
-            toFormattedAddress(confirmedTransaction.txParams.from) ===
-              toFormattedAddress(this.selectedAddress) &&
-            confirmedTransaction.txParams.nonce === nonce,
+            areAddressesEqual(
+              confirmedTransaction.txParams.from,
+              this.selectedAddress,
+            ) && confirmedTransaction.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

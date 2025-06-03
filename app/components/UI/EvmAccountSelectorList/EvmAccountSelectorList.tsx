@@ -24,6 +24,7 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
+  areAddressesEqual,
   formatAddress,
   getLabelTextByAddress,
   toFormattedAddress,
@@ -346,11 +347,9 @@ const EvmAccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedFormattedAddress = toFormattedAddress(
-          selectedAddresses[0],
-        );
-        selectedAccount = accounts.find(
-          (acc) => toFormattedAddress(acc.address) === selectedFormattedAddress,
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
         );
       }
       // Fall back to the account with isSelected flag if no override or match found
