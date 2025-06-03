@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import { BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -12,6 +12,7 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 
 const MAX_TOP_TOKENS = 30;
 
@@ -74,7 +75,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
-      BRIDGE_PROD_API_BASE_URL,
+      BRIDGE_API_BASE_URL,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
