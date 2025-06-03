@@ -95,7 +95,7 @@ class AuthenticationService {
     this.attemptSolanaAccountDiscovery().catch((error) => {
       console.warn('Solana account discovery failed during wallet creation:', error);
       // Store flag to retry on next unlock
-      StorageWrapper.setItem('SOLANA_DISCOVERY_PENDING', 'true').catch(() => {});
+      StorageWrapper.setItem('SOLANA_DISCOVERY_PENDING', 'true');
     });
     ///: END:ONLY_INCLUDE_IF
     
@@ -139,7 +139,6 @@ class AuthenticationService {
     try {
       const isPending = await StorageWrapper.getItem('SOLANA_DISCOVERY_PENDING');
       if (isPending === 'true') {
-        console.log('Retrying pending Solana account discovery');
         await this.attemptSolanaAccountDiscovery();
       }
     } catch (error) {
@@ -164,8 +163,7 @@ class AuthenticationService {
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
       console.warn('Solana account discovery failed during wallet creation:', error);
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem('SOLANA_DISCOVERY_PENDING', 'true').catch(() => {});
+      StorageWrapper.setItem('SOLANA_DISCOVERY_PENDING', 'true');
     });
     ///: END:ONLY_INCLUDE_IF
     password = this.wipeSensitiveData();

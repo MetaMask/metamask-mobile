@@ -42,6 +42,40 @@ jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   },
 }));
 
+jest.mock('../Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    KeyringController: {
+      createNewVaultAndKeychain: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      submitPassword: jest.fn(),
+      setLocked: jest.fn(),
+      isUnlocked: jest.fn(() => true),
+      state: {
+        keyrings: [{ metadata: { id: 'test-keyring-id' } }],
+      },
+    },
+  },
+}));
+
+jest.mock('../NavigationService', () => ({
+  navigation: {
+    reset: jest.fn(),
+  },
+}));
+
+jest.mock('../SecureKeychain', () => ({
+  getSupportedBiometryType: jest.fn(),
+  getGenericPassword: jest.fn(),
+  setGenericPassword: jest.fn(),
+  resetGenericPassword: jest.fn(),
+  TYPES: {
+    BIOMETRICS: 'biometrics',
+    PASSCODE: 'passcode', 
+    REMEMBER_ME: 'rememberMe',
+  },
+}));
+
 describe('Authentication', () => {
   afterEach(() => {
     StorageWrapper.clearAll();
@@ -213,6 +247,66 @@ describe('Authentication', () => {
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
       );
+    });
+
+    describe('Solana account discovery failure handling', () => {
+      beforeEach(() => {
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: jest.fn(),
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+        jest.spyOn(console, 'warn').mockImplementation();
+        jest.spyOn(console, 'log').mockImplementation();
+        jest.clearAllMocks();
+        mockSnapClient.addDiscoveredAccounts.mockClear();
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('completes wallet creation when Solana discovery fails', async () => {
+        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(new Error('Solana RPC error'));
+
+        await expect(
+          Authentication.newWalletAndKeychain('1234', {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          })
+        ).resolves.not.toThrow();
+
+        // Verify Solana discovery was attempted
+        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
+      });
+
+      it('completes wallet restore when Solana discovery fails', async () => {
+        // Mock Solana discovery to fail
+        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(new Error('Network timeout'));
+
+        // Wallet restore should succeed despite Solana failure
+        await expect(
+          Authentication.newWalletAndRestore(
+            '1234',
+            { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+            'test seed phrase',
+            true
+          )
+        ).resolves.not.toThrow();
+
+        // Verify Solana discovery was attempted
+        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
+      });
+
+      it('does not break authentication flow when Solana discovery fails', async () => {
+        // Set up pending discovery that will be checked on unlock
+        storage.SOLANA_DISCOVERY_PENDING = 'true';
+        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(new Error('Still failing'));
+
+        const mockCredentials = { username: 'test', password: 'test' };
+        SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(mockCredentials);
+
+        // App unlock should succeed even if retry fails
+        await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
+      });
     });
   });
 });
