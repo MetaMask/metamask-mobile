@@ -26,6 +26,7 @@ import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
 import PLUME from './plume-native.png';
+import GENESYS from './genesys.png';
 
 
 export default {
@@ -59,4 +60,5 @@ export default {
   FLOW,
   LENS,
   PLUME,
+  GENESYS,
 };
