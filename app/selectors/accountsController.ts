@@ -100,6 +100,14 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 );
 
 /**
+ * A memoized selector that returns the selected internal account id
+ */
+export const selectSelectedInternalAccountId = createSelector(
+  selectSelectedInternalAccount,
+  (account): string | undefined => account?.id,
+);
+
+/**
  * A memoized selector that returns the internal accounts sorted by the last selected timestamp
  */
 export const selectOrderedInternalAccountsByLastSelected = createSelector(
