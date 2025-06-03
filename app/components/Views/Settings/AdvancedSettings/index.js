@@ -47,7 +47,6 @@ import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 import { wipeBridgeStatus } from '../../../UI/Bridge/utils';
 
 const createStyles = (colors) =>
