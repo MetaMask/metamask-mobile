@@ -8,14 +8,6 @@ import {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BatchedTransactionTag } from './batched-transactions-tag';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('BatchedTransactionTag', () => {
   it('renders tag with transaction count for batched transactions', () => {
     const { getByText } = renderWithProvider(<BatchedTransactionTag />, {

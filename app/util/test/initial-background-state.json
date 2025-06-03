@@ -1,8 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "keyringsMetadata": []
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -20,12 +19,6 @@
   },
   "AddressBookController": {
     "addressBook": {}
-  },
-  "AppMetadataController": {
-    "currentAppVersion": "",
-    "currentMigrationVersion": 0,
-    "previousAppVersion": "",
-    "previousMigrationVersion": 0
   },
   "NftController": {
     "allNftContracts": {},
@@ -91,9 +84,7 @@
         ]
       },
       "0x279f": {
-        "blockExplorerUrls": [
-          "https://testnet.monadexplorer.com"
-        ],
+        "blockExplorerUrls": ["https://testnet.monadexplorer.com"],
         "chainId": "0x279f",
         "defaultBlockExplorerUrlIndex": 0,
         "defaultRpcEndpointIndex": 0,
@@ -173,6 +164,7 @@
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
+    "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
@@ -228,7 +220,8 @@
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
-    "transactions": []
+    "transactions": [],
+    "transactionBatches": []
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
@@ -402,6 +395,7 @@
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
+    "networksWithTransactionActivity": {},
     "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
     "multichainNetworkConfigurationsByChainId": {
       "bip122:000000000019d6689c085ae165831e93": {

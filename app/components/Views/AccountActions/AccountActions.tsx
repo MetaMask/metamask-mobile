@@ -19,19 +19,11 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   findBlockExplorerForNonEvmAccount,
-  findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
-import {
-  getEtherscanAddressUrl,
-  getEtherscanBaseUrl,
-} from '../../../util/etherscan';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
@@ -56,9 +48,9 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
-import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
+import { selectDismissSmartAccountSuggestionEnabled } from '../../../selectors/preferencesController';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -76,6 +68,9 @@ const AccountActions = () => {
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
   );
+  const dismissSmartAccountSuggestionEnabled = useSelector(
+    selectDismissSmartAccountSuggestionEnabled,
+  );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -84,21 +79,15 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  const existingKeyrings = useSelector(selectKeyrings);
-
-  const keyringId = useMemo(() => {
-    const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(selectedAccount.address.toLowerCase()),
-    );
-    return keyring?.metadata.id;
-  }, [existingKeyrings, selectedAccount.address]);
+  const keyringId = useMemo(
+    () => selectedAccount.options.entropySource,
+    [selectedAccount.options.entropySource],
+  );
 
   const providerConfig = useSelector(selectProviderConfig);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
-
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer:
     | {
@@ -109,38 +98,13 @@ const AccountActions = () => {
     | undefined = useMemo(() => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
-        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-          const explorer = findBlockExplorerForRpc(
-            providerConfig.rpcUrl,
-            networkConfigurations,
-          );
-
-          if (!explorer) {
-            return undefined;
-          }
-
-          return {
-            url: `${explorer}/address/${selectedAccount.address}`,
-            title: new URL(explorer).hostname,
-            blockExplorerName:
-              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-          };
-        }
-
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAccount.address,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
         return {
-          url,
-          title: etherscan_url,
-          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
+          title: 'Etherscan (Multichain)',
+          blockExplorerName: 'Etherscan (Multichain)',
         };
       }
+
       const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       if (explorer) {
         return {
@@ -152,12 +116,7 @@ const AccountActions = () => {
       }
       return undefined;
     }
-  }, [
-    networkConfigurations,
-    providerConfig.rpcUrl,
-    providerConfig.type,
-    selectedAccount,
-  ]);
+  }, [selectedAccount]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -263,8 +222,8 @@ const AccountActions = () => {
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -300,8 +259,8 @@ const AccountActions = () => {
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -463,18 +422,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
@@ -497,8 +454,8 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
-          networkSupporting7702Present && (
+        {networkSupporting7702Present &&
+          !dismissSmartAccountSuggestionEnabled && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}

@@ -12,6 +12,7 @@ import {
 import {
   isEIP1559Transaction,
   TransactionType,
+  TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
@@ -178,6 +179,17 @@ const actionKeys = {
     'transactions.tx_review_staking_unstake',
   ),
 };
+
+/**
+ * Checks if a transaction is a legacy transaction by examining its type.
+ * Legacy transactions are identified by the TransactionEnvelopeType.legacy type.
+ *
+ * @param {object} transactionMeta - The transaction metadata to check
+ * @returns {boolean} true if the transaction is a legacy transaction, false otherwise
+ */
+export function isLegacyTransaction(transactionMeta) {
+  return transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
+}
 
 /**
  * Generates transfer data for specified method
