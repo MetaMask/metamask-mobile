@@ -6,6 +6,32 @@ import { StyleSheet } from 'react-native';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
+    forgotPasswordContainer: {
+      flexDirection: 'column',
+      rowGap: 16,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+      padding: 16,
+    },
+    forgotPasswordPointsContainer: {
+      flexDirection: 'column',
+      rowGap: 16,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+      marginVertical: 8,
+    },
+    forgotPasswordPoint: {
+      flexDirection: 'row',
+      columnGap: 16,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      width: '100%',
+    },
+    forgotPasswordPointText: {
+      width: '90%',
+    },
     container: {
       flexDirection: 'column',
       rowGap: 24,
@@ -83,7 +109,7 @@ export const createStyles = (colors: any) =>
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
       width: '100%',
-      marginTop: 24,
+      marginTop: 8,
     },
     deleteButton: {
       backgroundColor: colors.error.default,

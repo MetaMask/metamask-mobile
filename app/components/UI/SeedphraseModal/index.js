@@ -77,7 +77,6 @@ const SeedphraseModal = () => {
   ];
 
   const hideWhatIsSeedphrase = () => {
-    // bottomSheetRef.current?.onCloseBottomSheet?.();
     navigation.goBack();
   };
 
@@ -98,8 +97,8 @@ const SeedphraseModal = () => {
               {strings('account_backup_step_1.what_is_seedphrase_text_4')}
             </Text>
             <View style={styles.listContainer}>
-              {seedPhrasePoints.map((point, index) => (
-                <View style={styles.listItem} key={index}>
+              {seedPhrasePoints.map((point) => (
+                <View style={styles.listItem} key={point}>
                   <Text style={styles.bullet}>{'\u2022'}</Text>
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {point}

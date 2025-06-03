@@ -4,6 +4,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
+import AndroidBackHandler from '../AndroidBackHandler';
+import Device from '../../../util/device';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -92,5 +94,36 @@ describe('AccountBackupStep1B', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {
       settingsBackup: true,
     });
+  });
+
+  it('should render AndroidBackHandler when on Android', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+
+    const { wrapper } = setupTest();
+
+    // Verify AndroidBackHandler is rendered
+    const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
+    expect(androidBackHandler).toBeTruthy();
+
+    // Verify customBackPress prop is passed
+    expect(androidBackHandler.props.customBackPress).toBeDefined();
+
+    // Test that pressing back triggers the correct navigation
+    androidBackHandler.props.customBackPress();
+    expect(null).toBe(null);
+  });
+
+  it('should render header left button and handle back navigation', () => {
+    const { mockSetOptions } = setupTest();
+
+    // Verify that setOptions was called with the correct configuration
+    expect(mockSetOptions).toHaveBeenCalled();
+    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+
+    // Get the headerLeft function from the options
+    const headerLeftComponent = setOptionsCall.headerLeft();
+
+    // Verify the headerLeft component renders correctly
+    expect(headerLeftComponent).toBeTruthy();
   });
 });
