@@ -50,7 +50,6 @@ const getTextColor = (severity: Severity) => {
 export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
   const { showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
-  const severity = alertObj.severity ?? Severity.Info;
 
   const handleInlineAlertClick = useCallback(() => {
     if (!alertObj) return;
@@ -59,6 +58,7 @@ export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
     trackInlineAlertClicked(alertObj.field);
   }, [alertObj, setAlertKey, showAlertModal, trackInlineAlertClicked]);
 
+  const severity = alertObj.severity ?? Severity.Info;
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
 
