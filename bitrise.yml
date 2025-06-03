@@ -2244,7 +2244,7 @@ workflows:
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
 app:
   envs:
-  - opts:
+    - opts:
         is_expand: false
       MULTICHAIN_API: true
     - opts:
