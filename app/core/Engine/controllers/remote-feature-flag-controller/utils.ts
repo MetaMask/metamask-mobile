@@ -17,8 +17,10 @@ const getFeatureFlagAppEnvironment = () => {
     case 'local':
       return EnvironmentType.Development;
     case 'pre-release':
+    case 'rc':
       return EnvironmentType.ReleaseCandidate;
     case 'production':
+    case 'beta':
       return EnvironmentType.Production;
     default:
       return EnvironmentType.Development;
