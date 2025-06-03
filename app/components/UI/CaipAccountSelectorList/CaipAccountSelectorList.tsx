@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   Alert,
@@ -12,7 +12,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import Cell, {
@@ -73,9 +72,6 @@ const CaipAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const isBasicFunctionalityEnabled = useSelector(
-    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
-  );
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
@@ -339,22 +335,6 @@ const CaipAccountSelectorList = ({
       accountsLengthRef.current = accounts.length;
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
-
-  const fetchAccountsWithActivity = useCallback(async () => {
-    try {
-      const multichainNetworkController = Engine.context
-        .MultichainNetworkController as MultichainNetworkController;
-      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
-    } catch (error) {
-      console.error('Error fetching accounts with activity', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (accounts.length > 0 && isBasicFunctionalityEnabled) {
-      fetchAccountsWithActivity();
-    }
-  }, [fetchAccountsWithActivity, accounts.length, isBasicFunctionalityEnabled]);
 
   return (
     <FlatList

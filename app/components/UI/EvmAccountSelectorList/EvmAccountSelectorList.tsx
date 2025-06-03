@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import {
   Alert,
   InteractionManager,
@@ -13,7 +13,6 @@ import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import Cell, {
@@ -74,9 +73,6 @@ const EvmAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const isBasicFunctionalityEnabled = useSelector(
-    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
-  );
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
@@ -330,22 +326,6 @@ const EvmAccountSelectorList = ({
       accountsLengthRef.current = accounts.length;
     }
   }, [accounts, selectedAddresses, isAutoScrollEnabled]);
-
-  const fetchAccountsWithActivity = useCallback(async () => {
-    try {
-      const multichainNetworkController = Engine.context
-        .MultichainNetworkController as MultichainNetworkController;
-      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
-    } catch (error) {
-      console.error('Error fetching accounts with activity', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (accounts.length > 0 && isBasicFunctionalityEnabled) {
-      fetchAccountsWithActivity();
-    }
-  }, [fetchAccountsWithActivity, accounts.length, isBasicFunctionalityEnabled]);
 
   return (
     <FlatList
