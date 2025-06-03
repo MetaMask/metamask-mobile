@@ -138,6 +138,7 @@ import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
+import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -561,6 +562,11 @@ const MultichainAccountDetails = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
+        component={DeleteAccount}
         initialParams={route?.params}
       />
     </Stack.Navigator>
