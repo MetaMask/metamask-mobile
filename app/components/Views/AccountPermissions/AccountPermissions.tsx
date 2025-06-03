@@ -131,6 +131,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
   const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
@@ -138,17 +139,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
   const permittedCaipAccountIds = useMemo(() => {
     const unsortedPermittedAccounts = uniq(
-    nonRemappedPermittedAccounts.map((caipAccountId) => {
-      const {
-        address,
-        chain: { namespace },
-      } = parseCaipAccountId(caipAccountId);
-      if (namespace === KnownCaipNamespace.Eip155) {
-        // this is very hacky, but it works for now
-        return `eip155:0:${address}` as CaipAccountId;
-      }
-      return caipAccountId;
-    }));
+      nonRemappedPermittedAccounts.map((caipAccountId) => {
+        const {
+          address,
+          chain: { namespace },
+        } = parseCaipAccountId(caipAccountId);
+        if (namespace === KnownCaipNamespace.Eip155) {
+          // this is very hacky, but it works for now
+          return `eip155:0:${address}` as CaipAccountId;
+        }
+        return caipAccountId;
+      }),
+    );
 
     return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
   }, [nonRemappedPermittedAccounts]);
@@ -623,7 +625,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
         // This is only okay because permittedCaipAccountIds is sorted by lastSelected already
-        selectedAddresses={permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []}
+        selectedAddresses={
+          permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []
+        }
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
@@ -668,6 +672,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -679,6 +685,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accounts,
     faviconSource,
     urlWithProtocol,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -852,6 +860,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           AccountPermissionsScreens.ChooseFromPermittedNetworks,
         );
       },
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -868,6 +878,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     hostname,
     toastRef,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
