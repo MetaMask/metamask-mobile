@@ -857,6 +857,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
@@ -2765,6 +2766,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                       testID="avatargroup-avatar-container-0"
                     >
                       <View
+                        caipChainId="eip155:1"
                         style={
                           {
                             "alignItems": "center",
@@ -3891,6 +3893,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",

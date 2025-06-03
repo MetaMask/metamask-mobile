@@ -91,6 +91,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:1',
           },
         ]}
       />,
@@ -144,6 +145,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:1',
           },
         ]}
         accounts={[]}
@@ -182,6 +184,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:1',
           },
         ]}
         showAccountsOnly={false}
