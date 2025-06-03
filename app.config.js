@@ -18,12 +18,6 @@ module.exports = {
             {
                 subdomains: '*'
             }
-        ],
-        [
-          'react-native-ble-plx',
-          {
-            isBackgroundEnabled: true
-          }
         ]
     ]
 };
