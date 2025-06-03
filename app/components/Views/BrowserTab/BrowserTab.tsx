@@ -55,6 +55,7 @@ import {
   getCaip25Caveat,
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -127,7 +128,7 @@ import { parseCaipAccountId } from '@metamask/utils';
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = ({
+export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -187,7 +188,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const backgroundBridgeRef = useRef<{
     url: string;
     hostname: string;
-    sendNotification: (payload: unknown) => void;
+    sendNotificationEip1193: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
   }>();
@@ -211,10 +212,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       permissionsControllerState,
       hostname,
     );
-    const permittedAccountAddresses = permittedAccountIds.map((accountId) => {
-      const { address } = parseCaipAccountId(accountId)
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds);
+    const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
+      const { address } = parseCaipAccountId(accountId);
       return address;
-    })
+    });
     return permittedAccountAddresses;
   }, isEqual);
 
@@ -248,7 +250,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const notifyAllConnections = useCallback((payload: unknown) => {
-    backgroundBridgeRef.current?.sendNotification(payload);
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
   }, []);
 
   /**
@@ -1501,7 +1503,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       </KeyboardAvoidingView>
     </ErrorBoundary>
   );
-};
+});
 
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,

@@ -13,13 +13,6 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import StakingDetails from './staking-details';
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
 
 describe('StakingDetails', () => {
   const useConfirmationMetricEventsMock = jest.mocked(

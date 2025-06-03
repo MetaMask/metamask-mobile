@@ -636,21 +636,16 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       ]
                                     }
                                   >
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
                                       style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {},
+                                          {
+                                            "flex": 1,
+                                          },
+                                        ]
                                       }
-                                    >
-                                      $0
-                                    </Text>
+                                    />
                                     <Text
                                       accessibilityRole="text"
                                       style={
@@ -860,7 +855,18 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         },
                                       ]
                                     }
-                                  />
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {},
+                                          {
+                                            "flex": 1,
+                                          },
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -935,7 +941,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
+                                    "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
                                     "fontWeight": "400",
@@ -1599,21 +1605,16 @@ exports[`BridgeView renders 1`] = `
                                       ]
                                     }
                                   >
-                                    <Text
-                                      accessibilityRole="text"
+                                    <View
                                       style={
-                                        {
-                                          "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {},
+                                          {
+                                            "flex": 1,
+                                          },
+                                        ]
                                       }
-                                    >
-                                      $0
-                                    </Text>
+                                    />
                                     <Text
                                       accessibilityRole="text"
                                       style={
@@ -1823,7 +1824,18 @@ exports[`BridgeView renders 1`] = `
                                         },
                                       ]
                                     }
-                                  />
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {},
+                                          {
+                                            "flex": 1,
+                                          },
+                                        ]
+                                      }
+                                    />
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -1898,7 +1910,7 @@ exports[`BridgeView renders 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
+                                    "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
                                     "fontWeight": "400",

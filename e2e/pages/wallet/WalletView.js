@@ -133,7 +133,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-
   get carouselProgressDots() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
@@ -311,6 +310,40 @@ class WalletView {
     await Gestures.tap(this.getCarouselSlide(id));
   }
 
+  get defiTab() {
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
+  }
+
+  get defiNetworkFilter() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+    );
+  }
+
+  get defiTabContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+    );
+  }
+
+  get defiPositionDetailsContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+    );
+  }
+
+  async tapOnDeFiTab() {
+    await Gestures.waitAndTap(this.defiTab);
+  }
+
+  async tapOnDeFiNetworksFilter() {
+    await Gestures.waitAndTap(this.defiNetworkFilter);
+  }
+
+  async tapOnDeFiPosition(positionName) {
+    const elem = Matchers.getElementByText(positionName);
+    await Gestures.waitAndTap(elem);
+  }
 }
 
 export default new WalletView();
