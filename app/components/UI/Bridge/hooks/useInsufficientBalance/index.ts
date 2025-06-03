@@ -10,7 +10,10 @@ interface UseIsInsufficientBalanceParams {
   token: BridgeToken | undefined;
 }
 
-const useIsInsufficientBalance = ({ amount, token }: UseIsInsufficientBalanceParams): boolean => {
+const useIsInsufficientBalance = ({
+  amount,
+  token,
+}: UseIsInsufficientBalanceParams): boolean => {
   const { quoteRequest } = useSelector(selectBridgeControllerState);
   const latestBalance = useLatestBalance({
     address: token?.address,
@@ -23,7 +26,8 @@ const useIsInsufficientBalance = ({ amount, token }: UseIsInsufficientBalancePar
     amount !== undefined && amount !== '.' && token?.decimals;
 
   // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
-  const isInsufficientBalance = quoteRequest?.insufficientBal ||
+  const isInsufficientBalance =
+    quoteRequest?.insufficientBal ||
     (isValidAmount &&
       parseUnits(amount, token.decimals).gt(
         latestBalance?.atomicBalance ?? BigNumber.from(0),

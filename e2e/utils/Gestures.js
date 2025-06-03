@@ -53,9 +53,15 @@ class Gestures {
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
    */
   static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    const {
+      timeout = 15000,
+      delayBeforeTap = 0,
+      skipVisibilityCheck = false,
+    } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
+      await waitFor(await element)
+        .toBeVisible()
+        .withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
@@ -113,7 +119,9 @@ class Gestures {
 
   */
   static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText('');
   }
@@ -129,7 +137,6 @@ class Gestures {
 
     await (await element).typeText(text + '\n');
   }
-
 
   /**
    * Type text into an element without hiding the keyboard.
@@ -148,7 +155,9 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText(text);
   }

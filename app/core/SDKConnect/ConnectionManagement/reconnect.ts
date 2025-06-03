@@ -26,7 +26,9 @@ async function reconnect({
       instance.state.connected[channelId];
     // Check if already connected
     if (existingConnection?.remote.isReady()) {
-      DevLogger.log(`SDKConnect::reconnect[${context}] - already ready - ignore`);
+      DevLogger.log(
+        `SDKConnect::reconnect[${context}] - already ready - ignore`,
+      );
       if (trigger) {
         instance.state.connected[channelId].setTrigger(trigger);
       }
@@ -49,7 +51,9 @@ async function reconnect({
           existingConnection.remote.setOtherPublicKey(otherPublicKey);
         }
       } else {
-        DevLogger.log(`SDKConnect::reconnect[${context}] - same otherPublicKey`);
+        DevLogger.log(
+          `SDKConnect::reconnect[${context}] - same otherPublicKey`,
+        );
       }
     }
 
@@ -68,7 +72,6 @@ async function reconnect({
     const connecting = instance.state.connecting[channelId] === true;
     const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
-
     DevLogger.log(
       `SDKConnect::reconnect[${context}][${trigger}] - channel=${channelId} paused=${
         instance.state.paused
@@ -83,7 +86,7 @@ async function reconnect({
     if (connecting && trigger !== 'deeplink') {
       // Prioritize deeplinks -- interrup other connection attempts.
       interruptReason = 'already connecting';
-    } else  if (!instance.state.connections[channelId]) {
+    } else if (!instance.state.connections[channelId]) {
       interruptReason = 'no connection';
     }
 

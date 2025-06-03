@@ -39,9 +39,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import {
-  UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -180,7 +178,7 @@ class OptinMetrics extends PureComponent {
     /**
      * Tracks the scroll view's height.
      */
-    scrollViewHeight: undefined
+    scrollViewHeight: undefined,
   };
 
   getStyles = () => {
@@ -190,24 +188,24 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-      action: value,
-      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-      description: strings(
-        `privacy_policy.action_description_${value}_description`,
-      ),
-    }))
-    : [1, 2, 3, 4, 5].map((value) => {
-      const actionVal = value <= 2 ? 0 : 1;
-      return {
-        action: actionVal,
-        prefix: actionVal
-          ? `${strings('privacy_policy.action_description_never_legacy')} `
-          : '',
+        action: value,
+        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
         description: strings(
-          `privacy_policy.action_description_${value}_legacy`,
+          `privacy_policy.action_description_${value}_description`,
         ),
-      };
-    });
+      }))
+    : [1, 2, 3, 4, 5].map((value) => {
+        const actionVal = value <= 2 ? 0 : 1;
+        return {
+          action: actionVal,
+          prefix: actionVal
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
+            : '',
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
+        };
+      });
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -224,7 +222,8 @@ class OptinMetrics extends PureComponent {
     // Update the navbar
     this.updateNavBar();
 
-    const { scrollViewContentHeight, isEndReached, scrollViewHeight } = this.state;
+    const { scrollViewContentHeight, isEndReached, scrollViewHeight } =
+      this.state;
 
     // Only run this check if any of the relevant values have changed
     if (
@@ -375,7 +374,9 @@ class OptinMetrics extends PureComponent {
       metrics
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(isDataCollectionForMarketingEnabled),
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+            isDataCollectionForMarketingEnabled,
+          ),
           is_metrics_opted_in: true,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
@@ -556,7 +557,8 @@ class OptinMetrics extends PureComponent {
    * @param {number} _
    * @param {number} height
    */
-  onContentSizeChange = (_, height) => (this.setState({ scrollViewContentHeight: height }));
+  onContentSizeChange = (_, height) =>
+    this.setState({ scrollViewContentHeight: height });
 
   /**
    * Layout event for the ScrollView.

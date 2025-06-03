@@ -134,17 +134,21 @@ export const startMockServer = async (events, port) => {
         updatedUrl,
         method,
         request.headers,
-        method === 'POST' ? await request.body.getText() : undefined
+        method === 'POST' ? await request.body.getText() : undefined,
       );
     });
 
   // In case any other requests are made, pass them through to the actual endpoint
-  await mockServer.forUnmatchedRequest().thenCallback(async (request) => handleDirectFetch(
-      request.url,
-      request.method,
-      request.headers,
-      await request.body.getText()
-    ));
+  await mockServer
+    .forUnmatchedRequest()
+    .thenCallback(async (request) =>
+      handleDirectFetch(
+        request.url,
+        request.method,
+        request.headers,
+        await request.body.getText(),
+      ),
+    );
 
   return mockServer;
 };

@@ -1,4 +1,7 @@
-import { setDestToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
+import {
+  setDestToken,
+  selectDestToken,
+} from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -13,7 +16,7 @@ export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
-  const destToken  = useSelector(selectDestToken);
+  const destToken = useSelector(selectDestToken);
 
   const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
 

@@ -29,15 +29,21 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 });
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
-    selectEvmNetworkConfigurationsByChainId: jest.fn(actual.selectEvmNetworkConfigurationsByChainId),
+    selectEvmNetworkConfigurationsByChainId: jest.fn(
+      actual.selectEvmNetworkConfigurationsByChainId,
+    ),
   };
 });
 
 jest.mock('../../../../../selectors/selectedNetworkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/selectedNetworkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/selectedNetworkController',
+  );
   return {
     ...actual,
     useNetworkInfo: jest.fn(actual.useNetworkInfo),
@@ -45,7 +51,9 @@ jest.mock('../../../../../selectors/selectedNetworkController', () => {
 });
 
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => {
-  const actual = jest.requireActual('../../../../Views/NetworkSelector/useSwitchNetworks');
+  const actual = jest.requireActual(
+    '../../../../Views/NetworkSelector/useSwitchNetworks',
+  );
   return {
     ...actual,
     useSwitchNetworks: jest.fn(actual.useSwitchNetworks),
@@ -95,7 +103,9 @@ describe('useInitialSourceToken', () => {
     (useNetworkInfo as unknown as jest.Mock).mockReturnValue(mockNetworkInfo);
 
     // Mock switch networks
-    (useSwitchNetworks as unknown as jest.Mock).mockReturnValue(mockSwitchNetworks);
+    (useSwitchNetworks as unknown as jest.Mock).mockReturnValue(
+      mockSwitchNetworks,
+    );
 
     // Mock native asset
     (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
@@ -198,7 +208,9 @@ describe('useInitialSourceToken', () => {
         label: 'Different Network',
       },
     };
-    (selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock).mockReturnValue(updatedNetworkConfigurations);
+    (
+      selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
+    ).mockReturnValue(updatedNetworkConfigurations);
 
     (useRoute as jest.Mock).mockReturnValue({
       params: {
@@ -212,7 +224,9 @@ describe('useInitialSourceToken', () => {
 
     await waitFor(() => {
       expect(setSourceToken).toHaveBeenCalledWith(mockToken);
-      expect(mockSwitchNetworks.onSetRpcTarget).toHaveBeenCalledWith(updatedNetworkConfigurations[differentChainId]);
+      expect(mockSwitchNetworks.onSetRpcTarget).toHaveBeenCalledWith(
+        updatedNetworkConfigurations[differentChainId],
+      );
     });
   });
 

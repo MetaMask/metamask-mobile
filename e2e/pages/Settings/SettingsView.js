@@ -51,9 +51,7 @@ class SettingsView {
   }
 
   get backupAndSyncSectionButton() {
-    return Matchers.getElementByID(
-      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
-    );
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
   get alertButton() {

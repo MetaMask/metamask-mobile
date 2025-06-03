@@ -2,9 +2,7 @@ import {
   Reason,
   ResultType,
 } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
-import {
-  validateWithSecurityAlertsAPI,
-} from './security-alerts-api';
+import { validateWithSecurityAlertsAPI } from './security-alerts-api';
 
 const CHAIN_ID_MOCK = '0x1';
 

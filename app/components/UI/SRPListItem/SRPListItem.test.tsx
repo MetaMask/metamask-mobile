@@ -74,7 +74,7 @@ const getTestId = (selector: string, keyringId: string) =>
 
 describe('SRPList', () => {
   beforeEach(() => {
-    jest.clearAllMocks(); 
+    jest.clearAllMocks();
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,

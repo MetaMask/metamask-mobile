@@ -95,8 +95,8 @@ const DestinationAccountSelector = () => {
     // Allow undefined so user can pick an account
     const doesDestAddrMatchNetworkType =
       !destAddress ||
-      ((isSolanaToEvm && !isSolanaAddress(destAddress)) ||
-        (isEvmToSolana && isSolanaAddress(destAddress)));
+      (isSolanaToEvm && !isSolanaAddress(destAddress)) ||
+      (isEvmToSolana && isSolanaAddress(destAddress));
 
     if (
       (!hasInitialized.current && !destAddress) ||

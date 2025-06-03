@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     nonceText: {
-        textDecorationLine: 'underline',
+      textDecorationLine: 'underline',
     },
     infoRowOverride: {
       paddingBottom: 4,

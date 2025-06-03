@@ -186,7 +186,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
     // otherwise, use all available networks
     return allNetworksList;
-  }, [isEip1193Request, allNetworksList, isOriginWalletConnect, isOriginMMSDKRemoteConn, supportedRequestedCaipChainIds]);
+  }, [
+    isEip1193Request,
+    allNetworksList,
+    isOriginWalletConnect,
+    isOriginMMSDKRemoteConn,
+    supportedRequestedCaipChainIds,
+  ]);
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
     defaultSelectedChainIds,
@@ -728,12 +734,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[address];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-        ...selectedAccount,
-        name:
-          isDefaultAccountName(selectedAccount.name) && ensName
-            ? ensName
-            : selectedAccount.name,
-      }
+          ...selectedAccount,
+          name:
+            isDefaultAccountName(selectedAccount.name) && ensName
+              ? ensName
+              : selectedAccount.name,
+        }
       : undefined;
     return (
       <AccountConnectSingle

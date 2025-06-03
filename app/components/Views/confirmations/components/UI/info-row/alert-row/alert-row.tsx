@@ -8,9 +8,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps } from '../info-row';
 import styleSheet from './alert-row.styles';
 
-function getAlertTextColors(
-  severity?: Severity,
-): TextColor {
+function getAlertTextColors(severity?: Severity): TextColor {
   switch (severity) {
     case Severity.Danger:
       return TextColor.Error;
@@ -27,14 +25,18 @@ export interface AlertRowProps extends InfoRowProps {
   isShownWithAlertsOnly?: boolean;
 }
 
-const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
+const AlertRow = ({
+  alertField,
+  isShownWithAlertsOnly,
+  ...props
+}: AlertRowProps) => {
   const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
   const { styles } = useStyles(styleSheet, {});
 
   const handleInlineAlertClick = () => {
-    if(!alertSelected) return;
+    if (!alertSelected) return;
     setAlertKey(alertSelected.key);
     showAlertModal();
     trackInlineAlertClicked(alertSelected.field);

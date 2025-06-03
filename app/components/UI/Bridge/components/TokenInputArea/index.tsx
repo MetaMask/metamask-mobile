@@ -89,9 +89,10 @@ export const getDisplayAmount = (
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount = tokenType === TokenInputAreaType.Source
-    ? amount
-    : parseAmount(amount, MAX_DECIMALS);
+  const displayAmount =
+    tokenType === TokenInputAreaType.Source
+      ? amount
+      : parseAmount(amount, MAX_DECIMALS);
 
   return displayAmount;
 };

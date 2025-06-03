@@ -7,15 +7,16 @@ import { EXPECTED_ERRORS_PORTION_TO_TRACK } from './constants';
  * to our analytics service. It takes the MetaMetrics ID and generates a deterministic
  * number between 0 and 1. If the number is less than the EXPECTED_ERRORS_PORTION_TO_TRACK,
  * the error will be sent to the analytics service.
-*
-* @param MetaMetricsInstance - The MetaMetrics instance to use
-* @returns A boolean indicating whether or not to send the error to the analytics service
-*/
+ *
+ * @param MetaMetricsInstance - The MetaMetrics instance to use
+ * @returns A boolean indicating whether or not to send the error to the analytics service
+ */
 export const shouldTrackExpectedErrors = async (
   MetaMetricsInstance: IMetaMetrics,
 ): Promise<boolean> => {
   const metaMetricsId = await MetaMetricsInstance.getMetaMetricsId();
-  const deterministicRandomNumber = generateDeterministicRandomNumber(metaMetricsId || '');
+  const deterministicRandomNumber = generateDeterministicRandomNumber(
+    metaMetricsId || '',
+  );
   return deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
 };
-

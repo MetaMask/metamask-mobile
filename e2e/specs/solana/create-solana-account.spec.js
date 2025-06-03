@@ -57,12 +57,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should create Solana account directly from new feature announcement sheet', async () => {
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.sheetContainer,
-    );
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.learnMoreButton,
-    );
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.sheetContainer);
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.learnMoreButton);
     await SolanaNewFeatureSheet.tapCreateAccountButton();
     await AddNewHdAccountComponent.tapConfirm();
     await TestHelpers.delay(4000);

@@ -39,7 +39,10 @@ describe('getProviderState', () => {
       getProviderState: mockGetProviderState,
     });
 
-    expect(mockGetProviderState).toHaveBeenCalledWith(req.origin, req.networkClientId);
+    expect(mockGetProviderState).toHaveBeenCalledWith(
+      req.origin,
+      req.networkClientId,
+    );
     expect(res.result).toStrictEqual({
       chainId: '0x539',
       isUnlocked: true,

@@ -166,7 +166,6 @@ export const field: UIComponentFactory<FieldElement> = ({
         element: assetSelector,
       } as UIComponentParams<AssetSelectorElement>);
 
-
       return {
         ...assetSelectorMapped,
         element: 'SnapUIAssetSelector',

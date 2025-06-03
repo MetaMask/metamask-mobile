@@ -15,15 +15,15 @@ describe('action, rpcEvents', () => {
     });
 
     it('should create an action to set event stage to REQUEST_SENT', () => {
-      expect(setEventStage('eth_signTypedData', RPCStageTypes.REQUEST_SEND)).toEqual(
-        createExpectedAction(RPCStageTypes.REQUEST_SEND),
-      );
+      expect(
+        setEventStage('eth_signTypedData', RPCStageTypes.REQUEST_SEND),
+      ).toEqual(createExpectedAction(RPCStageTypes.REQUEST_SEND));
     });
 
     it('should create an action to set event stage to COMPLETE', () => {
-      expect(setEventStage('eth_signTypedData', RPCStageTypes.COMPLETE)).toEqual(
-        createExpectedAction(RPCStageTypes.COMPLETE),
-      );
+      expect(
+        setEventStage('eth_signTypedData', RPCStageTypes.COMPLETE),
+      ).toEqual(createExpectedAction(RPCStageTypes.COMPLETE));
     });
   });
 
@@ -45,9 +45,9 @@ describe('action, rpcEvents', () => {
         eventStage: RPCStageTypes.ERROR,
         error: new Error('test error'),
       };
-      expect(setEventStageError('eth_signTypedData', new Error('test error'))).toEqual(
-        expectedAction,
-      );
+      expect(
+        setEventStageError('eth_signTypedData', new Error('test error')),
+      ).toEqual(expectedAction);
     });
   });
 });

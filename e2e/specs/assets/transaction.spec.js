@@ -18,7 +18,6 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 
 describe(Regression('Transaction'), () => {
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -39,7 +38,7 @@ describe(Regression('Transaction'), () => {
         await loginToApp();
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
-        
+
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
         await NetworkEducationModal.tapGotItButton();

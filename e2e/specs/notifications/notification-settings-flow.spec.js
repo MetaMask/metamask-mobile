@@ -49,12 +49,10 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
 
   it('navigates to notification settings page', async () => {
     // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase(
-      {
-        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-        password: NOTIFICATIONS_TEAM_PASSWORD,
-      }
-    );
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+      password: NOTIFICATIONS_TEAM_PASSWORD,
+    });
 
     // navigate to notification settings
     await TabBarComponent.tapSettings();

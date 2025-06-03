@@ -76,7 +76,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     price: {
       color: colors.text.default,
-    }
+    },
   });
 
 export default styleSheet;

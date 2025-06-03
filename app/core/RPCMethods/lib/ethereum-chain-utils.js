@@ -275,8 +275,7 @@ export async function switchToNetwork({
   const requestModalType = autoApprove ? 'new' : 'switch';
 
   const shouldShowRequestModal =
-    (!autoApprove && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
+    (!autoApprove && shouldGrantPermissions) || !chainPermissionsFeatureEnabled;
 
   const requestData = {
     rpcUrl:

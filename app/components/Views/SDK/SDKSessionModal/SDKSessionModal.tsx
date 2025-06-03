@@ -152,10 +152,11 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
               `Disconnect account: ${account}`,
               JSON.stringify(accounts, null, 2),
             );
-            const permittedAccountsByHostname = getPermittedCaipAccountIdsByHostname(
-              permittedAccountsList,
-              channelId ?? '',
-            );
+            const permittedAccountsByHostname =
+              getPermittedCaipAccountIdsByHostname(
+                permittedAccountsList,
+                channelId ?? '',
+              );
             DevLogger.log(
               `permittedAccountsByHostname`,
               permittedAccountsByHostname,

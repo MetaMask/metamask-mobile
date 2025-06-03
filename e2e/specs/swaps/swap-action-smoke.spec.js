@@ -209,7 +209,6 @@ describe(SmokeTrade('Swap from Actions'), () => {
   );
 
   it('should validate segment/metametric events for a successful swap', async () => {
-
     const testCases = [
       {
         type: 'wrap',
@@ -331,7 +330,9 @@ describe(SmokeTrade('Swap from Actions'), () => {
     }
 
     // Assert Swap Started event
-    const swapStartedEvents = events.filter((e) => e.event === EVENT_NAMES.SWAP_STARTED);
+    const swapStartedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.SWAP_STARTED,
+    );
 
     await softAssert.checkAndCollect(
       () =>

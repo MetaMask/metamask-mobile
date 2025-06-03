@@ -26,7 +26,9 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 });
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -83,7 +85,9 @@ describe('useInitialDestToken', () => {
     });
 
     await waitFor(() => {
-      expect(setDestToken).toHaveBeenCalledWith(DefaultSwapDestTokens[SolScope.Mainnet]);
+      expect(setDestToken).toHaveBeenCalledWith(
+        DefaultSwapDestTokens[SolScope.Mainnet],
+      );
     });
   });
 

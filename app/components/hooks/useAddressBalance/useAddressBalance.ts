@@ -10,8 +10,15 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../util/number';
-import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
-import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import {
+  selectEvmTicker,
+  selectNetworkConfigurationByChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
+import {
+  selectAccounts,
+  selectAccountsByChainId,
+} from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 import { RootState } from '../../../reducers';

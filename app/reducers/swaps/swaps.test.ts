@@ -289,9 +289,13 @@ describe('swaps reducer', () => {
       const liveState = reducer(initalState as any, action) as SwapsState;
 
       // Should set flags for ethereum (0x1)
-      expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
+      expect(liveState['0x1'].featureFlags).toEqual(
+        DEFAULT_FEATURE_FLAGS.ethereum,
+      );
       // Should set flags for bsc (0x38)
-      expect((liveState['0x38'] as { featureFlags?: unknown }).featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
+      expect(
+        (liveState['0x38'] as { featureFlags?: unknown }).featureFlags,
+      ).toEqual(DEFAULT_FEATURE_FLAGS.bsc);
     });
 
     it('should handle testnet chain IDs in dev mode', () => {
@@ -308,9 +312,13 @@ describe('swaps reducer', () => {
         const liveState = reducer(initalState as any, action) as SwapsState;
 
         // Should use mainnet feature flags for testnet
-        expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
+        expect(liveState['0x1'].featureFlags).toEqual(
+          DEFAULT_FEATURE_FLAGS.ethereum,
+        );
         // Should also set the testnet chain with mainnet flags
-        expect((liveState['0xaa36a7'] as { featureFlags?: unknown }).featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
+        expect(
+          (liveState['0xaa36a7'] as { featureFlags?: unknown }).featureFlags,
+        ).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
       });
     });
 
@@ -335,8 +343,12 @@ describe('swaps reducer', () => {
       const newState = reducer(existingState as any, action) as SwapsState;
 
       // Should update feature flags but preserve other properties
-      expect(newState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
-      expect((newState['0x1'] as { someOtherProperty?: string }).someOtherProperty).toBe('value');
+      expect(newState['0x1'].featureFlags).toEqual(
+        DEFAULT_FEATURE_FLAGS.ethereum,
+      );
+      expect(
+        (newState['0x1'] as { someOtherProperty?: string }).someOtherProperty,
+      ).toBe('value');
     });
 
     it('should skip chains without valid chain IDs in name mapping', () => {
@@ -359,9 +371,13 @@ describe('swaps reducer', () => {
       const liveState = reducer(initalState as any, action) as SwapsState;
 
       // Should process valid chains
-      expect(liveState['0x1'].featureFlags).toEqual(DEFAULT_FEATURE_FLAGS.ethereum);
+      expect(liveState['0x1'].featureFlags).toEqual(
+        DEFAULT_FEATURE_FLAGS.ethereum,
+      );
       // Should not create entry for invalid chain
-      expect((liveState as Record<string, unknown>).invalidChain).toBeUndefined();
+      expect(
+        (liveState as Record<string, unknown>).invalidChain,
+      ).toBeUndefined();
     });
 
     it('should skip non-object feature flag values', () => {
@@ -583,8 +599,11 @@ describe('swaps reducer', () => {
       swaps: {
         featureFlags: globalFeatureFlags,
         ...Object.entries(chainFeatureFlags).reduce(
-          (acc, [chainId, flags]) => ({ ...acc, [chainId]: { featureFlags: flags } }),
-          {}
+          (acc, [chainId, flags]) => ({
+            ...acc,
+            [chainId]: { featureFlags: flags },
+          }),
+          {},
         ),
       },
     });
@@ -664,7 +683,7 @@ describe('swaps reducer', () => {
           },
         },
         chainFeatureFlags: {
-          '0x1': {},  // Empty feature flags
+          '0x1': {}, // Empty feature flags
         },
       });
 
@@ -678,7 +697,7 @@ describe('swaps reducer', () => {
 
     it('should return empty object when no chain entry exists', () => {
       const rootState = createTestState({
-        selectedChainId: '0x89',  // Chain ID not in swaps state
+        selectedChainId: '0x89', // Chain ID not in swaps state
         globalFeatureFlags: {
           smartTransactions: {
             globalSetting: true,
@@ -775,4 +794,3 @@ describe('swaps reducer', () => {
     expect(liveState.hasOnboarded).toBe(true);
   });
 });
-

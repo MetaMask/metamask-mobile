@@ -127,7 +127,8 @@ const TabThumbnail = ({
               ellipsizeMode="tail"
             >
               {`${
-                selectedAccount.metadata?.name ?? strings('browser.undefined_account')
+                selectedAccount.metadata?.name ??
+                strings('browser.undefined_account')
               }${networkName ? ` - ${networkName}` : ''}`}
             </Text>
           </View>

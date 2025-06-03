@@ -4,6 +4,4 @@ import getProviderState from '../getProviderState';
 
 export const eip1193OnlyHandlers = [ethAccounts, requestEthereumAccounts];
 
-export const multichainLocalHandlers = [
-  getProviderState,
-];
+export const multichainLocalHandlers = [getProviderState];

@@ -31,10 +31,12 @@ describe('UpdateNeeded', () => {
       { name: 'UpdateNeeded' },
       { state: {} },
     );
-    const title = getByText('Get the newest features')
+    const title = getByText('Get the newest features');
     expect(title).toBeDefined();
 
-    const description = getByText('We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.');
+    const description = getByText(
+      'We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.',
+    );
     expect(description).toBeDefined();
 
     const closeButton = getByTestId('update-needed-modal-close-button');

@@ -1,8 +1,6 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
-import {
-  trackDappViewedEvent,
-} from '../../util/metrics';
+import { trackDappViewedEvent } from '../../util/metrics';
 
 const requestEthereumAccounts = {
   methodNames: [MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS],

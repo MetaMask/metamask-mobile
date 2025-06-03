@@ -21,8 +21,8 @@ class StakeView {
   }
 
   async selectAmount(amount) {
-      const amountButton = await Matchers.getElementByText(amount);
-      await Gestures.waitAndTap(amountButton);
+    const amountButton = await Matchers.getElementByText(amount);
+    await Gestures.waitAndTap(amountButton);
   }
 
   async enterAmount(amount) {
@@ -39,7 +39,6 @@ class StakeView {
   async tapContinue() {
     await Gestures.waitAndTap(this.continueButton);
   }
-
 }
 
 export default new StakeView();

@@ -8,7 +8,9 @@ class EnableAutomaticSecurityChecksView {
   }
 
   get noThanksButton() {
-    return Matchers.getElementByID(EnableAutomaticSecurityChecksIDs.NO_THANKS_BUTTON);
+    return Matchers.getElementByID(
+      EnableAutomaticSecurityChecksIDs.NO_THANKS_BUTTON,
+    );
   }
 
   async tapNoThanks() {

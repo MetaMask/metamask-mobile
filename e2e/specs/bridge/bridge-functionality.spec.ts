@@ -74,14 +74,18 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container as Promise<Detox.IndexableNativeElement>);
+    await Assertions.checkIfNotVisible(
+      NetworkEducationModal.container as Promise<Detox.IndexableNativeElement>,
+    );
     await Assertions.checkIfVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container as Promise<Detox.IndexableNativeElement>);
+    await Assertions.checkIfNotVisible(
+      NetworkEducationModal.container as Promise<Detox.IndexableNativeElement>,
+    );
     await Assertions.checkIfVisible(WalletView.container);
 
     await TabBarComponent.tapActions();
@@ -105,7 +109,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
       ActivitiesView.bridgeActivityTitle('Solana'),
     );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<Detox.IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<Detox.IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
@@ -132,7 +138,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<Detox.IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<Detox.IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );
@@ -161,9 +169,13 @@ describe(SmokeTrade('Bridge functionality'), () => {
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Optimism'));
+    await Assertions.checkIfVisible(
+      ActivitiesView.bridgeActivityTitle('Optimism'),
+    );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW) as Promise<Detox.IndexableNativeElement>,
+      ActivitiesView.transactionStatus(
+        FIRST_ROW,
+      ) as Promise<Detox.IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       30000,
     );

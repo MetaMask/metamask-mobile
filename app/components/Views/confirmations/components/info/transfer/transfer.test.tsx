@@ -75,7 +75,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Transfer', () => {
-  const mockUseClearConfirmationOnBackSwipe = jest.mocked(useClearConfirmationOnBackSwipe);
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -128,7 +130,8 @@ describe('Transfer', () => {
 
   it('renders simulation details if transfer initiated by dapp', () => {
     const state = cloneDeep(transferConfirmationState);
-    state.engine.backgroundState.TransactionController.transactions[0].origin = 'https://dapp.com';
+    state.engine.backgroundState.TransactionController.transactions[0].origin =
+      'https://dapp.com';
     const { getByText } = renderWithProvider(<Transfer />, {
       state,
     });

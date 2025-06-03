@@ -1,4 +1,7 @@
-import { TransactionStatus , TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 

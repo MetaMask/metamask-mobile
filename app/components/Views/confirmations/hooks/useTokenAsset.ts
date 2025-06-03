@@ -13,9 +13,14 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 const selectEvmAsset = makeSelectAssetByAddressAndChainId();
 
 export const useTokenAsset = () => {
-  const { chainId, type: transactionType, txParams } = useTransactionMetadataRequest() ?? {};
+  const {
+    chainId,
+    type: transactionType,
+    txParams,
+  } = useTransactionMetadataRequest() ?? {};
 
-  const tokenAddress = safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
+  const tokenAddress =
+    safeToChecksumAddress(txParams?.to)?.toLowerCase() || NATIVE_TOKEN_ADDRESS;
 
   const evmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
@@ -39,14 +44,14 @@ export const useTokenAsset = () => {
     case TransactionType.stakingDeposit:
     case TransactionType.stakingUnstake: {
       // Native
-      asset = nativeEvmAsset ?? {} as TokenI;
+      asset = nativeEvmAsset ?? ({} as TokenI);
       break;
     }
     case TransactionType.contractInteraction:
     case TransactionType.tokenMethodTransfer:
     default: {
       // ERC20
-      asset = evmAsset ?? {} as TokenI;
+      asset = evmAsset ?? ({} as TokenI);
       break;
     }
   }

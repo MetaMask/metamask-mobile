@@ -342,9 +342,7 @@ export const selectBridgeQuotes = createSelector(
 
 export const selectIsSolanaSourced = createSelector(
   selectSourceToken,
-  (sourceToken) =>
-    sourceToken?.chainId &&
-    isSolanaChainId(sourceToken.chainId),
+  (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
 export const selectIsEvmToSolana = createSelector(

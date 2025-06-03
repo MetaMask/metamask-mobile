@@ -7,7 +7,6 @@ import { FormState, SnapId } from '@metamask/snaps-sdk';
 import { SnapUIRenderer } from './SnapUIRenderer';
 import { act } from '@testing-library/react-native';
 
-
 export const MOCK_SNAP_ID = 'npm:@metamask/test-snap-bip44';
 export const MOCK_INTERFACE_ID = 'interfaceId';
 
@@ -23,7 +22,6 @@ interface RenderInterfaceOptions {
 const noOp = () => {
   // no-op
 };
-
 
 /**
  * Renders a Snap UI interface.
@@ -111,19 +109,19 @@ export function renderInterface(
           },
         },
         KeyringController: {
-          keyrings: []
+          keyrings: [],
         },
         AccountsController: {
           internalAccounts: {
             accounts: {
-              'foo': {
+              foo: {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb',
                 metadata: {
                   name: 'My Account',
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
         AddressBookController: {
           addressBook: {
@@ -131,9 +129,9 @@ export function renderInterface(
               '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda': {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda',
                 name: 'Test Contact',
-              }
-            }
-          }
+              },
+            },
+          },
         },
         ...backgroundState,
       },

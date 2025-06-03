@@ -36,7 +36,7 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
-    caipChainId: 'eip155:1'
+    caipChainId: 'eip155:1',
   },
   'eip155:137': {
     chainId: '0x89',
@@ -48,7 +48,7 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
-    caipChainId: 'eip155:137'
+    caipChainId: 'eip155:137',
   },
 };
 
@@ -89,7 +89,9 @@ describe('NetworkConnectMultiSelector', () => {
       <NetworkConnectMultiSelector {...defaultProps} isLoading />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -102,10 +104,15 @@ describe('NetworkConnectMultiSelector', () => {
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['eip155:1', 'eip155:137']} />,
+      <NetworkConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedChainIds={['eip155:1', 'eip155:137']}
+      />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
     fireEvent.press(selectAllbutton[0]);
 
@@ -114,7 +121,10 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1', 'eip155:137']);
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([
+      'eip155:1',
+      'eip155:137',
+    ]);
   });
 
   it('handles network selection correctly', () => {
@@ -155,7 +165,10 @@ describe('NetworkConnectMultiSelector', () => {
 
   it('shows disconnect button when no networks are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={[]} />,
+      <NetworkConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedChainIds={[]}
+      />,
     );
 
     const disconnectButton = getByTestId(

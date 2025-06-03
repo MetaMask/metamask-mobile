@@ -138,17 +138,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
   const permittedCaipAccountIds = useMemo(() => {
     const unsortedPermittedAccounts = uniq(
-    nonRemappedPermittedAccounts.map((caipAccountId) => {
-      const {
-        address,
-        chain: { namespace },
-      } = parseCaipAccountId(caipAccountId);
-      if (namespace === KnownCaipNamespace.Eip155) {
-        // this is very hacky, but it works for now
-        return `eip155:0:${address}` as CaipAccountId;
-      }
-      return caipAccountId;
-    }));
+      nonRemappedPermittedAccounts.map((caipAccountId) => {
+        const {
+          address,
+          chain: { namespace },
+        } = parseCaipAccountId(caipAccountId);
+        if (namespace === KnownCaipNamespace.Eip155) {
+          // this is very hacky, but it works for now
+          return `eip155:0:${address}` as CaipAccountId;
+        }
+        return caipAccountId;
+      }),
+    );
 
     return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
   }, [nonRemappedPermittedAccounts]);
@@ -623,7 +624,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
         // This is only okay because permittedCaipAccountIds is sorted by lastSelected already
-        selectedAddresses={permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []}
+        selectedAddresses={
+          permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []
+        }
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}

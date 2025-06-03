@@ -74,7 +74,7 @@ export function useMultichainTransactionDisplay({
       '0.00001',
       { locale, isNegative: true },
     ),
-    'bridge': parseAssetWithThreshold(
+    bridge: parseAssetWithThreshold(
       bridgeHistoryItem
         ? {
             unit: bridgeHistoryItem.quote.srcAsset.symbol,

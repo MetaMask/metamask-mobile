@@ -54,7 +54,7 @@ export interface Account {
   /**
    * Account address in CAIP-10 format.
    */
-  caipAccountId: CaipAccountId
+  caipAccountId: CaipAccountId;
 }
 
 /**

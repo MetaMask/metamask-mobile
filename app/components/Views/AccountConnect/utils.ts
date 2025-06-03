@@ -1,4 +1,9 @@
-import { CaipAccountId, CaipChainId, CaipNamespace, parseCaipAccountId } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  CaipNamespace,
+  parseCaipAccountId,
+} from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -123,15 +128,16 @@ export function getCaip25PermissionsResponse(
  * @param internalAccounts - The list of InternalAccounts.
  * @returns the sorted list of InternalAccounts.
  */
-export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWithCaipAccountId[]) {
+export function sortSelectedInternalAccounts(
+  internalAccounts: InternalAccountWithCaipAccountId[],
+) {
   // This logic comes from the `AccountsController`:
   // TODO: Expose a free function from this controller and use it here
-  return [...internalAccounts].sort((accountA, accountB) =>
-    // Sort by `.lastSelected` in descending order
-     (
+  return [...internalAccounts].sort(
+    (accountA, accountB) =>
+      // Sort by `.lastSelected` in descending order
       (accountB.metadata.lastSelected ?? 0) -
-      (accountA.metadata.lastSelected ?? 0)
-    )
+      (accountA.metadata.lastSelected ?? 0),
   );
 }
 

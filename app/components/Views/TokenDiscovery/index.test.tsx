@@ -8,4 +8,3 @@ describe('TokenDiscovery', () => {
     expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
   });
 });
-

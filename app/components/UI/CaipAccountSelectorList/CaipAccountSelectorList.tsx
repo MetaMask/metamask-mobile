@@ -157,12 +157,14 @@ const CaipAccountSelectorList = ({
                   const [nextCaipAccountId] =
                     sortMultichainAccountsByLastSelected(nextCaipAccountIds);
 
-                  const nextAddress = nextCaipAccountId ? parseCaipAccountId(nextCaipAccountId).address : '';
+                  const nextAddress = nextCaipAccountId
+                    ? parseCaipAccountId(nextCaipAccountId).address
+                    : '';
                   const selectedAccountAddress = accounts.find(
                     (acc) => acc.isSelected,
                   )?.address;
                   nextActiveAddress =
-                  nextAddress || selectedAccountAddress || '';
+                    nextAddress || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
@@ -249,7 +251,8 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });

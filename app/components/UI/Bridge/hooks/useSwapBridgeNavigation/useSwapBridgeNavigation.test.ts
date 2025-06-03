@@ -30,7 +30,9 @@ jest.mock('../useGoToPortfolioBridge', () => ({
 }));
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -262,9 +264,7 @@ describe('useSwapBridgeNavigation', () => {
 
   describe('Solana', () => {
     it('navigates to Bridge when goToSwaps is called and token chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
-        SolScope.Mainnet,
-      );
+      (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
 
       const { result } = renderHookWithProvider(
         () =>
@@ -295,9 +295,7 @@ describe('useSwapBridgeNavigation', () => {
     });
 
     it('navigates to Bridge when goToSwaps is called and selected chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
-        SolScope.Mainnet,
-      );
+      (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
 
       const { result } = renderHookWithProvider(
         () =>

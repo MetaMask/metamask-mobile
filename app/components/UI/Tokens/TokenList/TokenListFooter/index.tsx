@@ -116,20 +116,20 @@ export const TokenListFooter = ({
       )}
       {/* render footer */}
       <View style={styles.footer} key={'tokens-footer'}>
-        {isEvmSelected &&  (
+        {isEvmSelected && (
           <TouchableOpacity
-          style={styles.add}
-          onPress={goToAddToken}
-          disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
-        >
-          <Text style={styles.centered}>
-            <Text style={styles.emptyText}>
-              {strings('wallet.no_available_tokens')}
-            </Text>{' '}
-            <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
-          </Text>
-        </TouchableOpacity>
+            style={styles.add}
+            onPress={goToAddToken}
+            disabled={!isAddTokenEnabled}
+            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
+          >
+            <Text style={styles.centered}>
+              <Text style={styles.emptyText}>
+                {strings('wallet.no_available_tokens')}
+              </Text>{' '}
+              <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
     </>

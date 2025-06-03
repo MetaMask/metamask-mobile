@@ -37,7 +37,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0xaa36a7']),
+          )
           .build(),
         restartDevice: true,
         testSpecificMock: {
@@ -150,7 +152,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
-            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0xaa36a7']),
+            )
             .build(),
           restartDevice: true,
           testSpecificMock: {

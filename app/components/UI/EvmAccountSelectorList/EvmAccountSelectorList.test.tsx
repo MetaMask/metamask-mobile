@@ -75,7 +75,7 @@ jest.mock('../../hooks/useAccounts', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+        caipAccountId: 'eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       },
       {
         name: 'Account 2',
@@ -191,7 +191,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`,
   },
   {
     name: 'Account 2',
@@ -204,13 +204,13 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`
+    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`,
   },
 ];
 
-const EvmAccountSelectorListUseAccounts: React.FC<EvmAccountSelectorListProps> = ({
-  privacyMode = false,
-}) => {
+const EvmAccountSelectorListUseAccounts: React.FC<
+  EvmAccountSelectorListProps
+> = ({ privacyMode = false }) => {
   // Set the mock implementation for this specific component render
   if (privacyMode) {
     setAccountsMock(defaultAccountsMock);
@@ -349,7 +349,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
@@ -451,7 +451,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -535,7 +535,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
       {
         name: 'Snap Account 2',
@@ -548,7 +548,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_2}`,
       },
     ];
 
@@ -617,7 +617,7 @@ describe('EvmAccountSelectorList', () => {
       yOffset: 0,
       isSelected: true,
       balanceError: 'Balance error message',
-      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+      caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
     // Create a component that explicitly verifies the account data
@@ -660,7 +660,7 @@ describe('EvmAccountSelectorList', () => {
             yOffset: 0,
             isSelected: true,
             balanceError: undefined,
-            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+            caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
           },
         ],
         evmAccounts: [],
@@ -795,7 +795,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -919,7 +919,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 150,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -982,7 +982,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1020,7 +1020,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
-          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
         },
       ],
       evmAccounts: [],
@@ -1054,7 +1054,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1067,7 +1067,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 78,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 
@@ -1099,7 +1099,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: true,
         balanceError: true, // Account has balance error
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
     ];
 
@@ -1133,7 +1133,7 @@ describe('EvmAccountSelectorList', () => {
         yOffset: 0,
         isSelected: false,
         balanceError: undefined,
-        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
+        caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
       },
       {
         name: 'Account 2',
@@ -1147,7 +1147,7 @@ describe('EvmAccountSelectorList', () => {
         isSelected: true,
         balanceError: undefined,
         autoScroll: true, // This account should be auto-scrolled to
-        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`
+        caipAccountId: `eip155:0:${MOCK_ADDRESS_1}`,
       },
     ];
 

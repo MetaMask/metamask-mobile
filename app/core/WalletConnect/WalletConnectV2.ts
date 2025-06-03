@@ -15,7 +15,11 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getDefaultCaip25CaveatValue, getPermittedAccounts, updatePermittedChains } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+  updatePermittedChains,
+} from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -29,7 +33,10 @@ import {
   showWCLoadingState,
 } from './wc-utils';
 
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
@@ -146,8 +153,7 @@ export class WC2Manager {
           );
 
           const hostname = getHostname(session.peer.metadata.url);
-          let approvedAccounts =
-            getPermittedAccounts(hostname) ?? [];
+          let approvedAccounts = getPermittedAccounts(hostname) ?? [];
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
@@ -457,17 +463,26 @@ export class WC2Manager {
       );
 
       // Add a small delay to ensure permission is fully recorded
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Explicitly add the current chain to permissions
       try {
-        const hexChainId = `0x${walletChainIdDecimal.toString(16)}` as `0x${string}`;
-        DevLogger.log(`WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`);
+        const hexChainId = `0x${walletChainIdDecimal.toString(
+          16,
+        )}` as `0x${string}`;
+        DevLogger.log(
+          `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
+        );
 
         updatePermittedChains(hostname, [`eip155:${walletChainIdDecimal}`]);
-        DevLogger.log(`WC2::session_proposal chain permission added successfully`);
+        DevLogger.log(
+          `WC2::session_proposal chain permission added successfully`,
+        );
       } catch (err) {
-        DevLogger.log(`WC2::session_proposal error adding chain permission`, err);
+        DevLogger.log(
+          `WC2::session_proposal error adding chain permission`,
+          err,
+        );
       }
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
@@ -614,7 +629,8 @@ export class WC2Manager {
   }) {
     try {
       Logger.log(
-        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${this.navigation !== undefined
+        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${
+          this.navigation !== undefined
         }`,
       );
       const params = parseWalletConnectUri(wcUri);

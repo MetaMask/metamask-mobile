@@ -46,7 +46,7 @@ jest.mock('@metamask/chain-agnostic-permission', () => ({
   getEthAccounts: jest.fn(),
   getPermittedEthChainIds: jest.fn(),
   setChainIdsInCaip25CaveatValue: jest.fn(),
-  setNonSCACaipAccountIdsInCaip25CaveatValue: jest.fn()
+  setNonSCACaipAccountIdsInCaip25CaveatValue: jest.fn(),
 }));
 
 const mockGetCaveat = Engine.context.PermissionController
@@ -156,7 +156,9 @@ describe('Permission Utility Functions', () => {
       };
 
       // Mock sortEvmAccountsByLastSelected to return empty array
-      jest.spyOn(permissions, 'sortEvmAccountsByLastSelected').mockReturnValue([]);
+      jest
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
+        .mockReturnValue([]);
 
       const result = getPermittedEvmAddressesByHostname(
         mockState,
@@ -194,8 +196,8 @@ describe('Permission Utility Functions', () => {
                       optionalScopes: {},
                       requiredScopes: {
                         'eip155:1': {
-                          accounts: ['eip155:1:0x1', 'eip155:1:0x2']
-                        }
+                          accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+                        },
                       },
                     },
                   },
@@ -213,8 +215,8 @@ describe('Permission Utility Functions', () => {
                       optionalScopes: {},
                       requiredScopes: {
                         'eip155:1': {
-                          accounts: ['eip155:1:0x3', 'eip155:1:0x4']
-                        }
+                          accounts: ['eip155:1:0x3', 'eip155:1:0x4'],
+                        },
                       },
                     },
                   },
@@ -254,7 +256,9 @@ describe('Permission Utility Functions', () => {
       };
 
       // Mock sortEvmAccountsByLastSelected to return empty array
-      jest.spyOn(permissions, 'sortEvmAccountsByLastSelected').mockReturnValue([]);
+      jest
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
+        .mockReturnValue([]);
 
       const result = getPermittedCaipAccountIdsByHostname(
         mockState,
@@ -291,11 +295,11 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:1': {
-                          accounts: []
+                          accounts: [],
                         },
                         'eip155:2': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -313,8 +317,8 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:3': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -344,9 +348,9 @@ describe('Permission Utility Functions', () => {
                     type: Caip25CaveatType,
                     value: {
                       optionalScopes: {
-                        'wallet': {
-                          accounts: []
-                        }
+                        wallet: {
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -446,8 +450,8 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: ['eip155:1:0x1', 'eip155:1:0x2']
-            }
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -459,16 +463,17 @@ describe('Permission Utility Functions', () => {
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
-
       (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated accounts would be here in the real implementation
       });
 
-      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
       addPermittedAccounts('https://example.com', newAccounts);
 
@@ -504,8 +509,8 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: ['eip155:1:0x1', 'eip155:1:0x2']
-            }
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -517,13 +522,15 @@ describe('Permission Utility Functions', () => {
 
       mockGetAccountByAddress.mockImplementation((address) => ({
         address,
-        scopes: ['eip155:0']
+        scopes: ['eip155:0'],
       }));
       mockGetCaveat.mockReturnValue(mockCaveat);
-      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
       removePermittedAccounts('https://example.com', accountsToRemove);
 
@@ -547,8 +554,8 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: ['eip155:1:0x1', 'eip155:1:0x2']
-            }
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -560,7 +567,7 @@ describe('Permission Utility Functions', () => {
 
       mockGetAccountByAddress.mockImplementation((address) => ({
         address,
-        scopes: ['eip155:0']
+        scopes: ['eip155:0'],
       }));
 
       mockGetCaveat.mockReturnValue(mockCaveat);
@@ -595,8 +602,8 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: ['eip155:1:0x1', 'eip155:1:0x2']
-            }
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -608,7 +615,7 @@ describe('Permission Utility Functions', () => {
 
       mockGetAccountByAddress.mockImplementation((address) => ({
         address,
-        scopes: ['eip155:0']
+        scopes: ['eip155:0'],
       }));
 
       mockGetCaveat.mockReturnValue(mockCaveat);
@@ -714,16 +721,17 @@ describe('Permission Utility Functions', () => {
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
-
       (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated chains would be here in the real implementation
       });
 
-      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated chains would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated chains would be here in the real implementation
+        },
+      );
 
       updatePermittedChains('https://example.com', newChainIds);
 
@@ -769,10 +777,12 @@ describe('Permission Utility Functions', () => {
         // The updated chains would be here in the real implementation
       });
 
-      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated chains would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated chains would be here in the real implementation
+        },
+      );
 
       updatePermittedChains(
         'https://example.com',
@@ -802,7 +812,9 @@ describe('Permission Utility Functions', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
 
-      expect(() => updatePermittedChains('https://example.com', ['eip155:1'])).toThrow(
+      expect(() =>
+        updatePermittedChains('https://example.com', ['eip155:1']),
+      ).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
     });
@@ -933,7 +945,11 @@ describe('Permission Utility Functions', () => {
 
   describe('sortMultichainAccountsByLastSelected', () => {
     it('should sort accounts by lastSelected timestamp', () => {
-      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
       const internalAccounts = [
         {
           address: '0x1',
@@ -959,7 +975,11 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should handle accounts with undefined lastSelected', () => {
-      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
       const internalAccounts = [
         {
           address: '0x1',
@@ -985,7 +1005,11 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should handle accounts with same lastSelected value', () => {
-      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
       const internalAccounts = [
         {
           address: '0x1',
@@ -1015,7 +1039,11 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should throw error if account is missing from identities', () => {
-      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
       const internalAccounts = [
         {
           address: '0x1',
@@ -1042,7 +1070,11 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should handle case insensitive address comparison', () => {
-      const accounts: CaipAccountId[] = ['eip155:0:0x1', 'eip155:0:0x2', 'eip155:0:0x3'];
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
       const internalAccounts = [
         {
           address: '0X1', // Uppercase
@@ -1201,14 +1233,14 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: []
+              accounts: [],
             },
             'eip155:5': {
-              accounts: []
+              accounts: [],
             },
             'eip155:10': {
-              accounts: []
-            }
+              accounts: [],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -1223,23 +1255,27 @@ describe('Permission Utility Functions', () => {
         // The updated accounts would be here in the real implementation
       });
 
-      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
       removePermittedChain(hostname, 'eip155:1');
 
       expect(setChainIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
-        ['eip155:5', 'eip155:10']
+        ['eip155:5', 'eip155:10'],
       );
 
-      expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalledWith(
+      expect(
+        Engine.context.PermissionController.updateCaveat,
+      ).toHaveBeenCalledWith(
         hostname,
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
-        mockCaveat.value
+        mockCaveat.value,
       );
     });
 
@@ -1250,11 +1286,11 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: []
+              accounts: [],
             },
             'eip155:10': {
-              accounts: []
-            }
+              accounts: [],
+            },
           },
           requiredScopes: {},
           isMultichainOrigin: false,
@@ -1266,8 +1302,12 @@ describe('Permission Utility Functions', () => {
 
       removePermittedChain(hostname, 'eip155:99');
 
-      expect(Engine.context.PermissionController.revokePermission).not.toHaveBeenCalled();
-      expect(Engine.context.PermissionController.updateCaveat).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PermissionController.revokePermission,
+      ).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PermissionController.updateCaveat,
+      ).not.toHaveBeenCalled();
     });
 
     it('revokes the permission if the last chain is removed', () => {
@@ -1277,7 +1317,7 @@ describe('Permission Utility Functions', () => {
         value: {
           optionalScopes: {
             'eip155:1': {
-              accounts: []
+              accounts: [],
             },
           },
           requiredScopes: {},
@@ -1290,10 +1330,9 @@ describe('Permission Utility Functions', () => {
 
       removePermittedChain(hostname, 'eip155:1');
 
-      expect(Engine.context.PermissionController.revokePermission).toHaveBeenCalledWith(
-        hostname,
-        Caip25EndowmentPermissionName
-      );
+      expect(
+        Engine.context.PermissionController.revokePermission,
+      ).toHaveBeenCalledWith(hostname, Caip25EndowmentPermissionName);
     });
   });
 });

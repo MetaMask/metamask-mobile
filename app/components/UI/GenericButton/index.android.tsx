@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, TouchableNativeFeedback, StyleProp, ViewStyle, GestureResponderEvent } from 'react-native';
+import {
+  View,
+  TouchableNativeFeedback,
+  StyleProp,
+  ViewStyle,
+  GestureResponderEvent,
+} from 'react-native';
 
 /**
  * @deprecated The `<GenericButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -29,7 +35,11 @@ interface GenericButtonProps {
   onPress?: (event: GestureResponderEvent) => void;
 }
 
-const GenericButton: React.FC<GenericButtonProps> = ({ children, style, onPress }) => (
+const GenericButton: React.FC<GenericButtonProps> = ({
+  children,
+  style,
+  onPress,
+}) => (
   <TouchableNativeFeedback
     delayPressIn={0}
     background={TouchableNativeFeedback.SelectableBackground()} // eslint-disable-line new-cap

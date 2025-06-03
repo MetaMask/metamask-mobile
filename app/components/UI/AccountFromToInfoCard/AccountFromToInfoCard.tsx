@@ -171,7 +171,11 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     <View style={styles.container}>
       {fromAddress && (
         <AddressFrom
-          chainId={isPerDappSelectedNetworkEnabled() ? transactionState?.chainId : undefined}
+          chainId={
+            isPerDappSelectedNetworkEnabled()
+              ? transactionState?.chainId
+              : undefined
+          }
           asset={selectedAsset}
           from={fromAddress}
           origin={origin}

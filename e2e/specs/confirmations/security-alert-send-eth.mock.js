@@ -49,9 +49,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlags,
-      ],
+      GET: [mockEvents.GET.remoteFeatureFlags],
       POST: [mockEvents.POST.securityAlertApiValidate],
     };
 
@@ -69,9 +67,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlags,
-      ],
+      GET: [mockEvents.GET.remoteFeatureFlags],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,

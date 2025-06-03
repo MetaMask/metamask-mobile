@@ -12,7 +12,12 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import Engine from '../Engine';
-import { getPermittedAccounts, getPermittedChains, removePermittedChain, updatePermittedChains } from '../Permissions';
+import {
+  getPermittedAccounts,
+  getPermittedChains,
+  removePermittedChain,
+  updatePermittedChains,
+} from '../Permissions';
 import {
   findExistingNetwork,
   switchToNetwork,
@@ -218,7 +223,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
   const accountsPerChains = chains.flatMap((chain) =>
     Array.isArray(approvedAccounts)
       ? approvedAccounts.map((account) => `${chain}:${account}`)
-      : []
+      : [],
   );
 
   const scopedPermissions = {
@@ -239,9 +244,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequestUserApproval = (origin: string) => async (args: any) => {
-  Engine.context.ApprovalController.clear(
-    providerErrors.userRejectedRequest(),
-  );
+  Engine.context.ApprovalController.clear(providerErrors.userRejectedRequest());
   const responseData = await Engine.context.ApprovalController.add({
     origin,
     type: args.type,
@@ -254,10 +257,16 @@ export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
   allowSwitchingToNewChain = false,
-}: { origin: string; caip2ChainId: CaipChainId; allowSwitchingToNewChain?: boolean }) => {
+}: {
+  origin: string;
+  caip2ChainId: CaipChainId;
+  allowSwitchingToNewChain?: boolean;
+}) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const decimalChainId = caip2ChainId.split(':')[1];
-  const hexChainIdString = toHex(`0x${parseInt(decimalChainId, 10).toString(16)}`);
+  const hexChainIdString = toHex(
+    `0x${parseInt(decimalChainId, 10).toString(16)}`,
+  );
 
   const existingNetwork = findExistingNetwork(
     hexChainIdString,
@@ -306,7 +315,10 @@ export const checkWCPermissions = async ({
       if (!isAllowedChainId && allowSwitchingToNewChain) {
         // Preemptively add the chain to the permitted chains
         // This is to prevent a race condition where WalletConnect is told about the chain switch before permissions are updated
-        DevLogger.log(`WC::checkWCPermissions adding permitted chain for ${hostname}:`, caip2ChainId);
+        DevLogger.log(
+          `WC::checkWCPermissions adding permitted chain for ${hostname}:`,
+          caip2ChainId,
+        );
         updatePermittedChains(getHostname(origin), [caip2ChainId]);
       }
 
@@ -327,7 +339,10 @@ export const checkWCPermissions = async ({
       if (!isAllowedChainId && allowSwitchingToNewChain) {
         // If we failed to switch to the network, remove the chain from the permitted chains
         // This is so we don't leave any dangling permissions if the user rejects the switch
-        DevLogger.log(`WC::checkWCPermissions removing permitted chain for ${hostname}:`, caip2ChainId);
+        DevLogger.log(
+          `WC::checkWCPermissions removing permitted chain for ${hostname}:`,
+          caip2ChainId,
+        );
         removePermittedChain(getHostname(origin), caip2ChainId);
       }
 

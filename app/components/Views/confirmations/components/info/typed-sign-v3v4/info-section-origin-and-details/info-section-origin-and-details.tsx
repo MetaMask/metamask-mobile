@@ -29,7 +29,8 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedData = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+  const parsedData =
+    parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
   const spender = parsedData.message?.spender;
   const verifyingContract = parsedData.domain?.verifyingContract;
 

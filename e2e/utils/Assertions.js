@@ -28,7 +28,6 @@ class Assertions {
     return await expect(await element).toExist();
   }
 
-
   /**
    * Check if an element with the specified ID is not visible.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} element - The element to check.
@@ -67,7 +66,6 @@ class Assertions {
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
-
 
   /**
    * Check if text is visible.
@@ -236,9 +234,18 @@ class Assertions {
     const errors = [];
 
     function check(actualObj, partialObj, path = '') {
-      if (typeof actualObj !== 'object' || typeof partialObj !== 'object' || actualObj === null || partialObj === null) {
+      if (
+        typeof actualObj !== 'object' ||
+        typeof partialObj !== 'object' ||
+        actualObj === null ||
+        partialObj === null
+      ) {
         if (actualObj !== partialObj) {
-          errors.push(`Value mismatch at "${path || 'root'}": expected ${JSON.stringify(partialObj)}, got ${JSON.stringify(actualObj)}`);
+          errors.push(
+            `Value mismatch at "${path || 'root'}": expected ${JSON.stringify(
+              partialObj,
+            )}, got ${JSON.stringify(actualObj)}`,
+          );
         }
         return;
       }
@@ -250,11 +257,17 @@ class Assertions {
           continue;
         }
 
-        if (deep && typeof partialObj[key] === 'object' && partialObj[key] !== null) {
+        if (
+          deep &&
+          typeof partialObj[key] === 'object' &&
+          partialObj[key] !== null
+        ) {
           check(actualObj[key], partialObj[key], currentPath);
         } else if (actualObj[key] !== partialObj[key]) {
           errors.push(
-            `Value mismatch at "${currentPath}": expected ${JSON.stringify(partialObj[key])}, got ${JSON.stringify(actualObj[key])}`
+            `Value mismatch at "${currentPath}": expected ${JSON.stringify(
+              partialObj[key],
+            )}, got ${JSON.stringify(actualObj[key])}`,
           );
         }
       }
@@ -263,7 +276,9 @@ class Assertions {
     check(actual, partial);
 
     if (errors.length > 0) {
-      throw new Error('Object contains assertion failed:\n' + errors.join('\n'));
+      throw new Error(
+        'Object contains assertion failed:\n' + errors.join('\n'),
+      );
     }
   }
 
@@ -292,9 +307,7 @@ class Assertions {
    */
   static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
     const labelMatcher = element(by.label(new RegExp(text)));
-    return await waitFor(labelMatcher)
-      .toExist()
-      .withTimeout(timeout);
+    return await waitFor(labelMatcher).toExist().withTimeout(timeout);
   }
 }
 

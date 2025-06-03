@@ -103,11 +103,7 @@ export default class ExpandedMessage extends PureComponent {
           style={styles.expandedMessageHeader}
           onPress={toggleExpandedMessage}
         >
-          <Ionicons
-            name={'arrow-back'}
-            size={30}
-            style={styles.arrowIcon}
-          />
+          <Ionicons name={'arrow-back'} size={30} style={styles.arrowIcon} />
           <Text style={styles.messageLabelTextExpanded}>
             {strings('signature_request.message')}
           </Text>

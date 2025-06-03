@@ -26,7 +26,6 @@ class QuoteView {
     return Matchers.getElementByID(`asset-${symbol}`);
   }
 
-
   async enterBridgeAmount(amount) {
     for (let idx = 0; idx < amount.length; idx++) {
       const element = Matchers.getElementByText(amount[idx]);

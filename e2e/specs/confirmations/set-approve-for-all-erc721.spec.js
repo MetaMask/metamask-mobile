@@ -27,10 +27,8 @@ describe(SmokeConfirmations('ERC721 token'), () => {
   });
 
   it('approve all ERC721 tokens', async () => {
-    const testSpecificMock  = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
     };
 
     await withFixtures(
@@ -38,7 +36,9 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

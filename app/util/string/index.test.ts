@@ -15,7 +15,9 @@ describe('string utils', () => {
     });
 
     it('escapes all occurences of \u202D and \u202E', () => {
-      const result = escapeSpecialUnicode('test \u202D test \u202E test \u202D test');
+      const result = escapeSpecialUnicode(
+        'test \u202D test \u202E test \u202D test',
+      );
       expect(result).toEqual('test \\u202D test \\u202E test \\u202D test');
     });
   });

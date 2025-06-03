@@ -77,7 +77,6 @@ export const SnapUIInput = ({
   const handleFocus = () => setCurrentFocusedInput(name);
   const handleBlur = () => setCurrentFocusedInput(null);
 
-
   return (
     <Box style={style}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}

@@ -54,8 +54,14 @@ describe('GeneralAlertBanner', () => {
   });
 
   it('converts severity correctly', () => {
-    expect(getBannerAlertSeverity(Severity.Danger)).toBe(BannerAlertSeverity.Error);
-    expect(getBannerAlertSeverity(Severity.Warning)).toBe(BannerAlertSeverity.Warning);
-    expect(getBannerAlertSeverity(Severity.Info)).toBe(BannerAlertSeverity.Info);
+    expect(getBannerAlertSeverity(Severity.Danger)).toBe(
+      BannerAlertSeverity.Error,
+    );
+    expect(getBannerAlertSeverity(Severity.Warning)).toBe(
+      BannerAlertSeverity.Warning,
+    );
+    expect(getBannerAlertSeverity(Severity.Info)).toBe(
+      BannerAlertSeverity.Info,
+    );
   });
 });

@@ -7,17 +7,13 @@ import { GasModalType } from '../../../constants/gas';
 import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 
 jest.mock('../../../../../../util/transaction-controller');
-jest.mock(
-  '../../../hooks/transactions/useTransactionMetadataRequest',
-  () => {
-    const { simpleSendTransaction: actualSimpleSendTransaction } = jest.requireActual(
-      '../../../mock-data/transaction-controller-mock',
-    );
-    return {
-      useTransactionMetadataRequest: jest.fn(() => actualSimpleSendTransaction),
-    };
-  },
-);
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
+  const { simpleSendTransaction: actualSimpleSendTransaction } =
+    jest.requireActual('../../../mock-data/transaction-controller-mock');
+  return {
+    useTransactionMetadataRequest: jest.fn(() => actualSimpleSendTransaction),
+  };
+});
 
 describe('AdvancedGasPriceModal', () => {
   const mockUpdateTransactionGasFees = jest.mocked(updateTransactionGasFees);

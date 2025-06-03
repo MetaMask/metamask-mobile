@@ -79,19 +79,17 @@ have to have all these workarounds in the tests
 
     console.log('The marketing toast is not visible');
   }
-  
+
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log('Solana feature sheet: \'Not Now\' tapped.');
-
+    console.log("Solana feature sheet: 'Not Now' tapped.");
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    console.log('Solana feature sheet: \'Create Account\' tapped.');
-
+    console.log("Solana feature sheet: 'Create Account' tapped.");
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
-    console.log('Solana feature sheet: \'View Account\' tapped.');
+    console.log("Solana feature sheet: 'View Account' tapped.");
   }
 };
 
@@ -142,9 +140,6 @@ export const importWalletWithRecoveryPhrase = async ({
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
-
-  
-  
 
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
@@ -283,10 +278,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }

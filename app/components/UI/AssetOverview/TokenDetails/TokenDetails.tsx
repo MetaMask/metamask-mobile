@@ -135,9 +135,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     tokenMetadata = tokenSearchResult.token;
   } else {
     tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
-    marketData = !isNonEvmAsset
-      ? evmMarketData?.marketData
-      : nonEvmMarketData;
+    marketData = !isNonEvmAsset ? evmMarketData?.marketData : nonEvmMarketData;
   }
   const tokenDetails = useMemo(
     () =>

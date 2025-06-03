@@ -253,7 +253,6 @@ describe('TokenDetails', () => {
       },
     } as const;
 
-
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       if (typeof selectorOrCallback === 'function') {
         const selectorString = selectorOrCallback.toString();

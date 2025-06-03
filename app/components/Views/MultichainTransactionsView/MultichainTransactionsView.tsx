@@ -74,7 +74,13 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item, index }: { item: Transaction, index: number }) => {
+  const renderTransactionItem = ({
+    item,
+    index,
+  }: {
+    item: Transaction;
+    index: number;
+  }) => {
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 

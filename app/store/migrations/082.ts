@@ -24,9 +24,7 @@ const migration = (state: unknown): unknown => {
       !isObject(state.engine.backgroundState)
     ) {
       captureException(
-        new Error(
-          `Migration 082: Invalid engine state structure`,
-        ),
+        new Error(`Migration 082: Invalid engine state structure`),
       );
       return state;
     }
@@ -61,4 +59,4 @@ const migration = (state: unknown): unknown => {
   }
 };
 
-export default migration; 
+export default migration;

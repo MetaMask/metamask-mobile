@@ -66,7 +66,9 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
 
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+    await Assertions.checkIfVisible(
+      EnableAutomaticSecurityChecksView.container,
+    );
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 

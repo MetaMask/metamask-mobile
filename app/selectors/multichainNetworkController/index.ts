@@ -57,16 +57,26 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     };
 
     // TODO: Add support for non-EVM testnets
-    const networks: Record<CaipChainId, MultichainNetworkConfiguration> = multichainNetworkControllerState.multichainNetworkConfigurationsByChainId || {};
+    const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
+      multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+      {};
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
       Object.keys(networks)
         .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
-        .reduce((filteredNetworks: Record<CaipChainId, MultichainNetworkConfiguration>, key: string) => {
-          // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
-          filteredNetworks[key] = networks[key];
-          return filteredNetworks;
-      },
-    {});
+        .reduce(
+          (
+            filteredNetworks: Record<
+              CaipChainId,
+              MultichainNetworkConfiguration
+            >,
+            key: string,
+          ) => {
+            // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
+            filteredNetworks[key] = networks[key];
+            return filteredNetworks;
+          },
+          {},
+        );
 
     return Object.fromEntries(
       Object.entries(nonEvmNetworks).map(([key, network]) => [

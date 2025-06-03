@@ -1,7 +1,10 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { Box } from '../../Box/Box';
-import Text, { TextColor, TextVariant } from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -11,7 +14,9 @@ import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import { strings } from '../../../../../locales/i18n';
 import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import Button, { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
@@ -23,8 +28,7 @@ const createStyles = (params: { theme: Theme }) => {
     networksButton: {
       borderColor: theme.colors.border.muted,
     },
-    avatarContainer: {
-    },
+    avatarContainer: {},
     avatarNetwork: {
       marginRight: 0,
     },
@@ -62,7 +66,9 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
   } else if (selectedSourceChainIds.length === 1) {
     networkText = strings('bridge.one_network');
   } else {
-    networkText = strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
+    networkText = strings('bridge.num_networks', {
+      numNetworks: selectedSourceChainIds.length,
+    });
   }
 
   const navigateToNetworkSelector = () => {
@@ -71,36 +77,52 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
     });
   };
 
-  const renderSourceNetworks = useCallback(() => (
-    networksToShow.map(({ chainId }) => (
-      <Box key={chainId} style={styles.avatarContainer}>
-      <AvatarNetwork
-        key={chainId}
-        imageSource={getNetworkImageSource({ chainId })}
-        name={networkConfigurations[chainId]?.name}
-        size={AvatarSize.Xs}
-        style={styles.avatarNetwork}
-        />
-      </Box>
-    ))
-  ), [networkConfigurations, styles, networksToShow]);
+  const renderSourceNetworks = useCallback(
+    () =>
+      networksToShow.map(({ chainId }) => (
+        <Box key={chainId} style={styles.avatarContainer}>
+          <AvatarNetwork
+            key={chainId}
+            imageSource={getNetworkImageSource({ chainId })}
+            name={networkConfigurations[chainId]?.name}
+            size={AvatarSize.Xs}
+            style={styles.avatarNetwork}
+          />
+        </Box>
+      )),
+    [networkConfigurations, styles, networksToShow],
+  );
 
   return (
     <Button
       onPress={navigateToNetworkSelector}
       variant={ButtonVariants.Secondary}
       label={
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
-          {renderSourceNetworks()}
-          {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
-            <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
-            </Box>
-          )}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={4}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={-8}
+          >
+            {renderSourceNetworks()}
+            {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
+              <Box
+                style={styles.networkOverflowCircle}
+                justifyContent={JustifyContent.center}
+                alignItems={AlignItems.center}
+              >
+                <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>
+                  +{selectedSourceChainIds.length - MAX_NETWORK_ICONS}
+                </Text>
+              </Box>
+            )}
+          </Box>
+          <Text>{networkText}</Text>
         </Box>
-        <Text>{networkText}</Text>
-      </Box>
       }
       style={styles.networksButton}
       endIconName={IconName.ArrowDown}

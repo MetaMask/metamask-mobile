@@ -1,5 +1,8 @@
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { PortfolioPageSelectorsXpath, PortfolioPageSelectorsWebID } from '../../selectors/Browser/PortfolioPage.selectors';
+import {
+  PortfolioPageSelectorsXpath,
+  PortfolioPageSelectorsWebID,
+} from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import TestHelpers from '../../helpers';

@@ -26,39 +26,41 @@ describe(SmokeTrade('Buy Crypto Deeplinks'), () => {
   });
   const itif = (condition) => (condition ? it : it.skip);
 
+  itif(device.getPlatform() === 'android')(
+    'should deep link to onramp to unsupported network',
+    async () => {
+      const BuyDeepLink = 'metamask://buy?chainId=2';
 
-  itif(device.getPlatform() === 'android')('should deep link to onramp to unsupported network', async () => {
-    const BuyDeepLink = 'metamask://buy?chainId=2';
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await device.sendToHome();
+          await device.launchApp({
+            url: BuyDeepLink,
+          });
 
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.sendToHome();
-        await device.launchApp({
-          url: BuyDeepLink,
-        });
+          await Assertions.checkIfVisible(
+            await SellGetStartedView.getStartedButton,
+          );
 
-        await Assertions.checkIfVisible(
-          await SellGetStartedView.getStartedButton,
-        );
+          await BuyGetStartedView.tapGetStartedButton();
 
-        await BuyGetStartedView.tapGetStartedButton();
-
-        await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
-        await NetworkListModal.changeNetworkTo(
-          PopularNetworksList.Avalanche.providerConfig.nickname,
-        );
-        await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapCloseButton();
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
-        await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
-        await Assertions.checkIfTextIsDisplayed('Avalanche');
-      },
-    );
-  });
+          await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
+          await NetworkListModal.changeNetworkTo(
+            PopularNetworksList.Avalanche.providerConfig.nickname,
+          );
+          await NetworkApprovalBottomSheet.tapApproveButton();
+          await NetworkAddedBottomSheet.tapCloseButton();
+          await Assertions.checkIfVisible(NetworkEducationModal.container);
+          await NetworkEducationModal.tapGotItButton();
+          await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
+          await Assertions.checkIfTextIsDisplayed('Avalanche');
+        },
+      );
+    },
+  );
 });

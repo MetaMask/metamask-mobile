@@ -297,7 +297,9 @@ describe('Network Selector', () => {
       rpcUrl: '',
       domainIsConnectedDapp: true,
     };
-    jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+    jest
+      .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+      .mockReturnValue(true);
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
       .mockImplementation(() => testMock);
@@ -646,7 +648,9 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+        .mockReturnValue(true);
       // Reset the mock before each test
       jest.clearAllMocks();
     });

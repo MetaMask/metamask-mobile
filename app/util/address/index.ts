@@ -286,7 +286,6 @@ export function isPrivateKeyAccount(account: InternalAccount) {
   return account.metadata.keyring.type === KeyringTypes.simple;
 }
 
-
 /**
  * Checks if an address is an ethereum one.
  *

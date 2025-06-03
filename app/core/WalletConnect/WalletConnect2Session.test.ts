@@ -276,22 +276,28 @@ describe('WalletConnect2Session', () => {
     // Directly spy on session.updateSession and replace it with our own implementation
     // This avoids issues with mocking imported utilities
     const originalUpdateSession = session.updateSession;
-    session.updateSession = jest.fn().mockImplementation(async (_: { chainId: number, accounts: string[] }) => {
-      // Directly call updateSession on the web3Wallet with mock data
-      await mockClient.updateSession({
-        topic: mockSession.topic,
-        namespaces: {
-          eip155: {
-            chains: ['eip155:1'],
-            methods: ['eth_sendTransaction'],
-            events: ['chainChanged', 'accountsChanged'],
-            accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-          },
+    session.updateSession = jest
+      .fn()
+      .mockImplementation(
+        async (_: { chainId: number; accounts: string[] }) => {
+          // Directly call updateSession on the web3Wallet with mock data
+          await mockClient.updateSession({
+            topic: mockSession.topic,
+            namespaces: {
+              eip155: {
+                chains: ['eip155:1'],
+                methods: ['eth_sendTransaction'],
+                events: ['chainChanged', 'accountsChanged'],
+                accounts: [
+                  'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
+                ],
+              },
+            },
+          });
+          // Mock emitting the event
+          return Promise.resolve();
         },
-      });
-      // Mock emitting the event
-      return Promise.resolve();
-    });
+      );
 
     // Mock updateSession on the client
     const mockUpdateSession = jest

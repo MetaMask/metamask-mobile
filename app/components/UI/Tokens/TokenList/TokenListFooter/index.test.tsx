@@ -172,7 +172,7 @@ describe('TokenListFooter', () => {
   });
 
   it('does not render the add tokens footer link Non EVM', () => {
-    const initialStateTest = { 
+    const initialStateTest = {
       ...initialState,
       engine: {
         backgroundState: {
@@ -187,7 +187,9 @@ describe('TokenListFooter', () => {
     const storeTest = mockStore(initialStateTest);
     const { queryByTestId } = renderComponent(mockProps, storeTest);
 
-    expect(queryByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK)).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK),
+    ).toBeNull();
   });
 
   it('disables the add tokens footer link when isAddTokenEnabled is false', () => {

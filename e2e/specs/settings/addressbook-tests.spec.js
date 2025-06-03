@@ -112,9 +112,8 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
     await TestHelpers.delay(1500);
 
     await AddContactView.tapEditContactCTA();
-    if (device.getPlatform() === 'ios'){
+    if (device.getPlatform() === 'ios') {
       await AddContactView.tapEditContactCTA(); // Because on CI, tapping the edit contact button requires a double tap for iOS
-
     }
     await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
     await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible

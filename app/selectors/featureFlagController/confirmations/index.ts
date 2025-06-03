@@ -34,11 +34,9 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
 ) => {
   const remoteValues = remoteFeatureFlags.confirmation_redesign;
 
-    const confirmationRedesignFlags = isRemoteFeatureFlagValuesValid(
-      remoteValues,
-    )
-      ? remoteValues
-      : confirmationRedesignFlagsDefaultValues;
+  const confirmationRedesignFlags = isRemoteFeatureFlagValuesValid(remoteValues)
+    ? remoteValues
+    : confirmationRedesignFlagsDefaultValues;
 
   const isSignaturesEnabled = getFeatureFlagValue(
     process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,

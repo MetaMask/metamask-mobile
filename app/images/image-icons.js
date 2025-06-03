@@ -27,7 +27,6 @@ import FLOW from './flow.png';
 import LENS from './lens.png';
 import PLUME from './plume-native.png';
 
-
 export default {
   PALM,
   MATIC,

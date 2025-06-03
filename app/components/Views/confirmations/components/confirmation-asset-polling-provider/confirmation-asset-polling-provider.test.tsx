@@ -8,8 +8,8 @@ import { ConfirmationAssetPollingProvider } from './confirmation-asset-polling-p
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-    AssetPollingProvider: jest.fn(() => null),
-  }));
+  AssetPollingProvider: jest.fn(() => null),
+}));
 
 describe('ConfirmationAssetPollingProvider', () => {
   const mockTransactionMetadata = {

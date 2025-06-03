@@ -8,17 +8,13 @@ import { GasModalType } from '../../../constants/gas';
 import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
 jest.mock('../../../../../../util/transaction-controller');
-jest.mock(
-  '../../../hooks/transactions/useTransactionMetadataRequest',
-  () => {
-    const { simpleSendTransaction: actualSimpleSendTransaction } = jest.requireActual(
-      '../../../mock-data/transaction-controller-mock',
-    );
-    return {
-      useTransactionMetadataRequest: jest.fn(() => actualSimpleSendTransaction),
-    };
-  },
-);
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
+  const { simpleSendTransaction: actualSimpleSendTransaction } =
+    jest.requireActual('../../../mock-data/transaction-controller-mock');
+  return {
+    useTransactionMetadataRequest: jest.fn(() => actualSimpleSendTransaction),
+  };
+});
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates', () => {
   const { feeMarketEstimates } = jest.requireActual(

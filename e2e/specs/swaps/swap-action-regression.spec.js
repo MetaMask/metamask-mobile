@@ -165,14 +165,22 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+      await Assertions.checkIfElementToHaveText(
+        ActivitiesView.transactionStatus(FIRST_ROW),
+        ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        120000,
+      );
 
       // Check the token approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(SECOND_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+        await Assertions.checkIfElementToHaveText(
+          ActivitiesView.transactionStatus(SECOND_ROW),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          120000,
+        );
       }
     },
   );

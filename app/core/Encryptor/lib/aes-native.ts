@@ -34,7 +34,9 @@ enum CipherAlgorithmAesCrypto {
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
-export function assertIsKdfAlgorithm(algorithm: string): asserts algorithm is typeof KDF_ALGORITHM {
+export function assertIsKdfAlgorithm(
+  algorithm: string,
+): asserts algorithm is typeof KDF_ALGORITHM {
   if (algorithm !== KDF_ALGORITHM) {
     throw new Error('Unsupported KDF algorithm');
   }

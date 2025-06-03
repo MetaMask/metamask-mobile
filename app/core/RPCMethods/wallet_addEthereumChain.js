@@ -145,13 +145,11 @@ export const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    switchToNetworkAndMetrics(
-      {
-        ...existingNetworkConfiguration,
-        rpcEndpoints: rpcResult.updatedArray,
-        defaultRpcEndpointIndex: rpcResult.index,
-      },
-    );
+    switchToNetworkAndMetrics({
+      ...existingNetworkConfiguration,
+      rpcEndpoints: rpcResult.updatedArray,
+      defaultRpcEndpointIndex: rpcResult.index,
+    });
 
     res.result = null;
     return;

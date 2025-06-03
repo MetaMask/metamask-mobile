@@ -107,7 +107,11 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const { styles } = useStyles(createStyles, { isSelected });
   const fiatValue = token.balanceFiat;
   const balanceWithSymbol = token.balance
-    ? `${Number(token.balance) < 0.00001 ? '< 0.00001' : parseAmount(token.balance, 5)} ${token.symbol}`
+    ? `${
+        Number(token.balance) < 0.00001
+          ? '< 0.00001'
+          : parseAmount(token.balance, 5)
+      } ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
@@ -129,7 +133,11 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         style={styles.itemWrapper}
         {...generateTestId(Platform, getAssetTestId(token.symbol))}
       >
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={4}
+        >
           {/* Token Icon */}
           <BadgeWrapper
             style={styles.badgeWrapper}

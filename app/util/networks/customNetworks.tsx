@@ -261,7 +261,6 @@ export const NETWORK_CHAIN_ID: {
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
   readonly PLUME: '0x18232';
-
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',

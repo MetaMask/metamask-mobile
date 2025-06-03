@@ -126,7 +126,7 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         );
       }
 
-      if(shouldHideFiat) {
+      if (shouldHideFiat) {
         currentCurrencyFee = null;
       }
 

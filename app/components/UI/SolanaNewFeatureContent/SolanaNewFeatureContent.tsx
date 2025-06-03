@@ -147,7 +147,9 @@ const SolanaNewFeatureContent = () => {
             hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
           }
           width={ButtonWidthTypes.Full}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON
+          }
         />
 
         <Button

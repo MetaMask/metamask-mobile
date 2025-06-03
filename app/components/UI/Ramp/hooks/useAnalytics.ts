@@ -8,11 +8,10 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   params: AnalyticsEvents[T],
 ) {
   const metrics = MetaMetrics.getInstance();
-  metrics.trackEvent(MetricsEventBuilder.createEventBuilder(
-      MetaMetricsEvents[eventType],
-  )
+  metrics.trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[eventType])
       .addProperties({ ...params })
-      .build()
+      .build(),
   );
 }
 

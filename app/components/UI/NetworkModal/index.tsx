@@ -58,7 +58,7 @@ export interface SafeChain {
 
 export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
   formattedRpcUrl?: string | null;
-  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>,
+  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>;
 };
 
 interface NetworkProps {
@@ -464,7 +464,10 @@ const NetworkModals = (props: NetworkProps) => {
             <View style={styles.root}>
               <NetworkVerificationInfo
                 customNetworkInformation={customNetworkInformation}
-                onReject={() => { onReject?.(); onClose(); }}
+                onReject={() => {
+                  onReject?.();
+                  onClose();
+                }}
                 onConfirm={addNetwork}
                 isCustomNetwork={!showPopularNetworkModal}
               />
