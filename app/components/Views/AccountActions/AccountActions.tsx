@@ -218,8 +218,8 @@ const AccountActions = () => {
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -255,8 +255,8 @@ const AccountActions = () => {
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -450,14 +450,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
-          networkSupporting7702Present && (
-            <AccountAction
-              actionTitle={strings('account_actions.switch_to_smart_account')}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwitchAccountType}
-            />
-          )}
+        {networkSupporting7702Present && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}
