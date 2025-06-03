@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { capitalize } from '../../../../../util/general';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -103,7 +104,7 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken, getPairedEarnTokens } = useEarnTokens();
+  const { getPairedEarnTokens } = useEarnTokens();
   const { toastRef } = useContext(ToastContext);
 
   const confirmButtonText = useMemo(
@@ -183,7 +184,7 @@ const EarnLendingDepositConfirmationView = () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
         },
-        (transactionMeta) => transactionMeta.id === transactionId,
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
     [showTransactionSubmissionToast],
@@ -267,7 +268,8 @@ const EarnLendingDepositConfirmationView = () => {
       if (
         !activeAccount?.address ||
         !earnToken?.chainId ||
-        !isSupportedLendingAction
+        !isSupportedLendingAction ||
+        !earnToken?.experience?.market?.protocol
       ) {
         setIsConfirmButtonDisabled(false);
         return;
@@ -373,13 +375,20 @@ const EarnLendingDepositConfirmationView = () => {
         <DepositInfoSection
           token={token}
           lendingContractAddress={lendingContractAddress}
-          lendingProtocol={lendingProtocol}
+          lendingProtocol={capitalize(
+            lendingProtocol ?? strings('earn.unknown'),
+          )}
           amountTokenMinimalUnit={amountTokenMinimalUnit}
           amountFiatNumber={parseFloatSafe(amountFiat)}
         />
         <DepositReceiveSection
           token={token}
-          receiptTokenName={outputToken?.symbol || outputToken?.ticker || ''}
+          receiptTokenName={
+            outputToken?.name ??
+            outputToken?.symbol ??
+            outputToken?.ticker ??
+            ''
+          }
           receiptTokenAmount={
             renderFromTokenMinimalUnit(
               amountTokenMinimalUnit,

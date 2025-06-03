@@ -191,7 +191,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
     if (
       !lendingToken?.address ||
       !amountTokenMinimalUnit ||
-      !lendingToken?.chainId
+      !lendingToken?.chainId ||
+      !lendingToken?.experience?.market?.protocol
     )
       return;
 
@@ -318,7 +319,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   label: (
                     <ContractTag
                       contractAddress={lendingContractAddress}
-                      contractName={lendingProtocol}
+                      contractName={capitalize(lendingProtocol)}
                       useBlockieIcon={useBlockieIcon}
                     />
                   ),

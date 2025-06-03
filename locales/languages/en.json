@@ -3734,7 +3734,8 @@
     "health_factor": "Health factor",
     "liquidation_risk": "Liquidation risk",
     "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw"
+    "available_to_withdraw": "available to withdraw",
+    "unknown": "unknown"
   },
   "stake": {
     "stake": "Stake",
