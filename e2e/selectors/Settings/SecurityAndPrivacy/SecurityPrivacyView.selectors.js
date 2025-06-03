@@ -13,6 +13,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
   BIOMETRICS_TOGGLE: 'biometrics-option',
   DEVICE_PASSCODE_TOGGLE: 'device-passcode-option',
   CLEAR_PRIVACY_DATA_BUTTON: 'clear-privacy-data-button',
+  PROTECT_YOUR_WALLET: 'protect-your-wallet',
 };
 
 export const SecurityPrivacyViewSelectorsText = {

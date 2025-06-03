@@ -20,6 +20,9 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -208,6 +211,9 @@ const Settings = () => {
   aboutMetaMaskTitle = strings('app_settings.info_title_beta');
   ///: END:ONLY_INCLUDE_IF
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   return (
     <ScrollView
       style={styles.wrapper}
@@ -223,7 +229,11 @@ const Settings = () => {
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
-        warning={!seedphraseBackedUp ? strings('drawer.settings_warning') : ''}
+        warning={
+          !oauthFlow && !seedphraseBackedUp
+            ? strings('drawer.settings_warning')
+            : ''
+        }
         testID={SettingsViewSelectorsIDs.SECURITY}
       />
       <SettingsDrawer

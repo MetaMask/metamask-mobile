@@ -32,6 +32,12 @@ const mockSnapClient = {
   addDiscoveredAccounts: mockAddDiscoveredAccounts,
 };
 
+jest.mock('../../core/redux/ReduxService', () => ({
+  store: {
+    getState: () => ({}),
+  },
+}));
+
 jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {

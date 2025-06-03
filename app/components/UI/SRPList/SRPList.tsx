@@ -8,12 +8,19 @@ import SRPListItem from '../SRPListItem';
 import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 
-const SRPList = ({ onKeyringSelect }: SRPListProps) => {
+const SRPList = ({
+  onKeyringSelect,
+  containerStyle,
+  showArrowName = '',
+}: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
 
   return (
-    <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>
+    <View
+      style={[styles.base, containerStyle]}
+      testID={SRPListSelectorsIDs.SRP_LIST}
+    >
       <FlatList
         data={hdKeyringsWithSnapAccounts}
         contentContainerStyle={styles.srpListContentContainer}
@@ -23,6 +30,7 @@ const SRPList = ({ onKeyringSelect }: SRPListProps) => {
             keyring={item}
             name={`${strings('accounts.secret_recovery_phrase')} ${index + 1}`}
             onActionComplete={() => onKeyringSelect(item.metadata.id)}
+            showArrowName={showArrowName}
           />
         )}
         scrollEnabled
