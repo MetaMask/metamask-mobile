@@ -43,6 +43,7 @@ import {
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 const AccountsConnectedItemList = ({
   selectedAddresses,
@@ -59,6 +60,7 @@ const AccountsConnectedItemList = ({
   networkAvatars: NetworkAvatarProps[];
   handleEditAccountsButtonPress: () => void;
 }) => {
+  console.log('selected addresses:', selectedAddresses);
   const HEIGHT_BY_ACCOUNTS_LENGTH =
     selectedAddresses.length * ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT;
   const MAX_HEIGHT =
@@ -80,6 +82,8 @@ const AccountsConnectedItemList = ({
       if (!accountScopes.length) return [];
 
       return networkAvatars.filter((avatar) => {
+        // filter out testnets, devnets, etc since we don't support them yet for non-evm chains
+        if (NON_EVM_TESTNET_IDS.includes(avatar.caipChainId)) return false;
         const { namespace } = parseCaipChainId(avatar.caipChainId);
 
         return accountScopes.some((scope) => {

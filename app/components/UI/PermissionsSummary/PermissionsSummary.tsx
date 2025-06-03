@@ -8,6 +8,7 @@ import {
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -547,6 +548,13 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
+  const filteredAccountAddresses = useMemo(() => {
+    return accountAddresses.filter((address) => {
+      const { chainId } = parseCaipAccountId(address);
+      return !NON_EVM_TESTNET_IDS.includes(chainId);
+    });
+  }, [accountAddresses]);
+
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
       accountsConnectedTabProps;
@@ -560,7 +568,7 @@ const PermissionsSummary = ({
       >
         <AccountsConnectedList
           key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
+          selectedAddresses={filteredAccountAddresses}
           ensByAccountAddress={ensByAccountAddress}
           accounts={accounts}
           privacyMode={privacyMode}
