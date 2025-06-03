@@ -75,6 +75,8 @@ import {
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
+import { createAsyncWalletMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
+import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { uniq } from 'lodash';
@@ -191,7 +193,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -279,11 +281,16 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async getProviderNetworkState(origin = METAMASK_DOMAIN, requestNetworkClientId) {
-    const networkClientId = requestNetworkClientId ?? Engine.controllerMessenger.call(
-      'SelectedNetworkController:getNetworkClientIdForDomain',
-      origin,
-    );
+  async getProviderNetworkState(
+    origin = METAMASK_DOMAIN,
+    requestNetworkClientId,
+  ) {
+    const networkClientId =
+      requestNetworkClientId ??
+      Engine.controllerMessenger.call(
+        'SelectedNetworkController:getNetworkClientIdForDomain',
+        origin,
+      );
 
     const networkClient = Engine.controllerMessenger.call(
       'NetworkController:getNetworkClientById',
@@ -437,7 +444,7 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (AppConstants.MULTICHAIN_API && !this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isMMSDK && !this.isWalletConnect) {
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
@@ -647,6 +654,12 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
+    // Origin throttling middleware for spam filtering
+    engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    // Middleware to handle wallet_xxx requests
+    engine.push(createAsyncWalletMiddleware());
+
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
@@ -666,10 +679,6 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
    */
   setupProviderEngineCaip() {
-    if (!AppConstants.MULTICHAIN_API) {
-      return null;
-    }
-
     const origin = this.origin;
 
     const { NetworkController, AccountsController, PermissionController } =
