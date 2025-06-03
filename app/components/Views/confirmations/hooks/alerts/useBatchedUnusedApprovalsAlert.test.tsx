@@ -27,7 +27,6 @@ import { Severity } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 
-const ACCOUNT_ADDRESS = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc' as Hex;
 const TOKEN_ADDRESS_1 = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_ADDRESS_2 = '0x2345678901234567890123456789012345678901' as Hex;
 const SPENDER_ADDRESS = '0x3456789012345678901234567890123456789012' as Hex;
