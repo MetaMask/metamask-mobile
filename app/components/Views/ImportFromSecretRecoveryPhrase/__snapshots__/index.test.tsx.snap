@@ -718,6 +718,95 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                   </Text>
                                 </TouchableOpacity>
                               </View>
+                              <View
+                                style={
+                                  {
+                                    "alignSelf": "flex-end",
+                                    "position": "absolute",
+                                    "right": 17,
+                                    "top": 52,
+                                  }
+                                }
+                              />
+                              <Text
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 21.428571428571427,
+                                    "fontWeight": "400",
+                                    "height": 20,
+                                  }
+                                }
+                              >
+                                Must be at least 8 characters
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "marginTop": 20,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={true}
+                                style={
+                                  [
+                                    [
+                                      {
+                                        "borderRadius": 12,
+                                        "justifyContent": "center",
+                                        "padding": 15,
+                                      },
+                                      {
+                                        "backgroundColor": "#4459ff",
+                                      },
+                                      undefined,
+                                    ],
+                                    {
+                                      "opacity": 0.6,
+                                    },
+                                  ]
+                                }
+                                testID="import-from-seed-screen-submit-button-id"
+                              >
+                                <Text
+                                  style={
+                                    [
+                                      {
+                                        "color": "#007aff",
+                                        "fontSize": 17,
+                                        "fontWeight": "500",
+                                        "textAlign": "center",
+                                      },
+                                      {
+                                        "color": "#dcdcdc",
+                                      },
+                                      [
+                                        {
+                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontSize": 14,
+                                          "fontWeight": "600",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#ffffff",
+                                        },
+                                        undefined,
+                                      ],
+                                      {
+                                        "opacity": 0.6,
+                                      },
+                                    ]
+                                  }
+                                >
+                                  IMPORT
+                                </Text>
+                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
