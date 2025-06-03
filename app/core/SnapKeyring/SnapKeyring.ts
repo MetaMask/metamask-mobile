@@ -56,7 +56,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const addresses = await this.#messenger.call(
       'KeyringController:getAccounts',
     );
-    return addresses.includes(toFormattedAddress(address));
+    return addresses.some(
+      (addr) => toFormattedAddress(addr) === toFormattedAddress(address),
+    );
   }
 
   async saveState() {
