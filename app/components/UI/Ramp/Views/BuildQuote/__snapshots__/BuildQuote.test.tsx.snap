@@ -603,7 +603,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -1267,7 +1267,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -1931,7 +1931,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -3534,7 +3534,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -5137,7 +5137,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -6819,7 +6819,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -8109,7 +8109,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -9710,7 +9710,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -12377,7 +12377,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -13667,7 +13667,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -15307,7 +15307,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -16662,7 +16662,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 [
                                   [
                                     {
-                                      "borderRadius": 100,
+                                      "borderRadius": 12,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
@@ -17324,7 +17324,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -17988,7 +17988,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
