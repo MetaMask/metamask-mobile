@@ -127,7 +127,7 @@ const ManualBackupStep2 = ({
     if (showStatusBottomSheet) return;
 
     const rows = [0, 1, 2, 3];
-    const sortedRows = rows.toSorted(() => 0.5 - Math.random());
+    const sortedRows = rows.sort(() => 0.5 - Math.random());
     const randomRows = sortedRows.slice(0, 3);
     const indexesToEmpty = randomRows.map((row) => {
       const col = Math.floor(Math.random() * 3);
@@ -145,7 +145,7 @@ const ManualBackupStep2 = ({
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(indexesToEmpty);
-    const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
+    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
     setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
@@ -155,7 +155,7 @@ const ManualBackupStep2 = ({
       const updatedGrid = [...gridWords];
       if (sortedSlots.length === 0) {
         const indexesToEmpty = [...emptySlots];
-        const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
+        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
         setSortedSlots(sortedIndexes);
       }
 
