@@ -258,11 +258,13 @@ buildAndroidDevBuild(){
 
 	TASK_NAME="assembleProdDebug assembleProdDebugAndroidTest"
 
-	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+  if [ "$MODE" = "QA" ] ; then
+    TASK_NAME="assembleQaDebug assembleQaDebugAndroidTest"
+	elif [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		TASK_NAME="assembleFlaskDebug assembleFlaskDebugAndroidTest"
 	fi
 
-	cd android && ./gradlew $TASK_NAME assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
+	cd android && ./gradlew $TASK_NAME -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -295,6 +297,9 @@ buildIosDevBuild(){
 	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		scheme="MetaMask-Flask"
 		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+  elif [ "$MODE" = "QA" ] ; then
+		scheme="MetaMask-QA"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
