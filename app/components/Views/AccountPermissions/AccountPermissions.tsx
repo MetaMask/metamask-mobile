@@ -342,7 +342,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }
   }, [
     setIsLoading,
-    hostname,
     trackEvent,
     createEventBuilder,
     accounts?.length,
