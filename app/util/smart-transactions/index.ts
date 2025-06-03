@@ -28,7 +28,7 @@ export const getTransactionType = (
     transactionMeta?.origin !== TransactionTypes.MMM &&
     transactionMeta?.origin !== process.env.MM_FOX_CODE;
 
-  const to = transactionMeta.txParams.to?.toLowerCase(); // should this be lowercase?
+  const to = transactionMeta.txParams.to?.toLowerCase();
   const data = transactionMeta.txParams.data; // undefined for send txs of gas tokens
 
   const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
