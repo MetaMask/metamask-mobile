@@ -38,6 +38,7 @@
     "build:android:release": "./scripts/build.sh android release",
     "build:android:devbuild": "./scripts/build.sh android devBuild",
     "build:android:devbuild:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh android devBuild",
+    "build:android:devbuild:qa": "export METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' && ./scripts/build.sh android devBuild",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",

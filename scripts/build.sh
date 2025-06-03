@@ -238,7 +238,9 @@ buildAndroidDevBuild(){
 
 	TASK_NAME="assembleProdDebug"
 
-	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+  if [ "$MODE" = "QA" ] ; then
+    TASK_NAME="assembleQaDebug"
+	elif [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		TASK_NAME="assembleFlaskDebug"
 	fi
 
@@ -275,6 +277,9 @@ buildIosDevBuild(){
 	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		scheme="MetaMask-Flask"
 		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+  elif [ "$MODE" = "QA" ] ; then
+		scheme="MetaMask-QA"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
