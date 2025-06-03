@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { waitFor } from 'detox';
 
 /**
@@ -59,9 +60,10 @@ class Gestures {
       skipVisibilityCheck = false,
     } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(await element)
-        .toBeVisible()
-        .withTimeout(timeout);
+      await Platform.select({
+        ios: waitFor(await element).toExist(),
+        android: waitFor(await element).toBeVisible(),
+      }).withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.

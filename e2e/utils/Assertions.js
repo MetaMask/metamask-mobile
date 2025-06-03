@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { waitFor, element, by } from 'detox';
 import Matchers from './Matchers';
 
@@ -14,9 +15,10 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .toBeVisible()
-      .withTimeout(timeout);
+    return await Platform.select({
+      ios: waitFor(await element).toExist(),
+      android: waitFor(await element).toBeVisible(),
+    }).withTimeout(timeout);
   }
 
   /**
