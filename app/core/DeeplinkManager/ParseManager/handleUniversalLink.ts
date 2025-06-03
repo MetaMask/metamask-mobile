@@ -168,7 +168,6 @@ function handleUniversalLink({
       }
       case ACTIONS.BUY:
       case ACTIONS.BUY_CRYPTO: {
-        console.log("XXXXXXXX - BUY_CRYPTO", urlObj.href)
         const rampPath = urlObj.href
           .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`, '')
           .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
