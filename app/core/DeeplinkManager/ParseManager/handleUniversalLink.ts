@@ -161,16 +161,17 @@ function handleUniversalLink({
         // TODO: perhaps update this when the new bridging UI is implemented
         // Expecting to only be a navigation change
         const swapPath = urlObj.href
-          .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
-          .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
+          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '')
+          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '');
         instance._handleSwap(swapPath);
         return;
       }
       case ACTIONS.BUY:
       case ACTIONS.BUY_CRYPTO: {
+        console.log("XXXXXXXX - BUY_CRYPTO", urlObj.href)
         const rampPath = urlObj.href
-          .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY_CRYPTO}`, '')
-          .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY}`, '');
+          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`, '')
+          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
         instance._handleBuyCrypto(rampPath);
         return;
       }
