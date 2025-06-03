@@ -12,7 +12,7 @@ import { useConfirmationContext } from '../../../../context/confirmation-context
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAsset } from '../../../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../../../hooks/useTokenAmount';
-import { Hero } from '../../../header/hero';
+import { Hero } from '../../../header/hero/base';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
 import styleSheet from './token-hero.styles';

@@ -15,7 +15,7 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import CollectibleMedia from '../../../../../../UI/CollectibleMedia';
 import { useNft } from '../../../../hooks/nft/useNft';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
-import { Hero } from '../hero';
+import { Hero } from '../base/hero';
 import styleSheet from './nft.styles';
 
 const NftImageAndNetworkBadge = ({
