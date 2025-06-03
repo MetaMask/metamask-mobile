@@ -438,8 +438,8 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     if (!this.isMMSDK && !this.isWalletConnect) {
-      Engine.controllerMessenger.unsubscribe(
-        `${Engine.context.PermissionController.name}:stateChange`,
+      controllerMessenger.unsubscribe(
+        `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
       );
       controllerMessenger.unsubscribe(
