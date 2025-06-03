@@ -25,6 +25,7 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
 import {
+  PermissionDoesNotExistError,
   SubjectType,
 } from '@metamask/permission-controller';
 
