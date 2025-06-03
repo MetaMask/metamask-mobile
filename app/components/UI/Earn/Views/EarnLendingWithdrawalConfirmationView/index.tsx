@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,11 +36,6 @@ import {
   SimulatedAaveV3HealthFactorAfterWithdrawal,
 } from '../../utils/tempLending';
 import Routes from '../../../../../constants/navigation/Routes';
-import Toast, {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { capitalize } from 'lodash';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
@@ -98,24 +87,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
-
-  const { toastRef } = useContext(ToastContext);
-
-  const showTransactionSubmissionToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.default,
-      labelOptions: [
-        {
-          label: `${strings('earn.transaction_submitted')}`,
-          isBold: false,
-        },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [theme.colors.background.default, theme.colors.success.default, toastRef]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -241,7 +212,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          showTransactionSubmissionToast();
           navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -480,7 +450,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           disabled: isConfirmButtonDisabled,
         }}
       />
-      <Toast ref={toastRef} />
     </View>
   );
 };

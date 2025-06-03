@@ -5,21 +5,10 @@ import {
 } from '@metamask/transaction-controller';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Toast, {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -105,7 +94,6 @@ const EarnLendingDepositConfirmationView = () => {
   );
 
   const { getPairedEarnTokens } = useEarnTokens();
-  const { toastRef } = useContext(ToastContext);
 
   const confirmButtonText = useMemo(
     () =>
@@ -114,32 +102,6 @@ const EarnLendingDepositConfirmationView = () => {
         : strings('earn.confirm'),
     [activeStep],
   );
-
-  const showTransactionSubmissionToast = useCallback(() => {
-    const prefix =
-      activeStep === Steps.ALLOWANCE_INCREASE
-        ? strings('earn.approval')
-        : strings('earn.deposit');
-
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.default,
-      labelOptions: [
-        {
-          label: `${prefix} ${strings('earn.transaction_submitted')}`,
-          isBold: false,
-        },
-      ],
-      hasNoTimeout: false,
-    });
-  }, [
-    activeStep,
-    theme.colors.background.default,
-    theme.colors.success.default,
-    toastRef,
-  ]);
 
   const createAllowanceTxEventListeners = useCallback(
     (transactionId: string) => {
@@ -156,14 +118,6 @@ const EarnLendingDepositConfirmationView = () => {
         () => {
           setIsConfirmButtonDisabled(false);
           setIsApprovalLoading(false);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionSubmitted',
-        () => {
-          showTransactionSubmissionToast();
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -187,7 +141,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [showTransactionSubmissionToast],
+    [],
   );
 
   const createDepositTxEventListeners = useCallback(
@@ -204,20 +158,12 @@ const EarnLendingDepositConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
-          showTransactionSubmissionToast();
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
     },
-    [navigation, showTransactionSubmissionToast],
+    [navigation],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -418,7 +364,6 @@ const EarnLendingDepositConfirmationView = () => {
           ],
         }}
       />
-      <Toast ref={toastRef} />
     </View>
   );
 };
