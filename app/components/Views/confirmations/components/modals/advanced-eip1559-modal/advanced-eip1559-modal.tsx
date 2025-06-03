@@ -49,7 +49,7 @@ export const AdvancedEIP1559Modal = ({
     maxPriorityFeePerGas: false,
   });
   // Keep double exclamation mark to ensure hasError is a boolean for Android
-  const hasError = !!(errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas);
+  const hasError = Boolean(errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas);
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
