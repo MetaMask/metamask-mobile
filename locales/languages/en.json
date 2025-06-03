@@ -110,7 +110,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet setup",
+    "title": "Let’s get started!",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -142,7 +142,8 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet"
+    "delete_current": "Deleting current wallet",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Congratulations!",
@@ -167,7 +168,7 @@
     "title2": "Manage your digital assets",
     "title3": "Your gateway to web3",
     "subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
-    "subtitle2": "Store, spend and send digital assets like tokens, ethereum, unique collectibles.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "Login with MetaMask and make transactions to invest, earn, play games, sell and more!",
     "get_started": "Get started"
   },
@@ -1294,6 +1295,8 @@
     "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
@@ -3443,10 +3446,11 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
   "terms_of_use_modal": {
-    "title": "Review our latest Terms of Use",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
-    "accept_helper_description": "Please scroll to read all sections"
+    "accept_helper_description": "Please scroll to read all sections",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "Get the newest features",
@@ -4005,8 +4009,12 @@
       "resources": "Resources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
@@ -4019,6 +4027,7 @@
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
@@ -4160,5 +4169,63 @@
     },
     "show_more": "more",
     "show_less": "less"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

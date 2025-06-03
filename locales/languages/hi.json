@@ -24,6 +24,11 @@
     "inline_alert_label": "एलर्ट",
     "review_alerts": "एलर्ट की समीक्षा करें",
     "review_alert": "एलर्ट की समीक्षा करें",
+    "upgrade_account": {
+      "title": "आपका अकाउंट अपडेट किया जा रहा है",
+      "message": "आप अपने अकाउंट को स्मार्ट अकाउंट में अपडेट कर रहे हैं। आप तेज़ ट्रांसेक्शन और कम नेटवर्क शुल्क अनलॉक करते हुए वही अकाउंट एड्रेस रखेंगे।",
+      "learn_more": "ज़्यादा जानें"
+    },
     "domain_mismatch": {
       "title": "संदिग्ध साइन-इन अनुरोध",
       "message": "अनुरोध करने वाली साइट वह साइट नहीं है जिस पर आप साइन इन कर रहे हैं। यह आपके लॉगिन क्रेडेंशियल चुराने का प्रयास हो सकता है।"
@@ -32,13 +37,21 @@
       "title": "अपर्याप्त फंड",
       "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त %{nativeCurrency} नहीं है।",
       "buy_action": "%{nativeCurrency} खरीदें"
+    },
+    "signed_or_submitted": {
+      "message": "पिछले ट्रांसेक्शन को अभी भी साइन या सबमिट किया जा रहा है।"
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
-    "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
-    "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
-    "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
+    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
+    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
+    "deceptive_request_title": "This is a deceptive request",
+    "failed_title": "Request may not be safe",
     "failed_description": "किसी गड़बड़ी के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस रिक्वेस्ट को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को एप्रूव करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -396,7 +409,46 @@
     "network_missing_id": "चेन id अनुपस्थित है।"
   },
   "deposit": {
-    "title": "जमा करें"
+    "title": "जमा करें",
+    "enter_email": {
+      "title": "अपना ईमेल दर्ज करें",
+      "description": "हम आपके ईमेल पर एक छह अंकों का कोड भेजेंगे ताकि यह पता चल सके कि यह आप ही हैं।",
+      "input_label": "ईमेल",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "ईमेल भेजें",
+      "loading": "ईमेल भेजा जा रहा है...",
+      "validation_error": "कृपया एक मान्य ईमेल एड्रेस दर्ज करें"
+    },
+    "otp_code": {
+      "title": "छह अंकों का कोड दर्ज करें",
+      "description": "हमारे द्वारा {{email}} पर भेजा गया 6-अंकीय कोड दर्ज करें। यदि आपको यह आपके इनबॉक्स में नहीं दिखता है, तो अपना स्पैम फ़ोल्डर देखें।",
+      "submit_button": "सबमिट करें",
+      "loading": "कोड वेरिफ़ाई किया जा रहा है...",
+      "invalid_code_error": "कोड ग़लत है",
+      "validation_error": "कृपया मान्य कोड दर्ज करें"
+    },
+    "verify_identity": {
+      "title": "अपनी पहचान वेरिफ़ाई करें",
+      "description": "कैश डिपॉज़िट करने के लिए, हमें आपकी पहचान वेरिफ़ाई करनी होगी। इससे आपका अकाउंट सुरक्षित रखने और आपकी जानकारी निजी रखने में मदद मिलती है।",
+      "privacy_policy_link": "हमारी गोपनीयता नीति में जानें कि हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं।",
+      "button": "शुरू करें"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
+    }
   },
   "receive": {
     "title": "प्राप्त करें"
@@ -446,6 +498,14 @@
     "multisrp": {
       "title": "कई सीक्रेट रिकवरी फ्रेज़ जोड़ें",
       "subtitle": "MetaMask में एकाधिक वॉलेट इंपोर्ट करें और उनका उपयोग करें"
+    },
+    "backupAndSync": {
+      "title": "बैकअप और सिंक का परिचय",
+      "subtitle": "अपने एकाउंट्स और सिंक सेटिंग्स का बैकअप लें।"
+    },
+    "solana": {
+      "title": "Solana अब सपोर्टेड है",
+      "subtitle": "शुरू करने के लिए एक Solana अकाउंट बनाएं"
     }
   },
   "wallet": {
@@ -453,6 +513,7 @@
     "tokens": "टोकन",
     "collectible": "संग्रहणीय",
     "collectibles": "NFTs",
+    "defi": "DeFi",
     "transactions": "लेनदेन",
     "no_collectibles": "अपना NFT नहीं देखा?",
     "no_available_tokens": "अपना टोकन नहीं देखें?",
@@ -483,6 +544,7 @@
     "sort_by": "इसके अनुसार क्रमबद्ध करें",
     "filter_by": "इसके द्वारा फिल्टर",
     "current_network": "वर्तमान नेटवर्क",
+    "popular_networks": "लोकप्रिय नेटवर्क",
     "all_networks": "सभी नेटवर्क",
     "declining_balance": "घटता हुआ बैलेंस ({{currency}} उच्च-निम्न)",
     "alphabetically": "वर्णानुक्रम में (A-Z)",
@@ -534,7 +596,7 @@
     "logout_to_import_seed": "सीक्रेट रिकवरी फ्रेज को इम्पोर्ट करने के लिए आपको पहले लॉगआउट होने की जरुरत है।",
     "ready_to_explore": "ब्लॉकचेन एप्लिकेशन को एक्सप्लोर करना शुरु करने के लिए तैयार हैं?",
     "unable_to_load": "बैलेंस लोड करने में असमर्थ है",
-    "unable_to_find_conversion_rate": "कन्वर्शन रेट नहीं मिल पाया",
+    "unable_to_find_conversion_rate": "कोई कन्वर्शन दर नहीं",
     "display_nft_media_desc": "किसी भी NFT को इम्पोर्ट करने के लिए, सेटिंग्स > सुरक्षा और गोपनीयता में 'NFT मीडिया दिखाएं' को चालू करें।",
     "display_nft_media_cta": "'NFT मीडिया दिखाएं' को चालू करें",
     "display_media_nft_warning": "NFT मीडिया और डेटा को दिखाने से आपका आईपी ​​एड्रेस सेंट्रलाइज़्ड सर्वरों के सामने आ सकता है। NFT को सिर्फ तभी इम्पोर्ट करें जब आप इससे जुड़े खतरों को समझते हों।",
@@ -616,6 +678,19 @@
       "custom_security_tips": "सुरक्षा युक्तियाँ"
     }
   },
+  "defi_positions": {
+    "loading_positions": "DeFi पोजीशंस लोड हो रही है...",
+    "no_positions": "अभी तक कोई पोजीशन नहीं",
+    "error_cannot_load_page": "हम यह पेज लोड नहीं कर सके।",
+    "error_visit_again": "बाद में फिर से आने का प्रयास करें।",
+    "single_token": "केवल {{symbol}}",
+    "two_tokens": "{{symbol}} +1 अन्य",
+    "multiple_tokens": "{{symbol}} +{{count}} अन्य",
+    "supply": "सप्लाई किया गया",
+    "stake": "स्टेक किया गया",
+    "borrow": "उधार लिया गया",
+    "reward": "पुरस्कार"
+  },
   "terms_and_conditions": {
     "title": "नियम और शर्त",
     "description": "आगे बढ़ने से, आप इनके लिए सहमत होते हैं",
@@ -696,7 +771,8 @@
     "circulating_supply": "सप्लाई सर्कुलेट किया जा रहा है",
     "all_time_high": "अब तक के सबसे ऊँचे स्तर पर",
     "all_time_low": "अब तक के सबसे निचले स्तर पर",
-    "fully_diluted": "पूरी तरह से डाइल्यूट किया हुआ"
+    "fully_diluted": "पूरी तरह से डाइल्यूट किया हुआ",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "पता",
@@ -730,6 +806,7 @@
     "receive": "प्राप्त करें"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (बीटा)",
     "create_new_account": "नया खाता बनाएं",
     "import_account": "एक खाता इम्पोर्ट करें",
@@ -860,8 +937,6 @@
     "reset_notifications_description": "नोटीफिकेशंस को रीसेट करने का मतलब है कि आप अपनी नोटीफिकेशंस स्टोरेज कीज़ डिलीट कर रहे हैं और अपने सभी नोटीफिकेशंस इतिहास को रीसेट कर रहे हैं। क्या आप वास्तव में इसे करना चाहते हैं?",
     "reset_notifications": "नोटीफिकेशंस रीसेट करें",
     "reset_notifications_success": "नोटीफिकेशंस स्टोरेज की डिलीट की गई/फिर से बनाई गई और नोटीफिकेशंस इतिहास रीसेट किया गया।",
-    "enabling_profile_sync": "प्रोफ़ाइल सिंक चालू किया जा रहा है...",
-    "disabling_profile_sync": "प्रोफ़ाइल सिंक बंद किया जा रहा है...",
     "notifications_dismiss_modal": "खारिज करें",
     "select_rpc_url": "RPC URL को चुनें",
     "title": "सेटिंग",
@@ -1194,7 +1269,13 @@
           "endowment:caveat:transaction-origin": "ट्रांसेक्शन का सुझाव देने वाली वेबसाइटों के सोर्स देखें",
           "endowment:extend-runtime": "रनटाइम बढ़ाएं",
           "snap_dialog": "कस्टम डायलॉग्स दिखाएं",
-          "snap_manageAccounts": "Ethereum अकाउंट जोड़ें और नियंत्रित करें"
+          "snap_manageAccounts": "Ethereum अकाउंट जोड़ें और नियंत्रित करें",
+          "endowment:signature-insight": "सिग्नेचर इंसाइट्स मोडल प्रदर्शित करें",
+          "endowment:protocol": "एक या अधिक चेंस के लिए प्रोटोकॉल डेटा प्रदान करें",
+          "snap_getPreferences": "अपनी पसंदीदा भाषा और फिएट करेंसी जैसी जानकारी देखें",
+          "endowment:lifecycle-hooks": "लाइफसाइकल हुक का उपयोग करें",
+          "endowment:name-lookup": "डोमेन और एड्रेस लुकअप प्रदान करें",
+          "endowment:page-home": "एक कस्टम स्क्रीन प्रदर्शित करें"
         }
       }
     },
@@ -1359,7 +1440,7 @@
     "token_marketplace": "टोकन मार्केटप्लेस",
     "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
-    "portfolio_button": "पोर्टफोलियो",
+    "portfolio_button": "Portfolio",
     "earn_button": "कमाएं",
     "add_collectible_button": "जोड़ें",
     "info": "जानकारी",
@@ -1729,7 +1810,13 @@
       "generic": "इस वेबसाइट को स्वचालित रूप से किसी बाहरी एप्लिकेशन को खोलने से ब्लॉक कर दिया गया है।"
     },
     "ipfs_gateway_off_title": "IPFS गेटवे बंद है",
-    "ipfs_gateway_off_content": "इस साइट को देखने के लिए, गोपनीयता और सुरक्षा सेटिंग्स में IPFS गेटवे को चालू करें।"
+    "ipfs_gateway_off_content": "इस साइट को देखने के लिए, गोपनीयता और सुरक्षा सेटिंग्स में IPFS गेटवे को चालू करें।",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Solana dapp कनेक्शन जल्द ही आ रहा है",
+        "message": "आप एक्सटेंशन में Solana dapp से कनेक्ट कर सकते हैं या इन-ऐप Solana टोकन ट्रेड कर सकते हैं।"
+      }
+    }
   },
   "backup_alert": {
     "title": "अपने वॉलेट की सुरक्षा करें",
@@ -1829,8 +1916,44 @@
     "sign_description_2": "गेट सिग्नेचर पर टैप करें",
     "sign_get_signature": "हस्ताक्षर प्राप्त करें",
     "transaction_id": "ट्रांसेक्शन आईडी",
+    "network": "नेटवर्क",
+    "request_from": "इनसे मिला अनुरोध",
     "network_fee": "नेटवर्क फीस",
-    "network_fee_tooltip": "नेटवर्क पर ट्रांसेक्शन को प्रोसेस करने के लिए भुगतान की गई राशि।"
+    "network_fee_tooltip": "नेटवर्क पर ट्रांसेक्शन को प्रोसेस करने के लिए भुगतान की गई राशि।",
+    "smart_account_upgrade": "स्मार्ट अकाउंट में अपग्रेड करें",
+    "smart_account_downgrade": "मानक अकाउंट पर स्विच करें",
+    "batched_transactions": "समूहित ट्रांसेक्शन",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "आपका ट्रांसेक्शन सबमिट कर रहे हैं",
@@ -1980,6 +2103,9 @@
     "edit_permissions": "अनुमतियाँ बदलें",
     "permitted_networks_info_sheet_description": "यह उन नेटवर्कों की सूची है जिन्हें आपने पहले इस साइट पर उपयोग करने की अनुमति दी है। सूची में से किसी एक का चयन करें या इस साइट के लिए नेटवर्क अनुमतियाँ बदलें।",
     "connect_an_account": "किसी अकाउंट को कनेक्ट करें"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "इस वेबसाइट को MetaMask से जोड़ें"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -3294,15 +3420,6 @@
     "enable_remember_me": "रिमेंबर मी चालू करें",
     "enable_remember_me_description": "जब रिमेंबर मी चालू रहेगा, आपका फोन एक्सेस करने वाला कोई भी व्यक्ति आपके MetaMask अकाउंट को एक्सेस कर सकता है।"
   },
-  "profile_sync": {
-    "title": "प्रोफ़ाइल सिंक",
-    "disable_warning": "यदि आप प्रोफ़ाइल सिंक बंद कर देते हैं, तो आप नोटिफिकेशंस प्राप्त नहीं कर पाएंगे।",
-    "enable_description": "एक प्रोफ़ाइल बनाता है जिसका उपयोग MetaMask आपके डिवाइसों के बीच कुछ सेटिंग्स को सिंक करने के लिए करता है। नोटिफिकेशंस प्राप्त करने के लिए यह आवश्यक है। ",
-    "enable_description2": " अधिक जानने के लिए।",
-    "enable_privacy_link": "जानें कि हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं",
-    "bottomSheetTurnOn": "प्रोफ़ाइल सिंक चालू किया जा रहा है",
-    "bottomSheetTurnOff": "प्रोफ़ाइल सिंक बंद किया जा रहा है"
-  },
   "turn_off_remember_me": {
     "title": "रिमेंबर मी को बंद करने के लिए अपना पासवर्ड दर्ज करें",
     "placeholder": "पासवर्ड",
@@ -3327,10 +3444,9 @@
     "accept_helper_description": "सभी अनुच्छेदों को पढ़ने के लिए कृपया स्क्रॉल करें"
   },
   "update_needed": {
-    "title": "अपडेट की जरूरत है",
-    "description": "हमने आपके वॉलेट की सिक्योरिटी बढ़ा दी है! कृपया अपनी सुरक्षा के लिए कुछ समय निकालें और नवीनतम संस्करण में अपडेट करें।",
-    "primary_action": "नवीनतम संस्करण में अपडेट करें",
-    "secondary_action": "मुझे बाद में याद दिलाएं"
+    "title": "नवीनतम फीचर्स प्राप्त करें",
+    "description": "हमने आपके वॉलेट को सुरक्षित और सहज बनाया है, और कुछ नए फीचर्स जोड़े हैं। सुरक्षित रहने और हमारे नवीनतम सुधारों का लाभ उठाने के लिए अभी अपडेट करें।",
+    "primary_action": "नवीनतम संस्करण में अपडेट करें"
   },
   "enable_automatic_security_check_modal": {
     "title": "सिक्योरिटी अपडेट के लिए स्वचालित रूप से जांच करें?",
@@ -3505,6 +3621,7 @@
     "connect_hardware_wallet": "किसी अकाउंट को कनेक्ट करें",
     "import_wallet_or_account": "किसी वॉलेट या अकाउंट को इंपोर्ट करें",
     "add_account": "एक नया अकाउंट बनाएं",
+    "add_multichain_account": "एक नया {{networkName}} अकाउंट बनाएं",
     "create_an_account": "एक नया अकाउंट बनाएं",
     "add_new_account": "Ethereum अकाउंट",
     "import_srp": "सीक्रेट रिकवरी फ्रेज़",
@@ -3512,7 +3629,12 @@
     "import_account": "प्राइवेट की (key)",
     "add_bitcoin_account_testnet": "Bitcoin टैस्टनेट (testnet) अकाउंट",
     "add_bitcoin_account_mainnet": "Bitcoin अकाउंट",
-    "add_solana_account": "Solana अकाउंट"
+    "add_solana_account": "Solana अकाउंट",
+    "switch_to_smart_account": "स्मार्ट अकाउंट पर स्विच करें",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "NFT दिखाएं",
@@ -3535,13 +3657,14 @@
     "title": "MetaMask पर Solana",
     "create_solana_account": "Solana अकाउंट बनाएं",
     "not_now": "अभी नहीं",
-    "got_it": "समझ गए",
+    "view_solana_account": "Solana अकाउंट देखें",
     "feature_1_title": "टोकन भेजें, प्राप्त करें और स्वैप करें",
     "feature_1_description": "SOL, USDC आदि जैसे टोकन के साथ ट्रांसफर और लेन-देन करें।",
     "feature_2_title": "Solana एकाउंट्स इम्पोर्ट करें",
     "feature_2_description": "अपने Solana अकाउंट को किसी अन्य वॉलेट से स्थानांतरित करने के लिए एक सीक्रेट रिकवरी फ्रेज़ इंपोर्ट करें।",
     "feature_3_title": "अधिक फीचर्स जल्द ही आ रहे हैं",
-    "feature_3_description": "Solana dapps, NFTs, हार्डवेयर वॉलेट सपोर्ट और बहुत कुछ जल्द ही आने वाला है।"
+    "feature_3_description": "Solana dapps, NFTs, हार्डवेयर वॉलेट सपोर्ट और बहुत कुछ जल्द ही आने वाला है।",
+    "learn_more": "Solana एकाउंट्स के बारे में अधिक जानें"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS गेटवे",
@@ -3575,7 +3698,35 @@
       "body_prefix": "आप  तक कमा सकते हैं",
       "body_suffix": "प्रति वर्ष अपना {{tokenSymbol}} उधार देकर।",
       "start_earning": "कमाना शुरु करें"
-    }
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "हम रखरखाव की वजह से उपलब्ध नहीं हैं। हम जल्द ही ऑनलाइन वापस आएँगे!"
+    },
+    "deposit": "डिपॉज़िट करें",
+    "approve": "एप्रूव करें",
+    "approval": "एप्रूवल",
+    "confirm": "कन्फर्म करें",
+    "cancel": "कैंसिल करें",
+    "transaction_submitted": "ट्रांसेक्शन सबमिट किया गया",
+    "every_minute": "हर मिनट",
+    "immediate": "तुरंत",
+    "apr": "APR",
+    "protocol": "प्रोटोकॉल",
+    "receive_tooltip": "टूलटिप प्राप्त करें",
+    "button": "बटन",
+    "receive": "प्राप्त करें",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "पिछले सप्ताह के पुरस्कार रेट के आधार पर, आपके डिपॉज़िट के मूल्य में अपेक्षित वार्षिक वृद्धि।",
+        "part_two": "ध्यान दें: APR समय के साथ बदलता रहता है।"
+      },
+      "protocol": "उधार देने का प्रोटोकॉल एक स्मार्ट कॉन्ट्रैक्ट है जो आपको पुरस्कार अर्जित करने के लिए टोकन उधार देने की सुविधा देता है। यह उपयोगकर्ताओं को अन्य टोकन को समपार्श्व के रूप में रखकर टोकन उधार लेने की सुविधा भी देता है, जिसके बदले में उधारदाताओं को एक शुल्क का भुगतान किया जाता है।",
+      "reward_frequency": "वह आवृत्ति जिस पर आपके पुरस्कारों का हिसाब लगाया जाता है।",
+      "withdrawal_time": "प्रोटोकॉल से अपना टोकन निकालने और उसे अपने वॉलेट में वापस लाने में लगने वाला समय",
+      "receive": "इस टोकन का उपयोग आपकी एसेट्स और पुरस्कारों को ट्रैक करने के लिए किया जाता है। उन्हें ट्रांसफर या ट्रेड न करें, अन्यथा आप अपनी एसेट्स नहीं निकाल पाएंगे।"
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "हिस्सेदारी",
@@ -3709,12 +3860,17 @@
     "basic_functionality": "बेसिक फंक्शनलिटी",
     "manage_networks": "अपना नेटवर्क चुनें",
     "manage_networks_body": "हम अपने रिमोट प्रोसीजर कॉल (RPC) प्रोवाइडर के रूप में Infura का इस्तेमाल करते हैं ताकि हम Ethereum डेटा तक सबसे विश्वसनीय और निजी ऐक्सेस प्रदान कर सकें। आप अपना स्वयं का RPC चुन सकते हैं, लेकिन याद रखें कि ट्रांसेक्शन करने के लिए कोई भी RPC आपका IP एड्रेस और Ethereum वॉलेट प्राप्त करेगा। ",
-    "manage_networks_body2": " Infura डेटा को कैसे मैनेज करता है, इस बारे में अधिक जानने के लिए हमारी पढ़ें।",
+    "manage_networks_body2": " इस बारे में अधिक जानने के लिए कि Infura EVM एकाउंट्स, Solana अकाउंट्स के लिए डेटा कैसे संभालता है ",
+    "manage_networks_body3": "यहाँ क्लिक करें।",
     "functionality_body": "MetaMask इंटरनेट सेवाओं के माध्यम से टोकन विवरण और गैस सेटिंग्स जैसी बुनियादी सुविधाएं प्रदान करता है। जब आप इंटरनेट सेवाओं का उपयोग करते हैं, तो आपका आईपी ​​एड्रेस साझा किया जाता है, इस मामले में MetaMask के साथ। यह बिल्कुल वैसा ही है जैसे आप किसी वेबसाइट पर जाते हैं। MetaMask इस डेटा का अस्थायी रूप से उपयोग करता है और कभी भी आपका डेटा नहीं बेचता है। आप वीपीएन का उपयोग कर सकते हैं या इन सेवाओं को बंद कर सकते हैं, लेकिन यह आपके MetaMask अनुभव को प्रभावित कर सकता है। हमारी  पढ़ें।",
     "functionality_body2": " अधिक जानने के लिए।",
     "sheet": {
       "title_off": "बेसिक फंक्शनलिटी को बंद करें",
       "description_off": "इसका मतलब यह है कि आप MetaMask पर अपना समय सबसे अच्छे तरीके से इस्तेमाल नहीं कर पाएंगे। बेसिक फीचर्स (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स और अन्य) आपके लिए उपलब्ध नहीं होंगे।",
+      "description_off2": "इसे बंद करने से",
+      "description_off2_related_features1": "सुरक्षा और गोपनीयता, बैकअप और सिंक",
+      "description_off2_related_features1_and": "और",
+      "description_off2_related_features2": "नोटिफिकेशंस के अंदर सभी फीचर्स भी बंद हो जाते हैं।",
       "title_on": "बेसिक फंक्शनलिटी को चालू करें",
       "description_on": "MetaMask पर अपना समय अच्छे तरीके से इस्तेमाल करने के लिए, आपको इस फीचर को चालू करना होगा। बुनियादी कार्य (जैसे, टोकन विवरण, ऑप्टीमल गैस सेटिंग्स, नोटिफिकेशंस और अन्य) Web3 अनुभव के लिए महत्वपूर्ण हैं।",
       "checkbox_label": "मैं समझता/समझती हूं और जारी रखना चाहता/चाहती हूं",
@@ -3796,7 +3952,9 @@
       "primary_type": "प्राइमरी प्रकार",
       "request_from": "इनसे मिला अनुरोध",
       "signing_in_with": "के साथ साइन इन किया जा रहा है",
-      "spender": "खर्च करने वाला"
+      "spender": "खर्च करने वाला",
+      "now": "अब",
+      "switching_to": "यहां स्विच किया जा रहा है"
     },
     "title": {
       "signature": "हस्ताक्षर का अनुरोध",
@@ -3804,14 +3962,18 @@
       "permit_revoke": "अनुमति हटाएं",
       "permit_NFTs": "विदड्रॉवल का अनुरोध",
       "signature_siwe": "साइन-इन का अनुरोध",
-      "contract_interaction": "ट्रांसेक्शन का अनुरोध"
+      "contract_interaction": "ट्रांसेक्शन का अनुरोध",
+      "transfer": "ट्रांसफर अनुरोध",
+      "switch_account_type": "अकाउंट अपडेट"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
       "permit_NFTs": "यह साइट आपके NFTs को निकालने की अनुमति चाहती है।",
       "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
       "signature_siwe": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।",
-      "contract_interaction": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
+      "contract_interaction": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
+      "switch_to_smart_account": "आप स्मार्ट अकाउंट पर स्विच कर रहे हैं।",
+      "switch_to_standard_account": "आप वापस मानक अकाउंट (EOA) पर स्विच कर रहे हैं।"
     },
     "request_from": "इनसे मिला अनुरोध",
     "staking_from": "से स्टेक किया जा रहा है",
@@ -3823,6 +3985,9 @@
     "qr_get_sign": "सिग्नेचर प्राप्त करें",
     "qr_scan_text": "अपने हार्डवेयर वॉलेट के साथ स्कैन करें",
     "sign_with_ledger": "Ledger के साथ साइन करें",
+    "smart_account": "स्मार्ट अकाउंट",
+    "smart_contract": "स्मार्ट कॉन्ट्रैक्ट",
+    "standard_account": "मानक अकाउंट",
     "siwe_message": {
       "url": "URL",
       "network": "नेटवर्क",
@@ -3835,8 +4000,12 @@
       "resources": "संसाधन"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "बिड स्वीकार होने पर NFT आपके वॉलेट में दिखाई देगा।",
       "decoded_tooltip_list_nft": "बदलाव की उम्मीद तभी करें जब कोई आपके NFTs खरीद ले।",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "आप खर्च करने वाले को अपने अकाउंट से इतने सारे टोकन खर्च करने की अनुमति दे रहे हैं।",
       "info_revoke": "आप अपने अकाउंट से किसी की टोकन खर्च करने की अनुमति हटा रहे हैं।",
       "label_change_type_bidding": "आप बिड करते हैं",
@@ -3847,16 +4016,40 @@
       "label_change_type_receive": "आप प्राप्त करते हैं",
       "label_change_type_revoke": "निरस्त करें",
       "label_change_type_transfer": "आप भेजते हैं",
+      "label_change_type_approve": "आप एप्रूव करते हैं",
       "personal_sign_info": "आप किसी साइट पर साइन इन कर रहे हैं और आपके अकाउंट में कोई अनुमानित परिवर्तन नहीं हैं।",
+      "save": "Save",
       "title": "अनुमानित बदलाव",
       "tooltip": "अगर आप यह ट्रांसेक्शन करते हैं तो अनुमानित परिवर्तन हो सकते हैं। यह सिर्फ एक अनुमान है, कोई गारंटी नहीं।",
       "unavailable": "अनुपलब्ध"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "स्मार्ट अकाउंट",
+      "standardAccountLabel": "मानक अकाउंट",
+      "switch": "बदलें",
+      "splashpage": {
+        "accept": "हां",
+        "betterTransaction": "तेज़ ट्रांसेक्शन, कम शुल्क",
+        "betterTransactionDescription": "एक साथ ट्रांसेक्शन प्रोसेस करके समय और धन की बचत करें।",
+        "featuresDescription": "अपना अकाउंट एड्रेस वही रखें और आप किसी भी समय वापस स्विच कर सकते हैं।",
+        "payToken": "किसी भी टोकन से, किसी भी समय भुगतान करें",
+        "payTokenDescription": "नेटवर्क शुल्क को कवर करने के लिए आपके पास पहले से मौजूद टोकन का उपयोग करें।",
+        "reject": "नहीं",
+        "requestFor": "के लिए अनुरोध",
+        "sameAccount": "वही अकाउंट, अधिक स्मार्ट फीचर्स।",
+        "splashTitle": "स्मार्ट अकाउंट का उपयोग करें?",
+        "upgradeBannerDescription": "वही एड्रेस, अधिक स्मार्ट फीचर्स।",
+        "upgradeBannerTitle": "स्मार्ट अकाउंट पर स्विच करें"
+      },
+      "includes_transaction": "{{transactionCount}} ट्रांसेक्शन शामिल हैं"
+    },
     "unlimited": "असीमित",
+    "all": "सभी",
     "none": "कोई नहीं",
     "advanced_details": "एडवांस्ड विवरण",
     "interacting_with": "के साथ इंटरैक्ट कर रहा है",
-    "review": "Review"
+    "review": "समीक्षा करें",
+    "transferRequest": "ट्रांसफर अनुरोध"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
@@ -3877,6 +4070,8 @@
   },
   "bridge": {
     "continue": "जारी रखें",
+    "confirm_bridge": "ब्रिज कन्फर्म करें",
+    "confirm_swap": "स्वैप कन्फर्म करें",
     "terms_and_conditions": "नियम और शर्त",
     "select_token": "टोकन चुनें",
     "select_network": "नेटवर्क चुनें",
@@ -3905,12 +4100,14 @@
     "bridge_to": "इसपर ब्रिज करें",
     "title": "ब्रिज",
     "submitting_transaction": "सबमिट किया जा रहा है",
-    "fetching_quote": "कोटेशन लाया जा रहा है"
+    "fetching_quote": "कोटेशन लाया जा रहा है",
+    "fee_disclaimer": "0.875% MM शुल्क शामिल है",
+    "hardware_wallet_not_supported": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।"
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "नये कोटेशन उपलब्ध हैं",
+    "description": "दरें हर {{refreshRate}} सेकंड में अपडेट होती हैं, इसलिए जब आप तैयार हों तो नया कोटेशन प्राप्त करें पर टैप करें।",
+    "get_new_quote": "नया कोटेशन प्राप्त करें"
   },
   "bridge_transaction_details": {
     "status": "स्टेटस",
@@ -3926,5 +4123,100 @@
     "transaction_details": "ट्रांसेक्शन संबंधी विवरण",
     "bridge_to_chain": "{{chainName}} पर ब्रिज करें",
     "recipient": "प्राप्तकर्ता"
+  },
+  "backupAndSync": {
+    "title": "बैकअप और सिंक",
+    "description": "अपने एकाउंट्स और सिंक सेटिंग्स का बैकअप लें।",
+    "enabling": "बैकअप और सिंक चालू किया जा रहा है",
+    "disabling": "बैकअप और सिंक बंद किया जा रहा है",
+    "enable": {
+      "title": "बैकअप और सिंक चालू करें",
+      "confirmation": "जब आप बैकअप और सिंक चालू करते हैं, तो आप बुनियादी फंक्शनलिटी भी चालू कर रहे होते हैं। क्या आप जारी रखना चाहते हैं?",
+      "description": "बैकअप और सिंक हमें आपकी कस्टम सेटिंग्स और फीचर्स के लिए एन्क्रिप्टेड डेटा स्टोर करने देता है। यह आपके MetaMask अनुभव को सभी डिवाइस पर एक जैसा रखता है और यदि आपको कभी MetaMask को फिर से इंस्टॉल करने की आवश्यकता होती है तो सेटिंग्स और फीचर्स को रिस्टोर करता है। यह आपके सीक्रेट रिकवरी फ्रेज़ का बैकअप नहीं करता है।",
+      "updatePreferences": "आप किसी भी समय",
+      "settingsPath": "सेटिंग्स > बैकअप में अपनी प्राथमिकताएं अपडेट करके सिंक सकते हैं।"
+    },
+    "privacyLink": "जानें कि हम आपकी गोपनीयता की सुरक्षा कैसे करते हैं",
+    "features": {
+      "accounts": "एकाउंट्स"
+    },
+    "manageWhatYouSync": {
+      "title": "आप जो सिंक करते हैं उसे प्रबंधित करें",
+      "description": "अपने डिवाइस के बीच सिंक की गई चीज़ों को चालू करें।"
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "किसी एसेट को चुनें"
+    },
+    "hideSentitiveInfo": {
+      "message": "संवेदनशील जानकारी छिपाएं"
+    },
+    "doNotShare": {
+      "message": "इसे किसी के साथ साझा न करें"
+    },
+    "revealSensitiveContent": {
+      "message": "संवेदनशील सामग्री दिखाएं"
+    },
+    "show_more": "अधिक",
+    "show_less": "कम"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

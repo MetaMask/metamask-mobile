@@ -23,6 +23,7 @@ import {
   getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
   getPermittedCaipChainIdsByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -87,7 +88,6 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../selectors/multichainNetworkController';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -109,12 +109,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
-  const evmNetworkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const nonEvmNetworkConfigurationsByChainId = useSelector(
-    selectNonEvmNetworkConfigurationsByChainId,
-  );
   const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -142,19 +136,23 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccountsList,
     hostname,
   );
-  const permittedCaipAccountIds = uniq(
-    nonRemappedPermittedAccounts.map((caipAccountId) => {
-      const {
-        address,
-        chain: { namespace },
-      } = parseCaipAccountId(caipAccountId);
-      if (namespace === KnownCaipNamespace.Eip155) {
-        // this is very hacky, but it works for now
-        return `eip155:0:${address}` as CaipAccountId;
-      }
-      return caipAccountId;
-    }),
-  );
+  const permittedCaipAccountIds = useMemo(() => {
+    const unsortedPermittedAccounts = uniq(
+      nonRemappedPermittedAccounts.map((caipAccountId) => {
+        const {
+          address,
+          chain: { namespace },
+        } = parseCaipAccountId(caipAccountId);
+        if (namespace === KnownCaipNamespace.Eip155) {
+          // this is very hacky, but it works for now
+          return `eip155:0:${address}` as CaipAccountId;
+        }
+        return caipAccountId;
+      }),
+    );
+
+    return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
+  }, [nonRemappedPermittedAccounts]);
 
   const permittedCaipChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
@@ -428,12 +426,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         );
 
         if (accountsToAdd.length > 0) {
-          addPermittedAccounts(
-            hostname,
-            accountsToAdd,
-            evmNetworkConfigurationsByChainId,
-            nonEvmNetworkConfigurationsByChainId,
-          );
+          addPermittedAccounts(hostname, accountsToAdd);
           newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
         }
 
@@ -493,8 +486,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
     },
     [
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
       permittedCaipAccountIds,
       setIsLoading,
       hostname,
@@ -632,7 +623,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={permittedCaipAccountIds}
+        // This is only okay because permittedCaipAccountIds is sorted by lastSelected already
+        selectedAddresses={
+          permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []
+        }
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
