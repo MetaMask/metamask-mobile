@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -30,7 +30,6 @@ export interface InputDisplayProps {
   };
   balanceText: string;
   balanceValue: string;
-  isNonZeroAmount: boolean;
   asset: TokenI;
   isFiat: boolean;
   amountToken: string;
@@ -172,7 +171,7 @@ const InputDisplay = ({
     blinkAnimation.start();
   }, [cursorOpacity]);
 
-  const getBalanceText = useCallback(() => {
+  const balanceInfo = useMemo(() => {
     if (error) return error;
 
     if (isOverMaximum.isOverMaximumToken) {
@@ -181,6 +180,7 @@ const InputDisplay = ({
     if (isOverMaximum.isOverMaximumEth) {
       return strings('stake.not_enough_eth');
     }
+
     if (isStablecoinLendingEnabled) return '\u00A0';
     return `${balanceText}: ${balanceValue}`;
   }, [
@@ -192,8 +192,6 @@ const InputDisplay = ({
     isStablecoinLendingEnabled,
     ticker,
   ]);
-
-  const balanceInfo = getBalanceText();
 
   const onNavigateToLendingMaxWithdrawModal = () => {
     navigation.navigate(Routes.EARN.MODALS.ROOT, {

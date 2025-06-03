@@ -57,6 +57,7 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import Engine from '../../../../../core/Engine';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { debounce } from 'lodash';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -516,7 +517,8 @@ const EarnInputView = () => {
       />
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
-        onChange={handleKeypadChange}
+        // Debounce used to avoid error message flicker from recalculating gas fee estimate
+        onChange={debounce(handleKeypadChange, 1)}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
