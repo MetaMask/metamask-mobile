@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
-import { TooltipModal } from '../../../UI/Tooltip/Tooltip';
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
+import { useFlatConfirmation } from '../../../hooks/ui/useFlatConfirmation';
+import { TooltipModal } from '../../UI/Tooltip/Tooltip';
 import styleSheet from './hero.styles';
 
 interface TitleProps {

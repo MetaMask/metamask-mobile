@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useIsNft } from '../../../../hooks/nft/useIsNft';
-import TokenHero from '../../../rows/transactions/token-hero';
+import { useIsNft } from '../../../hooks/nft/useIsNft';
+import TokenHero from '../../rows/transactions/token-hero';
 import { HeroNft } from '../nft/nft';
 import { HeroTransfer } from './transfer';
 

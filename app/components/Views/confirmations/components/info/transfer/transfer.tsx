@@ -9,7 +9,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
-import { HeroTransfer } from '../../header/hero/transfer';
+import { HeroTransfer } from '../../hero/transfer';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';

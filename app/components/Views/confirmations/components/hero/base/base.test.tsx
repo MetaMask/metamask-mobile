@@ -1,13 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_STATE_NFT } from '../../../../../../../util/test/mock-data/root-state/nft';
-import { Hero } from './hero';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { MOCK_STATE_NFT } from '../../../../../../util/test/mock-data/root-state/nft';
+import { HeroBase } from './base';
 
-describe('Hero', () => {
+describe('HeroBase', () => {
   it('renders correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <Hero
+      <HeroBase
         componentAsset={<View testID="component-asset"></View>}
         title="Test Title"
         subtitle="Test Subtitle"

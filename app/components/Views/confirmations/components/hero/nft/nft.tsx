@@ -4,18 +4,18 @@ import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import Badge, {
   BadgeVariant,
-} from '../../../../../../../component-library/components/Badges/Badge';
+} from '../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
-import CollectibleMedia from '../../../../../../UI/CollectibleMedia';
-import { useNft } from '../../../../hooks/nft/useNft';
-import useNetworkInfo from '../../../../hooks/useNetworkInfo';
-import { HeroBase } from '../base/hero';
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks/useStyles';
+import CollectibleMedia from '../../../../../UI/CollectibleMedia';
+import { useNft } from '../../../hooks/nft/useNft';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { HeroBase } from '../base/base';
 import styleSheet from './nft.styles';
 
 const NftImageAndNetworkBadge = ({

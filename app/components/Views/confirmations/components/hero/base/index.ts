@@ -1,0 +1,1 @@
+export { HeroBase } from './base';
