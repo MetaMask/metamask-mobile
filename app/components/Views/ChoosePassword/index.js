@@ -241,24 +241,30 @@ class ChoosePassword extends PureComponent {
     );
   };
 
+  headerLeft = () => {
+    const { navigation } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
+    const marginLeft = 16;
+    return (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={{ marginLeft }}
+        />
+      </TouchableOpacity>
+    );
+  };
+
   updateNavBar = () => {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    const marginLeft = 16;
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={{ marginLeft }}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft: this.headerLeft,
         },
         colors,
         false,

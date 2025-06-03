@@ -268,4 +268,39 @@ describe('ChoosePassword', () => {
     );
     expect(errorMessage).toBeTruthy();
   });
+
+  it('should handle header left button press and update navbar', async () => {
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+    };
+
+    renderWithProviders(<ChoosePassword {...props} />);
+
+    // Wait for initial render
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Verify that setOptions was called with correct parameters
+    expect(mockNavigation.setOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerLeft: expect.any(Function),
+      }),
+    );
+
+    // Get the headerLeft function that was passed to setOptions
+    const headerLeftFn = mockNavigation.setOptions.mock.calls[0][0].headerLeft;
+
+    // Get the TouchableOpacity component from headerLeft
+    const headerLeftComponent = headerLeftFn();
+
+    // Simulate pressing the back button by calling the onPress handler directly
+    await act(async () => {
+      headerLeftComponent.props.onPress();
+    });
+
+    // Verify that goBack was called
+    expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
 });
