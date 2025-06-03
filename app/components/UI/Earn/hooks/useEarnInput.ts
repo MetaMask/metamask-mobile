@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fromTokenMinimalUnit,
   limitToMaximumDecimalPlaces,
@@ -29,7 +29,7 @@ const useEarnInputHandlers = ({
 
   const balanceMinimalUnit: BN4 = useMemo(
     () => new BN4(earnToken?.balanceMinimalUnit ?? '0'),
-    [earnToken],
+    [earnToken.balanceMinimalUnit],
   );
 
   const {
@@ -75,17 +75,19 @@ const useEarnInputHandlers = ({
   );
 
   const isOverMaximum = useMemo(() => {
-    const isOverMaximumEth =
-      !!earnToken.isETH &&
-      isNonZeroAmount &&
-      !isLoadingEarnGasFee &&
-      amountTokenMinimalUnit.sub(maxStakeableAmountWei).gt(new BN4(0));
-    const isOverMaximumToken =
-      !earnToken.isETH &&
-      isNonZeroAmount &&
-      !isLoadingEarnGasFee &&
-      amountTokenMinimalUnit.sub(balanceMinimalUnit).gt(new BN4(0)) &&
-      balanceWei.sub(estimatedGasFeeWei).gte(new BN4(0));
+    let isOverMaximumEth = false;
+    if (earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
+      isOverMaximumEth = amountTokenMinimalUnit
+        .sub(maxStakeableAmountWei)
+        .gt(new BN4(0));
+    }
+    let isOverMaximumToken = false;
+    if (!earnToken.isETH && isNonZeroAmount && !isLoadingEarnGasFee) {
+      isOverMaximumToken = amountTokenMinimalUnit
+        .sub(balanceMinimalUnit)
+        .gt(new BN4(0));
+    }
+
     return {
       isOverMaximumEth,
       isOverMaximumToken,
@@ -96,8 +98,6 @@ const useEarnInputHandlers = ({
     maxStakeableAmountWei,
     earnToken.isETH,
     balanceMinimalUnit,
-    balanceWei,
-    estimatedGasFeeWei,
     isLoadingEarnGasFee,
   ]);
 
@@ -106,11 +106,18 @@ const useEarnInputHandlers = ({
   const handleMax = useCallback(async () => {
     if (!balanceMinimalUnit) return;
 
-    const preEstimatedGasFee = await getEstimatedEarnGasFee(
-      earnToken.isETH ? maxStakeableAmountWei : balanceMinimalUnit,
-    );
-    const maxDepositAmountMinimalUnit = balanceWei.sub(preEstimatedGasFee);
-    handleMaxInput(maxDepositAmountMinimalUnit);
+    let maxMinimalUnit;
+
+    if (earnToken.isETH) {
+      const preEstimatedGasFee = await getEstimatedEarnGasFee(
+        maxStakeableAmountWei,
+      );
+      maxMinimalUnit = balanceWei.sub(preEstimatedGasFee);
+    } else {
+      maxMinimalUnit = balanceMinimalUnit;
+    }
+
+    handleMaxInput(maxMinimalUnit);
   }, [
     balanceMinimalUnit,
     handleMaxInput,

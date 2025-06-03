@@ -15,7 +15,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
   isSupportedPooledStakingChain,
-} from '@metamask-previews/earn-controller';
+} from '@metamask/earn-controller';
 import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
 import { TokenI } from '../../../components/UI/Tokens/types';
 import {
@@ -36,6 +36,11 @@ import {
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 import { createDeepEqualSelector } from '../../util';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  isNonEvmAddress,
+  isNonEvmChainId,
+} from '../../../core/Multichain/utils';
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -157,6 +162,7 @@ const selectEarnTokens = createDeepEqualSelector(
       selectLendingMarketsByChainIdAndTokenAddress(earnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
       selectLendingMarketsByChainIdAndOutputTokenAddress(earnState);
+    const isEvmAddress = !isNonEvmAddress(selectedAddress || '');
 
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
@@ -194,12 +200,12 @@ const selectEarnTokens = createDeepEqualSelector(
       // TODO: balance logic, extract to utils then use when we are clear to add token
       const rawAccountBalance = selectedAddress
         ? accountsByChainId[token?.chainId as Hex]?.[
-            toChecksumAddress(selectedAddress)
+            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
           ]?.balance
         : '0';
       const rawStakedAccountBalance = selectedAddress
         ? accountsByChainId[token?.chainId as Hex]?.[
-            toChecksumAddress(selectedAddress)
+            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
           ]?.stakedBalance
         : '0';
       const balanceWei = hexToBN(rawAccountBalance);

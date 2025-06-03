@@ -1,4 +1,4 @@
-import { LendingMarketWithPosition } from '@metamask-previews/earn-controller';
+import { LendingMarketWithPosition } from '@metamask/earn-controller';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { VaultData } from '@metamask/stake-sdk';
 import { TokenI } from '../../Tokens/types';

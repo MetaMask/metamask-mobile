@@ -32,6 +32,7 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
       imageSource={{ uri: token.image }}
       size={AvatarSize.Md}
       style={styles.networkAvatar}
+      testID={`earn-token-avatar-${token.symbol}`}
     />
   );
 };

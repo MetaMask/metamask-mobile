@@ -4645,18 +4645,6 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/earn-controller@0.14.0-preview-e9f8bc88":
-  version "0.14.0-preview-e9f8bc88"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/earn-controller/-/earn-controller-0.14.0-preview-e9f8bc88.tgz#049758e8c5ad753c4671731b6d93fe03790b567a"
-  integrity sha512-eib3Ph/od08wMNYOHUA53MWsYhHV6zcwg+xUNNmvPI0ByEwMtmTORqvP44Sq0bnruCch+V0DLAD47ILkuga71w==
-  dependencies:
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
-    "@metamask/stake-sdk" "3.2.0"
-    reselect "^5.1.1"
-
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
@@ -4912,6 +4900,18 @@
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
+
+"@metamask/earn-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/earn-controller/-/earn-controller-1.0.0.tgz#6f97ea74a6ef936b4fd3a8de66b0ffb27cb6f7ef"
+  integrity sha512-SLBigYA4Yd9r8H3lLvJM80S2e6KxLVBtHULocVNbApiD+jDL/ZAROHKtGksxVSuoKFQ5ZST16Jrar0t96c4BNg==
+  dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/stake-sdk" "^3.2.0"
+    reselect "^5.1.1"
 
 "@metamask/eip1193-permission-middleware@^0.1.0":
   version "0.1.0"
@@ -5865,7 +5865,7 @@
   resolved "https://registry.npmjs.org/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.30.4.tgz#d29b185836a5371280fb8621e8fa970e163459f0"
   integrity sha512-Ym1N+CwAkUL/bt3rd+HOg3V5YliDzjn6QCXSz7IS4pWCt8licBQbz/AG2HIaXqG7EtIocuo3ESAzxQdbw7PMnQ==
 
-"@metamask/stake-sdk@3.2.0", "@metamask/stake-sdk@^3.2.0":
+"@metamask/stake-sdk@^3.2.0":
   version "3.2.0"
   resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/stake-sdk/-/stake-sdk-3.2.0.tgz#30b52ad6c190f4473d44ae2106b7346aaaa2e28f"
   integrity sha512-llrtdY7k+P93Tu67N8bJxiQ4tXqZPPXOL+8ltZ854wf2P7vZOsdBXMO9dZOeLEjf3lCebNaIgZMddDbXP39tmQ==

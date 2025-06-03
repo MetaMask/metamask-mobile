@@ -30,7 +30,11 @@ const EarnDepositTokenListItem = ({
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress(token)}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onPress(token)}
+      testID="earn-token-list-item"
+    >
       <View style={styles.left}>
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}

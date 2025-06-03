@@ -138,7 +138,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     }
   };
 
-  if (areEarnExperiencesDisabled) return <></>;
+  if (areEarnExperiencesDisabled || earnToken?.balanceMinimalUnit === '0')
+    return <></>;
 
   return (
     <Pressable

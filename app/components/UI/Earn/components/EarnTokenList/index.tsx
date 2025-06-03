@@ -41,25 +41,27 @@ const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
 
 const EarnTokenListSkeletonPlaceholder = () => (
-  <SkeletonPlaceholder>
-    <SkeletonPlaceholder.Item
-      width={'auto'}
-      height={150}
-      borderRadius={8}
-      marginBottom={12}
-    />
-    <>
-      {[1, 2, 3, 4, 5].map((value) => (
-        <SkeletonPlaceholder.Item
-          key={value}
-          width={'auto'}
-          height={42}
-          borderRadius={8}
-          margin={16}
-        />
-      ))}
-    </>
-  </SkeletonPlaceholder>
+  <View testID="earn-token-list-skeleton">
+    <SkeletonPlaceholder>
+      <SkeletonPlaceholder.Item
+        width={'auto'}
+        height={150}
+        borderRadius={8}
+        marginBottom={12}
+      />
+      <>
+        {[1, 2, 3, 4, 5].map((value) => (
+          <SkeletonPlaceholder.Item
+            key={value}
+            width={'auto'}
+            height={42}
+            borderRadius={8}
+            margin={16}
+          />
+        ))}
+      </>
+    </SkeletonPlaceholder>
+  </View>
 );
 
 interface EarnTokenListViewRouteParams {
@@ -172,7 +174,6 @@ const EarnTokenList = () => {
         />
       );
     }
-
     return (
       <EarnDepositTokenListItem
         token={token}

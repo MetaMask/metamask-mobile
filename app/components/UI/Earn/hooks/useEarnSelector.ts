@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import type { Selector } from 'reselect';
-import type { EarnControllerState } from '@metamask-previews/earn-controller';
+import type { EarnControllerState } from '@metamask/earn-controller';
 import { RootState } from '../../../../reducers';
 
 /**

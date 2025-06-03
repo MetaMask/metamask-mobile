@@ -15,7 +15,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         "paddingVertical": 14,
       }
     }
-    testID="asset-AUSDC"
+    testID="asset-ADAI"
   >
     <View
       onLayout={[Function]}
@@ -162,14 +162,14 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         }
         testID="receipt-token-label"
       >
-        Aave v3 USDC
+        ADAI
       </Text>
       <View>
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#ca3542",
+              "color": "#1c7e33",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -178,7 +178,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
             }
           }
         >
-          +0.00%
+          +5.20%
         </Text>
       </View>
     </View>
@@ -205,7 +205,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         }
         testID="balance-test-id"
       >
-        $10.34
+        $76.00
       </Text>
       <Text
         accessibilityRole="text"
@@ -222,7 +222,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         }
         testID="secondary-balance-test-id"
       >
-        10.35193 AUSDC
+        32.05 ADAI
       </Text>
     </View>
   </TouchableOpacity>

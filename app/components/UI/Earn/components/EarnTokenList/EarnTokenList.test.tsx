@@ -13,7 +13,6 @@ import {
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import Engine from '../../../../../core/Engine';
-import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -23,10 +22,16 @@ import {
 } from '../../selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import * as ReactNative from 'react-native';
+import * as useEarnTokensHook from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
+import {
+  getMockEarnControllerState,
+  getMockUseEarnTokens,
+} from '../../__mocks__/earnMockData';
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -60,6 +65,14 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: jest.fn(),
     }),
+    useRoute: () => ({
+      params: {
+        tokenFilter: {
+          includeReceiptTokens: false,
+        },
+        onItemPressScreen: 'DEPOSIT',
+      },
+    }),
   };
 });
 
@@ -85,8 +98,17 @@ const initialMetrics: Metrics = {
 };
 
 let useStakingEligibilitySpy: jest.SpyInstance;
-let getSupportedEarnTokensSpy: jest.SpyInstance;
-let filterEligibleTokensSpy: jest.SpyInstance;
+let useEarnTokensSpy: jest.SpyInstance;
+
+const mockEarnTokens: EarnTokenDetails[] = [
+  Object.values(getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING))[0],
+  Object.values(getMockUseEarnTokens(EARN_EXPERIENCES.STABLECOIN_LENDING))[0],
+];
+
+const mockEarnOutputTokens: EarnTokenDetails[] = [
+  Object.values(getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING))[1],
+  Object.values(getMockUseEarnTokens(EARN_EXPERIENCES.STABLECOIN_LENDING))[1],
+];
 
 describe('EarnTokenList', () => {
   beforeEach(() => {
@@ -103,22 +125,30 @@ describe('EarnTokenList', () => {
         error: '',
       });
 
-    getSupportedEarnTokensSpy = jest
-      .spyOn(tokenUtils, 'getSupportedEarnTokens')
-      .mockReturnValue(MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE);
-
-    filterEligibleTokensSpy = jest.spyOn(tokenUtils, 'filterEligibleTokens');
+    useEarnTokensSpy = jest
+      .spyOn(useEarnTokensHook, 'default')
+      .mockReturnValue({
+        earnTokens: mockEarnTokens,
+        earnOutputTokens: mockEarnOutputTokens,
+        earnableTotalFiatFormatted: '$100.00',
+        earnableTotalFiatNumber: 100,
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        getEarnToken: jest.fn(),
+        getOutputToken: jest.fn(),
+        getPairedEarnTokens: jest.fn(),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+      });
 
     (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
+      selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(true);
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(true);
+    (selectPooledStakingEnabledFlag as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
 
     jest
       .spyOn(ReactNative.Image, 'getSize')
@@ -151,27 +181,16 @@ describe('EarnTokenList', () => {
     expect(getAllByText('Ethereum').length).toBe(1);
     expect(getAllByText('2.3% APR').length).toBe(1);
 
-    // DAI
-    expect(getByText('Dai Stablecoin')).toBeDefined();
-    expect(getByText('5.0% APR')).toBeDefined();
-
-    // USDT
-    expect(getByText('Tether USD')).toBeDefined();
-    expect(getByText('4.1% APR')).toBeDefined();
-
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getAllByText('4.5% APR').length).toBe(1);
+    expect(getByText('4.0% APR')).toBeDefined();
 
-    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
-    expect(filterEligibleTokensSpy).toHaveBeenCalled();
+    expect(useEarnTokensSpy).toHaveBeenCalled();
   });
 
   it('does not render the EarnTokenList when required feature flags are disabled', () => {
     (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
+      selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(false);
 
     jest
@@ -185,54 +204,48 @@ describe('EarnTokenList', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('filters out pooled-staking assets when pooled staking is disabled', () => {
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(false);
-
-    const { queryAllByText, getByText, getAllByText } = renderWithProvider(
-      <SafeAreaProvider initialMetrics={initialMetrics}>
-        <EarnTokenList />
-      </SafeAreaProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    // Bottom Sheet Title
-    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
-
-    // Upsell Banner
-    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
-    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
-
-    // Token List
-    // Ethereum should be filtered out
-    expect(queryAllByText('Ethereum').length).toBe(0);
-    expect(queryAllByText('2.3% APR').length).toBe(0);
-
-    // DAI
-    expect(getByText('Dai Stablecoin')).toBeDefined();
-    expect(getByText('5.0% APR')).toBeDefined();
-
-    // USDT
-    expect(getByText('Tether USD')).toBeDefined();
-    expect(getByText('4.1% APR')).toBeDefined();
-
-    // USDC
-    expect(getByText('USDC')).toBeDefined();
-    expect(getAllByText('4.5% APR').length).toBe(1);
-
-    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
-    expect(filterEligibleTokensSpy).toHaveBeenCalled();
-  });
-
   it('changes active network if selected token is on a different network', async () => {
-    getSupportedEarnTokensSpy = jest
-      .spyOn(tokenUtils, 'getSupportedEarnTokens')
-      .mockReturnValue([MOCK_USDC_BASE_MAINNET_ASSET]);
+    useEarnTokensSpy.mockReturnValue({
+      earnTokens: [
+        {
+          ...MOCK_USDC_BASE_MAINNET_ASSET,
+          balanceFormatted: '0',
+          balanceMinimalUnit: '0',
+          balanceFiatNumber: 0,
+          tokenUsdExchangeRate: 1,
+          experience: {
+            apr: '4.5',
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            estimatedAnnualRewardsFormatted: '',
+            estimatedAnnualRewardsFiatNumber: 0,
+            estimatedAnnualRewardsTokenMinimalUnit: '0',
+            estimatedAnnualRewardsTokenFormatted: '',
+          },
+          experiences: [
+            {
+              apr: '4.5',
+              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              estimatedAnnualRewardsFormatted: '',
+              estimatedAnnualRewardsFiatNumber: 0,
+              estimatedAnnualRewardsTokenMinimalUnit: '0',
+              estimatedAnnualRewardsTokenFormatted: '',
+            },
+          ],
+        },
+      ],
+      earnOutputTokens: [],
+      earnableTotalFiatFormatted: '$100.00',
+      earnableTotalFiatNumber: 100,
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      getEarnToken: jest.fn(),
+      getOutputToken: jest.fn(),
+      getPairedEarnTokens: jest.fn(),
+      getEarnExperience: jest.fn(),
+      getEstimatedAnnualRewardsForAmount: jest.fn(),
+    });
 
     const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
@@ -253,71 +266,7 @@ describe('EarnTokenList', () => {
       Engine.context.NetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
 
-    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
-    expect(filterEligibleTokensSpy).toHaveBeenCalled();
-  });
-
-  it('hides staking tokens if user is not eligible', () => {
-    useStakingEligibilitySpy.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
-        isEligible: false,
-      }),
-      error: '',
-    });
-
-    const { queryByText, getByText } = renderWithProvider(
-      <SafeAreaProvider initialMetrics={initialMetrics}>
-        <EarnTokenList />
-      </SafeAreaProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    expect(queryByText('Ethereum')).toBeNull();
-    expect(queryByText('Staked Ethereum')).toBeNull();
-
-    expect(getByText('Dai Stablecoin')).toBeDefined();
-    expect(getByText('USDC')).toBeDefined();
-    expect(getByText('Tether USD')).toBeDefined();
-
-    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
-
-    expect(filterEligibleTokensSpy).toHaveBeenCalledWith(
-      MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-      { canStake: false, canLend: true },
-    );
-  });
-
-  it('hides lending tokens if user is not eligible', () => {
-    filterEligibleTokensSpy.mockImplementationOnce(() =>
-      tokenUtils.filterEligibleTokens(
-        MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-        { canStake: true, canLend: false },
-      ),
-    );
-
-    const { queryByText, getAllByText } = renderWithProvider(
-      <SafeAreaProvider initialMetrics={initialMetrics}>
-        <EarnTokenList />
-      </SafeAreaProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    expect(getAllByText('Ethereum').length).toBe(1);
-    expect(queryByText('Staked Ethereum')).toBeDefined();
-
-    expect(queryByText('Dai Stablecoin')).toBeNull();
-    expect(queryByText('USDC')).toBeNull();
-    expect(queryByText('Tether USD')).toBeNull();
-    expect(queryByText('USD Coin')).toBeNull();
-
-    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
-    expect(filterEligibleTokensSpy).toHaveBeenCalled();
+    expect(useEarnTokensSpy).toHaveBeenCalled();
   });
 
   it('redirects to StakeInputView with pooled staking navigation params for staking token', async () => {
@@ -338,28 +287,30 @@ describe('EarnTokenList', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        token: {
-          address: MOCK_ETH_MAINNET_ASSET.address,
-          aggregators: [],
-          balance: '',
-          balanceFiat: '',
+        token: expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          balance: '0.30235',
+          balanceFiat: '$802.68',
           chainId: '0x1',
           decimals: 18,
-          image: '',
           isETH: true,
           isNative: true,
           isStaked: false,
-          logo: '',
+          logo: '../images/eth-logo-new.png',
           name: 'Ethereum',
           symbol: 'Ethereum',
           ticker: 'ETH',
-          balanceFormatted: ' ETH',
-          balanceFiatNumber: 0,
-          balanceMinimalUnit: '0',
-          apr: '2.3',
-          estimatedAnnualRewardsFormatted: '',
-          experience: EARN_EXPERIENCES.POOLED_STAKING,
-        },
+          balanceFormatted: '0.30235 ETH',
+          balanceFiatNumber: 802.68,
+          balanceMinimalUnit: '302345206021065265',
+          tokenUsdExchangeRate: 2654.006436723641,
+          experience: expect.objectContaining({
+            type: 'POOLED_STAKING',
+            apr: '2.3',
+            estimatedAnnualRewardsFormatted: '$19.00',
+            estimatedAnnualRewardsFiatNumber: 18.46164,
+          }),
+        }),
       },
       screen: 'Stake',
     });
@@ -383,30 +334,132 @@ describe('EarnTokenList', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       params: {
-        token: {
-          address: MOCK_USDC_MAINNET_ASSET.address,
-          aggregators: [],
-          balance: '',
-          balanceFiat: 'tokenBalanceLoading',
+        token: expect.objectContaining({
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          balanceFiat: '$103.69',
+          balanceFiatNumber: 103.68688,
+          balanceFormatted: '103.78605 USDC',
+          balanceMinimalUnit: '103786045',
           chainId: '0x1',
           decimals: 6,
-          image: '',
           isETH: false,
           isNative: false,
           isStaked: false,
-          logo: '',
           name: 'USDC',
           symbol: 'USDC',
-          ticker: 'USDC',
-          balanceFormatted: 'tokenBalanceLoading',
-          balanceFiatNumber: 0,
-          balanceMinimalUnit: '0',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        },
+          token: 'USDC',
+          tokenUsdExchangeRate: 0.9990444771786842,
+          experience: expect.objectContaining({
+            type: 'STABLECOIN_LENDING',
+            apr: '4.0',
+            estimatedAnnualRewardsFormatted: '$5.00',
+            estimatedAnnualRewardsFiatNumber: 4.147826431784605,
+          }),
+        }),
       },
       screen: 'Stake',
     });
+  });
+
+  it('displays loading state when tokens are being fetched', () => {
+    useEarnTokensSpy.mockReturnValue({
+      earnTokens: [],
+      earnOutputTokens: [],
+      earnableTotalFiatFormatted: '$0.00',
+      earnableTotalFiatNumber: 0,
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      getEarnToken: jest.fn(),
+      getOutputToken: jest.fn(),
+      getPairedEarnTokens: jest.fn(),
+      getEarnExperience: jest.fn(),
+      getEstimatedAnnualRewardsForAmount: jest.fn(),
+      isLoading: true,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      { state: initialState },
+    );
+
+    expect(getByTestId('earn-token-list-skeleton')).toBeTruthy();
+  });
+
+  it('sorts tokens by balance (non-zero first)', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      { state: initialState },
+    );
+
+    const tokenItems = getAllByTestId('earn-token-list-item');
+    const firstToken = tokenItems[0];
+    const secondToken = tokenItems[1];
+
+    expect(firstToken).toHaveTextContent(/Ethereum/);
+    expect(secondToken).toHaveTextContent(/USDC/);
+  });
+
+  it('handles token press for different token types', async () => {
+    const mockTokens = [
+      {
+        ...MOCK_ETH_MAINNET_ASSET,
+        balanceFormatted: '1.5 ETH',
+        experience: { apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING },
+        experiences: [{ apr: '5.2', type: EARN_EXPERIENCES.POOLED_STAKING }],
+      },
+      {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '100.0 USDC',
+        experience: { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+        experiences: [
+          { apr: '3.5', type: EARN_EXPERIENCES.STABLECOIN_LENDING },
+        ],
+      },
+    ];
+
+    useEarnTokensSpy.mockReturnValue({
+      earnTokens: mockTokens,
+      earnOutputTokens: [],
+      earnableTotalFiatFormatted: '$100.00',
+      earnableTotalFiatNumber: 100,
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      getEarnToken: jest.fn(),
+      getOutputToken: jest.fn(),
+      getPairedEarnTokens: jest.fn(),
+      getEarnExperience: jest.fn(),
+      getEstimatedAnnualRewardsForAmount: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('Ethereum'));
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'StakeScreens',
+      expect.anything(),
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText('USDC'));
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'StakeScreens',
+      expect.anything(),
+    );
   });
 });

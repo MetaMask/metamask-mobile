@@ -1,4 +1,4 @@
-import { EarnControllerState } from '@metamask-previews/earn-controller';
+import { EarnControllerState } from '@metamask/earn-controller';
 import {
   PooledStake,
   VaultApyAverages,

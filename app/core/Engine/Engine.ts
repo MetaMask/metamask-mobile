@@ -195,7 +195,7 @@ import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { EarnController } from '@metamask-previews/earn-controller';
+import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
@@ -224,6 +224,7 @@ import {
   MultichainRouterGetSupportedAccountsEvent,
   MultichainRouterIsSupportedScopeEvent,
 } from './controllers/multichain-router/constants';
+import { EarnEnvironments } from '@metamask/stake-sdk';
 
 const NON_EMPTY = 'NON_EMPTY';
 

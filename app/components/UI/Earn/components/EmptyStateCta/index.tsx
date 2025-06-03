@@ -23,6 +23,7 @@ import { useSelector } from 'react-redux';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { capitalize } from '../../../../../util/general';
+import { parseFloatSafe } from '../../utils/number';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -44,8 +45,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const { getEarnToken } = useEarnTokens();
   const earnToken = getEarnToken(token);
 
-  const estimatedAnnualRewardsFormatted =
-    earnToken?.experience?.estimatedAnnualRewardsFormatted;
+  const estimatedAnnualRewardsFormatted = parseFloatSafe(
+    earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
+  ).toFixed(0);
   const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = () => {
     trackEvent(

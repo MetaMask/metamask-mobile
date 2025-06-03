@@ -58,15 +58,12 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const navigation = useNavigation();
 
-  const { getPairedEarnTokens } = useEarnTokens();
+  const { getPairedEarnTokens, getEarnToken, getOutputToken } = useEarnTokens();
   const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
 
-  const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
+  const isAssetReceiptToken = getOutputToken(asset);
 
-  const isAssetReceiptToken = useMemo(
-    () => asset.symbol === receiptToken?.symbol,
-    [asset.symbol, receiptToken?.symbol],
-  );
+  const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
 
   const userHasLendingPositions = useMemo(
     () => new BigNumber(receiptToken?.balanceMinimalUnit ?? '0').gt(0),
