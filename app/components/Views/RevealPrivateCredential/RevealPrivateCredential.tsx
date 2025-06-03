@@ -62,7 +62,7 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
-const PRIVATE_KEY = 'private_key';
+export const PRIVATE_KEY = 'private_key';
 
 interface RootStackParamList extends ParamListBase {
   RevealPrivateCredential: {
