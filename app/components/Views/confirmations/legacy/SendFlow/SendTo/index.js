@@ -17,7 +17,6 @@ import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
-  toFormattedAddress,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -62,6 +61,7 @@ import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
+import { toLowerCaseEquals } from '../../../../../../util/general';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const dummy = () => true;
@@ -225,12 +225,12 @@ class SendFlow extends PureComponent {
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
     const checksummedAddress = this.safeChecksumAddress(toAccount);
-    const account = internalAccounts.find(
-      (acc) =>
-        toFormattedAddress(acc.address) ===
-        toFormattedAddress(checksummedAddress),
+    return !!(
+      networkAddressBook[checksummedAddress] ||
+      internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, checksummedAddress),
+      )
     );
-    return !!(networkAddressBook[checksummedAddress] || account);
   };
 
   validateToAddress = () => {
@@ -382,16 +382,14 @@ class SendFlow extends PureComponent {
     const networkAddressBook = addressBook[globalChainId] || {};
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
-    const account = internalAccounts.find(
-      (acc) =>
-        toFormattedAddress(acc.address) ===
-        toFormattedAddress(checksummedAddress),
+    const matchingAccount = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, checksummedAddress),
     );
 
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
-      : account
-      ? account.metadata.name
+      : matchingAccount
+      ? matchingAccount.metadata.name
       : null;
   };
 
