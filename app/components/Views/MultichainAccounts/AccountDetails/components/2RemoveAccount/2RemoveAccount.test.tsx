@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { RemoveAccount } from './RemoveAccount';
+import { RemoveAccount } from './2RemoveAccount';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
