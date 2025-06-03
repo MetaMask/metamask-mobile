@@ -1375,8 +1375,10 @@ workflows:
                 mv "$OLD_APK" "$NEW_APK"
 
                 # Rename AAB
-                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                mv "$OLD_AAB" "$NEW_AAB"
+                if [ -n "$BUNDLE_DIR" ]; then
+                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                    mv "$OLD_AAB" "$NEW_AAB"
+                fi
 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
