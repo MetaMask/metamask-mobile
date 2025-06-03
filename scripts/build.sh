@@ -235,7 +235,14 @@ buildAndroidDevBuild(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+
+	TASK_NAME="assembleProdDebug"
+
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		TASK_NAME="assembleFlaskDebug"
+	fi
+
+	cd android && ./gradlew $TASK_NAME -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
