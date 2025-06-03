@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, InteractionManager } from 'react-native';
+import { InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
 import NetworkInfo from '../../UI/NetworkInfo';
@@ -56,20 +56,18 @@ const InfoNetworkModal = () => {
   }, [chainId, dispatch, networkOnboardingState]);
 
   return (
-    <View>
-      <Modal
-        isVisible={infoNetworkModalVisible}
-        onBackdropPress={navigation.goBack}
-        onBackButtonPress={navigation.goBack}
-        onSwipeComplete={navigation.goBack}
-        swipeDirection={'down'}
-        propagateSwipe
-        backdropColor={theme.colors.overlay.default}
-        backdropOpacity={1}
-      >
-        <NetworkInfo onClose={onClose} />
-      </Modal>
-    </View>
+    <Modal
+      isVisible={infoNetworkModalVisible}
+      onBackdropPress={navigation.goBack}
+      onBackButtonPress={navigation.goBack}
+      onSwipeComplete={navigation.goBack}
+      swipeDirection={'down'}
+      propagateSwipe
+      backdropColor={theme.colors.overlay.default}
+      backdropOpacity={1}
+    >
+      <NetworkInfo onClose={onClose} />
+    </Modal>
   );
 };
 
