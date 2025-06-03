@@ -675,13 +675,15 @@ const Wallet = ({
         // Return early if no address selected
         if (!selectedAddress) return;
 
+        const formattedSelectedAddress = toFormattedAddress(selectedAddress);
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
         const { NftDetectionController, NftController } = Engine.context;
         const previousNfts = cloneDeep(
-          NftController.state.allNfts[toFormattedAddress(selectedAddress)],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         try {
@@ -692,7 +694,7 @@ const Wallet = ({
         }
 
         const newNfts = cloneDeep(
-          NftController.state.allNfts[toFormattedAddress(selectedAddress)],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         const eventParams = prepareNftDetectionEvents(

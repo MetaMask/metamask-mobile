@@ -411,8 +411,10 @@ export class BackgroundBridge extends EventEmitter {
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
       if (
+        this.addressSent != null &&
+        memState.selectedAddress != null &&
         toFormattedAddress(this.addressSent) !==
-        toFormattedAddress(memState.selectedAddress)
+          toFormattedAddress(memState.selectedAddress)
       ) {
         this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
