@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import Icon, {
@@ -9,6 +9,7 @@ import Icon, {
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';

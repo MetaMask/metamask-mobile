@@ -23,9 +23,7 @@ import {
 } from '../../../util/networks';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
@@ -50,7 +48,6 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
-import { selectKeyrings } from '../../../selectors/keyringController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 
@@ -78,14 +75,10 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  const existingKeyrings = useSelector(selectKeyrings);
-
-  const keyringId = useMemo(() => {
-    const keyring = existingKeyrings.find((kr) =>
-      kr.accounts.includes(selectedAccount.address.toLowerCase()),
-    );
-    return keyring?.metadata.id;
-  }, [existingKeyrings, selectedAccount.address]);
+  const keyringId = useMemo(
+    () => selectedAccount.options.entropySource,
+    [selectedAccount.options.entropySource],
+  );
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -119,9 +112,7 @@ const AccountActions = () => {
       }
       return undefined;
     }
-  }, [
-    selectedAccount,
-  ]);
+  }, [selectedAccount]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -227,8 +218,8 @@ const AccountActions = () => {
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -264,8 +255,8 @@ const AccountActions = () => {
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
       const hexSelectedAddress = toHex(selectedAddress);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       await removeAccountsFromPermissions([hexSelectedAddress]);
+      await controllers.KeyringController.removeAccount(hexSelectedAddress);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -427,18 +418,16 @@ const AccountActions = () => {
             testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
           />
         )}
-        {
-          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
-            <AccountAction
-              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
-              iconName={IconName.Key}
-              onPress={goToExportSRP}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
-              }
-            />
-          )
-        }
+        {selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
@@ -461,14 +450,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED &&
-          networkSupporting7702Present && (
-            <AccountAction
-              actionTitle={strings('account_actions.switch_to_smart_account')}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwitchAccountType}
-            />
-          )}
+        {networkSupporting7702Present && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}
