@@ -16,7 +16,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
-describe(Regression('MegaETH Testnet Network Signing'), () => {
+describe(Regression('MegaETH Testnet Network - Signing Flows'), () => {
   const TOKEN_NAME = enContent.unit.megaeth;
   // const testSpecificMock = {
   //   GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
@@ -27,14 +27,15 @@ describe(Regression('MegaETH Testnet Network Signing'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it(`should sign personal message using ${MEGAETH_TESTNET}`, async () => {
+  it(`should personal sign using ${MEGAETH_TESTNET}`, async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withMegaTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x18c6']))
+            buildPermissions(['0x18c6']),
+          )
           .build(),
         restartDevice: true,
         // testSpecificMock,
@@ -44,8 +45,91 @@ describe(Regression('MegaETH Testnet Network Signing'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        //Personal Sign
         await TestDApp.tapPersonalSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data using ${MEGAETH_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x18c6']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data Sign
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data v3 using ${MEGAETH_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x18c6']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data V3 Sign
+        await TestDApp.tapTypedV3SignButton();
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data v4 using ${MEGAETH_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x18c6']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data V4 Sign
+        await TestDApp.tapTypedV4SignButton();
         await SigningBottomSheet.tapSignButton();
         await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
         await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);

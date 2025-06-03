@@ -15,7 +15,7 @@ import enContent from '../../../../locales/languages/en.json';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig.nickname;
 
-describe(Regression('Monad Testnet Network Signing'), () => {
+describe(Regression('Monad Testnet Network - Signing Flows'), () => {
   const TOKEN_NAME = enContent.unit.monad;
 
   beforeAll(async () => {
@@ -23,14 +23,15 @@ describe(Regression('Monad Testnet Network Signing'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it(`should sign personal message using ${MONAD_TESTNET}`, async () => {
+  it(`should personal sign using ${MONAD_TESTNET}`, async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withMonadTestnetNetwork()
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x279f']))
+            buildPermissions(['0x279f']),
+          )
           .build(),
         restartDevice: true,
       },
@@ -40,8 +41,91 @@ describe(Regression('Monad Testnet Network Signing'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        //Personal Sign
         await TestDApp.tapPersonalSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data using ${MONAD_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x279f']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data Sign
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data v3 using ${MONAD_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x279f']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data V3 Sign
+        await TestDApp.tapTypedV3SignButton();
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+      },
+    );
+  });
+
+  it(`should sign typed data v4 using ${MONAD_TESTNET}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x279f']),
+          )
+          .build(),
+        restartDevice: true,
+        // testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Typed Data V4 Sign
+        await TestDApp.tapTypedV4SignButton();
         await SigningBottomSheet.tapSignButton();
         await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
         await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
