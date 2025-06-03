@@ -1,14 +1,13 @@
 name: 'Close stale issues and PRs'
+
+# run once daily at midnight (UTC)
 on:
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
   stale:
-    runs-on: ubuntu-latest
+    uses: metamask/github-tools/.github/workflows/stale-issue-pr.yml@566da3332757544da431707bde71a242b182b3ac
     permissions:
       issues: write
       pull-requests: write
-    steps:
-      - uses: metamask/github-tools/.github/workflows/stale-issue-pr.yml@566da3332757544da431707bde71a242b182b3ac
-      

@@ -1133,7 +1133,11 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
-        allowedEvents: [],
+        allowedEvents: [
+          'TransactionController:transactionConfirmed',
+          'TransactionController:transactionFailed',
+          'MultichainTransactionsController:transactionConfirmed',
+        ],
       }),
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
@@ -2033,6 +2037,7 @@ export class Engine {
     (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
+      transactionBatches: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},

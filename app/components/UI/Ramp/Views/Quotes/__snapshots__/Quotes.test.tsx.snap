@@ -1439,7 +1439,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                   [
                                                     [
                                                       {
-                                                        "borderRadius": 100,
+                                                        "borderRadius": 12,
                                                         "justifyContent": "center",
                                                         "padding": 15,
                                                       },
@@ -3779,7 +3779,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           [
                                                             [
                                                               {
-                                                                "borderRadius": 100,
+                                                                "borderRadius": 12,
                                                                 "justifyContent": "center",
                                                                 "padding": 15,
                                                               },
@@ -4128,7 +4128,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           [
                                                             [
                                                               {
-                                                                "borderRadius": 100,
+                                                                "borderRadius": 12,
                                                                 "justifyContent": "center",
                                                                 "padding": 15,
                                                               },
@@ -4402,7 +4402,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           [
                                                             [
                                                               {
-                                                                "borderRadius": 100,
+                                                                "borderRadius": 12,
                                                                 "justifyContent": "center",
                                                                 "padding": 15,
                                                               },
@@ -5539,7 +5539,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     [
                                                       [
                                                         {
-                                                          "borderRadius": 100,
+                                                          "borderRadius": 12,
                                                           "justifyContent": "center",
                                                           "padding": 15,
                                                         },
@@ -6345,7 +6345,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -7095,7 +7095,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -7845,7 +7845,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -8595,7 +8595,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },

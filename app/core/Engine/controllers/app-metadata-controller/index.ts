@@ -1,39 +1,32 @@
 import {
   AppMetadataController,
-  type AppMetadataControllerState,
   type AppMetadataControllerMessenger,
 } from '@metamask/app-metadata-controller';
+import { getVersion } from 'react-native-device-info';
+import { version as migrationVersion } from '../../../../store/migrations';
+import type { ControllerInitRequest } from '../../types';
 import { logAppMetadataControllerCreation } from './utils';
-import type { ControllerInitFunction } from '../../types';
-import { defaultAppMetadataControllerState } from './constants';
 
-// Export types
-export type { AppMetadataControllerMessenger };
-
-// Export constants
-export * from './constants';
-
-/**
- * Initialize the AppMetadataController.
- *
- * @param request - The request object.
- * @returns The AppMetadataController.
- */
-export const appMetadataControllerInit: ControllerInitFunction<
-  AppMetadataController,
-  AppMetadataControllerMessenger
-> = (request) => {
-  const { controllerMessenger, persistedState } = request;
-
-  const appMetadataControllerState = (persistedState.AppMetadataController ??
-    defaultAppMetadataControllerState) as AppMetadataControllerState;
-
-  logAppMetadataControllerCreation(appMetadataControllerState);
+export function appMetadataControllerInit(
+  initRequest: ControllerInitRequest<AppMetadataControllerMessenger>,
+) {
+  const currentVersion = getVersion();
+  const currentState =
+    initRequest.persistedState?.AppMetadataController ||
+    {
+      currentAppVersion: '',
+      previousAppVersion: '',
+      previousMigrationVersion: 0,
+      currentMigrationVersion: 0,
+    };
 
   const controller = new AppMetadataController({
-    messenger: controllerMessenger,
-    state: appMetadataControllerState,
+    state: currentState,
+    messenger: initRequest.controllerMessenger,
+    currentAppVersion: currentVersion,
+    currentMigrationVersion: migrationVersion,
   });
 
+  logAppMetadataControllerCreation(controller.state);
   return { controller };
-};
+}

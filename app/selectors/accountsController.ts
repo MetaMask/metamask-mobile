@@ -25,7 +25,7 @@ import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
-}
+};
 
 /**
  *
@@ -100,6 +100,14 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 );
 
 /**
+ * A memoized selector that returns the selected internal account id
+ */
+export const selectSelectedInternalAccountId = createSelector(
+  selectSelectedInternalAccount,
+  (account): string | undefined => account?.id,
+);
+
+/**
  * A memoized selector that returns the internal accounts sorted by the last selected timestamp
  */
 export const selectOrderedInternalAccountsByLastSelected = createSelector(
@@ -120,7 +128,8 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
 
 export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
-  (internalAccounts, address) => internalAccounts.find((account) =>
+  (internalAccounts, address) =>
+    internalAccounts.find((account) =>
       isEqualCaseInsensitive(account.address, address),
     ),
 );
