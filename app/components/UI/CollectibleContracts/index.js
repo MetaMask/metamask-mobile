@@ -30,14 +30,18 @@ import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 import {
+  getAllNetworkConfigurations,
+  getNetworkConfigurationsByCaipChainId,
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectProviderType,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -49,7 +53,11 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import {
+  isTestNet,
+  getDecimalChainId,
+  getAllNetworks,
+} from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
@@ -170,6 +178,22 @@ const CollectibleContracts = ({
   displayNftMedia,
 }) => {
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const allNetworkClientIds = useMemo(
+    () =>
+      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        const entry = allNetworks[chainId];
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultRpcEndpointIndex;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [tokenNetworkFilter, allNetworks],
+  );
 
   const filteredCollectibleContracts = useMemo(
     () =>
@@ -402,8 +426,13 @@ const CollectibleContracts = ({
 
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
+
       await Promise.allSettled(actions);
       setRefreshing(false);
 
@@ -431,6 +460,7 @@ const CollectibleContracts = ({
     getNftDetectionAnalyticsParams,
     selectedAddress,
     trackEvent,
+    allNetworkClientIds,
   ]);
 
   const goToLearnMore = useCallback(

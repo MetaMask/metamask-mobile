@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Collectibles from '../../UI/Collectibles';
 import CollectibleContractOverview from '../../UI/CollectibleContractOverview';
 import Engine from '../../../core/Engine';
@@ -13,6 +13,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -105,6 +106,7 @@ class Collectible extends PureComponent {
     const filteredCollectibles = collectibles.filter((collectible) =>
       toLowerCaseEquals(collectible.address, address),
     );
+    const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
     filteredCollectibles.map((collectible) => {
       if (!collectible.name || collectible.name === '') {
         collectible.name = collectibleContract.name;
@@ -144,6 +146,7 @@ class Collectible extends PureComponent {
                 navigation={navigation}
                 collectibles={filteredCollectibles}
                 collectibleContract={collectibleContract}
+                selectedNetworkClientId={selectedNetworkClientId}
               />
             </View>
           </View>
