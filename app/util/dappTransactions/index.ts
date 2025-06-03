@@ -1,9 +1,8 @@
 import { remove0x } from '@metamask/utils';
 import { isBN, hexToBN } from '../number';
-import { safeToChecksumAddress } from '../address';
+import { safeToChecksumAddress, toFormattedAddress } from '../address';
 import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
-import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
 import BN4 from 'bnjs4';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
@@ -77,12 +76,15 @@ export const estimateGas = async (
 
   let estimation;
   try {
-    estimation = await controllerEstimateGas({
-      value: amount,
-      from,
-      data,
-      to: selectedAsset?.address ? selectedAsset.address : to,
-    }, networkClientId);
+    estimation = await controllerEstimateGas(
+      {
+        value: amount,
+        from,
+        data,
+        to: selectedAsset?.address ? selectedAsset.address : to,
+      },
+      networkClientId,
+    );
   } catch (e) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
@@ -131,11 +133,14 @@ const getTokenBalance = async (
   try {
     const { AssetsContractController } = Engine.context;
     // TODO: Roundtrip string conversion can be removed when bn.js v4 is superseded with v5
-    const contractBalanceForAddress = await AssetsContractController.getERC20BalanceOf(
+    const contractBalanceForAddress =
+      await AssetsContractController.getERC20BalanceOf(
         selectedAsset.address,
         checksummedFrom,
       );
-    const contractBalanceForAddressBN = hexToBN(contractBalanceForAddress.toString(16));
+    const contractBalanceForAddressBN = hexToBN(
+      contractBalanceForAddress.toString(16),
+    );
     return contractBalanceForAddressBN;
   } catch (e) {
     // Don't validate balance if error
@@ -158,7 +163,6 @@ export const validateTokenAmount = async (
   allowEmpty = true,
 ): Promise<string | undefined> => {
   if (!allowEmpty) {
-
     if (!value) {
       return strings('transaction.invalid_amount');
     }
@@ -175,7 +179,12 @@ export const validateTokenAmount = async (
       return strings('transaction.invalid_amount');
     }
 
-    const contractBalanceForAddress = await getTokenBalance(from, selectedAsset, selectedAddress, contractBalances);
+    const contractBalanceForAddress = await getTokenBalance(
+      from,
+      selectedAsset,
+      selectedAddress,
+      contractBalances,
+    );
     if (contractBalanceForAddress?.lt(value)) {
       return strings('transaction.insufficient');
     }
@@ -194,7 +203,8 @@ export const validateCollectibleOwnership = async (
       address,
       tokenId,
     );
-    const isOwner = toLowerCaseEquals(owner, selectedAddress);
+    const isOwner =
+      toFormattedAddress(owner) === toFormattedAddress(selectedAddress);
 
     return !isOwner
       ? strings('transaction.invalid_collectible_ownership')

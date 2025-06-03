@@ -31,7 +31,10 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
+import {
+  safeToChecksumAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForNonEvmChainId,
@@ -426,16 +429,17 @@ class Asset extends PureComponent {
       });
 
       submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (!toLowerCaseEquals(from, this.selectedAddress)) {
+        if (
+          toFormattedAddress(from) !== toFormattedAddress(this.selectedAddress)
+        ) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (confirmedTransaction) =>
-            toLowerCaseEquals(
-              safeToChecksumAddress(confirmedTransaction.txParams.from),
-              this.selectedAddress,
-            ) && confirmedTransaction.txParams.nonce === nonce,
+            toFormattedAddress(confirmedTransaction.txParams.from) ===
+              toFormattedAddress(this.selectedAddress) &&
+            confirmedTransaction.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;

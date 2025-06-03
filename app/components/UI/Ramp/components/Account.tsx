@@ -11,7 +11,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   selectInternalAccounts,
 } from '../../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../../util/general';
+import { toFormattedAddress } from '../../../../util/address';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type
@@ -58,12 +58,17 @@ const Account = ({
   const internalAccounts = useSelector(selectInternalAccounts);
 
   const selectedInternalAccount = address
-    ? internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, address),
+    ? internalAccounts.find(
+        (account) =>
+          toFormattedAddress(account.address) === toFormattedAddress(address),
       )
-    : internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, selectedAddress),
-      );
+    : selectedAddress
+    ? internalAccounts.find(
+        (account) =>
+          toFormattedAddress(account.address) ===
+          toFormattedAddress(selectedAddress),
+      )
+    : undefined;
 
   const accountName = selectedInternalAccount?.metadata?.name || '';
   return (

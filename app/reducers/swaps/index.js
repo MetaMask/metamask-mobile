@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
-import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
+import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
 import { lte } from '../../util/lodash';
 import { selectEvmChainId } from '../../selectors/networkController';
 import {
@@ -349,7 +348,10 @@ export const swapsTopAssetsSelector = createSelector(
     }
     const result = topAssets
       .map(({ address }) =>
-        tokens?.find((token) => toLowerCaseEquals(token.address, address)),
+        tokens?.find(
+          (token) =>
+            toFormattedAddress(token.address) === toFormattedAddress(address),
+        ),
       )
       .filter(Boolean);
     return addMetadata(chainId, result, tokenList);
