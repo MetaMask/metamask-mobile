@@ -58,7 +58,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const navigation = useNavigation();
 
-  const { getPairedEarnTokens, getEarnToken, getOutputToken } = useEarnTokens();
+  const { getPairedEarnTokens, getOutputToken } = useEarnTokens();
   const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
 
   const isAssetReceiptToken = getOutputToken(asset);
@@ -157,7 +157,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             onPress={handleNavigateToWithdrawalInputScreen}
             testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
-          {userHasUnderlyingTokensAvailableToLend && (
+          {userHasUnderlyingTokensAvailableToLend && !isAssetReceiptToken && (
             <Button
               variant={ButtonVariants.Secondary}
               style={styles.button}
