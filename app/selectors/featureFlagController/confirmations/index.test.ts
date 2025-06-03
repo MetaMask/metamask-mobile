@@ -19,6 +19,7 @@ beforeEach(() => {
   process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION = undefined;
+  process.env.FEATURE_FLAG_REDESIGNED_TRANSFER = undefined;
 });
 
 afterEach(() => {
@@ -67,17 +68,20 @@ describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags sel
       signatures,
       staking_confirmations,
       contract_interaction,
+      transfer,
     } = result as ConfirmationRedesignRemoteFlags;
 
     const {
       signatures: expectedSignatures,
       staking_confirmations: expectedStakingConfirmations,
       contract_interaction: expectedContractInteraction,
+      transfer: expectedTransfer,
     } = expected;
 
     expect(signatures).toEqual(expectedSignatures);
     expect(staking_confirmations).toEqual(expectedStakingConfirmations);
     expect(contract_interaction).toEqual(expectedContractInteraction);
+    expect(transfer).toEqual(expectedTransfer);
   };
 
   it('returns default values when empty feature flag state', () => {

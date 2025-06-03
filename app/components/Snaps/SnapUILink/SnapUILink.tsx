@@ -1,6 +1,12 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
-import { Text, StyleSheet, Linking, View } from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  Linking,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -22,6 +28,7 @@ const styles = StyleSheet.create({
 export interface SnapUILinkProps {
   children: React.ReactNode;
   href: string;
+  isInline?: boolean;
 }
 
 const validateUrl = (href: string) => {
@@ -36,18 +43,30 @@ const onPress = (href: string) => {
 };
 
 // TODO: This component should show a modal for links when not using preinstalled Snaps
-export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
-  <Text
-    testID="snaps-ui-link"
-    style={styles.container}
-    onPress={() => onPress(href)}
-    accessibilityRole="link"
-    accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
-  >
-    {children}
-    <View style={styles.spacer} />
-    <Icon name={IconName.Export} color={IconColor.Primary} size={IconSize.Sm} />
-  </Text>
-);
+export const SnapUILink: React.FC<SnapUILinkProps> = ({
+  href,
+  children,
+  isInline,
+}) => {
+  const Component = isInline ? Text : TouchableOpacity;
+
+  return (
+    <Component
+      testID="snaps-ui-link"
+      style={styles.container}
+      onPress={() => onPress(href)}
+      accessibilityRole="link"
+      accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
+    >
+      {children}
+      <View style={styles.spacer} />
+      <Icon
+        name={IconName.Export}
+        color={IconColor.Primary}
+        size={IconSize.Sm}
+      />
+    </Component>
+  );
+};
 
 ///: END:ONLY_INCLUDE_IF

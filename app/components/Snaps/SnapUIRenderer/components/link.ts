@@ -36,6 +36,7 @@ export const link: UIComponentFactory<LinkElement> = ({
     ),
     props: {
       href: e.props.href,
+      isInline: params.textVariant !== undefined,
     },
   };
 };

@@ -1778,6 +1778,12 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     disabled={false}
                     id="submit"
                     onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
                   >
                     <Text
                       accessibilityRole="text"

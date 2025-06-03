@@ -131,6 +131,12 @@ exports[`SnapUIForm will render 1`] = `
               disabled={false}
               id="submit"
               onPress={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                }
+              }
             >
               <Text
                 accessibilityRole="text"
@@ -1209,6 +1215,12 @@ exports[`SnapUIForm will render with fields 1`] = `
               disabled={false}
               id="submit"
               onPress={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                }
+              }
             >
               <Text
                 accessibilityRole="text"

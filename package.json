@@ -203,7 +203,7 @@
     "@metamask/network-controller": "^23.5.1",
     "@metamask/notification-services-controller": "^7.0.0",
     "@metamask/permission-controller": "^11.0.6",
-    "@metamask/phishing-controller": "^12.4.1",
+    "@metamask/phishing-controller": "^12.5.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
     "@metamask/preferences-controller": "^18.1.0",

@@ -1,10 +1,17 @@
-import type {UserTraits, GroupTraits, SegmentClient} from '@segment/analytics-react-native';
+import type {
+  UserTraits,
+  GroupTraits,
+  SegmentClient,
+} from '@segment/analytics-react-native';
 import { PublicInterface } from '@metamask/utils';
 
 /**
  * Segment client restricted to the interface used by MetaMetrics
  */
-export type ISegmentClient = Pick<PublicInterface<SegmentClient>, 'track' | 'identify' | 'group' | 'screen' | 'flush' | 'reset' | 'add'>
+export type ISegmentClient = Pick<
+  PublicInterface<SegmentClient>,
+  'track' | 'identify' | 'group' | 'screen' | 'flush' | 'reset' | 'add'
+>;
 
 /**
  * MetaMetrics core interface
@@ -157,4 +164,15 @@ export interface IDeleteRegulationStatus {
   deletionRequestDate?: DataDeleteDate;
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
+}
+
+/**
+ * The API type used to perform a request to MetaMask Mobile
+ * @description Indicates whether the request came through the Ethereum Provider API or the Multichain API
+ * @see MetaMetricsRequestedThrough.EthereumProvider - Standard EIP-1193 provider API
+ * @see MetaMetricsRequestedThrough.MultichainApi - MetaMask's Multichain API
+ */
+export enum MetaMetricsRequestedThrough {
+  EthereumProvider = 'ethereum_provider',
+  MultichainApi = 'multichain_api',
 }

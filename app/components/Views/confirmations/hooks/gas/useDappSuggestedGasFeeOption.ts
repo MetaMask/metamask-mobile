@@ -7,7 +7,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { type GasOption } from '../../types/gas';
-import { GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING, GasOptionIcon } from '../../constants/gas';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from './useFeeCalculations';
@@ -26,7 +26,7 @@ export const useDappSuggestedGasFeeOption = ({
 
   const onDappSuggestedGasFeeClick = useCallback(() => {
     updateTransactionGasFees(id, {
-      userFeeLevel: 'dappSuggested',
+      userFeeLevel: UserFeeLevel.DAPP_SUGGESTED,
       ...(dappSuggestedGasFees || {}),
     });
     handleCloseModals();
@@ -77,8 +77,8 @@ export const useDappSuggestedGasFeeOption = ({
       key: 'site_suggested',
       name: strings('transactions.gas_modal.site_suggested'),
       onSelect: onDappSuggestedGasFeeClick,
-      value: preciseNativeCurrencyFee || '',
-      valueInFiat: currentCurrencyFee || '',
+      value: preciseNativeCurrencyFee || EMPTY_VALUE_STRING,
+      valueInFiat: currentCurrencyFee || EMPTY_VALUE_STRING,
     });
   }
 

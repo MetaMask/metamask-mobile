@@ -9,11 +9,10 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from './useFeeCalculations';
-import { GasModalType, GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING, GasModalType, GasOptionIcon } from '../../constants/gas';
 import { type GasOption } from '../../types/gas';
 
 const HEX_ZERO = '0x0';
-const EMPTY_VALUE = '--';
 
 export const useAdvancedGasFeeOption = ({
   setActiveModal,
@@ -83,8 +82,8 @@ export const useAdvancedGasFeeOption = ({
     ],
   );
 
-  let value = EMPTY_VALUE;
-  let valueInFiat = '';
+  let value = EMPTY_VALUE_STRING;
+  let valueInFiat = EMPTY_VALUE_STRING;
 
   if (isAdvancedGasFeeSelected) {
     const feePerGas = maxFeePerGas || HEX_ZERO;
@@ -108,8 +107,8 @@ export const useAdvancedGasFeeOption = ({
         gasPrice,
       });
 
-    value = preciseNativeCurrencyFee || EMPTY_VALUE;
-    valueInFiat = currentCurrencyFee || '';
+    value = preciseNativeCurrencyFee || EMPTY_VALUE_STRING;
+    valueInFiat = currentCurrencyFee || EMPTY_VALUE_STRING;
   }
 
   const memoizedGasOption = useMemo(

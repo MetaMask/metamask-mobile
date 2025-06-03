@@ -229,7 +229,7 @@ describe('SimulationDetails', () => {
       { state: generateContractInteractionState },
     );
 
-    expect(getByText('No changes predicted for your wallet')).toBeDefined();
+    expect(getByText('No changes')).toBeDefined();
   });
 
   it('renders balance changes', () => {
