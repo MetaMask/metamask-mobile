@@ -94,12 +94,12 @@ export const Browser = (props) => {
   const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
 
-const homePageUrl = useCallback(
-  () =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
@@ -406,19 +406,24 @@ const homePageUrl = useCallback(
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => (
-          (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
-          <BrowserTab
-            key={`tab_${tab.id}`}
-            id={tab.id}
-            initialUrl={tab.url}
-            linkType={tab.linkType}
-            updateTabInfo={updateTabInfo}
-            showTabs={showTabsView}
-            newTab={newTab}
-            isInTabsView={shouldShowTabs}
-            homePageUrl={homePageUrl()}
-          />) : (
+        .map((tab) => {
+
+          // If the tab is not the active tab, don't render it
+          if (activeTabId !== tab.id) return null;
+
+          // If the tab is the active tab, render it
+          return (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
+            <BrowserTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              initialUrl={tab.url}
+              linkType={tab.linkType}
+              updateTabInfo={updateTabInfo}
+              showTabs={showTabsView}
+              newTab={newTab}
+              isInTabsView={shouldShowTabs}
+              homePageUrl={homePageUrl()}
+            />) : (
             <DiscoveryTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -427,7 +432,7 @@ const homePageUrl = useCallback(
               updateTabInfo={updateTabInfo}
             />
           )
-        )),
+        }),
     [
       tabs,
       shouldShowTabs,
@@ -435,6 +440,7 @@ const homePageUrl = useCallback(
       homePageUrl,
       updateTabInfo,
       showTabsView,
+      activeTabId,
     ],
   );
 
