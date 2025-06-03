@@ -53,6 +53,8 @@ import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
 } from '../../types/lending.types';
+// TODO: Check to see if bug has been resolved without use of debounce with recent changes
+import { debounce } from 'lodash';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -513,7 +515,8 @@ const EarnInputView = () => {
       />
       <Keypad
         value={!isFiat ? amountToken : amountFiatNumber}
-        onChange={handleKeypadChange}
+        // Debounce used to avoid error message flicker from recalculating gas fee estimate
+        onChange={debounce(handleKeypadChange, 1)}
         style={styles.keypad}
         currency={token.symbol}
         decimals={!isFiat ? 5 : 2}
