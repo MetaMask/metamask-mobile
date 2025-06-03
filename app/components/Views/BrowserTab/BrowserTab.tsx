@@ -1388,7 +1388,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <View
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
@@ -1497,7 +1498,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ErrorBoundary>
   );
 });
