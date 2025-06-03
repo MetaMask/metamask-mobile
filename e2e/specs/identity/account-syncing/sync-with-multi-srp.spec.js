@@ -130,7 +130,7 @@ describe(
       await TestHelpers.delay(4000);
 
       for (const accountName of expectedAccountNames) {
-        await Assertions.checkIfVisible(
+        await Assertions.webViewElementExists(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
