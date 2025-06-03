@@ -24,6 +24,11 @@
     "inline_alert_label": "Peringatan",
     "review_alerts": "Tinjau peringatan",
     "review_alert": "Tinjau peringatan",
+    "upgrade_account": {
+      "title": "Memperbarui akun Anda",
+      "message": "Anda memperbarui akun ke akun cerdas. Anda akan tetap menggunakan alamat akun yang sama sambil menikmati transaksi yang lebih cepat dan biaya jaringan yang lebih rendah.",
+      "learn_more": "Selengkapnya"
+    },
     "domain_mismatch": {
       "title": "Permintaan masuk yang mencurigakan",
       "message": "Situs yang mengajukan permintaan tersebut bukanlah situs yang Anda masuki. Ini mungkin merupakan upaya untuk mencuri kredensial masuk Anda."
@@ -32,6 +37,14 @@
       "title": "Dana tidak cukup",
       "message": "%{nativeCurrency} di akun Anda tidak cukup untuk membayar biaya jaringan.",
       "buy_action": "Beli %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "Transaksi sebelumnya masih dalam proses penandatanganan atau pengiriman."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -396,7 +409,46 @@
     "network_missing_id": "ID rantai tidak ada."
   },
   "deposit": {
-    "title": "Deposit"
+    "title": "Deposit",
+    "enter_email": {
+      "title": "Masukkan email Anda",
+      "description": "Kami akan mengirimkan kode enam digit ke email Anda untuk memeriksa apakah ini memang Anda.",
+      "input_label": "Email",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Kirim email",
+      "loading": "Mengirim email...",
+      "validation_error": "Masukkan alamat email yang valid"
+    },
+    "otp_code": {
+      "title": "Masukkan kode enam digit",
+      "description": "Masukkan kode 6 digit yang kami kirim ke {{email}}. Jika Anda tidak melihatnya di kotak masuk, periksa folder spam.",
+      "submit_button": "Kirim",
+      "loading": "Memverifikasi kode...",
+      "invalid_code_error": "Kode tidak valid",
+      "validation_error": "Masukkan kode yang valid"
+    },
+    "verify_identity": {
+      "title": "Verifikasikan identitas Anda",
+      "description": "Untuk mendeposit uang tunai, kami perlu memverifikasi identitas Anda. Ini membantu menjaga keamanan akun dan privasi informasi Anda.",
+      "privacy_policy_link": "Pelajari cara kami melindungi privasi Anda dalam Kebijakan Privasi kami.",
+      "button": "Mulai"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
+    }
   },
   "receive": {
     "title": "Terima"
@@ -446,6 +498,14 @@
     "multisrp": {
       "title": "Tambahkan beberapa Frasa Pemulihan Rahasia",
       "subtitle": "Impor dan gunakan beberapa dompet di MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Memperkenalkan pencadangan dan sinkronisasi",
+      "subtitle": "Cadangkan akun Anda dan sinkronkan pengaturan."
+    },
+    "solana": {
+      "title": "Kini mendukung Solana",
+      "subtitle": "Buat akun Solana untuk memulai"
     }
   },
   "wallet": {
@@ -453,6 +513,7 @@
     "tokens": "Token",
     "collectible": "Koleksi",
     "collectibles": "NFT",
+    "defi": "DeFi",
     "transactions": "TRANSAKSI",
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
@@ -482,7 +543,8 @@
     "import": "Impor",
     "sort_by": "Urutkan sesuai",
     "filter_by": "Filter berdasarkan",
-    "current_network": "Jaringan Saat Ini",
+    "current_network": "Jaringan saat ini",
+    "popular_networks": "Jaringan populer",
     "all_networks": "Semua Jaringan",
     "declining_balance": "Saldo menurun ({{currency}} tinggi-rendah)",
     "alphabetically": "Sesuai abjad (A-Z)",
@@ -534,7 +596,7 @@
     "logout_to_import_seed": "Anda harus keluar terlebih dulu untuk mengimpor Frasa Pemulihan Rahasia.",
     "ready_to_explore": "Sudah siap menjelajahi aplikasi blockchain?",
     "unable_to_load": "Tidak dapat memuat saldo",
-    "unable_to_find_conversion_rate": "tidak dapat menemukan tarif konversi",
+    "unable_to_find_conversion_rate": "tidak ada harga konversi",
     "display_nft_media_desc": "Untuk mengimpor NFT, aktifkan Tampilkan media NFT di Pengaturan > Keamanan dan privasi.",
     "display_nft_media_cta": "Aktifkan Tampilkan media NFT",
     "display_media_nft_warning": "Menampilkan media dan data NFT dapat mengekspos alamat IP ke server terpusat. Impor NFT hanya jika Anda memahami risiko yang terlibat.",
@@ -616,6 +678,19 @@
       "custom_security_tips": "Tips Keamanan"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Memuat posisi DeFi...",
+    "no_positions": "Belum ada posisi",
+    "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
+    "error_visit_again": "Coba kunjungi lagi nanti.",
+    "single_token": "Hanya {{symbol}}",
+    "two_tokens": "{{symbol}} +1 lainnya",
+    "multiple_tokens": "{{symbol}} +{{count}} lainnya",
+    "supply": "Disuplai",
+    "stake": "Di-stake",
+    "borrow": "Dipinjam",
+    "reward": "Reward"
+  },
   "terms_and_conditions": {
     "title": "Syarat dan Ketentuan",
     "description": "Dengan melanjutkan, Anda menyetujui",
@@ -696,7 +771,8 @@
     "circulating_supply": "Suplai yang beredar",
     "all_time_high": "Tertinggi sepanjang waktu",
     "all_time_low": "Terendah sepanjang waktu",
-    "fully_diluted": "Dicairkan sepenuhnya"
+    "fully_diluted": "Dicairkan sepenuhnya",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "Alamat",
@@ -730,6 +806,7 @@
     "receive": "TERIMA"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap (Beta)",
     "create_new_account": "Buat akun baru",
     "import_account": "Impor akun",
@@ -860,8 +937,6 @@
     "reset_notifications_description": "Mereset notifikasi berarti Anda menghapus kunci penyimpanan notifikasi dan mereset semua riwayat notifikasi. Yakin ingin melakukan ini?",
     "reset_notifications": "Reset notifikasi",
     "reset_notifications_success": "Kunci penyimpanan notifikasi dihapus/dibuat ulang dan riwayat notifikasi direset.",
-    "enabling_profile_sync": "Mengaktifkan sinkronisasi profil...",
-    "disabling_profile_sync": "Menonaktifkan sinkronisasi profil...",
     "notifications_dismiss_modal": "Lewatkan",
     "select_rpc_url": "Pilih URL RPC",
     "title": "Pengaturan",
@@ -1194,7 +1269,13 @@
           "endowment:caveat:transaction-origin": "Lihat asal situs web yang mengirimkan transaksi",
           "endowment:extend-runtime": "Perpanjang waktu pengoperasian",
           "snap_dialog": "Tampilkan dialog khusus",
-          "snap_manageAccounts": "Tambah dan kontrol akun Ethereum"
+          "snap_manageAccounts": "Tambah dan kontrol akun Ethereum",
+          "endowment:signature-insight": "Menampilkan modal wawasan tanda tangan",
+          "endowment:protocol": "Menyediakan data protokol untuk satu chain atau lebih",
+          "snap_getPreferences": "Lihat informasi seperti bahasa pilihan Anda dan mata uang fiat",
+          "endowment:lifecycle-hooks": "Gunakan lifecycle hook",
+          "endowment:name-lookup": "Menyediakan pencarian domain dan alamat",
+          "endowment:page-home": "Menampilkan layar khusus"
         }
       }
     },
@@ -1359,7 +1440,7 @@
     "token_marketplace": "Token marketplace",
     "sell_button": "Jual",
     "receive_button": "Terima",
-    "portfolio_button": "Portofolio",
+    "portfolio_button": "Portfolio",
     "earn_button": "Hasilkan",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
@@ -1729,7 +1810,13 @@
       "generic": "Situs web ini telah diblokir agar tidak membuka aplikasi eksternal secara otomatis"
     },
     "ipfs_gateway_off_title": "Gateway IPFS tidak aktif",
-    "ipfs_gateway_off_content": "Untuk melihat situs ini, aktifkan gateway IPFS di Pengaturan Privasi dan Keamanan."
+    "ipfs_gateway_off_content": "Untuk melihat situs ini, aktifkan gateway IPFS di Pengaturan Privasi dan Keamanan.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Koneksi dapp Solana akan segera hadir",
+        "message": "Anda dapat terhubung ke dapp Solana pada ekstensi atau memperdagangkan token Solana di dalam aplikasi."
+      }
+    }
   },
   "backup_alert": {
     "title": "Lindungi dompet Anda",
@@ -1829,8 +1916,44 @@
     "sign_description_2": "ketuk Dapatkan Tanda Tangan",
     "sign_get_signature": "Dapatkan Tanda Tangan",
     "transaction_id": "ID Transaksi",
+    "network": "Jaringan",
+    "request_from": "Permintaan dari",
     "network_fee": "Biaya Jaringan",
-    "network_fee_tooltip": "Jumlah yang dibayarkan untuk memproses transaksi di jaringan."
+    "network_fee_tooltip": "Jumlah yang dibayarkan untuk memproses transaksi di jaringan.",
+    "smart_account_upgrade": "Tingkatkan ke akun cerdas",
+    "smart_account_downgrade": "Beralih ke akun standar",
+    "batched_transactions": "Transaksi batch",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Mengirimkan transaksi Anda",
@@ -1980,6 +2103,9 @@
     "edit_permissions": "Edit izin",
     "permitted_networks_info_sheet_description": "Ini merupakan daftar jaringan yang sebelumnya telah Anda beri izin untuk digunakan di situs ini. Pilih satu dari daftar atau edit izin jaringan untuk situs ini.",
     "connect_an_account": "Hubungkan akun"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Hubungkan situs web ini dengan MetaMask"
   },
   "select": {
     "cancel": "Batal",
@@ -3294,15 +3420,6 @@
     "enable_remember_me": "Aktifkan Ingatkan saya",
     "enable_remember_me_description": "Saat Ingatkan saya aktif, siapa pun yang memiliki akses ke ponsel Anda dapat mengakses akun MetaMask Anda."
   },
-  "profile_sync": {
-    "title": "Sinkronisasi Profil",
-    "disable_warning": "Jika sinkronisasi profil dinonaktifkan, Anda tidak dapat menerima notifikasi.",
-    "enable_description": "Membuat profil yang digunakan MetaMask untuk menyinkronkan beberapa pengaturan di antara perangkat Anda. Ini diperlukan untuk mendapatkan notifikasi. ",
-    "enable_description2": " untuk selengkapnya.",
-    "enable_privacy_link": "Pelajari cara kami melindungi privasi Anda",
-    "bottomSheetTurnOn": "Mengaktifkan Sinkronisasi Profil",
-    "bottomSheetTurnOff": "Menonaktifkan Sinkronisasi Profil"
-  },
   "turn_off_remember_me": {
     "title": "Masukkan kata sandi Anda untuk menonaktifkan Ingatkan saya",
     "placeholder": "Kata sandi",
@@ -3327,10 +3444,9 @@
     "accept_helper_description": "Gulirkan layar untuk membaca semua bagian"
   },
   "update_needed": {
-    "title": "Pembaruan diperlukan",
-    "description": "Kami telah meningkatkan keamanan untuk dompet Anda! Harap luangkan waktu untuk melindungi diri Anda dan perbarui ke versi terkini.",
-    "primary_action": "Perbarui ke versi terkini",
-    "secondary_action": "Ingatkan saya nanti"
+    "title": "Dapatkan fitur terbaru",
+    "description": "Kami telah membuat dompet Anda lebih aman, lebih lancar, dan menambahkan beberapa fitur baru. Perbarui sekarang untuk tetap terlindungi dan gunakan penyempurnaan terbaru kami.",
+    "primary_action": "Perbarui ke versi terkini"
   },
   "enable_automatic_security_check_modal": {
     "title": "Periksa pembaruan keamanan secara otomatis?",
@@ -3505,6 +3621,7 @@
     "connect_hardware_wallet": "Hubungkan akun",
     "import_wallet_or_account": "Impor dompet atau akun",
     "add_account": "Buat akun baru",
+    "add_multichain_account": "Buat akun {{networkName}} baru",
     "create_an_account": "Buat akun baru",
     "add_new_account": "Akun Ethereum",
     "import_srp": "Frasa Pemulihan Rahasia",
@@ -3512,7 +3629,12 @@
     "import_account": "Kunci pribadi",
     "add_bitcoin_account_testnet": "Akun testnet Bitcoin",
     "add_bitcoin_account_mainnet": "Akun Bitcoin",
-    "add_solana_account": "Akun Solana"
+    "add_solana_account": "Akun Solana",
+    "switch_to_smart_account": "Beralih ke Akun Cerdas",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Tampilkan NFT",
@@ -3535,13 +3657,14 @@
     "title": "Solana di MetaMask",
     "create_solana_account": "Buat akun Solana",
     "not_now": "Tidak sekarang",
-    "got_it": "Mengerti",
+    "view_solana_account": "Lihat akun Solana",
     "feature_1_title": "Kirim, terima, dan tukar token",
     "feature_1_description": "Transfer dan bertransaksi dengan token seperti SOL, USDC, dan lainnya.",
     "feature_2_title": "Impor akun Solana",
     "feature_2_description": "Impor Frasa Pemulihan Rahasia untuk memindahkan akun Solana dari dompet lain.",
     "feature_3_title": "Fitur lainnya segera hadir",
-    "feature_3_description": "Dapp Solana, NFT, dukungan dompet perangkat keras, dan lainnya segera hadir."
+    "feature_3_description": "Dapp Solana, NFT, dukungan dompet perangkat keras, dan lainnya segera hadir.",
+    "learn_more": "Pelajari selengkapnya tentang akun Solana"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Gateway IPFS",
@@ -3575,7 +3698,35 @@
       "body_prefix": "Anda bisa menghasilkan hingga",
       "body_suffix": "per tahun dengan meminjamkan {{tokenSymbol}} milik Anda.",
       "start_earning": "Mulai menghasilkan"
-    }
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Kami sedang dalam perbaikan dan akan segera kembali online!"
+    },
+    "deposit": "Deposit",
+    "approve": "Setujui",
+    "approval": "Persetujuan",
+    "confirm": "Konfirmasikan",
+    "cancel": "Batal",
+    "transaction_submitted": "Transaksi Dikirim",
+    "every_minute": "Setiap menit",
+    "immediate": "Segera",
+    "apr": "APR",
+    "protocol": "Protokol",
+    "receive_tooltip": "menerima tooltip",
+    "button": "tombol",
+    "receive": "Terima",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Peningkatan nilai deposit tahunan yang diharapkan, berdasarkan pada nilai reward selama seminggu terakhir.",
+        "part_two": "Catatan: APR berubah seiring waktu."
+      },
+      "protocol": "Protokol peminjaman adalah kontrak cerdas yang memungkinkan Anda meminjamkan token untuk memperoleh reward. Protokol ini juga memungkinkan pengguna meminjam token dengan menjadikan token lain sebagai agunan, dengan biaya yang dibayarkan kepada pemberi pinjaman.",
+      "reward_frequency": "Frekuensi penghitungan reward Anda.",
+      "withdrawal_time": "Waktu yang diperlukan untuk menarik token dari protokol dan mengembalikannya ke dompet Anda",
+      "receive": "Token ini digunakan untuk melacak aset dan reward. Jangan mentransfer atau memperdagangkannya, atau Anda tidak akan dapat menarik aset."
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "Stake",
@@ -3709,12 +3860,17 @@
     "basic_functionality": "Fungsionalitas dasar",
     "manage_networks": "Pilih jaringan Anda",
     "manage_networks_body": "Kami menggunakan Infura sebagai penyedia panggilan prosedur jarak jauh (RPC) untuk menawarkan akses paling andal dan pribadi ke data Ethereum sebisa mungkin. Anda dapat memilih RPC sendiri, akan tetapi ingatlah bahwa RPC apa pun akan menerima alamat IP dan dompet Ethereum Anda untuk melakukan transaksi. Baca ",
-    "manage_networks_body2": " untuk selengkapnya seputar cara Infura menangani data.",
+    "manage_networks_body2": " untuk mempelajari selengkapnya tentang cara Infura menangani data untuk akun EVM, untuk akun Solana ",
+    "manage_networks_body3": "klik di sini.",
     "functionality_body": "MetaMask menawarkan fitur dasar seperti detail token dan pengaturan gas melalui layanan internet. Alamat IP dibagikan saat menggunakan layanan internet, dalam hal ini kepada MetaMask. Ini sama seperti saat Anda mengunjungi situs web mana pun. MetaMask menggunakan data ini untuk sementara dan tidak akan pernah menjual data Anda. Anda dapat menggunakan VPN atau menonaktifkan layanan ini, akan tetapi hal ini dapat memengaruhi pengalaman dalam menggunakan MetaMask. Baca ",
     "functionality_body2": " kami untuk selengkapnya.",
     "sheet": {
       "title_off": "Nonaktifkan fungsionalitas dasar",
       "description_off": "Artinya, Anda tidak akan benar-benar mengoptimalkan waktu di MetaMask. Fitur dasar (seperti detail token, pengaturan gas optimal, dan lainnya) tidak akan tersedia untuk Anda.",
+      "description_off2": "Dengan menonaktifkan ini, Anda juga akan menonaktifkan semua fitur di dalamnya",
+      "description_off2_related_features1": "keamanan dan privasi, pencadangan dan sinkronisasi",
+      "description_off2_related_features1_and": "dan",
+      "description_off2_related_features2": "notifikasi.",
       "title_on": "Aktifkan fungsionalitas dasar",
       "description_on": "Untuk mengoptimalkan waktu di MetaMask, Anda perlu mengaktifkan fitur ini. Fungsi dasar (seperti detail token, pengaturan gas optimal, notifikasi, dan lainnya) penting untuk pengalaman web3.",
       "checkbox_label": "Saya memahami dan ingin melanjutkan",
@@ -3796,7 +3952,9 @@
       "primary_type": "Tipe primer",
       "request_from": "Permintaan dari",
       "signing_in_with": "Masuk dengan",
-      "spender": "Spender"
+      "spender": "Spender",
+      "now": "Sekarang",
+      "switching_to": "Beralih Ke"
     },
     "title": {
       "signature": "Permintaan tanda tangan",
@@ -3804,14 +3962,18 @@
       "permit_revoke": "Hapus izin",
       "permit_NFTs": "Permintaan penarikan",
       "signature_siwe": "Permintaan masuk",
-      "contract_interaction": "Permintaan transaksi"
+      "contract_interaction": "Permintaan transaksi",
+      "transfer": "Permintaan transfer",
+      "switch_account_type": "Pembaruan akun"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
       "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
       "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini.",
-      "contract_interaction": "Tinjau detail permintaan sebelum mengonfirmasi."
+      "contract_interaction": "Tinjau detail permintaan sebelum mengonfirmasi.",
+      "switch_to_smart_account": "Anda beralih ke akun cerdas.",
+      "switch_to_standard_account": "Anda beralih kembali ke akun standar (EOA)."
     },
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
@@ -3823,6 +3985,9 @@
     "qr_get_sign": "Dapatkan Tanda Tangan",
     "qr_scan_text": "Pindai dengan dompet perangkat keras",
     "sign_with_ledger": "Tandatangani dengan Ledger",
+    "smart_account": "Akun Cerdas",
+    "smart_contract": "Kontrak cerdas",
+    "standard_account": "Akun Standar",
     "siwe_message": {
       "url": "URL",
       "network": "Jaringan",
@@ -3835,8 +4000,12 @@
       "resources": "Sumber daya"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "NFT akan terlihat di dompet Anda saat tawaran diterima.",
       "decoded_tooltip_list_nft": "Nantikan perubahan hanya jika seseorang membeli NFT Anda.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "Anda memberi izin kepada spender untuk menggunakan sejumlah token ini dari akun Anda.",
       "info_revoke": "Anda menghapus izin seseorang untuk menggunakan token dari akun Anda.",
       "label_change_type_bidding": "Anda menawar",
@@ -3847,16 +4016,40 @@
       "label_change_type_receive": "Anda menerima",
       "label_change_type_revoke": "Cabut",
       "label_change_type_transfer": "Anda mengirim",
+      "label_change_type_approve": "Anda menyetujui",
       "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perubahan yang terprediksi pada akun Anda.",
+      "save": "Save",
       "title": "Estimasi perubahan",
       "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan.",
       "unavailable": "Tidak tersedia"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Akun Cerdas",
+      "standardAccountLabel": "Akun Standar",
+      "switch": "Alihkan",
+      "splashpage": {
+        "accept": "Ya",
+        "betterTransaction": "Transaksi lebih cepat, biaya lebih rendah",
+        "betterTransactionDescription": "Hemat waktu dan uang dengan memproses transaksi bersama-sama.",
+        "featuresDescription": "Pertahankan alamat akun yang sama dan Anda dapat beralih kembali setiap saat.",
+        "payToken": "Bayar dengan token apa pun, setiap saat",
+        "payTokenDescription": "Gunakan token yang sudah Anda miliki untuk menutupi biaya jaringan.",
+        "reject": "Tidak",
+        "requestFor": "Permintaan untuk",
+        "sameAccount": "Akun sama, fitur lebih cerdas.",
+        "splashTitle": "Gunakan akun cerdas?",
+        "upgradeBannerDescription": "Alamat sama. Fitur lebih cerdas.",
+        "upgradeBannerTitle": "Beralih ke akun cerdas"
+      },
+      "includes_transaction": "Mencakup {{transactionCount}} transaksi"
+    },
     "unlimited": "Tak terbatas",
+    "all": "Semua",
     "none": "Kosong",
     "advanced_details": "Detail lanjutan",
     "interacting_with": "Berinteraksi dengan",
-    "review": "Review"
+    "review": "Tinjau",
+    "transferRequest": "Permintaan transfer"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -3877,6 +4070,8 @@
   },
   "bridge": {
     "continue": "Lanjutkan",
+    "confirm_bridge": "Konfirmasikan Bridge",
+    "confirm_swap": "Konfirmasikan Swap",
     "terms_and_conditions": "Syarat & Ketentuan",
     "select_token": "Pilih token",
     "select_network": "Pilih jaringan",
@@ -3905,12 +4100,14 @@
     "bridge_to": "Bridge ke",
     "title": "Bridge",
     "submitting_transaction": "Mengirim",
-    "fetching_quote": "Mengambil kuotasi"
+    "fetching_quote": "Mengambil kuotasi",
+    "fee_disclaimer": "Termasuk biaya MM 0,875%",
+    "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan."
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "Kuotasi baru tersedia",
+    "description": "Harga diperbarui setiap {{refreshRate}} detik, jadi, ketuk Dapatkan kuotasi baru saat sudah siap.",
+    "get_new_quote": "Dapatkan kuotasi baru"
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -3926,5 +4123,100 @@
     "transaction_details": "Detail Transaksi",
     "bridge_to_chain": "Bridge ke {{chainName}}",
     "recipient": "Penerima"
+  },
+  "backupAndSync": {
+    "title": "Pencadangan dan sinkronisasi",
+    "description": "Cadangkan akun Anda dan sinkronkan pengaturan.",
+    "enabling": "Mengaktifkan pencadangan dan sinkronisasi",
+    "disabling": "Menonaktifkan pencadangan dan sinkronisasi",
+    "enable": {
+      "title": "Aktifkan pencadangan dan sinkronisasi",
+      "confirmation": "Saat mengaktifkan pencadangan dan sinkronisasi, Anda juga mengaktifkan fungsionalitas dasar. Lanjutkan?",
+      "description": "Pencadangan dan sinkronisasi memungkinkan kami menyimpan data terenkripsi untuk pengaturan dan fitur khusus Anda. Ini menjaga pengalaman MetaMask Anda tetap sama di semua perangkat serta memulihkan pengaturan dan fiturnya jika Anda perlu menginstal ulang MetaMask. Ini tidak mencadangkan Frasa Pemulihan Rahasia.",
+      "updatePreferences": "Anda dapat memperbarui preferensi setiap saat di",
+      "settingsPath": "Pengaturan > Pencadangan dan sinkronisasi."
+    },
+    "privacyLink": "Pelajari cara kami melindungi privasi Anda",
+    "features": {
+      "accounts": "Akun"
+    },
+    "manageWhatYouSync": {
+      "title": "Kelola yang Anda sinkronkan",
+      "description": "Aktifkan yang disinkronkan antara perangkat Anda."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Pilih aset"
+    },
+    "hideSentitiveInfo": {
+      "message": "Sembunyikan informasi sensitif"
+    },
+    "doNotShare": {
+      "message": "Jangan bagikan ini dengan siapa pun"
+    },
+    "revealSensitiveContent": {
+      "message": "Tampilkan konten sensitif"
+    },
+    "show_more": "lainnya",
+    "show_less": "ciutkan"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

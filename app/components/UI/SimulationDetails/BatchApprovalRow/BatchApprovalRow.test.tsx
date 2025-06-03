@@ -40,4 +40,15 @@ describe('BatchApprovalRow', () => {
     expect(getByText('You approve')).toBeTruthy();
     expect(getByText('- 0.00001')).toBeTruthy();
   });
+
+  it('editing should be enabled for ERC20 tokens', () => {
+    jest
+      .spyOn(BatchApprovalUtils, 'useBatchApproveBalanceChanges')
+      .mockReturnValue({ value: approvalData, pending: false });
+    const { getByTestId } = renderWithProvider(<BatchApprovalRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+
+    expect(getByTestId('edit-amount-button-icon')).toBeTruthy();
+  });
 });
