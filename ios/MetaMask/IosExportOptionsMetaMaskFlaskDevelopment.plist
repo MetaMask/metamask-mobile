@@ -5,7 +5,7 @@
     <key>provisioningProfiles</key>
     <dict>
       <key>io.metamask.MetaMask-Flask</key>
-      <string>Bitrise AppStore io.metamask.MetaMask-Flask</string>
+      <string>development-metamask-flask</string>
     </dict>
     <key>uploadSymbols</key>
     <true/>
