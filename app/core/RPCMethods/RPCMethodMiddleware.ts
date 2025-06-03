@@ -19,10 +19,6 @@ import {
   requestPermissionsHandler,
   revokePermissionsHandler,
 } from '@metamask/eip1193-permission-middleware';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-} from '@metamask/chain-agnostic-permission';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { ChainId, NetworkType } from '@metamask/controller-utils';
@@ -45,7 +41,6 @@ import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import {
-  getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../Permissions';
 import AppConstants from '../AppConstants';
@@ -651,10 +646,10 @@ export const getRpcMethodMiddleware = ({
                     if (Engine.context.KeyringController.isUnlocked()) {
                       return Promise.resolve();
                     }
-                    return new Promise((resolve) => {
+                    return new Promise((resolveUnlock) => {
                       Engine.controllerMessenger.subscribeOnceIf(
                         'KeyringController:unlock',
-                        resolve,
+                        resolveUnlock,
                         () => true,
                       );
                     });

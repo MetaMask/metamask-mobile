@@ -162,7 +162,6 @@ export default class SnapBridge {
     engine.push(subscriptionManager.middleware);
 
     const { context, controllerMessenger } = Engine;
-    const { PermissionController } = context;
 
     engine.push(
       snapMethodMiddlewareBuilder(

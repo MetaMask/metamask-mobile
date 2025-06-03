@@ -25,7 +25,6 @@ import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
 import {
-  PermissionDoesNotExistError,
   SubjectType,
 } from '@metamask/permission-controller';
 
@@ -48,7 +47,7 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getCaip25Caveat, getPermittedAccounts } from '../Permissions';
+import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
@@ -65,11 +64,9 @@ import {
   UNSUPPORTED_RPC_METHODS,
 } from '../RPCMethods/utils';
 import {
-  getCaip25PermissionFromLegacyPermissions,
   getChangedAuthorization,
   getRemovedAuthorization,
 } from '../../util/permissions';
-import { createMultichainMethodMiddleware } from '../RPCMethods/createMultichainMethodMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 
 const legacyNetworkId = () => {
