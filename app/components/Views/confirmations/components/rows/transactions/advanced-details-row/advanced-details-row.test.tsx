@@ -30,14 +30,6 @@ jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
 }));
 
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
 describe('AdvancedDetailsRow', () => {
   const mockUseEditNonce = {
     setShowNonceModal: jest.fn(),
@@ -96,6 +88,20 @@ describe('AdvancedDetailsRow', () => {
 
     // Verify the hook was called
     expect(useEditNonce).toHaveBeenCalled();
+  });
+
+  it('renders data scroll view when data is too long', () => {
+    const state = cloneDeep(generateContractInteractionState);
+    state.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+      '0x' + 'a'.repeat(1000);
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state },
+      false,
+    );
+    fireEvent.press(getByText('Advanced details'));
+    expect(getByTestId('scroll-view-data')).toBeTruthy();
   });
 
   it('display correct information for downgrade confirmation', () => {
