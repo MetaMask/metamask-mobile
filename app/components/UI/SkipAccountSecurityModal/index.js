@@ -82,7 +82,11 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 16,
       marginTop: 24,
-      marginBottom: Platform.OS === 'ios' ? 8 : 16,
+      marginBottom: Platform.select({
+        ios: 8,
+        macos: 8,
+        default: 16,
+      }),
     },
     button: {
       flex: 1,
