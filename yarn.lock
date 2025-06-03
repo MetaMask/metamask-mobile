@@ -4903,7 +4903,7 @@
 
 "@metamask/earn-controller@^1.0.0":
   version "1.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/earn-controller/-/earn-controller-1.0.0.tgz#6f97ea74a6ef936b4fd3a8de66b0ffb27cb6f7ef"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-1.0.0.tgz#6f97ea74a6ef936b4fd3a8de66b0ffb27cb6f7ef"
   integrity sha512-SLBigYA4Yd9r8H3lLvJM80S2e6KxLVBtHULocVNbApiD+jDL/ZAROHKtGksxVSuoKFQ5ZST16Jrar0t96c4BNg==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
