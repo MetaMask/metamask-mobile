@@ -43,7 +43,6 @@ export const AdvancedGasPriceModal = ({
     gas: false,
     gasPrice: false,
   });
-  // Keep double exclamation mark to ensure hasError is a boolean for Android
   const hasError = Boolean(errors.gas || errors.gasPrice);
 
   const handleSaveClick = useCallback(() => {
