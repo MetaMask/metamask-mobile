@@ -142,5 +142,3 @@ github-tools/
 
 # API Monitor logs
 api-monitor-logs/
-
-.env

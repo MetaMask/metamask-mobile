@@ -156,6 +156,7 @@ export const INFURA_TESTNET_CHAIN_IDS = {
   OPBNB_TESTNET: '0x15eb',
   SCROLL_SEPOLIA: '0x8274f',
   UNICHAIN_SEPOLIA: '0x515',
+  HOODI: '0x88bb0',
 } as const;
 
 export const infuraChainIdsTestNets: string[] = [
@@ -176,6 +177,7 @@ export const infuraChainIdsTestNets: string[] = [
   INFURA_TESTNET_CHAIN_IDS.OPBNB_TESTNET,
   INFURA_TESTNET_CHAIN_IDS.SCROLL_SEPOLIA,
   INFURA_TESTNET_CHAIN_IDS.UNICHAIN_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.HOODI,
 ];
 
 export const allowedInfuraHosts = [

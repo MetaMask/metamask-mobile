@@ -24,7 +24,7 @@ import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErro
 export const pooledStakingApiService = new PooledStakingApiService();
 
 export interface Stake {
-  stakingContract?: PooledStakingContract;
+  stakingContract?: PooledStakingContract | null;
   sdkType?: StakingType;
   setSdkType: (stakeType: StakingType) => void;
   networkClientId?: string;
@@ -94,7 +94,7 @@ export const StakeSDKProvider: React.FC<
 
   const stakeContextValue = useMemo(
     (): Stake => ({
-      stakingContract: sdk?.contracts?.pooledStaking || undefined,
+      stakingContract: sdk?.contracts?.pooledStaking,
       sdkType,
       setSdkType,
       networkClientId,
