@@ -6,8 +6,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
-  getOnboardingNavbarOptions,
   getOnboardingCarouselNavbarOptions,
+  getOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';

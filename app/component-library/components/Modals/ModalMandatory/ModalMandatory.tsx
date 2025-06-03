@@ -169,7 +169,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
         onPress={scrollToEnd}
         iconName={IconName.ArrowDown}
-        iconColor={colors.primary.default}
+        iconColor={colors.primary.inverse}
         hitSlop={12}
       />
     </View>

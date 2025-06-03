@@ -737,13 +737,12 @@ describe('handleOnFocus', () => {
     expect(seedPhraseInputs[2]).toBeTruthy();
   });
 
-  it('should clear error when focusing new input with no previous errors', () => {
-    const { getByPlaceholderText, getByTestId, queryByText, getByText } =
-      renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
+  it('should not clear error when focusing new input with no previous errors', () => {
+    const { getByPlaceholderText, getByTestId, queryByText } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
 
     // Enter invalid seed phrase
     const input = getByPlaceholderText(
@@ -771,9 +770,10 @@ describe('handleOnFocus', () => {
     // Focus second input
     fireEvent(secondInput, 'focus');
 
-    expect(
-      getByText(strings('import_from_seed.spellcheck_error')),
-    ).toBeTruthy();
+    const errorElement1 = queryByText(
+      strings('import_from_seed.spellcheck_error'),
+    );
+    expect(errorElement1).toBeOnTheScreen();
 
     // Enter valid word
     fireEvent.changeText(firstInput, 'say');
@@ -782,10 +782,10 @@ describe('handleOnFocus', () => {
     fireEvent(secondInput, 'focus');
 
     // Should not show any error since all words are valid
-    const errorElement = queryByText(
+    const errorElement2 = queryByText(
       strings('import_from_seed.spellcheck_error'),
     );
-    expect(errorElement).not.toBeOnTheScreen();
+    expect(errorElement2).toBeOnTheScreen();
   });
 
   it('should handle multiple error states correctly', () => {
@@ -825,5 +825,43 @@ describe('handleOnFocus', () => {
     expect(
       getByText(strings('import_from_seed.spellcheck_error')),
     ).toBeTruthy();
+  });
+
+  it('should handle new word input correctly', () => {
+    const { getByPlaceholderText, getByTestId } = renderScreen(
+      ImportFromSecretRecoveryPhrase,
+      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+      { state: initialState },
+    );
+
+    const getInput = (index: number) =>
+      getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+      );
+
+    // Enter invalid seed phrase
+    const input = getByPlaceholderText(
+      strings('import_from_seed.srp_placeholder'),
+    );
+
+    fireEvent.changeText(input, 'horse ');
+
+    const input0 = getInput(0);
+    const input1 = getInput(1);
+
+    expect(input0).toBeOnTheScreen();
+    expect(input1).toBeOnTheScreen();
+
+    fireEvent.changeText(input1, 'invalid2 ');
+    const input2 = getInput(2);
+    expect(input2).toBeOnTheScreen();
+
+    fireEvent.changeText(input2, 'invalid3 ');
+    const input3 = getInput(3);
+    expect(input3).toBeOnTheScreen();
+
+    fireEvent.changeText(getInput(1), 'invalid4 ');
+    const input4 = getInput(4);
+    expect(input4).toBeOnTheScreen();
   });
 });

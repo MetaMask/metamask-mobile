@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -68,32 +68,36 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
-  const getIcon = () => {
+  const currentIcon = useMemo(() => {
     if (icon) {
       return icon;
     }
     return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
-  };
+  }, [icon, type]);
 
   const handleSecondaryButtonPress = () => {
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
     }
-    closeOnSecondaryButtonPress && sheetRef.current?.onCloseBottomSheet();
+    if (closeOnSecondaryButtonPress) {
+      sheetRef.current?.onCloseBottomSheet();
+    }
   };
 
   const handlePrimaryButtonPress = () => {
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
     }
-    closeOnPrimaryButtonPress && sheetRef.current?.onCloseBottomSheet();
+    if (closeOnPrimaryButtonPress) {
+      sheetRef.current?.onCloseBottomSheet();
+    }
   };
 
   return (
     <BottomSheet ref={sheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
         <Icon
-          name={getIcon()}
+          name={currentIcon}
           size={IconSize.Xl}
           color={
             type === 'success' ? colors.success.default : colors.error.default

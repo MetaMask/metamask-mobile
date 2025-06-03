@@ -1,10 +1,6 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import AmountView from '../../pages/Send/AmountView';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import SendView from '../../pages/Send/SendView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -24,7 +20,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
-import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';

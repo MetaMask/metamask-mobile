@@ -1,19 +1,8 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-index a36c32e..1ef2013 100644
+index c3fb9ad..f0f91fb 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-@@ -10,6 +10,10 @@ exports.PreferencesController = exports.getDefaultPreferencesState = void 0;
- const base_controller_1 = require("@metamask/base-controller");
- const controller_utils_1 = require("@metamask/controller-utils");
- const constants_1 = require("./constants.cjs");
-+
-+// Patch includes changes from https://github.com/MetaMask/core/pull/4774 until merged
-+// Patch includes changes from https://github.com/MetaMask/core/pull/4875 until merged
-+
- const metadata = {
-     featureFlags: { persist: true, anonymous: true },
-     identities: { persist: true, anonymous: false },
-@@ -17,7 +21,7 @@ const metadata = {
+@@ -17,7 +17,7 @@ const metadata = {
      isIpfsGatewayEnabled: { persist: true, anonymous: true },
      isMultiAccountBalancesEnabled: { persist: true, anonymous: true },
      lostIdentities: { persist: true, anonymous: false },
@@ -22,7 +11,7 @@ index a36c32e..1ef2013 100644
      securityAlertsEnabled: { persist: true, anonymous: true },
      selectedAddress: { persist: true, anonymous: false },
      showTestNetworks: { persist: true, anonymous: true },
-@@ -26,10 +30,11 @@ const metadata = {
+@@ -26,11 +26,12 @@ const metadata = {
      useTokenDetection: { persist: true, anonymous: true },
      smartTransactionsOptInStatus: { persist: true, anonymous: false },
      useTransactionSimulations: { persist: true, anonymous: true },
@@ -31,11 +20,12 @@ index a36c32e..1ef2013 100644
      useSafeChainsListValidation: { persist: true, anonymous: true },
      tokenSortConfig: { persist: true, anonymous: true },
      privacyMode: { persist: true, anonymous: true },
+     dismissSmartAccountSuggestionEnabled: { persist: true, anonymous: true },
 +    tokenNetworkFilter: { persist: true, anonymous: false },
  };
  const name = 'PreferencesController';
  /**
-@@ -45,7 +50,7 @@ function getDefaultPreferencesState() {
+@@ -46,7 +47,7 @@ function getDefaultPreferencesState() {
          isIpfsGatewayEnabled: true,
          isMultiAccountBalancesEnabled: true,
          lostIdentities: {},
@@ -44,7 +34,7 @@ index a36c32e..1ef2013 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -73,16 +78,17 @@ function getDefaultPreferencesState() {
+@@ -74,17 +75,18 @@ function getDefaultPreferencesState() {
          showTestNetworks: false,
          useNftDetection: false,
          useTokenDetection: true,
@@ -60,11 +50,12 @@ index a36c32e..1ef2013 100644
              sortCallback: 'stringNumeric',
          },
          privacyMode: false,
+         dismissSmartAccountSuggestionEnabled: false,
 +        tokenNetworkFilter: {},
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -221,22 +227,22 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -223,22 +225,22 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -85,16 +76,17 @@ index a36c32e..1ef2013 100644
 +     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
       */
 -    setOpenSeaEnabled(openSeaEnabled) {
-+    setDisplayNftMedia(displayNftMedia) {
-         this.update((state) => {
+-        this.update((state) => {
 -            state.openSeaEnabled = openSeaEnabled;
 -            if (!openSeaEnabled) {
++    setDisplayNftMedia(displayNftMedia) {
++         this.update((state) => {
 +            state.displayNftMedia = displayNftMedia;
 +            if (!displayNftMedia) {
                  state.useNftDetection = false;
              }
          });
-@@ -300,13 +306,13 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -302,13 +304,13 @@ class PreferencesController extends base_controller_1.BaseController {
      /**
       * Toggle multi rpc migration modal.
       *
@@ -113,8 +105,8 @@ index a36c32e..1ef2013 100644
              }
          });
      }
-@@ -360,6 +366,16 @@ class PreferencesController extends base_controller_1.BaseController {
-             state.privacyMode = privacyMode;
+@@ -373,6 +375,16 @@ class PreferencesController extends base_controller_1.BaseController {
+                 dismissSmartAccountSuggestionEnabled;
          });
      }
 +    /**
@@ -131,7 +123,7 @@ index a36c32e..1ef2013 100644
  exports.PreferencesController = PreferencesController;
  _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-index 1a6fce1..8811ce5 100644
+index 434ff61..3abbb3d 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 @@ -70,7 +70,7 @@ export type PreferencesState = {
@@ -152,10 +144,10 @@ index 1a6fce1..8811ce5 100644
      /**
       * Controls whether to use the safe chains list validation
       */
-@@ -121,6 +121,10 @@ export type PreferencesState = {
-      * Controls whether balance and assets are hidden or not
+@@ -125,6 +125,10 @@ export type PreferencesState = {
+      * Allow user to stop being prompted for smart account upgrade
       */
-     privacyMode: boolean;
+     dismissSmartAccountSuggestionEnabled: boolean;
 +    /**
 +     * Controls token filtering controls
 +     */
@@ -163,7 +155,7 @@ index 1a6fce1..8811ce5 100644
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
-@@ -202,11 +206,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -206,11 +210,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -178,7 +170,7 @@ index 1a6fce1..8811ce5 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -241,9 +245,9 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -245,9 +249,9 @@ export declare class PreferencesController extends BaseController<typeof name, P
      /**
       * Toggle multi rpc migration modal.
       *
@@ -190,10 +182,10 @@ index 1a6fce1..8811ce5 100644
      /**
       * A setter for the user to opt into smart transactions
       *
-@@ -274,6 +278,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
-      * @param privacyMode - true to enable privacy mode, false to disable it.
+@@ -284,6 +288,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
+      * @param dismissSmartAccountSuggestionEnabled - true to dismiss smart account upgrade prompt, false to enable it.
       */
-     setPrivacyMode(privacyMode: boolean): void;
+     setDismissSmartAccountSuggestionEnabled(dismissSmartAccountSuggestionEnabled: boolean): void;
 +    /**
 +     * Set the token sort configuration setting.
 +     *
