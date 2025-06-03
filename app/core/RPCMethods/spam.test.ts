@@ -3,19 +3,12 @@ import configureMockStore from 'redux-mock-store';
 import { NUMBER_OF_REJECTIONS_THRESHOLD } from '../redux/slices/originThrottling';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 import Routes from '../../constants/navigation/Routes';
-import NavigationService from '../NavigationService';
 import {
   BLOCKABLE_SPAM_RPC_METHODS,
   ExtendedJSONRPCRequest,
   processOriginThrottlingRejection,
   validateOriginThrottling,
 } from './spam';
-
-jest.mock('../NavigationService', () => ({
-  navigation: {
-    navigate: jest.fn(),
-  },
-}));
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
 const SCAM_ORIGIN_MOCK = 'scam.origin';
@@ -145,6 +138,7 @@ describe('utils', () => {
             req: NOT_BLOCKABLE_RPC_REQUEST_MOCK,
             error: new Error('Some error'),
             store,
+            navigation: {} as { navigate: jest.Mock },
           }),
         ).not.toThrow();
       });
@@ -157,6 +151,7 @@ describe('utils', () => {
             req: RPC_REQUEST_MOCK,
             error,
             store,
+            navigation: {} as { navigate: jest.Mock },
           }),
         ).not.toThrow();
       });
@@ -174,14 +169,16 @@ describe('utils', () => {
           },
         },
       });
+      const navigation = { navigate: jest.fn() };
       const error = new Error('User rejected request');
       processOriginThrottlingRejection({
         req: RPC_REQUEST_MOCK,
         error,
         store,
+        navigation,
       });
 
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+      expect(navigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
