@@ -36,7 +36,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getAddressAccountType,
   isHardwareAccount,
-  toFormattedAddress,
+  areAddressesEqual,
 } from '../../../util/address';
 
 import {
@@ -410,9 +410,8 @@ const RootRPCMethodsUI = (props) => {
           (await getMethodData(data, networkClientId)).name ===
             TOKEN_METHOD_TRANSFER
         ) {
-          let asset = props.tokens.find(
-            ({ address }) =>
-              toFormattedAddress(address) === toFormattedAddress(to),
+          let asset = props.tokens.find(({ address }) =>
+            areAddressesEqual(address, to),
           );
           if (!asset) {
             // try to lookup contract by lowercased address `to`

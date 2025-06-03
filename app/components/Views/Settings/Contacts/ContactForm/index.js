@@ -19,7 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderShortAddress,
-  toFormattedAddress,
+  areAddressesEqual,
   validateAddressOrENS,
 } from '../../../../../util/address';
 import ErrorMessage from '../../../confirmations/legacy/SendFlow/ErrorMessage';
@@ -186,10 +186,8 @@ class ContactForm extends PureComponent {
       const contact =
         networkAddressBook[address] ||
         (address &&
-          internalAccounts.find(
-            (account) =>
-              toFormattedAddress(account.address) ===
-              toFormattedAddress(address),
+          internalAccounts.find((account) =>
+            areAddressesEqual(account.address, address),
           ));
       this.setState({
         address,

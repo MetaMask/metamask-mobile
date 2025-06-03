@@ -1,4 +1,4 @@
-import { toFormattedAddress } from '../../util/address';
+import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
 
 /**
@@ -16,14 +16,11 @@ export const isFromOrToSelectedAddress = (
   if (!selectedAddress) {
     return false;
   }
-
-  const formattedSelectedAddress = toFormattedAddress(selectedAddress);
-
-  if (from && toFormattedAddress(from) === formattedSelectedAddress) {
+  if (from && areAddressesEqual(from, selectedAddress)) {
     return true;
   }
 
-  if (to && toFormattedAddress(to) === formattedSelectedAddress) {
+  if (to && areAddressesEqual(to, selectedAddress)) {
     return true;
   }
 
@@ -102,10 +99,8 @@ export const filterByAddressAndNetwork = (
     tx.status !== TX_UNAPPROVED
   ) {
     return isTransfer
-      ? !!tokens.find(
-          ({ address }) =>
-            toFormattedAddress(address) ===
-            toFormattedAddress(transferInformation.contractAddress),
+      ? !!tokens.find(({ address }) =>
+          areAddressesEqual(address, transferInformation.contractAddress),
         )
       : true;
   }

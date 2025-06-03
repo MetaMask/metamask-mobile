@@ -2,7 +2,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
 import { selectInternalAccounts } from '../../selectors/accountsController';
-import { toFormattedAddress } from '../../util/address';
+import { areAddressesEqual } from '../../util/address';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
@@ -32,9 +32,8 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
     };
   }
 
-  const accountWithMatchingAddress = internalAccounts.find(
-    (account) =>
-      toFormattedAddress(account.address) === toFormattedAddress(address),
+  const accountWithMatchingAddress = internalAccounts.find((account) =>
+    areAddressesEqual(account.address, address),
   );
 
   if (accountWithMatchingAddress) {
