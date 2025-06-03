@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -116,7 +117,7 @@ export const Footer = () => {
       variant: ButtonVariants.Secondary,
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
-      onPress: () => onReject(),
+      onPress: () => onReject(providerErrors.userRejectedRequest()),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {
