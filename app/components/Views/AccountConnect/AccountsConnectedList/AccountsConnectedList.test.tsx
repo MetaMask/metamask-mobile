@@ -27,6 +27,7 @@ const mockAccounts: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: true,
+    isLoading: false,
   },
   {
     address: '0x456',
@@ -36,6 +37,7 @@ const mockAccounts: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: false,
+    isLoading: false,
   },
 ];
 

@@ -100,6 +100,7 @@ describe('useSelectedAccountMultichainBalances', () => {
     expect(result.current.selectedAccountMultichainBalance).toEqual({
       displayBalance: '$0.00',
       displayCurrency: 'USD',
+      isLoading: false,
       tokenFiatBalancesCrossChains: [],
       totalFiatBalance: 0,
       totalNativeTokenBalance: '0',
