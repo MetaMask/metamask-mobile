@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.46.1",
+  "version": "7.46.2",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -206,7 +206,7 @@
     "@metamask/phishing-controller": "^12.4.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
-    "@metamask/preferences-controller": "^17.0.0",
+    "@metamask/preferences-controller": "^18.1.0",
     "@metamask/profile-sync-controller": "^14.0.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
@@ -227,7 +227,7 @@
     "@metamask/snaps-rpc-methods": "^12.3.0",
     "@metamask/snaps-sdk": "^6.24.0",
     "@metamask/snaps-utils": "^9.3.0",
-    "@metamask/solana-wallet-snap": "^1.30.4",
+    "@metamask/solana-wallet-snap": "^1.31.2",
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.1.0",

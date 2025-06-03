@@ -5556,13 +5556,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^17.0.0":
-  version "17.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-17.0.0.tgz#2d6a3b7772f3a126e1795ca614303e8a92eb2a54"
-  integrity sha512-1DH/KAJYH9T+JJe7VUqaPjhfNDfZdAMMqjXf+rx4iAq0oFWA1d0iC9SVpYlIktrya7IjqYhjpSSrN0MheN3t4A==
+"@metamask/preferences-controller@^18.1.0":
+  version "18.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-18.1.0.tgz#230b3c3e3abdd3070f0aa1fe1fdf2b43adf9ead4"
+  integrity sha512-eGQDcbIrDmG1FQ7jPDY3NGt4lA9EMHxgexDn7GYefqPBcJxRdddHfq5QmjK5H04wMSiAHYfBRM4/Fw1LlNrwCA==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.9.0"
 
 "@metamask/profile-sync-controller@^14.0.0":
   version "14.0.0"
@@ -5859,10 +5859,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.30.4":
-  version "1.30.4"
-  resolved "https://registry.npmjs.org/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.30.4.tgz#d29b185836a5371280fb8621e8fa970e163459f0"
-  integrity sha512-Ym1N+CwAkUL/bt3rd+HOg3V5YliDzjn6QCXSz7IS4pWCt8licBQbz/AG2HIaXqG7EtIocuo3ESAzxQdbw7PMnQ==
+"@metamask/solana-wallet-snap@^1.31.2":
+  version "1.31.2"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.31.2.tgz#6b22069282c24b8a720ce533502b6d19bf30db13"
+  integrity sha512-Dnsdr2H3Mj0TsQ5y8ZYnfclKeZO+ocDeIZ7n08hcS0/Uuiq4ytkxHmLK9RYE/a/o96OwybLygu5SLpnHbrLZaA==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
