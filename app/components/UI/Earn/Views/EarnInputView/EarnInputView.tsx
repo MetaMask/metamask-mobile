@@ -143,7 +143,12 @@ const EarnInputView = () => {
 
     const tokenContractAddress = earnToken?.address;
 
-    if (!tokenContractAddress || !earnToken?.chainId) return;
+    if (
+      !tokenContractAddress ||
+      !earnToken?.chainId ||
+      !earnToken?.experience?.market?.protocol
+    )
+      return;
 
     const allowanceMinimalTokenUnitBN =
       await Engine.context.EarnController.getLendingTokenAllowance(
