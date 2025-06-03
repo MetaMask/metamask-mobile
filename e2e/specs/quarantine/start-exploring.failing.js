@@ -34,6 +34,7 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingCarouselView.titleThree);
     await Assertions.checkIfVisible(OnboardingCarouselView.imageThree);
     await OnboardingCarouselView.tapOnGetStartedButton();
+    await acceptTermOfUse();
     await Assertions.checkIfVisible(OnboardingView.container);
   });
 
@@ -41,7 +42,6 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await OnboardingView.tapCreateWallet();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
     await MetaMetricsOptIn.tapNoThanksButton();
-    await acceptTermOfUse();
     await Assertions.checkIfVisible(CreatePasswordView.container);
   });
 

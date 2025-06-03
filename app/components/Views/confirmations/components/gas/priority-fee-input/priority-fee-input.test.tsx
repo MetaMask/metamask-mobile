@@ -11,13 +11,6 @@ import { validatePriorityFee } from '../../../utils/gas-validations';
 import { PriorityFeeInput } from './priority-fee-input';
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates');
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../../../utils/gas-validations', () => ({
   validatePriorityFee: jest.fn(),
