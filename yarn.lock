@@ -4680,10 +4680,10 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-2723071f":
-  version "6.0.3-preview-2723071f"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-2723071f.tgz#745fae55070c9051a97bea21f9d8cb057272531d"
-  integrity sha512-g1fwxXT/esh+pvITht5FhNy8k06xFmz2M2KyJYGjQfbavNxcpUQ3v5xYWz6icSMu4AoUIvDFOT7dz/1HKe6DLA==
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-510657d5":
+  version "6.0.3-preview-510657d5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-510657d5.tgz#daaac517727fcd0e96754dcae72ac6ee2a6c1cb8"
+  integrity sha512-Vqpl/856soORFdaAfoKPRCI9ImZ1JNpYCOiEab0L9knvZXwta8XGdxJetqK/01uTGYG3ihx14P/D7+qHxEsB7w==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
@@ -5576,15 +5576,14 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@15.0.0-preview-2723071f":
-  version "15.0.0-preview-2723071f"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-15.0.0-preview-2723071f.tgz#6d98ff014be4c87bbec45048c3527873402c7256"
-  integrity sha512-5K/u4t2+5/gZuyuTJZo94EHpLZFQLKd7PEOV9cEWXdWKjDAr/ykiJqbqHooTIofjvmniti2VT2yW2xqfXFO53A==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@16.0.0-preview-510657d5":
+  version "16.0.0-preview-510657d5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-16.0.0-preview-510657d5.tgz#c6017c3bc8092aa2e14033b25d323855fcea92c1"
+  integrity sha512-tjdg5/wEkEeaG23jeutGsDMEBmGSoj9SNn1JDueY8uO1zCYGk9SFf/sR9SewjncIQgPWIOtbiADgHOEARdmJow==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^17.4.0"
-    "@metamask/snaps-sdk" "^6.22.0"
-    "@metamask/snaps-utils" "^9.2.0"
+    "@metamask/snaps-sdk" "^7.1.0"
+    "@metamask/snaps-utils" "^9.4.0"
     "@noble/ciphers" "^0.5.2"
     "@noble/hashes" "^1.4.0"
     immer "^9.0.6"
@@ -5737,6 +5736,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.1.0.tgz#6f2702de7ba64dad3ab6586ea3ac4e5647804b0a"
   integrity sha512-RQ2MJO0X3QLnJo0rFlb83h2tNAkqqx/VNOPLc3/S2CvY3/cXy3UAEw/xRM/475BeAAkWI93yiIn/FoGUy3E0Ig==
 
+"@metamask/slip44@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.2.0.tgz#cba629120b5ea45761c1bf58069d87a12c30af4d"
+  integrity sha512-pcPwwaedVmZwcoWbxUY27ZaMBrt3+LXrWprmCeoNNbZSkJh1fK4RcrDS7mB1oXX/ZGsREBrayzZ+VZASDmM2kw==
+
 "@metamask/smart-transactions-controller@^16.3.1":
   version "16.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.3.1.tgz#1618bcc4394b5a1969493d6cf828c1a133788f82"
@@ -5841,6 +5845,17 @@
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
 
+"@metamask/snaps-sdk@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-7.1.0.tgz#9ee5f1a04dacabdf9eb1cf10a29b900ab25d82f5"
+  integrity sha512-b0vxRfkRZ1fG04kLYLjOw1yVejFhw+lSomFEEvYcKIYnHPlAH/r9mzPmqoqkcyydPrxxbnIqsFgJdH1ymhSarg==
+  dependencies:
+    "@metamask/key-tree" "^10.1.1"
+    "@metamask/providers" "^22.1.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/superstruct" "^3.2.1"
+    "@metamask/utils" "^11.4.0"
+
 "@metamask/snaps-utils@^9.2.0", "@metamask/snaps-utils@^9.3.0":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-9.3.0.tgz#e0802f42288aa1559a50b9fe38595537ace693bc"
@@ -5855,6 +5870,36 @@
     "@metamask/slip44" "^4.1.0"
     "@metamask/snaps-registry" "^3.2.3"
     "@metamask/snaps-sdk" "^6.24.0"
+    "@metamask/superstruct" "^3.2.1"
+    "@metamask/utils" "^11.4.0"
+    "@noble/hashes" "^1.7.1"
+    "@scure/base" "^1.1.1"
+    chalk "^4.1.2"
+    cron-parser "^4.5.0"
+    fast-deep-equal "^3.1.3"
+    fast-json-stable-stringify "^2.1.0"
+    fast-xml-parser "^4.4.1"
+    luxon "^3.5.0"
+    marked "^12.0.1"
+    rfdc "^1.3.0"
+    semver "^7.5.4"
+    ses "^1.12.0"
+    validate-npm-package-name "^5.0.0"
+
+"@metamask/snaps-utils@^9.4.0":
+  version "9.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-9.4.0.tgz#5a9a518b136d2147ca3083c8cc1232f5c0ba3415"
+  integrity sha512-uDoSrky8s4oyvfY7lZ/Xs+arc28Gb2IVLn0aC4rEXXG7N++YtTMEO2g1BRew9s9nSt3nOTmfi7OaYk/SsaYsbQ==
+  dependencies:
+    "@babel/core" "^7.23.2"
+    "@babel/types" "^7.23.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/key-tree" "^10.1.1"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/slip44" "^4.2.0"
+    "@metamask/snaps-registry" "^3.2.3"
+    "@metamask/snaps-sdk" "^7.1.0"
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
     "@noble/hashes" "^1.7.1"
