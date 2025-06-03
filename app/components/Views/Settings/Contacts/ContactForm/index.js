@@ -19,6 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderShortAddress,
+  toFormattedAddress,
   validateAddressOrENS,
 } from '../../../../../util/address';
 import ErrorMessage from '../../../confirmations/legacy/SendFlow/ErrorMessage';
@@ -34,7 +35,6 @@ import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 
 const createStyles = (colors) =>
@@ -186,8 +186,10 @@ class ContactForm extends PureComponent {
       const contact =
         networkAddressBook[address] ||
         (address &&
-          internalAccounts.find((account) =>
-            toLowerCaseEquals(account.address, address),
+          internalAccounts.find(
+            (account) =>
+              toFormattedAddress(account.address) ===
+              toFormattedAddress(address),
           ));
       this.setState({
         address,

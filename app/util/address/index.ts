@@ -9,7 +9,7 @@ import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { tlc, toLowerCaseEquals } from '../general';
+import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
@@ -286,7 +286,6 @@ export function isPrivateKeyAccount(account: InternalAccount) {
   return account.metadata.keyring.type === KeyringTypes.simple;
 }
 
-
 /**
  * Checks if an address is an ethereum one.
  *
@@ -516,14 +515,14 @@ function checkIfAddressAlreadySaved(
   chainId: Hex,
   internalAccounts: InternalAccount[],
 ) {
-  if (address) {
+  if (address && addressBook && internalAccounts) {
     const networkAddressBook = addressBook[chainId] || {};
 
-    const checksummedResolvedAddress = toChecksumAddress(address);
+    const formattedAddress = toFormattedAddress(address);
     if (
-      networkAddressBook[checksummedResolvedAddress] ||
-      internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedResolvedAddress),
+      networkAddressBook[formattedAddress] ||
+      internalAccounts.find(
+        (account) => toFormattedAddress(account.address) === formattedAddress,
       )
     ) {
       return CONTACT_ALREADY_SAVED;
