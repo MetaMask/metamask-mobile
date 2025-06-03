@@ -24,7 +24,7 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
-  toFormattedAddress,
+  areAddressesEqual,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -246,10 +246,8 @@ class AccountOverview extends PureComponent {
     const { selectedAddress, internalAccounts } = this.props;
     const { accountLabel } = this.state;
 
-    const accountWithMatchingToAddress = internalAccounts.find(
-      (account) =>
-        toFormattedAddress(account.address) ===
-        toFormattedAddress(selectedAddress),
+    const accountWithMatchingToAddress = internalAccounts.find((account) =>
+      areAddressesEqual(account.address, selectedAddress),
     );
 
     Engine.setAccountLabel(

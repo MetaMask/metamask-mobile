@@ -18,7 +18,7 @@ import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
 import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
-import { toFormattedAddress } from '../../util/address';
+import { areAddressesEqual } from '../../util/address';
 
 /**
  * Builder type for the Snap keyring.
@@ -56,9 +56,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const addresses = await this.#messenger.call(
       'KeyringController:getAccounts',
     );
-    return addresses.some(
-      (addr) => toFormattedAddress(addr) === toFormattedAddress(address),
-    );
+    return addresses.some((addr) => areAddressesEqual(addr, address));
   }
 
   async saveState() {

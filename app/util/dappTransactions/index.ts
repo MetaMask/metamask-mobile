@@ -1,6 +1,6 @@
 import { remove0x } from '@metamask/utils';
 import { isBN, hexToBN } from '../number';
-import { safeToChecksumAddress, toFormattedAddress } from '../address';
+import { areAddressesEqual, toFormattedAddress } from '../address';
 import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
 import { strings } from '../../../locales/i18n';
@@ -124,8 +124,11 @@ const getTokenBalance = async (
   selectedAddress: string,
   contractBalances: ContractBalances,
 ): Promise<BN4 | undefined> => {
-  const checksummedFrom = safeToChecksumAddress(from) || '';
-  if (selectedAddress === from && contractBalances[selectedAsset.address]) {
+  const checksummedFrom = toFormattedAddress(from) || '';
+  if (
+    areAddressesEqual(selectedAddress, from) &&
+    contractBalances[selectedAsset.address]
+  ) {
     return hexToBN(
       remove0x(contractBalances[selectedAsset.address].toString()),
     );
@@ -203,8 +206,7 @@ export const validateCollectibleOwnership = async (
       address,
       tokenId,
     );
-    const isOwner =
-      toFormattedAddress(owner) === toFormattedAddress(selectedAddress);
+    const isOwner = areAddressesEqual(owner, selectedAddress);
 
     return !isOwner
       ? strings('transaction.invalid_collectible_ownership')

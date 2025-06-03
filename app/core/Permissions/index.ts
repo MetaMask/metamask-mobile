@@ -28,7 +28,7 @@ import {
 } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { toFormattedAddress } from '../../util/address';
+import { areAddressesEqual } from '../../util/address';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -49,9 +49,8 @@ const captureKeyringTypesWithMissingIdentities = (
 ) => {
   const accountsMissingIdentities = accounts.filter(
     (address) =>
-      !internalAccounts.some(
-        (account) =>
-          toFormattedAddress(account.address) === toFormattedAddress(address),
+      !internalAccounts.some((account) =>
+        areAddressesEqual(account.address, address),
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
@@ -81,16 +80,12 @@ const sortAddressesWithInternalAccounts = <T extends string>(
   internalAccounts: InternalAccount[],
 ): T[] =>
   [...addresses].sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        toFormattedAddress(internalAccount.address) ===
-        toFormattedAddress(firstAddress),
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, firstAddress),
     );
 
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        toFormattedAddress(internalAccount.address) ===
-        toFormattedAddress(secondAddress),
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, secondAddress),
     );
 
     if (!firstAccount) {

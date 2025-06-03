@@ -7,7 +7,10 @@ import handleBatchRpcResponse from '../../handlers/handleBatchRpcResponse';
 import DevLogger from '../../utils/DevLogger';
 import { wait } from '../../utils/wait.util';
 import AndroidService from '../AndroidService';
-import { toFormattedAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  toFormattedAddress,
+} from '../../../../util/address';
 
 async function sendMessage(
   instance: AndroidService,
@@ -41,7 +44,7 @@ async function sendMessage(
     if (isPartOfConnectedAddresses) {
       // Remove the selectedAddress from the formattedAccounts if it exists
       const remainingAccounts = formattedAccounts.filter(
-        (account) => account !== selectedFormattedAddress,
+        (account) => !areAddressesEqual(account, selectedFormattedAddress),
       );
 
       // Create the reorderedAccounts array with selectedAddress as the first element

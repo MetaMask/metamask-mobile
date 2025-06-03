@@ -115,7 +115,9 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
     if (channelId) {
       const origin = channelId;
       const permittedAccountsForOrigin = getPermittedAccounts(origin);
-      setPermittedAccountsAddresses(permittedAccountsForOrigin);
+      setPermittedAccountsAddresses(
+        permittedAccountsForOrigin.map(toFormattedAddress),
+      );
     }
   }, [channelId]);
 

@@ -83,7 +83,7 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { uniq } from 'lodash';
 import { parseCaipAccountId } from '@metamask/utils';
-import { toFormattedAddress } from '../../util/address';
+import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -353,17 +353,16 @@ export class BackgroundBridge extends EventEmitter {
         approvedAccounts = getPermittedAccounts(this.channelId);
       }
       // Check if selectedAddress is approved
-      const found = approvedAccounts
-        .map((addr) => toFormattedAddress(addr))
-        .includes(toFormattedAddress(selectedAddress));
+      const found = approvedAccounts.some((addr) =>
+        areAddressesEqual(addr, selectedAddress),
+      );
 
       if (found) {
         // Set selectedAddress as first value in array
         approvedAccounts = [
           selectedAddress,
           ...approvedAccounts.filter(
-            (addr) =>
-              toFormattedAddress(addr) !== toFormattedAddress(selectedAddress),
+            (addr) => !areAddressesEqual(addr, selectedAddress),
           ),
         ];
 
@@ -406,10 +405,9 @@ export class BackgroundBridge extends EventEmitter {
       if (
         this.addressSent != null &&
         memState.selectedAddress != null &&
-        toFormattedAddress(this.addressSent) !==
-          toFormattedAddress(memState.selectedAddress)
+        !areAddressesEqual(this.addressSent, memState.selectedAddress)
       ) {
-        this.addressSent = memState.selectedAddress;
+        areAddressesEqual(this.addressSent, memState.selectedAddress);
         this.notifySelectedAddressChanged(memState.selectedAddress);
       }
     }
@@ -1002,7 +1000,7 @@ export class BackgroundBridge extends EventEmitter {
   handleSolanaAccountChangedFromSelectedAccountChanges = (account) => {
     if (
       account.type === SolAccountType.DataAccount &&
-      account.address !== this.lastSelectedSolanaAccountAddress
+      !areAddressesEqual(account.address, this.lastSelectedSolanaAccountAddress)
     ) {
       this.lastSelectedSolanaAccountAddress = account.address;
 

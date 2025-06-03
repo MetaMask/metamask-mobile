@@ -123,7 +123,7 @@ const LedgerSelectAccount = () => {
 
   useEffect(() => {
     keyringController.getAccounts().then((value: string[]) => {
-      setExistingAccounts(value);
+      setExistingAccounts(value.map(toFormattedAddress));
     });
   }, [keyringController]);
 
