@@ -761,7 +761,7 @@ class ChoosePassword extends PureComponent {
                     onPress={this.setSelection}
                     isChecked={isSelected}
                     testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID

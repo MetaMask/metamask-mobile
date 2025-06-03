@@ -164,6 +164,7 @@ const SkipAccountSecurityModal = ({ route }) => {
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             style={styles.button}
+            testID={SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON}
           />
           <Button
             onPress={onConfirmAction}
@@ -174,6 +175,7 @@ const SkipAccountSecurityModal = ({ route }) => {
             width={ButtonWidthTypes.Full}
             style={styles.skipButton}
             isDisabled={!skipCheckbox}
+            testID={SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON}
           />
         </View>
       </View>

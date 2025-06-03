@@ -123,12 +123,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await TestHelpers.delay(3500);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
-  }
-
   await TestHelpers.delay(3500);
 
   // should import wallet with secret recovery phrase
@@ -145,6 +139,13 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await TestHelpers.delay(3500);
   await CreatePasswordView.tapCreatePasswordButton();
+
+  await TestHelpers.delay(3500);
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
