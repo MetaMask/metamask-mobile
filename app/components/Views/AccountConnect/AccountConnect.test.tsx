@@ -13,10 +13,10 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { PermissionConstraint } from '@metamask/permission-controller';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
@@ -24,6 +24,26 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
   mockAddress2,
 ]);
+
+// Helper function to create properly typed CAIP-25 permissions
+const createMockCaip25Permission = (
+  optionalScopes: Record<string, { accounts: string[] }>,
+) => ({
+  [Caip25EndowmentPermissionName]: {
+    parentCapability: Caip25EndowmentPermissionName,
+    caveats: [
+      {
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes,
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      },
+    ] as [{ type: string; value: Caip25CaveatValue }],
+  },
+});
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -198,27 +218,11 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
                 isEip1193Request: true,
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'wallet:eip155': {
-                            accounts: [],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -240,27 +244,11 @@ describe('AccountConnect', () => {
                 id: 'mockId',
                 origin: 'mockOrigin',
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'eip155:1': {
-                            accounts: [`eip155:1:${mockAddress1}`],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'eip155:1': {
+                  accounts: [`eip155:1:${mockAddress1}`],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -282,27 +270,11 @@ describe('AccountConnect', () => {
                 id: 'mockId',
                 origin: 'mockOrigin',
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'eip155:1': {
-                            accounts: [],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'eip155:1': {
+                  accounts: [],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -325,27 +297,11 @@ describe('AccountConnect', () => {
                 // Using an invalid/unknown format for origin
                 origin: '',
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'wallet:eip155': {
-                            accounts: [],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -370,27 +326,11 @@ describe('AccountConnect', () => {
                 // Using a valid URL format
                 origin: 'https://example.com',
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'wallet:eip155': {
-                            accounts: [],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
@@ -420,27 +360,11 @@ describe('AccountConnect', () => {
                     // Using a valid URL format to ensure PermissionsSummary renders first
                     origin: 'https://example.com',
                   },
-                  permissions: {
-                    // @ts-expect-error partial object
-                    [Caip25EndowmentPermissionName]: {
-                      parentCapability: Caip25EndowmentPermissionName,
-                      caveats: [
-                        {
-                          type: Caip25CaveatType,
-                          value: {
-                            requiredScopes: {},
-                            optionalScopes: {
-                              'wallet:eip155': {
-                                accounts: [],
-                              },
-                            },
-                            isMultichainOrigin: false,
-                            sessionProperties: {},
-                          },
-                        },
-                      ],
-                    } as PermissionConstraint,
-                  },
+                  permissions: createMockCaip25Permission({
+                    'wallet:eip155': {
+                      accounts: [],
+                    },
+                  }),
                 },
                 permissionRequestId: 'test',
               },
@@ -476,27 +400,11 @@ describe('AccountConnect', () => {
                 id: 'mockId',
                 origin: 'mockOrigin',
               },
-              permissions: {
-                // @ts-expect-error partial object
-                [Caip25EndowmentPermissionName]: {
-                  parentCapability: Caip25EndowmentPermissionName,
-                  caveats: [
-                    {
-                      type: Caip25CaveatType,
-                      value: {
-                        requiredScopes: {},
-                        optionalScopes: {
-                          'wallet:eip155': {
-                            accounts: [],
-                          },
-                        },
-                        isMultichainOrigin: false,
-                        sessionProperties: {},
-                      },
-                    },
-                  ],
-                } as PermissionConstraint,
-              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
             },
             permissionRequestId: 'test',
           },
