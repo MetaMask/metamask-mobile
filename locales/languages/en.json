@@ -3836,7 +3836,7 @@
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token": "Select a token",
-    "you_could_earn": "You could earn",
+    "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
