@@ -51,6 +51,10 @@ class Collectible extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Selected network client ID
+     */
+    selectedNetworkClientId: PropTypes.string,
   };
 
   state = {
@@ -100,13 +104,12 @@ class Collectible extends PureComponent {
     } = this.props;
     const collectibleContract = params;
     const address = params.address;
-    const { collectibles } = this.props;
+    const { collectibles, selectedNetworkClientId } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const filteredCollectibles = collectibles.filter((collectible) =>
       toLowerCaseEquals(collectible.address, address),
     );
-    const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
     filteredCollectibles.map((collectible) => {
       if (!collectible.name || collectible.name === '') {
         collectible.name = collectibleContract.name;
@@ -174,6 +177,7 @@ class Collectible extends PureComponent {
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
   collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
+  selectedNetworkClientId: selectSelectedNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
