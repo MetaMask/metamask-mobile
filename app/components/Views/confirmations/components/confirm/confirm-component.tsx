@@ -77,12 +77,11 @@ export const Confirm = ({ route }: ConfirmProps) => {
     return null;
   }
 
-  // Keep this navigation option to prevent Android navigation flickering
-  navigation.setOptions({
-    headerShown: true,
-  });
-
   if (isFlatConfirmation) {
+    // Keep this navigation option to prevent Android navigation flickering
+    navigation.setOptions({
+      headerShown: true,
+    });
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} route={route} />
