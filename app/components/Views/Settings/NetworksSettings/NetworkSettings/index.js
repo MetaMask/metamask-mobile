@@ -2061,7 +2061,7 @@ export class NetworkSettings extends PureComponent {
               style={inputChainIdStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
-              value={getDecimalChainId(chainId)}
+              value={addMode ? chainId : getDecimalChainId(chainId)}
               editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
