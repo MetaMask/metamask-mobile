@@ -13,16 +13,12 @@ module.exports = {
       {
         target: '18',
         sources: (filename) => {
-          // Match file paths to include in the React Compiler.
-          const filePaths = [
-            'app/components/UI/Tokens/TokenList/TokenListItem',
-            // 'app/components/Views/Root/index',
+          // Match file paths or directories to include in the React Compiler.
+          const pathsToInclude = [
+            'app/components/Views/Root',
+            'app/components/Nav',
           ];
-          const isMatch = filePaths.some((path) => filename.includes(path));
-          if (isMatch) {
-            console.log('HELLO!', filename);
-          }
-          return isMatch;
+          return pathsToInclude.some((path) => filename.includes(path));
         },
       },
     ],
