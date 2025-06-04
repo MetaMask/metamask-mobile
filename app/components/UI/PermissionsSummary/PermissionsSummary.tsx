@@ -72,6 +72,9 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -82,6 +85,7 @@ const PermissionsSummary = ({
   onCancel,
   onConfirm,
   onUserAction,
+  onCreateAccount,
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
@@ -98,6 +102,7 @@ const PermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  promptToCreateSolanaAccount = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -141,9 +146,9 @@ const PermissionsSummary = ({
     onCancel?.();
   };
 
-  const handleEditAccountsButtonPress = () => {
+  const handleEditAccountsButtonPress = useCallback(() => {
     onEdit?.();
-  };
+  }, [onEdit]);
 
   const handleEditNetworksButtonPress = () => {
     onEditNetworks?.();
@@ -557,6 +562,51 @@ const PermissionsSummary = ({
     [accountAddresses],
   );
 
+  const filteredAccounts = useMemo(
+    () =>
+      accounts.filter((account) =>
+        filteredAccountAddresses.includes(account.caipAccountId),
+      ),
+    [accounts, filteredAccountAddresses],
+  );
+
+  const renderAccountsConnectedList = useCallback(
+    (
+      accountsConnectedTabKey: string,
+      restAccountsConnectedTabProps: Record<string, unknown>,
+    ) =>
+      promptToCreateSolanaAccount ? (
+        <AccountConnectCreateInitialAccount
+          key={accountsConnectedTabKey}
+          onCreateAccount={() => {
+            onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+          }}
+          {...restAccountsConnectedTabProps}
+        />
+      ) : (
+        <AccountsConnectedList
+          key={accountsConnectedTabKey}
+          selectedAddresses={accountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={filteredAccounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+      ),
+    [
+      accountAddresses,
+      ensByAccountAddress,
+      privacyMode,
+      networkAvatars,
+      handleEditAccountsButtonPress,
+      promptToCreateSolanaAccount,
+      onCreateAccount,
+      filteredAccounts,
+    ],
+  );
+
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
       accountsConnectedTabProps;
@@ -568,16 +618,10 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedList
-          key={accountsConnectedTabKey}
-          selectedAddresses={filteredAccountAddresses}
-          ensByAccountAddress={ensByAccountAddress}
-          accounts={accounts}
-          privacyMode={privacyMode}
-          networkAvatars={networkAvatars}
-          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-          {...restAccountsConnectedTabProps}
-        />
+        {renderAccountsConnectedList(
+          accountsConnectedTabKey,
+          restAccountsConnectedTabProps,
+        )}
         <View
           key={permissionsTabKey}
           style={styles.permissionsManagementContainer}

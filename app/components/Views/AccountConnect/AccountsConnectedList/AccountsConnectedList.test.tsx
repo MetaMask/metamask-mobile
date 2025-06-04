@@ -33,6 +33,7 @@ const MOCK_ACCOUNTS: Account[] = [
     yOffset: 0,
     isSelected: true,
     scopes: ['eip155:1', 'eip155:137'],
+    isLoadingAccount: false,
   },
   {
     address: MOCK_BTC_ADDRESS,
@@ -44,6 +45,7 @@ const MOCK_ACCOUNTS: Account[] = [
     yOffset: 0,
     isSelected: false,
     scopes: [BtcScope.Mainnet],
+    isLoadingAccount: false,
   },
   {
     address: MOCK_SOL_ADDRESS,
@@ -55,6 +57,7 @@ const MOCK_ACCOUNTS: Account[] = [
     yOffset: 0,
     isSelected: false,
     scopes: [SolScope.Mainnet],
+    isLoadingAccount: false,
   },
   {
     address: MOCK_NO_SCOPES_ADDRESS,
@@ -64,7 +67,8 @@ const MOCK_ACCOUNTS: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: false,
-    // No scopes property
+    scopes: [],
+    isLoadingAccount: false,
   },
 ];
 

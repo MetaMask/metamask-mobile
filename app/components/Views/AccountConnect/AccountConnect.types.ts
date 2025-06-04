@@ -18,6 +18,7 @@ export enum AccountConnectScreens {
   SingleConnectSelector = 'SingleConnectSelector',
   MultiConnectSelector = 'MultiConnectSelector',
   MultiConnectNetworkSelector = 'MultiConnectNetworkSelector',
+  AddNewAccount = 'AddNewAccount',
 }
 
 export interface AccountConnectParams {
