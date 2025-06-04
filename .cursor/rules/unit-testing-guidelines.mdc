@@ -1,5 +1,5 @@
 ---
-description: 
+description: Project Guidelines for Unit Testing
 globs: *.test.*
 alwaysApply: false
 ---
