@@ -24,7 +24,7 @@ const testSpecificMock  = {
         ],
       };
 
-describe(Regression('Monad Testnet Network Regression'), () => {
+describe(Regression(`${MONAD_TESTNET.nickname} - Send Transaction`), () => {
   const TOKEN_NAME = enContent.unit.monad;
   const AMOUNT = '0.0000001';
 
