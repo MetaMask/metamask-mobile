@@ -1591,7 +1591,7 @@ PODS:
     - React-Core
   - react-native-background-timer (2.1.1):
     - React
-  - react-native-ble-plx (3.1.2):
+  - react-native-ble-plx (3.4.0):
     - DoubleConversion
     - glog
     - MultiplatformBleAdapter (= 0.2.0)
@@ -2832,7 +2832,7 @@ SPEC CHECKSUMS:
   lottie-react-native: 5d89c05930d4180a1e39b1757d46e6c0eec90255
   MMKV: 383ccfa10ae23ff2a9c0f6130b7136b37b55ac10
   MMKVCore: b0e4c420da85636d7adaa535a53dfade59a22f5c
-  MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
+  MultiplatformBleAdapter: ea8bac405ec200d0ca9de0f89afef6f06fb2abbc
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
@@ -2869,7 +2869,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 9ae4714c1a76935a53fed603a4b44ac6f650a3f1
   react-native-aes: e8b2e113d532b0efb6449754492aee9c218dd502
   react-native-background-timer: 007ff829f79644caf2ed013e22f0563560336f86
-  react-native-ble-plx: df4151092df39a5512486cf99da0b5725f964c8b
+  react-native-ble-plx: b1a8203898d3d108fd13a38759f11833a94b8fcb
   react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
   react-native-blur: c6212b0b7fdfeb0a5023b75ab0697ad3892f906e
