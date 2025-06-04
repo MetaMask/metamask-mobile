@@ -1262,7 +1262,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const onDismissAutocomplete = useCallback(() => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
-
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
