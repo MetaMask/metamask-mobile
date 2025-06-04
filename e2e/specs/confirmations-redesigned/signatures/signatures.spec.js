@@ -3,7 +3,6 @@ import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView.js';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import PageSections from '../../../pages/Browser/Confirmations/PageSections.js';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp.js';
@@ -30,7 +29,7 @@ const SIGNATURE_LIST = [
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.checkIfVisible(
-        PageSections.SiweSigningAccountInfoSection,
+        RowComponents.SiweSigningAccountInfoSection,
       );
     },
   },
@@ -95,9 +94,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.checkIfVisible(requestType);
 
           // check different sections are visible
-          await Assertions.checkIfVisible(RowComponents.AdvancedDetailsRow);
-          await Assertions.checkIfVisible(PageSections.OriginInfoSection);
-          await Assertions.checkIfVisible(PageSections.MessageSection);
+          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+          await Assertions.checkIfVisible(RowComponents.OriginInfoSection);
+          await Assertions.checkIfVisible(RowComponents.MessageSection);
 
           // any signature specific additional assertions
           if (additionAssertions) {

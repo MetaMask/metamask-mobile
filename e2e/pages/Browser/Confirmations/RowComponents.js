@@ -27,6 +27,25 @@ class RowComponents {
       ConfirmationRowComponentIDs.SIMULATION_DETAILS,
     );
   }
+
+  // Signature specific rows
+  get OriginInfoSection() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
+  }
+
+  get SiweSigningAccountInfoSection() {
+    return Matchers.getElementByID(
+      ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
+    );
+  }
+
+  get MessageSection() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
+  }
+
+  get AccountNetwork() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
+  }
 }
 
 export default new RowComponents();

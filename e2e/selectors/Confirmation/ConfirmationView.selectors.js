@@ -27,25 +27,22 @@ export const ConfirmationUIType = {
 }
 
 export const ConfirmationRowComponentIDs = {
-  TOKEN_HERO: 'token-hero',
-  FROM_TO: 'from-to',
-  SIMULATION_DETAILS: 'simulation-details',
-  GAS_FEES_DETAILS: 'gas-fees-details',
+  ACCOUNT_NETWORK: 'account-network-section',
   ADVANCED_DETAILS: 'advanced-details',
+  FROM_TO: 'from-to',
+  GAS_FEES_DETAILS: 'gas-fees-details',
+  INLINE_ALERT: 'inline-alert',
+  MESSAGE: 'message-section',
+  ORIGIN_INFO: 'origin-info-section',
+  SIMULATION_DETAILS: 'simulation-details',
+  SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info-section',
+  STAKING_DETAILS: 'staking-details-section',
+  TOKEN_HERO: 'token-hero',
 }
 
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
-};
-
-export const ConfirmationPageSectionsSelectorIDs = {
-  ACCOUNT_NETWORK_SECTION: 'account-network-section',
-  ORIGIN_INFO_SECTION: 'origin-info-section',
-  SIWE_SIGNING_ACCOUNT_INFO_SECTION: 'siwe-signing-account-info-section',
-  MESSAGE_SECTION: 'message-section',
-  STAKING_DETAILS_SECTION: 'staking-details-section',
-  INLINE_ALERT: 'inline-alert',
 };
 
 export const ConfirmAlertModalSelectorsIDs = {
