@@ -26,6 +26,7 @@ import {
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -125,6 +126,14 @@ jest.mock('../../../core/Engine', () => ({
         .fn()
         .mockReturnValue(mockNetworkConfiguration),
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      getNetworkClientById: jest.fn().mockReturnValue({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/123',
+          ticker: 'ETH',
+        },
+      }),
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
@@ -741,6 +750,267 @@ describe('AssetOverview', () => {
       ).not.toHaveBeenCalled();
 
       expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should handle error in multichain send for Solana assets', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      const mockSolanaAccount = createMockSnapInternalAccount(
+        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+      );
+
+      // Mock sendMultichainTransaction to throw an error
+      const mockError = new Error('Transaction failed');
+      jest.mocked(sendMultichainTransaction).mockRejectedValueOnce(mockError);
+
+      const solanaAccountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockSolanaAccount.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockSolanaAccount.id]: mockSolanaAccount,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: solanaAccountState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Should still call sendMultichainTransaction
+      expect(jest.mocked(sendMultichainTransaction)).toHaveBeenCalled();
+
+      // Should not navigate to traditional send flow even on error
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should throw error for non-EVM account without snap metadata', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      // Create account without snap metadata
+      const mockAccountWithoutSnap = {
+        ...createMockSnapInternalAccount(
+          'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+          'Solana Account 1',
+          SolAccountType.DataAccount,
+        ),
+        metadata: {
+          name: 'Solana Account 1',
+          importTime: 1684232000456,
+          keyring: { type: 'Snap Keyring' },
+          // No snap metadata
+        },
+      };
+
+      const accountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockAccountWithoutSnap.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockAccountWithoutSnap.id]: mockAccountWithoutSnap,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: accountState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+
+      // Should throw error for non-EVM account without snap metadata
+      await expect(fireEvent.press(sendButton)).rejects.toThrow(
+        'Non-EVM needs to be Snap accounts',
+      );
+    });
+
+    it('should throw error for non-whitelisted snap', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      const mockSolanaAccount = createMockSnapInternalAccount(
+        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+      );
+
+      // Mock isMultichainWalletSnap to return false for this test
+      jest.mocked(isMultichainWalletSnap).mockReturnValueOnce(false);
+
+      const solanaAccountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockSolanaAccount.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockSolanaAccount.id]: mockSolanaAccount,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: solanaAccountState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+
+      // Should throw error for non-whitelisted snap
+      await expect(fireEvent.press(sendButton)).rejects.toThrow(
+        'Non-EVM Snap is not whitelisted',
+      );
+    });
+
+    it('should use traditional EVM send flow for EVM accounts', async () => {
+      const evmAsset = {
+        ...asset,
+        chainId: MOCK_CHAIN_ID,
+        isETH: true,
+      };
+
+      // Use the default EVM account from mockInitialState
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={evmAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Should not call sendMultichainTransaction for EVM accounts
+      expect(jest.mocked(sendMultichainTransaction)).not.toHaveBeenCalled();
+
+      // Should navigate to traditional send flow
+      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should display Solana balance correctly for non-EVM assets', async () => {
+      const solanaAssetWithBalance = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        balance: '123.456789',
+        symbol: 'SOL',
+        isNative: true,
+      };
+
+      const mockSolanaAccount = createMockSnapInternalAccount(
+        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+      );
+
+      const solanaAccountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockSolanaAccount.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockSolanaAccount.id]: mockSolanaAccount,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={solanaAssetWithBalance} />,
+        { state: solanaAccountState },
+      );
+
+      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+
+      // Should display formatted Solana balance
+      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
     });
   });
 });
