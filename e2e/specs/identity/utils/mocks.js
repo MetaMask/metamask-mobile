@@ -2,7 +2,6 @@ import { AuthenticationController } from '@metamask/profile-sync-controller';
 import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { toFormattedAddress } from '../../../../app/util/address';
 
 const AuthMocks = AuthenticationController.Mocks;
 
@@ -89,7 +88,7 @@ export const setupAccountMockedBalances = async (mockServer, accounts) => {
       })
       .withJsonBodyIncluding({
         method: 'eth_getBalance',
-        params: [toFormattedAddress(account)],
+        params: [account],
       })
       .thenCallback(() => ({
         statusCode: 200,
