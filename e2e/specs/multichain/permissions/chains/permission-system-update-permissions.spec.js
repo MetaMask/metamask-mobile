@@ -109,15 +109,16 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
-        await device.disableSynchronization();
-        // Handle network education modal and close bottom sheet
-        await NetworkEducationModal.tapGotItButton();
-        await device.enableSynchronization();
         await TestHelpers.delay(3000);
 
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await PermissionSummaryBottomSheet.swipeToDismissModal();
         await TestHelpers.delay(3000);
+
+        await device.disableSynchronization();
+        // Handle network education modal and close bottom sheet
+        await NetworkEducationModal.tapGotItButton();
+        await device.enableSynchronization();
 
         // Verify network switched to Sepolia in wallet view
         await TabBarComponent.tapWallet();
