@@ -23,14 +23,6 @@ export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
     annualRewardRateDecimal = annualRewardRateDecimalFromVault;
   }
 
-  console.log('annualRewardRate', annualRewardRate);
-  console.log('annualRewardRateDecimal', annualRewardRateDecimal);
-  console.log(
-    'isLoadingVaultMetadataFromVault',
-    isLoadingVaultMetadataFromVault,
-  );
-  console.log('earnToken metadata', earnToken);
-
   return {
     annualRewardRate,
     annualRewardRateDecimal,

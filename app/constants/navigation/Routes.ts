@@ -197,6 +197,7 @@ const Routes = {
     MODALS: {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
+      LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
     },
   },
   STANDALONE_CONFIRMATIONS: {
