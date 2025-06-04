@@ -25,6 +25,7 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 export function useAutoSignIn(): {
   autoSignIn: () => Promise<void>;
   shouldAutoSignIn: boolean;
+  setHasNewKeyrings: (hasNewKeyrings: boolean) => void;
 } {
   const [hasNewKeyrings, setHasNewKeyrings] = useState(false);
   const { signIn } = useSignIn();
@@ -104,5 +105,7 @@ export function useAutoSignIn(): {
   return {
     autoSignIn,
     shouldAutoSignIn,
+    // Used in unit tests to simulate new keyrings being detected, should not be used in production code
+    setHasNewKeyrings,
   };
 }
