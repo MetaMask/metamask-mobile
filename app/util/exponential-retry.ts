@@ -1,11 +1,5 @@
 /**
- * Calculates exponential retry delay with jitter and maximum cap
- *
- * @param retryCount - Current retry attempt (0-based)
- * @param baseDelay - Base delay in milliseconds (default: 1000ms)
- * @param maxDelay - Maximum delay cap in milliseconds (default: 30000ms)
- * @param jitter - Whether to add random jitter to prevent thundering herd (default: false)
- * @returns Calculated delay in milliseconds
+ * Calculates delay for exponential backoff with optional jitter and max delay cap
  */
 export function calculateExponentialRetryDelay(
   retryCount: number,
@@ -13,52 +7,56 @@ export function calculateExponentialRetryDelay(
   maxDelay: number = 30000,
   jitter: boolean = false,
 ): number {
-  const exponentialDelay = baseDelay * Math.pow(2, retryCount);
-  const cappedDelay = Math.min(exponentialDelay, maxDelay);
+  let delay = baseDelay * Math.pow(2, retryCount);
 
-  if (jitter) {
-    // Add up to 10% jitter to prevent synchronized retries
-    const jitterAmount = cappedDelay * 0.1;
-    return cappedDelay + (Math.random() * jitterAmount);
+  if (delay > maxDelay) {
+    delay = maxDelay;
   }
 
-  return cappedDelay;
+  if (jitter) {
+    // Add up to 10% random jitter
+    const jitterAmount = delay * 0.1 * Math.random();
+    delay += jitterAmount;
+  }
+
+  return delay;
 }
 
 /**
- * Generic retry function with exponential delay
- *
- * @param asyncFn - Async function to retry
- * @param maxRetries - Maximum number of retries (default: 3)
- * @param baseDelay - Base delay in milliseconds (default: 1000ms)
- * @param maxDelay - Maximum delay cap in milliseconds (default: 30000ms)
- * @param jitter - Whether to add random jitter (default: false)
- * @returns Promise that resolves with the result or rejects with the last error
+ * Retries an async function with exponential backoff
  */
 export async function retryWithExponentialDelay<T>(
   asyncFn: () => Promise<T>,
-  maxRetries: number = 3,
+  maxRetries: number,
   baseDelay: number = 1000,
   maxDelay: number = 30000,
   jitter: boolean = false,
 ): Promise<T> {
-  let lastError: Error | undefined;
+  let lastError: unknown;
 
-  for (let retryCount = 0; retryCount <= maxRetries; retryCount++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await asyncFn();
     } catch (error) {
-      lastError = error as Error;
+      lastError = error;
 
-      if (retryCount === maxRetries) {
-        throw lastError;
+      // If this was the last attempt, don't delay
+      if (attempt === maxRetries) {
+        break;
       }
 
-      const delay = calculateExponentialRetryDelay(retryCount, baseDelay, maxDelay, jitter);
+      // Calculate and wait for the delay
+      const delay = calculateExponentialRetryDelay(attempt, baseDelay, maxDelay, jitter);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  // This should never be reached due to the logic above, but satisfies TypeScript
-  throw lastError || new Error('Retry function failed with unknown error');
+  // If we get here, all attempts failed
+  if (lastError instanceof Error) {
+    throw lastError;
+  } else if (lastError !== undefined && lastError !== null) {
+    throw new Error(`Retry function failed: ${String(lastError)}`);
+  } else {
+    throw new Error('Retry function failed with unknown error');
+  }
 }
