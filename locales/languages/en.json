@@ -883,7 +883,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
-    }
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"}
   },
   "toast": {
     "connected_and_active": "connected and active.",
