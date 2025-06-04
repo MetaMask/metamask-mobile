@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import styleSheet from './KycProcessing.styles';
+import { useNavigation } from '@react-navigation/native';
+import StyledButton from '../../../../StyledButton';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import useKycPolling, { KycStatus } from '../../hooks/useKycPolling';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../../../component-library/hooks';
+import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
+import { getDepositNavbarOptions } from '../../../../Navbar';
+import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './KycProcessing.styles';
-import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import { getDepositNavbarOptions } from '../../../Navbar';
-import { strings } from '../../../../../../locales/i18n';
-import StyledButton from '../../../StyledButton';
-import DepositProgressBar from '../../components/DepositProgressBar';
-import useKycPolling from '../../hooks/useKycPolling';
+} from '../../../../../../component-library/components/Texts/Text';
 
 export const createKycProcessingNavDetails = createNavigationDetails(
   Routes.DEPOSIT.KYC_PROCESSING,
@@ -23,7 +23,7 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { error, stopPolling } = useKycPolling();
+  const { error, kycResponse, stopPolling } = useKycPolling();
 
   useEffect(() => {
     navigation.setOptions(
@@ -44,7 +44,7 @@ const KycProcessing = () => {
     navigation.navigate(Routes.DEPOSIT.VERIFY_IDENTITY);
   };
 
-  if (error) {
+  if (error || kycResponse?.status === KycStatus.REJECTED) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -64,6 +64,40 @@ const KycProcessing = () => {
           <ScreenLayout.Content>
             <StyledButton type="confirm" onPress={handleRetryVerification}>
               {strings('deposit.kyc_processing.error_button')}
+            </StyledButton>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      </ScreenLayout>
+    );
+  }
+
+  if (kycResponse?.status === KycStatus.APPROVED) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content grow>
+            <DepositProgressBar steps={4} currentStep={3} />
+            <View style={styles.container}>
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary.default}
+                testID="activity-indicator"
+              />
+
+              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+                {strings('deposit.kyc_processing.success_heading')}
+              </Text>
+
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
+                {strings('deposit.kyc_processing.success_button')}
+              </Text>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <StyledButton type="confirm" onPress={handleBrowseTokens}>
+              {strings('deposit.kyc_processing.button')}
             </StyledButton>
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

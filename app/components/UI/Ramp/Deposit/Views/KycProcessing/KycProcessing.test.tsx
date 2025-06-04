@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import KycProcessing from './KycProcessing';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

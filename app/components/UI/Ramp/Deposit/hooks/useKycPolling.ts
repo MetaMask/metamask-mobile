@@ -1,9 +1,20 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { NativeTransakUserDetailsKyc } from '@consensys/native-ramps-sdk';
+
+export enum KycStatus {
+  NOT_SUBMITTED = 'NOT_SUBMITTED',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export interface KycResponse {
+  status: KycStatus | null;
+  type: string | null;
+}
 
 export interface KycPollingResult {
-  kycResponse: NativeTransakUserDetailsKyc | null;
+  kycResponse: KycResponse | null;
   loading: boolean;
   error: string | null;
   startPolling: () => void;
@@ -11,7 +22,7 @@ export interface KycPollingResult {
 }
 
 const useKycPolling = (
-  pollingInterval: number = 5000,
+  pollingInterval: number = 10000,
   autoStart: boolean = true,
 ): KycPollingResult => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,10 +53,16 @@ const useKycPolling = (
     }, pollingInterval);
   }, [getUserDetails, pollingInterval, stopPolling]);
 
-  const status = userDetailsResponse?.kyc?.l1?.status;
+  const status = userDetailsResponse?.kyc?.l1?.status ?? null;
+  const type = userDetailsResponse?.kyc?.l1?.type ?? null;
+
+  const kycResponse: KycResponse = {
+    status: status as KycStatus | null,
+    type,
+  };
 
   useEffect(() => {
-    if (status === 'APPROVED' || status === 'REJECTED') {
+    if (status === KycStatus.APPROVED || status === KycStatus.REJECTED) {
       stopPolling();
     }
   }, [status, stopPolling]);
@@ -61,7 +78,7 @@ const useKycPolling = (
   }, [autoStart, startPolling, stopPolling]);
 
   return {
-    kycResponse: userDetailsResponse?.kyc ?? null,
+    kycResponse,
     loading,
     error,
     startPolling,
