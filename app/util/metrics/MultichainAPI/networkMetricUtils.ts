@@ -35,8 +35,8 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
  * @returns An array of CAIP chain IDs for all configured networks.
  */
 export function getConfiguredCaipChainIds(): CaipChainId[] {
-  const reduxState = store.getState();
-  const networks = selectNetworkConfigurations(reduxState);
+  const state = store.getState();
+  const networks = selectNetworkConfigurations(state);
 
   return Object.values(networks).map((n) => caipifyChainId(n.chainId));
 }

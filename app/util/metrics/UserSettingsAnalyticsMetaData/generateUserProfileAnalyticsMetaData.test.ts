@@ -17,9 +17,22 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
+// Mock the network configurations selector
+const mockSelectNetworkConfigurations = jest.fn();
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
+}));
+
 describe('generateUserProfileAnalyticsMetaData', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+    // Set up default network configurations mock
+    mockSelectNetworkConfigurations.mockReturnValue({
+      '0x1': {
+        chainId: '0x1',
+        name: 'Ethereum Mainnet',
+      },
+    });
   });
 
   afterEach(() => {
@@ -79,7 +92,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
-                    metdata: {
+                    metadata: {
                       id: '01JPM7NFVHW8V9KKN34053JVFU',
                       name: '',
                     },
@@ -198,6 +211,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 1,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
@@ -236,6 +250,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: '',
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 0,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
