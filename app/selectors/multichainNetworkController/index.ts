@@ -185,6 +185,7 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       ];
     }
 
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     if (account.scopes.includes(BtcScope.Mainnet)) {
       return [
         {
@@ -193,6 +194,7 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
         },
       ];
     }
+    ///: END:ONLY_INCLUDE_IF(bitcoin)
 
     return [];
   },
