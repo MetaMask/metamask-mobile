@@ -31,7 +31,6 @@ export const ConfirmationRowComponentIDs = {
   ADVANCED_DETAILS: 'advanced-details',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
-  INLINE_ALERT: 'inline-alert',
   MESSAGE: 'message-section',
   ORIGIN_INFO: 'origin-info-section',
   SIMULATION_DETAILS: 'simulation-details',
@@ -60,3 +59,6 @@ export const AlertModalSelectorsText = {
   ALERT_ORIGIN_MISMATCH_TITLE: enContent.alert_system.domain_mismatch.title,
 };
 
+export const AlertTypeIDs = {
+  INLINE_ALERT: 'inline-alert',
+}
