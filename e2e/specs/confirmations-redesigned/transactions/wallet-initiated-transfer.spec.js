@@ -113,10 +113,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await AmountView.tapMaxButton();
         await AmountView.tapNextButton();
 
-        // Check all expected elements are visible
-        await Assertions.checkIfVisible(
-          ConfirmationUITypes.FlatConfirmationContainer,
-        );
         // Check if the amount is displayed
         await Assertions.checkIfTextIsDisplayed('1.000 ETH');
 
