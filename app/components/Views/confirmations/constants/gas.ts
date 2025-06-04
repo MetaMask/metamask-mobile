@@ -12,3 +12,5 @@ export enum GasOptionIcon {
   MEDIUM = '🦊',
   SITE_SUGGESTED = '🌐',
 }
+
+export const EMPTY_VALUE_STRING = '--';

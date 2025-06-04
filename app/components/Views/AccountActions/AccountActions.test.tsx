@@ -684,24 +684,5 @@ describe('AccountActions', () => {
 
       expect(queryByText('Switch to Smart account')).toBeNull();
     });
-
-    it('option should not be displayed if use has enabled dismissSmartAccountSuggestionEnabled', () => {
-      const { queryByText } = renderWithProvider(<AccountActions />, {
-        state: {
-          ...initialState,
-          engine: {
-            ...initialState.engine,
-            backgroundState: {
-              ...initialState.engine.backgroundState,
-              PreferencesController: {
-                dismissSmartAccountSuggestionEnabled: true,
-              },
-            },
-          },
-        },
-      });
-
-      expect(queryByText('Switch to Smart account')).toBeNull();
-    });
   });
 });

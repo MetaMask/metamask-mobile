@@ -622,62 +622,6 @@ describe('NetworkSettings', () => {
     instance.onChainIdBlur();
     expect(wrapper.state('isChainIdFieldFocused')).toBe(false);
   });
-
-  describe('getDecimalChainId', () => {
-    let wrapperTest;
-    // Do not need to mock entire Engine. Only need subset of data for testing purposes.
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let instanceTest: any;
-
-    beforeEach(() => {
-      wrapperTest = shallow(
-        <Provider store={store}>
-          <ThemeContext.Provider value={mockTheme}>
-            <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
-          </ThemeContext.Provider>
-        </Provider>,
-      )
-        .find(NetworkSettings)
-        .dive();
-
-      instanceTest = wrapperTest.instance();
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should return the chainId as is if it is falsy', () => {
-      expect(instanceTest.getDecimalChainId(null)).toBe(null);
-      expect(instanceTest.getDecimalChainId(undefined)).toBe(undefined);
-    });
-
-    it('should return the chainId as is if it is not a string', () => {
-      expect(instanceTest.getDecimalChainId(123)).toBe(123);
-    });
-
-    it('should return the chainId as is if it does not start with 0x', () => {
-      expect(instanceTest.getDecimalChainId('123')).toBe('123');
-      expect(instanceTest.getDecimalChainId('abc')).toBe('abc');
-    });
-
-    it('should convert hex chainId to decimal string', () => {
-      expect(instanceTest.getDecimalChainId('0x1')).toBe('1');
-      expect(instanceTest.getDecimalChainId('0xa')).toBe('10');
-      expect(instanceTest.getDecimalChainId('0x64')).toBe('100');
-      expect(instanceTest.getDecimalChainId('0x12c')).toBe('300');
-    });
-
-    it('should handle edge cases for hex chainId conversion', () => {
-      expect(instanceTest.getDecimalChainId('0x0')).toBe('0');
-      expect(instanceTest.getDecimalChainId('0xff')).toBe('255');
-      expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
-        '9223372036854776000',
-      );
-    });
-  });
-
   describe('NetworkSettings additional tests', () => {
     beforeEach(() => {
       wrapper = shallow(

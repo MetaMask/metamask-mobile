@@ -17,7 +17,9 @@ import {
   getValueFromWeiHex,
   multiplyHexes,
 } from '../../../../../util/conversions';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { isTestNet } from '../../../../../util/networks';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
@@ -31,13 +33,15 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
     selectNetworkConfigurationByChainId(state, chainId as Hex),
   );
   const nativeConversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId as Hex),
+    selectConversionRateByChainId(state, chainId as Hex, true),
   );
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const { supportsEIP1559 } = useSupportsEIP1559(transactionMeta);
   const fiatFormatter = useFiatFormatter();
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
+  const shouldHideFiat = isTestNet(chainId as Hex) && !showFiatOnTestnets;
 
   const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
     ?.estimatedBaseFee;
@@ -122,6 +126,10 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         );
       }
 
+      if(shouldHideFiat) {
+        currentCurrencyFee = null;
+      }
+
       return {
         currentCurrencyFee,
         nativeCurrencyFee,
@@ -129,7 +137,7 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         preciseNativeFeeInHex: add0x(hexFee),
       };
     },
-    [fiatFormatter, nativeConversionRate, nativeCurrency],
+    [fiatFormatter, nativeConversionRate, nativeCurrency, shouldHideFiat],
   );
 
   const calculateGasEstimate = useCallback(
