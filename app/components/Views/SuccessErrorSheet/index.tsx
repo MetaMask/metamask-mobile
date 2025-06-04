@@ -73,7 +73,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     if (icon) {
       return icon;
     }
-    return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
+    return type === 'success' ? IconName.CheckBold : IconName.CircleX;
   }, [icon, type]);
 
   const handleSecondaryButtonPress = () => {

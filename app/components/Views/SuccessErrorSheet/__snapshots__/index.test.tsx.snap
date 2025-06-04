@@ -20,7 +20,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
       color="#1c7e33"
       fill="currentColor"
       height={32}
-      name="SuccessSolid"
+      name="CheckBold"
       style={
         {
           "height": 32,

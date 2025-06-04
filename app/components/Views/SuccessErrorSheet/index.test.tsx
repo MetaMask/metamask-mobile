@@ -30,7 +30,7 @@ describe('SuccessErrorSheet', () => {
       title: 'Test Title',
       description: 'Test Description',
       type: 'success' as const,
-      icon: IconName.SuccessSolid,
+      icon: IconName.CheckBold,
       primaryButtonLabel: 'Primary',
       secondaryButtonLabel: 'Secondary',
       onPrimaryButtonPress: jest.fn(),
