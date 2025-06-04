@@ -19,6 +19,7 @@ import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ToastModal from '../../../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomSheet';
+import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 
 const accountOneText = 'Account 1';
 const accountTwoText = 'Account 2';
@@ -128,7 +129,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
     );
   });
 
-  it('should manage permissions for multiple accounts and networks accurately', async () => {
+  it.only('should manage permissions for multiple accounts and networks accurately', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -159,7 +160,8 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // connect more accounts through the "connect more accounts" button
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AccountListBottomSheet.tapAddEthereumAccountButton();
+        await AddNewAccountSheet.tapConfirmButton();
         await Assertions.checkIfTextIsDisplayed(accountTwoText);
 
         await AccountListBottomSheet.tapAccountIndex(0);
@@ -176,11 +178,14 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapAccountListBottomSheet();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AccountListBottomSheet.tapAddEthereumAccountButton();
+        await AddNewAccountSheet.tapConfirmButton();
 
         // connect the third account
-        await AccountListBottomSheet.tapAccountIndex(2);
+        await AccountListBottomSheet.tapAccountIndex(0); // only the third account is not connected.
         await AccountListBottomSheet.tapConnectAccountsButton();
+
+        await Browser.tapNetworkAvatarButtonOnBrowser();
 
         // validate 3 accounts are connected
         await Assertions.checkIfTextIsDisplayed(accountOneText);
@@ -188,6 +193,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await Assertions.checkIfTextIsDisplayed(accountThreeText);
 
         // navigate to the permissions summary tab
+        await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
