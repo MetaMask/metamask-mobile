@@ -48,8 +48,7 @@ jest.mock('../../store', () => ({
 
 jest.mock('../RPCMethods/createEthAccountsMethodMiddleware');
 
-createEthAccountsMethodMiddleware;
-
+jest.mock('pump');
 jest.mock('@metamask/eth-json-rpc-filters');
 jest.mock('@metamask/eth-json-rpc-filters/subscriptionManager', () => () => ({
   events: {
