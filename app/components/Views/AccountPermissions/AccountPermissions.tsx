@@ -88,6 +88,8 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import AddNewAccount from '../AddNewAccount';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -180,6 +182,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
     USER_INTENT.None,
   );
+
+  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+    | {
+        clientType?: WalletClientType;
+        scope?: CaipChainId;
+      }
+    | undefined // undefined is used for evm account creation.
+  >(undefined);
 
   const networks = Object.values(networkConfigurations).map((network) => ({
     name: network.name,
@@ -299,33 +309,45 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const handleCreateAccount = useCallback(
-    async () => {
-      const { KeyringController } = Engine.context;
-      try {
-        setIsLoading(true);
-        await KeyringController.addNewAccount();
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          ).build(),
-        );
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-            .addProperties({
-              source: metricsSource,
-              number_of_accounts: accounts?.length,
-            })
-            .build(),
-        );
-      } catch (e) {
-        Logger.error(e as Error, 'Error while trying to add a new account.');
-      } finally {
-        setIsLoading(false);
-      }
+    (clientType?: WalletClientType, scope?: CaipChainId) => {
+      setMultichainAccountOptions({
+        clientType,
+        scope,
+      });
+      setPermissionsScreen(AccountPermissionsScreens.AddAccount);
     },
-    /* eslint-disable-next-line */
-    [setIsLoading],
+    [],
   );
+
+  const handleAccountCreationComplete = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+        ).build(),
+      );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: metricsSource,
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
+      setPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
+    } catch (e) {
+      Logger.error(e as Error, 'Error while trying to add a new account.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    setIsLoading,
+    trackEvent,
+    createEventBuilder,
+    accounts?.length,
+    metricsSource,
+  ]);
 
   const handleSelectChainIds = useCallback(
     async (chainIds: CaipChainId[]) => {
@@ -564,11 +586,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           });
           break;
         }
-        case USER_INTENT.Create:
-        case USER_INTENT.CreateMultiple: {
-          handleCreateAccount();
-          break;
-        }
         case USER_INTENT.EditMultiple: {
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
           break;
@@ -615,6 +632,26 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     trackEvent,
     createEventBuilder,
   ]);
+
+  const renderAddNewAccount = useCallback(
+    ({
+      clientType,
+      scope,
+    }: {
+      clientType?: WalletClientType;
+      scope?: CaipChainId;
+    }) => (
+      <AddNewAccount
+        scope={scope}
+        clientType={clientType}
+        onActionComplete={handleAccountCreationComplete}
+        onBack={() => {
+          setPermissionsScreen(AccountPermissionsScreens.Connected);
+        }}
+      />
+    ),
+    [handleAccountCreationComplete],
+  );
 
   const renderConnectedScreen = useCallback(
     () => (
@@ -704,6 +741,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
@@ -714,6 +752,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isRenderedAsBottomSheet,
       accounts,
       handleSelectAccountAddressesFromEditView,
+      handleCreateAccount,
     ],
   );
 
@@ -730,6 +769,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
         showDisconnectAllButton={false}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
@@ -739,6 +779,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hostname,
       permittedCaipAccountIds,
       handleSelectAccountAddressesFromConnectMoreView,
+      handleCreateAccount,
     ],
   );
 
@@ -898,6 +939,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return isNonDappNetworkSwitch
           ? renderNetworkPermissionSummaryScreen()
           : renderPermissionsSummaryScreen();
+      case AccountPermissionsScreens.AddAccount:
+        return renderAddNewAccount(multichainAccountOptions || {});
     }
   }, [
     permissionsScreen,
@@ -909,6 +952,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderChooseFromPermittedNetworksScreen,
     renderPermissionsSummaryScreen,
     renderNetworkPermissionSummaryScreen,
+    renderAddNewAccount,
+    multichainAccountOptions,
   ]);
 
   return isRenderedAsBottomSheet ? (

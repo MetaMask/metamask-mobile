@@ -28,6 +28,7 @@ const MOCK_ACCOUNTS = [
     caipAccountId: MOCK_CAIP_ACCOUNT_ID,
     yOffset: 0,
     type: KeyringTypes.simple,
+    isLoadingAccount: false,
   },
 ];
 
