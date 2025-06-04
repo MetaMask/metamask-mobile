@@ -15,9 +15,9 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TransactionConfirmationView from '../../../pages/Send/TransactionConfirmView';
 import AmountView from '../../../pages/Send/AmountView';
 import SendView from '../../../pages/Send/SendView';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
-const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
+const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig.nickname;
 const testSpecificMock  = {
         GET: [
           mockEvents.GET.remoteFeatureFlagsOldConfirmations
@@ -33,7 +33,7 @@ describe(Regression('Monad Testnet Network Regression'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it(`should send ${MONAD_TESTNET.nickname} to an EOA from inside the wallet`, async () => {
+  it(`should send ${MONAD_TESTNET} to an EOA from inside the wallet`, async () => {
     const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
     await withFixtures(
       {
