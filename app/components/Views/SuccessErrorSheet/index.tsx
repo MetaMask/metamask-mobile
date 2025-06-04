@@ -19,6 +19,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
@@ -41,7 +42,10 @@ export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
 }
 
-const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
+const SuccessErrorSheet = React.forwardRef<
+  BottomSheetRef,
+  SuccessErrorSheetProps
+>(({ route }, ref) => {
   const {
     onClose,
     title,
@@ -62,6 +66,9 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
 
+  // Use the forwarded ref if provided, otherwise use the local ref
+  const bottomSheetRef = (ref as React.RefObject<BottomSheetRef>) || sheetRef;
+
   const handleClose = () => {
     if (onClose) {
       onClose();
@@ -80,7 +87,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       onSecondaryButtonPress();
     }
     if (closeOnSecondaryButtonPress) {
-      sheetRef.current?.onCloseBottomSheet();
+      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 
@@ -89,12 +96,12 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       onPrimaryButtonPress();
     }
     if (closeOnPrimaryButtonPress) {
-      sheetRef.current?.onCloseBottomSheet();
+      bottomSheetRef.current?.onCloseBottomSheet();
     }
   };
 
   return (
-    <BottomSheet ref={sheetRef} onClose={handleClose}>
+    <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
         <Icon
           name={currentIcon}
@@ -174,6 +181,6 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       </View>
     </BottomSheet>
   );
-};
+});
 
 export default SuccessErrorSheet;
