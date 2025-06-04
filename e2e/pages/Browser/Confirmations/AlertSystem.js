@@ -1,5 +1,5 @@
 import Matchers from '../../../utils/Matchers';
-import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText, ConfirmationRowComponentIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Gestures from '../../../utils/Gestures';
 
 class AlertSystem {
