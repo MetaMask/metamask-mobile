@@ -58,7 +58,11 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();
 
+        // Do double tab here to prevent flakiness
         await AmountView.tapMaxButton();
+        await TestHelpers.delay(2000);
+        await AmountView.tapMaxButton();
+
         await AmountView.tapNextButton();
 
         // Check if the amount is displayed
