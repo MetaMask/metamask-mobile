@@ -4,7 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import useBalance from '../Ramp/hooks/useBalance';
+import useBalance from '../Ramp/Aggregator/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
@@ -63,7 +63,7 @@ const mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
-jest.mock('../Ramp/hooks/useBalance', () =>
+jest.mock('../Ramp/Aggregator/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
 );
 
