@@ -4,9 +4,7 @@ import { ButtonBaseProps } from '../../foundation/ButtonBase';
 /**
  * ButtonSecondary component props.
  */
-export type ButtonSecondaryProps = Omit<ButtonBaseProps, 'labelColor'> & {
-  overridePressedColor?: string;
-};
+export type ButtonSecondaryProps = Omit<ButtonBaseProps, 'labelColor'>;
 
 /**
  * Style sheet input parameters.
@@ -17,5 +15,4 @@ export type ButtonSecondaryStyleSheetVars = Pick<
 > & {
   isDanger: boolean;
   pressed: boolean;
-  overridePressedColor?: string;
 };

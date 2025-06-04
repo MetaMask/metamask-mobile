@@ -1842,13 +1842,7 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp connection coming soon",
-        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
-      }
-    }
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -3946,7 +3940,7 @@
     "failed": "There was an error loading your estimation.",
     "fiat_not_available": "Not Available",
     "incoming_heading": "You receive",
-    "no_balance_changes": "No changes predicted for your wallet",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "You send",
     "reverted": "This transaction is likely to fail",
     "title": "Estimated changes",

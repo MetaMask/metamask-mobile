@@ -7,6 +7,7 @@ import { merge } from 'lodash';
 
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { simpleSendTransaction } from '../../mock-data/transaction-controller-mock';
+import { EMPTY_VALUE_STRING } from '../../constants/gas';
 import { useFeeCalculations } from './useFeeCalculations';
 import { useAdvancedGasFeeOption } from './useAdvancedGasFeeOption';
 
@@ -49,8 +50,8 @@ describe('useAdvancedGasFeeOption', () => {
 
     const advancedGasFeeOption = result.current[0];
     expect(advancedGasFeeOption.key).toEqual('advanced');
-    expect(advancedGasFeeOption.value).toEqual('--');
-    expect(advancedGasFeeOption.valueInFiat).toEqual('');
+    expect(advancedGasFeeOption.value).toEqual(EMPTY_VALUE_STRING);
+    expect(advancedGasFeeOption.valueInFiat).toEqual(EMPTY_VALUE_STRING);
     expect(advancedGasFeeOption.isSelected).toEqual(false);
   });
 

@@ -26,7 +26,6 @@ const ButtonSecondary = ({
   onPressOut,
   isDanger = false,
   label,
-  overridePressedColor,
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);
@@ -34,7 +33,6 @@ const ButtonSecondary = ({
     style,
     isDanger,
     pressed,
-    overridePressedColor,
   });
 
   const triggerOnPressedIn = useCallback(
