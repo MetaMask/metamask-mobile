@@ -22,6 +22,8 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
+import I18n from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -119,16 +121,13 @@ export const formatId = (id: string) => {
 
 export function formatAmount(amount: number, useParts = false) {
   try {
-    if (Intl?.NumberFormat) {
-      if (useParts) {
-        return new Intl.NumberFormat()
-          .formatToParts(amount)
-          .map(({ type, value }) => (type === 'integer' ? value : ''))
-          .join(' ');
-      }
-      return new Intl.NumberFormat().format(amount);
+    if (useParts) {
+      return getIntlNumberFormatter(I18n.locale)
+        .formatToParts(amount)
+        .map(({ type, value }) => (type === 'integer' ? value : ''))
+        .join(' ');
     }
-    return String(amount);
+    return getIntlNumberFormatter(I18n.locale).format(amount);
   } catch (e) {
     return String(amount);
   }
