@@ -37,11 +37,11 @@ interface OnboardingSuccessProps {
   noSRP?: boolean;
 }
 
-export const OnboardingSuccessComponent = ({
+export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
   backedUpSRP,
   noSRP,
-}: OnboardingSuccessProps) => {
+}) => {
   const navigation = useNavigation();
 
   const dispatch = useDispatch();
