@@ -29,7 +29,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-// Updated mock to match the new tuple return type
 const mockUseDepositSdkMethodInitialState = {
   data: null,
   error: null,
@@ -38,7 +37,6 @@ const mockUseDepositSdkMethodInitialState = {
 
 const mockSdkMethod = jest.fn().mockResolvedValue('Success');
 
-// Initial state tuple matching DepositSdkMethodResult
 let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'verifyUserOtp'> = [
   mockUseDepositSdkMethodInitialState,
   mockSdkMethod,
@@ -81,13 +79,9 @@ describe('OtpCode Component', () => {
     ];
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(OtpCode);
-    expect(
-      screen.getByText(
-        `Enter the 6-digit code we sent to ${EMAIL}. If you don't see it in your inbox, check your spam folder.`,
-      ),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -99,13 +93,13 @@ describe('OtpCode Component', () => {
     );
   });
 
-  it('displays loading state', async () => {
+  it('renders loading state snapshot', async () => {
     mockUseDepositSdkMethodValues = [
       { ...mockUseDepositSdkMethodInitialState, isFetching: true },
       mockSdkMethod,
     ];
     render(OtpCode);
-    expect(screen.getByText('Verifying code...')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to next screen on submit button press when valid code is entered', async () => {
@@ -163,13 +157,13 @@ describe('OtpCode Component', () => {
     });
   });
 
-  it('displays error message when API call fails', async () => {
+  it('render matches error snapshot when API call fails', async () => {
     mockUseDepositSdkMethodValues = [
       { ...mockUseDepositSdkMethodInitialState, error: 'Invalid code' },
       mockSdkMethod,
     ];
     render(OtpCode);
-    expect(screen.getByText('Invalid code')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('disables submit button and shows loading state when loading', () => {
@@ -178,7 +172,7 @@ describe('OtpCode Component', () => {
       mockSdkMethod,
     ];
     render(OtpCode);
-    expect(screen.getByText('Verifying code...')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
     const loadingButton = screen.getByRole('button', {
       name: 'Verifying code...',
     });
