@@ -22,6 +22,7 @@ import { use7702TransactionType } from '../../../../hooks/7702/use7702Transactio
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
+import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
 import styleSheet from './advanced-details-row.styles';
 
@@ -37,7 +38,7 @@ const AdvancedDetailsRow = () => {
     proposedNonce,
     userSelectedNonce,
   } = useEditNonce();
-  const { isBatched, isUpgrade, isUpgradeOnly, isDowngrade } =
+  const { isBatched, isUpgrade, is7702transaction, isDowngrade } =
     use7702TransactionType();
 
   if (!transactionMetadata?.txParams?.to) {
@@ -95,7 +96,7 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!(isUpgradeOnly || isDowngrade) && (
+            {!is7702transaction && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
@@ -121,6 +122,7 @@ const AdvancedDetailsRow = () => {
                 </InfoRow>
               </InfoSection>
             )}
+            {isBatched && <NestedTransactionData />}
             {showNonceModal && (
               <CustomNonceModal
                 proposedNonce={proposedNonce}
