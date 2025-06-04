@@ -357,51 +357,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                 "flexDirection": "row",
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
-                              testID="avatargroup-avatar-container-0"
-                            >
-                              <View
-                                caipChainId="eip155:1"
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                          </View>
+                          />
                         </View>
                       </View>
                     </View>
@@ -901,7 +857,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
-                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
@@ -2809,7 +2764,6 @@ exports[`PermissionsSummary should render only the network permissions card when
                       testID="avatargroup-avatar-container-0"
                     >
                       <View
-                        caipChainId="eip155:1"
                         style={
                           {
                             "alignItems": "center",
@@ -3435,51 +3389,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                 "flexDirection": "row",
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
-                              testID="avatargroup-avatar-container-0"
-                            >
-                              <View
-                                caipChainId="eip155:1"
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                          </View>
+                          />
                         </View>
                       </View>
                     </View>
@@ -3979,7 +3889,6 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
-                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
@@ -4606,50 +4515,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                                 "flexDirection": "row",
                               }
                             }
-                          >
-                            <View
-                              style={
-                                {
-                                  "marginLeft": 0,
-                                }
-                              }
-                              testID="avatargroup-avatar-container-0"
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#ffffff",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1.5,
-                                    "height": 16,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
-                                    "width": 16,
-                                  }
-                                }
-                                testID="avatargroup-avatar"
-                              >
-                                <Image
-                                  onError={[Function]}
-                                  resizeMode="contain"
-                                  source={
-                                    {
-                                      "uri": "test-network-avatar.png",
-                                    }
-                                  }
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  testID="network-avatar-image"
-                                />
-                              </View>
-                            </View>
-                          </View>
+                          />
                         </View>
                       </View>
                     </View>
