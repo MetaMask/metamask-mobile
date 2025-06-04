@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/stake-sdk/dist/api/Lending/LendingApiService.cjs b/node_modules/@metamask/stake-sdk/dist/api/Lending/LendingApiService.cjs
+index 996309f..e8668b6 100644
+--- a/node_modules/@metamask/stake-sdk/dist/api/Lending/LendingApiService.cjs
++++ b/node_modules/@metamask/stake-sdk/dist/api/Lending/LendingApiService.cjs
+@@ -68,7 +68,7 @@ class LendingApiService extends BaseApiService_1.BaseApiService {
+     async getHistoricMarketApys(chainId, protocol, marketId, days = 30, order = 'DESC') {
+         const path = `lending/${chainId}/${protocol}/markets/${marketId}/apys?days=${days}&order=${order}`;
+         const response = await this.fetchFromApi(path);
+-        return response.historicApys;
++        return response;
+     }
+ }
+ exports.LendingApiService = LendingApiService;
