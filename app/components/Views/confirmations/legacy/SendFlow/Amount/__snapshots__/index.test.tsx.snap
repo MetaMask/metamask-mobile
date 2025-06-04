@@ -634,7 +634,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -1336,7 +1336,7 @@ exports[`Amount converts ETH to USD 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -2055,7 +2055,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -2774,7 +2774,7 @@ exports[`Amount converts USD to ETH 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -3475,7 +3475,7 @@ exports[`Amount displays correct balance 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -4176,7 +4176,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -4843,7 +4843,7 @@ exports[`Amount does not show a warning when transfering collectibles 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -5546,7 +5546,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -6243,7 +6243,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -6933,7 +6933,7 @@ exports[`Amount renders correctly 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -7629,7 +7629,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
@@ -8373,7 +8373,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },

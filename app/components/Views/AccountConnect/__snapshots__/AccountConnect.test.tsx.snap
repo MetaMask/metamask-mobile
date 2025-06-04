@@ -1153,7 +1153,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -1215,7 +1215,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -2428,7 +2428,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -2490,7 +2490,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -3703,7 +3703,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -3765,7 +3765,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },

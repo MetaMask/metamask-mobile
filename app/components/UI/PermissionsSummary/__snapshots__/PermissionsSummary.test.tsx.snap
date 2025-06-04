@@ -1042,7 +1042,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -1104,7 +1104,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -1673,7 +1673,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -1735,7 +1735,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -2366,7 +2366,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -2427,7 +2427,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -2949,7 +2949,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -3010,7 +3010,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -4115,7 +4115,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
@@ -4177,7 +4177,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
