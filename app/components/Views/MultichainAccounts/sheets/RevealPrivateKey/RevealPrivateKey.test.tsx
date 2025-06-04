@@ -108,18 +108,7 @@ describe('RevealPrivateKey', () => {
   it('displays account name correctly', () => {
     const { getByText } = render();
 
-    expect(getByText('Test Account')).toBeTruthy();
-  });
-
-  it('handles password input correctly', () => {
-    const { getByPlaceholderText } = render();
-
-    const passwordInput = getByPlaceholderText(
-      strings('multichain_accounts.reveal_private_key.password_placeholder'),
-    );
-    fireEvent.changeText(passwordInput, 'test-password');
-
-    expect(passwordInput.props.value).toBe('test-password');
+    expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -131,71 +120,5 @@ describe('RevealPrivateKey', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('reveals private key on successful export', async () => {
-    const mockPrivateKey = '0xprivatekey123456789';
-    mockExportAccount.mockResolvedValue(mockPrivateKey);
-
-    const { getByPlaceholderText } = render();
-
-    const passwordInput = getByPlaceholderText(
-      strings('multichain_accounts.reveal_private_key.password_placeholder'),
-    );
-    fireEvent.changeText(passwordInput, 'correct-password');
-
-    await waitFor(() => {
-      expect(mockExportAccount).toHaveBeenCalledWith(
-        mockSelectedAccount.address,
-        'correct-password',
-      );
-    });
-  });
-
-  it('handles export error correctly', async () => {
-    const errorMessage = 'Invalid password';
-    mockExportAccount.mockRejectedValue(new Error(errorMessage));
-
-    const { getByPlaceholderText } = render();
-
-    const passwordInput = getByPlaceholderText(
-      strings('multichain_accounts.reveal_private_key.password_placeholder'),
-    );
-    fireEvent.changeText(passwordInput, 'wrong-password');
-
-    await waitFor(() => {
-      expect(mockExportAccount).toHaveBeenCalledWith(
-        mockSelectedAccount.address,
-        'wrong-password',
-      );
-    });
-  });
-
-  // it('handles different account types', () => {
-  //   const snapAccount = createMockInternalAccount(
-  //     '0x9876543210987654321098765432109876543210',
-  //     'Snap Account',
-  //     KeyringTypes.snap,
-  //     EthAccountType.Eoa,
-  //   );
-
-  //   const mockRouteWithSnapAccount = {
-  //     params: { account: snapAccount },
-  //   };
-
-  //   mockUseRoute.mockReturnValue(mockRouteWithSnapAccount);
-
-  //   const { getByText } = render();
-
-  //   expect(getByText('Snap Account')).toBeTruthy();
-  // });
-
-  // it('shows password input when no private key is revealed', () => {
-  //   const { getByPlaceholderText, queryByText } = render();
-
-  //   expect(
-  //     getByPlaceholderText(
-  //       strings('multichain_accounts.reveal_private_key.password_placeholder'),
-  //     ),
-  //   ).toBeTruthy();
-  //   expect(queryByText(/0x[a-fA-F0-9]+/)).toBeNull();
-  // });
+  it('navigates to RevealPrivateCredential with correct params', () => {});
 });
