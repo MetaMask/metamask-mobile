@@ -449,6 +449,12 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens"
     }
   },
   "receive": {
