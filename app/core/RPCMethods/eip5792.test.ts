@@ -21,7 +21,7 @@ const MOCK_ACCOUNT = '0x1234';
 jest.mock('../Engine', () => ({
   context: {
     AccountsController: {
-      listAccounts: () => [{ address: MOCK_ACCOUNT }],
+      getSelectedAccount: () => ({ address: MOCK_ACCOUNT }),
     },
     KeyringController: {
       state: {
@@ -74,15 +74,15 @@ jest.mock('../Engine', () => ({
 const MockEngine = jest.mocked(Engine);
 
 describe('getAccounts', () => {
-  it('list of account addresses', async () => {
+  it('return selected account address', async () => {
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([MOCK_ACCOUNT]);
   });
 
-  it('return empty array if AccountsController returns no accounts', async () => {
-    MockEngine.context.AccountsController.listAccounts = (() =>
+  it('return empty array if origin is metamask and AccountsController returns no selected account', async () => {
+    MockEngine.context.AccountsController.getSelectedAccount = (() =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      []) as any;
+      undefined) as any;
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([]);
   });
