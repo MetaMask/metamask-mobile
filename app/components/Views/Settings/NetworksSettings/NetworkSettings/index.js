@@ -23,6 +23,7 @@ import Networks, {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isValidNetworkName,
+  getDecimalChainId,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -674,23 +675,6 @@ export class NetworkSettings extends PureComponent {
       networkList,
     });
   };
-  /**
-   * Attempts to convert the given chainId to a decimal string, for display
-   * purposes.
-   *
-   * Should be called with the props chainId whenever it is used to set the
-   * component's state.
-   *
-   * @param {unknown} chainId - The chainId to convert.
-   * @returns {string} The props chainId in decimal, or the original value if
-   * it can't be converted.
-   */
-  getDecimalChainId(chainId) {
-    if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
-      return chainId;
-    }
-    return parseInt(chainId, 16).toString(10);
-  }
 
   isAnyModalVisible = () =>
     this.state.showMultiRpcAddModal.isVisible ||
@@ -2077,7 +2061,7 @@ export class NetworkSettings extends PureComponent {
               style={inputChainIdStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
-              value={chainId}
+              value={addMode ? chainId : getDecimalChainId(chainId)}
               editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
