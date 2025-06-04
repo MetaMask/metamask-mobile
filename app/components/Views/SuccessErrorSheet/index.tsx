@@ -42,10 +42,7 @@ export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
 }
 
-const SuccessErrorSheet = React.forwardRef<
-  BottomSheetRef,
-  SuccessErrorSheetProps
->(({ route }, ref) => {
+const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   const {
     onClose,
     title,
@@ -64,10 +61,7 @@ const SuccessErrorSheet = React.forwardRef<
   } = route.params;
 
   const { colors } = useTheme();
-  const sheetRef = useRef<BottomSheetRef>(null);
-
-  // Use the forwarded ref if provided, otherwise use the local ref
-  const bottomSheetRef = (ref as React.RefObject<BottomSheetRef>) || sheetRef;
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const handleClose = () => {
     if (onClose) {
@@ -181,6 +175,6 @@ const SuccessErrorSheet = React.forwardRef<
       </View>
     </BottomSheet>
   );
-});
+};
 
 export default SuccessErrorSheet;

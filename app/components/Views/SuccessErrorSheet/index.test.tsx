@@ -21,7 +21,6 @@ jest.mock(
     default: jest.fn(({ children }) => (
       <div data-testid="mock-bottom-sheet">{children}</div>
     )),
-    BottomSheetRef: jest.fn(), // <-- add this line
   }),
 );
 
