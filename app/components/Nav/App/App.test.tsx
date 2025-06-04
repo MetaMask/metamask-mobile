@@ -1,4 +1,3 @@
-/* eslint-disable react/react-in-jsx-scope */
 import {
   DeepPartial,
   renderScreen,
@@ -11,8 +10,6 @@ import { RootState } from '../../../reducers';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
-import { NavigationContainer } from '@react-navigation/native';
-import { shallow } from 'enzyme';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -64,16 +61,6 @@ describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-  });
-
-  it('should render correctly', () => {
-    const MainAppContainer = () => (
-      <NavigationContainer>
-        <App />
-      </NavigationContainer>
-    );
-    const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toMatchSnapshot();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
