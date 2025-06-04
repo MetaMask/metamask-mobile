@@ -1,9 +1,9 @@
-const { getMultichainClient, getDefaultTransport } = require('@metamask/multichain-api-client');
+const { getMultichainClient, getWindowPostMessageTransport } = require('@metamask/multichain-api-client');
 const { registerSolanaWalletStandard } = require('@metamask/solana-wallet-standard');
 
 const injectSolanaWalletStandard = () => {
   const multichainClient = getMultichainClient({
-    transport: getDefaultTransport(),
+    transport: getWindowPostMessageTransport(),
   });
   registerSolanaWalletStandard({
     client: multichainClient,

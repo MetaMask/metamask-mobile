@@ -5330,10 +5330,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-api-client@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.0.tgz#13749cbecfede08c9d3651c440443262b514788b"
-  integrity sha512-PTHDDql0aGOT3j5xz1ctE7G8Ta/svf2oFH/QaqNNBuQjudQPRh/4qs3Q+hhUHjoGhx7EIjOod7hxtNvwopsMlw==
+"@metamask/multichain-api-client@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.1.tgz#4d94b397a13d93f75695f2edf0c24b7fd908a4e9"
+  integrity sha512-JqVVojW+pBfInYZBsquzkcR8rorFA5L4tT40LeHRbzxu4baqszc9MmJVVVcUT3Cw5kWBYJnTH93S367lVeCJKg==
 
 "@metamask/multichain-api-middleware@^0.4.0":
   version "0.4.0"
