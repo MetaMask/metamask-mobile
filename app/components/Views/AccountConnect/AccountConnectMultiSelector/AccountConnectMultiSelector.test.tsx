@@ -24,7 +24,7 @@ jest.mock('../../../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: [],
-      }
+      },
     },
     AccountsController: {
       state: {
@@ -55,6 +55,7 @@ const mockAccounts = [
     type: KeyringTypes.simple,
     yOffset: 0,
     isSelected: false,
+    isLoadingAccount: false,
   },
   {
     address: '0x5678',
@@ -63,6 +64,7 @@ const mockAccounts = [
     type: KeyringTypes.simple,
     yOffset: 0,
     isSelected: false,
+    isLoadingAccount: false,
   },
 ];
 
@@ -109,10 +111,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('disables the select all button when loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} isLoading />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['0x1234']}
+        isLoading
+      />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
 
     const updateButton = getByTestId(
@@ -125,10 +133,15 @@ describe('AccountConnectMultiSelector', () => {
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234', '0x5678']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['0x1234', '0x5678']}
+      />,
     );
 
-    const selectAllbutton = getAllByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
+    const selectAllbutton = getAllByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON,
+    );
     fireEvent.press(selectAllbutton[0]);
     fireEvent.press(selectAllbutton[0]);
 
@@ -142,7 +155,10 @@ describe('AccountConnectMultiSelector', () => {
 
   it('handles account selection correctly', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['0x1234']}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
@@ -153,7 +169,9 @@ describe('AccountConnectMultiSelector', () => {
     const exstingAccount = getByText('test1.eth');
     fireEvent.press(exstingAccount);
 
-    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x5678']);
@@ -161,11 +179,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('shows update button when accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={['0x1234']} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={['0x1234']}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
-    const updateButton = getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
+    const updateButton = getByTestId(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
     expect(updateButton).toBeTruthy();
     fireEvent.press(updateButton);
 
@@ -174,11 +197,16 @@ describe('AccountConnectMultiSelector', () => {
 
   it('shows disconnect button when no accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} defaultSelectedAddresses={[]} />,
+      <AccountConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedAddresses={[]}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
-    const disconnectButton = getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT);
+    const disconnectButton = getByTestId(
+      ConnectedAccountsSelectorsIDs.DISCONNECT,
+    );
     expect(disconnectButton).toBeTruthy();
     fireEvent.press(disconnectButton);
 
