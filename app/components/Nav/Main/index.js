@@ -25,7 +25,7 @@ import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import RampOrders from '../../UI/Ramp';
+import RampOrders from '../../UI/Ramp/Aggregator';
 import {
   showTransactionNotification,
   hideCurrentNotification,
