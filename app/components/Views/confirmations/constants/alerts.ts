@@ -4,4 +4,5 @@ export enum AlertKeys {
   InsufficientBalance = 'insufficient_balance',
   PendingTransaction = 'pending_transaction',
   SignedOrSubmitted = 'signed_or_submitted',
+  BatchedUnusedApprovals = 'batched_unused_approvals',
 }

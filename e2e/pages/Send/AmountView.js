@@ -30,6 +30,10 @@ class AmountView {
     return Matchers.getElementByID(AmountViewSelectorsIDs.AMOUNT_INPUT);
   }
 
+  get maxButton() {
+    return Matchers.getElementByID(AmountViewSelectorsIDs.MAX_BUTTON);
+  }
+
   async tapNextButton() {
     await TestHelpers.delay(1000);
     await Gestures.waitAndTap(this.nextButton);
@@ -50,6 +54,10 @@ class AmountView {
 
   async tapCurrencySwitch() {
     await Gestures.waitAndTap(this.currencySwitch);
+  }
+
+  async tapMaxButton() {
+    await Gestures.waitAndTap(this.maxButton);
   }
 }
 export default new AmountView();
