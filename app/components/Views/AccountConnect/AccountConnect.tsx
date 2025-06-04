@@ -860,6 +860,13 @@ const AccountConnect = (props: AccountConnectProps) => {
         ensByAccountAddress={ensByAccountAddress}
         defaultSelectedAddresses={selectedAddresses}
         onSubmit={handleAccountsSelected}
+        onCreateAccount={(clientType, scope) => {
+          setMultichainAccountOptions({
+            clientType,
+            scope,
+          });
+          setScreen(AccountConnectScreens.AddNewAccount);
+        }}
         isLoading={isLoading}
         onBack={() => {
           setScreen(AccountConnectScreens.SingleConnect);
