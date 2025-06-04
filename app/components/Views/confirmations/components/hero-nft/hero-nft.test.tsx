@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
+jest.mock('../../hooks/transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
