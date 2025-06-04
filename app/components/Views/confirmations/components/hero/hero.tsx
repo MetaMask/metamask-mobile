@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
-import { useFlatConfirmation } from '../../../hooks/ui/useFlatConfirmation';
-import { TooltipModal } from '../../UI/Tooltip/Tooltip';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { TooltipModal } from '../UI/Tooltip/Tooltip';
 import styleSheet from './hero.styles';
 
 interface TitleProps {
@@ -42,8 +42,9 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
 
 interface HeroProps {
   componentAsset: React.ReactNode;
-  subtitle?: string;
   title: React.ReactNode | string;
+
+  subtitle?: string;
   tooltipModalProps?: {
     hasTooltip?: boolean;
     isEnabled?: boolean;
@@ -54,17 +55,17 @@ interface HeroProps {
 }
 
 /**
- * HeroBase component
+ * Hero component
  * @example
  *
- * <HeroBase
+ * <Hero
  *   componentAsset={<Asset />}
  *   subtitle="Subtitle"
  *   title={<Title />}
  *   tooltipModalProps={{ hasTooltip: true, isEnabled: true, content: 'Tooltip content', title: 'Tooltip title', testId: 'tooltip-modal' }}
  * />
  */
-export const HeroBase = ({
+export const Hero = ({
   componentAsset,
   subtitle,
   title,
