@@ -47,7 +47,7 @@ const useAccounts = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const { multichainBalancesForAllAccounts } =
-    useMultichainBalancesForAllAccounts();
+    useMultichainBalancesForAllAccounts(currentChainId);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -127,11 +127,13 @@ const useAccounts = ({
       }
     > = {};
 
+    console.log({multichainBalancesForAllAccounts})
     internalAccounts.forEach((account) => {
       const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
       console.log(
         'balanceForAccount',
-        balanceForAccount.tokenFiatBalancesCrossChains,
+        account.id,
+        {balanceForAccount},
       );
       const displayBalance = balanceForAccount
         ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`

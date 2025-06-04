@@ -8,7 +8,7 @@ import {
   selectEvmChainId,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
+import { selectIsTokenNetworkFilterEqualCurrentNetwork, selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
@@ -40,15 +40,19 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
  * @returns Portfolio balance data
  */
 const useMultichainBalancesForAllAccounts =
-  (): UseAllAccountsMultichainBalancesHook => {
+  (_chainId): UseAllAccountsMultichainBalancesHook => {
     const accountsList = useSelector(selectInternalAccounts);
-    const chainId = useSelector(selectChainId);
-    const evmChainId = useSelector(selectEvmChainId);
+    const chainId = _chainId || useSelector(selectChainId);
+    const evmChainId = _chainId || useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
     const allChainIDs = useSelector(getChainIdsToPoll);
-    const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-      selectIsTokenNetworkFilterEqualCurrentNetwork,
+    const tokenNetworkFilter = useSelector(
+      selectTokenNetworkFilter,
     );
+    const isTokenNetworkFilterEqualCurrentNetwork =
+      Object.keys(tokenNetworkFilter).length === 1 &&
+      Object.keys(tokenNetworkFilter)[0] === chainId
+
     const isPopularNetwork = useSelector(selectIsPopularNetwork);
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
@@ -57,6 +61,7 @@ const useMultichainBalancesForAllAccounts =
       accountsList,
       !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
       allChainIDs,
+      chainId
     );
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
