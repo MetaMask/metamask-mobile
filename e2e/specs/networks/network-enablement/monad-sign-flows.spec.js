@@ -45,9 +45,14 @@ const SIGNATURE_LIST = [
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
   },
+  {
+      specName: 'Sign Permit',
+      testDappBtn: TestDApp.tapPermitSignButton.bind(TestDApp),
+      requestType: RequestTypes.TypedSignRequest,
+    },
 ];
 
-describe(Regression('Monad Testnet Network - Signing Flows'), () => {
+describe(Regression(`${MONAD_TESTNET.nickname} - Signing Flows`), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
