@@ -1,1 +1,0 @@
-export { HeroTransfer } from './transfer';

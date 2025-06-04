@@ -1,21 +1,21 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import { selectTransactionState } from '../../../../../../../reducers/transaction';
-import { selectShowFiatInTestnets } from '../../../../../../../selectors/settings';
-import { useConfirmationContext } from '../../../../context/confirmation-context';
-import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
-import { useTokenAsset } from '../../../../hooks/useTokenAsset';
-import { useTokenAmount } from '../../../../hooks/useTokenAmount';
-import { Hero } from '../../../UI/hero';
-import AnimatedPulse from '../../../UI/animated-pulse';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { selectTransactionState } from '../../../../../reducers/transaction';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
+import { useConfirmationContext } from '../../context/confirmation-context';
+import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
+import { useTokenAsset } from '../../hooks/useTokenAsset';
+import { useTokenAmount } from '../../hooks/useTokenAmount';
+import { Hero } from '../UI/hero';
+import AnimatedPulse from '../UI/animated-pulse';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
-import styleSheet from './token-hero.styles';
+import styleSheet from './hero-token.styles';
 
 const AssetAmount = ({
   amount,
@@ -40,7 +40,7 @@ const AssetAmount = ({
   );
 };
 
-const TokenHero = ({ amountWei }: { amountWei?: string }) => {
+export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   const { isTransactionValueUpdating } = useConfirmationContext();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { styles } = useStyles(styleSheet, {
@@ -74,5 +74,3 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     </AnimatedPulse>
   );
 };
-
-export default TokenHero;

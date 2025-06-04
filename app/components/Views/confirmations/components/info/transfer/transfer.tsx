@@ -12,7 +12,7 @@ import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
-import { HeroTransfer } from '../../hero/transfer';
+import { HeroRow } from '../../rows/transactions/hero-row';
 import FromTo from '../../rows/transactions/from-to';
 import GasFeesDetails from '../../rows/transactions/gas-fee-details';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
@@ -42,7 +42,7 @@ const Transfer = () => {
 
   return (
     <View>
-      <HeroTransfer />
+      <HeroRow />
       <FromTo />
       <NetworkRow />
       {isDappTransfer && (
