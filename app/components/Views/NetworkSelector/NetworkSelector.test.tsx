@@ -15,6 +15,22 @@ import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 
+// Mock the new utility functions
+jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
+  removeItemFromChainIdList: jest.fn().mockReturnValue({
+    chain_id_list: ['eip155:1'],
+  }),
+}));
+
+// Mock MetaMetrics
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      addTraitsToUser: jest.fn(),
+    }),
+  },
+}));
+
 // eslint-disable-next-line import/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 // eslint-disable-next-line import/no-namespace
@@ -297,7 +313,9 @@ describe('Network Selector', () => {
       rpcUrl: '',
       domainIsConnectedDapp: true,
     };
-    jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+    jest
+      .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+      .mockReturnValue(true);
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
       .mockImplementation(() => testMock);
@@ -646,7 +664,9 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+        .mockReturnValue(true);
       // Reset the mock before each test
       jest.clearAllMocks();
     });
@@ -683,5 +703,46 @@ describe('Network Selector', () => {
         ).toHaveBeenCalled();
       });
     });
+  });
+
+  it('should call addTraitsToUser with updated chain ID list when removing a network', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+    // Import the mocked functions
+    const { removeItemFromChainIdList } = await import(
+      '../../../util/metrics/MultichainAPI/networkMetricUtils'
+    );
+    const { MetaMetrics } = await import('../../../core/Analytics');
+
+    const mockAddTraitsToUser = jest.fn();
+    (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
+      addTraitsToUser: mockAddTraitsToUser,
+    });
+
+    const { getByTestId } = renderComponent(initialState);
+
+    // Mock the removeNetwork function
+    const spyOnRemoveNetwork = jest.spyOn(
+      Engine.context.NetworkController,
+      'removeNetwork',
+    );
+
+    // Simulate network removal by calling the removeRpcUrl function
+    // This would typically be triggered by pressing a delete button in the UI
+    const deleteButton = getByTestId(
+      NetworkListModalSelectorsIDs.DELETE_NETWORK,
+    );
+
+    if (deleteButton) {
+      fireEvent.press(deleteButton);
+
+      await waitFor(() => {
+        expect(spyOnRemoveNetwork).toHaveBeenCalled();
+        expect(removeItemFromChainIdList).toHaveBeenCalled();
+        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+          chain_id_list: ['eip155:1'],
+        });
+      });
+    }
   });
 });
