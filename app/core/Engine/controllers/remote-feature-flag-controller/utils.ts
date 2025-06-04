@@ -71,7 +71,7 @@ export const createRemoteFeatureFlagController = ({
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');
-    }).catch((_) => Logger.log('Failed to fetch remote feature flags'));
+    }).catch((error) => Logger.log(error));
   }
   return remoteFeatureFlagController;
 };
