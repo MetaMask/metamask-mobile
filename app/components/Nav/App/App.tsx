@@ -229,7 +229,11 @@ const OnboardingNav = () => (
       name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
       component={ImportFromSecretRecoveryPhrase}
     />
-    <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <Stack.Screen
+      name="OptinMetrics"
+      component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
