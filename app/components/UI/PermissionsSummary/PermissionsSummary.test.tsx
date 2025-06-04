@@ -99,9 +99,22 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockOnChangeTab = jest.fn();
 jest.mock('react-native-scrollable-tab-view', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  default: ({
+    children,
+    onChangeTab,
+  }: {
+    children: React.ReactNode;
+    onChangeTab?: (tabInfo: { i: number; ref: unknown }) => void;
+  }) => {
+    // Store the onChangeTab callback so we can call it in tests
+    if (onChangeTab) {
+      mockOnChangeTab.mockImplementation(onChangeTab);
+    }
+    return <>{children}</>;
+  },
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
@@ -144,6 +157,9 @@ describe('PermissionsSummary', () => {
   it('should call setTabIndex when tab changes', () => {
     const mockSetTabIndex = jest.fn();
     renderWithTabState(0, mockSetTabIndex);
-    expect(mockSetTabIndex).toBeDefined();
+
+    mockOnChangeTab({ i: 1, ref: null });
+
+    expect(mockSetTabIndex).toHaveBeenCalledWith(1);
   });
 });
