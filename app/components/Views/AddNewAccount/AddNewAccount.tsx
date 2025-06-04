@@ -30,14 +30,16 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
-import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -55,14 +57,20 @@ const AddNewAccount = ({
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const keyringOfSelectedAccount = useSelector(
-    getHdKeyringOfSelectedAccountOrPrimaryKeyring,
-  );
-  const [keyringId, setKeyringId] = useState<string>(
-    keyringOfSelectedAccount.metadata.id,
-  );
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const [primaryKeyringId] = hdKeyrings;
+  const initialKeyringIdToUse = useMemo(
+    () =>
+      // For HD accounts (since v29.0.1), use the entropySource if available.
+      // Cast to string since it's typed as Json in the keyring API.
+      // Fall back to primary keyring ID for non-HD accounts.
+      (selectedInternalAccount?.options.entropySource as string) ??
+      primaryKeyringId.metadata.id,
+    [selectedInternalAccount, primaryKeyringId],
+  );
+  const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
   const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
@@ -78,6 +86,11 @@ const AddNewAccount = ({
   }, [hdKeyrings, keyringId]);
 
   const handleOnBack = () => {
+    if (showSRPList) {
+      setShowSRPList(false);
+      return;
+    }
+
     if (onBack) {
       onBack();
     } else {
@@ -165,13 +178,7 @@ const AddNewAccount = ({
               ? strings('accounts.select_secret_recovery_phrase')
               : addAccountTitle
           }
-          onBack={() => {
-            if (showSRPList) {
-              setShowSRPList(false);
-              return;
-            }
-            handleOnBack();
-          }}
+          onBack={handleOnBack}
         />
         {showSRPList ? (
           <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />

@@ -5,7 +5,6 @@ import { strings } from '../../../../locales/i18n';
 import AddNewAccount from './AddNewAccount';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
   internalAccount1,
   internalAccount2,
 } from '../../../util/test/accountsControllerTestUtils';
@@ -77,9 +76,18 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockAccount1 = {
+  ...internalAccount1,
+  options: { entropySource: '01JKZ55Y6KPCYH08M6B9VSZWKW' },
+};
+const mockAccount2 = {
+  ...internalAccount2,
+  options: { entropySource: '01JKZ56KRVYEEHC601HSNW28T2' },
+};
+
 const mockKeyring1 = {
   type: ExtendedKeyringTypes.hd,
-  accounts: [internalAccount1.address],
+  accounts: [mockAccount1.address],
   metadata: {
     id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
     name: '',
@@ -88,7 +96,7 @@ const mockKeyring1 = {
 
 const mockKeyring2 = {
   type: ExtendedKeyringTypes.hd,
-  accounts: [internalAccount2.address],
+  accounts: [mockAccount2.address],
   metadata: {
     id: '01JKZ56KRVYEEHC601HSNW28T2',
     name: '',
@@ -101,7 +109,15 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [mockAccount1.id]: mockAccount1,
+            [mockAccount2.id]: mockAccount2,
+          },
+          selectedAccount: mockAccount2.id,
+        },
+      },
       KeyringController: {
         keyrings: [mockKeyring1, mockKeyring2],
       },
