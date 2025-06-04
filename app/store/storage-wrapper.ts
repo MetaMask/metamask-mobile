@@ -175,24 +175,42 @@ class StorageWrapper {
           FRESH_INSTALL_CHECK_DONE,
         );
 
+        Logger.log('StorageWrapper: Checking for restored data', {
+          alreadyChecked,
+          platform: Platform.OS,
+        });
+
         if (!alreadyChecked) {
           // Check if MMKV has user data (persists through backup)
           const hasMMKVUserData = await storage.getItem(EXISTING_USER);
+          Logger.log('StorageWrapper: MMKV user data check', {
+            hasMMKVUserData,
+          });
 
           // Check if AsyncStorage has any app-specific marker (gets cleared on restore)
           const hasAsyncStorageMarker = await AsyncStorage.getItem(
             'APP_LAUNCHED_BEFORE',
           );
+          Logger.log('StorageWrapper: AsyncStorage marker check', {
+            hasAsyncStorageMarker,
+          });
 
           // Get current app version
           const currentVersion = await storage.getItem(CURRENT_APP_VERSION);
           const lastVersion = await storage.getItem(LAST_APP_VERSION);
+          Logger.log('StorageWrapper: Version check', {
+            currentVersion,
+            lastVersion,
+          });
 
           // If this is an app update (currentVersion !== lastVersion) or a restore (hasMMKVUserData && hasAsyncStorageMarker === null)
           if (
             currentVersion !== lastVersion ||
             (hasMMKVUserData && hasAsyncStorageMarker === null)
           ) {
+            Logger.log('StorageWrapper: Clearing MMKV storage', {
+              reason: currentVersion !== lastVersion ? 'version_change' : 'restore',
+            });
             // Clear MMKV storage to ensure a clean state
             await storage.clearAll();
           }
@@ -200,6 +218,7 @@ class StorageWrapper {
           // Set markers for future checks
           await AsyncStorage.setItem('APP_LAUNCHED_BEFORE', 'true');
           await AsyncStorage.setItem(FRESH_INSTALL_CHECK_DONE, 'true');
+          Logger.log('StorageWrapper: Set markers for future checks');
         }
       } catch (error) {
         Logger.error(error as Error, 'Error checking for restored data');
