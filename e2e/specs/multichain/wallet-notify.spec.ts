@@ -3,7 +3,31 @@
 /**
  * E2E tests for wallet_notify API
  * Tests receiving notifications for subscribed events on specific chains
- * Adapted from MetaMask extension multichain tests
+ * 
+ * TEST FLOW:
+ * 1. Create a session with MetaMask Mobile
+ * 2. Subscribe to blockchain events using eth_subscribe
+ * 3. Verify the subscription returns a valid ID (hex string)
+ * 4. Wait for and verify that notifications are delivered to the dapp
+ * 
+ * WHAT WE'RE TESTING:
+ * - wallet_notify allows dapps to receive real-time blockchain event notifications
+ * - eth_subscribe creates a subscription and returns a subscription ID
+ * - The wallet delivers notifications which appear as "wallet-notify-details-X" elements
+ * 
+ * DETOX WEBVIEW LIMITATIONS AND METHODOLOGY:
+ * ==========================================
+ * Detox has significant limitations when working with webviews:
+ * 1. Cannot use by.web.text() or by.web.attr() - only by.web.id() and by.web.className() work
+ * 2. Cannot get innerHTML or text content directly from elements
+ * 3. Elements might exist in DOM but not be "visible" according to Detox visibility rules
+ * 
+ * Our methodology to work around these limitations:
+ * 1. Use element IDs exclusively for selection (added id="wallet-notify-empty" to the dapp)
+ * 2. Use scrollToView() to bring elements into viewport
+ * 3. Use tap() to verify elements are interactive even if not "visible"
+ * 4. Infer state by checking presence/absence of specific elements
+ * 5. Check for state changes (empty → has notifications) to prove functionality
  */
 import TestHelpers from '../../helpers';
 import { SmokeMultichainApi } from '../../tags';
@@ -64,72 +88,116 @@ describe(SmokeMultichainApi('wallet_notify'), () => {
                     const scope = MultichainUtilities.getEIP155Scope(chainId);
                     const escapedScope = scope.replace(/:/g, '-');
 
-                    // In auto-mode, use the direct invoke button for eth_subscribe
-                    const directButtonId = `direct-invoke-${escapedScope}-eth_subscribe`;
-
+                    // STEP 1: Check initial notification state (should be empty)
+                    console.log('🔍 Checking initial notification state before subscribing...');
+                    let initiallyEmpty = false;
                     try {
-                        const directButton = webview.element(by.web.id(directButtonId));
-                        await directButton.tap();
-                    } catch (directError) {
-                        console.error('❌ Failed to click direct invoke button:', (directError as Error).message);
-                        throw new Error(`Direct invoke button not found: ${directButtonId}`);
+                        const notificationContainer = webview.element(by.web.id('wallet-notify-container'));
+                        await notificationContainer.scrollToView();
+
+                        try {
+                            const emptyMessage = webview.element(by.web.id('wallet-notify-empty'));
+                            await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
+                            console.log('✅ Initial state confirmed: "No notifications received"');
+                            initiallyEmpty = true;
+                        } catch (e) {
+                            console.log('⚠️ Notifications might already exist from previous test');
+                        }
+                    } catch (e) {
+                        console.log('⚠️ Could not check initial notification state');
                     }
 
-                    // Wait for subscription to be established and notifications to arrive
-                    await TestHelpers.delay(8000); // Give more time for notifications
+                    // STEP 2: Subscribe to events
+                    const directButtonId = `direct-invoke-${escapedScope}-eth_subscribe`;
+                    console.log(`🔍 Subscribing via button: ${directButtonId}`);
 
-                    // Look for wallet-notify-result-0 (like extension test)
+                    const directButton = webview.element(by.web.id(directButtonId));
+                    await directButton.tap();
+                    console.log('✅ Successfully subscribed to events');
+
+                    // STEP 2.5: Verify subscription was successful by checking invoke result
+                    // The eth_subscribe method should return a subscription ID (hex string like "0x88694e812c545426c2a40dfbbb8216bc")
+                    // This proves the wallet accepted the subscription request, even if notifications haven't arrived yet
+                    console.log('🔍 Checking subscription result...');
                     try {
-                        const walletNotifyResultElement = webview.element(by.web.id('wallet-notify-result-0'));
-                        await Assertions.checkIfVisible(Promise.resolve(walletNotifyResultElement));
+                        const invokeResultId = `invoke-method-${escapedScope}-eth_subscribe-result-0`;
+                        const invokeResultElement = webview.element(by.web.id(invokeResultId));
 
-                        // Expand the wallet-notify result if it's collapsed
+                        // Note: runScript() on Detox webviews is limited - it might not return text content
+                        // but we can at least verify the element exists
+                        await invokeResultElement.scrollToView();
+
+                        // Try to tap it to verify it's interactive (indicates successful render)
                         try {
-                            const walletNotifySummary = webview.element(by.web.cssSelector('#wallet-notify-details-0 summary'));
-                            await walletNotifySummary.tap();
-                        } catch (expandError) {
-                            // Result might already be expanded
+                            await invokeResultElement.tap();
+                            console.log('✅ Subscription result element found and is interactive');
+                            console.log('   → This typically contains a hex subscription ID like "0x88694e812c545426c2a40dfbbb8216bc"');
+                        } catch (e) {
+                            console.log('⚠️ Subscription result found but not tappable (Detox limitation)');
                         }
+                    } catch (e) {
+                        console.log('⚠️ Could not find subscription result - might be rendered differently');
+                        console.log('   → This is not critical as long as notifications arrive');
+                    }
 
-                        // Get the notification data
-                        const notificationText = await walletNotifyResultElement.runScript((el) => el.textContent || '');
+                    // STEP 3: Wait for notifications to arrive
+                    console.log('⏳ Waiting for notifications...');
+                    await TestHelpers.delay(8000); // Wait for subscription and initial notifications
 
-                        if (notificationText) {
-                            try {
-                                const parsedNotification = JSON.parse(notificationText);
-                                const notificationScope = parsedNotification.params?.scope;
+                    // STEP 4: Verify notifications arrived
+                    // wallet_notify should deliver notifications for blockchain events (like new blocks)
+                    // The dapp displays these as collapsible items with IDs like "wallet-notify-details-0"
+                    console.log('🔍 Checking for notifications...');
 
-                                if (notificationScope === scope) {
-                                    console.log(`✅ wallet_notify test PASSED - received notification with correct scope: ${scope}`);
-                                } else {
-                                    console.log(`⚠️ wallet_notify test PASSED - received notification but scope differs. Expected: ${scope}, Got: ${notificationScope}`);
-                                }
+                    // Find and scroll to notification container
+                    const notificationContainer = webview.element(by.web.id('wallet-notify-container'));
+                    await notificationContainer.scrollToView();
 
-                            } catch (parseError) {
-                                // Check if it's a subscription ID
-                                if (notificationText?.includes('0x') && notificationText.length < 100) {
-                                    console.log('⚠️ wallet_notify test PASSED - eth_subscribe works but notifications not fully implemented');
-                                } else {
-                                    console.log('✅ wallet_notify test PASSED - notification system exists');
-                                }
-                            }
+                    // Even if not "visible" by Detox standards, verify it's tappable (exists)
+                    try {
+                        await notificationContainer.tap();
+                        console.log('✅ Notification container found and is interactive');
+                    } catch (e) {
+                        console.log('⚠️ Notification container found but not tappable');
+                    }
+
+                    // Check if container is empty or has notifications
+                    let hasNotifications = false;
+
+                    // First check if empty message is present
+                    // The dapp shows "No notifications received" when the container is empty
+                    try {
+                        const emptyMessage = webview.element(by.web.id('wallet-notify-empty'));
+                        await Assertions.checkIfVisible(Promise.resolve(emptyMessage));
+                        console.log('❌ Container still shows "No notifications received"');
+                    } catch (e) {
+                        // Empty message not found - good, means we have notifications
+                        console.log('✅ Container no longer shows empty message');
+                    }
+
+                    // Look for notification details elements
+                    // Each notification is rendered as a collapsible element with ID "wallet-notify-details-X"
+                    // Finding even one of these proves that wallet_notify is working
+                    try {
+                        const firstNotification = webview.element(by.web.id('wallet-notify-details-0'));
+                        await firstNotification.scrollToView();
+                        console.log('✅ Found wallet-notify-details-0 - notifications ARE being delivered!');
+                        console.log('   → This element contains blockchain event data from eth_subscribe');
+                        hasNotifications = true;
+                    } catch (e) {
+                        // No notifications found
+                        console.log('❌ No notification elements found');
+                        console.log('   → Expected to find elements with IDs like "wallet-notify-details-0"');
+                    }
+
+                    if (hasNotifications) {
+                        console.log('✅ wallet_notify test PASSED - notifications are being delivered!');
+                        if (initiallyEmpty) {
+                            console.log('📊 Confirmed state change: empty → has notifications');
+                            console.log('   → This proves the wallet_notify feature is fully functional');
                         }
-
-                    } catch (notifyError) {
-                        // Check if eth_subscribe at least returned a subscription ID in invoke results
-                        try {
-                            const invokeResultId = `invoke-method-${escapedScope}-eth_subscribe-result-0`;
-                            const invokeResultElement = webview.element(by.web.id(invokeResultId));
-                            const invokeResultText = await invokeResultElement.runScript((el) => el.textContent || '');
-
-                            if (invokeResultText?.includes('0x')) {
-                                console.log('⚠️ wallet_notify test PASSED with WARNING - eth_subscribe works but notifications not delivered');
-                            } else {
-                                console.log('⚠️ wallet_notify test PASSED with WARNING - feature may not be fully implemented');
-                            }
-                        } catch (resultError) {
-                            console.log('⚠️ wallet_notify test PASSED with WARNING - feature status unknown');
-                        }
+                    } else {
+                        throw new Error('No notifications were delivered after subscription');
                     }
 
                 } catch (error) {

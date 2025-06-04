@@ -11,6 +11,7 @@ import ConnectBottomSheet from './ConnectBottomSheet';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
+export const DEFAULT_MULTICHAIN_TEST_DAPP_URL = 'https://metamask.github.io/multichain-test-dapp/';
 
 /**
  * Get the multichain test dapp URL based on environment configuration
@@ -21,7 +22,7 @@ export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDa
  */
 export function getMultichainTestDappUrl(): string {
   // Check for local development flag
-  const useLocal = process.env.USE_LOCAL_DAPP === 'true';
+  const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
     console.log(`🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`);
     return MULTICHAIN_TEST_DAPP_LOCAL_URL;
@@ -34,14 +35,8 @@ export function getMultichainTestDappUrl(): string {
     return customUrl;
   }
 
-  // No URL configured - throw error with helpful message
-  throw new Error(
-    '❌ No multichain dapp URL configured!\n' +
-    'Please set one of the following environment variables:\n' +
-    '  • MULTICHAIN_DAPP_URL="https://your-dapp-url.com/"\n' +
-    '  • USE_LOCAL_DAPP=true\n' +
-    'See MULTICHAIN_DAPP_CONFIG.md for more details.'
-  );
+  console.log(`📱 Using default multichain dapp URL: ${DEFAULT_MULTICHAIN_TEST_DAPP_URL}`);
+  return DEFAULT_MULTICHAIN_TEST_DAPP_URL;
 }
 
 /**
