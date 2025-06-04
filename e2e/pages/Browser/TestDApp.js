@@ -175,6 +175,13 @@ class TestDApp {
     );
   }
 
+  get sendEIP1559Button() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -274,6 +281,10 @@ class TestDApp {
 
   async switchChainFromTestDapp() {
     await this.tapButton(this.switchChainFromTestDappButton);
+  }
+
+  async tapSendEIP1559Button() {
+    await this.tapButton(this.sendEIP1559Button);
   }
 }
 

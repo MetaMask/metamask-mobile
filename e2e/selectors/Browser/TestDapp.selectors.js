@@ -21,4 +21,5 @@ export const TestDappSelectorsWebIDs = {
   BATCH_TRANSFER_ERC1155_BUTTON_ID: 'batchTransferFromButton',
   SWITCH_ETHEREUM_CHAIN: 'switchEthereumChain',
   ERC_721_MINT_BUTTON_ID: 'mintButton',
+  SEND_EIP_1559_BUTTON_ID: 'sendEIP1559Button',
 };

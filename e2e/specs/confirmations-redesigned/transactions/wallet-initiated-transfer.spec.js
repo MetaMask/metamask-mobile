@@ -70,6 +70,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           ConfirmationUITypes.FlatConfirmationContainer,
         );
         await Assertions.checkIfVisible(RowComponents.TokenHero);
+        await Assertions.checkIfTextIsDisplayed('1 ETH');
         await Assertions.checkIfVisible(RowComponents.FromTo);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);

@@ -15,10 +15,10 @@ import {
 import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import {
-  SEND_ETH_TRANSACTION_MOCK,
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../pages/Browser/TestDApp';
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = {
@@ -52,15 +52,15 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDAppTransaction({
-          transactionParams: JSON.stringify([SEND_ETH_TRANSACTION_MOCK]),
-        });
+        await Browser.navigateToTestDApp();
+        await TestDApp.tapSendEIP1559Button();
 
         // Check all expected elements are visible
         await Assertions.checkIfVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
         await Assertions.checkIfVisible(RowComponents.TokenHero);
+        await Assertions.checkIfTextIsDisplayed('0 ETH');
         await Assertions.checkIfVisible(RowComponents.FromTo);
         await Assertions.checkIfVisible(RowComponents.SimulationDetails);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
