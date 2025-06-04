@@ -30,18 +30,6 @@ const createStyles = (colors) =>
       color: colors.error.default,
       marginBottom: 16,
     },
-    modalNoBorder: {
-      borderTopWidth: 0,
-      paddingHorizontal: 0,
-    },
-    skipTitle: {
-      fontSize: 24,
-      marginTop: 12,
-      marginBottom: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
     skipModalContainer: {
       flexDirection: 'column',
       justifyContent: 'center',
@@ -49,13 +37,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
       paddingTop: 16,
       width: '100%',
-    },
-    skipModalXButton: {
-      alignItems: 'flex-end',
-    },
-    skipModalXIcon: {
-      fontSize: 16,
-      color: colors.text.default,
     },
     skipModalActionButtons: {
       flexDirection: 'row',
@@ -68,14 +49,6 @@ const createStyles = (colors) =>
       width: 18,
       marginRight: 12,
       marginTop: 3,
-    },
-    skipModalText: {
-      flex: 1,
-      ...fontStyles.normal,
-      lineHeight: 20,
-      fontSize: 14,
-      paddingHorizontal: 10,
-      color: colors.text.default,
     },
     ctaContainer: {
       flexDirection: 'row',
