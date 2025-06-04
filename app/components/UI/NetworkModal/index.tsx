@@ -12,7 +12,7 @@ import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import { isWebUri } from 'valid-url';
 import { useDispatch, useSelector } from 'react-redux';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import {
   ButtonSize,
@@ -244,7 +244,7 @@ const NetworkModals = (props: NetworkProps) => {
         ],
       });
 
-      MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
+      addTraitsToUser(addItemToChainIdList(chainId));
 
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
