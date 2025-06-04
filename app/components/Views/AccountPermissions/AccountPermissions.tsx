@@ -134,6 +134,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
   const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
@@ -713,6 +714,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -724,6 +727,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accounts,
     faviconSource,
     urlWithProtocol,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -901,6 +906,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           AccountPermissionsScreens.ChooseFromPermittedNetworks,
         );
       },
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -917,6 +924,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     hostname,
     toastRef,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
