@@ -72,6 +72,7 @@ export const useEIP7702Networks = (address: string) => {
       return networksSupporting7702;
     }, [networkList, value]);
 
+  console.log('===========================', networkList, value);
   return {
     network7702List,
     networkSupporting7702Present: network7702List?.length > 0,

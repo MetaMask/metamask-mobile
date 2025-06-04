@@ -21,7 +21,7 @@ const ContractInteraction = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View>
+    <View testID={transactionMetadata?.type}>
       <AccountNetworkInfo />
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails

@@ -167,6 +167,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
     );
   }
+  get eip5792SendCalls() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.EIP_5792_SEND_CALLS,
+    );
+  }
 
   async connect() {
     await this.tapButton(this.DappConnectButton);
@@ -246,6 +252,10 @@ class TestDApp {
 
   async tapERC1155BatchTransferButton() {
     await this.tapButton(this.erc1155BatchTransferButton);
+  }
+
+  async tapEIP5792SendCalls() {
+    await this.tapButton(this.eip5792SendCalls);
   }
 
   async tapButton(elementId) {

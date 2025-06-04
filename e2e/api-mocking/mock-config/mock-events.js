@@ -83,6 +83,35 @@ export const mockEvents = {
       responseCode: 200,
     },
 
+    remoteFeatureFlags7702Support: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        {
+          confirmations_eip_7702: {
+            contracts: {
+              '0x539': [
+                {
+                  address: '0x8438Ad1C834623CfF278AB6829a248E37C2D7E3f',
+                  signature:
+                    '0x4c15775d0c6d5bd37a7aa7aafc62e85597ea705024581b8b5cb0edccc4e6a69e26c495b3ae725815a377c9789bff43bf19e4dd1eaa679e65133e49ceee3ea87f1b',
+                },
+              ],
+            },
+            supportedChains: ['0x539'],
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
     // TODO: Remove when this feature is no longer behind a feature flag
     remoteFeatureFlagsDefiPositionsEnabled: {
       urlEndpoint:
