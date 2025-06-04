@@ -1,13 +1,14 @@
 import {
   CaipChainId,
+  Hex,
   isCaipChainId,
-  toCaipChainId,
   isHexString,
+  toCaipChainId,
 } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { UserProfileProperty } from '../UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { convertHexToDecimal } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 /**
  * Converts a chain ID to CAIP format.
@@ -15,14 +16,18 @@ import { convertHexToDecimal } from '@metamask/controller-utils';
  * @returns The chain ID in CAIP format.
  */
 function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
-  const _chainId = isHexString(chainId)
-    ? convertHexToDecimal(chainId)
-    : chainId;
+  //For Non-EVM chains, the chainId should already be in CAIP format.
+  if (isCaipChainId(chainId)) {
+    return chainId;
+  }
 
-  //For Non-EVM chains, the chainId should already be in CAIP format. For EVM chains, we convert to CAIP by adding the 'eip155' namespace
-  return isCaipChainId(_chainId)
-    ? _chainId
-    : toCaipChainId('eip155', _chainId.toString());
+  //If its not a hex string, we assume its a decimal chainId
+  if (!isHexString(chainId)) {
+    return toCaipChainId('eip155', chainId);
+  }
+
+  // For EVM chains, we convert to CAIP by adding the 'eip155' namespace
+  return toEvmCaipChainId(chainId as Hex);
 }
 
 /**

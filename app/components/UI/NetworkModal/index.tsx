@@ -12,7 +12,7 @@ import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import { isWebUri } from 'valid-url';
 import { useDispatch, useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import {
   ButtonSize,
@@ -41,6 +41,7 @@ import {
   selectIsAllNetworks,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
+
 import {
   NetworkConfiguration,
   RpcEndpointType,
@@ -243,6 +244,10 @@ const NetworkModals = (props: NetworkProps) => {
         ],
       });
 
+      MetaMetrics.getInstance().addTraitsToUser(
+        getChainIdListProperty(chainId),
+      );
+
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
           ?.networkClientId;
@@ -344,6 +349,8 @@ const NetworkModals = (props: NetworkProps) => {
         blockExplorerUrl,
       );
 
+      addTraitsToUser(getChainIdListProperty(chainId));
+
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
         {};
@@ -377,8 +384,6 @@ const NetworkModals = (props: NetworkProps) => {
           })
           .build(),
       );
-
-      addTraitsToUser(getChainIdListProperty(chainId));
     } else if (safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
@@ -395,8 +400,6 @@ const NetworkModals = (props: NetworkProps) => {
           .addSensitiveProperties({ rpcUrl: safeRPCUrl })
           .build(),
       );
-
-      addTraitsToUser(getChainIdListProperty(chainId));
     } else {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }

@@ -1602,6 +1602,11 @@ export class NetworkSettings extends PureComponent {
     const [, networkConfiguration] = entry;
     const { NetworkController } = Engine.context;
     NetworkController.removeNetwork(networkConfiguration.chainId);
+
+    MetaMetrics.getInstance().addTraitsToUser(
+      getChainIdListPropertyWithout(networkConfiguration.chainId),
+    );
+
     navigation.goBack();
   };
 

@@ -813,6 +813,10 @@ const NetworkSelector = () => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
+      MetaMetrics.getInstance().addTraitsToUser(
+        getChainIdListPropertyWithout(chainId),
+      );
+
       // set tokenNetworkFilter
       if (isPortfolioViewEnabled()) {
         const { PreferencesController } = Engine.context;
@@ -831,10 +835,6 @@ const NetworkSelector = () => {
           });
         }
       }
-
-      MetaMetrics.getInstance().addTraitsToUser(
-        getChainIdListPropertyWithout(chainId),
-      );
 
       setShowConfirmDeleteModal({
         isVisible: false,
