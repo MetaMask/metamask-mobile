@@ -98,6 +98,8 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import { getChainIdListProperty } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -884,6 +886,10 @@ export class NetworkSettings extends PureComponent {
       await NetworkController.addNetwork({
         ...networkConfig,
       });
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        getChainIdListProperty(networkConfig.chainId),
+      );
     }
 
     isCustomMainnet

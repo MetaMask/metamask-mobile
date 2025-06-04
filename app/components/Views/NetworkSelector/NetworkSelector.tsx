@@ -98,6 +98,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { getChainIdListPropertyWithout } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../core/Analytics';
 
 interface infuraNetwork {
   name: string;
@@ -165,7 +167,7 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-  
+
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -829,6 +831,10 @@ const NetworkSelector = () => {
           });
         }
       }
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        getChainIdListPropertyWithout(chainId),
+      );
 
       setShowConfirmDeleteModal({
         isVisible: false,

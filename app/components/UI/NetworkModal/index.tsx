@@ -48,8 +48,7 @@ import {
 } from '@metamask/network-controller';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { getNetworksConfigured } from '../../../util/metrics/MultichainAPI/getNetworksConfigured';
+import { getChainIdListProperty } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 export interface SafeChain {
   chainId: string;
@@ -379,9 +378,7 @@ const NetworkModals = (props: NetworkProps) => {
           .build(),
       );
 
-      addTraitsToUser({
-        [UserProfileProperty.CHAIN_IDS]: getNetworksConfigured(chainId),
-      });
+      addTraitsToUser(getChainIdListProperty(chainId));
     } else if (safeChains) {
       const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
         rpcUrl,
@@ -399,9 +396,7 @@ const NetworkModals = (props: NetworkProps) => {
           .build(),
       );
 
-      addTraitsToUser({
-        [UserProfileProperty.CHAIN_IDS]: getNetworksConfigured(chainId),
-      });
+      addTraitsToUser(getChainIdListProperty(chainId));
     } else {
       Logger.log('MetaMetrics - Unable to capture custom network');
     }
