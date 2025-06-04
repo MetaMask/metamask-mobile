@@ -1,7 +1,5 @@
 import React from 'react';
 import { render, act, fireEvent } from '@testing-library/react-native';
-// import { ActivityIndicator } from 'react-native';
-// import LottieView from 'lottie-react-native';
 import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
 import { ONBOARDING, PROTECT } from '../../../constants/navigation';
@@ -12,7 +10,6 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
-// Mock Engine
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -21,10 +18,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-// Mock LottieView
 jest.mock('lottie-react-native', () => 'LottieView');
 
-// Mock Authentication
+jest.mock('../../../store/storage-wrapper', () => ({
+  setItem: jest.fn(),
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
     currentAuthType: 'passcode',
@@ -81,6 +82,7 @@ const mockNavigation = {
   navigate: jest.fn(),
   push: jest.fn(),
   replace: jest.fn(),
+  setParams: jest.fn(),
 };
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -126,84 +128,38 @@ describe('ChoosePassword', () => {
     const passwordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
-    );
-    const submitButton = component.getByText(
-      strings('choose_password.confirm_cta'),
-    );
 
     await act(async () => {
       fireEvent.changeText(passwordInput, 'Test123456!');
-      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
-      fireEvent.press(checkbox);
-      fireEvent.press(submitButton);
-      // Wait for loading state to be set
-      await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    // // Check if title text is rendered correctly for loading state
-    // const loadingTitle = component.getByText(strings('create_wallet.title'));
-    // expect(loadingTitle).toBeTruthy();
-
-    // // Check if subtitle text is rendered correctly for loading state
-    // const loadingSubtitle = component.getByText(
-    //   strings('create_wallet.subtitle'),
-    // );
-    // expect(loadingSubtitle).toBeTruthy();
-
-    // // Check if ActivityIndicator is present
-    // const activityIndicator = component.UNSAFE_getByType(ActivityIndicator);
-    // expect(activityIndicator).toBeTruthy();
-
-    // // Check if LottieView is present
-    // const lottieView = component.UNSAFE_getByType(LottieView);
-    // expect(lottieView).toBeTruthy();
-  });
-
-  it('should render different title when not in onboarding', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: false } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
-
-    // Wait for initial render
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Fill in password fields and trigger loading state
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
     const confirmPasswordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
+    });
+
     const checkbox = component.getByTestId(
       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
     );
-    const submitButton = component.getByText(
-      strings('choose_password.confirm_cta'),
-    );
+    fireEvent.press(checkbox);
 
-    await act(async () => {
-      fireEvent.changeText(passwordInput, 'Test123456!');
-      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
-      fireEvent.press(checkbox);
-      fireEvent.press(submitButton);
-      // Wait for loading state to be set
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    const submitButton = component.getByRole('button', {
+      name: strings('choose_password.confirm_cta'),
     });
 
-    // const titleText = component.getByText(
-    //   strings('secure_your_wallet.creating_password'),
-    // );
-    // expect(titleText).toBeTruthy();
+    // Button should still be disabled (checkbox not checked)
+    expect(submitButton.props.disabled).toBe(false);
+
+    fireEvent.press(submitButton);
+
+    // Check if title text is rendered correctly for loading state
+    const loadingTitle = component.getByText(
+      strings('secure_your_wallet.creating_password'),
+    );
+    expect(loadingTitle).toBeTruthy();
   });
 
   it('should validate password and enable button when conditions are met', async () => {
@@ -300,7 +256,6 @@ describe('ChoosePassword', () => {
       headerLeftComponent.props.onPress();
     });
 
-    // Verify that goBack was called
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 });
