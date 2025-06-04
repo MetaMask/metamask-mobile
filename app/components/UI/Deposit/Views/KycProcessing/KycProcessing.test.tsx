@@ -8,6 +8,15 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockStopPolling = jest.fn();
+
+const mockUseKycPolling = {
+  kycResponse: null,
+  loading: false,
+  error: null as string | null,
+  startPolling: jest.fn(),
+  stopPolling: mockStopPolling,
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -23,6 +32,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useKycPolling', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockUseKycPolling),
+}));
+
 jest.mock('../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'KYC Processing',
@@ -37,6 +51,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'deposit.kyc_processing.description':
         "This may take a few moments. We'll notify you once it's complete.",
       'deposit.kyc_processing.button': 'Browse tokens',
+      'deposit.kyc_processing.status_approved':
+        'Your identity has been approved',
+      'deposit.kyc_processing.status_rejected':
+        'Your identity verification was rejected',
+      'deposit.kyc_processing.status_submitted':
+        'Your identity is being reviewed',
+      'deposit.kyc_processing.status_not_submitted':
+        'Identity verification required',
+      generic_error_try_again: 'Something went wrong. Please try again.',
     };
     return mockStrings[key] || key;
   }),
@@ -61,6 +84,8 @@ function render(Component: React.ComponentType) {
 describe('KycProcessing Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseKycPolling.error = null;
+    mockUseKycPolling.kycResponse = null;
   });
 
   it('renders correctly', () => {
@@ -82,11 +107,23 @@ describe('KycProcessing Component', () => {
     );
   });
 
-  it('navigates to browser tab on button press', async () => {
+  it('shows error state when there is an error', () => {
+    mockUseKycPolling.error = 'Network error';
+
+    render(KycProcessing);
+    expect(
+      screen.getByText('Something went wrong. Please try again.'),
+    ).toBeTruthy();
+  });
+
+  it('navigates to browser tab on button press and stops polling', async () => {
     render(KycProcessing);
     fireEvent.press(screen.getByRole('button', { name: 'Browse tokens' }));
+
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER_TAB_HOME);
     });
+
+    expect(mockStopPolling).toHaveBeenCalled();
   });
 });

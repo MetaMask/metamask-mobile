@@ -13,6 +13,7 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import StyledButton from '../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import useKycPolling from '../../hooks/useKycPolling';
 
 export const createKycProcessingNavDetails = createNavigationDetails(
   Routes.DEPOSIT.KYC_PROCESSING,
@@ -20,8 +21,9 @@ export const createKycProcessingNavDetails = createNavigationDetails(
 
 const KycProcessing = () => {
   const navigation = useNavigation();
-
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const { error, stopPolling } = useKycPolling();
 
   useEffect(() => {
     navigation.setOptions(
@@ -34,8 +36,40 @@ const KycProcessing = () => {
   }, [navigation, theme]);
 
   const handleBrowseTokens = () => {
+    stopPolling();
     navigation.navigate(Routes.BROWSER_TAB_HOME);
   };
+
+  const handleRetryVerification = () => {
+    navigation.navigate(Routes.DEPOSIT.VERIFY_IDENTITY);
+  };
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content grow>
+            <DepositProgressBar steps={4} currentStep={3} />
+            <View style={styles.container}>
+              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+                {strings('deposit.kyc_processing.error_heading')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
+                {strings('deposit.kyc_processing.error_description')}
+              </Text>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <StyledButton type="confirm" onPress={handleRetryVerification}>
+              {strings('deposit.kyc_processing.error_button')}
+            </StyledButton>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout>

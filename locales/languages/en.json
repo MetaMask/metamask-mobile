@@ -454,7 +454,10 @@
       "title": "Verifying your identity",
       "heading": "Hang tight!\nWe’re verifying your identity now.",
       "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens"
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification"
     }
   },
   "receive": {
