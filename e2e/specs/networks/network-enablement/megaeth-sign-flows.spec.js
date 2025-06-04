@@ -52,7 +52,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe(Regression(`${MEGAETH_TESTNET.nickname} - Signing Flows`), () => {
+describe(SmokeNetworkEnablement(`${MEGAETH_TESTNET.nickname} - Signing Flows`), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

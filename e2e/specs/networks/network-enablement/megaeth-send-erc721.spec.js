@@ -16,7 +16,7 @@ import { buildPermissions } from '../../../fixtures/utils';
 const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
-describe(Regression(`${MEGAETH_TESTNET.nickname} - Send ERC721 tokens`), () => {
+describe(SmokeNetworkEnablement(`${MEGAETH_TESTNET.nickname} - Send ERC721 tokens`), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
