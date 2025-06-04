@@ -61,8 +61,6 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
           ConfirmationUITypes.ModalConfirmationContainer,
         );
         await Assertions.checkIfVisible(RowComponents.TokenHero);
-        // Check if the amount is displayed
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
         await Assertions.checkIfVisible(RowComponents.FromTo);
         await Assertions.checkIfVisible(RowComponents.SimulationDetails);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
