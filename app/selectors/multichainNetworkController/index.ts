@@ -7,7 +7,13 @@ import {
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope, EthScope } from '@metamask/keyring-api';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+  SolScope,
+  EthScope,
+} from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
@@ -51,20 +57,31 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         imageSource: imageIcons.SOLANA,
         ticker: 'SOL',
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BtcScope.Mainnet]: {
         decimals: 8,
         imageSource: imageIcons.BTC,
         ticker: 'BTC',
       },
+      ///: END:ONLY_INCLUDE_IF
     };
 
     // TODO: Add support for non-EVM testnets
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
       multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
       {};
+
+    const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      BtcScope.Mainnet,
+      ///: END:ONLY_INCLUDE_IF
+      SolScope.Mainnet,
+    ];
+
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
       Object.keys(networks)
         .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
+        .filter((key) => NON_EVM_CAIP_CHAIN_IDS.includes(key as CaipChainId))
         .reduce(
           (
             filteredNetworks: Record<

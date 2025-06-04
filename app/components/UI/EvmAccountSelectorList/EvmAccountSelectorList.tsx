@@ -41,6 +41,7 @@ import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
+import { Skeleton } from '../../../component-library/components/Skeleton';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -95,22 +96,31 @@ const EvmAccountSelectorList = ({
     (
       { fiatBalance }: Assets,
       partialAccount: { address: string; scopes: CaipChainId[] },
+      isLoadingAccount: boolean,
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
+
       return (
         <View
           style={styles.balancesContainer}
           testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
-          <SensitiveText
-            length={SensitiveTextLength.Long}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-          >
-            {fiatBalanceAmount}
-          </SensitiveText>
-          <AccountNetworkIndicator partialAccount={partialAccount} />
+          {isLoadingAccount ? (
+            <Skeleton width={60} height={24} />
+          ) : (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Long}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+              >
+                {fiatBalanceAmount}
+              </SensitiveText>
+
+              <AccountNetworkIndicator partialAccount={partialAccount} />
+            </>
+          )}
         </View>
       );
     },
@@ -201,7 +211,16 @@ const EvmAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError, scopes },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        scopes,
+        isLoadingAccount,
+      },
       index,
     }) => {
       const partialAccount = {
@@ -215,6 +234,7 @@ const EvmAccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       let cellVariant = CellVariant.SelectWithMenu;
+
       if (isMultiSelect) {
         cellVariant = CellVariant.MultiSelect;
       }
@@ -281,7 +301,8 @@ const EvmAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, partialAccount))}
+            (assets &&
+              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
         </Cell>
       );
     },

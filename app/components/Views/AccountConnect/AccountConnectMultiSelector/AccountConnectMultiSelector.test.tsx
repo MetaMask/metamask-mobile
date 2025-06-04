@@ -8,10 +8,13 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Brow
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockOnSubmit = jest.fn();
 const mockOnBack = jest.fn();
+const mockOnCreateAccount = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -58,6 +61,7 @@ const mockAccounts = [
     isSelected: false,
     caipAccountId: 'eip155:0:0x1234' as const,
     scopes: ['eip155:0'] as CaipChainId[],
+    isLoadingAccount: false,
   },
   {
     address: '0x5678',
@@ -68,6 +72,7 @@ const mockAccounts = [
     isSelected: false,
     caipAccountId: 'eip155:0:0x5678' as const,
     scopes: ['eip155:0'] as CaipChainId[],
+    isLoadingAccount: false,
   },
 ];
 
@@ -81,6 +86,7 @@ const defaultProps = {
   ensByAccountAddress: mockEnsByAccountAddress,
   defaultSelectedAddresses: ['eip155:0:0x1234'] as CaipAccountId[],
   onSubmit: mockOnSubmit,
+  onCreateAccount: mockOnCreateAccount,
   isLoading: false,
   hostname: 'test.com',
   onBack: mockOnBack,
@@ -220,7 +226,7 @@ describe('AccountConnectMultiSelector', () => {
   });
 
   it('handles add account button press', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
@@ -230,7 +236,18 @@ describe('AccountConnectMultiSelector', () => {
     );
     fireEvent.press(addButton);
 
-    // Verify that the screen changes to AddAccountActions
-    expect(mockNavigate).not.toHaveBeenCalled(); // Since this is handled internally
+    const addEthereumAccount = getByText('Ethereum account');
+    const addSolanaAccount = getByText('Solana account');
+
+    // Will move into the add account action
+    expect(addEthereumAccount).toBeDefined();
+    expect(addSolanaAccount).toBeDefined();
+
+    fireEvent.press(addSolanaAccount);
+
+    expect(mockOnCreateAccount).toHaveBeenCalledWith(
+      WalletClientType.Solana,
+      SolScope.Mainnet,
+    );
   });
 });

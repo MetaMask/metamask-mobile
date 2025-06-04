@@ -56,6 +56,10 @@ export interface Account {
    */
   caipAccountId: CaipAccountId;
   /**
+   * Boolean that indicates if the account is loading.
+   */
+  isLoadingAccount: boolean;
+  /**
    * Account scopes.
    */
   scopes: CaipChainId[];

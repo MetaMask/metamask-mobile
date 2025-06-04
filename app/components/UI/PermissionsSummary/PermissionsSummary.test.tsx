@@ -82,6 +82,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             scopes: ['eip155:0'],
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -92,6 +93,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:0',
           },
         ]}
       />,
@@ -121,6 +123,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             scopes: ['eip155:0'],
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -146,6 +149,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:0',
           },
         ]}
         accounts={[]}
@@ -175,6 +179,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             scopes: ['eip155:0'],
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -185,6 +190,7 @@ describe('PermissionsSummary', () => {
             imageSource: require('../../../assets/images/network-avatar.png'),
             size: AvatarSize.Xs,
             variant: AvatarVariant.Network,
+            caipChainId: 'eip155:0',
           },
         ]}
         showAccountsOnly={false}

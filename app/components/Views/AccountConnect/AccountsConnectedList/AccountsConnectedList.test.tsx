@@ -28,6 +28,7 @@ const mockAccounts: Account[] = [
     yOffset: 0,
     isSelected: true,
     scopes: ['eip155:1'],
+    isLoadingAccount: false,
   },
   {
     address: '0x456',
@@ -38,6 +39,7 @@ const mockAccounts: Account[] = [
     yOffset: 0,
     isSelected: false,
     scopes: ['eip155:1'],
+    isLoadingAccount: false,
   },
 ];
 
@@ -52,6 +54,7 @@ const mockNetworkAvatars: NetworkAvatarProps[] = [
     size: AvatarSize.Xs,
     imageSource: { uri: 'https://reactnative.dev/img/tiny_logo.png' },
     variant: AvatarVariant.Network,
+    caipChainId: 'eip155:1',
   },
 ];
 
