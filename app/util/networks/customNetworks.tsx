@@ -261,6 +261,7 @@ export const NETWORK_CHAIN_ID: {
   readonly FLOW_MAINNET: '0x2eb';
   readonly LENS: '0xe8';
   readonly PLUME: '0x18232';
+  readonly GENESYS: '0x407b';
   readonly KATANA: '0xb67d2';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
@@ -278,6 +279,7 @@ export const NETWORK_CHAIN_ID: {
   FLOW_MAINNET: '0x2eb',
   LENS: '0xe8',
   PLUME: '0x18232',
+  GENESYS: '0x407b',
   KATANA: '0xb67d2',
   ...CHAIN_IDS,
 };
@@ -300,5 +302,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
   [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
   [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
+  [NETWORK_CHAIN_ID.GENESYS]: require('../../images/genesys.png'),
   [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
 };
