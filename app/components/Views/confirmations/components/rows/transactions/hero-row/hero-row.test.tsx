@@ -7,7 +7,7 @@ import { HeroRow } from './hero-row';
 
 jest.mock('../../../../hooks/nft/useIsNft');
 jest.mock('../../../hero-token', () => ({ HeroToken: jest.fn(() => null) }));
-jest.mock('../../hero-nft', () => ({ HeroNft: jest.fn(() => null) }));
+jest.mock('../../../hero-nft', () => ({ HeroNft: jest.fn(() => null) }));
 
 describe('HeroRow', () => {
   beforeEach(() => {
