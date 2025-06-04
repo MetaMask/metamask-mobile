@@ -892,7 +892,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
-    }
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"}
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -1826,13 +1829,7 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp connection coming soon",
-        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
-      }
-    }
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -4065,8 +4062,10 @@
     "none": "None",
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
+    "data": "Data",
     "review": "Review",
-    "transferRequest": "Transfer request"
+    "transferRequest": "Transfer request",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
