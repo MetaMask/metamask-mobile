@@ -71,12 +71,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
-        try {
-          await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.log('The banner alert is not visible');
-        }
+        await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
       });
     });
 
@@ -93,6 +88,13 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
               description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
               features: [],
             },
+            ignoreFields: [
+              'id',
+              'jsonrpc',
+              'toNative',
+              'networkClientId',
+              'traceContext',
+            ],
           },
         ],
       };
