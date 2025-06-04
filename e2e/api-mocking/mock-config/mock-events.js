@@ -59,7 +59,7 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureFlagsReDesignedConfirmations: {
+    remoteFeatureFlagsRedesignedConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
@@ -75,8 +75,7 @@ export const mockEvents = {
             signatures: true,
             staking_confirmations: true,
             contract_interaction: true,
-            // Regardless of the redesigned flags, transfer is disabled for now
-            transfer: false,
+            transfer: true,
           },
         },
       ],

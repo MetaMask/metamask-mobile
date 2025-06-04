@@ -4,6 +4,7 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
+  setSelectedDestChainId
 } from '../../../../../core/redux/slices/bridge';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -48,6 +49,8 @@ export const useSwitchTokens = () => {
       dispatch(setDestToken(sourceToken));
 
       if (sourceToken.chainId !== destToken.chainId) {
+        dispatch(setSelectedDestChainId(sourceToken.chainId));
+
         if (isSolanaChainId(destToken.chainId)) {
           await onNonEvmNetworkChange(destToken.chainId as CaipChainId);
         } else {

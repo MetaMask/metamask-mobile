@@ -36,6 +36,12 @@ class AccountListBottomSheet {
     );
   }
 
+  get addEthereumAccountButton() {
+    return Matchers.getElementByText(
+      AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
+    );
+  }
+
   get removeAccountAlertText() {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
@@ -102,6 +108,10 @@ class AccountListBottomSheet {
 
   async tapAddAccountButton() {
     await Gestures.waitAndTap(this.addAccountButton);
+  }
+
+  async tapAddEthereumAccountButton() {
+    await Gestures.waitAndTap(this.addEthereumAccountButton);
   }
 
   async longPressImportedAccount() {

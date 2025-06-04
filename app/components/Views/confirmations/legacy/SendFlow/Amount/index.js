@@ -1504,6 +1504,7 @@ class Amount extends PureComponent {
               <View style={[styles.actionBorder, styles.actionMax]}>
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
+                    testID={AmountViewSelectorsIDs.MAX_BUTTON}
                     style={styles.actionMaxTouchable}
                     disabled={!estimatedTotalGas}
                     onPress={this.useMax}

@@ -12,6 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { ConfirmationRowComponentIDs } from '../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Text, {
   TextColor,
   TextVariant,
@@ -131,7 +132,10 @@ const SimulationDetailsLayout: React.FC<{
 }> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign, noBalanceChanges });
   return (
-    <View style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}>
+    <View 
+      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}} 
+      testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
+    >
       <View style={[styles.container]}>
         <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
           {inHeader}

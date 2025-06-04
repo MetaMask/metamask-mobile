@@ -486,6 +486,7 @@ class FixtureBuilder {
             },
           ],
           activeTab: 1692550481062,
+          favicons: []
         },
         modals: {
           networkModalVisible: false,

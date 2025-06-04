@@ -6,7 +6,12 @@ import {
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+  SolScope,
+} from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { ImageSourcePropType } from 'react-native';
 import { createDeepEqualSelector } from '../util';
@@ -49,24 +54,45 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         imageSource: imageIcons.SOLANA,
         ticker: 'SOL',
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BtcScope.Mainnet]: {
         decimals: 8,
         imageSource: imageIcons.BTC,
         ticker: 'BTC',
       },
+      ///: END:ONLY_INCLUDE_IF
     };
 
     // TODO: Add support for non-EVM testnets
-    const networks: Record<CaipChainId, MultichainNetworkConfiguration> = multichainNetworkControllerState.multichainNetworkConfigurationsByChainId || {};
+    const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
+      multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+      {};
+
+    const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      BtcScope.Mainnet,
+      ///: END:ONLY_INCLUDE_IF
+      SolScope.Mainnet,
+    ];
+
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
       Object.keys(networks)
         .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
-        .reduce((filteredNetworks: Record<CaipChainId, MultichainNetworkConfiguration>, key: string) => {
-          // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
-          filteredNetworks[key] = networks[key];
-          return filteredNetworks;
-      },
-    {});
+        .filter((key) => NON_EVM_CAIP_CHAIN_IDS.includes(key as CaipChainId))
+        .reduce(
+          (
+            filteredNetworks: Record<
+              CaipChainId,
+              MultichainNetworkConfiguration
+            >,
+            key: string,
+          ) => {
+            // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
+            filteredNetworks[key] = networks[key];
+            return filteredNetworks;
+          },
+          {},
+        );
 
     return Object.fromEntries(
       Object.entries(nonEvmNetworks).map(([key, network]) => [

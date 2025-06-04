@@ -438,7 +438,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View
+          style={
+            {
+              "width": "100%",
+            }
+          }
+        >
           <View
             style={
               {
@@ -2267,7 +2273,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View
+          style={
+            {
+              "width": "100%",
+            }
+          }
+        >
           <View
             style={
               {

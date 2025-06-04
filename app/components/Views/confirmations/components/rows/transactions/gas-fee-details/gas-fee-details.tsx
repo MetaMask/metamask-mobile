@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Icon, {
   IconSize,
   IconName,
@@ -20,6 +21,7 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import { GasSpeed } from '../../../gas/gas-speed';
 import styleSheet from './gas-fee-details.styles';
+
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -91,7 +93,7 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
 
   return (
     <>
-      <InfoSection>
+      <InfoSection testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
         <AlertRow
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}

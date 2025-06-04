@@ -1,7 +1,7 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { getSIWEDetails } from '../../../utils/signature';
@@ -43,7 +43,7 @@ const InfoRowOrigin = ({
 
   return (
     <InfoSection
-      testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
     >
       <AlertRow
         alertField={RowAlertKey.RequestFrom}
@@ -60,7 +60,7 @@ const InfoRowOrigin = ({
         <InfoRow
           label={strings('confirm.label.signing_in_with')}
           testID={
-            ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION
+            ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO
           }
         >
           <Address address={fromAddress} chainId={chainId} />
