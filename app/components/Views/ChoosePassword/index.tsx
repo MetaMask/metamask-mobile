@@ -203,7 +203,7 @@ interface HeaderLeftProps {
   marginLeft?: number;
 }
 
-const HeaderLeft = ({ colors, marginLeft = 16 }: HeaderLeftProps) => {
+export const HeaderLeft = ({ colors, marginLeft = 16 }: HeaderLeftProps) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -215,10 +215,6 @@ const HeaderLeft = ({ colors, marginLeft = 16 }: HeaderLeftProps) => {
       />
     </TouchableOpacity>
   );
-};
-
-const headerLeft = (colors: Colors, marginLeft: number) => {
-  return <HeaderLeft colors={colors} marginLeft={marginLeft} />;
 };
 
 interface LoginOptionsSwitchComponentProps {
@@ -320,7 +316,7 @@ const ChoosePassword = (props: ChoosePasswordProps) => {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => headerLeft(colors, 16),
+          headerLeft: () => <HeaderLeft colors={colors} marginLeft={16} />,
           headerRight: () => <View />,
         },
         colors,
