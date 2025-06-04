@@ -640,52 +640,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
     <View
       style={
         {
-          "marginBottom": 16,
-          "marginHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="account-list-add-account-button"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Add account or hardware wallet
-        </Text>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        {
           "marginTop": 16,
           "paddingHorizontal": 16,
         }

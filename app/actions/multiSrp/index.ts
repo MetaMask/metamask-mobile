@@ -16,7 +16,6 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
