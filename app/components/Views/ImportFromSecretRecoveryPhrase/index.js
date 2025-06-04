@@ -12,7 +12,6 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  Platform,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
@@ -426,7 +425,7 @@ const ImportFromSecretRecoveryPhrase = ({
           { label: strings('import_from_seed.seed_phrase_length_error') },
         ],
         hasNoTimeout: false,
-        iconName: IconName.DangerSolid,
+        iconName: IconName.Error,
         iconColor: IconColor.Error,
       });
       return false;
