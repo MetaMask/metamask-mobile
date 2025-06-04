@@ -5,7 +5,6 @@ import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { flushPromises } from '../../util/test/utils';
 
-// Mock the new utility functions
 jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   addItemToChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1', 'eip155:100'],
@@ -448,7 +447,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
     expect(spyOnAddNetwork).toHaveBeenCalledTimes(1);
 
-    // Verify addTraitsToUser was called with the chain ID list
     expect(mockAddTraitsToUser).toHaveBeenCalledWith({
       chain_id_list: ['eip155:1', 'eip155:100'],
     });

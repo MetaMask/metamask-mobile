@@ -15,7 +15,7 @@ import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 
-// Mock the new utility functions
+// Mock network metric utility functions
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1'],
@@ -708,7 +708,6 @@ describe('Network Selector', () => {
   it('should call addTraitsToUser with updated chain ID list when removing a network', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
 
-    // Import the mocked functions
     const { removeItemFromChainIdList } = await import(
       '../../../util/metrics/MultichainAPI/networkMetricUtils'
     );

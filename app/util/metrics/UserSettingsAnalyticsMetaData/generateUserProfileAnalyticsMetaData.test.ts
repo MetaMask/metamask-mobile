@@ -17,7 +17,6 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-// Mock the network configurations selector
 const mockSelectNetworkConfigurations = jest.fn();
 jest.mock('../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
@@ -26,7 +25,7 @@ jest.mock('../../../selectors/networkController', () => ({
 describe('generateUserProfileAnalyticsMetaData', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
-    // Set up default network configurations mock
+
     mockSelectNetworkConfigurations.mockReturnValue({
       '0x1': {
         chainId: '0x1',

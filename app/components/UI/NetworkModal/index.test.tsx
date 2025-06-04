@@ -10,7 +10,6 @@ import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selector
 import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
-// Mock the new utility functions
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   addItemToChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1', 'eip155:137'],
@@ -33,7 +32,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-// Mock useMetrics hook to include addTraitsToUser
 const mockAddTraitsToUser = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
