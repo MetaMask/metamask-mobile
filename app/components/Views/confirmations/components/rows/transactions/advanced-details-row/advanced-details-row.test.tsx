@@ -136,18 +136,16 @@ describe('AdvancedDetailsRow', () => {
   });
 
   it('display correct information for upgrade+batch confirmation', () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText } = renderWithProvider(<AdvancedDetailsRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
 
     fireEvent.press(getByText('Advanced details'));
 
     expect(getByText('Nonce')).toBeTruthy();
     expect(getByText('Interacting with')).toBeTruthy();
     expect(getByText('Smart contract')).toBeTruthy();
-    expect(queryByText('Data')).toBeTruthy();
+    expect(getByText('Transaction 1')).toBeTruthy();
+    expect(getByText('Transaction 2')).toBeTruthy();
   });
 });

@@ -47,7 +47,6 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
-app/components/UI/Deposit/           @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations

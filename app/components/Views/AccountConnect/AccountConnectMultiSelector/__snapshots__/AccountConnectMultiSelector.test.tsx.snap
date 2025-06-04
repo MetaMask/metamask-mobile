@@ -89,6 +89,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
     <View
       style={
         {
+          "marginTop": 16,
           "paddingHorizontal": 16,
         }
       }
@@ -633,6 +634,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
     <View
       style={
         {
+          "marginTop": 16,
           "paddingHorizontal": 16,
         }
       }
