@@ -52,9 +52,6 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     (state: any) => state.user,
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onboardingWizardStep = useSelector((state: any) => state.wizard.step);
   const dispatch = useDispatch();
 
   const currentRouteName = findRouteNameFromNavigatorState(
@@ -106,7 +103,6 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     seedphraseBackedUp ||
     inBlockedView ||
     !backUpSeedphraseVisible ||
-    onboardingWizardStep !== 0 ||
     !isVisible;
 
   return shouldNotRenderAlert ? null : (

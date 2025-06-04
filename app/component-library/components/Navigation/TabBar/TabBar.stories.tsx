@@ -14,9 +14,6 @@ import { default as TabBarComponent } from './TabBar';
 import { TabBarIconKey } from './TabBar.types';
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState,
   },
