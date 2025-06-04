@@ -173,6 +173,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         : initialScreen,
     );
   const { accounts, ensByAccountAddress } = useAccounts({
+    chainId: networkInfo.chainId,
     isLoading,
   });
   const previousPermittedAccounts = useRef<CaipAccountId[]>();

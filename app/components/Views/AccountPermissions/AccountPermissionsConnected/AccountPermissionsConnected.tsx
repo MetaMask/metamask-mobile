@@ -43,6 +43,7 @@ const AccountPermissionsConnected = ({
   favicon,
   accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
+  console.log('accounts', accounts);
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {

@@ -32,6 +32,7 @@ import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
+  chainId,
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
@@ -40,7 +41,8 @@ const useAccounts = ({
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const chainId = useSelector(selectChainId);
+  const currentChainId = chainId || useSelector(selectChainId);
+  console.log('chainId in useAccounts', currentChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
@@ -80,7 +82,7 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            chainId,
+            currentChainId,
           );
           if (ens) {
             latestENSbyAccountAddress[address] = ens;
@@ -111,7 +113,7 @@ const useAccounts = ({
         }));
       }
     },
-    [chainId],
+    [currentChainId],
   );
 
   // Memoize the balance calculation to prevent it from causing re-renders
@@ -127,6 +129,10 @@ const useAccounts = ({
 
     internalAccounts.forEach((account) => {
       const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
+      console.log(
+        'balanceForAccount',
+        balanceForAccount.tokenFiatBalancesCrossChains,
+      );
       const displayBalance = balanceForAccount
         ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
         : '';
