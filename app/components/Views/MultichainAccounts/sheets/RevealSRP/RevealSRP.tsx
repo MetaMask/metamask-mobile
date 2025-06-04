@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box } from '../../../../UI/Box/Box';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { SafeAreaView, View } from 'react-native';
@@ -47,6 +47,25 @@ export const RevealSRP = () => {
 
   const keyringId = useKeyringId(account);
 
+  const handleLearnMoreClick = useCallback(() => {
+    navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: SRP_GUIDE_URL,
+      },
+    });
+  }, [navigate]);
+
+  const handleBackClick = useCallback(() => {
+    goBack();
+  }, [goBack]);
+
+  const handleGetStartedClick = useCallback(() => {
+    navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
+      keyringId,
+    });
+  }, [keyringId, navigate]);
+
   return (
     <SafeAreaView style={styles.container}>
       <HeaderBase
@@ -56,7 +75,7 @@ export const RevealSRP = () => {
             testID={AccountDetailsIds.BACK_BUTTON}
             labelTextVariant={TextVariant.HeadingMD}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => goBack()}
+            onPress={handleBackClick}
           />
         }
       >
@@ -85,23 +104,12 @@ export const RevealSRP = () => {
           style={styles.button}
           size={ButtonSize.Lg}
           label={strings('multichain_accounts.reveal_srp.get_started')}
-          onPress={() => {
-            navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
-              keyringId,
-            });
-          }}
+          onPress={handleGetStartedClick}
         />
         <ButtonSecondary
           style={styles.button}
           label={strings('multichain_accounts.reveal_srp.learn_more')}
-          onPress={() => {
-            navigate(Routes.WEBVIEW.MAIN, {
-              screen: Routes.WEBVIEW.SIMPLE,
-              params: {
-                url: SRP_GUIDE_URL,
-              },
-            });
-          }}
+          onPress={handleLearnMoreClick}
         />
       </Box>
     </SafeAreaView>
