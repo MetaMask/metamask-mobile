@@ -174,7 +174,7 @@ describe('ManualBackupStep2', () => {
     jest.clearAllMocks();
   });
 
-  it('should render the component', () => {
+  it('render matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
