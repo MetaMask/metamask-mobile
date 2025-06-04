@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
-index f2fa0b0..3855217 100644
+index f2fa0b0..443aa9d 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 @@ -286,14 +286,19 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
@@ -26,11 +26,13 @@ index f2fa0b0..3855217 100644
                      if (!approvalTxMeta) {
                          throw new Error('Failed to submit bridge tx: approval txMeta is undefined');
                      }
-@@ -313,20 +318,29 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -312,21 +317,31 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+             }
              return undefined;
          });
-         _BridgeStatusController_handleEvmSmartTransaction.set(this, async (isBridgeTx, trade, quoteResponse, approvalTxId) => {
+-        _BridgeStatusController_handleEvmSmartTransaction.set(this, async (isBridgeTx, trade, quoteResponse, approvalTxId) => {
 -            return await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, isBridgeTx ? transaction_controller_1.TransactionType.bridge : transaction_controller_1.TransactionType.swap, trade, quoteResponse, approvalTxId, false);
++        _BridgeStatusController_handleEvmSmartTransaction.set(this, async ({ isBridgeTx, trade, quoteResponse, approvalTxId, requireApproval = false, }) => {
 +            return await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmTransaction, "f").call(this, {
 +                transactionType: isBridgeTx
 +                    ? transaction_controller_1.TransactionType.bridge
@@ -38,7 +40,8 @@ index f2fa0b0..3855217 100644
 +                trade,
 +                quoteResponse,
 +                approvalTxId,
-+                shouldWaitForHash: false, // Set to false to indicate we don't want to wait for hash
++                shouldWaitForHash: false,
++                requireApproval,
 +            });
          });
          /**
@@ -64,7 +67,7 @@ index f2fa0b0..3855217 100644
              const actionId = (0, transaction_2.generateActionId)().toString();
              const selectedAccount = this.messagingSystem.call('AccountsController:getAccountByAddress', trade.from);
              if (!selectedAccount) {
-@@ -337,7 +351,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -337,7 +352,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
              const requestOptions = {
                  actionId,
                  networkClientId,
@@ -73,7 +76,7 @@ index f2fa0b0..3855217 100644
                  type: transactionType,
                  origin: 'metamask',
              };
-@@ -386,7 +400,11 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -386,7 +401,11 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                  const allowance = new bignumber_js_1.BigNumber(await this.messagingSystem.call('BridgeController:getBridgeERC20Allowance', quoteResponse.quote.srcAsset.address, hexChainId));
                  const shouldResetApproval = allowance.lt(quoteResponse.sentAmount.amount) && allowance.gt(0);
                  if (shouldResetApproval) {
@@ -86,28 +89,43 @@ index f2fa0b0..3855217 100644
                  }
              }
          });
-@@ -413,9 +431,10 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -413,9 +432,10 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
           *
           * @param quoteResponse - The quote response
           * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
-+         * @param isHardwareAddress - Whether the wallet is a hardware wallet. Hardware wallets require approval.
++         * @param requireApproval - Whether to require approval for the transaction
           * @returns The transaction meta
           */
 -        this.submitTx = async (quoteResponse, isStxEnabledOnClient) => {
-+        this.submitTx = async (quoteResponse, isStxEnabledOnClient, isHardwareAddress) => {
++        this.submitTx = async (quoteResponse, isStxEnabledOnClient, requireApproval) => {
              let txMeta;
              const isBridgeTx = (0, bridge_controller_1.isCrossChain)(quoteResponse.quote.srcChainId, quoteResponse.quote.destChainId);
              // Submit SOLANA tx
-@@ -437,7 +456,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -437,7 +457,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
              if (!(0, bridge_controller_1.isSolanaChainId)(quoteResponse.quote.srcChainId) &&
                  typeof quoteResponse.trade !== 'string') {
                  // Set approval time and id if an approval tx is needed
 -                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse);
-+                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse, isHardwareAddress);
++                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse, requireApproval);
                  approvalTime = approvalTxMeta?.time;
                  approvalTxId = approvalTxMeta?.id;
                  // Handle smart transactions if enabled
-@@ -461,7 +480,13 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -450,7 +470,13 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+                             srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
+                             stxEnabled: true,
+                         },
+-                    }, async () => await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmSmartTransaction, "f").call(this, isBridgeTx, quoteResponse.trade, quoteResponse, approvalTxId));
++                    }, async () => await __classPrivateFieldGet(this, _BridgeStatusController_handleEvmSmartTransaction, "f").call(this, {
++                        isBridgeTx,
++                        trade: quoteResponse.trade,
++                        quoteResponse,
++                        approvalTxId,
++                        requireApproval,
++                    }));
+                 }
+                 else {
+                     txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+@@ -461,7 +487,13 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                              srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
                              stxEnabled: false,
                          },
@@ -117,24 +135,24 @@ index f2fa0b0..3855217 100644
 +                        trade: quoteResponse.trade,
 +                        quoteResponse,
 +                        approvalTxId,
-+                        requireApproval: isHardwareAddress,
++                        requireApproval,
 +                    }));
                  }
              }
              if (!txMeta) {
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
-index 951fce4..ab2c694 100644
+index 951fce4..55e6835 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 @@ -58,9 +58,10 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
       *
       * @param quoteResponse - The quote response
       * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
-+     * @param isHardwareAddress - Whether the wallet is a hardware wallet. Hardware wallets require approval.
++     * @param requireApproval - Whether to require approval for the transaction
       * @returns The transaction meta
       */
 -    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
-+    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean, isHardwareAddress: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
++    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean, requireApproval: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
  }
  export {};
  //# sourceMappingURL=bridge-status-controller.d.cts.map
