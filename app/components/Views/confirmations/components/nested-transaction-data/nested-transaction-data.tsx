@@ -2,14 +2,14 @@ import React from 'react';
 import { Hex } from '@metamask/utils';
 import { NestedTransactionMetadata } from '@metamask/transaction-controller';
 
-import { strings } from '../../../../../../../../locales/i18n';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
-import Name from '../../../../../../UI/Name';
-import { NameType } from '../../../../../../UI/Name/Name.types';
-import InfoSectionAccordion from '../../../../components/UI/info-section-accordion';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
-import InfoRow from '../../../UI/info-row';
+import { strings } from '../../../../../../locales/i18n';
+import Text from '../../../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import Name from '../../../../UI/Name';
+import { NameType } from '../../../../UI/Name/Name.types';
+import InfoSectionAccordion from '../../components/UI/info-section-accordion';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import InfoRow from '../UI/info-row';
 
 const TransactionInfo = ({
   chainId,
@@ -50,6 +50,7 @@ const NestedTransactionData = () => {
       {nestedTransactions.map((transaction, index) => (
         <TransactionInfo
           chainId={chainId as Hex}
+          key={`nested-transaction-${index}`}
           index={index + 1}
           transaction={transaction}
         />

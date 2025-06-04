@@ -38,7 +38,7 @@ const AdvancedDetailsRow = () => {
     proposedNonce,
     userSelectedNonce,
   } = useEditNonce();
-  const { isBatched, isUpgrade, isUpgradeOnly, isDowngrade } =
+  const { isBatched, isUpgrade, is7702transaction, isDowngrade } =
     use7702TransactionType();
 
   if (!transactionMetadata?.txParams?.to) {
@@ -96,7 +96,7 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!(isUpgradeOnly || isDowngrade || isBatched) && (
+            {!is7702transaction && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
