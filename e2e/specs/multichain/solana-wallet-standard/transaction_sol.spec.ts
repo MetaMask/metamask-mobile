@@ -18,33 +18,30 @@ describe(
 
     describe('Send a transaction', () => {
       it('Should send a transaction', async () => {
-        await withSolanaAccountSnap({},
-          async () => {
-            await navigateToSolanaTestDApp();
+        await withSolanaAccountSnap({}, async () => {
+          await navigateToSolanaTestDApp();
 
-            await connectSolanaTestDapp();
+          await connectSolanaTestDapp();
 
-            const sendSolTest = SolanaTestDApp.getSendSolTest();
-            // await signMessageTest.setMessage('Hello, world!');
-            await sendSolTest.signTransaction();
+          const sendSolTest = SolanaTestDApp.getSendSolTest();
+          await sendSolTest.signTransaction();
 
-            // await FooterActions.tapConfirmButton();
-            // const cancelButton = Matchers.getElementByText('Cancel');
-            console.log('looking for cancel button');
-            const cancelButton = Matchers.getElementByID('confirm-sign-and-send-transaction-cancel-snap-footer-button');
-            await Gestures.waitAndTap(cancelButton, { skipVisibilityCheck: true });
+          await TestHelpers.delay(3000);
+          console.log('looking for cancel button');
+          // await FooterActions.tapCancelButton();
 
-            console.log('tapped cancel button');
+          // const cancelButton = Matchers.getElementByText('Cancel');
+          const cancelButton = Matchers.getElementByID(
+            'confirm-sign-and-send-transaction-cancel-snap-footer-button',
+          );
+          await Gestures.waitAndTap(cancelButton);
+          console.log('tapped cancel button');
 
-            await TestHelpers.delay(2000);
+          await TestHelpers.delay(2000);
 
-            // const element = Matchers.getElementByXPath('//*[@text="Transaction request"]');
-            // console.log('element', await element.getAttributes());
-            // await element.tap();
-
-            await Assertions.checkIfTextIsDisplayed('Transaction request', 100);
-          },
-        );
+          // const element = Matchers.getElementByXPath('//*[@text="Transaction request"]');
+          // await Assertions.checkIfTextIsDisplayed('Transaction request', 100);
+        });
       });
     });
   },

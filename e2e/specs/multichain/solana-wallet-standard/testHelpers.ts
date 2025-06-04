@@ -1,12 +1,8 @@
-import TestHelpers from '../../../helpers';
 import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import SolanaNewFeatureSheet from '../../../pages/wallet/SolanaNewFeatureSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
-import { loginToApp } from '../../../viewHelper';
 
 /**
  * Connects the Solana test dapp to the wallet.
@@ -26,15 +22,7 @@ export const connectSolanaTestDapp = async (
   await ConnectBottomSheet.tapConnectButton();
 };
 
-export const setup = async (): Promise<void> => {
-  await TestHelpers.reverseServerPort();
-  await loginToApp();
-
-  // Create Solana account
-  await SolanaNewFeatureSheet.tapCreateAccountButton();
-  await AddNewHdAccountComponent.tapConfirm();
-
-  // Navigate to the solana test dapp
+export const navigateToSolanaTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
   await Assertions.checkIfVisible(BrowserView.browserScreenID);
   await SolanaTestDApp.navigateToSolanaTestDApp();
