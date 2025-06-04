@@ -5,6 +5,13 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import {
+  getBlockExplorerAddressUrl,
+  getBlockExplorerName,
+  findBlockExplorerForNonEvmChainId,
+  findBlockExplorerForRpc,
+} from '../../../util/networks';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -40,6 +47,26 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+
+// Get the mocked functions with proper typing
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
+const mockGetBlockExplorerAddressUrl =
+  getBlockExplorerAddressUrl as jest.MockedFunction<
+    typeof getBlockExplorerAddressUrl
+  >;
+const mockGetBlockExplorerName = getBlockExplorerName as jest.MockedFunction<
+  typeof getBlockExplorerName
+>;
+const mockFindBlockExplorerForNonEvmChainId =
+  findBlockExplorerForNonEvmChainId as jest.MockedFunction<
+    typeof findBlockExplorerForNonEvmChainId
+  >;
+const mockFindBlockExplorerForRpc =
+  findBlockExplorerForRpc as jest.MockedFunction<
+    typeof findBlockExplorerForRpc
+  >;
 
 describe('Transactions', () => {
   beforeEach(() => {
@@ -77,15 +104,9 @@ describe('Transactions', () => {
   });
 
   describe('Block Explorer Integration', () => {
-    const { isNonEvmChainId } = require('../../../core/Multichain/utils');
-    const {
-      getBlockExplorerAddressUrl,
-      getBlockExplorerName,
-    } = require('../../../util/networks');
-
     it('should render for Solana chains', () => {
-      isNonEvmChainId.mockReturnValue(true);
-      getBlockExplorerName.mockReturnValue('Solscan');
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Solscan');
 
       const wrapper = shallow(
         <Provider store={store}>
@@ -104,8 +125,8 @@ describe('Transactions', () => {
     });
 
     it('should render for EVM chains', () => {
-      isNonEvmChainId.mockReturnValue(false);
-      getBlockExplorerAddressUrl.mockReturnValue({
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
       });
@@ -128,15 +149,11 @@ describe('Transactions', () => {
   });
 
   describe('Network Configuration', () => {
-    const { isNonEvmChainId } = require('../../../core/Multichain/utils');
-    const {
-      findBlockExplorerForNonEvmChainId,
-      findBlockExplorerForRpc,
-    } = require('../../../util/networks');
-
     it('should handle non-EVM chain configuration', () => {
-      isNonEvmChainId.mockReturnValue(true);
-      findBlockExplorerForNonEvmChainId.mockReturnValue('https://solscan.io');
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
+        'https://solscan.io',
+      );
 
       const wrapper = shallow(
         <Provider store={store}>
@@ -158,8 +175,10 @@ describe('Transactions', () => {
     });
 
     it('should handle RPC network configuration', () => {
-      isNonEvmChainId.mockReturnValue(false);
-      findBlockExplorerForRpc.mockReturnValue('https://custom-explorer.com');
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerForRpc.mockReturnValue(
+        'https://custom-explorer.com',
+      );
 
       const wrapper = shallow(
         <Provider store={store}>
@@ -179,10 +198,8 @@ describe('Transactions', () => {
   });
 
   describe('Empty State Handling', () => {
-    const { isNonEvmChainId } = require('../../../core/Multichain/utils');
-
     it('should render empty state for non-EVM chains without transactions', () => {
-      isNonEvmChainId.mockReturnValue(true);
+      mockIsNonEvmChainId.mockReturnValue(true);
 
       const wrapper = shallow(
         <Provider store={store}>
@@ -203,7 +220,7 @@ describe('Transactions', () => {
         <Provider store={store}>
           <Transactions
             transactions={[]}
-            loading={true}
+            loading
             chainId="0x1"
             providerConfig={{ type: 'mainnet' }}
           />
