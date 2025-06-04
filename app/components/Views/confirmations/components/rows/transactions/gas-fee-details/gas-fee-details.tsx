@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import Icon, {
@@ -9,6 +9,7 @@ import Icon, {
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -17,6 +18,7 @@ import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
+import { GasSpeed } from '../../../gas/gas-speed';
 import styleSheet from './gas-fee-details.styles';
 
 const EstimationInfo = ({
@@ -79,6 +81,8 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
+  const isUserFeeLevelExists = transactionMetadata?.userFeeLevel;
+
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
       tooltip: TOOLTIP_TYPES.NETWORK_FEE,
@@ -109,6 +113,14 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
             )}
           </View>
         </AlertRow>
+        {isUserFeeLevelExists && (
+          <AlertRow
+            alertField={RowAlertKey.PendingTransaction}
+            label={strings('transactions.gas_modal.speed')}
+          >
+            <GasSpeed />
+          </AlertRow>
+        )}
       </InfoSection>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />

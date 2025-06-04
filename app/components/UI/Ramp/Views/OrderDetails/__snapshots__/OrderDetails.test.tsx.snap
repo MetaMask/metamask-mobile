@@ -1426,7 +1426,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -2931,7 +2931,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -5884,7 +5884,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -8425,7 +8425,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
@@ -9972,7 +9972,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                       [
                                         [
                                           {
-                                            "borderRadius": 100,
+                                            "borderRadius": 12,
                                             "justifyContent": "center",
                                             "padding": 15,
                                           },
@@ -11526,7 +11526,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                     [
                                       [
                                         {
-                                          "borderRadius": 100,
+                                          "borderRadius": 12,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },

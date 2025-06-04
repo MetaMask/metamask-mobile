@@ -670,6 +670,7 @@ describe('AccountActions', () => {
         },
       );
     });
+
     it('option should not be displayed if there is no network supporting 7702 for selected address', () => {
       jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
         pending: false,
