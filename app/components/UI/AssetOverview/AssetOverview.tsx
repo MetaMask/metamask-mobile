@@ -6,8 +6,12 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  CaipChainId,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SnapId } from '@metamask/snaps-sdk';
+///: END:ONLY_INCLUDE_IF
 import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -70,14 +74,12 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
+import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
+import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import {
-  isEvmAccountType,
-  KeyringAccountType,
-  SolScope,
-} from '@metamask/keyring-api';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -191,6 +193,44 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (
+      selectedInternalAccount &&
+      !isEvmAccountType(selectedInternalAccount.type as KeyringAccountType)
+    ) {
+      if (!selectedInternalAccount.metadata.snap) {
+        throw new Error('Non-EVM needs to be Snap accounts');
+      }
+
+      if (
+        !isMultichainWalletSnap(
+          selectedInternalAccount.metadata.snap.id as SnapId,
+        )
+      ) {
+        throw new Error(
+          `Non-EVM Snap is not whitelisted: ${selectedInternalAccount.metadata.snap.id}`,
+        );
+      }
+
+      try {
+        await sendMultichainTransaction(
+          selectedInternalAccount.metadata.snap.id as SnapId,
+          {
+            account: selectedInternalAccount.id,
+            scope: asset.chainId as CaipChainId,
+          },
+        );
+        return;
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'AssetOverview: Error sending multichain transaction',
+        );
+        return;
+      }
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
@@ -199,31 +239,22 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
 
     // For EVM networks, switch the network if needed
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Skip network switching for Solana assets
-    const isSolanaAsset = isNonEvmAsset && asset.chainId === SolScope.Mainnet;
-    if (!isSolanaAsset) {
-      ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-      if (asset.chainId !== selectedChainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        const networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(
-            asset.chainId as Hex,
-          );
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
         );
-      }
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
     }
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
     if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
