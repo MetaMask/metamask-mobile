@@ -1,15 +1,15 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useIsNft } from '../../../hooks/nft/useIsNft';
-import { HeroNft } from '../../hero-nft';
-import TokenHero from '../../rows/transactions/token-hero';
-import { HeroTransfer } from './transfer';
+import { useIsNft } from '../../../../hooks/nft/useIsNft';
+import { HeroNft } from '../../../hero-nft';
+import { HeroToken } from '../../../hero-token';
+import { HeroRow } from './hero-row';
 
 jest.mock('../../../hooks/nft/useIsNft');
-jest.mock('../../rows/transactions/token-hero', () => jest.fn(() => null));
+jest.mock('../../../hero-token', () => ({ HeroToken: jest.fn(() => null) }));
 jest.mock('../../hero-nft', () => ({ HeroNft: jest.fn(() => null) }));
 
-describe('HeroTransfer', () => {
+describe('HeroRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -17,16 +17,16 @@ describe('HeroTransfer', () => {
   it('should render HeroNft when isNft is true', () => {
     (useIsNft as jest.Mock).mockReturnValue({ isNft: true });
 
-    render(<HeroTransfer />);
+    render(<HeroRow />);
     expect(HeroNft).toHaveBeenCalled();
-    expect(TokenHero).not.toHaveBeenCalled();
+    expect(HeroToken).not.toHaveBeenCalled();
   });
 
-  it('should render TokenHero when isNft is false', () => {
+  it('should render HeroToken when isNft is false', () => {
     (useIsNft as jest.Mock).mockReturnValue({ isNft: false });
 
-    render(<HeroTransfer />);
-    expect(TokenHero).toHaveBeenCalled();
+    render(<HeroRow />);
+    expect(HeroToken).toHaveBeenCalled();
     expect(HeroNft).not.toHaveBeenCalled();
   });
 });
