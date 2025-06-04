@@ -110,7 +110,6 @@ import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AddNewAccountProps } from '../AddNewAccount/AddNewAccount.types';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
 const AccountConnect = (props: AccountConnectProps) => {
@@ -160,11 +159,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname } = hostInfo.metadata as {
-    id: string;
-    origin: string;
-    promptToCreateSolanaAccount?: boolean;
-  };
+  const { origin: channelIdOrHostname } = hostInfo.metadata;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -280,9 +275,15 @@ const AccountConnect = (props: AccountConnectProps) => {
     [accounts],
   );
 
-  const promptToCreateSolanaAccount =
-    hostInfo.metadata.promptToCreateSolanaAccount &&
-    !solanaAccountExistsInWallet;
+  const promptToCreateSolanaAccount = useMemo(
+    () =>
+      hostInfo.metadata.promptToCreateSolanaAccount &&
+      !solanaAccountExistsInWallet,
+    [
+      hostInfo.metadata.promptToCreateSolanaAccount,
+      solanaAccountExistsInWallet,
+    ],
+  );
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -904,20 +905,21 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses([...selectedAddresses, caipAccountId]);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [selectedAddresses],
+    [selectedAddresses, setSelectedAddresses, setScreen],
   );
 
   const renderAddNewAccount = useCallback(
-    (params: AddNewAccountProps) => (
+    () => (
       <AddNewAccount
-        {...params}
+        scope={multichainAccountOptions?.scope}
+        clientType={multichainAccountOptions?.clientType}
         onActionComplete={handleAccountSelection}
         onBack={() => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
       />
     ),
-    [handleAccountSelection],
+    [handleAccountSelection, setScreen, multichainAccountOptions],
   );
 
   const renderPhishingModal = useCallback(
@@ -969,7 +971,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       case AccountConnectScreens.MultiConnectNetworkSelector:
         return renderMultiConnectNetworkSelectorScreen();
       case AccountConnectScreens.AddNewAccount:
-        return renderAddNewAccount(multichainAccountOptions ?? {});
+        return renderAddNewAccount();
     }
   }, [
     screen,
@@ -980,7 +982,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
     renderAddNewAccount,
-    multichainAccountOptions,
   ]);
 
   return (
