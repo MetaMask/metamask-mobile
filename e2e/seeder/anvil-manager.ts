@@ -104,9 +104,6 @@ class AnvilManager {
       noMining?: boolean;
     } = {},
   ): Promise<void> {
-    if (!opts.mnemonic) {
-      throw new Error('Missing required mnemonic');
-    }
     const options = { ...defaultOptions, ...opts,port: AnvilPort() };
     const { port } = options;
 

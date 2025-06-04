@@ -63,42 +63,18 @@ export const defaultGanacheOptions = {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [
-      {
-        type: localNodeOptions,
-        options:
-          localNodeOptions === 'ganache'
-            ? defaultGanacheOptions
-            : localNodeOptions === 'anvil'
-            ? defaultOptions
-            : {},
-      },
-    ];
+    return [{ type: localNodeOptions, options: {} }];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return {
-          type: node,
-          options:
-            node === 'ganache'
-              ? defaultGanacheOptions
-              : node === 'anvil'
-              ? defaultOptions
-              : {},
-        };
+        return { type: node, options: {} };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
-        const type = node.type || 'anvil';
         return {
-          type,
-          options:
-            type === 'ganache'
-              ? { ...defaultGanacheOptions, ...(node.options || {}) }
-              : type === 'anvil'
-              ? { ...defaultOptions, ...(node.options || {}) }
-              : node.options || {},
+          type: node.type || 'anvil',
+          options: node.options || {},
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);
@@ -109,7 +85,7 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     return [
       {
         type: 'anvil',
-        options: { ...defaultOptions, ...localNodeOptions },
+        options: localNodeOptions,
       },
     ];
   }
