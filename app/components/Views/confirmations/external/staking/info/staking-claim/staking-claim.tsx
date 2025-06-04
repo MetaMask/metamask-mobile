@@ -1,9 +1,8 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RouteProp } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import SimulationDetails from '../../../../../../UI/SimulationDetails/SimulationDetails';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -15,14 +14,12 @@ import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
-import styleSheet from './staking-claim.styles';
 
 const StakingClaim = ({
   route,
 }: {
   route: RouteProp<{ params: { amountWei: string } }, 'params'>;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   useNavbar(strings('stake.claim'), false);
   useClearConfirmationOnBackSwipe();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -50,13 +47,11 @@ const StakingClaim = ({
   return (
     <>
       <HeroRow amountWei={route?.params?.amountWei} />
-      <View style={styles.simulationsDetailsContainer}>
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics={false}
-          isTransactionsRedesign
-        />
-      </View>
+      <SimulationDetails
+        transaction={transactionMetadata as TransactionMeta}
+        enableMetrics={false}
+        isTransactionsRedesign
+      />
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>

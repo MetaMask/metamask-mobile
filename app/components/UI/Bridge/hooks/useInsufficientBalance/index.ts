@@ -22,9 +22,16 @@ const useIsInsufficientBalance = ({ amount, token }: UseIsInsufficientBalancePar
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
 
+  // Safety check for decimal places before parsing
+  const hasValidDecimals = isValidAmount && (() => {
+    const decimalPlaces = amount.includes('.') ? amount.split('.')[1].length : 0;
+    return decimalPlaces <= token.decimals;
+  })();
+
   // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
   const isInsufficientBalance = quoteRequest?.insufficientBal ||
     (isValidAmount &&
+      hasValidDecimals &&
       parseUnits(amount, token.decimals).gt(
         latestBalance?.atomicBalance ?? BigNumber.from(0),
       ));

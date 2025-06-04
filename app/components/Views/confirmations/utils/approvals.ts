@@ -11,15 +11,17 @@ import {
 } from '../constants/approvals';
 import { parseStandardTokenTransactionData } from './transaction';
 
-export function parseApprovalTransactionData(data: Hex):
-  | {
-      amountOrTokenId?: BigNumber;
-      isApproveAll?: boolean;
-      isRevokeAll?: boolean;
-      name: string;
-      tokenAddress?: Hex;
-    }
-  | undefined {
+export interface ParsedApprovalTransactionData {
+  amountOrTokenId?: BigNumber;
+  isApproveAll?: boolean;
+  isRevokeAll?: boolean;
+  name: string;
+  tokenAddress?: Hex;
+}
+
+export function parseApprovalTransactionData(
+  data: Hex,
+): ParsedApprovalTransactionData | undefined {
   const transactionDescription = parseStandardTokenTransactionData(data);
   const { args, name } = transactionDescription ?? { name: '' };
 

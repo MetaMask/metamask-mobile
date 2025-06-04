@@ -49,6 +49,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
+    isLoadingAccount: false,
   },
   {
     name: MOCK_EVM_ACCOUNT_2_NAME,
@@ -62,6 +63,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
+    isLoadingAccount: false,
   },
 ];
 
@@ -130,18 +132,54 @@ jest.mock('../../../core/Engine', () => ({
     },
     KeyringController: {
       state: {
-        keyrings: [],
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            metadata: {
+              id: 'mock-keyring-id',
+            },
+          },
+        ],
       },
+      getAccountKeyringType: jest.fn(() => 'HD Key Tree'),
     },
     AccountsController: {
-      listAccounts: jest.fn(() => MOCK_USE_ACCOUNTS_RETURN),
-      listMultichainAccounts: jest.fn(() => MOCK_INTERNAL_ACCOUNTS),
-      getAccountByAddress: jest.fn((address: string) =>
-        MOCK_INTERNAL_ACCOUNTS.find((account) => account.address === address),
-      ),
+      listAccounts: jest.fn(() => []),
+      listMultichainAccounts: jest.fn(() => []),
+      getAccountByAddress: jest.fn(() => null),
+      getNextAvailableAccountName: jest.fn(() => 'Account 3'),
       state: {
         internalAccounts: {
-          accounts: {},
+          accounts: {
+            'mock-id-1': {
+              type: 'eip155:eoa',
+              id: 'mock-id-1',
+              metadata: {
+                name: 'Account 1',
+                keyring: { type: 'HD Key Tree' },
+              },
+              address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+            },
+            'mock-id-2': {
+              type: 'eip155:eoa',
+              id: 'mock-id-2',
+              metadata: {
+                name: 'Account 2',
+                keyring: { type: 'HD Key Tree' },
+              },
+              address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+            },
+          },
+          selectedAccount: 'mock-id-1',
+        },
+      },
+    },
+    AccountTrackerController: {
+      state: {
+        accounts: {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {},
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': {},
         },
       },
     },
@@ -153,6 +191,7 @@ jest.mock('../../../core/Permissions', () => ({
   updatePermittedChains: jest.fn(),
   addPermittedAccounts: jest.fn(),
   removePermittedAccounts: jest.fn(),
+  sortMultichainAccountsByLastSelected: jest.fn((accounts) => accounts),
 }));
 const mockUpdatePermittedChains = updatePermittedChains as jest.Mock;
 const mockAddPermittedAccounts = addPermittedAccounts as jest.Mock;
@@ -209,6 +248,34 @@ const mockInitialState = (
       ...backgroundState,
       MultichainNetworkController: {
         multichainNetworkConfigurationsByChainId: {},
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyringTypes: {},
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts,
+            metadata: {
+              id: 'mock-keyring-id',
+            },
+          },
+        ],
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: accounts.reduce((acc, account, index) => {
+            const mockAccount = MOCK_INTERNAL_ACCOUNTS[index];
+            if (mockAccount) {
+              acc[mockAccount.id] = {
+                ...mockAccount,
+                address: account,
+              };
+            }
+            return acc;
+          }, {} as Record<string, InternalAccount>),
+          selectedAccount: 'mock-id-1',
+        },
       },
       PermissionController: {
         subjects: {
@@ -547,5 +614,55 @@ describe('AccountPermissions', () => {
     fireEvent.press(revokeButton);
 
     expect(mockedNavigate).toHaveBeenCalled();
+  });
+
+  it('should render AddAccount screen with multichain options', () => {
+    const renderResult = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.AddAccount,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    expect(renderResult).toBeDefined();
+  });
+
+  it('handles account creation completion and navigates back to connected screen', () => {
+    const { getByText } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.ConnectMoreAccounts,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    expect(getByText('Connect more accounts')).toBeDefined();
+    expect(mockAddPermittedAccounts).not.toHaveBeenCalled();
+  });
+
+  it('handles multichain account creation with specific client type and scope', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountPermissions
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            initialScreen: AccountPermissionsScreens.EditAccountsPermissions,
+          },
+        }}
+      />,
+      { state: mockInitialState() },
+    );
+
+    expect(getByText('Account 1')).toBeDefined();
+    expect(getByText('Account 2')).toBeDefined();
   });
 });

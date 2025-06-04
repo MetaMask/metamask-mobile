@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -42,6 +41,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { Skeleton } from '../../../component-library/components/Skeleton';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -93,37 +93,49 @@ const EvmAccountSelectorList = ({
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance, tokens }: Assets,
+      address: string,
+      isLoadingAccount: boolean,
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
+
       return (
         <View
           style={styles.balancesContainer}
           testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
         >
-          <SensitiveText
-            length={SensitiveTextLength.Long}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-          >
-            {fiatBalanceAmount}
-          </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {isLoadingAccount ? (
+            <Skeleton width={60} height={24} />
+          ) : (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Long}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+              >
+                {fiatBalanceAmount}
+              </SensitiveText>
+
+              <SensitiveText
+                length={SensitiveTextLength.Short}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+                color={privacyMode ? TextColor.Alternative : TextColor.Default}
+              >
+                {tokenTicker}
+              </SensitiveText>
+              {tokens && (
+                <AvatarGroup
+                  avatarPropsList={tokens.map((tokenObj) => ({
+                    ...tokenObj,
+                    variant: AvatarVariant.Token,
+                  }))}
+                />
+              )}
+            </>
           )}
         </View>
       );
@@ -215,7 +227,15 @@ const EvmAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        isLoadingAccount,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -225,6 +245,7 @@ const EvmAccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       let cellVariant = CellVariant.SelectWithMenu;
+
       if (isMultiSelect) {
         cellVariant = CellVariant.MultiSelect;
       }
@@ -247,7 +268,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -290,7 +312,8 @@ const EvmAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets &&
+              renderAccountBalances(assets, address, isLoadingAccount))}
         </Cell>
       );
     },

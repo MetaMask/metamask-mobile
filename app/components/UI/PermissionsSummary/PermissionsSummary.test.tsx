@@ -81,6 +81,7 @@ describe('PermissionsSummary', () => {
             caipAccountId: 'eip155:0:0x2',
             yOffset: 0,
             type: KeyringTypes.simple,
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -119,6 +120,7 @@ describe('PermissionsSummary', () => {
             caipAccountId: 'eip155:0:0x2',
             yOffset: 0,
             type: KeyringTypes.simple,
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -172,6 +174,7 @@ describe('PermissionsSummary', () => {
             caipAccountId: 'eip155:0:0x2',
             yOffset: 0,
             type: KeyringTypes.simple,
+            isLoadingAccount: false,
           },
         ]}
         accountAddresses={['eip155:0:0x2']}

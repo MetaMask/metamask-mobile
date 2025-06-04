@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import AddNewAccount from './AddNewAccount';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { AddNewAccountBottomSheetProps } from './AddNewAccountBottomSheet.types';
 
 const AddNewAccountBottomSheet = ({ route }: AddNewAccountBottomSheetProps) => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { scope, clientType } = route?.params || {};
 
   return (
-    <BottomSheet>
+    <BottomSheet ref={sheetRef}>
       <AddNewAccount scope={scope} clientType={clientType} />
     </BottomSheet>
   );
