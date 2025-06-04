@@ -9,7 +9,7 @@ import { isHardwareAccount as getIsHardwareAccount } from '../../address';
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectSmartTransactionsEnabled);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
-  const isHardwareAccount = selectedAddress ? getIsHardwareAccount(selectedAddress) : false;
+  const isHardwareAccount = Boolean(selectedAddress ? getIsHardwareAccount(selectedAddress) : false);
 
   const submitBridgeTx = async ({
     quoteResponse,
