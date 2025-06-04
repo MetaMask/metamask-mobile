@@ -1,11 +1,11 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { HeroNft } from './nft';
-import { MOCK_ADDRESS_1 } from '../../../../../../util/test/accountsControllerTestUtils';
-import { MOCK_STATE_NFT } from '../../../../../../util/test/mock-data/root-state/nft';
 import { merge } from 'lodash';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { fireEvent } from '@testing-library/react-native';
+import { MOCK_ADDRESS_1 } from '../../../../../util/test/accountsControllerTestUtils';
+import { MOCK_STATE_NFT } from '../../../../../util/test/mock-data/root-state/nft';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { HeroNft } from './hero-nft';
 
 const mockNft = MOCK_STATE_NFT.engine.backgroundState.NftController.allNfts[
   MOCK_ADDRESS_1.toLowerCase()
