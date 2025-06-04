@@ -343,8 +343,6 @@ export enum IconName {
   Widgets = 'Widgets',
   WifiOff = 'WifiOff',
   Wifi = 'Wifi',
-  EyeSlashSolid = 'EyeSlashSolid',
-  EyeSolid = 'EyeSolid',
   DangerSolid = 'DangerSolid',
   SuccessSolid = 'SuccessSolid',
   X = 'X',

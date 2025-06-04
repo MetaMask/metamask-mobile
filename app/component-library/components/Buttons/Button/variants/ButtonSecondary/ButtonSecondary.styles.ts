@@ -20,22 +20,16 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, isDanger, pressed, overridePressedColor } = vars;
+  const { style, isDanger, pressed } = vars;
   const colorObj = isDanger ? colors.error : colors.primary;
 
-  const overrideColor = overridePressedColor ?? colorObj.alternative;
-
-  const pressedColor = pressed ? overrideColor : 'transparent';
-
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        backgroundColor: pressedColor,
-        borderWidth: 1,
-        borderColor: colorObj.default,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({
+      backgroundColor: pressed ? colorObj.alternative : 'transparent',
+      borderWidth: 1,
+      borderColor: colorObj.default,
+      ...StyleSheet.flatten(style),
+    } as ViewStyle) as ViewStyle,
   });
 };
 
