@@ -48,7 +48,7 @@ export const AdvancedEIP1559Modal = ({
     maxFeePerGas: false,
     maxPriorityFeePerGas: false,
   });
-  const hasError = errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas;
+  const hasError = Boolean(errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas);
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {

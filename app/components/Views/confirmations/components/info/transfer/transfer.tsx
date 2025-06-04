@@ -19,15 +19,15 @@ import TokenHero from '../../rows/transactions/token-hero';
 import NetworkRow from '../../rows/transactions/network-row';
 
 const Transfer = () => {
+  // Set navbar as first to prevent Android navigation flickering
+  useNavbar(strings('confirm.review'));
   const transactionMetadata = useTransactionMetadataRequest();
   const isDappTransfer = transactionMetadata?.origin !== MMM_ORIGIN;
   const { usdValue } = useTokenAmount();
   const { assetType } = useTransferAssetType();
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
-
   useClearConfirmationOnBackSwipe();
-  useNavbar(strings('confirm.review'));
   useMaxValueRefresher();
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
