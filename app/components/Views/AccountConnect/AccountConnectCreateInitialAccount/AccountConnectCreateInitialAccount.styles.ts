@@ -14,7 +14,10 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       backgroundColor: colors.background.default,
+      marginLeft: 16,
+      marginRight: 16,
       padding: 16,
+      borderRadius: 16,
     },
     description: {
       textAlign: 'center',
