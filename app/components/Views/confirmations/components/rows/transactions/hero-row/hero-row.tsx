@@ -9,7 +9,9 @@ import { HeroToken } from '../../../hero-token';
 export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
   const { isNft } = useIsNft();
 
-  return <View testID={ConfirmationRowComponentIDs.TOKEN_HERO}>
-    {isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />}
-  </View>;
+  return (
+    <View testID={ConfirmationRowComponentIDs.TOKEN_HERO}>
+      {isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />}
+    </View>
+  );
 };
