@@ -99,7 +99,7 @@ const SkipAccountSecurityModal = ({ route }) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.skipModalContainer}>
         <Icon
-          name={IconName.DangerSolid}
+          name={IconName.Danger}
           size={IconSize.Lg}
           style={styles.imageWarning}
           {...generateTestId(Platform, 'skip-backup-warning')}
