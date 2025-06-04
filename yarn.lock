@@ -4680,10 +4680,10 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.0.3-preview-510657d5":
-  version "6.0.3-preview-510657d5"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.0.3-preview-510657d5.tgz#daaac517727fcd0e96754dcae72ac6ee2a6c1cb8"
-  integrity sha512-Vqpl/856soORFdaAfoKPRCI9ImZ1JNpYCOiEab0L9knvZXwta8XGdxJetqK/01uTGYG3ihx14P/D7+qHxEsB7w==
+"@metamask/address-book-controller@npm:@metamask-previews/address-book-controller@6.1.0-preview-4da9cec1":
+  version "6.1.0-preview-4da9cec1"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/address-book-controller/-/address-book-controller-6.1.0-preview-4da9cec1.tgz#f757fbc25958b31a923121d23a01fa65e543d71f"
+  integrity sha512-+6F6lM3PJh/tVntA7Zs3rAuCoyhTkHqdJZ8MP0EueHhJ9H/AkCwqTIbhGDrLheCRqJj4HPMVGzkjns2dYcSxdg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
@@ -5564,10 +5564,10 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.9.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@16.0.0-preview-510657d5":
-  version "16.0.0-preview-510657d5"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-16.0.0-preview-510657d5.tgz#c6017c3bc8092aa2e14033b25d323855fcea92c1"
-  integrity sha512-tjdg5/wEkEeaG23jeutGsDMEBmGSoj9SNn1JDueY8uO1zCYGk9SFf/sR9SewjncIQgPWIOtbiADgHOEARdmJow==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@17.0.0-preview-4da9cec1":
+  version "17.0.0-preview-4da9cec1"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-17.0.0-preview-4da9cec1.tgz#bbc775e9e5bdd5aff4a2d25ce6d2153dfcba8e07"
+  integrity sha512-BsP/yYD78Ihd3oK1NsTtUh7q7paiTpXJQ3Et6LqheB5Sh/q0Anpc+UUdNWTww9RAKYHZXamjKKnXqbxddRpz4w==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^7.1.0"
