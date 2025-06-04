@@ -74,9 +74,10 @@ describe('AccountDetails', () => {
   });
 
   it('displays account name and address when account is defined', () => {
-    const { getByText } = renderWithAccount(mockAccount);
+    const { getAllByText, getByText } = renderWithAccount(mockAccount);
 
-    expect(getByText(mockAccount.metadata.name)).toBeTruthy();
+    // 1 for the title and 1 for the account name
+    expect(getAllByText(mockAccount.metadata.name)).toHaveLength(2);
     expect(getByText(formatAddress(mockAccount.address, 'short'))).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
