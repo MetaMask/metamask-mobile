@@ -28,11 +28,11 @@ class TabBarComponent {
   }
 
   async tapWallet() {
-    await Gestures.waitAndTap(this.tabBarWalletButton);
+    await Gestures.waitAndTap(this.tabBarWalletButton, {experimentalWaitForStability: true});
   }
 
   async tapActions() {
-    await Gestures.waitAndTap(this.tabBarActionButton);
+    await Gestures.waitAndTap(this.tabBarActionButton, { experimentalWaitForStability: true });
   }
 
   async tapSettings() {

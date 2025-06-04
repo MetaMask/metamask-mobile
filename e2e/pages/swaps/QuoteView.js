@@ -10,6 +10,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
+  get getNewQuotes() {
+    return Matchers.getElementByText(QuoteViewSelectorText.GET_NEW_QUOTES);
+  }
+
   get cancelButton() {
     return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
   }
@@ -42,11 +46,15 @@ class QuoteView {
   }
 
   async tapOnSelectDestToken() {
-    await Gestures.waitAndTap(this.destToken);
+    await Gestures.waitAndTap(this.destToken, {
+      experimentalWaitForStability: true,
+    });
   }
 
   async tapSearchToken() {
-    await Gestures.waitAndTap(this.searchToken);
+    await Gestures.waitAndTap(this.searchToken, {
+      experimentalWaitForStability: true,
+    });
   }
 
   async typeSearchToken(symbol) {
@@ -55,16 +63,19 @@ class QuoteView {
 
   async selectToken(symbol, index = 1) {
     const element = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(element);
+    await Gestures.waitAndTap(element, { experimentalWaitForStability: true });
   }
 
   async tapOnGetQuotes() {
-    await device.disableSynchronization();
-    await Gestures.waitAndTap(this.getQuotes);
+    await Gestures.waitAndTap(this.getQuotes, {
+      experimentalWaitForStability: true,
+    });
   }
 
   async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
+    await Gestures.waitAndTap(this.cancelButton, {
+      experimentalWaitForStability: true,
+    });
   }
 }
 

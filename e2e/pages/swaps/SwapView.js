@@ -1,5 +1,5 @@
 import {
-  SwapsViewSelectors,
+  SwapsViewSelectorsIDs,
   SwapViewSelectorsTexts,
 } from '../../selectors/swaps/SwapsView.selectors.js';
 
@@ -10,11 +10,11 @@ import { waitFor } from 'detox';
 
 class SwapView {
   get quoteSummary() {
-    return Matchers.getElementByID(SwapsViewSelectors.QUOTE_SUMMARY);
+    return Matchers.getElementByID(SwapsViewSelectorsIDs.QUOTE_SUMMARY);
   }
 
   get gasFee() {
-    return Matchers.getElementByID(SwapsViewSelectors.GAS_FEE);
+    return Matchers.getElementByID(SwapsViewSelectorsIDs.GAS_FEE);
   }
 
   get fetchingQuotes() {
@@ -23,12 +23,16 @@ class SwapView {
 
   get swapButton() {
     return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
-      : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
+      ? Matchers.getElementByID(SwapsViewSelectorsIDs.SWAP_BUTTON)
+      : Matchers.getElementByLabel(SwapsViewSelectorsIDs.SWAP_BUTTON);
   }
 
   get iUnderstandLabel() {
     return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
+  }
+
+  get viewDetailsButton() {
+    return Matchers.getElementByID(SwapsViewSelectorsIDs.VIEW_ALL_QUOTES);
   }
 
   async isPriceWarningDisplayed() {
@@ -61,11 +65,15 @@ class SwapView {
   async tapIUnderstandPriceWarning() {
     const isDisplayed = await this.isPriceWarningDisplayed();
     if (isDisplayed) {
-      await Gestures.waitAndTap(this.iUnderstandLabel);
+      await Gestures.waitAndTap(this.iUnderstandLabel, { experimentalWaitForStability: true });
     } else {
       // eslint-disable-next-line no-console
       console.log('Price warning not displayed');
     }
+  }
+
+  async tapViewDetailsAllQuotes() {
+    await Gestures.waitAndTap(this.viewDetailsButton, { experimentalWaitForStability: true });
   }
 }
 

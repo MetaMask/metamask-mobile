@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { waitFor } from 'detox';
 
 /**
@@ -51,16 +52,121 @@ class Gestures {
    * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
    * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+   * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
   static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    const {
+      timeout = 15000,
+      delayBeforeTap = 0,
+      skipVisibilityCheck = false,
+      experimentalWaitForStability = false,
+    } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
+      await waitFor(await element)
+        .toBeVisible()
+        .withTimeout(timeout);
+      if (experimentalWaitForStability) {
+        await this.waitForElementStability(element);
+      }
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
     await (await element).tap();
+  }
+
+  /**
+   * Waits for an element to become stable (not moving) by checking its position multiple times.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check for stability
+   * @param {Object} [options={}] - Configuration options
+   * @param {number} [options.timeout=5000] - Maximum time to wait for stability (ms)
+   * @param {number} [options.interval=200] - Time between position checks (ms)
+   * @param {number} [options.stableCount=3] - Number of consecutive stable checks required
+   */
+  static async waitForElementStability(element, options = {}) {
+    const { timeout = 5000, interval = 200, stableCount = 3 } = options;
+    let lastPosition = null;
+    let stableChecks = 0;
+    const start = Date.now();
+    let foundPosition = false;
+    let attributes;
+    let lastError = null;
+
+    while (Date.now() - start < timeout) {
+      try {
+        const el = await element;
+
+        await expect(el).toExist();
+
+        attributes = await el.getAttributes();
+
+        if (
+          !attributes.frame ||
+          typeof attributes.frame.x !== 'number' ||
+          typeof attributes.frame.y !== 'number'
+        ) {
+          throw new Error('Element frame is invalid or missing position data');
+        }
+
+        const position = {
+          x: attributes.frame.x,
+          y: attributes.frame.y,
+        };
+        foundPosition = true;
+
+        if (lastPosition) {
+          if (position.x === lastPosition.x && position.y === lastPosition.y) {
+            stableChecks += 1;
+            if (stableChecks >= stableCount) {
+              return;
+            }
+          } else {
+            stableChecks = 1;
+            lastPosition = position;
+          }
+        } else {
+          lastPosition = position;
+          stableChecks = 1;
+        }
+
+        lastError = null;
+      } catch (err) {
+        lastError = err;
+
+        if (err.message.includes('No elements found')) {
+          console.log(
+            '[waitForElementStability] Element not found, waiting...',
+          );
+        } else if (err.message.includes('frame is invalid')) {
+          console.log(
+            '[waitForElementStability] Skipping stability check due to invalid frame',
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          return; // If the element is found but has no valid position, we can return early as this function is meant to track stability based on position. There is a buffer of 1500ms to allow the element to stabilize.
+        } else {
+          console.log(
+            '[waitForElementStability] Error reading position, retrying...',
+            err.message,
+          );
+        }
+        stableChecks = 0;
+        lastPosition = null;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    if (foundPosition) {
+      throw new Error(
+        `Element did not become stable after ${timeout}ms\nElement: ${
+          attributes?.identifier ||
+          attributes?.label ||
+          attributes?.text ||
+          'could not retrieve identifier'
+        }\nLast known position: ${JSON.stringify(lastPosition)}`,
+      );
+    }
   }
 
   /**
@@ -113,7 +219,9 @@ class Gestures {
 
   */
   static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText('');
   }
@@ -129,7 +237,6 @@ class Gestures {
 
     await (await element).typeText(text + '\n');
   }
-
 
   /**
    * Type text into an element without hiding the keyboard.
@@ -148,7 +255,9 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText(text);
   }
