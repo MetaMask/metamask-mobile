@@ -20,7 +20,7 @@ class Port extends EventEmitter {
 
   postMessage = (msg: object, origin = '*') => {
     const { activeTab, tabs } = store.getState().browser;
-    const currentActiveTab = tabs.find((tab: any) => tab.id === activeTab);
+    const currentActiveTab = tabs.find((tab: { id: number; url: string }) => tab.id === activeTab);
     const currentActiveParsedUrl = new URL(currentActiveTab.url);
     const currentActiveOrigin = currentActiveParsedUrl.origin;
     if (currentActiveOrigin !== origin) return;
