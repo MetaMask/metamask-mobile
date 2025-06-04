@@ -63,23 +63,17 @@ have to have all these workarounds in the tests
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-    /* eslint-disable no-undef */
-
+    // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
   }
-  
+
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log('Solana feature sheet: \'Not Now\' tapped.');
-
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    console.log('Solana feature sheet: \'Create Account\' tapped.');
-
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
-    console.log('Solana feature sheet: \'View Account\' tapped.');
   }
 };
 
