@@ -5,7 +5,7 @@ import {
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-import { getConfiguredChainIdsCaipified } from '../MultichainAPI/networkMetricUtils';
+import { getConfiguredCaipChainIds } from '../MultichainAPI/networkMetricUtils';
 
 /**
  * Generate user profile analytics meta data
@@ -24,7 +24,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
 
   const hdKeyrings = selectHDKeyrings(reduxState);
 
-  const chainIds = getConfiguredChainIdsCaipified();
+  const chainIds = getConfiguredCaipChainIds();
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
