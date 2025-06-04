@@ -125,17 +125,22 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  
-  
-
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
-  await ImportWalletView.enterPassword(password ?? validAccount.password);
-  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
+
+  await ImportWalletView.tapTitle();
+  await ImportWalletView.tapContinueButton();
+
+  await TestHelpers.delay(3500);
+
+  await CreatePasswordView.enterPassword(password ?? validAccount.password);
+  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
@@ -265,10 +270,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }
