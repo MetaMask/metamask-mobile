@@ -123,8 +123,10 @@ export async function addNewHdAccount(
 
   const account = AccountsController.getAccountByAddress(addedAccountAddress);
 
+  // This should always be true. If it's not, we have a bug.
+  // We query the account that was newly created and return it.
   if (!account) {
-    throw new Error('Account not found');
+    throw new Error('Account not found after creation');
   }
 
   // We consider the account to be created once it got selected and renamed.
