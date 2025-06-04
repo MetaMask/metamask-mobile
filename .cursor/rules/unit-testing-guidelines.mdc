@@ -1,6 +1,6 @@
 ---
-description: Unit Testing Guidelines 
+description: 
 globs: *.test.*
-alwaysApply: true
+alwaysApply: false
 ---
 - Use the unit testing guidelines in (here)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
