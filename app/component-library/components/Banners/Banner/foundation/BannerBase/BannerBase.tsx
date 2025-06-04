@@ -7,6 +7,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
+import { useTwrncTheme } from '../../../../../../hooks/useTwrncTheme';
 import Text from '../../../../Texts/Text';
 import Button from '../../../../Buttons/Button';
 import ButtonIcon from '../../../../Buttons/ButtonIcon';
@@ -36,12 +37,15 @@ const BannerBase: React.FC<BannerBaseProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
+  const { tw } = useTwrncTheme();
+
   const renderTitle = () =>
     typeof title === 'string' ? (
       <Text variant={DEFAULT_BANNERBASE_TITLE_TEXTVARIANT}>{title}</Text>
     ) : (
       title
     );
+
   const renderDescription = () =>
     typeof description === 'string' ? (
       <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
@@ -53,8 +57,10 @@ const BannerBase: React.FC<BannerBaseProps> = ({
 
   return (
     <View style={styles.base} {...props}>
-      <View style={styles.startAccessory}>{startAccessory}</View>
-      <View style={styles.info}>
+      <View style={[styles.startAccessory, tw`items-center justify-center`]}>
+        {startAccessory}
+      </View>
+      <View style={[styles.info, tw`flex-1`]}>
         {renderTitle()}
         {renderDescription()}
         {actionButtonProps && (
@@ -66,7 +72,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
         {children}
       </View>
       {(onClose || closeButtonProps) && (
-        <View style={styles.endAccessory}>
+        <View style={[styles.endAccessory, tw`items-center justify-center`]}>
           <ButtonIcon
             testID={TESTID_BANNER_CLOSE_BUTTON_ICON}
             iconColor={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONCOLOR}
