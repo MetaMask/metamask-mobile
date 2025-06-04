@@ -1,3 +1,5 @@
+import { CaipChainId } from '@metamask/utils';
+
 export enum UserProfileProperty {
   ENABLE_OPENSEA_API = 'Enable OpenSea API',
   NFT_AUTODETECTION = 'NFT Autodetection',
@@ -27,5 +29,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: string;
   [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
-  [UserProfileProperty.CHAIN_IDS]: string[];
+  [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
 }

@@ -19,6 +19,7 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
     ? convertHexToDecimal(chainId)
     : chainId;
 
+  //For Non-EVM chains, the chainId should already be in CAIP format. For EVM chains, we convert to CAIP by adding the 'eip155' namespace
   return isCaipChainId(_chainId)
     ? _chainId
     : toCaipChainId('eip155', _chainId.toString());
