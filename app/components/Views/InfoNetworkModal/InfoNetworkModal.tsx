@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import NetworkInfo from '../../UI/NetworkInfo';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
@@ -18,6 +18,9 @@ const InfoNetworkModal = () => {
   const prevNetwork = useRef<string>();
 
   const navigation = useNavigation();
+
+  const isFocused = useIsFocused();
+
   const theme = useTheme();
   const dispatch = useDispatch();
   const infoNetworkModalVisible = useSelector(
@@ -54,6 +57,11 @@ const InfoNetworkModal = () => {
       prevNetwork.current = chainId;
     }
   }, [chainId, dispatch, networkOnboardingState]);
+
+  // If the Main screen is not focused, don't render it
+  if (!isFocused) {
+    return null;
+  }
 
   return (
     <Modal
