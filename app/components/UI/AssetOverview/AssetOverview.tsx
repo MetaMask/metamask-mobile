@@ -54,7 +54,7 @@ import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import {

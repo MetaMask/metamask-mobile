@@ -13,13 +13,12 @@ import * as ConfirmationActions from '../../hooks/useConfirmActions';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 import { useDispatch } from 'react-redux';
 
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
 }));
 
 jest.mock('@react-navigation/native', () => {
