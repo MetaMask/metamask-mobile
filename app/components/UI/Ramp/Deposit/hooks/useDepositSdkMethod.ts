@@ -53,6 +53,30 @@ interface config<T> {
 }
 
 /**
+ * Represents the state data returned by the useDepositSdkMethod hook.
+ */
+export interface DepositSdkMethodState<T extends keyof NativeRampsSdk> {
+  data: Awaited<ReturnType<NativeRampsSdk[T]>> | null;
+  error: string | null;
+  isFetching: boolean;
+}
+
+/**
+ * Represents the query function returned by the useDepositSdkMethod hook.
+ */
+export type DepositSdkMethodQuery<T extends keyof NativeRampsSdk> = (
+  ...customParams: PartialParameters<NativeRampsSdk[T]> | []
+) => Promise<ReturnType<NativeRampsSdk[T]> | undefined>;
+
+/**
+ * The tuple type returned by the useDepositSdkMethod hook.
+ */
+export type DepositSdkMethodResult<T extends keyof NativeRampsSdk> = [
+  DepositSdkMethodState<T>,
+  DepositSdkMethodQuery<T>,
+];
+
+/**
  * useSDKMethod is a hook to conveniently call OnRampSdk.regions methods.
  *
  * @param config The method name or an object with the method name and a boolean onMount flag.
@@ -76,18 +100,7 @@ interface config<T> {
 export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   config: T | config<T>,
   ...params: PartialParameters<NativeRampsSdk[T]>
-): [
-  {
-    data: Awaited<ReturnType<NativeRampsSdk[T]>> | null;
-    error: string | null;
-    isFetching: boolean;
-  },
-  (
-    ...customParams: PartialParameters<NativeRampsSdk[T]> | []
-  ) => // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Promise<any> | ReturnType<NativeRampsSdk[T]>,
-] {
+): DepositSdkMethodResult<T> {
   const method = typeof config === 'string' ? config : config.method;
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
 

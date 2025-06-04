@@ -57,7 +57,7 @@ const BuildQuote = () => {
       const forms = await fetchKycForms(quote);
       const { forms: requiredForms } = forms || {};
       if (isAuthenticated) {
-        if (requiredForms.length === 0) {
+        if (requiredForms?.length === 0) {
           navigation.navigate(...createProviderWebviewNavDetails());
         } else {
           navigation.navigate(...createBasicInfoNavDetails());

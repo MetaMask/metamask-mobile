@@ -2,10 +2,13 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
+import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { useDepositSDK } from '../../sdk';
-import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import {
+  NativeRampsSdk,
+  NativeTransakAccessToken,
+} from '@consensys/native-ramps-sdk';
 
 const EMAIL = 'test@email.com';
 
@@ -26,16 +29,20 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
-const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'success'> = {
+// Updated mock to match the new tuple return type
+const mockUseDepositSdkMethodInitialState = {
+  data: null,
   error: null,
-  loading: false,
-  sdkMethod: jest.fn().mockResolvedValue('Success'),
-  response: null,
+  isFetching: false,
 };
 
-let mockUseDepositSdkMethodValues: DepositSdkResult<'success'> = {
-  ...mockUseDepositSdkMethodInitialValues,
-};
+const mockSdkMethod = jest.fn().mockResolvedValue('Success');
+
+// Initial state tuple matching DepositSdkMethodResult
+let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'verifyUserOtp'> = [
+  mockUseDepositSdkMethodInitialState,
+  mockSdkMethod,
+];
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
@@ -68,9 +75,10 @@ function render(Component: React.ComponentType) {
 describe('OtpCode Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockSdkMethod,
+    ];
   });
 
   it('renders correctly', () => {
@@ -92,22 +100,27 @@ describe('OtpCode Component', () => {
   });
 
   it('displays loading state', async () => {
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      loading: true,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState, isFetching: true },
+      mockSdkMethod,
+    ];
     render(OtpCode);
     expect(screen.getByText('Verifying code...')).toBeTruthy();
   });
 
   it('navigates to next screen on submit button press when valid code is entered', async () => {
-    const mockResponse = 'success';
+    const mockResponse = {
+      id: 'mock-id',
+      ttl: 1000,
+      userId: 'mock-user-id',
+    } as NativeTransakAccessToken;
+    const mockSubmitCode = jest.fn().mockResolvedValue(mockResponse);
     const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      sdkMethod: jest.fn().mockResolvedValue(mockResponse),
-      response: mockResponse,
-    };
+
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState, data: mockResponse },
+      mockSubmitCode,
+    ];
 
     jest.mocked(useDepositSDK).mockReturnValue({
       email: EMAIL,
@@ -141,7 +154,7 @@ describe('OtpCode Component', () => {
     );
 
     await waitFor(() => {
-      expect(mockUseDepositSdkMethodValues.sdkMethod).toHaveBeenCalled();
+      expect(mockSubmitCode).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
@@ -151,33 +164,36 @@ describe('OtpCode Component', () => {
   });
 
   it('displays error message when API call fails', async () => {
-    mockUseDepositSdkMethodValues.error = 'Invalid code';
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState, error: 'Invalid code' },
+      mockSdkMethod,
+    ];
     render(OtpCode);
     expect(screen.getByText('Invalid code')).toBeTruthy();
   });
 
   it('disables submit button and shows loading state when loading', () => {
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      loading: true,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState, isFetching: true },
+      mockSdkMethod,
+    ];
     render(OtpCode);
     expect(screen.getByText('Verifying code...')).toBeTruthy();
     const loadingButton = screen.getByRole('button', {
       name: 'Verifying code...',
     });
     fireEvent.press(loadingButton);
-    expect(mockUseDepositSdkMethodValues.sdkMethod).not.toHaveBeenCalled();
+    expect(mockSdkMethod).not.toHaveBeenCalled();
   });
 
   it('disables submit button when code length is invalid', () => {
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      loading: false,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockSdkMethod,
+    ];
     render(OtpCode);
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.press(submitButton);
-    expect(mockUseDepositSdkMethodValues.sdkMethod).not.toHaveBeenCalled();
+    expect(mockSdkMethod).not.toHaveBeenCalled();
   });
 });
