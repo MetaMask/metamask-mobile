@@ -75,8 +75,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     });
   });
 
-  // TODO: Fix this test and remove the skip
-  // More info: https://github.com/MetaMask/metamask-mobile/issues/15726
   it('should show security alert for malicious request', async () => {
     const testSpecificMock = {
       GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
