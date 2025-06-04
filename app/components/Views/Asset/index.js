@@ -70,6 +70,10 @@ import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { isEvmAccountType } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 
 const createStyles = (colors) =>
@@ -393,84 +397,122 @@ class Asset extends PureComponent {
     const confirmedTxs = [];
     const submittedNonces = [];
 
-    const { chainId, transactions } = this.props;
+    const { chainId, transactions, route } = this.props;
+
+    const isSolanaAsset =
+      route?.params?.chainId && isNonEvmChainId(route.params.chainId);
+
     if (transactions.length) {
-      const sortedTransactions = sortTransactions(transactions).filter(
-        (tx, index, self) =>
-          self.findIndex((_tx) => _tx.id === tx.id) === index,
-      );
-      const filteredTransactions = sortedTransactions.filter((tx) => {
-        const filterResult = this.filter(tx);
-        if (filterResult) {
-          tx.insertImportTime = addAccountTimeFlagFilter(
-            tx,
-            addedAccountTime,
-            accountAddedTimeInsertPointFound,
-          );
-          if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
-          switch (tx.status) {
-            case TX_SUBMITTED:
-            case TX_SIGNED:
-            case TX_UNAPPROVED:
-              submittedTxs.push(tx);
-              return false;
-            case TX_PENDING:
-              newPendingTxs.push(tx);
-              break;
-            case TX_CONFIRMED:
-              confirmedTxs.push(tx);
-              break;
+      if (isSolanaAsset) {
+        const filteredTransactions = transactions.map((tx, index) => {
+          const mutableTx = JSON.parse(JSON.stringify(tx));
+
+          if (
+            index === transactions.length - 1 &&
+            !accountAddedTimeInsertPointFound
+          ) {
+            mutableTx.insertImportTime = true;
           }
-        }
-        return filterResult;
-      });
 
-      submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (!toLowerCaseEquals(from, this.selectedAddress)) {
-          return false;
-        }
-        const alreadySubmitted = submittedNonces.includes(nonce);
-        const alreadyConfirmed = confirmedTxs.find(
-          (confirmedTransaction) =>
-            toLowerCaseEquals(
-              safeToChecksumAddress(confirmedTransaction.txParams.from),
-              this.selectedAddress,
-            ) && confirmedTransaction.txParams.nonce === nonce,
-        );
-        if (alreadyConfirmed) {
-          return false;
-        }
-        submittedNonces.push(nonce);
-        return !alreadySubmitted;
-      });
-
-      // If the account added "Insert Point" is not found add it to the last transaction
-      if (
-        !accountAddedTimeInsertPointFound &&
-        filteredTransactions &&
-        filteredTransactions.length
-      ) {
-        filteredTransactions[
-          filteredTransactions.length - 1
-        ].insertImportTime = true;
-      }
-      // To avoid extra re-renders we want to set the new txs only when
-      // there's a new tx in the history or the status of one of the existing txs changed
-      if (
-        (this.txs.length === 0 && !this.state.transactionsUpdated) ||
-        this.txs.length !== filteredTransactions.length ||
-        this.chainId !== chainId ||
-        this.didTxStatusesChange(newPendingTxs)
-      ) {
-        this.txs = filteredTransactions;
-        this.txsPending = newPendingTxs;
-        this.setState({
-          transactionsUpdated: true,
-          loading: false,
-          transactions: filteredTransactions,
-          submittedTxs,
-          confirmedTxs,
+          return mutableTx;
         });
+
+        if (
+          (this.txs.length === 0 && !this.state.transactionsUpdated) ||
+          this.txs.length !== filteredTransactions.length ||
+          this.chainId !== chainId
+        ) {
+          this.txs = filteredTransactions;
+          this.txsPending = [];
+          this.setState({
+            transactionsUpdated: true,
+            loading: false,
+            transactions: filteredTransactions,
+            submittedTxs: [],
+            confirmedTxs: filteredTransactions,
+          });
+        }
+      } else {
+        const mutableTransactions = transactions.map((tx) => ({ ...tx }));
+
+        const sortedTransactions = sortTransactions(mutableTransactions).filter(
+          (tx, index, self) =>
+            self.findIndex((_tx) => _tx.id === tx.id) === index,
+        );
+        const filteredTransactions = sortedTransactions.filter((tx) => {
+          const filterResult = this.filter(tx);
+          if (filterResult) {
+            tx.insertImportTime = addAccountTimeFlagFilter(
+              tx,
+              addedAccountTime,
+              accountAddedTimeInsertPointFound,
+            );
+            if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
+            switch (tx.status) {
+              case TX_SUBMITTED:
+              case TX_SIGNED:
+              case TX_UNAPPROVED:
+                submittedTxs.push(tx);
+                return false;
+              case TX_PENDING:
+                newPendingTxs.push(tx);
+                break;
+              case TX_CONFIRMED:
+                confirmedTxs.push(tx);
+                break;
+            }
+          }
+          return filterResult;
+        });
+
+        submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
+          if (!toLowerCaseEquals(from, this.selectedAddress)) {
+            return false;
+          }
+          const alreadySubmitted = submittedNonces.includes(nonce);
+          const alreadyConfirmed = confirmedTxs.find(
+            (confirmedTransaction) =>
+              toLowerCaseEquals(
+                safeToChecksumAddress(confirmedTransaction.txParams.from),
+                this.selectedAddress,
+              ) && confirmedTransaction.txParams.nonce === nonce,
+          );
+          if (alreadyConfirmed) {
+            return false;
+          }
+          submittedNonces.push(nonce);
+          return !alreadySubmitted;
+        });
+
+        // If the account added "Insert Point" is not found add it to the last transaction
+        if (
+          !accountAddedTimeInsertPointFound &&
+          filteredTransactions &&
+          filteredTransactions.length
+        ) {
+          filteredTransactions[
+            filteredTransactions.length - 1
+          ].insertImportTime = true;
+        }
+        // To avoid extra re-renders we want to set the new txs only when
+        // there's a new tx in the history or the status of one of the existing txs changed
+        if (
+          (this.txs.length === 0 && !this.state.transactionsUpdated) ||
+          this.txs.length !== filteredTransactions.length ||
+          this.chainId !== chainId ||
+          this.didTxStatusesChange(newPendingTxs)
+        ) {
+          this.txs = filteredTransactions;
+          this.txsPending = newPendingTxs;
+          this.setState({
+            transactionsUpdated: true,
+            loading: false,
+            transactions: filteredTransactions,
+            submittedTxs,
+            confirmedTxs,
+          });
+        }
       }
     } else if (!this.state.transactionsUpdated) {
       this.setState({ transactionsUpdated: true, loading: false });
@@ -580,34 +622,56 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
-  swapsTokens: isPortfolioViewEnabled()
-    ? swapsTokensMultiChainObjectSelector(state)
-    : swapsTokensObjectSelector(state),
-  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-    state,
-    route.params.chainId,
-  ),
-  swapsTransactions: selectSwapsTransactions(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
-  chainId: selectChainId(state),
-  tokens: selectTokens(state),
-  transactions: selectTransactions(state),
-  rpcUrl: selectRpcUrl(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  isNetworkRampSupported: isNetworkRampSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  networkClientId: selectNetworkClientId(state),
-});
+const mapStateToProps = (state, { route }) => {
+  const selectedInternalAccount = selectSelectedInternalAccount(state);
+  const evmTransactions = selectTransactions(state);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  let allTransactions = evmTransactions;
+  if (
+    selectedInternalAccount &&
+    !isEvmAccountType(selectedInternalAccount.type) &&
+    route.params?.chainId &&
+    isNonEvmChainId(route.params.chainId)
+  ) {
+    const solanaTransactionData = selectSolanaAccountTransactions(state);
+    const solanaTransactions = solanaTransactionData?.transactions || [];
+
+    allTransactions = [...solanaTransactions].sort(
+      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
+    );
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  return {
+    swapsIsLive: getSwapsIsLive(state, route.params.chainId),
+    swapsTokens: isPortfolioViewEnabled()
+      ? swapsTokensMultiChainObjectSelector(state)
+      : swapsTokensObjectSelector(state),
+    searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
+      state,
+      route.params.chainId,
+    ),
+    swapsTransactions: selectSwapsTransactions(state),
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    selectedInternalAccount,
+    chainId: selectChainId(state),
+    tokens: selectTokens(state),
+    transactions: allTransactions,
+    rpcUrl: selectRpcUrl(state),
+    networkConfigurations: selectNetworkConfigurations(state),
+    isNetworkRampSupported: isNetworkRampSupported(
+      selectChainId(state),
+      getRampNetworks(state),
+    ),
+    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+      selectChainId(state),
+      getRampNetworks(state),
+    ),
+    networkClientId: selectNetworkClientId(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setLiveness: (chainId, featureFlags) =>
