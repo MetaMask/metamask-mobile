@@ -179,7 +179,7 @@ describe('ManualBackupStep2', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should handle word selection and placement', () => {
+  it('should add background color when word is selected', () => {
     const { wrapper } = setupTest();
     const gridItems = wrapper.getAllByTestId('grid-item');
 
