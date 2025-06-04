@@ -53,7 +53,7 @@ const SIGNATURE_LIST = [
 
 describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+    GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
   };
 
   beforeAll(async () => {

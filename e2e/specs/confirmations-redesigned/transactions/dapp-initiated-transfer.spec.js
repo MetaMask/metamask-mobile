@@ -25,7 +25,7 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
     POST: [SEND_ETH_SIMULATION_MOCK],
     GET: [
       SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations,
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
     ],
   };
 

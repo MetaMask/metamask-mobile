@@ -59,7 +59,7 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureFlagsReDesignedConfirmations: {
+    remoteFeatureFlagsRedesignedConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [

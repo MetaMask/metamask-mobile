@@ -42,7 +42,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         restartDevice: true,
         testSpecificMock: {
           GET: [
-            mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations,
+            mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
             ...(testSpecificMock.GET ?? []),
           ],
           POST: [...(testSpecificMock.POST ?? [])],
@@ -154,7 +154,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
             .build(),
           restartDevice: true,
           testSpecificMock: {
-            GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+            GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
           },
         },
         async () => {
