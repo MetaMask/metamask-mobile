@@ -536,7 +536,7 @@
     "portfinder": "^1.0.32",
     "prettier": "2.8.8",
     "prettier-plugin-gherkin": "^1.1.1",
-    "react-compiler-runtime": "^19.1.0-rc.1",
+    "react-compiler-runtime": "^19.1.0-rc.2",
     "react-dom": "18.2.0",
     "react-native-launch-arguments": "^4.0.1",
     "react-native-performance": "^5.1.2",
