@@ -1,10 +1,6 @@
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../reducers';
-import {
-  selectInternalAccounts,
-  selectSelectedInternalAccount,
-} from '../accountsController';
+import { selectInternalAccounts } from '../accountsController';
 import { selectHDKeyrings } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 import { KeyringObject } from '@metamask/keyring-controller';
@@ -32,40 +28,6 @@ export const selectHdKeyringIndexByIdOrDefault = createDeepEqualSelector(
     return 0;
   },
 );
-
-/**
- * !! Only use this selector after onboarding
- * Selects the HD keyring of the currently selected account, or falls back to the primary HD keyring
- * @param state - The Redux state
- * @returns The HD keyring containing the selected account if it's an HD keyring, otherwise returns the primary HD keyring
- */
-export const getHdKeyringOfSelectedAccountOrPrimaryKeyring =
-  createDeepEqualSelector(
-    selectSelectedInternalAccount,
-    selectHDKeyrings,
-    (
-      selectedAccount: InternalAccount | undefined,
-      hdKeyrings: KeyringObject[],
-    ) => {
-      if (!selectedAccount || hdKeyrings.length === 0) {
-        // Should never reach this point. This selector is only used after onboarding.
-        throw new Error('No selected account or hd keyrings');
-      }
-
-      const selectedKeyring = hdKeyrings.find(
-        (keyring) =>
-          keyring.accounts.some((account) =>
-            isEqualCaseInsensitive(account, selectedAccount.address),
-          ) && keyring.type === selectedAccount.metadata.keyring.type,
-      );
-
-      if (!selectedKeyring) {
-        return hdKeyrings[0];
-      }
-
-      return selectedKeyring;
-    },
-  );
 
 /**
  * Selector that filters internal accounts by their associated keyring ID.
