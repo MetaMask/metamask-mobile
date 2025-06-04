@@ -1,3 +1,4 @@
+import { store } from '../../store';
 import {
   JS_POST_MESSAGE_TO_PROVIDER,
   JS_IFRAME_POST_MESSAGE_TO_PROVIDER,
@@ -17,9 +18,12 @@ class Port extends EventEmitter {
     this._isMainFrame = isMainFrame;
   }
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  postMessage = (msg: any, origin = '*') => {
+  postMessage = (msg: object, origin = '*') => {
+    const { activeTab, tabs } = store.getState().browser;
+    const currentActiveTab = tabs.find((tab: any) => tab.id === activeTab);
+    const currentActiveParsedUrl = new URL(currentActiveTab.url);
+    const currentActiveOrigin = currentActiveParsedUrl.origin;
+    if (currentActiveOrigin !== origin) return;
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
       : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
