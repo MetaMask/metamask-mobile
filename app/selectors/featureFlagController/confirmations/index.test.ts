@@ -62,7 +62,7 @@ jest.mock('../mocks', () => {
   };
 });
 
-describe.skip('confirmationRedesign Feature flag: selectConfirmationRedesignFlags selector', () => {
+describe('confirmationRedesign Feature flag: selectConfirmationRedesignFlags selector', () => {
   const testFlagValues = (result: unknown, expected: ConfirmationRedesignRemoteFlags) => {
     const {
       signatures,
