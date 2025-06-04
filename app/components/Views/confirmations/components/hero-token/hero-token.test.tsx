@@ -1,14 +1,14 @@
 import React from 'react';
 
-import renderWithProvider, { DeepPartial } from '../../../../../../../util/test/renderWithProvider';
-import { stakingDepositConfirmationState, transferConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
-import TokenHero from './token-hero';
+import renderWithProvider, { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { stakingDepositConfirmationState, transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import { HeroToken } from './hero-token';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
-import { RootState } from '../../../../../../../reducers';
-import { decGWEIToHexWEI } from '../../../../../../../util/conversions';
+import { RootState } from '../../../../../reducers';
+import { decGWEIToHexWEI } from '../../../../../util/conversions';
 
-describe('TokenHero', () => {
+describe('HeroToken', () => {
   it('displays avatar, amount, and fiat values for a simple send transfer', async () => {
     const state: DeepPartial<RootState> = merge(
       {},
@@ -25,7 +25,7 @@ describe('TokenHero', () => {
         },
       },
     );
-    const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, { state });
+    const { getByText, queryByTestId } = renderWithProvider(<HeroToken />, { state });
 
     await waitFor(async () => {
       expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
@@ -43,7 +43,7 @@ describe('TokenHero', () => {
   });
 
   it('displays avatar, amount, and fiat values for staking deposit', async () => {
-    const { getByText, queryByTestId } = renderWithProvider(<TokenHero />, {
+    const { getByText, queryByTestId } = renderWithProvider(<HeroToken />, {
       state: stakingDepositConfirmationState,
     });
 
@@ -72,7 +72,7 @@ describe('TokenHero', () => {
     );
 
     const { getByText, queryByTestId } = renderWithProvider(
-      <TokenHero />,
+      <HeroToken />,
       { state },
     );
 
