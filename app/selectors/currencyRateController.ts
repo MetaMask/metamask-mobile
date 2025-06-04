@@ -65,13 +65,15 @@ export const selectConversionRateByChainId = createSelector(
   (_state: RootState, chainId: string) => chainId,
   (state: RootState) => state.settings.showFiatOnTestnets,
   selectNativeCurrencyByChainId,
+  (_state: RootState, _chainId: string, skipTestNetCheck?: boolean) => skipTestNetCheck,
   (
     currencyRates: CurrencyRateState['currencyRates'],
     chainId,
     showFiatOnTestnets,
     nativeCurrency,
+    skipTestNetCheck = false,
   ) => {
-    if (isTestNet(chainId) && !showFiatOnTestnets) {
+    if (isTestNet(chainId) && !showFiatOnTestnets && !skipTestNetCheck) {
       return undefined;
     }
 
