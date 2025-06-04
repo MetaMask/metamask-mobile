@@ -20,11 +20,6 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController, UserStorageController } = Engine.context;
 
   try {
-    await Promise.all([
-      UserStorageController.setHasAccountSyncingSyncedAtLeastOnce(false),
-      UserStorageController.setIsAccountSyncingReadyToBeDispatched(false),
-    ]);
-
     // Convert input mnemonic to codepoints
     const mnemonicWords = mnemonic.toLowerCase().split(' ');
     const inputCodePoints = new Uint16Array(
@@ -80,10 +75,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
     return Engine.setSelectedAddress(newAccountAddress);
   } finally {
-    await Promise.all([
-      UserStorageController.setHasAccountSyncingSyncedAtLeastOnce(true),
-      UserStorageController.setIsAccountSyncingReadyToBeDispatched(true),
-    ]);
+    await UserStorageController.syncInternalAccountsWithUserStorage();
   }
 }
 

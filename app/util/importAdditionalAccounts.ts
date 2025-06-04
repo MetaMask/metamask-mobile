@@ -6,10 +6,7 @@ import type EthQuery from '@metamask/eth-query';
 import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { getGlobalEthQuery } from './networks/global-network';
-import {
-  setIsAccountSyncingReadyToBeDispatched,
-  setHasAccountSyncingSyncedAtLeastOnce,
-} from '../actions/identity';
+import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -37,11 +34,6 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
  */
 export default async () => {
   try {
-    await Promise.all([
-      setHasAccountSyncingSyncedAtLeastOnce(false),
-      setIsAccountSyncingReadyToBeDispatched(false),
-    ]);
-
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();
 
@@ -71,9 +63,6 @@ export default async () => {
   } finally {
     // We don't want to catch errors here, we let them bubble up to the caller
     // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
-    await Promise.all([
-      setHasAccountSyncingSyncedAtLeastOnce(true),
-      setIsAccountSyncingReadyToBeDispatched(true),
-    ]);
+    await setIsAccountSyncingReadyToBeDispatched(true);
   }
 };
