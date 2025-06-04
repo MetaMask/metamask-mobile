@@ -214,6 +214,10 @@ class Browser {
     );
   }
 
+  /**
+   * Enters url in the input field but doesn't navigate to it.
+   * Can be used to test search or autocomplete
+   */
   async searchForUrl(url) {
     await this.tapUrlInputBox();
     await device.disableSynchronization(); // because animations makes typing into the browser slow
