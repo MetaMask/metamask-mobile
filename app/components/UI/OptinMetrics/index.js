@@ -6,7 +6,6 @@ import {
   ScrollView,
   BackHandler,
   Alert,
-  Linking,
   TouchableOpacity,
   Platform,
 } from 'react-native';
