@@ -5,7 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 import {
@@ -19,11 +19,16 @@ import {
   Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountConnect.selectors';
+import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
   mockAddress2,
 ]);
+const mockKeyringId = '01JNG71B7GTWH0J1TSJY9891S0';
 
 // Helper function to create properly typed CAIP-25 permissions
 const createMockCaip25Permission = (
@@ -53,6 +58,9 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
     build: jest.fn(),
   }),
 });
+const mockGetNextAvailableAccountName = jest
+  .fn()
+  .mockReturnValue('Snap Account 1');
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -104,6 +112,8 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
+  // Ignore no shadowing warning for mocks.
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
@@ -127,6 +137,7 @@ jest.mock('../../../core/Engine', () => {
       AccountsController: {
         state: mockAccountsState,
         getAccountByAddress: jest.fn(),
+        getNextAvailableAccountName: () => mockGetNextAvailableAccountName(),
       },
       KeyringController: {
         state: {
@@ -202,9 +213,46 @@ const mockInitialState: DeepPartial<RootState> = {
         },
         selectedNetworkClientId: '1',
       },
+      KeyringController: {
+        keyrings: [
+          {
+            type: KeyringTypes.hd,
+            accounts: [mockAddress1, mockAddress2],
+            metadata: {
+              id: mockKeyringId,
+              name: '',
+            },
+          },
+        ],
+      },
     },
   },
 };
+
+const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
+const mockMultichainWalletSnapClient = {
+  createAccount: mockCreateMultichainAccount,
+  getSnapId: jest.fn().mockReturnValue('mock-snap-id'),
+  getSnapName: jest.fn().mockReturnValue('mock-snap-name'),
+  getScopes: jest.fn().mockReturnValue([]),
+  getSnapSender: jest.fn().mockReturnValue({}),
+  withSnapKeyring: jest.fn().mockImplementation(async (callback) => {
+    await callback({ createAccount: mockCreateMultichainAccount });
+  }),
+};
+
+jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  WalletClientType: {
+    Bitcoin: 'bitcoin',
+    Solana: 'solana',
+  },
+  MultichainWalletSnapFactory: {
+    createClient: jest
+      .fn()
+      .mockImplementation(() => mockMultichainWalletSnapClient),
+  },
+}));
 
 describe('AccountConnect', () => {
   it('renders correctly with base request', () => {
@@ -568,6 +616,72 @@ describe('AccountConnect', () => {
         expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
           'https://safe-site.com',
         );
+      });
+    });
+  });
+
+  describe('CreateInitialAccount', () => {
+    it('creates the initial solana account', async () => {
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  promptToCreateSolanaAccount: true,
+                },
+                permissions: {
+                  [Caip25EndowmentPermissionName]: {
+                    parentCapability: Caip25EndowmentPermissionName,
+                    caveats: [
+                      {
+                        type: Caip25CaveatType,
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {
+                            'wallet:eip155': {
+                              accounts: [],
+                            },
+                          },
+                          isMultichainOrigin: false,
+                          sessionProperties: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      const addAccountButton = getByTestId(
+        AccountConnectSelectorsIDs.CREATE_ACCOUNT_BUTTON,
+      );
+
+      expect(addAccountButton).toBeDefined();
+
+      fireEvent.press(addAccountButton);
+
+      expect(getByTestId(AddNewAccountIds.CONTAINER)).toBeDefined();
+
+      const confirmButton = getByTestId(AddNewAccountIds.CONFIRM);
+
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          mockMultichainWalletSnapClient.createAccount,
+        ).toHaveBeenCalledWith({
+          scope: SolScope.Mainnet,
+          accountNameSuggestion: 'Solana Account 1',
+          entropySource: mockKeyringId,
+        });
       });
     });
   });

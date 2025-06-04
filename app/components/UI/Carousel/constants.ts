@@ -4,7 +4,7 @@ import { CarouselSlide, SlideId } from './types';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
+} from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import cardImage from '../../../images/banners/banner_image_card.png';
 import fundImage from '../../../images/banners/banner_image_fund.png';

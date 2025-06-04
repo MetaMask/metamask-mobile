@@ -5,13 +5,13 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
+import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
 import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('../../../Ramp/hooks/useRampNetwork', () => jest.fn());
-jest.mock('../../../Ramp/routes/utils', () => ({
+jest.mock('../../../Ramp/Aggregator/hooks/useRampNetwork', () => jest.fn());
+jest.mock('../../../Ramp/Aggregator/routes/utils', () => ({
   createBuyNavigationDetails: jest.fn(() => ['BuyScreen']),
 }));
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
@@ -172,7 +172,7 @@ describe('TokenListFooter', () => {
   });
 
   it('does not render the add tokens footer link Non EVM', () => {
-    const initialStateTest = { 
+    const initialStateTest = {
       ...initialState,
       engine: {
         backgroundState: {

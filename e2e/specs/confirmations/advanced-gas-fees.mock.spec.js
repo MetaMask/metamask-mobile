@@ -29,7 +29,8 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
 
     const testSpecificMock  = {
       GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
+        mockEvents.GET.suggestedGasFeesApiGanache,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations
       ],
     };
     await withFixtures(

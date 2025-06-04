@@ -91,12 +91,12 @@ import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import {
   // Pending updated multichain UX to specify the send chain.
   /* eslint-disable no-restricted-syntax */

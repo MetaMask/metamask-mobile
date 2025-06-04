@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { SafeAreaView, View } from 'react-native';
@@ -31,38 +30,47 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
-import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 
-const AddNewAccount = ({ route }: AddNewAccountProps) => {
+const AddNewAccount = ({
+  scope,
+  clientType,
+  onActionComplete,
+  onBack,
+}: AddNewAccountProps) => {
   const { navigate } = useNavigation();
-  const { scope, clientType } = route?.params || {};
-  const sheetRef = useRef<BottomSheetRef>(null);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const keyringOfSelectedAccount = useSelector(
-    getHdKeyringOfSelectedAccountOrPrimaryKeyring,
-  );
-  const [keyringId, setKeyringId] = useState<string>(
-    keyringOfSelectedAccount.metadata.id,
-  );
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const [primaryKeyringId] = hdKeyrings;
+  const initialKeyringIdToUse = useMemo(
+    () =>
+      // For HD accounts (since v29.0.1), use the entropySource if available.
+      // Cast to string since it's typed as Json in the keyring API.
+      // Fall back to primary keyring ID for non-HD accounts.
+      (selectedInternalAccount?.options.entropySource as string) ??
+      primaryKeyringId.metadata.id,
+    [selectedInternalAccount, primaryKeyringId],
+  );
+  const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
   const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
@@ -77,8 +85,17 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     };
   }, [hdKeyrings, keyringId]);
 
-  const onBack = () => {
-    navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+  const handleOnBack = () => {
+    if (showSRPList) {
+      setShowSRPList(false);
+      return;
+    }
+
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+    }
   };
 
   const isDuplicateName = useMemo(
@@ -97,18 +114,23 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
 
     setIsLoading(true);
     try {
+      let account: InternalAccount;
       if (clientType && scope) {
         const multichainWalletSnapClient =
           MultichainWalletSnapFactory.createClient(clientType);
-        await multichainWalletSnapClient.createAccount({
+        account = (await multichainWalletSnapClient.createAccount({
           scope,
           accountNameSuggestion: accountName,
           entropySource: keyringId,
-        });
+        })) as InternalAccount;
       } else {
-        await addNewHdAccount(keyringId, accountName);
+        account = await addNewHdAccount(keyringId, accountName);
       }
-      navigate(Routes.WALLET.HOME);
+      if (onActionComplete) {
+        onActionComplete(account);
+      } else {
+        navigate(Routes.WALLET.HOME);
+      }
     } catch (e: unknown) {
       const errorMessage = strings(
         'accounts.error_messages.failed_to_create_account',
@@ -121,7 +143,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [clientType, scope, accountName, keyringId, navigate]);
+  }, [clientType, scope, onActionComplete, accountName, keyringId, navigate]);
 
   useEffect(() => {
     setAccountName(getMultichainAccountName(scope, clientType));
@@ -148,27 +170,21 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
-        <Fragment>
-          <SheetHeader
-            title={
-              showSRPList
-                ? strings('accounts.select_secret_recovery_phrase')
-                : addAccountTitle
-            }
-            onBack={() => {
-              if (showSRPList) {
-                setShowSRPList(false);
-                return;
-              }
-              onBack();
-            }}
-          />
-          {showSRPList ? (
-            <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
-          ) : (
-            <View style={styles.base}>
+    <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
+      <Fragment>
+        <SheetHeader
+          title={
+            showSRPList
+              ? strings('accounts.select_secret_recovery_phrase')
+              : addAccountTitle
+          }
+          onBack={handleOnBack}
+        />
+        {showSRPList ? (
+          <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
+        ) : (
+          <View style={styles.base}>
+            <Fragment>
               <View style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
@@ -220,7 +236,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   loading={isLoading}
                   style={styles.button}
                   variant={ButtonVariants.Secondary}
-                  onPress={onBack}
+                  onPress={handleOnBack}
                   labelTextVariant={TextVariant.BodyMD}
                   label={strings('accounts.cancel')}
                 />
@@ -240,11 +256,11 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   {error}
                 </Text>
               )}
-            </View>
-          )}
-        </Fragment>
-      </SafeAreaView>
-    </BottomSheet>
+            </Fragment>
+          </View>
+        )}
+      </Fragment>
+    </SafeAreaView>
   );
 };
 

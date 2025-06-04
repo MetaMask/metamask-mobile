@@ -13,7 +13,7 @@ import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
-import TokenHero from '../../../../components/rows/transactions/token-hero';
+import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
 import styleSheet from './staking-claim.styles';
 
@@ -49,7 +49,7 @@ const StakingClaim = ({
 
   return (
     <>
-      <TokenHero amountWei={route?.params?.amountWei} />
+      <HeroRow amountWei={route?.params?.amountWei} />
       <View style={styles.simulationsDetailsContainer}>
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}

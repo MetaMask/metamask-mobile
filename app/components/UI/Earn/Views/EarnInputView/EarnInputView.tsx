@@ -25,7 +25,7 @@ import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import ScreenLayout from '../../../Ramp/components/ScreenLayout';
+import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import InputDisplay from '../../components/InputDisplay';

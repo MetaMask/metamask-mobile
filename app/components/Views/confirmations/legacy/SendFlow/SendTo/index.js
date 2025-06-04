@@ -53,8 +53,8 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
