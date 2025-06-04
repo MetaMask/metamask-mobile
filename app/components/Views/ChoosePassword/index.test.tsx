@@ -60,22 +60,6 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
-interface ChoosePasswordProps {
-  route: {
-    params: {
-      [ONBOARDING]?: boolean;
-      [PROTECT]?: boolean;
-    };
-  };
-  navigation?: {
-    setOptions: jest.Mock;
-    goBack: jest.Mock;
-    navigate: jest.Mock;
-    push: jest.Mock;
-    replace: jest.Mock;
-  };
-}
-
 const mockNavigation = {
   setOptions: jest.fn(),
   goBack: jest.fn(),
@@ -84,6 +68,13 @@ const mockNavigation = {
   replace: jest.fn(),
   setParams: jest.fn(),
 };
+
+const mockRoute = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn().mockReturnValue(mockNavigation),
+  useRoute: jest.fn().mockReturnValue(mockRoute),
+}));
 
 const renderWithProviders = (ui: React.ReactElement) =>
   render(
@@ -98,12 +89,11 @@ describe('ChoosePassword', () => {
   });
 
   it('should render correctly', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
-      navigation: mockNavigation,
-    };
+    mockRoute.mockReturnValue({
+      params: { [ONBOARDING]: true, [PROTECT]: true },
+    });
 
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword />);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -112,12 +102,11 @@ describe('ChoosePassword', () => {
   });
 
   it('should render loading state correctly', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
+    mockRoute.mockReturnValue({
+      params: { [ONBOARDING]: true },
+    });
 
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword />);
 
     // Wait for initial render
     await act(async () => {
@@ -163,12 +152,11 @@ describe('ChoosePassword', () => {
   });
 
   it('should validate password and enable button when conditions are met', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
+    mockRoute.mockReturnValue({
+      params: { [ONBOARDING]: true },
+    });
 
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword />);
 
     // Wait for initial render
     await act(async () => {
@@ -226,12 +214,11 @@ describe('ChoosePassword', () => {
   });
 
   it('should handle header left button press and update navbar', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
+    mockRoute.mockReturnValue({
+      params: { [ONBOARDING]: true },
+    });
 
-    renderWithProviders(<ChoosePassword {...props} />);
+    renderWithProviders(<ChoosePassword />);
 
     // Wait for initial render
     await act(async () => {

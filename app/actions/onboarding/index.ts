@@ -6,7 +6,7 @@ export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
-  event: [ITrackingEvent];
+  event: ITrackingEvent[];
 }
 
 interface ClearEventsAction {
@@ -24,7 +24,7 @@ export type OnboardingActionTypes =
   | SetCompletedOnboardingAction;
 
 export function saveOnboardingEvent(
-  eventArgs: [ITrackingEvent],
+  eventArgs: ITrackingEvent[],
 ): SaveEventAction {
   return {
     type: SAVE_EVENT,

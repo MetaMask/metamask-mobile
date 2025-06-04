@@ -1,5 +1,11 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
+import React, {
+  Dispatch,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -7,6 +13,7 @@ import {
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
@@ -16,11 +23,11 @@ import Text, {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import {
-  passwordSet,
-  passwordUnset,
-  seedphraseNotBackedUp,
+  passwordSet as passwordSetAction,
+  passwordUnset as passwordUnsetAction,
+  seedphraseNotBackedUp as seedphraseNotBackedUpAction,
 } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
+import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import {
@@ -49,7 +56,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext, useTheme } from '../../../util/theme';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
@@ -72,8 +79,26 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { Colors } from '../../../util/theme/models';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { RootState } from '../../../reducers';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+} from '../../../core/Analytics/MetaMetrics.types';
+import { AnyAction } from 'redux';
+import usePrevious from '../../hooks/usePrevious/usePrevious';
+import { AccountImportStrategy } from '@metamask/keyring-controller';
+import { AuthData } from '../../../core/Authentication/Authentication';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       backgroundColor: colors.background.default,
@@ -108,7 +133,7 @@ const createStyles = (colors) =>
     },
     title: {
       justifyContent: 'flex-start',
-      textAlign: 'flex-start',
+      textAlign: 'left',
       fontSize: 32,
     },
     subtitle: {
@@ -173,281 +198,227 @@ const createStyles = (colors) =>
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
+interface HeaderLeftProps {
+  colors: Colors;
+  marginLeft?: number;
+}
+
+const HeaderLeft = ({ colors, marginLeft = 16 }: HeaderLeftProps) => {
+  const navigation = useNavigation();
+  return (
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Icon
+        name={IconName.ArrowLeft}
+        size={IconSize.Lg}
+        color={colors.text.default}
+        style={{ marginLeft }}
+      />
+    </TouchableOpacity>
+  );
+};
+
+const headerLeft = (colors: Colors, marginLeft: number) => {
+  return <HeaderLeft colors={colors} marginLeft={marginLeft} />;
+};
+
+interface LoginOptionsSwitchComponentProps {
+  biometryType: string | null;
+  biometryChoice: boolean;
+  updateBiometryChoice: (biometryChoice: boolean) => void;
+  setRememberMe: (rememberMe: boolean) => void;
+}
+
+const LoginOptionsSwitchComponent = (
+  props: LoginOptionsSwitchComponentProps,
+) => {
+  const { biometryType, biometryChoice, updateBiometryChoice, setRememberMe } =
+    props;
+  const handleUpdateRememberMe = (rememberMe: boolean) => {
+    setRememberMe(rememberMe);
+  };
+  return (
+    <LoginOptionsSwitch
+      shouldRenderBiometricOption={biometryType}
+      biometryChoiceState={biometryChoice}
+      onUpdateBiometryChoice={updateBiometryChoice}
+      onUpdateRememberMe={handleUpdateRememberMe}
+    />
+  );
+};
+
+/**
+ * Returns current vault seed phrase
+ * It does it using an empty password or a password set by the user
+ * depending on the state the app is currently in
+ */
+const getSeedPhrase = async (
+  password: string,
+  isKeyringControllerPasswordSet: boolean,
+) => {
+  const { KeyringController } = Engine.context;
+  const keychainPassword = isKeyringControllerPasswordSet ? password : '';
+  const seed = await KeyringController.exportSeedPhrase(keychainPassword);
+  return uint8ArrayToMnemonic(seed, wordlist);
+};
+
+interface ChoosePasswordProps {
+  passwordSet: () => void;
+  passwordUnset: () => void;
+  setLockTime: (time: number) => void;
+  seedphraseNotBackedUp: () => void;
+  dispatchSaveOnboardingEvent: (event: ITrackingEvent) => void;
+}
 /**
  * View where users can set their password for the first time
  */
-class ChoosePassword extends PureComponent {
-  static propTypes = {
-    /**
-     * The navigator object
-     */
-    navigation: PropTypes.object,
-    /**
-     * The action to update the password set flag
-     * in the redux store
-     */
-    passwordSet: PropTypes.func,
-    /**
-     * The action to update the password set flag
-     * in the redux store to false
-     */
-    passwordUnset: PropTypes.func,
-    /**
-     * The action to update the lock time
-     * in the redux store
-     */
-    setLockTime: PropTypes.func,
-    /**
-     * Action to reset the flag seedphraseBackedUp in redux
-     */
-    seedphraseNotBackedUp: PropTypes.func,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-    /**
-     * Action to save onboarding event
-     */
-    dispatchSaveOnboardingEvent: PropTypes.func,
-  };
+const ChoosePassword = (props: ChoosePasswordProps) => {
+  const {
+    passwordSet,
+    passwordUnset,
+    setLockTime,
+    seedphraseNotBackedUp,
+    dispatchSaveOnboardingEvent,
+  } = props;
+  const navigation = useNavigation();
+  const route = useRoute();
 
-  state = {
-    isSelected: false,
-    password: '',
-    confirmPassword: '',
-    secureTextEntry: true,
-    biometryType: null,
-    biometryChoice: false,
-    rememberMe: false,
-    loading: false,
-    error: null,
-    inputWidth: { width: '99%' },
-    showPasswordIndex: [0, 1],
-    passwordInputContainerFocusedIndex: -1,
-  };
+  const { colors, themeAppearance } = useTheme();
 
-  mounted = true;
+  const [isSelected, setIsSelected] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [biometryType, setBiometryType] = useState<string | null>(null);
+  const [biometryChoice, setBiometryChoice] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [inputWidth, setInputWidth] = useState({ width: '99%' });
+  const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
 
-  confirmPasswordInput = React.createRef();
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  // const [
+  //   passwordInputContainerFocusedIndex,
+  //   setPasswordInputContainerFocusedIndex,
+  // ] = useState(-1);
+
+  const confirmPasswordInput = useRef<TextInput>(null);
   // Flag to know if password in keyring was set or not
-  keyringControllerPasswordSet = false;
+  const [isKeyringControllerPasswordSet, setIsKeyringControllerPasswordSet] =
+    useState(false);
 
-  track = (event, properties) => {
+  const track = (event: IMetaMetricsEvent, properties?: JsonMap) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-    eventBuilder.addProperties(properties);
-    trackOnboarding(
-      eventBuilder.build(),
-      this.props.dispatchSaveOnboardingEvent,
-    );
+    if (properties) {
+      eventBuilder.addProperties(properties);
+    }
+    trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
 
-  headerLeft = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const marginLeft = 16;
-    return (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={colors.text.default}
-          style={{ marginLeft }}
-        />
-      </TouchableOpacity>
-    );
-  };
-
-  updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.headerLeft,
+          headerLeft: () => headerLeft(colors, 16),
+          headerRight: () => <View />,
         },
         colors,
         false,
       ),
     );
-  };
+  }, [navigation, route, colors]);
 
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
+  const termsOfUse = useCallback(async () => {
+    if (navigation) {
+      await navigateTermsOfUse(navigation.navigate);
     }
-  };
+  }, [navigation]);
 
-  async componentDidMount() {
-    const authData = await Authentication.getType();
-    const previouslyDisabled = await StorageWrapper.getItem(
-      BIOMETRY_CHOICE_DISABLED,
-    );
-    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-      PASSCODE_DISABLED,
-    );
-    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-      this.setState({
-        biometryType: passcodeType(authData.currentAuthType),
-        biometryChoice: !(
-          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
-        ),
-      });
-    } else if (authData.availableBiometryType) {
-      this.setState({
-        biometryType: authData.availableBiometryType,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-      });
-    }
-    this.updateNavBar();
-    setTimeout(() => {
-      this.setState({
-        inputWidth: { width: '100%' },
-      });
-    }, 100);
-    this.termsOfUse();
-  }
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
 
-  componentDidUpdate(prevProps, prevState) {
-    this.updateNavBar();
-    const prevLoading = prevState.loading;
-    const { loading } = this.state;
-    const { navigation } = this.props;
+  useEffect(() => {
+    termsOfUse();
+  }, [termsOfUse]);
+
+  useEffect(() => {
+    const componentDidMount = async () => {
+      const authData = await Authentication.getType();
+      const previouslyDisabled = await StorageWrapper.getItem(
+        BIOMETRY_CHOICE_DISABLED,
+      );
+      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+        PASSCODE_DISABLED,
+      );
+      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+        setBiometryType(passcodeType(authData.currentAuthType));
+        setBiometryChoice(
+          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+        );
+      } else if (authData.availableBiometryType) {
+        setBiometryType(authData.availableBiometryType);
+        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+      }
+      setTimeout(() => {
+        setInputWidth({ width: '100%' });
+      }, 100);
+    };
+    componentDidMount();
+  }, []);
+
+  const prevLoading = usePrevious(loading);
+
+  useEffect(() => {
+    updateNavBar();
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => <View />,
+        headerLeft: <View />,
       });
     }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
-
-  setSelection = () => {
-    const { isSelected } = this.state;
-    this.setState(() => ({ isSelected: !isSelected }));
-  };
-
-  onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword } = this.state;
-    const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
-
-    if (!canSubmit) return;
-    if (loading) return;
-    if (!passwordRequirementsMet(password)) {
-      Alert.alert('Error', strings('choose_password.password_length_error'));
-      return;
-    } else if (password !== confirmPassword) {
-      Alert.alert('Error', strings('choose_password.password_dont_match'));
-      return;
-    }
-    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
-
-    try {
-      this.setState({ loading: true });
-      const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
-
-      const authType = await Authentication.componentAuthenticationType(
-        this.state.biometryChoice,
-        this.state.rememberMe,
-      );
-
-      if (previous_screen === ONBOARDING) {
-        try {
-          await Authentication.newWalletAndKeychain(password, authType);
-        } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
-        }
-        this.keyringControllerPasswordSet = true;
-        this.props.seedphraseNotBackedUp();
-      } else {
-        await this.recreateVault(password, authType);
-      }
-
-      this.props.passwordSet();
-      this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-      this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
-      this.track(MetaMetricsEvents.WALLET_CREATED, {
-        biometrics_enabled: Boolean(this.state.biometryType),
-      });
-      this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: 'new',
-        new_wallet: true,
-      });
-    } catch (error) {
-      try {
-        await this.recreateVault('');
-      } catch (e) {
-        Logger.error(e);
-      }
-      // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
-      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      this.props.passwordUnset();
-      this.props.setLockTime(-1);
-      // Should we force people to enable passcode / biometrics?
-      if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('choose_password.security_alert_title'),
-          strings('choose_password.security_alert_message'),
-        );
-        this.setState({ loading: false });
-      } else {
-        this.setState({ loading: false, error: error.toString() });
-      }
-      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'new',
-        error_type: error.toString(),
-      });
-    }
-  };
+  }, [loading, navigation, prevLoading, updateNavBar]);
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
    * If this occurs we will create the wallet automatically with password as the login method
    */
-  handleRejectedOsBiometricPrompt = async () => {
+  const handleRejectedOsBiometricPrompt = async () => {
     const newAuthData = await Authentication.componentAuthenticationType(
       false,
       false,
     );
     try {
-      await Authentication.newWalletAndKeychain(
-        this.state.password,
-        newAuthData,
-      );
+      await Authentication.newWalletAndKeychain(password, newAuthData);
     } catch (err) {
       throw Error(strings('choose_password.disable_biometric_error'));
     }
-    this.setState({
-      biometryType: newAuthData.availableBiometryType,
-      biometryChoice: false,
-    });
+    setBiometryType(newAuthData.availableBiometryType || null);
+    setBiometryChoice(false);
   };
 
   /**
    * Recreates a vault
    *
-   * @param password - Password to recreate and set the vault with
+   * @param newPassword - Password to recreate and set the vault with
    */
-  recreateVault = async (password, authType) => {
+  const recreateVault = async (newPassword: string, authType: AuthData) => {
     const { KeyringController } = Engine.context;
-    const seedPhrase = await this.getSeedPhrase();
-    let importedAccounts = [];
+    const seedPhrase = await getSeedPhrase(
+      newPassword,
+      isKeyringControllerPasswordSet,
+    );
+    let importedAccounts: string[] = [];
     try {
-      const keychainPassword = this.keyringControllerPasswordSet
-        ? this.state.password
+      const keychainPassword = isKeyringControllerPasswordSet
+        ? newPassword
         : '';
       // Get imported accounts
       const simpleKeyrings = KeyringController.state.keyrings.filter(
         (keyring) => keyring.type === 'Simple Key Pair',
       );
-      for (let i = 0; i < simpleKeyrings.length; i++) {
-        const simpleKeyring = simpleKeyrings[i];
+      for (const simpleKeyring of simpleKeyrings) {
         const simpleKeyringAccounts = await Promise.all(
           simpleKeyring.accounts.map((account) =>
             KeyringController.exportAccount(keychainPassword, account),
@@ -457,20 +428,20 @@ class ChoosePassword extends PureComponent {
       }
     } catch (e) {
       Logger.error(
-        e,
+        e as Error,
         'error while trying to get imported accounts on recreate vault',
       );
     }
 
     // Recreate keyring with password given to this method
     await Authentication.newWalletAndRestore(
-      password,
+      newPassword,
       authType,
       seedPhrase,
       true,
     );
     // Keyring is set with empty password or not
-    this.keyringControllerPasswordSet = password !== '';
+    setIsKeyringControllerPasswordSet(newPassword !== '');
 
     // Get props to restore vault
     const hdKeyring = KeyringController.state.keyrings[0];
@@ -483,344 +454,389 @@ class ChoosePassword extends PureComponent {
 
     try {
       // Import imported accounts again
-      for (let i = 0; i < importedAccounts.length; i++) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
-        ]);
+      for (const account of importedAccounts) {
+        await KeyringController.importAccountWithStrategy(
+          AccountImportStrategy.privateKey,
+          [account],
+        );
       }
     } catch (e) {
       Logger.error(
-        e,
+        e as Error,
         'error while trying to import accounts on recreate vault',
       );
     }
   };
 
-  /**
-   * Returns current vault seed phrase
-   * It does it using an empty password or a password set by the user
-   * depending on the state the app is currently in
-   */
-  getSeedPhrase = async () => {
-    const { KeyringController } = Engine.context;
-    const { password } = this.state;
-    const keychainPassword = this.keyringControllerPasswordSet ? password : '';
-    return await KeyringController.exportSeedPhrase(keychainPassword);
+  const onPressCreate = async () => {
+    const passwordsMatch = password !== '' && password === confirmPassword;
+    const canSubmit = passwordsMatch && isSelected;
+
+    if (!canSubmit) return;
+    if (loading) return;
+    if (!passwordRequirementsMet(password)) {
+      Alert.alert('Error', strings('choose_password.password_length_error'));
+      return;
+    } else if (password !== confirmPassword) {
+      Alert.alert('Error', strings('choose_password.password_dont_match'));
+      return;
+    }
+    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+
+    try {
+      setLoading(true);
+      const routeParams = route.params as { [key: string]: string } | undefined;
+      const previous_screen = routeParams?.[PREVIOUS_SCREEN];
+
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        rememberMe,
+      );
+
+      if (previous_screen === ONBOARDING) {
+        try {
+          await Authentication.newWalletAndKeychain(password, authType);
+        } catch (error) {
+          if (Device.isIos()) await handleRejectedOsBiometricPrompt();
+        }
+        setIsKeyringControllerPasswordSet(true);
+        seedphraseNotBackedUp();
+      } else {
+        await recreateVault(password, authType);
+      }
+
+      passwordSet();
+      setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+      setLoading(false);
+
+      navigation.dispatch(StackActions.replace('AccountBackupStep1'));
+
+      track(MetaMetricsEvents.WALLET_CREATED, {
+        biometrics_enabled: Boolean(biometryType),
+      });
+      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'new',
+        new_wallet: true,
+      });
+    } catch (error) {
+      try {
+        await recreateVault('', {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+      } catch (e) {
+        Logger.error(e as Error);
+      }
+      // Set state in app as it was with no password
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+      passwordUnset();
+      setLockTime(-1);
+      // Should we force people to enable passcode / biometrics?
+      if ((error as Error).toString() === PASSCODE_NOT_SET_ERROR) {
+        Alert.alert(
+          strings('choose_password.security_alert_title'),
+          strings('choose_password.security_alert_message'),
+        );
+        setLoading(false);
+      } else {
+        setLoading(false);
+        setErrorMsg((error as Error).toString());
+      }
+      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'new',
+        error_type: (error as Error).toString(),
+      });
+    }
   };
 
-  jumpToConfirmPassword = () => {
-    const { current } = this.confirmPasswordInput;
-    current && current.focus();
+  const jumpToConfirmPassword = () => {
+    confirmPasswordInput.current?.focus();
   };
 
-  updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    this.setState({ biometryChoice });
-  };
+  const updateBiometryChoice = useCallback(
+    async (newBiometryChoice: boolean) => {
+      await updateAuthTypeStorageFlags(newBiometryChoice);
+      setBiometryChoice(newBiometryChoice);
+    },
+    [],
+  );
 
-  renderSwitch = () => {
-    const { biometryType, biometryChoice } = this.state;
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
-
-  onPasswordChange = (val) => {
+  const onPasswordChange = useCallback((val: string) => {
     const passInfo = zxcvbn(val);
+    setPassword(val);
+    setPasswordStrength(passInfo.score);
+  }, []);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
-  };
-
-  learnMore = () => {
-    this.props.navigation.push('Webview', {
+  const learnMore = useCallback(() => {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
         title: 'support.metamask.io',
       },
     });
-  };
+  }, [navigation]);
 
-  toggleShowPassword = (index) => {
-    this.setState((prevState) => {
-      const newShowPasswordIndex = prevState.showPasswordIndex.includes(index)
-        ? prevState.showPasswordIndex.filter((i) => i !== index)
-        : [...prevState.showPasswordIndex, index];
-      return { showPasswordIndex: newShowPasswordIndex };
+  const toggleShowPassword = useCallback((index: number) => {
+    setShowPasswordIndex((prevState) => {
+      const newShowPasswordIndex = prevState.includes(index)
+        ? prevState.filter((i) => i !== index)
+        : [...prevState, index];
+      return newShowPasswordIndex;
     });
-  };
+  }, []);
 
-  setConfirmPassword = (val) => this.setState({ confirmPassword: val });
+  const checkError = useCallback(
+    () =>
+      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+    [password, confirmPassword],
+  );
 
-  checkError = () => {
-    const { password, confirmPassword } = this.state;
-    return (
-      password !== '' && confirmPassword !== '' && password !== confirmPassword
-    );
-  };
+  const passwordsMatch = password !== '' && password === confirmPassword;
+  const canSubmit = passwordsMatch && isSelected;
 
-  render() {
-    const {
-      isSelected,
-      password,
-      passwordStrength,
-      confirmPassword,
-      error,
-      loading,
-    } = this.state;
-    const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
-    const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+  const routeParams = route.params as { [key: string]: string } | undefined;
+  const previousScreen = routeParams?.[PREVIOUS_SCREEN];
 
-    return (
-      <SafeAreaView style={styles.mainWrapper}>
-        {loading ? (
-          <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
-              {strings('create_wallet.subtitle')}
-            </Text>
+  const passwordStrengthWord = useMemo(
+    () => getPasswordStrengthWord(passwordStrength),
+    [passwordStrength],
+  );
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  return (
+    <SafeAreaView style={styles.mainWrapper}>
+      {loading ? (
+        <View style={styles.loadingWrapper}>
+          <View style={styles.foxWrapper}>
+            <LottieView
+              style={styles.image}
+              autoPlay
+              loop
+              source={fox}
+              resizeMode="contain"
+            />
           </View>
-        ) : (
-          <View style={styles.wrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollableWrapper}
-              contentContainerStyle={styles.keyboardScrollableWrapper}
-              resetScrollToCoords={{ x: 0, y: 0 }}
-            >
-              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('choose_password.steps', {
-                    currentStep: 1,
-                    totalSteps: 3,
-                  })}
-                </Text>
+          <ActivityIndicator size="large" color={colors.text.default} />
+          <Text
+            variant={TextVariant.HeadingLG}
+            style={styles.title}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+          >
+            {strings(
+              previousScreen === ONBOARDING
+                ? 'create_wallet.title'
+                : 'secure_your_wallet.creating_password',
+            )}
+          </Text>
+          <Text variant={TextVariant.HeadingSMRegular} style={styles.subtitle}>
+            {strings('create_wallet.subtitle')}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.wrapper}>
+          <KeyboardAwareScrollView
+            style={styles.scrollableWrapper}
+            contentContainerStyle={styles.keyboardScrollableWrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+          >
+            <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('choose_password.steps', {
+                  currentStep: 1,
+                  totalSteps: 3,
+                })}
+              </Text>
 
-                <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-                  {strings('choose_password.title')}
-                </Text>
+              <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+                {strings('choose_password.title')}
+              </Text>
 
-                <View style={styles.passwordContainer}>
-                  <View style={styles.field}>
-                    <Label
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Default}
-                      style={styles.label}
-                    >
-                      {strings('choose_password.password')}
-                    </Label>
-                    <TextField
-                      placeholder={strings(
-                        'import_from_seed.enter_strong_password',
-                      )}
-                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
-                      value={password}
-                      onChangeText={this.onPasswordChange}
-                      placeholderTextColor={colors.text.muted}
-                      testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                      onSubmitEditing={this.jumpToConfirmPassword}
-                      autoComplete="new-password"
-                      returnKeyType="next"
-                      autoCapitalize="none"
-                      keyboardAppearance={themeAppearance}
-                      size={TextFieldSize.Lg}
-                      endAccessory={
+              <View style={styles.passwordContainer}>
+                <View style={styles.field}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
+                    {strings('choose_password.password')}
+                  </Label>
+                  <TextField
+                    placeholder={strings(
+                      'import_from_seed.enter_strong_password',
+                    )}
+                    secureTextEntry={showPasswordIndex.includes(0)}
+                    value={password}
+                    onChangeText={onPasswordChange}
+                    placeholderTextColor={colors.text.muted}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                    onSubmitEditing={jumpToConfirmPassword}
+                    autoComplete="new-password"
+                    returnKeyType="next"
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
+                    size={TextFieldSize.Lg}
+                    endAccessory={
+                      <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
                           name={
-                            this.state.showPasswordIndex.includes(0)
+                            showPasswordIndex.includes(0)
                               ? IconName.Eye
                               : IconName.EyeSlash
                           }
                           size={IconSize.Lg}
                           color={colors.icon.alternative}
-                          onPress={() => this.toggleShowPassword(0)}
                         />
-                      }
-                    />
-                    {password === '' ? (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
-                      </Text>
-                    ) : (
-                      <Text variant={TextVariant.BodySM}>
-                        {strings('choose_password.password_strength')}
-                        <Text
-                          variant={TextVariant.BodySM}
-                          style={styles[`strength_${passwordStrengthWord}`]}
-                        >
-                          {' '}
-                          {strings(
-                            `choose_password.strength_${passwordStrengthWord}`,
-                          )}
-                        </Text>
-                      </Text>
-                    )}
-                  </View>
-
-                  <View style={styles.field}>
-                    <Label
-                      variant={TextVariant.BodyMDMedium}
-                      color={TextColor.Default}
-                      style={styles.label}
-                    >
-                      {strings('choose_password.confirm_password')}
-                    </Label>
-                    <TextField
-                      placeholder={strings(
-                        'import_from_seed.re_enter_password',
-                      )}
-                      value={confirmPassword}
-                      onChangeText={this.setConfirmPassword}
-                      secureTextEntry={this.state.showPasswordIndex.includes(1)}
-                      placeholderTextColor={colors.text.muted}
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                      }
-                      accessibilityLabel={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                      }
-                      autoComplete="new-password"
-                      onSubmitEditing={this.onPressCreate}
-                      returnKeyType={'done'}
-                      autoCapitalize="none"
-                      keyboardAppearance={themeAppearance}
-                      size={TextFieldSize.Lg}
-                      endAccessory={
-                        <Icon
-                          name={
-                            this.state.showPasswordIndex.includes(1)
-                              ? IconName.Eye
-                              : IconName.EyeSlash
-                          }
-                          size={IconSize.Lg}
-                          color={colors.icon.alternative}
-                          onPress={() => this.toggleShowPassword(1)}
-                        />
-                      }
-                      isDisabled={password === ''}
-                    />
-                    {this.checkError() && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Error}
-                      >
-                        {strings('choose_password.password_error')}
-                      </Text>
-                    )}
-                  </View>
-
-                  {this.renderSwitch()}
-                </View>
-
-                <View style={styles.learnMoreContainer}>
-                  <Checkbox
-                    onPress={this.setSelection}
-                    isChecked={isSelected}
-                    testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
-                    }
-                    accessibilityLabel={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
-                    }
-                    style={styles.checkbox}
-                    label={
-                      <View style={styles.learnMoreTextContainer}>
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Default}
-                          numberOfLines={2}
-                        >
-                          {strings('import_from_seed.learn_more')}{' '}
-                        </Text>
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                        >
-                          {' ' + strings('reset_password.learn_more')}
-                        </Text>
-                      </View>
+                      </TouchableOpacity>
                     }
                   />
+                  {password === '' ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  ) : (
+                    <Text variant={TextVariant.BodySM}>
+                      {strings('choose_password.password_strength')}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
+                        {' '}
+                        {strings(
+                          `choose_password.strength_${passwordStrengthWord}`,
+                        )}
+                      </Text>
+                    </Text>
+                  )}
                 </View>
 
-                {!!error && <Text color={TextColor.Error}>{error}</Text>}
-              </View>
+                <View style={styles.field}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.label}
+                  >
+                    {strings('choose_password.confirm_password')}
+                  </Label>
+                  <TextField
+                    placeholder={strings('import_from_seed.re_enter_password')}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={showPasswordIndex.includes(1)}
+                    placeholderTextColor={colors.text.muted}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                    autoComplete="new-password"
+                    onSubmitEditing={onPressCreate}
+                    returnKeyType={'done'}
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance}
+                    size={TextFieldSize.Lg}
+                    endAccessory={
+                      <TouchableOpacity onPress={() => toggleShowPassword(1)}>
+                        <Icon
+                          name={
+                            showPasswordIndex.includes(1)
+                              ? IconName.Eye
+                              : IconName.EyeSlash
+                          }
+                          size={IconSize.Lg}
+                          color={colors.icon.alternative}
+                        />
+                      </TouchableOpacity>
+                    }
+                    isDisabled={password === ''}
+                  />
+                  {checkError() && (
+                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                      {strings('choose_password.password_error')}
+                    </Text>
+                  )}
+                </View>
 
-              <View style={styles.ctaWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  onPress={this.onPressCreate}
-                  label={strings('choose_password.confirm_cta')}
-                  disabled={!canSubmit}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  isDisabled={!canSubmit}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                <LoginOptionsSwitchComponent
+                  biometryType={biometryType}
+                  biometryChoice={biometryChoice}
+                  updateBiometryChoice={updateBiometryChoice}
+                  setRememberMe={setRememberMe}
                 />
               </View>
-            </KeyboardAwareScrollView>
-          </View>
-        )}
-      </SafeAreaView>
-    );
-  }
-}
+
+              <View style={styles.learnMoreContainer}>
+                <Checkbox
+                  onPress={() => setIsSelected(!isSelected)}
+                  isChecked={isSelected}
+                  testID={ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                  }
+                  style={styles.checkbox}
+                  label={
+                    <View style={styles.learnMoreTextContainer}>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Default}
+                        numberOfLines={2}
+                      >
+                        {strings('import_from_seed.learn_more')}{' '}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Primary}
+                        onPress={learnMore}
+                      >
+                        {' ' + strings('reset_password.learn_more')}
+                      </Text>
+                    </View>
+                  }
+                />
+              </View>
+
+              {!!errorMsg && <Text color={TextColor.Error}>{errorMsg}</Text>}
+            </View>
+
+            <View style={styles.ctaWrapper}>
+              <Button
+                variant={ButtonVariants.Primary}
+                onPress={onPressCreate}
+                label={strings('choose_password.confirm_cta')}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                isDisabled={!canSubmit}
+                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+              />
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+};
 
 ChoosePassword.contextType = ThemeContext;
 
-const mapDispatchToProps = (dispatch) => ({
-  passwordSet: () => dispatch(passwordSet()),
-  passwordUnset: () => dispatch(passwordUnset()),
-  setLockTime: (time) => dispatch(setLockTime(time)),
-  seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => ({
+  passwordSet: () => dispatch(passwordSetAction()),
+  passwordUnset: () => dispatch(passwordUnsetAction()),
+  setLockTime: (time: number) => dispatch(setLockTimeAction(time)),
+  seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUpAction()),
+  dispatchSaveOnboardingEvent: (...event: ITrackingEvent[]) =>
+    dispatch(saveOnboardingEvent(event)),
 });
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = (_state: RootState) => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+
+// export default ChoosePassword;
