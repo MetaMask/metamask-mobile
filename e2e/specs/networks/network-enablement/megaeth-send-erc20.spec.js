@@ -19,7 +19,7 @@ import { buildPermissions } from '../../../fixtures/utils';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
-describe(Regression(`${MEGAETH_TESTNET.nickname} - Send ERC20 tokens`), () => {
+describe(SmokeNetworkEnablement(`${MEGAETH_TESTNET.nickname} - Send ERC20 tokens`), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

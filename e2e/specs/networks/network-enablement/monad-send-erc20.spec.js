@@ -19,7 +19,7 @@ import { buildPermissions } from '../../../fixtures/utils';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig.nickname;
 
-describe(Regression(`${MONAD_TESTNET.nickname} - Send ERC20 tokens`), () => {
+describe(SmokeNetworkEnablement(`${MONAD_TESTNET.nickname} - Send ERC20 tokens`), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

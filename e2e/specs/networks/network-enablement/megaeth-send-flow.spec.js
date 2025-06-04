@@ -18,7 +18,7 @@ import SendView from '../../../pages/Send/SendView';
 
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig.nickname;
 
-describe(Regression(`${MEGAETH_TESTNET.nickname} - Send Transaction`), () => {
+describe(SmokeNetworkEnablement(`${MEGAETH_TESTNET.nickname} - Send Transaction`), () => {
   const TOKEN_NAME = enContent.unit.megaeth;
   const AMOUNT = '0.0000001';
 

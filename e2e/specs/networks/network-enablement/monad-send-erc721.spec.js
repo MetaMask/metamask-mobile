@@ -16,7 +16,7 @@ import { buildPermissions } from '../../../fixtures/utils';
 const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 
-describe(Regression(`${MONAD_TESTNET.nickname} - Send ERC721 tokens`), () => {
+describe(SmokeNetworkEnablement(`${MONAD_TESTNET.nickname} - Send ERC721 tokens`), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
