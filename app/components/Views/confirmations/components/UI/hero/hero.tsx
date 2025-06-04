@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
-import { TooltipModal } from '../UI/Tooltip/Tooltip';
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
+import { TooltipModal } from '../Tooltip/Tooltip';
 import styleSheet from './hero.styles';
 
 interface TitleProps {
@@ -44,6 +43,7 @@ interface HeroProps {
   componentAsset: React.ReactNode;
   title: React.ReactNode | string;
 
+  hasPaddingTop?: boolean;
   subtitle?: string;
   tooltipModalProps?: {
     hasTooltip?: boolean;
@@ -60,6 +60,7 @@ interface HeroProps {
  *
  * <Hero
  *   componentAsset={<Asset />}
+ *   hasPaddingTop
  *   subtitle="Subtitle"
  *   title={<Title />}
  *   tooltipModalProps={{ hasTooltip: true, isEnabled: true, content: 'Tooltip content', title: 'Tooltip title', testId: 'tooltip-modal' }}
@@ -67,15 +68,15 @@ interface HeroProps {
  */
 export const Hero = ({
   componentAsset,
+  hasPaddingTop = false,
   subtitle,
   title,
   tooltipModalProps = {},
 }: HeroProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const { isFlatConfirmation } = useFlatConfirmation();
   const { styles } = useStyles(styleSheet, {
-    isFlatConfirmation,
+    hasPaddingTop,
   });
 
   return (

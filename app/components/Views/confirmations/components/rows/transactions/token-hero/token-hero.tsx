@@ -12,7 +12,7 @@ import { useConfirmationContext } from '../../../../context/confirmation-context
 import { useFlatConfirmation } from '../../../../hooks/ui/useFlatConfirmation';
 import { useTokenAsset } from '../../../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../../../hooks/useTokenAmount';
-import { Hero } from '../../../hero';
+import { Hero } from '../../../UI/hero';
 import AnimatedPulse from '../../../UI/animated-pulse';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
 import styleSheet from './token-hero.styles';
@@ -60,6 +60,7 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
     >
       <Hero
         componentAsset={<AvatarTokenWithNetworkBadge />}
+        hasPaddingTop={isFlatConfirmation}
         title={<AssetAmount amount={amount} styles={styles} />}
         subtitle={showFiatOnTestnets ? fiat : undefined}
         tooltipModalProps={{

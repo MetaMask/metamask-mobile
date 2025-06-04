@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isFlatConfirmation: boolean };
+  vars: { hasPaddingTop: boolean };
 }) => {
   const { theme, vars } = params;
-  const { isFlatConfirmation } = vars;
+  const { hasPaddingTop } = vars;
 
   return StyleSheet.create({
     base: {
       paddingBottom: 16,
-      paddingTop: isFlatConfirmation ? 16 : 0,
+      paddingTop: hasPaddingTop ? 16 : 0,
     },
     subtitle: {
       textAlign: 'center',
