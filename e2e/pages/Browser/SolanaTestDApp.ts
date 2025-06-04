@@ -155,6 +155,15 @@ class SolanaTestDApp {
         ).getText(),
     };
   }
+
+  getSendSolTest() {
+    return {
+      signTransaction: async () => await this.tapButton(await getTestElement(dataTestIds.testPage.sendSol.signTransaction, { tag: 'button' })),
+      sendTransaction: async () => await this.tapButton(await getTestElement(dataTestIds.testPage.sendSol.sendTransaction, { tag: 'button' })),
+      getSignedTransaction: async () => (await getTestElement(dataTestIds.testPage.sendSol.signedTransaction, { tag: 'pre' })).getText(),
+      getTransactionHash: async () => (await getTestElement(dataTestIds.testPage.sendSol.transactionHash, { tag: 'pre' })).getText(),
+    };
+  }
 }
 
 export default new SolanaTestDApp();

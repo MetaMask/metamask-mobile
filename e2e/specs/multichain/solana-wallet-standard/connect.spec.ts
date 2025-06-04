@@ -1,16 +1,11 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import {
-  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-  DEFAULT_SOLANA_TEST_DAPP_PATH,
-  withFixtures,
-} from '../../../fixtures/fixture-helper';
 import Assertions from '../../../utils/Assertions';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import { connectSolanaTestDapp, setup } from './testHelpers';
+import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import TestHelpers from '../../../helpers';
+import { withSolanaAccountSnap } from '../../../common-solana';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -20,18 +15,9 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   describe('Connect to Solana test dapp', () => {
     describe('Connect & disconnect from Solana test dapp', () => {
       it('Should connect & disconnect', async () => {
-        await withFixtures(
-          {
-            ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-            fixture: new FixtureBuilder()
-              .withSolanaFixture()
-              .withSolanaFeatureSheetDisplayed()
-              .build(),
-            dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
-            restartDevice: true,
-          },
+        await withSolanaAccountSnap({},
           async () => {
-            await setup();
+            await navigateToSolanaTestDApp();
 
             await connectSolanaTestDapp();
 
@@ -58,18 +44,9 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     });
 
     it('Should be able to cancel connection and connect again', async () => {
-      await withFixtures(
-        {
-          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder()
-            .withSolanaFixture()
-            .withSolanaFeatureSheetDisplayed()
-            .build(),
-          dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
-          restartDevice: true,
-        },
+      await withSolanaAccountSnap({},
         async () => {
-          await setup();
+          await navigateToSolanaTestDApp();
 
           const header = SolanaTestDApp.getHeader();
           await header.connect();
@@ -96,18 +73,9 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
 
   describe('Page refresh', () => {
     it('Should not disconnect the dapp', async () => {
-      await withFixtures(
-        {
-          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder()
-            .withSolanaFixture()
-            .withSolanaFeatureSheetDisplayed()
-            .build(),
-          dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
-          restartDevice: true,
-        },
+      await withSolanaAccountSnap({},
         async () => {
-          await setup();
+          await navigateToSolanaTestDApp();
 
           await connectSolanaTestDapp();
 
