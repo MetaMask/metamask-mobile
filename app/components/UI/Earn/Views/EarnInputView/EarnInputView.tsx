@@ -126,10 +126,21 @@ const EarnInputView = () => {
   });
 
   const navigateToLearnMoreModal = () => {
-    navigation.navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.LEARN_MORE,
-      params: { chainId: earnToken?.chainId },
-    });
+    const tokenExperience = earnToken?.experience?.type;
+
+    if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.LEARN_MORE,
+        params: { chainId: earnToken?.chainId },
+      });
+    }
+
+    if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      navigation.navigate(Routes.EARN.MODALS.ROOT, {
+        screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+        params: { asset: earnToken },
+      });
+    }
   };
 
   const handleLendingFlow = useCallback(async () => {
@@ -381,8 +392,7 @@ const EarnInputView = () => {
     hasCancelButton: false,
     hasBackButton: true,
     hasIconButton: true,
-    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-967
-    // handleIconPress: navigateToLearnMoreModal,
+    handleIconPress: navigateToLearnMoreModal,
   };
   const earnNavBarEventOptions = {
     backButtonEvent: {
@@ -392,7 +402,7 @@ const EarnInputView = () => {
         location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
       },
     },
-    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-967
+    // TODO: STAKE-930 (Lending Analytics)
     // iconButtonEvent: {
     //   event: MetaMetricsEvents.TOOLTIP_OPENED,
     //   properties: {
