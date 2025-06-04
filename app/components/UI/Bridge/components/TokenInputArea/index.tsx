@@ -35,7 +35,7 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import parseAmount from '../../../Ramp/utils/parseAmount';
+import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;

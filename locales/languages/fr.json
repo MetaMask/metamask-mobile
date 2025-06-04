@@ -24,6 +24,11 @@
     "inline_alert_label": "Alerte",
     "review_alerts": "Consulter les alertes",
     "review_alert": "Consulter l’alerte",
+    "upgrade_account": {
+      "title": "Mise à jour de votre compte",
+      "message": "Vous mettez à jour votre compte pour en faire un compte intelligent. Vous conserverez la même adresse de compte tout en bénéficiant de transactions plus rapides et de frais de réseau moins élevés.",
+      "learn_more": "En savoir plus"
+    },
     "domain_mismatch": {
       "title": "Demande de connexion suspecte",
       "message": "Le site à l’origine de la demande n’est pas celui auquel vous essayez de vous connecter. Il peut s’agir d’une tentative de vol de vos identifiants de connexion."
@@ -32,6 +37,14 @@
       "title": "Fonds insuffisants",
       "message": "Vous n’avez pas assez de %{nativeCurrency} sur votre compte pour payer les frais de réseau.",
       "buy_action": "Achetez %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "Une transaction précédente est toujours en cours de signature ou de soumission."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
     }
   },
   "blockaid_banner": {
@@ -396,7 +409,46 @@
     "network_missing_id": "Identificateur de chaîne manquant."
   },
   "deposit": {
-    "title": "Dépôt"
+    "title": "Dépôt",
+    "enter_email": {
+      "title": "Saisissez votre adresse e-mail",
+      "description": "Nous enverrons un code à six chiffres à votre adresse e-mail pour vérifier qu’il s’agit bien de vous.",
+      "input_label": "Adresse e-mail",
+      "input_placeholder": "nom@domaine.com",
+      "submit_button": "Envoyer l’e-mail",
+      "loading": "Envoi de l’e-mail…",
+      "validation_error": "Veuillez saisir une adresse e-mail valide"
+    },
+    "otp_code": {
+      "title": "Saisissez le code à six chiffres",
+      "description": "Saisissez le code à 6 chiffres que nous avons envoyé à {{email}}. Si vous ne le voyez pas dans votre boîte de réception, vérifiez votre dossier spam.",
+      "submit_button": "Soumettre",
+      "loading": "Vérification du code…",
+      "invalid_code_error": "Code non valide",
+      "validation_error": "Veuillez saisir un code valide"
+    },
+    "verify_identity": {
+      "title": "Vérifier votre identité",
+      "description": "Pour effectuer un dépôt en espèces, nous devons vérifier votre identité. Cela nous permet d’assurer la sécurité de votre compte et la confidentialité de vos informations.",
+      "privacy_policy_link": "Lisez notre politique de confidentialité pour savoir comment nous protégeons votre vie privée.",
+      "button": "Commencer"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
+    }
   },
   "receive": {
     "title": "Recevoir"
@@ -446,6 +498,14 @@
     "multisrp": {
       "title": "Ajoutez plusieurs phrases secrètes de récupération",
       "subtitle": "Importez et utilisez plusieurs portefeuilles dans MetaMask"
+    },
+    "backupAndSync": {
+      "title": "Présentation de la fonction de sauvegarde et de synchronisation",
+      "subtitle": "Sauvegardez vos comptes et synchronisez vos paramètres."
+    },
+    "solana": {
+      "title": "Solana est désormais pris en charge",
+      "subtitle": "Créez un compte Solana pour commencer"
     }
   },
   "wallet": {
@@ -453,6 +513,7 @@
     "tokens": "Jetons",
     "collectible": "Objet de collection",
     "collectibles": "NFT",
+    "defi": "DeFi",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Vous ne voyez pas votre NFT ?",
     "no_available_tokens": "Vous ne voyez pas votre jeton ?",
@@ -483,6 +544,7 @@
     "sort_by": "Trier par",
     "filter_by": "Filtrer par",
     "current_network": "Réseau actuel",
+    "popular_networks": "Réseaux populaires",
     "all_networks": "Tous les réseaux",
     "declining_balance": "Solde décroissant ({{currency}} du solde le plus élevé au solde le moins élevé)",
     "alphabetically": "Par ordre alphabétique (de A à Z)",
@@ -534,7 +596,7 @@
     "logout_to_import_seed": "Vous devez d’abord vous déconnecter pour pouvoir importer une phrase secrète de récupération.",
     "ready_to_explore": "Prêt(e) à partir à la découverte des applications de blockchain ?",
     "unable_to_load": "Impossible de charger le solde",
-    "unable_to_find_conversion_rate": "impossible de trouver le taux de conversion",
+    "unable_to_find_conversion_rate": "aucun taux de conversion",
     "display_nft_media_desc": "Pour importer un NFT, activez l’option « Afficher les supports NFT » dans Paramètres > Sécurité et confidentialité.",
     "display_nft_media_cta": "Activez l’option « Afficher les supports NFT »",
     "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
@@ -616,6 +678,19 @@
       "custom_security_tips": "Conseils de sécurité"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Chargement des positions DeFi…",
+    "no_positions": "Aucune position pour l’instant",
+    "error_cannot_load_page": "Nous n’avons pas pu charger cette page.",
+    "error_visit_again": "Essayez de la visiter à nouveau plus tard.",
+    "single_token": "{{symbol}} uniquement",
+    "two_tokens": "{{symbol}} + 1 autre",
+    "multiple_tokens": "{{symbol}} + {{count}} autres",
+    "supply": "Fourni",
+    "stake": "Staké",
+    "borrow": "Emprunté",
+    "reward": "Récompenses"
+  },
   "terms_and_conditions": {
     "title": "Conditions générales",
     "description": "En continuant, vous acceptez les présentes",
@@ -696,7 +771,8 @@
     "circulating_supply": "Offre en circulation",
     "all_time_high": "Le plus haut niveau jamais atteint",
     "all_time_low": "Le plus bas niveau jamais atteint",
-    "fully_diluted": "Entièrement diluée"
+    "fully_diluted": "Entièrement diluée",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -730,6 +806,7 @@
     "receive": "RECEVOIR"
   },
   "accounts": {
+    "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Bêta)",
     "create_new_account": "Créer un nouveau compte",
     "import_account": "Importer un compte",
@@ -860,8 +937,6 @@
     "reset_notifications_description": "La réinitialisation des notifications entrainera la suppression des clés de stockage des notifications et de l’historique des notifications. Êtes-vous sûr(e) de vouloir continuer ?",
     "reset_notifications": "Réinitialiser les notifications",
     "reset_notifications_success": "La clé de stockage des notifications a été supprimée/recréée et l’historique des notifications a été réinitialisé.",
-    "enabling_profile_sync": "Activation de la synchronisation des profils…",
-    "disabling_profile_sync": "Désactivation de la synchronisation des profils…",
     "notifications_dismiss_modal": "Annuler",
     "select_rpc_url": "Sélectionner l’URL du RPC",
     "title": "Paramètres",
@@ -982,7 +1057,7 @@
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
-    "network_rpc_url_label": "URL de l’appel de procédure à distance",
+    "network_rpc_url_label": "URL RPC",
     "network_rpc_name_label": "Nom du RPC",
     "network_rpc_placeholder": "Nouveau réseau RPC",
     "network_failover_rpc_url_label": "Basculement vers l’URL de l’appel de procédure à distance",
@@ -1194,7 +1269,13 @@
           "endowment:caveat:transaction-origin": "Voir l’origine des sites web qui proposent des transactions",
           "endowment:extend-runtime": "Étendre la durée d’exécution",
           "snap_dialog": "Afficher des boîtes de dialogue personnalisées",
-          "snap_manageAccounts": "Ajouter et gérer des comptes Ethereum"
+          "snap_manageAccounts": "Ajouter et gérer des comptes Ethereum",
+          "endowment:signature-insight": "Afficher un aperçu modal des signatures",
+          "endowment:protocol": "Fournir des données de protocole pour une ou plusieurs chaînes",
+          "snap_getPreferences": "Afficher des informations telles que votre langue et votre devise préférées",
+          "endowment:lifecycle-hooks": "Utiliser des hooks de cycle de vie",
+          "endowment:name-lookup": "Fournir des recherches de domaines et d’adresses",
+          "endowment:page-home": "Afficher un écran personnalisé"
         }
       }
     },
@@ -1359,7 +1440,7 @@
     "token_marketplace": "Marché des jetons",
     "sell_button": "Vendre",
     "receive_button": "Recevoir",
-    "portfolio_button": "Portefeuille",
+    "portfolio_button": "Portfolio",
     "earn_button": "Gagner",
     "add_collectible_button": "Ajouter",
     "info": "Infos",
@@ -1729,7 +1810,13 @@
       "generic": "L’autorisation d’ouvrir automatiquement une application externe n’a pas été accordée à ce site Web"
     },
     "ipfs_gateway_off_title": "Passerelle IPFS désactivée",
-    "ipfs_gateway_off_content": "Pour voir ce site, activez la passerelle IPFS dans les paramètres de confidentialité et de sécurité."
+    "ipfs_gateway_off_content": "Pour voir ce site, activez la passerelle IPFS dans les paramètres de confidentialité et de sécurité.",
+    "toast": {
+      "solana_dapp_connection_coming_soon": {
+        "title": "Connexion aux dapps Solana bientôt disponibles",
+        "message": "Vous pouvez vous connecter aux dapps Solana dans l’extension ou échanger des jetons Solana dans l’application."
+      }
+    }
   },
   "backup_alert": {
     "title": "Protéger votre portefeuille",
@@ -1829,8 +1916,44 @@
     "sign_description_2": "appuyez sur Obtenir la signature",
     "sign_get_signature": "Obtenir la signature",
     "transaction_id": "ID de transaction",
+    "network": "Réseau",
+    "request_from": "Demande de",
     "network_fee": "Frais de réseau",
-    "network_fee_tooltip": "Montant payé pour traiter la transaction sur le réseau."
+    "network_fee_tooltip": "Montant payé pour traiter la transaction sur le réseau.",
+    "smart_account_upgrade": "Passer à un compte intelligent",
+    "smart_account_downgrade": "Passer à un compte standard",
+    "batched_transactions": "Transactions en lots",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Soumettre votre transaction",
@@ -1980,6 +2103,9 @@
     "edit_permissions": "Modifier les autorisations",
     "permitted_networks_info_sheet_description": "Voici la liste de réseaux que vous avez précédemment autorisés à utiliser sur ce site. Sélectionnez un réseau de cette liste ou modifiez les autorisations réseau pour ce site.",
     "connect_an_account": "Connecter un compte"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Connecter ce site web avec MetaMask"
   },
   "select": {
     "cancel": "Annuler",
@@ -2861,7 +2987,7 @@
     }
   },
   "swaps": {
-    "title": "Swap",
+    "title": "Échanger",
     "onboarding": {
       "get_the": "Bénéficiez en permanence",
       "best_price": "du meilleur prix",
@@ -3294,15 +3420,6 @@
     "enable_remember_me": "Activer l'option « Se souvenir de moi »",
     "enable_remember_me_description": "Lorsque l'option « Se souvenir de moi » est activée, toute personne ayant accès à votre téléphone peut accéder à votre compte MetaMask."
   },
-  "profile_sync": {
-    "title": "Synchronisation du profil",
-    "disable_warning": "Si vous désactivez la synchronisation du profil, vous ne pourrez plus recevoir de notifications.",
-    "enable_description": "Crée un profil que MetaMask utilise pour synchroniser certains paramètres entre vos appareils. Ceci est nécessaire pour activer les notifications. ",
-    "enable_description2": " pour en savoir plus.",
-    "enable_privacy_link": "Découvrez comment nous protégeons vos données personnelles",
-    "bottomSheetTurnOn": "Activation de la synchronisation du profil",
-    "bottomSheetTurnOff": "Désactivation de la synchronisation du profil"
-  },
   "turn_off_remember_me": {
     "title": "Saisissez votre mot de passe pour désactiver l'option « Se souvenir de moi »",
     "placeholder": "Mot de passe",
@@ -3327,10 +3444,9 @@
     "accept_helper_description": "Veuillez faire défiler pour lire toutes les sections"
   },
   "update_needed": {
-    "title": "Des mises à jour sont nécessaires",
-    "description": "Nous avons renforcé la sécurité de votre portefeuille ! Veuillez sécuriser votre compte en mettant à jour l’application.",
-    "primary_action": "Mettre à jour",
-    "secondary_action": "Me le rappeler plus tard"
+    "title": "Obtenir les dernières fonctionnalités",
+    "description": "Nous avons rendu votre portefeuille plus sûr et plus facile à utiliser, et nous y avons ajouté de nouvelles fonctionnalités. Mettez-le à jour maintenant pour rester protégé et profiter des dernières fonctionnalités.",
+    "primary_action": "Mettre à jour"
   },
   "enable_automatic_security_check_modal": {
     "title": "Vérifier automatiquement si une mise à jour est disponible ?",
@@ -3505,6 +3621,7 @@
     "connect_hardware_wallet": "Connecter un compte",
     "import_wallet_or_account": "Importer un portefeuille ou un compte",
     "add_account": "Créer un nouveau compte",
+    "add_multichain_account": "Créer un nouveau compte {{networkName}}",
     "create_an_account": "Créer un nouveau compte",
     "add_new_account": "Compte Ethereum",
     "import_srp": "Phrase secrète de récupération",
@@ -3512,7 +3629,12 @@
     "import_account": "Clé privée",
     "add_bitcoin_account_testnet": "Compte Bitcoin testnet",
     "add_bitcoin_account_mainnet": "Compte Bitcoin",
-    "add_solana_account": "Compte Solana"
+    "add_solana_account": "Compte Solana",
+    "switch_to_smart_account": "Passer à un compte intelligent",
+    "headers": {
+      "bitcoin": "Bitcoin",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Afficher le NFT",
@@ -3535,13 +3657,14 @@
     "title": "Solana sur MetaMask",
     "create_solana_account": "Créer un compte Solana",
     "not_now": "Pas maintenant",
-    "got_it": "J’ai compris",
+    "view_solana_account": "Voir le compte Solana",
     "feature_1_title": "Envoyez, recevez et échangez des jetons",
     "feature_1_description": "Transférez et effectuez des transactions avec des jetons tels que SOL, USDC, etc.",
     "feature_2_title": "Importer des comptes Solana",
     "feature_2_description": "Importez une phrase secrète de récupération pour migrer votre compte Solana depuis un autre portefeuille.",
     "feature_3_title": "D’autres fonctionnalités seront bientôt disponibles",
-    "feature_3_description": "Les dapps Solana, les NFT, la prise en charge des portefeuilles matériels, etc., seront bientôt disponibles."
+    "feature_3_description": "Les dapps Solana, les NFT, la prise en charge des portefeuilles matériels, etc., seront bientôt disponibles.",
+    "learn_more": "En savoir plus sur les comptes Solana"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Passerelle IPFS",
@@ -3575,7 +3698,35 @@
       "body_prefix": "Vous pouvez gagner jusqu’à",
       "body_suffix": "par an en prêtant vos {{tokenSymbol}}.",
       "start_earning": "Commencez à générer des revenus"
-    }
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Maintenance en cours. Le service sera bientôt rétabli !"
+    },
+    "deposit": "Dépôt",
+    "approve": "Approuver",
+    "approval": "Approbation",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "transaction_submitted": "Transaction soumise",
+    "every_minute": "Chaque minute",
+    "immediate": "Immédiat",
+    "apr": "TAEG",
+    "protocol": "Protocole",
+    "receive_tooltip": "recevoir l’infobulle",
+    "button": "bouton",
+    "receive": "Recevoir",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Augmentation annuelle prévue de la valeur de votre dépôt, basée sur le taux de récompense au cours de la semaine écoulée.",
+        "part_two": "Remarque : le TAEG évolue au fil du temps."
+      },
+      "protocol": "Un protocole de prêt est un contrat intelligent qui vous permet de prêter des jetons afin d’obtenir des récompenses. Les utilisateurs peuvent également emprunter des jetons en déposant d’autres jetons en garantie, moyennant une commission versée aux prêteurs.",
+      "reward_frequency": "Fréquence à laquelle vos récompenses sont comptabilisées.",
+      "withdrawal_time": "Le délai nécessaire pour retirer votre jeton du protocole et le replacer dans votre portefeuille",
+      "receive": "Ce jeton permet de suivre l’évolution de vos actifs et de vos récompenses. Ne le transférez pas et ne l’échangez pas, sinon vous ne pourrez pas retirer vos actifs."
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "Staker",
@@ -3709,19 +3860,24 @@
     "basic_functionality": "Fonctionnalité de base",
     "manage_networks": "Choisissez votre réseau",
     "manage_networks_body": "Nous utilisons Infura comme fournisseur d’appel de procédure à distance (APD) pour offrir l’accès le plus fiable et le plus privé possible aux données Ethereum. Vous pouvez choisir votre propre fournisseur d’APD, mais rappelez-vous qu’il aura besoin d’accéder à votre adresse IP et à l’adresse de votre portefeuille Ethereum pour effectuer des transactions. Lisez notre ",
-    "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données.",
+    "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données pour les comptes EVM, et pour les comptes Solana, ",
+    "manage_networks_body3": "cliquez ici.",
     "functionality_body": "MetaMask offre des fonctionnalités de base telles que l’affichage des détails des jetons et des paramètres de gaz par le biais de services Internet. Lorsque vous utilisez des services Internet, votre adresse IP est partagée avec le fournisseur de ces services, dans ce cas MetaMask. C’est la même chose que lorsque vous visitez un site web. MetaMask conserve ces données temporairement et ne les vend jamais. Vous pouvez utiliser un VPN ou désactiver ces services, mais cela peut affecter votre expérience avec MetaMask. Lisez notre ",
     "functionality_body2": " pour en savoir plus.",
     "sheet": {
       "title_off": "Désactiver la fonctionnalité de base",
       "description_off": "Cela signifie que vous n’optimiserez pas complètement votre temps sur MetaMask. Vous n’aurez pas accès aux fonctions de base (comme les détails des jetons, les réglages optimaux du gaz, etc.).",
+      "description_off2": "La désactivation de cette option entraîne également la désactivation de toutes les fonctionnalités liées",
+      "description_off2_related_features1": "à la sécurité et à la confidentialité, à la sauvegarde et à la synchronisation",
+      "description_off2_related_features1_and": ", et",
+      "description_off2_related_features2": "aux notifications.",
       "title_on": "Activer la fonctionnalité de base",
       "description_on": "Pour optimiser votre temps sur MetaMask, vous devez activer cette fonction. Les fonctions de base (comme les détails des jetons, les réglages optimaux du gaz, les notifications et autres) améliorent votre expérience Web3.",
       "checkbox_label": "Je comprends et je veux continuer",
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Désactiver",
+        "turn_off": "Turn off",
         "reset": "Réinitialiser"
       }
     },
@@ -3796,7 +3952,9 @@
       "primary_type": "Type primaire",
       "request_from": "Demande de",
       "signing_in_with": "Se connecter avec",
-      "spender": "Dépenseur"
+      "spender": "Dépenseur",
+      "now": "Maintenant",
+      "switching_to": "Passage à"
     },
     "title": {
       "signature": "Demande de signature",
@@ -3804,14 +3962,18 @@
       "permit_revoke": "Supprimer l’autorisation",
       "permit_NFTs": "Demande de retrait",
       "signature_siwe": "Demande de connexion",
-      "contract_interaction": "Demande de transaction"
+      "contract_interaction": "Demande de transaction",
+      "transfer": "Demande de transfert",
+      "switch_account_type": "Mise à jour du compte"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
       "permit_NFTs": "Ce site demande l’autorisation de retirer vos jetons.",
       "signature": "Vérifiez les détails de la demande avant de la confirmer.",
       "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte.",
-      "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer."
+      "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer.",
+      "switch_to_smart_account": "Vous passez à un compte intelligent.",
+      "switch_to_standard_account": "Vous revenez à un compte standard (EOA)."
     },
     "request_from": "Demande de",
     "staking_from": "Staking à partir de",
@@ -3823,6 +3985,9 @@
     "qr_get_sign": "Obtenir la signature",
     "qr_scan_text": "Scannez avec votre portefeuille matériel",
     "sign_with_ledger": "Signer avec Ledger",
+    "smart_account": "Compte intelligent",
+    "smart_contract": "Contrat intelligent",
+    "standard_account": "Compte standard",
     "siwe_message": {
       "url": "URL",
       "network": "Réseau",
@@ -3835,8 +4000,12 @@
       "resources": "Ressources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "Le NFT sera affiché dans votre portefeuille si l’offre est acceptée.",
       "decoded_tooltip_list_nft": "Ne vous attendez à des changements que si quelqu’un achète vos NFT.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "Vous donnez au dépenseur l’autorisation de retirer ce nombre de jetons de votre compte.",
       "info_revoke": "Vous allez retirer à quelqu’un l’autorisation de dépenser des jetons de votre compte.",
       "label_change_type_bidding": "Vous enchérissez",
@@ -3847,16 +4016,40 @@
       "label_change_type_receive": "Vous recevez",
       "label_change_type_revoke": "Révoquer",
       "label_change_type_transfer": "Vous envoyez",
+      "label_change_type_approve": "Vous acceptez",
       "personal_sign_info": "Vous êtes en train de vous connecter à un site. Aucun changement ne devrait être apporté à votre compte.",
+      "save": "Save",
       "title": "Changements estimés",
       "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information.",
       "unavailable": "Non disponible"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Compte intelligent",
+      "standardAccountLabel": "Compte standard",
+      "switch": "Changer",
+      "splashpage": {
+        "accept": "Oui",
+        "betterTransaction": "Des transactions plus rapides et des frais moins élevés",
+        "betterTransactionDescription": "Économisez du temps et de l’argent en traitant les transactions ensemble.",
+        "featuresDescription": "Vous conserverez la même adresse de compte et vous pourrez revenir à un compte standard à tout moment.",
+        "payToken": "Payez à tout moment en utilisant le jeton de votre choix",
+        "payTokenDescription": "Utilisez les jetons que vous possédez déjà pour couvrir les frais de réseau.",
+        "reject": "Non",
+        "requestFor": "Demande de",
+        "sameAccount": "Le même compte, mais avec des fonctionnalités plus intelligentes.",
+        "splashTitle": "Voulez-vous utiliser un compte intelligent ?",
+        "upgradeBannerDescription": "Le même compte. Des fonctionnalités plus intelligentes.",
+        "upgradeBannerTitle": "Passer à un compte intelligent"
+      },
+      "includes_transaction": "Inclut {{transactionCount}} transactions"
+    },
     "unlimited": "Illimité",
+    "all": "Tout",
     "none": "Aucun",
     "advanced_details": "Détails avancés",
     "interacting_with": "Interagissant avec",
-    "review": "Review"
+    "review": "Examiner",
+    "transferRequest": "Demande de transfert"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
@@ -3877,6 +4070,8 @@
   },
   "bridge": {
     "continue": "Continuer",
+    "confirm_bridge": "Confirmer la passerelle",
+    "confirm_swap": "Confirmer le swap",
     "terms_and_conditions": "Conditions générales",
     "select_token": "Sélectionnez un jeton",
     "select_network": "Sélectionnez le réseau",
@@ -3905,12 +4100,14 @@
     "bridge_to": "Établir une passerelle vers",
     "title": "Passerelle",
     "submitting_transaction": "En train d’envoyer",
-    "fetching_quote": "Récupération de la cotation"
+    "fetching_quote": "Récupération de la cotation",
+    "fee_disclaimer": "Comprend 0,875 % de frais MM",
+    "hardware_wallet_not_supported": "Les portefeuilles matériels ne sont pas encore pris en charge pour Solana. Utilisez un portefeuille connecté pour continuer."
   },
   "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
+    "title": "De nouvelles cotations sont disponibles",
+    "description": "Les taux de change sont mis à jour toutes les {{refreshRate}} secondes. Appuyez sur « Obtenir une nouvelle cotation » lorsque vous êtes prêt.",
+    "get_new_quote": "Obtenir une nouvelle cotation"
   },
   "bridge_transaction_details": {
     "status": "État",
@@ -3918,13 +4115,108 @@
     "total_gas_fee": "Montant total des frais de gaz",
     "estimated_completion": "Temps estimé pour la réalisation de l’opération",
     "bridge_step_action_bridge_complete": "{{destSymbol}} reçu sur {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Recevoir {{destSymbol}} sur {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Recevant {{destSymbol}} sur {{destChainName}}",
     "bridge_step_action_swap_complete": "A échangé {{srcSymbol}} contre {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Échanger {{srcSymbol}} contre {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Échangeant {{srcSymbol}} contre {{destSymbol}}",
     "view_on_block_explorer": "Afficher sur l’explorateur de blocs",
     "block_explorer_description": "Cette transaction se déroule sur deux réseaux. Le premier lien indique la source ; le second indique la destination une fois qu’elle est confirmée.",
     "transaction_details": "Détails de la transaction",
-    "bridge_to_chain": "Établir une passerelle vers {{chainName}}",
+    "bridge_to_chain": "Passerelle vers {{chainName}}",
     "recipient": "Destinataire"
+  },
+  "backupAndSync": {
+    "title": "Sauvegarder et synchroniser",
+    "description": "Sauvegardez vos comptes et synchronisez vos paramètres.",
+    "enabling": "Activer la fonction de sauvegarde et de synchronisation",
+    "disabling": "Désactiver la fonction de sauvegarde et de synchronisation",
+    "enable": {
+      "title": "Activer la fonction de sauvegarde et de synchronisation",
+      "confirmation": "Lorsque vous activez la sauvegarde et la synchronisation, vous activez également les fonctionnalités de base. Voulez-vous continuer ?",
+      "description": "La sauvegarde et la synchronisation nous permettent de stocker des données chiffrées concernant vos paramètres et fonctionnalités personnalisés. Cela permet de maintenir une expérience MetaMask cohérente sur tous les appareils et de restaurer les paramètres et les fonctionnalités si jamais vous avez besoin de réinstaller MetaMask. Cela ne sauvegarde pas votre phrase secrète de récupération.",
+      "updatePreferences": "Vous pouvez modifier vos préférences à tout moment dans",
+      "settingsPath": "Paramètres > Sauvegarde et synchronisation."
+    },
+    "privacyLink": "Découvrez comment nous protégeons vos données personnelles",
+    "features": {
+      "accounts": "Comptes"
+    },
+    "manageWhatYouSync": {
+      "title": "Sélectionnez ce que vous voulez synchroniser",
+      "description": "Sélectionnez ce que vous voulez synchroniser entre vos appareils."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Sélectionner un actif"
+    },
+    "hideSentitiveInfo": {
+      "message": "Masquer les informations sensibles"
+    },
+    "doNotShare": {
+      "message": "Ne le communiquez à personne"
+    },
+    "revealSensitiveContent": {
+      "message": "Révéler un contenu sensible"
+    },
+    "show_more": "plus",
+    "show_less": "moins"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

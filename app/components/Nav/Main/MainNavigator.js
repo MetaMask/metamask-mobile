@@ -52,16 +52,16 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
-import RampRoutes from '../../UI/Ramp/routes';
-import { RampType } from '../../UI/Ramp/types';
-import RampSettings from '../../UI/Ramp/Views/Settings';
-import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyForm';
+import RampRoutes from '../../UI/Ramp/Aggregator/routes';
+import { RampType } from '../../UI/Ramp/Aggregator/types';
+import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
+import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
-import DepositRoutes from '../../UI/Deposit/routes';
+import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
+import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
+import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
