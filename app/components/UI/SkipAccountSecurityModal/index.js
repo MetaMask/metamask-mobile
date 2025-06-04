@@ -10,7 +10,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
