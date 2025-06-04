@@ -96,6 +96,14 @@ pipelines:
   expo_main_pipeline:
     stages:
       - create_build_main_expo: {}
+  #Flask expo pipeline
+  expo_flask_pipeline:
+    stages:
+      - create_build_flask_expo: {}
+  #QA expo pipeline
+  expo_flask_pipeline:
+    stages:
+      - create_build_qa_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -168,6 +176,16 @@ stages:
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
+  create_build_flask_expo:
+    workflows:
+      - build_android_flask_devbuild: {}
+      - build_ios_flask_devbuild: {}
+      - build_ios_flask_simbuild: {}
+  create_build_qa_expo:
+    workflows:
+      - build_android_qa_devbuild: {}
+      - build_ios_qa_devbuild: {}
+      - build_ios_qa_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -1345,7 +1363,14 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                    if [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                    elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild:flask
+                    else
+                        echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
+                        exit 1
+                    fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1362,6 +1387,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
+
                 # Set base paths for release builds
                            if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
@@ -1386,8 +1413,10 @@ workflows:
                 mv "$OLD_APK" "$NEW_APK"
 
                 # Rename AAB
-                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                mv "$OLD_AAB" "$NEW_AAB"
+                if [ -n "$BUNDLE_DIR" ]; then
+                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                    mv "$OLD_AAB" "$NEW_AAB"
+                fi
 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
@@ -1523,6 +1552,20 @@ workflows:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'prod'
     after_run:
       - _android_build_template
     meta:
@@ -1874,7 +1917,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -1891,6 +1934,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
@@ -2030,6 +2074,17 @@ workflows:
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
     after_run:
       - _ios_build_template
+  build_ios_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
@@ -2040,6 +2095,18 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
   build_ios_qa:
