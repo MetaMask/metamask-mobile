@@ -1,6 +1,7 @@
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { createEncryptedResponse } from '../utils/user-storage/generateEncryptedData';
 import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
+import { toFormattedAddress } from '../../../../app/util/address';
 
 /**
  * This array represents the accounts mock data before it is encrypted and sent to UserStorage.
@@ -14,14 +15,14 @@ import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
 export const accountsToMockForAccountsSync = [
   {
     v: '1',
-    a: '0xAa4179E7f103701e904D27DF223a39Aa9c27405a'.toLowerCase(),
+    a: toFormattedAddress('0xAa4179E7f103701e904D27DF223a39Aa9c27405a'),
     i: '0000-1111',
     n: 'Hello from account 1',
     nlu: 1738590287,
   },
   {
     v: '1',
-    a: '0xd2a4aFe5c2fF0a16Bf81F77ba4201A8107AA874b'.toLowerCase(),
+    a: toFormattedAddress('0xd2a4aFe5c2fF0a16Bf81F77ba4201A8107AA874b'),
     i: '1111-1111',
     n: 'Hello from account 2',
     nlu: 1738590287,
