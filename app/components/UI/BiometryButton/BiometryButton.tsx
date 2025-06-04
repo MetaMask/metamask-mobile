@@ -14,8 +14,6 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-const iosFaceId = require('../../../images/ios-face-id.png');
-const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;
@@ -42,8 +40,7 @@ const BiometryButton = ({
             color={IconColor.Default}
             size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            name={IconName.ScanFocus}
-            // TODO name="ios-finger-print"
+            name={IconName.Fingerprint}
             testID={LoginViewSelectors.IOS_TOUCH_ID_ICON}
           />
         );
@@ -53,16 +50,17 @@ const BiometryButton = ({
             color={IconColor.Default}
             size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            // TODO: check correct icon
             name={IconName.Lock}
             testID={LoginViewSelectors.IOS_PASSCODE_ICON}
           />
         );
       }
       return (
-        <ImageRN
-          style={styles.image}
-          source={iosFaceId}
+        <Icon
+          color={IconColor.Default}
+          size={IconSize.Lg}
+          style={styles.fixCenterIcon}
+          name={IconName.FaceId}
           testID={LoginViewSelectors.IOS_FACE_ID_ICON}
         />
       );
@@ -75,16 +73,17 @@ const BiometryButton = ({
             color={IconColor.Default}
             style={styles.fixCenterIcon}
             size={IconSize.Lg}
-            name={IconName.Scan}
-            // name="fingerprint"
+            name={IconName.Fingerprint}
             testID={LoginViewSelectors.ANDROID_FINGERPRINT_ICON}
           />
         );
       } else if (type === BIOMETRY_TYPE.FACE) {
         return (
-          <ImageRN
-            style={styles.image}
-            source={androidFaceRecognition}
+          <Icon
+            color={IconColor.Default}
+            style={styles.fixCenterIcon}
+            size={IconSize.Lg}
+            name={IconName.FaceId}
             testID={LoginViewSelectors.ANDROID_FACE_ID_ICON}
           />
         );
@@ -114,8 +113,7 @@ const BiometryButton = ({
         color={IconColor.Default}
         style={styles.fixCenterIcon}
         size={IconSize.Lg}
-        // TODO: replace with name="finger-print"
-        name={IconName.Scan}
+        name={IconName.Fingerprint}
         testID={LoginViewSelectors.FALLBACK_FINGERPRINT_ICON}
       />
     );

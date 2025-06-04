@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Appearance,
   FlatList,
   TouchableOpacity,
   ImageBackground,
@@ -193,56 +192,34 @@ const ManualBackupStep1 = ({
     tryUnlockWithPassword(password);
   };
 
-  const getBlurType = () => {
-    let blurType = 'light';
-    switch (appTheme) {
-      case 'light':
-        blurType = 'light';
-        break;
-      case 'dark':
-        blurType = 'dark';
-        break;
-      case 'os':
-        blurType = Appearance.getColorScheme();
-        break;
-      default:
-        blurType = 'light';
-    }
-    return blurType;
-  };
-
-  const renderSeedPhraseConcealer = () => {
-    const blurType = getBlurType();
-
-    return (
-      <View style={styles.seedPhraseConcealerContainer}>
-        <TouchableOpacity
-          onPress={revealSeedPhrase}
-          style={styles.blurContainer}
-          testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
-        >
-          <ImageBackground
-            source={require('../../../images/blur.png')}
-            style={styles.blurView}
-            resizeMode="cover"
+  const renderSeedPhraseConcealer = () => (
+    <View style={styles.seedPhraseConcealerContainer}>
+      <TouchableOpacity
+        onPress={revealSeedPhrase}
+        style={styles.blurContainer}
+        testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
+      >
+        <ImageBackground
+          source={require('../../../images/blur.png')}
+          style={styles.blurView}
+          resizeMode="cover"
+        />
+        <View style={styles.seedPhraseConcealer}>
+          <Icon
+            name={IconName.EyeSlashSolid}
+            size={IconSize.Xl}
+            color={colors.overlay.default}
           />
-          <View style={styles.seedPhraseConcealer}>
-            <Icon
-              name={IconName.EyeSlashSolid}
-              size={IconSize.Xl}
-              color={colors.overlay.default}
-            />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {strings('manual_backup_step_1.reveal')}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              {strings('manual_backup_step_1.watching')}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('manual_backup_step_1.reveal')}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            {strings('manual_backup_step_1.watching')}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView

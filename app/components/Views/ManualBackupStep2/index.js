@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   InteractionManager,
   Alert,
@@ -94,7 +94,7 @@ const ManualBackupStep2 = ({
     return compareMnemonics(validWords, gridWords);
   }, [route.params?.words, gridWords]);
 
-  const isAllWordsPlaced = useCallback(() => {
+  const areAllWordsPlaced = useMemo(() => {
     const validWords = route.params?.words ?? [];
     return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
@@ -146,7 +146,7 @@ const ManualBackupStep2 = ({
     if (showStatusBottomSheet) return;
 
     const rows = [0, 1, 2, 3];
-    const sortedRows = rows.toSorted(() => 0.5 - Math.random());
+    const sortedRows = rows.sort(() => 0.5 - Math.random());
     const randomRows = sortedRows.slice(0, 3);
     const indexesToEmpty = randomRows.map((row) => {
       const col = Math.floor(Math.random() * 3);
@@ -164,7 +164,7 @@ const ManualBackupStep2 = ({
     setGridWords(tempGrid);
     setMissingWords(removed);
     setEmptySlots(indexesToEmpty);
-    const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
+    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
     setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
@@ -174,7 +174,7 @@ const ManualBackupStep2 = ({
       const updatedGrid = [...gridWords];
       if (sortedSlots.length === 0) {
         const indexesToEmpty = [...emptySlots];
-        const sortedIndexes = indexesToEmpty.toSorted((a, b) => a - b);
+        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
         setSortedSlots(sortedIndexes);
       }
 
@@ -249,7 +249,6 @@ const ManualBackupStep2 = ({
           numColumns={3}
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item, index }) => {
-            // eslint-disable-next-line no-console
             const isEmpty = emptySlots.includes(index);
             const isSelected = selectedSlot === index;
 
@@ -332,24 +331,25 @@ const ManualBackupStep2 = ({
   );
 
   const validateSeedPhrase = () => {
+    const isSuccess = validateWords();
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
-        title: validateWords()
+        title: isSuccess
           ? strings('manual_backup_step_2.success-title')
           : strings('manual_backup_step_2.error-title'),
-        description: validateWords()
+        description: isSuccess
           ? strings('manual_backup_step_2.success-description')
           : strings('manual_backup_step_2.error-description'),
-        primaryButtonLabel: validateWords()
+        primaryButtonLabel: isSuccess
           ? strings('manual_backup_step_2.success-button')
           : strings('manual_backup_step_2.error-button'),
-        type: validateWords() ? 'success' : 'error',
+        type: isSuccess ? 'success' : 'error',
         onClose: () => setShowStatusBottomSheet((prev) => !prev),
-        onPrimaryButtonPress: validateWords()
+        onPrimaryButtonPress: isSuccess
           ? goNext
           : () => setShowStatusBottomSheet((prev) => !prev),
-        closeOnPrimaryButtonPress: !validateWords(),
+        closeOnPrimaryButtonPress: !isSuccess,
       },
     });
   };
@@ -358,13 +358,16 @@ const ManualBackupStep2 = ({
     <SafeAreaView style={styles.mainWrapper}>
       <View style={[styles.container]}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          Step 3 of 3
+          {strings('manual_backup_step_2.steps', {
+            currentStep: 3,
+            totalSteps: 3,
+          })}
         </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
           onConfirmPress={validateSeedPhrase}
-          confirmDisabled={!isAllWordsPlaced()}
+          confirmDisabled={!areAllWordsPlaced}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
           buttonContainerStyle={styles.buttonContainer}

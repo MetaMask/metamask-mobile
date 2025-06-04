@@ -1120,7 +1120,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -2301,7 +2301,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
@@ -3562,7 +3562,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   [
                                     [
                                       {
-                                        "borderRadius": 100,
+                                        "borderRadius": 12,
                                         "justifyContent": "center",
                                         "padding": 15,
                                       },
