@@ -1,4 +1,5 @@
 import React from 'react';
+import { EthScope } from '@metamask/keyring-api';
 import PermissionsSummary from './PermissionsSummary';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -82,6 +83,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             isLoadingAccount: false,
+            scopes: [EthScope.Eoa],
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -122,6 +124,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             isLoadingAccount: false,
+            scopes: [EthScope.Eoa],
           },
         ]}
         accountAddresses={['eip155:0:0x2']}
@@ -177,6 +180,7 @@ describe('PermissionsSummary', () => {
             yOffset: 0,
             type: KeyringTypes.simple,
             isLoadingAccount: false,
+            scopes: [EthScope.Eoa],
           },
         ]}
         accountAddresses={['eip155:0:0x2']}

@@ -561,15 +561,6 @@ const PermissionsSummary = ({
       }),
     [accountAddresses],
   );
-
-  const filteredAccounts = useMemo(
-    () =>
-      accounts.filter((account) =>
-        filteredAccountAddresses.includes(account.caipAccountId),
-      ),
-    [accounts, filteredAccountAddresses],
-  );
-
   const renderAccountsConnectedList = useCallback(
     (
       accountsConnectedTabKey: string,
@@ -586,9 +577,9 @@ const PermissionsSummary = ({
       ) : (
         <AccountsConnectedList
           key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
+          selectedAddresses={filteredAccountAddresses}
           ensByAccountAddress={ensByAccountAddress}
-          accounts={filteredAccounts}
+          accounts={accounts}
           privacyMode={privacyMode}
           networkAvatars={networkAvatars}
           handleEditAccountsButtonPress={handleEditAccountsButtonPress}
@@ -596,14 +587,14 @@ const PermissionsSummary = ({
         />
       ),
     [
-      accountAddresses,
       ensByAccountAddress,
       privacyMode,
       networkAvatars,
       handleEditAccountsButtonPress,
       promptToCreateSolanaAccount,
       onCreateAccount,
-      filteredAccounts,
+      accounts,
+      filteredAccountAddresses,
     ],
   );
 

@@ -43,9 +43,8 @@ import {
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
-import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
-const AccountsConnectedItemList = ({
+const AccountsConnectedList = ({
   selectedAddresses,
   ensByAccountAddress,
   accounts,
@@ -81,8 +80,6 @@ const AccountsConnectedItemList = ({
       if (!accountScopes.length) return [];
 
       return networkAvatars.filter((avatar) => {
-        // filter out testnets, devnets, etc since we don't support them yet for non-evm chains
-        if (NON_EVM_TESTNET_IDS.includes(avatar.caipChainId)) return false;
         const { namespace } = parseCaipChainId(avatar.caipChainId);
 
         return accountScopes.some((scope) => {
@@ -108,7 +105,6 @@ const AccountsConnectedItemList = ({
       const { fiatBalance } = assets || {};
       const fiatBalanceStrSplit = fiatBalance?.split('\n') || [];
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-
       const filteredNetworkAvatars = getFilteredNetworkAvatars(scopes);
 
       return (
@@ -212,4 +208,4 @@ const AccountsConnectedItemList = ({
   );
 };
 
-export default AccountsConnectedItemList;
+export default AccountsConnectedList;

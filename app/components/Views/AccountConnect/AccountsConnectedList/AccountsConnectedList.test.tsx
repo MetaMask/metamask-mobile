@@ -14,6 +14,10 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
+import SolanaLogo from '../../../../images/solana-logo.png';
+import BitcoinLogo from '../../../../images/bitcoin-logo.png';
+import EthereumLogo from '../../../../images/ethereum.png';
+import PolygonLogo from '../../../../images/matic.png';
 
 // Internal dependencies.
 import AccountsConnectedList from './AccountsConnectedList';
@@ -44,7 +48,7 @@ const MOCK_ACCOUNTS: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: false,
-    scopes: [BtcScope.Mainnet],
+    scopes: [BtcScope.Mainnet, BtcScope.Testnet],
     isLoadingAccount: false,
   },
   {
@@ -56,7 +60,7 @@ const MOCK_ACCOUNTS: Account[] = [
     type: KeyringTypes.hd,
     yOffset: 0,
     isSelected: false,
-    scopes: [SolScope.Mainnet],
+    scopes: [SolScope.Mainnet, SolScope.Devnet, SolScope.Testnet],
     isLoadingAccount: false,
   },
   {
@@ -74,37 +78,34 @@ const MOCK_ACCOUNTS: Account[] = [
 
 const MOCK_ENS_BY_ACCOUNT_ADDRESS: EnsByAccountAddress = {
   [MOCK_ETH_ADDRESS]: 'billybob.eth',
-  [MOCK_BTC_ADDRESS]: 'bobbybilly.eth',
-  [MOCK_SOL_ADDRESS]: 'solanauser.sol',
-  [MOCK_NO_SCOPES_ADDRESS]: 'noscopes.eth',
 };
 
 const MOCK_NETWORK_AVATARS: NetworkAvatarProps[] = [
   {
     name: 'Ethereum',
     size: AvatarSize.Xs,
-    imageSource: { uri: 'https://ethereum.org/logo.png' },
+    imageSource: EthereumLogo,
     variant: AvatarVariant.Network,
     caipChainId: 'eip155:1',
   },
   {
     name: 'Polygon',
     size: AvatarSize.Xs,
-    imageSource: { uri: 'https://polygon.technology/logo.png' },
+    imageSource: PolygonLogo,
     variant: AvatarVariant.Network,
     caipChainId: 'eip155:137',
   },
   {
     name: 'Bitcoin',
     size: AvatarSize.Xs,
-    imageSource: { uri: 'https://bitcoin.org/logo.png' },
+    imageSource: BitcoinLogo,
     variant: AvatarVariant.Network,
     caipChainId: BtcScope.Mainnet,
   },
   {
     name: 'Solana',
     size: AvatarSize.Xs,
-    imageSource: { uri: 'https://solana.com/logo.png' },
+    imageSource: SolanaLogo,
     variant: AvatarVariant.Network,
     caipChainId: SolScope.Mainnet,
   },

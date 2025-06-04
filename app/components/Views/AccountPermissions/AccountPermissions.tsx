@@ -10,6 +10,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isEqual, uniq } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import BottomSheet, {
@@ -200,9 +201,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const networkAvatars: NetworkAvatarProps[] = permittedCaipChainIds.map(
     (selectedId) => {
-      const network = networks.find(
-        ({ caipChainId }) => caipChainId === selectedId,
-      );
+      const network = networks
+        .filter(
+          (currentNetwork) =>
+            !NON_EVM_TESTNET_IDS.includes(currentNetwork.caipChainId),
+        )
+        .find(({ caipChainId }) => caipChainId === selectedId);
       let imageSource = network?.imageSource;
 
       if (typeof imageSource === 'string') {
