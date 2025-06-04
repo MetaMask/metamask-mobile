@@ -21,7 +21,7 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
-import { buildPermissions } from '../../fixtures/utils';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -34,6 +34,10 @@ describe(SmokeConfirmations('Send to contract address'), () => {
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 
+    const testSpecificMock = {
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+    };
+
     await withFixtures(
       {
         dapp: true,
@@ -41,6 +45,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
+        testSpecificMock,
       },
       async ({ contractRegistry }) => {
         const hstAddress = await contractRegistry.getContractAddress(
