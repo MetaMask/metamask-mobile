@@ -134,7 +134,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
-import AddNewAccount from '../../Views/AddNewAccount';
+import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
@@ -333,7 +333,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
-    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_ACCOUNT}
+      component={AddNewAccountBottomSheet}
+    />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
