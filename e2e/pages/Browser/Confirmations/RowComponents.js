@@ -2,6 +2,10 @@ import { ConfirmationRowComponentIDs } from '../../../selectors/Confirmation/Con
 import Matchers from '../../../utils/Matchers';
 
 class RowComponents {
+  get AccountNetwork() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
+  }
+
   get AdvancedDetails() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.ADVANCED_DETAILS,
@@ -18,8 +22,12 @@ class RowComponents {
     );
   }
 
-  get TokenHero() {
-    return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
+  get Message() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
+  }
+
+  get OriginInfo() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
   }
 
   get SimulationDetails() {
@@ -28,23 +36,14 @@ class RowComponents {
     );
   }
 
-  // Signature specific rows
-  get OriginInfoSection() {
-    return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
-  }
-
-  get SiweSigningAccountInfoSection() {
+  get SiweSigningAccountInfo() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
     );
   }
 
-  get MessageSection() {
-    return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
-  }
-
-  get AccountNetwork() {
-    return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
+  get TokenHero() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
 }
 

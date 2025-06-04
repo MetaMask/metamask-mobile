@@ -1,7 +1,7 @@
+import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
-import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
@@ -15,14 +15,15 @@ import {
 import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import {
-  SEND_ETH_TRANSACTION_MOCK,
-  SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../pages/Browser/TestDApp';
 
-describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
+describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
+  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+
   const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK],
+    POST: [],
     GET: [
       SIMULATION_ENABLED_NETWORKS_MOCK,
       mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
@@ -34,7 +35,7 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('sends native asset', async () => {
+  it('submits transaction', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -47,24 +48,30 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
+        smartContract: NFT_CONTRACT,
       },
-      async () => {
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
         await loginToApp();
 
+        // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDAppTransaction({
-          transactionParams: JSON.stringify([SEND_ETH_TRANSACTION_MOCK]),
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: nftsAddress,
         });
+
+        await TestDApp.tabERC721MintButton();
 
         // Check all expected elements are visible
         await Assertions.checkIfVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
-        await Assertions.checkIfVisible(RowComponents.TokenHero);
-        // Check if the amount is displayed
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
-        await Assertions.checkIfVisible(RowComponents.FromTo);
+
+        await Assertions.checkIfVisible(RowComponents.AccountNetwork);
         await Assertions.checkIfVisible(RowComponents.SimulationDetails);
+        await Assertions.checkIfVisible(RowComponents.OriginInfo);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
@@ -73,7 +80,6 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Sent ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );

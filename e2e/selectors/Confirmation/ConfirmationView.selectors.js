@@ -27,15 +27,16 @@ export const ConfirmationUIType = {
 }
 
 export const ConfirmationRowComponentIDs = {
-  ACCOUNT_NETWORK: 'account-network-section',
+  ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
-  MESSAGE: 'message-section',
-  ORIGIN_INFO: 'origin-info-section',
+  MESSAGE: 'message',
+  NETWORK: 'network',
+  ORIGIN_INFO: 'origin-info',
   SIMULATION_DETAILS: 'simulation-details',
-  SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info-section',
-  STAKING_DETAILS: 'staking-details-section',
+  SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
+  STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
 }
 

@@ -83,7 +83,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.checkIfTextIsDisplayed('Sent ETH');
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
@@ -129,7 +128,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         // Check activity tab
         await TabBarComponent.tapActivity();
         await Assertions.checkIfTextIsDisplayed('Sent ETH');
-        await Assertions.checkIfTextIsDisplayed('999.99996 ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );

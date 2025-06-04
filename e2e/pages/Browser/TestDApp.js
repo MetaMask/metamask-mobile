@@ -168,6 +168,13 @@ class TestDApp {
     );
   }
 
+  get erc721MintButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -222,6 +229,10 @@ class TestDApp {
   }
   async tapNFTTransferButton() {
     await this.tapButton(this.nftTransferFromTokensButton);
+  }
+
+  async tabERC721MintButton() {
+    await this.tapButton(this.erc721MintButton);
   }
 
   async tapNFTSetApprovalForAllButton() {

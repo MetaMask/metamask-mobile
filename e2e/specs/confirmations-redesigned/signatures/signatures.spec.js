@@ -29,7 +29,7 @@ const SIGNATURE_LIST = [
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.checkIfVisible(
-        RowComponents.SiweSigningAccountInfoSection,
+        RowComponents.SiweSigningAccountInfo,
       );
     },
   },
@@ -95,8 +95,8 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
           // check different sections are visible
           await Assertions.checkIfVisible(RowComponents.AccountNetwork);
-          await Assertions.checkIfVisible(RowComponents.OriginInfoSection);
-          await Assertions.checkIfVisible(RowComponents.MessageSection);
+          await Assertions.checkIfVisible(RowComponents.OriginInfo);
+          await Assertions.checkIfVisible(RowComponents.Message);
 
           // any signature specific additional assertions
           if (additionAssertions) {
