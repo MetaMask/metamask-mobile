@@ -73,9 +73,7 @@ class QuoteView {
   }
 
   async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton, {
-      experimentalWaitForStability: true,
-    });
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 
