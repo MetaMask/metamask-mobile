@@ -2,21 +2,21 @@ import React from 'react';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-import { strings } from '../../../../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import AvatarToken from '../../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
+import { strings } from '../../../../../../../locales/i18n';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
 import Badge, {
   BadgeVariant,
-} from '../../../../../../../../component-library/components/Badges/Badge';
+} from '../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../../../../../component-library/components/Badges/BadgeWrapper';
-import { useStyles } from '../../../../../../../../component-library/hooks';
-import NetworkAssetLogo from '../../../../../../../UI/NetworkAssetLogo';
-import { TokenI } from '../../../../../../../UI/Tokens/types';
-import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
-import { useTokenAsset } from '../../../../../hooks/useTokenAsset';
-import { useTransactionMetadataRequest } from '../../../../../hooks/transactions/useTransactionMetadataRequest';
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import { useStyles } from '../../../../../../component-library/hooks';
+import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
+import { TokenI } from '../../../../../UI/Tokens/types';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { useTokenAsset } from '../../../hooks/useTokenAsset';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
 import { View } from 'react-native';
 
