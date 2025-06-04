@@ -130,14 +130,15 @@ class Gestures {
     await (await element).typeText(text + '\n');
   }
 
-  /**	
-   * Type text into an element without hiding the keyboard.	
-   *	
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to type into	
-   * @param {string} text - Text to be typed into the element	
-   */	
-   static async typeTextWithoutKeyboard(element, text) {	
-    await (await element).typeText(text);	
+
+  /**
+   * Type text into an element without hiding the keyboard.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} element - The element to type into
+   * @param {string} text - Text to be typed into the element
+   */
+  static async typeTextWithoutKeyboard(element, text) {
+    await (await element).typeText(text);
   }
 
   /**
