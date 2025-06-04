@@ -239,7 +239,7 @@ export const BridgeTransactionDetails = (
             <Text variant={TextVariant.BodyMDMedium}>
               {strings('bridge_transaction_details.estimated_completion')}{' '}
             </Text>
-            <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center} style={{ marginLeft: 'auto' }}>
+            <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
               <Text>
                 {estimatedCompletionString}
               </Text>
