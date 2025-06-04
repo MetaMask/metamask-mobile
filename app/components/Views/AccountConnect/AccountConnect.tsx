@@ -96,14 +96,17 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import {
+  Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
+  getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -177,7 +180,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       return allNetworksList.filter((chain) =>
         chain.includes(KnownCaipNamespace.Eip155),
       );
-    // otherwise, if we have supported requested CAIP chain IDs, use those
+      // otherwise, if we have supported requested CAIP chain IDs, use those
     } else if (supportedRequestedCaipChainIds.length > 0) {
       return supportedRequestedCaipChainIds;
     }
@@ -383,11 +386,22 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
+      const chainIds = getAllScopesFromPermission(
+        hostInfo.permissions[Caip25EndowmentPermissionName] ?? {
+          caveats: [],
+        },
+      );
+
+      const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
             source: eventSource,
+            chain_id_list: chainIds,
+            referrer: channelIdOrHostname,
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );
@@ -398,6 +412,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       trackEvent,
       createEventBuilder,
       eventSource,
+      hostInfo.metadata.isEip1193Request,
+      hostInfo.permissions,
     ],
   );
 
@@ -471,6 +487,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
 
+    const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
+
     try {
       setIsLoading(true);
       /*
@@ -490,6 +508,9 @@ const AccountConnect = (props: AccountConnectProps) => {
             // TODO: Fix this. Not accurate
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
+            chain_id_list: selectedChainIds,
+            referrer: request.metadata.origin,
+            ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
       );
