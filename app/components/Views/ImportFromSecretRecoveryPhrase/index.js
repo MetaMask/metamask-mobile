@@ -87,6 +87,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { CommonActions } from '@react-navigation/native';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -152,6 +153,7 @@ const ImportFromSecretRecoveryPhrase = ({
     [seedPhraseLength],
   );
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
   };
