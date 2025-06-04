@@ -38,7 +38,7 @@ function getParsedDataAndTokenAddress(transaction: NestedTransactionMetadata): {
   let actualTokenAddress: Hex;
   switch (name) {
     case APPROVAL_TYPES.approve:
-      actualTokenAddress = tokenAddress || to;
+      actualTokenAddress = tokenAddress ?? to;
       break;
     case APPROVAL_TYPES.increaseAllowance:
     case APPROVAL_TYPES.setApprovalForAll:
