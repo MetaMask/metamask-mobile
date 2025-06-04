@@ -166,7 +166,7 @@ To illustrate how the tool can be used, we'll be referencing [Callstack](https:/
 
 ## Automatically optimizing React
 
-React v17 introduced a new build-time tool called [React Compiler](https://react.dev/learn/react-compiler) that we can leverage to automatically optimize React code. Under the hood, the compiler references the [Rules of React](https://react.dev/reference/rules) to memoize code whenever possible. More specifically, the tool uses React APIs such as `useMemo`, `useCallback`, and `React.memo` for memoization. React Compiler has already been integrated into MetaMask's build process, so you can start using it today. We've also added an ESLint plugin for React Compiler that will catch issues during linting based on the rules of React.
+In 2024, the React team announced a build time tool called [React Compiler](https://react.dev/learn/react-compiler) that we can leverage to automatically optimize React code. Under the hood, the compiler references the [Rules of React](https://react.dev/reference/rules) to memoize code whenever possible. More specifically, the tool uses React APIs such as `useMemo`, `useCallback`, and `React.memo` for memoization. React Compiler has already been integrated into MetaMask's build process, so you can start using it today. We've also added an ESLint plugin for React Compiler that will catch issues during linting based on the rules of React.
 
 ### Optimizing new code
 
