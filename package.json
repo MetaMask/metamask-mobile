@@ -149,7 +149,8 @@
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
-    "@ethereumjs/tx": "^5.4.0"
+    "@ethereumjs/tx": "^5.4.0",
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.9.0-preview-f7d7af35"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -171,7 +172,7 @@
     "@metamask/bridge-status-controller": "^25.0.0",
     "@metamask/chain-agnostic-permission": "^0.6.0",
     "@metamask/composable-controller": "^11.0.0",
-    "@metamask/controller-utils": "^11.9.0",
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.9.0-preview-f7d7af35",
     "@metamask/design-tokens": "^7.0.0",
     "@metamask/earn-controller": "^0.13.0",
     "@metamask/eip1193-permission-middleware": "^0.1.0",
