@@ -66,7 +66,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         await AmountView.tapNextButton();
 
         // Check if the amount is displayed
-        await Assertions.checkIfTextIsDisplayed('1.000 ETH');
+        await Assertions.checkIfTextIsDisplayed('1,000 ETH');
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
