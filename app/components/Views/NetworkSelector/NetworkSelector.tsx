@@ -98,7 +98,7 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
-import { getChainIdListPropertyWithout } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
 
 interface infuraNetwork {
@@ -814,7 +814,7 @@ const NetworkSelector = () => {
       NetworkController.removeNetwork(chainId);
 
       MetaMetrics.getInstance().addTraitsToUser(
-        getChainIdListPropertyWithout(chainId),
+        removeItemFromChainIdList(chainId),
       );
 
       // set tokenNetworkFilter

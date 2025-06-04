@@ -45,7 +45,7 @@ import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { MetaMetrics } from '../../../../core/Analytics';
-import { getChainIdListPropertyWithout } from '../../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { removeItemFromChainIdList } from '../../../../util/metrics/MultichainAPI/networkMetricUtils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
@@ -247,7 +247,7 @@ class NetworksSettings extends PureComponent {
 
     NetworkController.removeNetwork(chainId);
     MetaMetrics.getInstance().addTraitsToUser(
-      getChainIdListPropertyWithout(chainId),
+      removeItemFromChainIdList(chainId),
     );
     this.setState({ filteredNetworks: [] });
   };

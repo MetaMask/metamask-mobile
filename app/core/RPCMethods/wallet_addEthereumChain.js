@@ -18,7 +18,7 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { getChainIdListProperty } from '../../util/metrics/MultichainAPI/networkMetricUtils';
+import { addItemToChainIdList } from '../../util/metrics/MultichainAPI/networkMetricUtils';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -278,7 +278,7 @@ export const wallet_addEthereumChain = async ({
         .build(),
     );
 
-    MetaMetrics.getInstance().addTraitsToUser(getChainIdListProperty(chainId));
+    MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
   switchToNetworkAndMetrics(newNetworkConfiguration);
 

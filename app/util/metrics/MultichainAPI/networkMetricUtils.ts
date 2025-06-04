@@ -34,7 +34,7 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
  * Gets an array of all configured network chain IDs converted to CAIP format.
  * @returns An array of CAIP chain IDs for all configured networks.
  */
-export function getConfiguredChainIdsCaipified(): CaipChainId[] {
+export function getConfiguredCaipChainIds(): CaipChainId[] {
   const reduxState = store.getState();
   const networks = selectNetworkConfigurations(reduxState);
 
@@ -46,11 +46,11 @@ export function getConfiguredChainIdsCaipified(): CaipChainId[] {
  * @param chainId - The chain ID to append to the list of configured networks.
  * @returns An array of CAIP chain IDs containing both the configured networks and the provided chain ID.
  */
-export function getChainIdListProperty(chainId: CaipChainId | string): {
+export function addItemToChainIdList(chainId: CaipChainId | string): {
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
 } {
   const caipChainId = caipifyChainId(chainId);
-  const chainIds = getConfiguredChainIdsCaipified();
+  const chainIds = getConfiguredCaipChainIds();
 
   return {
     [UserProfileProperty.CHAIN_IDS]: [...chainIds, caipChainId],
@@ -62,12 +62,12 @@ export function getChainIdListProperty(chainId: CaipChainId | string): {
  * @param chainId - The chain ID to remove from the list of configured networks.
  * @returns An array of CAIP chain IDs containing the configured networks without the provided chain ID.
  */
-export function getChainIdListPropertyWithout(chainId: CaipChainId | string): {
+export function removeItemFromChainIdList(chainId: CaipChainId | string): {
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
 } {
   const caipChainId = caipifyChainId(chainId);
 
-  const chainIds = getConfiguredChainIdsCaipified().filter(
+  const chainIds = getConfiguredCaipChainIds().filter(
     (id) => id !== caipChainId,
   );
 

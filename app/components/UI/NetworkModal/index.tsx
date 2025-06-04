@@ -49,7 +49,7 @@ import {
 } from '@metamask/network-controller';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
-import { getChainIdListProperty } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 export interface SafeChain {
   chainId: string;
@@ -244,9 +244,7 @@ const NetworkModals = (props: NetworkProps) => {
         ],
       });
 
-      MetaMetrics.getInstance().addTraitsToUser(
-        getChainIdListProperty(chainId),
-      );
+      MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
 
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
@@ -349,7 +347,7 @@ const NetworkModals = (props: NetworkProps) => {
         blockExplorerUrl,
       );
 
-      addTraitsToUser(getChainIdListProperty(chainId));
+      addTraitsToUser(addItemToChainIdList(chainId));
 
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
