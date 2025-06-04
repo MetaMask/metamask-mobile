@@ -32,8 +32,8 @@ import {
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../Ramp/components/SkeletonText';
-import parseAmount from '../../Ramp/utils/parseAmount';
+import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
+import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 
 const createStyles = ({
   theme,
