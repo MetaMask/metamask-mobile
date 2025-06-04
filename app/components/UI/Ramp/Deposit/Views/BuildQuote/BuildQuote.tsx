@@ -7,7 +7,6 @@ import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { resetProviderToken } from '../../utils/ProviderTokenVault';
 import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
@@ -94,16 +93,6 @@ const BuildQuote = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          {isAuthenticated ? (
-            <StyledButton
-              type="confirm"
-              onPress={() => resetProviderToken()}
-              accessibilityRole="button"
-              accessible
-            >
-              Log Out
-            </StyledButton>
-          ) : null}
           <Row>
             <StyledButton
               type="confirm"
