@@ -9,6 +9,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
+  createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
@@ -23,7 +24,8 @@ import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, SolAccountType } from '@metamask/keyring-api';
+import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -128,6 +130,14 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
   },
+}));
+
+jest.mock('../../../core/SnapKeyring/utils/snaps', () => ({
+  isMultichainWalletSnap: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
+  sendMultichainTransaction: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockAddPopularNetwork = jest
@@ -663,12 +673,40 @@ describe('AssetOverview', () => {
       expect(secondaryBalance.props.children).toBe('0 ETH');
     });
 
-    it('should not switch networks when sending a Solana asset', async () => {
+    it('should handle multichain send for Solana assets', async () => {
       const solanaAsset = {
         ...asset,
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         chainId: SolScope.Mainnet,
         isNative: true,
+      };
+
+      // Create a mock Solana account
+      const mockSolanaAccount = createMockSnapInternalAccount(
+        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+      );
+
+      const solanaAccountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockSolanaAccount.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockSolanaAccount.id]: mockSolanaAccount,
+                },
+              },
+            },
+          },
+        },
       };
 
       const { getByTestId } = renderWithProvider(
@@ -679,36 +717,22 @@ describe('AssetOverview', () => {
           displayBridgeButton
           swapsIsLive
         />,
-        {
-          state: {
-            ...mockInitialState,
-            engine: {
-              ...mockInitialState.engine,
-              backgroundState: {
-                ...mockInitialState.engine.backgroundState,
-                MultichainNetworkController: {
-                  selectedMultichainNetworkChainId: SolScope.Mainnet,
-                },
-                MultichainAssetsRatesController: {
-                  conversionRates: {
-                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-                      rate: '151.23',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        { state: solanaAccountState },
       );
 
       const sendButton = getByTestId('token-send-button');
       await fireEvent.press(sendButton);
 
-      // Wait for all promises to resolve
       await Promise.resolve();
 
-      // Network switching should not be called for Solana assets
+      expect(jest.mocked(sendMultichainTransaction)).toHaveBeenCalledWith(
+        mockSolanaAccount.metadata.snap?.id,
+        {
+          account: mockSolanaAccount.id,
+          scope: SolScope.Mainnet,
+        },
+      );
+
       expect(
         Engine.context.NetworkController.getNetworkConfigurationByChainId,
       ).not.toHaveBeenCalled();
@@ -716,14 +740,7 @@ describe('AssetOverview', () => {
         Engine.context.MultichainNetworkController.setActiveNetwork,
       ).not.toHaveBeenCalled();
 
-      // Should navigate directly to SendFlowView
-      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
     });
   });
 });
