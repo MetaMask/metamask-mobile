@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
