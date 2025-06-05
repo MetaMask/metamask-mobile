@@ -274,28 +274,7 @@ describe('Deposit SDK Context', () => {
     });
   });
 
-  describe('Email and Authentication', () => {
-    it('manages email state correctly', () => {
-      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
-      const TestComponent = () => {
-        contextValue = useDepositSDK();
-        return null;
-      };
-
-      renderWithProvider(
-        <DepositSDKProvider>
-          <TestComponent />
-        </DepositSDKProvider>,
-        { state: mockedState },
-      );
-
-      act(() => {
-        contextValue?.setEmail('test@example.com');
-      });
-
-      expect(contextValue?.email).toBe('test@example.com');
-    });
-
+  describe('Authentication', () => {
     it('handles authentication state correctly', async () => {
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
       const TestComponent = () => {

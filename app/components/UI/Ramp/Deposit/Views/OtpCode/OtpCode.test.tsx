@@ -15,8 +15,6 @@ const EMAIL = 'test@email.com';
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useDepositSDK: jest.fn().mockReturnValue({
-    email: EMAIL,
-    setEmail: jest.fn(),
     sdk: {},
     sdkError: null,
     providerApiKey: 'mock-api-key',
@@ -56,6 +54,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { email: EMAIL },
     }),
   };
 });
@@ -117,8 +118,6 @@ describe('OtpCode Component', () => {
     ];
 
     jest.mocked(useDepositSDK).mockReturnValue({
-      email: EMAIL,
-      setEmail: jest.fn(),
       sdk: {
         setAccessToken: jest.fn(),
         getAccessToken: jest.fn(),
@@ -152,7 +151,7 @@ describe('OtpCode Component', () => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        undefined,
+        { email: EMAIL },
       );
     });
   });

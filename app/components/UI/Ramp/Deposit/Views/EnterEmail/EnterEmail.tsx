@@ -20,7 +20,6 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
-import { useDepositSDK } from '../../sdk';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
@@ -29,7 +28,7 @@ export const createEnterEmailNavDetails = createNavigationDetails(
 
 const EnterEmail = () => {
   const navigation = useNavigation();
-  const { email, setEmail } = useDepositSDK();
+  const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
@@ -58,7 +57,7 @@ const EnterEmail = () => {
         await submitEmail();
 
         if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails());
+          navigation.navigate(...createOtpCodeNavDetails({ email }));
         }
       } else {
         setValidationError(true);

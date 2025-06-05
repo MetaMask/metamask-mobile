@@ -7,7 +7,7 @@ import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   CodeField,
@@ -30,7 +30,10 @@ const CELL_COUNT = 6;
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, setAuthToken } = useDepositSDK();
+  const { setAuthToken } = useDepositSDK();
+  const route =
+    useRoute<RouteProp<Record<string, { email: string }>, string>>();
+  const { email } = route.params;
 
   useEffect(() => {
     navigation.setOptions(
