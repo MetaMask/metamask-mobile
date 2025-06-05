@@ -3,10 +3,22 @@ import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25CaveatValue, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25CaveatValue,
+  Caip25EndowmentPermissionName,
+  getEthAccounts,
+  getPermittedEthChainIds,
+  setEthAccounts,
+  setPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
+import {
+  CaveatConstraint,
+  PermissionDoesNotExistError,
+} from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { toHex } from '@metamask/controller-utils';
+import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -27,8 +39,8 @@ const captureKeyringTypesWithMissingIdentities = (
 ) => {
   const accountsMissingIdentities = accounts.filter(
     (address) =>
-      !internalAccounts.some(
-        (account) => account.address.toLowerCase() === address.toLowerCase(),
+      !internalAccounts.some((account) =>
+        areAddressesEqual(account.address, address),
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
@@ -61,14 +73,12 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
     Engine.context.AccountsController.listAccounts();
 
   return accounts.sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, firstAddress),
     );
 
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, secondAddress),
     );
 
     if (!firstAccount) {
@@ -96,8 +106,7 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
   }
@@ -107,10 +116,10 @@ function getAccountsFromSubject(subject: any) {
   );
   if (caveat) {
     const ethAccounts = getEthAccounts(caveat.value);
-    const lowercasedEthAccounts = ethAccounts.map((address: string) =>
-      toHex(address.toLowerCase()),
+    const formattedEthAccounts = ethAccounts.map((address: string) =>
+      toHex(toFormattedAddress(address)),
     );
-    return sortAccountsByLastSelected(lowercasedEthAccounts);
+    return sortAccountsByLastSelected(formattedEthAccounts);
   }
 
   return [];
@@ -142,8 +151,7 @@ export const getPermittedAccountsByHostname = (
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPermittedChainIdsFromSubject(subject: any) {
-  const caveats =
-    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
+  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
   }
@@ -369,7 +377,9 @@ export const removePermittedChain = (hostname: string, chainId: string) => {
   );
 
   const permittedChainIds = getPermittedEthChainIds(caveat);
-  const newPermittedChains = permittedChainIds.filter((chain: string) => chain !== chainId);
+  const newPermittedChains = permittedChainIds.filter(
+    (chain: string) => chain !== chainId,
+  );
   updatePermittedChains(hostname, newPermittedChains, true);
 };
 
@@ -437,7 +447,7 @@ export const getPermittedChains = async (
   const caveat = PermissionController.getCaveat(
     hostname,
     Caip25EndowmentPermissionName,
-    Caip25CaveatType
+    Caip25CaveatType,
   );
 
   if (caveat) {

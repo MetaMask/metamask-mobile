@@ -30,6 +30,7 @@ import { selectPermissionControllerState } from '../../../../selectors/snaps/per
 import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
 import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
+import { areAddressesEqual } from '../../../../util/address';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -55,8 +56,8 @@ const TabThumbnail = ({
   );
   const activeAddress = permittedAccountsByHostname[0];
   const { evmAccounts: accounts } = useAccounts({});
-  const selectedAccount = accounts.find(
-    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+  const selectedAccount = accounts.find((account) =>
+    areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
