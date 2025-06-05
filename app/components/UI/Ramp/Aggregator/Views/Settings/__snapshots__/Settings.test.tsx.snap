@@ -4789,6 +4789,18 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     </TouchableOpacity>
                                   </View>
                                 </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "marginVertical": 8,
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
