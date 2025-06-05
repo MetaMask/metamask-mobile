@@ -243,6 +243,7 @@ const AddCustomCollectible = ({
         onConfirmPress={addNft}
         confirmDisabled={!address || !tokenId}
         loading={loading}
+        confirmTestID={'add-collectible-button'}
       >
         <View>
           <View style={styles.rowWrapper}>
