@@ -763,7 +763,7 @@ describe('WalletConnect2Session', () => {
     const { isPerDappSelectedNetworkEnabled: isPerDappSelectedNetworkEnabledMock } = jest.requireMock('../../util/networks');
     const mockedEngine = jest.requireMock('../Engine/Engine');
     const testNetworkClientId = 'test-network-client-id';
-    const testChainId = "0x89"
+    const testChainId = '0x89'
 
     async function buildCase(
       isPerDappSelectedNetworkEnabled: boolean,
