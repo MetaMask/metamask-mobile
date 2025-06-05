@@ -589,7 +589,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     };
 
     it('should show error when password requirements are not met', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
+      const { getByText, getByTestId, passwordInput, confirmPasswordInput } =
         renderStep2WithInputs();
 
       // Enter weak password
@@ -597,8 +597,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'weak');
 
       // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
@@ -612,7 +612,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show error when passwords do not match', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
+      const { getByText, getByTestId, passwordInput, confirmPasswordInput } =
         renderStep2WithInputs();
 
       // Enter different passwords
@@ -620,8 +620,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
 
       // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
@@ -658,7 +658,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show error when passcode is not set', async () => {
-      const { getByText, passwordInput, confirmPasswordInput } =
+      const { getByText, getByTestId, passwordInput, confirmPasswordInput } =
         renderStep2WithInputs();
 
       // Enter valid passwords
@@ -666,8 +666,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
       // Check learn more checkbox
-      const learnMoreCheckbox = getByText(
-        'MetaMask can’t reset this password if you forget it',
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
       fireEvent.press(learnMoreCheckbox);
 
