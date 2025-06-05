@@ -87,6 +87,8 @@ describe(SmokeMultichainApi('wallet_sessionChanged'), () => {
                 if (!eventScopes.includes(baseScope)) {
                     throw new Error(`Base network (${baseScope}) not found in sessionChanged event. Found: ${eventScopes.join(', ')}`);
                 }
+
+                console.log('✅ wallet_sessionChanged test passed - event triggered correctly');
             },
         );
     });
