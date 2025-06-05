@@ -39,6 +39,7 @@ import {
   setIsSubmittingTx,
   selectIsSolanaToEvm,
   selectDestAddress,
+  selectIsSolanaSourced,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -70,6 +71,8 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../util/address';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -129,6 +132,7 @@ const BridgeView = () => {
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
