@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -17,8 +17,6 @@ import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
-import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { BuyQuote, KycForm } from '@consensys/native-ramps-sdk';
 
 export const createBasicInfoNavDetails = createNavigationDetails(
   Routes.DEPOSIT.BASIC_INFO,
@@ -32,75 +30,12 @@ export interface BasicInfoFormData {
   ssn: string;
 }
 
-// const formDetailsExample: [
-//   {
-//     cols: { lg: 6; md: 6; xs: 6 };
-//     disabled: false;
-//     id: 'firstName';
-//     isRequired: true;
-//     name: 'First Name';
-//     placeholder: 'Satoshi';
-//     regex: '^(?!\\s+$).{1,35}$';
-//     regexErrorMessage: '"First Name" is a mandatory field. Please enter a valid first name less than 36 characters!';
-//     type: 'text';
-//     value: '';
-//   },
-//   {
-//     cols: { lg: 6; md: 6; xs: 6 };
-//     disabled: false;
-//     id: 'lastName';
-//     isRequired: true;
-//     name: 'Last Name';
-//     placeholder: 'Nakamoto';
-//     regex: '^(?!\\s+$).{1,35}$';
-//     regexErrorMessage: '"Last Name" is a mandatory field. Please enter a valid last name less than 36 characters!';
-//     type: 'text';
-//     value: '';
-//   },
-//   {
-//     cols: { lg: 12; md: 12; xs: 12 };
-//     disabled: false;
-//     format: '[country code][national number]';
-//     id: 'mobileNumber';
-//     isRequired: true;
-//     name: 'Mobile number';
-//     placeholder: '[country code][national number]';
-//     regex: '^\\+(?:[0-9]●?){6,14}[0-9]$';
-//     type: 'text';
-//     value: '';
-//   },
-//   {
-//     cols: { lg: 12; md: 12; xs: 12 };
-//     disabled: false;
-//     format: 'DD-MM-YYYY';
-//     id: 'dob';
-//     isRequired: true;
-//     name: 'Date of birth';
-//     placeholder: 'DD-MM-YYYY';
-//     regex: '^(?:(?:31(\\/|-|\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\/|-|\\.)(?:0?[13-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\/|-|\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\/|-|\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$';
-//     type: 'date';
-//     value: '';
-//   },
-// ];
+// TODO: Country Code must be dynamic and not hardcoded to USA
+const COUNTRY_CODE = '1';
 
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const route =
-    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
-  const { quote } = route.params;
-
-  const [{ data, error, isFetching }] = useDepositSdkMethod(
-    'getKycForm',
-    quote,
-    { id: 'address' } as KycForm,
-  );
-
-  useEffect(() => {
-    if (!isFetching && data) {
-      console.log(data.fields); // this is the example form data above
-    }
-  }, [data, isFetching]);
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -143,6 +78,14 @@ const BasicInfo = (): JSX.Element => {
       validateForm,
     });
 
+  const formattedFormData = useMemo(
+    () => ({
+      ...formData,
+      mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
+    }),
+    [formData],
+  );
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -155,9 +98,11 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      navigation.navigate(...createEnterAddressNavDetails({ formData }));
+      navigation.navigate(
+        ...createEnterAddressNavDetails({ formData: formattedFormData }),
+      );
     }
-  }, [formData, navigation, validateFormData]);
+  }, [formattedFormData, navigation, validateFormData]);
 
   return (
     <ScreenLayout>
@@ -193,6 +138,7 @@ const BasicInfo = (): JSX.Element => {
           <DepositPhoneField
             // TODO: Add internationalization for phone number format
             // TODO: Automatic formatting
+            countryCode={COUNTRY_CODE}
             label="Phone Number"
             placeholder="(234) 567-8910"
             value={formData.mobileNumber}
