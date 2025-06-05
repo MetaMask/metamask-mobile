@@ -33,7 +33,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  clearAuthToken: () => void;
+  clearAuthToken: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
 }
 
