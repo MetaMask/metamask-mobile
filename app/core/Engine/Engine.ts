@@ -1741,6 +1741,7 @@ export class Engine {
 
   getTotalEvmFiatAccountBalance = (
     account?: InternalAccount,
+    targetChainId?: string,
   ): {
     ethFiat: number;
     tokenFiat: number;
@@ -1770,9 +1771,10 @@ export class Engine {
         selectedInternalAccount.address,
       );
       const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.getNetworkClientById(
-        getGlobalNetworkClientId(NetworkController),
-      ).configuration;
+      console.log('getTotalEvmFiatAccountBalance', {targetChainId})
+      const networkClientId = targetChainId ? NetworkController.findNetworkClientIdByChainId(targetChainId) : getGlobalNetworkClientId(NetworkController)
+      const { configuration: { chainId, ticker }} = NetworkController.getNetworkClientById(networkClientId)
+
       const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
@@ -2275,9 +2277,9 @@ export default {
     return instance.datamodel;
   },
 
-  getTotalEvmFiatAccountBalance(account?: InternalAccount) {
+  getTotalEvmFiatAccountBalance(account?: InternalAccount, chainId?: string) {
     assertEngineExists(instance);
-    return instance.getTotalEvmFiatAccountBalance(account);
+    return instance.getTotalEvmFiatAccountBalance(account, chainId);
   },
 
   hasFunds() {

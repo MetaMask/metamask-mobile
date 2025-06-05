@@ -34,6 +34,8 @@ import {
   getShouldShowAggregatedPercentage,
 } from './utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
 /**
  * Hook to manage portfolio balance data across chains.
  *
@@ -53,7 +55,13 @@ const useMultichainBalancesForAllAccounts =
       Object.keys(tokenNetworkFilter).length === 1 &&
       Object.keys(tokenNetworkFilter)[0] === chainId
 
-    const isPopularNetwork = useSelector(selectIsPopularNetwork);
+    const isPopularNetwork =
+      chainId === CHAIN_IDS.MAINNET ||
+      chainId === CHAIN_IDS.LINEA_MAINNET ||
+      PopularList.some((network) => network.chainId === chainId)
+
+    console.log({isTokenNetworkFilterEqualCurrentNetwork, isPopularNetwork})
+
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
@@ -63,6 +71,8 @@ const useMultichainBalancesForAllAccounts =
       allChainIDs,
       chainId
     );
+
+    console.log({formattedTokensWithBalancesPerChain})
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
       accountsList,
@@ -74,6 +84,8 @@ const useMultichainBalancesForAllAccounts =
       ticker,
       type,
     );
+
+    console.log('useMultichainBalancesForAllAccounts', {chainId, evmChainId})
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
@@ -102,6 +114,7 @@ const useMultichainBalancesForAllAccounts =
           nonEvmChainId,
           shouldShowFiat,
           ///: END:ONLY_INCLUDE_IF
+          chainId,
         );
         result[account.id] = {
           displayBalance: accountBalanceData.displayBalance,

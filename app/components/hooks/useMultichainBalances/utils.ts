@@ -25,8 +25,9 @@ const getEvmBalance = (
   isOriginalNativeEvmTokenSymbol: boolean,
   totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
   currentCurrency: string,
+  chainId?: string
 ) => {
-  const balance = Engine.getTotalEvmFiatAccountBalance(account);
+  const balance = Engine.getTotalEvmFiatAccountBalance(account, chainId);
   let total;
 
   const isPortfolioEnabled = isPortfolioViewEnabled();
@@ -119,6 +120,7 @@ export const getAccountBalanceData = (
   nonEvmChainId: SupportedCaipChainId,
   shouldShowFiat: boolean,
   ///: END:ONLY_INCLUDE_IF
+  chainId: string,
 ): {
   displayBalance: string;
   totalFiatBalance: number | undefined;
@@ -152,6 +154,7 @@ export const getAccountBalanceData = (
     isOriginalNativeEvmTokenSymbol,
     totalFiatBalancesCrossEvmChain,
     currentCurrency,
+    chainId
   );
   return {
     displayBalance: evmAccountBalance.displayBalance,

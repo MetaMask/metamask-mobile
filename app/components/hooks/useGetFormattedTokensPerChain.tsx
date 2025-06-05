@@ -123,7 +123,7 @@ export const useGetFormattedTokensPerChain = (
       ? stableAllChainIDs
       : [currentEvmChainID, currentSolChainID];
 
-    console.log({networksToFormat})
+    console.log({shouldAggregateAcrossChains, networksToFormat})
 
     function getTokenFiatBalances({
       tokens,
