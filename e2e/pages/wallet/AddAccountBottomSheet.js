@@ -41,6 +41,10 @@ class AddAccountBottomSheet {
 
   async tapAddSolanaAccount() {
     await Gestures.waitAndTap(this.createSolanaAccountButton);
+    if (device.getPlatform() === 'android') {
+      // on android, keyboard is open and overlays the bottom sheet, so we need to close it
+      await device.pressBack();
+    }
   }
 }
 
