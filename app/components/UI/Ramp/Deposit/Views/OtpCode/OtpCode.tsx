@@ -75,12 +75,12 @@ const OtpCode = () => {
     setValue,
   });
 
-  const {
-    error,
-    sdkMethod: submitCode,
-    loading,
-    response,
-  } = useDepositSdkMethod('verifyUserOtp', email, value);
+  const [{ error, isFetching: loading, data: response }, submitCode] =
+    useDepositSdkMethod(
+      { method: 'verifyUserOtp', onMount: false },
+      email,
+      value,
+    );
 
   const { sdkMethod: resendOtp } = useDepositSdkMethod('sendUserOtp', email);
 
