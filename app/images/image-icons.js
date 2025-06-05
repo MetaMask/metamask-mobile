@@ -28,6 +28,8 @@ import LENS from './lens.png';
 import PLUME from './plume-native.png';
 import GENESYS from './genesys.png';
 import KATANA from './katana.png';
+import SOPHON from './sophon.png';
+import SOPHON_TESTNET from './sophon-testnet.png';
 
 export default {
   PALM,
@@ -62,4 +64,6 @@ export default {
   PLUME,
   GENESYS,
   KATANA,
+  SOPHON,
+  'SOPHON-TESTNET': SOPHON_TESTNET,
 };
