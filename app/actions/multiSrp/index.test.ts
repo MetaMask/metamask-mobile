@@ -24,6 +24,7 @@ const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
 const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
+const mockSyncInternalAccountsWithUserStorage = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 
 const hdKeyring = {
@@ -61,6 +62,10 @@ jest.mock('../../core/Engine', () => ({
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
       getAccountByAddress: () => mockGetAccountByAddress(),
     },
+    UserStorageController: {
+      syncInternalAccountsWithUserStorage: () =>
+        mockSyncInternalAccountsWithUserStorage(),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
@@ -91,6 +96,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
       expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
+      expect(mockSyncInternalAccountsWithUserStorage).toHaveBeenCalled();
     });
 
     it('throws error if SRP already imported', async () => {

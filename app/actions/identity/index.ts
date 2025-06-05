@@ -51,3 +51,15 @@ export const setIsAccountSyncingReadyToBeDispatched = async (
     return getErrorMessage(error);
   }
 };
+
+export const setHasAccountSyncingSyncedAtLeastOnce = async (
+  hasAccountSyncingSyncedAtLeastOnce: boolean,
+) => {
+  try {
+    await Engine.context.UserStorageController.setHasAccountSyncingSyncedAtLeastOnce(
+      hasAccountSyncingSyncedAtLeastOnce,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
