@@ -168,7 +168,7 @@ const WhatsNewModal = () => {
         return (
           <Text
             color={TextColor.Default}
-            variant={TextVariant.HeadingSMRegular}
+            variant={TextVariant.BodyLGMedium}
             style={styles.slideDescription}
           >
             {elementInfo.description}

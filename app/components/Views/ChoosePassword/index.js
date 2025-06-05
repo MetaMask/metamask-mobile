@@ -610,10 +610,7 @@ class ChoosePassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
+            <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>

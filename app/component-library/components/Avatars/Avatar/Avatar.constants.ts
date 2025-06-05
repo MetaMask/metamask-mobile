@@ -25,9 +25,9 @@ export const ICONSIZE_BY_AVATARSIZE: IconSizeByAvatarSize = {
 export const TEXTVARIANT_BY_AVATARSIZE: TextVariantByAvatarSize = {
   [AvatarSize.Xs]: TextVariant.BodyMD,
   [AvatarSize.Sm]: TextVariant.BodyMD,
-  [AvatarSize.Md]: TextVariant.HeadingSMRegular,
-  [AvatarSize.Lg]: TextVariant.HeadingSMRegular,
-  [AvatarSize.Xl]: TextVariant.HeadingSMRegular,
+  [AvatarSize.Md]: TextVariant.BodyLGMedium,
+  [AvatarSize.Lg]: TextVariant.BodyLGMedium,
+  [AvatarSize.Xl]: TextVariant.BodyLGMedium,
 };
 
 export const BORDERWIDTH_BY_AVATARSIZE: BorderWidthByAvatarSize = {

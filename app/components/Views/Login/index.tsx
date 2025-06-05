@@ -84,6 +84,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import { Text as DSText } from '@metamask-previews/design-system-react-native';
+import { useTailwind } from '@metamask-previews/design-system-twrnc-preset';
 
 /**
  * View where returning users can authenticate
@@ -373,6 +374,8 @@ const Login: React.FC = () => {
     hasBiometricCredentials
   );
 
+  const tw = useTailwind();
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
       <SafeAreaView style={styles.mainWrapper}>
@@ -394,16 +397,13 @@ const Login: React.FC = () => {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <DSText>Hello</DSText>
+            <DSText style={tw`text-primary-default`}>Hello</DSText>
 
             <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
               {strings('login.title')}
             </Text>
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.HeadingSMRegular}
-                style={styles.label}
-              >
+              <Label variant={TextVariant.BodyLGMedium} style={styles.label}>
                 {strings('login.password')}
               </Label>
               <TextField
@@ -463,7 +463,7 @@ const Login: React.FC = () => {
             </View>
 
             <View style={styles.footer}>
-              <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
+              <Text variant={TextVariant.BodyLGMedium} style={styles.cant}>
                 {strings('login.go_back')}
               </Text>
               <Button

@@ -104,7 +104,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     return (
       <View style={styles.field}>
-        <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
+        <Label variant={TextVariant.BodyLGMedium} style={styles.label}>
           {label}
         </Label>
         <View style={styles.phoneInputWrapper}>
