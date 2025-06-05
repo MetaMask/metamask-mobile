@@ -10,7 +10,7 @@ import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import UnstakingTimeSection from '../../components/unstaking-time/unstaking-time';
-import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const amountWei = route?.params?.amountWei;
@@ -44,7 +44,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails disableUpdate />
+      <GasFeesDetailsRow disableUpdate />
     </>
   );
 };

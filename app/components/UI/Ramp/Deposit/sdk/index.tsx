@@ -15,6 +15,7 @@ import {
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
+  TransakEnvironment,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
@@ -34,6 +35,17 @@ export interface DepositSDK {
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   clearAuthToken: () => void;
   checkExistingToken: () => Promise<boolean>;
+}
+
+const isDevelopment =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.RAMP_DEV_BUILD === 'true';
+const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
+let environment = TransakEnvironment.Production;
+if (isDevelopmentOrInternalBuild) {
+  environment = TransakEnvironment.Staging;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -58,10 +70,13 @@ export const DepositSDKProvider = ({
         throw new Error('Deposit SDK requires valid API key and frontend auth');
       }
 
-      const sdkInstance = new NativeRampsSdk({
-        partnerApiKey: providerApiKey,
-        frontendAuth: providerFrontendAuth,
-      });
+      const sdkInstance = new NativeRampsSdk(
+        {
+          partnerApiKey: providerApiKey,
+          frontendAuth: providerFrontendAuth,
+        },
+        environment,
+      );
 
       setSdk(sdkInstance);
     } catch (error) {

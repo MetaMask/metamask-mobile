@@ -1,7 +1,7 @@
 import React from 'react';
 
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import AccountNetworkInfo from '../../rows/account-network-info-row';
+import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import Message from './message';
 
@@ -14,7 +14,7 @@ const TypedSignV1 = () => {
 
   return (
     <>
-      <AccountNetworkInfo />
+      <AccountNetworkInfoRow />
       <OriginRow isSignatureRequest />
       <Message />
     </>
