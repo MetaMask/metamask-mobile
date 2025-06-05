@@ -81,6 +81,7 @@ describe('CurrencyRateController Selectors', () => {
         mockChainId as `0x${string}`,
         false,
         mockNativeCurrency,
+        false,
       );
 
       expect(result).toBeUndefined();
@@ -94,6 +95,7 @@ describe('CurrencyRateController Selectors', () => {
         mockChainId as `0x${string}`,
         true,
         mockNativeCurrency,
+        false,
       );
 
       expect(result).toBe(3000);
