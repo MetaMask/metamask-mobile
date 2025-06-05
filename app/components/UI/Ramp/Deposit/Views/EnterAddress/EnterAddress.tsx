@@ -115,7 +115,7 @@ const EnterAddress = (): JSX.Element => {
       if (response && !error) {
         navigation.navigate(Routes.DEPOSIT.KYC_PENDING);
       } else {
-        console.log('Error submitting form:', error);
+        console.error('Error submitting form:', error);
       }
     }
   }, [
