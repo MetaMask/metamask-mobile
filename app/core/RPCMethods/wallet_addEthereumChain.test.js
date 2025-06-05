@@ -372,7 +372,40 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
   });
 
-  it('should not modify/add permissions', async () => {
+  it('should grant permissions when chain is not already permitted', async () => {
+    jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockReturnValue(networkConfigurationResult);
+    jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+      value: {
+        optionalScopes: {},
+        requiredScopes: {},
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    });
+    const spyOnGrantPermissionsIncremental = jest.spyOn(
+      otherOptions.hooks,
+      'requestPermittedChainsPermissionIncrementalForOrigin',
+    );
+
+    await wallet_addEthereumChain({
+      req: {
+        params: [correctParams],
+        origin: 'https://example.com',
+      },
+      ...otherOptions,
+    });
+
+    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
+    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
+      origin: 'https://example.com',
+      autoApprove: true,
+      chainId: '0x64',
+    });
+  });
+
+  it('should not grant permissions when chain is already permitted', async () => {
     jest
       .spyOn(Engine.context.NetworkController, 'addNetwork')
       .mockReturnValue(networkConfigurationResult);
@@ -381,9 +414,18 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       Engine.context.PermissionController,
       'grantPermissionsIncremental',
     );
+    jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+      value: {
+        optionalScopes: { 'eip155:100': { accounts: [] } },
+        requiredScopes: {},
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    });
     await wallet_addEthereumChain({
       req: {
         params: [correctParams],
+        origin: 'https://example.com',
       },
       ...otherOptions,
     });
@@ -468,77 +510,5 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       undefined,
     );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
-  });
-
-  describe('MM_CHAIN_PERMISSIONS is enabled', () => {
-    beforeAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 'true';
-    });
-    afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 'false';
-    });
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-    it('should grant permissions when chain is not already permitted', async () => {
-      jest
-        .spyOn(Engine.context.NetworkController, 'addNetwork')
-        .mockReturnValue(networkConfigurationResult);
-      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
-        value: {
-          optionalScopes: {},
-          requiredScopes: {},
-          isMultichainOrigin: false,
-          sessionProperties: {},
-        },
-      });
-      const spyOnGrantPermissionsIncremental = jest.spyOn(
-        otherOptions.hooks,
-        'requestPermittedChainsPermissionIncrementalForOrigin',
-      );
-
-      await wallet_addEthereumChain({
-        req: {
-          params: [correctParams],
-          origin: 'https://example.com',
-        },
-        ...otherOptions,
-      });
-
-      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
-      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-        origin: 'https://example.com',
-        autoApprove: true,
-        chainId: '0x64',
-      });
-    });
-
-    it('should not grant permissions when chain is already permitted', async () => {
-      jest
-        .spyOn(Engine.context.NetworkController, 'addNetwork')
-        .mockReturnValue(networkConfigurationResult);
-
-      const spyOnGrantPermissionsIncremental = jest.spyOn(
-        Engine.context.PermissionController,
-        'grantPermissionsIncremental',
-      );
-      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
-        value: {
-          optionalScopes: { 'eip155:100': { accounts: [] } },
-          requiredScopes: {},
-          isMultichainOrigin: false,
-          sessionProperties: {},
-        },
-      });
-      await wallet_addEthereumChain({
-        req: {
-          params: [correctParams],
-          origin: 'https://example.com',
-        },
-        ...otherOptions,
-      });
-
-      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(0);
-    });
   });
 });
