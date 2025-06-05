@@ -2,7 +2,12 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../utils/Assertions';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
+import {
+  account1Short,
+  account2Short,
+  connectSolanaTestDapp,
+  navigateToSolanaTestDApp,
+} from './testHelpers';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountSnap } from '../../../common-solana';
@@ -27,7 +32,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
 
           // Check we're connected
           const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+          await Assertions.checkIfTextMatches(account, account1Short);
           const connectionStatus = await header.getConnectionStatus();
           await Assertions.checkIfTextMatches(connectionStatus, 'Connected');
 
@@ -62,7 +67,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
         await connectSolanaTestDapp();
 
         const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+        await Assertions.checkIfTextMatches(account, account1Short);
       });
     });
   });
@@ -79,7 +84,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
 
           const header = SolanaTestDApp.getHeader();
           const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, '9Wa2...Dj2U');
+          await Assertions.checkIfTextMatches(account, account2Short);
 
           await TabBarComponent.tapWallet();
           await WalletView.tapCurrentMainWalletAccountActions();
@@ -90,7 +95,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
           const accountAfterSwitch = await header.getAccount();
           await Assertions.checkIfTextMatches(
             accountAfterSwitch,
-            'CEQ8...Yrrd',
+            account1Short,
           );
         },
       );
@@ -106,7 +111,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
           // Should be connected
           const header = SolanaTestDApp.getHeader();
           const account = await header.getAccount();
-          await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+          await Assertions.checkIfTextMatches(account, account1Short);
 
           // Refresh the page
           await SolanaTestDApp.reloadSolanaTestDApp();
@@ -117,7 +122,7 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
           const accountAfterRefresh = await headerAfterRefresh.getAccount();
           await Assertions.checkIfTextMatches(
             accountAfterRefresh,
-            'CEQ8...Yrrd',
+            account1Short,
           );
         });
       });
