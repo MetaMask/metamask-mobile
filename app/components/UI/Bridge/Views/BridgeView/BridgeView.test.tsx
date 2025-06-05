@@ -679,7 +679,7 @@ describe('BridgeView', () => {
 
       // Wait for the banner text to appear
       await waitFor(() => {
-        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+        expect(getByText(strings('bridge.hardware_wallet_not_supported_solana'))).toBeTruthy();
       });
     });
   });

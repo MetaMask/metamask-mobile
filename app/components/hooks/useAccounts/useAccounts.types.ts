@@ -54,7 +54,11 @@ export interface Account {
   /**
    * Account address in CAIP-10 format.
    */
-  caipAccountId: CaipAccountId
+  caipAccountId: CaipAccountId;
+  /**
+   * Boolean that indicates if the account is loading.
+   */
+  isLoadingAccount: boolean;
 }
 
 /**

@@ -6,7 +6,7 @@ import {
 } from './enabledMultichainAccounts';
 
 jest.mock('../../../../package.json', () => ({
-  version: '7.0.0',
+  version: '15.0.0',
 }));
 
 const disabledStateMock = {
@@ -74,9 +74,17 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the minimum version is not met', () => {
+    it('returns false when the minimum version is met', () => {
       const result = isMultichainAccountsFeatureEnabled(
         { enabled: true, featureVersion: '1', minimumVersion: '6.0.0' },
+        '1'
+      );
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the minimum version is not met', () => {
+      const result = isMultichainAccountsFeatureEnabled(
+        { enabled: true, featureVersion: '1', minimumVersion: '16.0.0' },
         '1'
       );
       expect(result).toBe(false);
@@ -91,14 +99,14 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true when the feature enabled for state 1', () => {
+    it('returns true when the feature is enabled for state 1', () => {
       const result = selectMultichainAccountsState1Enabled.resultFunc({
         enableMultichainAccounts: state1Mock,
       });
       expect(result).toBe(true);
     });
 
-    it('returns true when the feature enabled for state 2', () => {
+    it('returns true when the feature is enabled for state 2', () => {
       const result = selectMultichainAccountsState1Enabled.resultFunc({
         enableMultichainAccounts: state2Mock,
       });
@@ -114,14 +122,14 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the feature enabled for state 1', () => {
+    it('returns false when the feature is enabled for state 1', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         enableMultichainAccounts: state1Mock,
       });
       expect(result).toBe(false);
     });
 
-    it('returns true when the feature enabled for state 2', () => {
+    it('returns true when the feature is enabled for state 2', () => {
       const result = selectMultichainAccountsState2Enabled.resultFunc({
         enableMultichainAccounts: state2Mock,
       });
