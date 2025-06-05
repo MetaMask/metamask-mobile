@@ -560,6 +560,14 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
+  const canShowSeedPhraseWord = useCallback(
+    (index) =>
+      showAllSeedPhrase ||
+      errorWordIndexes[index] ||
+      index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+  );
+
   const learnMoreLink = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
@@ -705,11 +713,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    !(
-                                      showAllSeedPhrase ||
-                                      errorWordIndexes[index] ||
-                                      seedPhraseInputFocusedIndex === index
-                                    )
+                                    !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
