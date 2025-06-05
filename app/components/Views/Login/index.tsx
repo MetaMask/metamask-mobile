@@ -83,6 +83,7 @@ import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { Text as DSText } from '@metamask-previews/design-system-react-native';
 
 /**
  * View where returning users can authenticate
@@ -393,6 +394,7 @@ const Login: React.FC = () => {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
+            <DSText>Hello</DSText>
 
             <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
               {strings('login.title')}
