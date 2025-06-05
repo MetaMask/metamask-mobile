@@ -18,8 +18,10 @@ import {
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
+  resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
+import { RampSDKProvider } from '../../Aggregator/sdk';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -31,6 +33,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
+  clearAuthToken: () => void;
   checkExistingToken: () => Promise<boolean>;
 }
 
@@ -109,6 +112,15 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
+  const clearAuthToken = useCallback(async () => {
+    await resetProviderToken();
+    setAuthTokenState(undefined);
+    setIsAuthenticated(false);
+    if (sdk) {
+      sdk.clearAccessToken();
+    }
+  }, [sdk]);
+
   const contextValue = useMemo(
     (): DepositSDK => ({
       sdk,
@@ -120,6 +132,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
+      clearAuthToken,
       checkExistingToken,
     }),
     [
@@ -131,6 +144,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
+      clearAuthToken,
     ],
   );
 
@@ -146,3 +160,12 @@ export const useDepositSDK = () => {
   }
   return contextValue;
 };
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const withDepositSDK = (Component: React.FC) => (props: any) =>
+  (
+    <DepositSDKProvider>
+      <Component {...props} />
+    </DepositSDKProvider>
+  );
