@@ -48,9 +48,13 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
         await AccountListBottomSheet.tapAddEthereumAccountButton();
-        await AddNewAccountSheet.tapConfirmButton();
         if (device.getPlatform() === 'android') {
+          // on android, keyboard is open and overlays the bottom sheet, so we need to close it
+          await device.pressBack();
+          await AddNewAccountSheet.tapConfirmButton();
           await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        } else {
+          await AddNewAccountSheet.tapConfirmButton();
         }
         await AccountListBottomSheet.tapAccountIndex(0);
         await AccountListBottomSheet.tapConnectAccountsButton();
