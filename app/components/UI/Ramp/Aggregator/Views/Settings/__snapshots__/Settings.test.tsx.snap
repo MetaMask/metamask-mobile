@@ -3657,18 +3657,6 @@ exports[`Settings renders correctly 1`] = `
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>

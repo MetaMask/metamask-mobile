@@ -41,7 +41,7 @@ function Settings() {
   const style = styles();
   const trackEvent = useAnalytics();
 
-  const [displayLoggoutMessage, setDisplayLoggoutMessage] = useState(false);
+  const [displayLogoutMessage, setDisplayLoggoutMessage] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -112,32 +112,34 @@ function Settings() {
               </Row>
             ) : null}
 
-            <Row>
-              {isAuthenticated ? (
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={handleResetDepositAuth}
-                  label={strings(
-                    'app_settings.fiat_on_ramp.deposit_provider_logout_button',
-                    {
-                      depositProviderName,
-                    },
-                  )}
-                />
-              ) : null}
-              {displayLoggoutMessage ? (
-                <Text>
-                  {strings(
-                    'app_settings.fiat_on_ramp.deposit_provider_logged_out',
-                    {
-                      depositProviderName,
-                    },
-                  )}
-                </Text>
-              ) : null}
-            </Row>
+            {isAuthenticated || displayLogoutMessage ? (
+              <Row>
+                {isAuthenticated ? (
+                  <Button
+                    variant={ButtonVariants.Secondary}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                    onPress={handleResetDepositAuth}
+                    label={strings(
+                      'app_settings.fiat_on_ramp.deposit_provider_logout_button',
+                      {
+                        depositProviderName,
+                      },
+                    )}
+                  />
+                ) : null}
+                {displayLogoutMessage ? (
+                  <Text>
+                    {strings(
+                      'app_settings.fiat_on_ramp.deposit_provider_logged_out',
+                      {
+                        depositProviderName,
+                      },
+                    )}
+                  </Text>
+                ) : null}
+              </Row>
+            ) : null}
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
