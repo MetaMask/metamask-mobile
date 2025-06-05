@@ -114,8 +114,8 @@ const useEarnTokens = () => {
     earnToken: EarnTokenDetails,
     amountTokenMinimalUnit: string,
     amountFiatNumber: number,
-  ) => {
-    return getEstimatedAnnualRewards(
+  ) =>
+    getEstimatedAnnualRewards(
       earnToken.experience.apr,
       amountFiatNumber,
       amountTokenMinimalUnit,
@@ -123,7 +123,6 @@ const useEarnTokens = () => {
       earnToken.decimals,
       earnToken?.ticker || earnToken.symbol,
     );
-  };
 
   return {
     ...earnTokensData,

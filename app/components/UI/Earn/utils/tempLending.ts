@@ -346,17 +346,17 @@ const DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR = 2.0;
  */
 const getAaveV3MaxSafeWithdrawal = async (
   userData: AaveV3UserAccountData,
-  lendingToken: EarnTokenDetails,
+  receiptToken: EarnTokenDetails,
   minHealthFactor = DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR,
 ) => {
-  if (!lendingToken?.chainId || !lendingToken?.tokenUsdExchangeRate) return '0';
+  if (!receiptToken?.chainId || !receiptToken?.tokenUsdExchangeRate) return '0';
 
   // Correct
-  const tokenDecimals = lendingToken.decimals;
+  const tokenDecimals = receiptToken.decimals;
 
   // Asset price in USD with 8 decimals
   const assetPrice = parseUnits(
-    lendingToken.tokenUsdExchangeRate.toFixed(8),
+    receiptToken.tokenUsdExchangeRate.toFixed(8),
     8,
   );
 
@@ -555,7 +555,7 @@ export interface SimulatedAaveV3HealthFactorAfterWithdrawal {
 export const calculateAaveV3HealthFactorAfterWithdrawal = async (
   activeAccountAddress: string,
   withdrawalAmountTokenMinimalUnit: string | ethers.BigNumber,
-  lendingToken: EarnTokenDetails,
+  receiptToken: EarnTokenDetails,
 ): Promise<SimulatedAaveV3HealthFactorAfterWithdrawal> => {
   const result = {
     before: '0',
@@ -563,11 +563,11 @@ export const calculateAaveV3HealthFactorAfterWithdrawal = async (
     risk: AAVE_WITHDRAWAL_RISKS.UNKNOWN,
   };
 
-  if (!lendingToken?.chainId) return result;
+  if (!receiptToken?.chainId) return result;
 
   const userData = await getAaveUserAccountData(
     activeAccountAddress,
-    lendingToken.chainId,
+    receiptToken.chainId,
   );
 
   result.before = userData.formatted.healthFactor;
@@ -581,14 +581,14 @@ export const calculateAaveV3HealthFactorAfterWithdrawal = async (
   );
 
   const assetPrice = parseUnits(
-    lendingToken.tokenUsdExchangeRate.toFixed(8),
+    receiptToken.tokenUsdExchangeRate.toFixed(8),
     8,
   );
 
   // Convert withdrawal amount to USD with 8 decimals: (withdrawalAmountTokenMinimalUnit * assetPrice) / 10^lendingTokenDecimals
   const withdrawalUsdValue = withdrawalAmountTokenMinimalUnitBN
     .mul(assetPrice)
-    .div(ethers.BigNumber.from(10).pow(lendingToken.decimals));
+    .div(ethers.BigNumber.from(10).pow(receiptToken.decimals));
 
   // New collateral after withdrawal
   const newTotalCollateralBase = totalCollateralBase.sub(withdrawalUsdValue);
@@ -626,13 +626,11 @@ export const calculateAaveV3HealthFactorAfterWithdrawal = async (
  */
 export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
   activeAccountAddress: string,
-  lendingToken: EarnTokenDetails,
   receiptToken: EarnTokenDetails,
 ) => {
   if (
-    !lendingToken?.address ||
+    !receiptToken?.experience?.market?.underlying.address ||
     !receiptToken?.address ||
-    !lendingToken?.chainId ||
     !receiptToken?.chainId ||
     !receiptToken?.balanceMinimalUnit
   )
@@ -640,17 +638,17 @@ export const getAaveV3MaxRiskAwareWithdrawalAmount = async (
 
   const userData = await getAaveUserAccountData(
     activeAccountAddress,
-    lendingToken.chainId,
+    receiptToken.chainId,
   );
 
   const [poolLiquidityInTokens, maxHealthFactorWithdrawalInTokens] =
     await Promise.all([
       getLendingPoolLiquidity(
-        lendingToken.address,
+        receiptToken.experience.market.underlying.address,
         receiptToken.address,
         receiptToken.chainId,
       ),
-      getAaveV3MaxSafeWithdrawal(userData, lendingToken as EarnTokenDetails),
+      getAaveV3MaxSafeWithdrawal(userData, receiptToken as EarnTokenDetails),
     ]).catch((_e) => '0');
 
   return BigNumber.min(

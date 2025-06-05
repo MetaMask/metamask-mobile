@@ -34,6 +34,7 @@ const mockNavigate = jest.fn();
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -48,6 +49,112 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({
+    getEarnToken: () => ({
+      ...MOCK_USDC_MAINNET_ASSET,
+      experience: {
+        type: 'STABLECOIN_LENDING',
+        apr: '4.5',
+        estimatedAnnualRewardsFormatted: '45',
+        estimatedAnnualRewardsFiatNumber: 45,
+        estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+        estimatedAnnualRewardsTokenFormatted: '45',
+        market: {
+          protocol: 'AAVE v3',
+          underlying: {
+            address: MOCK_USDC_MAINNET_ASSET.address,
+          },
+          outputToken: {
+            address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+          },
+        },
+      },
+    }),
+    getOutputToken: () => ({
+      ...MOCK_USDC_MAINNET_ASSET,
+      address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+      symbol: 'aUSDC',
+      name: 'aUSDC TOKEN',
+      ticker: 'aUSDC',
+      experience: {
+        type: 'STABLECOIN_LENDING',
+        apr: '4.5',
+        estimatedAnnualRewardsFormatted: '45',
+        estimatedAnnualRewardsFiatNumber: 45,
+        estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+        estimatedAnnualRewardsTokenFormatted: '45',
+        market: {
+          protocol: 'AAVE v3',
+          underlying: {
+            address: MOCK_USDC_MAINNET_ASSET.address,
+          },
+          outputToken: {
+            address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+          },
+        },
+      },
+    }),
+    getPairedEarnTokens: () => ({
+      earnToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+      outputToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+        symbol: 'aUSDC',
+        name: 'aUSDC TOKEN',
+        ticker: 'aUSDC',
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+    }),
+    getEarnExperience: () => ({
+      type: 'STABLECOIN_LENDING',
+      apr: '0.05',
+    }),
+    getEstimatedAnnualRewardsForAmount: () => ({
+      estimatedAnnualRewardsFormatted: '$45.00',
+      estimatedAnnualRewardsFiatNumber: 45,
+      estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+      estimatedAnnualRewardsTokenFormatted: '45 USDC',
+    }),
+  }),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -64,6 +171,10 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
+    },
+    EarnController: {
+      executeLendingDeposit: jest.fn(),
+      executeLendingTokenApprove: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -103,7 +214,10 @@ describe('EarnLendingDepositConfirmationView', () => {
       annualRewardsToken: '260000',
       lendingContractAddress: AAVE_V3_ETHEREUM_MAINNET_POOL_CONTRACT_ADDRESS,
       lendingProtocol: 'AAVE v3',
-      token: { ...MOCK_USDC_MAINNET_ASSET, address: USDC_TOKEN_ADDRESS },
+      token: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        address: MOCK_USDC_MAINNET_ASSET.address,
+      },
     },
   };
 
@@ -214,22 +328,20 @@ describe('EarnLendingDepositConfirmationView', () => {
       fireEvent.press(approveButton);
     });
 
-    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(3);
-
-    expect(mockAddTransaction).toHaveBeenCalledWith(
-      {
-        data: '0x095ea7b300000000000000000000000087870bca3f3fd6335c3f4ce8392d69350b4fa4e200000000000000000000000000000000000000000000000000000000004c4b40',
-        from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        to: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        value: '0',
-      },
-      {
+    expect(
+      Engine.context.EarnController.executeLendingTokenApprove,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {},
+      txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
         origin: 'metamask',
         type: 'increaseAllowance',
       },
-    );
+    });
   });
 
   it('initiates deposit if user already has token allowance', async () => {
@@ -258,21 +370,19 @@ describe('EarnLendingDepositConfirmationView', () => {
       fireEvent.press(depositButton);
     });
 
-    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenCalledTimes(3);
-
-    expect(mockAddTransaction).toHaveBeenCalledWith(
-      {
-        data: '0x617ba037000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000004c4b40000000000000000000000000c4966c0d659d99699bfd7eb54d8fafee40e4a7560000000000000000000000000000000000000000000000000000000000000000',
-        from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        to: AAVE_V3_ETHEREUM_MAINNET_POOL_CONTRACT_ADDRESS,
-        value: '0',
-      },
-      {
+    expect(
+      Engine.context.EarnController.executeLendingDeposit,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {},
+      txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
         origin: 'metamask',
         type: 'lendingDeposit',
       },
-    );
+    });
   });
 });

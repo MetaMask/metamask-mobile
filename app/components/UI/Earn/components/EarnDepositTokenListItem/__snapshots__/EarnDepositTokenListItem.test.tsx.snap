@@ -10,6 +10,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       "justifyContent": "space-between",
     }
   }
+  testID="earn-token-list-item"
 >
   <View
     style={
@@ -43,6 +44,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
               "width": 32,
             }
           }
+          testID="earn-token-avatar-DAI"
         >
           <Image
             onError={[Function]}

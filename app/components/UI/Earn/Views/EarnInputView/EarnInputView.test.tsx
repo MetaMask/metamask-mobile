@@ -45,7 +45,7 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
-import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
+import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
@@ -464,7 +464,7 @@ describe('EarnInputView', () => {
 
   describe('navigates to ', () => {
     it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
-      const mockUseStakingGasFee = jest.spyOn(useStakingGasFee, 'default');
+      const mockUseStakingGasFee = jest.spyOn(useEarnGasFee, 'default');
       const mockUseBalance = jest.spyOn(useBalance, 'default');
       const useBalanceMockData = {
         balanceFiatNumber: weiToFiatNumber(

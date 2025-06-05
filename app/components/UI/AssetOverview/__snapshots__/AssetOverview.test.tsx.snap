@@ -951,7 +951,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "flex": 1,
             "flexDirection": "row",
             "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "paddingVertical": 14,
           }
         }
         testID="asset-ETH"
@@ -1076,25 +1076,49 @@ exports[`AssetOverview should render correctly 1`] = `
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
               "alignSelf": "center",
-              "color": "#121314",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
               "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
               "marginLeft": 20,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              +0.00%
+            </Text>
+          </View>
+        </View>
         <View
           style={
             {
@@ -1109,9 +1133,9 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Medium",
-                "fontSize": 18,
-                "fontWeight": "500",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1126,10 +1150,10 @@ exports[`AssetOverview should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
                 "paddingHorizontal": 0,
               }
             }
@@ -2112,7 +2136,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "flex": 1,
             "flexDirection": "row",
             "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "paddingVertical": 14,
           }
         }
         testID="asset-ETH"
@@ -2274,25 +2298,49 @@ exports[`AssetOverview should render native balances even if there are no accoun
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
               "alignSelf": "center",
-              "color": "#121314",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
               "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
               "marginLeft": 20,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              +0.00%
+            </Text>
+          </View>
+        </View>
         <View
           style={
             {
@@ -2307,9 +2355,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Medium",
-                "fontSize": 18,
-                "fontWeight": "500",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2324,10 +2372,10 @@ exports[`AssetOverview should render native balances even if there are no accoun
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
                 "paddingHorizontal": 0,
               }
             }
@@ -3174,7 +3222,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "flex": 1,
             "flexDirection": "row",
             "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "paddingVertical": 14,
           }
         }
         testID="asset-ETH"
@@ -3333,25 +3381,49 @@ exports[`AssetOverview should render native balances when non evm network is sel
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
               "alignSelf": "center",
-              "color": "#121314",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
               "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
               "marginLeft": 20,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              +0.00%
+            </Text>
+          </View>
+        </View>
         <View
           style={
             {
@@ -3366,9 +3438,9 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Medium",
-                "fontSize": 18,
-                "fontWeight": "500",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -3383,10 +3455,10 @@ exports[`AssetOverview should render native balances when non evm network is sel
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
+                "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
                 "paddingHorizontal": 0,
               }
             }

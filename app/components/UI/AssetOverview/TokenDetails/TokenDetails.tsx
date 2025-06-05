@@ -176,7 +176,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH || tokenMetadata || !isNonEvmAsset) && (
+      {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
       {marketData && marketDetails && (

@@ -1,10 +1,9 @@
 import BigNumber from 'bignumber.js';
+import currencySymbols from '../../../../../util/currency-symbols.json';
 import {
   addCurrencySymbol,
-  fiatNumberToTokenMinimalUnit,
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
-import { render } from 'react-dom';
 
 export const getEstimatedAnnualRewards = (
   apr: string,
@@ -22,7 +21,9 @@ export const getEstimatedAnnualRewards = (
   let estimatedAnnualRewardsFormatted = '';
   let estimatedAnnualRewardsTokenFormatted = '';
 
-  const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
+  const aprToUse = isNaN(Number(apr)) ? '0' : apr;
+  const rewardRateDecimal = new BigNumber(aprToUse).dividedBy(100).toNumber();
+
   const estimatedAnnualRewardsDecimal = new BigNumber(amountFiatNumber)
     .multipliedBy(rewardRateDecimal)
     .toNumber();

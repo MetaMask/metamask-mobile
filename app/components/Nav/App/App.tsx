@@ -133,7 +133,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
-import AddNewAccount from '../../Views/AddNewAccount';
+import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 
 const clearStackNavigatorOptions = {
@@ -229,7 +229,11 @@ const OnboardingNav = () => (
       name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
       component={ImportFromSecretRecoveryPhrase}
     />
-    <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <Stack.Screen
+      name="OptinMetrics"
+      component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -308,9 +312,7 @@ interface RootModalFlowProps {
     params: Record<string, unknown>;
   };
 }
-const RootModalFlow = (
-  props: RootModalFlowProps,
-) => (
+const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -332,7 +334,10 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
-    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_ACCOUNT}
+      component={AddNewAccountBottomSheet}
+    />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
@@ -705,12 +710,10 @@ const AppFlow = () => {
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
-      {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
-        <Stack.Screen
-          name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-          component={ModalSwitchAccountType}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+        component={ModalSwitchAccountType}
+      />
     </Stack.Navigator>
   );
 };
