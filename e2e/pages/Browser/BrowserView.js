@@ -213,17 +213,6 @@ class Browser {
       `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
-
-  /**
-   * Enters url in the input field but doesn't navigate to it.
-   * Can be used to test search or autocomplete
-   */
-  async searchForUrl(url) {
-    await this.tapUrlInputBox();
-    await device.disableSynchronization(); // because animations makes typing into the browser slow
-    await Gestures.replaceTextInField(this.urlInputBoxID, url);
-    await device.enableSynchronization(); // re-enabling synchronization
-  }
 }
 
 export default new Browser();

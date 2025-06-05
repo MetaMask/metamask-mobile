@@ -7,7 +7,7 @@ import { stakingDepositConfirmationState } from '../../../../../../../util/test/
 import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
-import GasFeesDetails from './gas-fee-details';
+import GasFeesDetailsRow from './gas-fee-details-row';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
@@ -25,7 +25,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
-describe('GasFeesDetails', () => {
+describe('GasFeesDetailsRow', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -38,7 +38,7 @@ describe('GasFeesDetails', () => {
   });
 
   it('contains required text', async () => {
-    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+    const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: stakingDepositConfirmationState,
     });
     expect(getByText('Network Fee')).toBeDefined();
@@ -53,7 +53,7 @@ describe('GasFeesDetails', () => {
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
-    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+    const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: clonedStakingDepositConfirmationState,
     });
     expect(getByText('$0.34')).toBeDefined();
@@ -67,7 +67,7 @@ describe('GasFeesDetails', () => {
       NETWORKS_CHAIN_ID.SEPOLIA;
     clonedStakingDepositConfirmationState.settings.showFiatOnTestnets = false;
 
-    const { queryByText } = renderWithProvider(<GasFeesDetails />, {
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: clonedStakingDepositConfirmationState,
     });
     expect(queryByText('$0.34')).toBeNull();
@@ -86,14 +86,14 @@ describe('GasFeesDetails', () => {
         usdConversionRate: number;
       };
 
-    const { queryByText } = renderWithProvider(<GasFeesDetails />, {
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: clonedStakingDepositConfirmationState,
     });
     expect(queryByText('$0.34')).toBeNull();
   });
 
   it('tracks tooltip clicked event', async () => {
-    const { getByTestId } = renderWithProvider(<GasFeesDetails />, {
+    const { getByTestId } = renderWithProvider(<GasFeesDetailsRow />, {
       state: stakingDepositConfirmationState,
     });
 
@@ -108,7 +108,7 @@ describe('GasFeesDetails', () => {
   });
 
   it('shows gas speed row', async () => {
-    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+    const { getByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: stakingDepositConfirmationState,
     });
     expect(getByText('Speed')).toBeDefined();
