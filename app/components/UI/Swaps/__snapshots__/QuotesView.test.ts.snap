@@ -1879,6 +1879,15 @@ exports[`QuotesView should render quote screen 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
+                          <View />
                         </View>
                       </RCTScrollView>
                     </RCTSafeAreaView>

@@ -1548,6 +1548,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View />
                         </View>
                       </View>
                     </View>
@@ -3488,6 +3489,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </Text>
                                 </View>
                               </View>
+                              <View />
                               <View
                                 style={
                                   [
@@ -5669,6 +5671,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View />
                         </View>
                       </View>
                     </View>

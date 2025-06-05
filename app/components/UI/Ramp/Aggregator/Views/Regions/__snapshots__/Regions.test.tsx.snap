@@ -740,6 +740,8 @@ exports[`Regions View renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
+                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -1695,7 +1697,7 @@ exports[`Regions View renders correctly with error 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={16}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2944,7 +2946,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3990,6 +3992,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             </View>
                           </View>
                         </View>
+                        <View />
+                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -4340,7 +4344,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={12}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4744,302 +4748,207 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[MockFunction]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={true}
-                        >
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#00000066",
-                                "bottom": 0,
-                                "height": 1334,
-                                "left": 0,
-                                "opacity": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                                "width": 750,
-                              }
-                            }
-                          />
-                          <View
-                            onLayout={[Function]}
-                            pointerEvents="box-none"
-                            style={
+                        <View>
+                          <Modal
+                            animationType="none"
+                            deviceHeight={null}
+                            deviceWidth={null}
+                            hardwareAccelerated={false}
+                            hideModalContentWhileAnimating={false}
+                            onBackdropPress={[MockFunction]}
+                            onModalHide={[Function]}
+                            onModalWillHide={[Function]}
+                            onModalWillShow={[Function]}
+                            onRequestClose={[Function]}
+                            panResponderThreshold={4}
+                            scrollHorizontal={false}
+                            scrollOffset={0}
+                            scrollOffsetMax={0}
+                            scrollTo={null}
+                            statusBarTranslucent={false}
+                            supportedOrientations={
                               [
-                                [
-                                  {
-                                    "margin": 37.5,
-                                    "transform": [
-                                      {
-                                        "translateY": 0,
-                                      },
-                                    ],
-                                  },
-                                  {
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  },
-                                  {
-                                    "padding": 8,
-                                  },
-                                  {
-                                    "margin": 0,
-                                  },
-                                ],
-                                {
-                                  "paddingBottom": 0,
-                                },
+                                "portrait",
+                                "landscape",
                               ]
                             }
+                            swipeDirection="down"
+                            swipeThreshold={100}
+                            transparent={true}
+                            visible={true}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessible={true}
                               collapsable={false}
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[MockFunction]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onMoveShouldSetResponder={[Function]}
-                              onMoveShouldSetResponderCapture={[Function]}
-                              onResponderEnd={[Function]}
+                              focusable={true}
+                              onClick={[Function]}
                               onResponderGrant={[Function]}
                               onResponderMove={[Function]}
-                              onResponderReject={[Function]}
                               onResponderRelease={[Function]}
-                              onResponderStart={[Function]}
                               onResponderTerminate={[Function]}
                               onResponderTerminationRequest={[Function]}
                               onStartShouldSetResponder={[Function]}
-                              onStartShouldSetResponderCapture={[Function]}
-                              panResponderThreshold={4}
-                              pointerEvents="box-none"
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
                               style={
                                 {
-                                  "flex": 1,
-                                  "justifyContent": "center",
+                                  "backgroundColor": "#00000066",
+                                  "bottom": 0,
+                                  "height": 1334,
                                   "left": 0,
-                                  "margin": 37.5,
-                                  "padding": 8,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
                                   "top": 0,
-                                  "transform": [
-                                    {
-                                      "translateY": 1334,
-                                    },
-                                  ],
+                                  "width": 750,
                                 }
                               }
-                              supportedOrientations={
+                            />
+                            <View
+                              onLayout={[Function]}
+                              pointerEvents="box-none"
+                              style={
                                 [
-                                  "portrait",
-                                  "landscape",
+                                  [
+                                    {
+                                      "margin": 37.5,
+                                      "transform": [
+                                        {
+                                          "translateY": 0,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    },
+                                    {
+                                      "padding": 8,
+                                    },
+                                    {
+                                      "margin": 0,
+                                    },
+                                  ],
+                                  {
+                                    "paddingBottom": 0,
+                                  },
                                 ]
                               }
-                              swipeDirection="down"
-                              swipeThreshold={100}
                             >
-                              <TouchableOpacity
-                                accessible={false}
-                                disabled={true}
-                              >
-                                <View
-                                  style={
-                                    [
+                              <View
+                                collapsable={false}
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[MockFunction]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onMoveShouldSetResponder={[Function]}
+                                onMoveShouldSetResponderCapture={[Function]}
+                                onResponderEnd={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderReject={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderStart={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
+                                onStartShouldSetResponderCapture={[Function]}
+                                panResponderThreshold={4}
+                                pointerEvents="box-none"
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "left": 0,
+                                    "margin": 37.5,
+                                    "padding": 8,
+                                    "top": 0,
+                                    "transform": [
                                       {
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1.5,
-                                        "padding": 16,
+                                        "translateY": 1334,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "backgroundColor": "#ffffff",
-                                        "borderWidth": 0,
-                                        "paddingBottom": 20,
-                                        "paddingHorizontal": 20,
-                                      },
-                                    ]
+                                    ],
                                   }
+                                }
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                              >
+                                <TouchableOpacity
+                                  accessible={false}
+                                  disabled={true}
                                 >
-                                  <TouchableOpacity
-                                    onPress={[MockFunction]}
-                                    style={
-                                      {
-                                        "alignSelf": "flex-end",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      selectable={false}
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 17,
-                                          },
-                                          undefined,
-                                          {
-                                            "fontFamily": "EvilIcons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          {},
-                                        ]
-                                      }
-                                    >
-                                      
-                                    </Text>
-                                  </TouchableOpacity>
                                   <View
                                     style={
-                                      {
-                                        "paddingVertical": 10,
-                                      }
+                                      [
+                                        {
+                                          "borderColor": "#b7bbc8",
+                                          "borderRadius": 8,
+                                          "borderWidth": 1.5,
+                                          "padding": 16,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderWidth": 0,
+                                          "paddingBottom": 20,
+                                          "paddingHorizontal": 20,
+                                        },
+                                      ]
                                     }
                                   >
-                                    <Text
+                                    <TouchableOpacity
+                                      onPress={[MockFunction]}
                                       style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontWeight": "600",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 18,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignSelf": "flex-end",
+                                        }
                                       }
                                     >
-                                      Region Not Supported
-                                    </Text>
-                                    <Text
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      🇦🇷   Argentina
-                                    </Text>
+                                      <Text
+                                        allowFontScaling={false}
+                                        selectable={false}
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontSize": 17,
+                                            },
+                                            undefined,
+                                            {
+                                              "fontFamily": "EvilIcons",
+                                              "fontStyle": "normal",
+                                              "fontWeight": "normal",
+                                            },
+                                            {},
+                                          ]
+                                        }
+                                      >
+                                        
+                                      </Text>
+                                    </TouchableOpacity>
                                     <View
                                       style={
                                         {
@@ -5059,10 +4968,10 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "fontFamily": "CentraNo1-Bold",
+                                              "fontWeight": "600",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -5071,10 +4980,15 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "fontSize": 12,
+                                              "color": "#121314",
                                             },
                                             undefined,
                                             undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "fontSize": 18,
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -5086,12 +5000,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           ]
                                         }
                                       >
-                                        We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to buy crypto.
+                                        Region Not Supported
                                       </Text>
-                                    </View>
-                                    <TouchableOpacity
-                                      onPress={[Function]}
-                                    >
                                       <Text
                                         style={
                                           [
@@ -5106,9 +5016,15 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
+                                            {
+                                              "color": "#121314",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
                                             undefined,
                                             {
-                                              "color": "#4459ff",
+                                              "color": "#121314",
                                             },
                                             undefined,
                                             undefined,
@@ -5117,9 +5033,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            {
-                                              "fontSize": 12,
-                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -5127,25 +5040,119 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            {
-                                              "textDecorationLine": "underline",
-                                            },
-                                            undefined,
-                                            {
-                                              "paddingBottom": 20,
-                                            },
                                           ]
                                         }
                                       >
-                                        Visit Support Article
+                                        🇦🇷   Argentina
                                       </Text>
-                                    </TouchableOpacity>
+                                      <View
+                                        style={
+                                          {
+                                            "paddingVertical": 10,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 12,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to buy crypto.
+                                        </Text>
+                                      </View>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "color": "#4459ff",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 12,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "textDecorationLine": "underline",
+                                              },
+                                              undefined,
+                                              {
+                                                "paddingBottom": 20,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          Visit Support Article
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                   </View>
-                                </View>
-                              </TouchableOpacity>
+                                </TouchableOpacity>
+                              </View>
                             </View>
-                          </View>
-                        </Modal>
+                          </Modal>
+                        </View>
+                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -5496,7 +5503,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={17}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5900,302 +5907,207 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[MockFunction]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={true}
-                        >
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#00000066",
-                                "bottom": 0,
-                                "height": 1334,
-                                "left": 0,
-                                "opacity": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                                "width": 750,
-                              }
-                            }
-                          />
-                          <View
-                            onLayout={[Function]}
-                            pointerEvents="box-none"
-                            style={
+                        <View>
+                          <Modal
+                            animationType="none"
+                            deviceHeight={null}
+                            deviceWidth={null}
+                            hardwareAccelerated={false}
+                            hideModalContentWhileAnimating={false}
+                            onBackdropPress={[MockFunction]}
+                            onModalHide={[Function]}
+                            onModalWillHide={[Function]}
+                            onModalWillShow={[Function]}
+                            onRequestClose={[Function]}
+                            panResponderThreshold={4}
+                            scrollHorizontal={false}
+                            scrollOffset={0}
+                            scrollOffsetMax={0}
+                            scrollTo={null}
+                            statusBarTranslucent={false}
+                            supportedOrientations={
                               [
-                                [
-                                  {
-                                    "margin": 37.5,
-                                    "transform": [
-                                      {
-                                        "translateY": 0,
-                                      },
-                                    ],
-                                  },
-                                  {
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  },
-                                  {
-                                    "padding": 8,
-                                  },
-                                  {
-                                    "margin": 0,
-                                  },
-                                ],
-                                {
-                                  "paddingBottom": 0,
-                                },
+                                "portrait",
+                                "landscape",
                               ]
                             }
+                            swipeDirection="down"
+                            swipeThreshold={100}
+                            transparent={true}
+                            visible={true}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessible={true}
                               collapsable={false}
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[MockFunction]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onMoveShouldSetResponder={[Function]}
-                              onMoveShouldSetResponderCapture={[Function]}
-                              onResponderEnd={[Function]}
+                              focusable={true}
+                              onClick={[Function]}
                               onResponderGrant={[Function]}
                               onResponderMove={[Function]}
-                              onResponderReject={[Function]}
                               onResponderRelease={[Function]}
-                              onResponderStart={[Function]}
                               onResponderTerminate={[Function]}
                               onResponderTerminationRequest={[Function]}
                               onStartShouldSetResponder={[Function]}
-                              onStartShouldSetResponderCapture={[Function]}
-                              panResponderThreshold={4}
-                              pointerEvents="box-none"
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
                               style={
                                 {
-                                  "flex": 1,
-                                  "justifyContent": "center",
+                                  "backgroundColor": "#00000066",
+                                  "bottom": 0,
+                                  "height": 1334,
                                   "left": 0,
-                                  "margin": 37.5,
-                                  "padding": 8,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
                                   "top": 0,
-                                  "transform": [
-                                    {
-                                      "translateY": 1334,
-                                    },
-                                  ],
+                                  "width": 750,
                                 }
                               }
-                              supportedOrientations={
+                            />
+                            <View
+                              onLayout={[Function]}
+                              pointerEvents="box-none"
+                              style={
                                 [
-                                  "portrait",
-                                  "landscape",
+                                  [
+                                    {
+                                      "margin": 37.5,
+                                      "transform": [
+                                        {
+                                          "translateY": 0,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    },
+                                    {
+                                      "padding": 8,
+                                    },
+                                    {
+                                      "margin": 0,
+                                    },
+                                  ],
+                                  {
+                                    "paddingBottom": 0,
+                                  },
                                 ]
                               }
-                              swipeDirection="down"
-                              swipeThreshold={100}
                             >
-                              <TouchableOpacity
-                                accessible={false}
-                                disabled={true}
-                              >
-                                <View
-                                  style={
-                                    [
+                              <View
+                                collapsable={false}
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[MockFunction]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onMoveShouldSetResponder={[Function]}
+                                onMoveShouldSetResponderCapture={[Function]}
+                                onResponderEnd={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderReject={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderStart={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
+                                onStartShouldSetResponderCapture={[Function]}
+                                panResponderThreshold={4}
+                                pointerEvents="box-none"
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "left": 0,
+                                    "margin": 37.5,
+                                    "padding": 8,
+                                    "top": 0,
+                                    "transform": [
                                       {
-                                        "borderColor": "#b7bbc8",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1.5,
-                                        "padding": 16,
+                                        "translateY": 1334,
                                       },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "backgroundColor": "#ffffff",
-                                        "borderWidth": 0,
-                                        "paddingBottom": 20,
-                                        "paddingHorizontal": 20,
-                                      },
-                                    ]
+                                    ],
                                   }
+                                }
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                              >
+                                <TouchableOpacity
+                                  accessible={false}
+                                  disabled={true}
                                 >
-                                  <TouchableOpacity
-                                    onPress={[MockFunction]}
-                                    style={
-                                      {
-                                        "alignSelf": "flex-end",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      selectable={false}
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 17,
-                                          },
-                                          undefined,
-                                          {
-                                            "fontFamily": "EvilIcons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          {},
-                                        ]
-                                      }
-                                    >
-                                      
-                                    </Text>
-                                  </TouchableOpacity>
                                   <View
                                     style={
-                                      {
-                                        "paddingVertical": 10,
-                                      }
+                                      [
+                                        {
+                                          "borderColor": "#b7bbc8",
+                                          "borderRadius": 8,
+                                          "borderWidth": 1.5,
+                                          "padding": 16,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderWidth": 0,
+                                          "paddingBottom": 20,
+                                          "paddingHorizontal": 20,
+                                        },
+                                      ]
                                     }
                                   >
-                                    <Text
+                                    <TouchableOpacity
+                                      onPress={[MockFunction]}
                                       style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontWeight": "600",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "fontSize": 18,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignSelf": "flex-end",
+                                        }
                                       }
                                     >
-                                      Region Not Supported
-                                    </Text>
-                                    <Text
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#121314",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      🇦🇷   Argentina
-                                    </Text>
+                                      <Text
+                                        allowFontScaling={false}
+                                        selectable={false}
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontSize": 17,
+                                            },
+                                            undefined,
+                                            {
+                                              "fontFamily": "EvilIcons",
+                                              "fontStyle": "normal",
+                                              "fontWeight": "normal",
+                                            },
+                                            {},
+                                          ]
+                                        }
+                                      >
+                                        
+                                      </Text>
+                                    </TouchableOpacity>
                                     <View
                                       style={
                                         {
@@ -6215,10 +6127,10 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "fontFamily": "CentraNo1-Bold",
+                                              "fontWeight": "600",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -6227,10 +6139,15 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "fontSize": 12,
+                                              "color": "#121314",
                                             },
                                             undefined,
                                             undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "fontSize": 18,
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -6242,12 +6159,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           ]
                                         }
                                       >
-                                        We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to sell crypto.
+                                        Region Not Supported
                                       </Text>
-                                    </View>
-                                    <TouchableOpacity
-                                      onPress={[Function]}
-                                    >
                                       <Text
                                         style={
                                           [
@@ -6262,9 +6175,15 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             undefined,
                                             undefined,
                                             undefined,
+                                            {
+                                              "color": "#121314",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
                                             undefined,
                                             {
-                                              "color": "#4459ff",
+                                              "color": "#121314",
                                             },
                                             undefined,
                                             undefined,
@@ -6273,9 +6192,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            {
-                                              "fontSize": 12,
-                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -6283,25 +6199,119 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            {
-                                              "textDecorationLine": "underline",
-                                            },
-                                            undefined,
-                                            {
-                                              "paddingBottom": 20,
-                                            },
                                           ]
                                         }
                                       >
-                                        Visit Support Article
+                                        🇦🇷   Argentina
                                       </Text>
-                                    </TouchableOpacity>
+                                      <View
+                                        style={
+                                          {
+                                            "paddingVertical": 10,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 12,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          We are working hard to expand coverage to your region as soon as we can. In the meantime, see our support article for other ways you may be able to sell crypto.
+                                        </Text>
+                                      </View>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                      >
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "color": "#4459ff",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 12,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "textDecorationLine": "underline",
+                                              },
+                                              undefined,
+                                              {
+                                                "paddingBottom": 20,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          Visit Support Article
+                                        </Text>
+                                      </TouchableOpacity>
+                                    </View>
                                   </View>
-                                </View>
-                              </TouchableOpacity>
+                                </TouchableOpacity>
+                              </View>
                             </View>
-                          </View>
-                        </Modal>
+                          </Modal>
+                        </View>
+                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -6652,7 +6662,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7056,193 +7066,162 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={true}
-                        >
-                          <View
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": undefined,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              {
-                                "backgroundColor": "#00000066",
-                                "bottom": 0,
-                                "height": 1334,
-                                "left": 0,
-                                "opacity": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                                "width": 750,
-                              }
-                            }
-                          />
-                          <View
-                            onLayout={[Function]}
-                            pointerEvents="box-none"
-                            style={
+                        <View />
+                        <View>
+                          <Modal
+                            animationType="none"
+                            deviceHeight={null}
+                            deviceWidth={null}
+                            hardwareAccelerated={false}
+                            hideModalContentWhileAnimating={false}
+                            onBackdropPress={[Function]}
+                            onModalHide={[Function]}
+                            onModalWillHide={[Function]}
+                            onModalWillShow={[Function]}
+                            onRequestClose={[Function]}
+                            onSwipeComplete={[Function]}
+                            panResponderThreshold={4}
+                            scrollHorizontal={false}
+                            scrollOffset={0}
+                            scrollOffsetMax={0}
+                            scrollTo={null}
+                            statusBarTranslucent={false}
+                            supportedOrientations={
                               [
-                                [
-                                  {
-                                    "margin": 37.5,
-                                    "transform": [
-                                      {
-                                        "translateY": 0,
-                                      },
-                                    ],
-                                  },
-                                  {
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  },
-                                  {
-                                    "justifyContent": "flex-end",
-                                    "margin": 0,
-                                  },
-                                  {
-                                    "margin": 0,
-                                  },
-                                ],
-                                {
-                                  "paddingBottom": 0,
-                                },
+                                "portrait",
+                                "landscape",
                               ]
                             }
+                            swipeDirection="down"
+                            swipeThreshold={100}
+                            transparent={true}
+                            visible={true}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessible={true}
                               collapsable={false}
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[Function]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onMoveShouldSetResponder={[Function]}
-                              onMoveShouldSetResponderCapture={[Function]}
-                              onResponderEnd={[Function]}
+                              focusable={true}
+                              onClick={[Function]}
                               onResponderGrant={[Function]}
                               onResponderMove={[Function]}
-                              onResponderReject={[Function]}
                               onResponderRelease={[Function]}
-                              onResponderStart={[Function]}
                               onResponderTerminate={[Function]}
                               onResponderTerminationRequest={[Function]}
                               onStartShouldSetResponder={[Function]}
-                              onStartShouldSetResponderCapture={[Function]}
-                              onSwipeComplete={[Function]}
-                              panResponderThreshold={4}
-                              pointerEvents="box-none"
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
                               style={
                                 {
-                                  "flex": 1,
-                                  "justifyContent": "flex-end",
+                                  "backgroundColor": "#00000066",
+                                  "bottom": 0,
+                                  "height": 1334,
                                   "left": 0,
-                                  "margin": 0,
+                                  "opacity": 0,
+                                  "position": "absolute",
+                                  "right": 0,
                                   "top": 0,
-                                  "transform": [
+                                  "width": 750,
+                                }
+                              }
+                            />
+                            <View
+                              onLayout={[Function]}
+                              pointerEvents="box-none"
+                              style={
+                                [
+                                  [
                                     {
-                                      "translateY": 1334,
+                                      "margin": 37.5,
+                                      "transform": [
+                                        {
+                                          "translateY": 0,
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    },
+                                    {
+                                      "justifyContent": "flex-end",
+                                      "margin": 0,
+                                    },
+                                    {
+                                      "margin": 0,
                                     },
                                   ],
-                                }
-                              }
-                              supportedOrientations={
-                                [
-                                  "portrait",
-                                  "landscape",
+                                  {
+                                    "paddingBottom": 0,
+                                  },
                                 ]
                               }
-                              swipeDirection="down"
-                              swipeThreshold={100}
                             >
-                              <RCTSafeAreaView
+                              <View
+                                collapsable={false}
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onMoveShouldSetResponder={[Function]}
+                                onMoveShouldSetResponderCapture={[Function]}
+                                onResponderEnd={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderReject={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderStart={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
+                                onStartShouldSetResponderCapture={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                pointerEvents="box-none"
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
                                 style={
                                   {
-                                    "backgroundColor": "#ffffff",
-                                    "borderTopLeftRadius": 10,
-                                    "borderTopRightRadius": 10,
-                                    "flex": 0.75,
+                                    "flex": 1,
+                                    "justifyContent": "flex-end",
+                                    "left": 0,
+                                    "margin": 0,
+                                    "top": 0,
+                                    "transform": [
+                                      {
+                                        "translateY": 1334,
+                                      },
+                                    ],
                                   }
                                 }
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
                               >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#b7bbc866",
-                                        "height": 33,
-                                        "justifyContent": "center",
-                                        "width": "100%",
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "backgroundColor": "#b7bbc8",
-                                        "borderRadius": 4,
-                                        "height": 5,
-                                        "width": 48,
-                                      }
-                                    }
-                                  />
-                                </View>
                                 <RCTSafeAreaView
                                   style={
                                     {
-                                      "flex": 1,
+                                      "backgroundColor": "#ffffff",
+                                      "borderTopLeftRadius": 10,
+                                      "borderTopRightRadius": 10,
+                                      "flex": 0.75,
                                     }
                                   }
                                 >
@@ -7250,8 +7229,12 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                     style={
                                       [
                                         {
-                                          "backgroundColor": "#ffffff",
-                                          "flex": 1,
+                                          "alignItems": "center",
+                                          "borderBottomWidth": 0.5,
+                                          "borderColor": "#b7bbc866",
+                                          "height": 33,
+                                          "justifyContent": "center",
+                                          "width": "100%",
                                         },
                                         undefined,
                                       ]
@@ -7259,193 +7242,27 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "marginVertical": 16,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "backgroundColor": "#b7bbc8",
+                                          "borderRadius": 4,
+                                          "height": 5,
+                                          "width": 48,
+                                        }
                                       }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            {
-                                              "textAlign": "center",
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontWeight": "600",
-                                            },
-                                            undefined,
-                                            {
-                                              "color": "#121314",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#121314",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "fontSize": 16,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Select your Region
-                                      </Text>
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            {
-                                              "textAlign": "center",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#686e7d",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            [
-                                              {
-                                                "marginHorizontal": 20,
-                                              },
-                                              {
-                                                "paddingHorizontal": 24,
-                                              },
-                                            ],
-                                          ]
-                                        }
-                                      >
-                                        Select the country where your card is registered (regardless of where you are located).
-                                      </Text>
-                                      <View
-                                        accessibilityState={
-                                          {
-                                            "busy": undefined,
-                                            "checked": undefined,
-                                            "disabled": undefined,
-                                            "expanded": undefined,
-                                            "selected": undefined,
-                                          }
-                                        }
-                                        accessible={true}
-                                        focusable={true}
-                                        onClick={[Function]}
-                                        onResponderGrant={[Function]}
-                                        onResponderMove={[Function]}
-                                        onResponderRelease={[Function]}
-                                        onResponderTerminate={[Function]}
-                                        onResponderTerminationRequest={[Function]}
-                                        onStartShouldSetResponder={[Function]}
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "borderColor": "#b7bbc8",
-                                            "borderRadius": 5,
-                                            "borderWidth": 1,
-                                            "flexDirection": "row",
-                                            "marginHorizontal": 24,
-                                            "marginTop": 10,
-                                            "paddingHorizontal": 5,
-                                            "paddingVertical": 10,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
-                                          style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#686e7d",
-                                                "marginHorizontal": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
-                                          }
-                                        >
-                                          
-                                        </Text>
-                                        <TextInput
-                                          onChangeText={[Function]}
-                                          placeholder="Search by country"
-                                          placeholderTextColor="#9ca1af"
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "flex": 1,
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                          testID="region-modal-search-input"
-                                          value=""
-                                        />
-                                      </View>
-                                    </View>
+                                    />
+                                  </View>
+                                  <RCTSafeAreaView
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
                                     <View
                                       style={
                                         [
                                           {
+                                            "backgroundColor": "#ffffff",
                                             "flex": 1,
                                           },
                                           undefined,
@@ -7454,327 +7271,524 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                     >
                                       <View
                                         style={
-                                          {
-                                            "flex": 1,
-                                            "marginTop": 0,
-                                          }
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "marginVertical": 16,
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
-                                        <RCTScrollView
-                                          ListEmptyComponent={
-                                            <View
-                                              style={
-                                                {
-                                                  "marginHorizontal": 30,
-                                                  "marginVertical": 10,
-                                                }
-                                              }
-                                            >
-                                              <Text
-                                                variant="sBodyLGMedium"
-                                              >
-                                                No region matches
-                                              </Text>
-                                            </View>
-                                          }
-                                          ListFooterComponent={[Function]}
-                                          data={
+                                        <Text
+                                          style={
                                             [
                                               {
-                                                "data": [
-                                                  {
-                                                    "currencies": [
-                                                      "/currencies/fiat/clp",
-                                                    ],
-                                                    "emoji": "🇨🇱",
-                                                    "id": "/regions/cl",
-                                                    "name": "Chile",
-                                                    "support": {
-                                                      "buy": true,
-                                                      "sell": true,
-                                                    },
-                                                    "unsupported": false,
-                                                  },
-                                                  {
-                                                    "currencies": [
-                                                      "/currencies/fiat/ars",
-                                                    ],
-                                                    "emoji": "🇦🇷",
-                                                    "id": "/regions/ar",
-                                                    "name": "Argentina",
-                                                    "support": {
-                                                      "buy": true,
-                                                      "sell": true,
-                                                    },
-                                                    "unsupported": false,
-                                                  },
-                                                ],
-                                                "title": null,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
                                               },
+                                              {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "CentraNo1-Bold",
+                                                "fontWeight": "600",
+                                              },
+                                              undefined,
+                                              {
+                                                "color": "#121314",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "color": "#121314",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "fontSize": 16,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
                                             ]
                                           }
-                                          getItem={[Function]}
-                                          getItemCount={[Function]}
-                                          keyExtractor={[Function]}
-                                          keyboardDismissMode="none"
-                                          keyboardShouldPersistTaps="always"
-                                          onContentSizeChange={[Function]}
-                                          onLayout={[Function]}
-                                          onMomentumScrollBegin={[Function]}
-                                          onMomentumScrollEnd={[Function]}
-                                          onScroll={[Function]}
-                                          onScrollBeginDrag={[Function]}
-                                          onScrollEndDrag={[Function]}
-                                          renderItem={[Function]}
-                                          scrollEventThrottle={0.0001}
-                                          stickyHeaderIndices={[]}
+                                        >
+                                          Select your Region
+                                        </Text>
+                                        <Text
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "color": "#686e7d",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              [
+                                                {
+                                                  "marginHorizontal": 20,
+                                                },
+                                                {
+                                                  "paddingHorizontal": 24,
+                                                },
+                                              ],
+                                            ]
+                                          }
+                                        >
+                                          Select the country where your card is registered (regardless of where you are located).
+                                        </Text>
+                                        <View
+                                          accessibilityState={
+                                            {
+                                              "busy": undefined,
+                                              "checked": undefined,
+                                              "disabled": undefined,
+                                              "expanded": undefined,
+                                              "selected": undefined,
+                                            }
+                                          }
+                                          accessible={true}
+                                          focusable={true}
+                                          onClick={[Function]}
+                                          onResponderGrant={[Function]}
+                                          onResponderMove={[Function]}
+                                          onResponderRelease={[Function]}
+                                          onResponderTerminate={[Function]}
+                                          onResponderTerminationRequest={[Function]}
+                                          onStartShouldSetResponder={[Function]}
                                           style={
                                             {
-                                              "paddingHorizontal": 0,
+                                              "alignItems": "center",
+                                              "borderColor": "#b7bbc8",
+                                              "borderRadius": 5,
+                                              "borderWidth": 1,
+                                              "flexDirection": "row",
+                                              "marginHorizontal": 24,
+                                              "marginTop": 10,
+                                              "paddingHorizontal": 5,
+                                              "paddingVertical": 10,
                                             }
                                           }
                                         >
-                                          <View>
-                                            <View
-                                              onFocusCapture={[Function]}
-                                              onLayout={[Function]}
-                                              style={null}
-                                            />
-                                            <View
-                                              onFocusCapture={[Function]}
-                                              onLayout={[Function]}
-                                              style={null}
-                                            >
-                                              <TouchableOpacity
-                                                accessibilityRole="button"
-                                                accessible={true}
-                                                disabled={false}
-                                                onPress={[Function]}
+                                          <Text
+                                            allowFontScaling={false}
+                                            selectable={false}
+                                            style={
+                                              [
+                                                {
+                                                  "color": undefined,
+                                                  "fontSize": 20,
+                                                },
+                                                {
+                                                  "color": "#686e7d",
+                                                  "marginHorizontal": 8,
+                                                },
+                                                {
+                                                  "fontFamily": "Ionicons",
+                                                  "fontStyle": "normal",
+                                                  "fontWeight": "normal",
+                                                },
+                                                {},
+                                              ]
+                                            }
+                                          >
+                                            
+                                          </Text>
+                                          <TextInput
+                                            onChangeText={[Function]}
+                                            placeholder="Search by country"
+                                            placeholderTextColor="#9ca1af"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "flex": 1,
+                                                "fontFamily": "CentraNo1-Book",
+                                                "fontWeight": "400",
+                                              }
+                                            }
+                                            testID="region-modal-search-input"
+                                            value=""
+                                          />
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "flex": 1,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                              "marginTop": 0,
+                                            }
+                                          }
+                                        >
+                                          <RCTScrollView
+                                            ListEmptyComponent={
+                                              <View
                                                 style={
                                                   {
-                                                    "backgroundColor": "#ffffff",
-                                                    "borderRadius": 4,
-                                                    "opacity": 1,
-                                                    "paddingHorizontal": 24,
-                                                    "position": "relative",
+                                                    "marginHorizontal": 30,
+                                                    "marginVertical": 10,
                                                   }
                                                 }
                                               >
-                                                <View
-                                                  accessibilityRole="none"
+                                                <Text
+                                                  variant="sBodyLGMedium"
+                                                >
+                                                  No region matches
+                                                </Text>
+                                              </View>
+                                            }
+                                            ListFooterComponent={[Function]}
+                                            data={
+                                              [
+                                                {
+                                                  "data": [
+                                                    {
+                                                      "currencies": [
+                                                        "/currencies/fiat/clp",
+                                                      ],
+                                                      "emoji": "🇨🇱",
+                                                      "id": "/regions/cl",
+                                                      "name": "Chile",
+                                                      "support": {
+                                                        "buy": true,
+                                                        "sell": true,
+                                                      },
+                                                      "unsupported": false,
+                                                    },
+                                                    {
+                                                      "currencies": [
+                                                        "/currencies/fiat/ars",
+                                                      ],
+                                                      "emoji": "🇦🇷",
+                                                      "id": "/regions/ar",
+                                                      "name": "Argentina",
+                                                      "support": {
+                                                        "buy": true,
+                                                        "sell": true,
+                                                      },
+                                                      "unsupported": false,
+                                                    },
+                                                  ],
+                                                  "title": null,
+                                                },
+                                              ]
+                                            }
+                                            getItem={[Function]}
+                                            getItemCount={[Function]}
+                                            keyExtractor={[Function]}
+                                            keyboardDismissMode="none"
+                                            keyboardShouldPersistTaps="always"
+                                            onContentSizeChange={[Function]}
+                                            onLayout={[Function]}
+                                            onMomentumScrollBegin={[Function]}
+                                            onMomentumScrollEnd={[Function]}
+                                            onScroll={[Function]}
+                                            onScrollBeginDrag={[Function]}
+                                            onScrollEndDrag={[Function]}
+                                            renderItem={[Function]}
+                                            scrollEventThrottle={0.0001}
+                                            stickyHeaderIndices={[]}
+                                            style={
+                                              {
+                                                "paddingHorizontal": 0,
+                                              }
+                                            }
+                                          >
+                                            <View>
+                                              <View
+                                                onFocusCapture={[Function]}
+                                                onLayout={[Function]}
+                                                style={null}
+                                              />
+                                              <View
+                                                onFocusCapture={[Function]}
+                                                onLayout={[Function]}
+                                                style={null}
+                                              >
+                                                <TouchableOpacity
+                                                  accessibilityRole="button"
                                                   accessible={true}
+                                                  disabled={false}
+                                                  onPress={[Function]}
                                                   style={
                                                     {
-                                                      "padding": 16,
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderRadius": 4,
+                                                      "opacity": 1,
+                                                      "paddingHorizontal": 24,
+                                                      "position": "relative",
                                                     }
                                                   }
                                                 >
                                                   <View
+                                                    accessibilityRole="none"
+                                                    accessible={true}
                                                     style={
                                                       {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
+                                                        "padding": 16,
                                                       }
                                                     }
                                                   >
                                                     <View
                                                       style={
                                                         {
-                                                          "flex": 1,
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
                                                         }
                                                       }
-                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
                                                           {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
+                                                            "flex": 1,
                                                           }
                                                         }
+                                                        testID="listitemcolumn"
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "paddingRight": 16,
+                                                              "alignItems": "center",
+                                                              "flexDirection": "row",
                                                             }
                                                           }
                                                         >
-                                                          <Text
-                                                            accessibilityRole="text"
+                                                          <View
                                                             style={
                                                               {
-                                                                "color": "#121314",
-                                                                "fontFamily": "CentraNo1-Book",
-                                                                "fontSize": 16,
-                                                                "fontWeight": "400",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                                "paddingRight": 16,
                                                               }
                                                             }
                                                           >
-                                                            🇨🇱
-                                                          </Text>
-                                                        </View>
-                                                        <View>
-                                                          <Text
-                                                            accessibilityRole="text"
-                                                            style={
-                                                              {
-                                                                "color": "#121314",
-                                                                "fontFamily": "CentraNo1-Medium",
-                                                                "fontSize": 18,
-                                                                "fontWeight": "500",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#121314",
+                                                                  "fontFamily": "CentraNo1-Book",
+                                                                  "fontSize": 16,
+                                                                  "fontWeight": "400",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
                                                               }
-                                                            }
-                                                          >
-                                                            Chile
-                                                          </Text>
+                                                            >
+                                                              🇨🇱
+                                                            </Text>
+                                                          </View>
+                                                          <View>
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#121314",
+                                                                  "fontFamily": "CentraNo1-Medium",
+                                                                  "fontSize": 18,
+                                                                  "fontWeight": "500",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
+                                                              }
+                                                            >
+                                                              Chile
+                                                            </Text>
+                                                          </View>
                                                         </View>
                                                       </View>
                                                     </View>
                                                   </View>
-                                                </View>
-                                              </TouchableOpacity>
-                                              <View
-                                                style={
-                                                  {
-                                                    "backgroundColor": "#b7bbc866",
-                                                    "height": 1,
-                                                    "width": "100%",
-                                                  }
-                                                }
-                                              />
-                                            </View>
-                                            <View
-                                              onFocusCapture={[Function]}
-                                              onLayout={[Function]}
-                                              style={null}
-                                            >
-                                              <TouchableOpacity
-                                                accessibilityRole="button"
-                                                accessible={true}
-                                                disabled={false}
-                                                onPress={[Function]}
-                                                style={
-                                                  {
-                                                    "backgroundColor": "#ffffff",
-                                                    "borderRadius": 4,
-                                                    "opacity": 1,
-                                                    "paddingHorizontal": 24,
-                                                    "position": "relative",
-                                                  }
-                                                }
-                                              >
+                                                </TouchableOpacity>
                                                 <View
-                                                  accessibilityRole="none"
-                                                  accessible={true}
                                                   style={
                                                     {
-                                                      "padding": 16,
+                                                      "backgroundColor": "#b7bbc866",
+                                                      "height": 1,
+                                                      "width": "100%",
+                                                    }
+                                                  }
+                                                />
+                                              </View>
+                                              <View
+                                                onFocusCapture={[Function]}
+                                                onLayout={[Function]}
+                                                style={null}
+                                              >
+                                                <TouchableOpacity
+                                                  accessibilityRole="button"
+                                                  accessible={true}
+                                                  disabled={false}
+                                                  onPress={[Function]}
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderRadius": 4,
+                                                      "opacity": 1,
+                                                      "paddingHorizontal": 24,
+                                                      "position": "relative",
                                                     }
                                                   }
                                                 >
                                                   <View
+                                                    accessibilityRole="none"
+                                                    accessible={true}
                                                     style={
                                                       {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
+                                                        "padding": 16,
                                                       }
                                                     }
                                                   >
                                                     <View
                                                       style={
                                                         {
-                                                          "flex": 1,
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
                                                         }
                                                       }
-                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
                                                           {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
+                                                            "flex": 1,
                                                           }
                                                         }
+                                                        testID="listitemcolumn"
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "paddingRight": 16,
+                                                              "alignItems": "center",
+                                                              "flexDirection": "row",
                                                             }
                                                           }
                                                         >
-                                                          <Text
-                                                            accessibilityRole="text"
+                                                          <View
                                                             style={
                                                               {
-                                                                "color": "#121314",
-                                                                "fontFamily": "CentraNo1-Book",
-                                                                "fontSize": 16,
-                                                                "fontWeight": "400",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                                "paddingRight": 16,
                                                               }
                                                             }
                                                           >
-                                                            🇦🇷
-                                                          </Text>
-                                                        </View>
-                                                        <View>
-                                                          <Text
-                                                            accessibilityRole="text"
-                                                            style={
-                                                              {
-                                                                "color": "#121314",
-                                                                "fontFamily": "CentraNo1-Medium",
-                                                                "fontSize": 18,
-                                                                "fontWeight": "500",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#121314",
+                                                                  "fontFamily": "CentraNo1-Book",
+                                                                  "fontSize": 16,
+                                                                  "fontWeight": "400",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
                                                               }
-                                                            }
-                                                          >
-                                                            Argentina
-                                                          </Text>
+                                                            >
+                                                              🇦🇷
+                                                            </Text>
+                                                          </View>
+                                                          <View>
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#121314",
+                                                                  "fontFamily": "CentraNo1-Medium",
+                                                                  "fontSize": 18,
+                                                                  "fontWeight": "500",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
+                                                              }
+                                                            >
+                                                              Argentina
+                                                            </Text>
+                                                          </View>
                                                         </View>
                                                       </View>
                                                     </View>
                                                   </View>
-                                                </View>
-                                              </TouchableOpacity>
-                                            </View>
-                                            <View
-                                              onFocusCapture={[Function]}
-                                              onLayout={[Function]}
-                                              style={null}
-                                            />
-                                            <View
-                                              onLayout={[Function]}
-                                            >
+                                                </TouchableOpacity>
+                                              </View>
                                               <View
-                                                style={
-                                                  {
-                                                    "backgroundColor": "#b7bbc866",
-                                                    "height": 1,
-                                                    "width": "100%",
-                                                  }
-                                                }
+                                                onFocusCapture={[Function]}
+                                                onLayout={[Function]}
+                                                style={null}
                                               />
+                                              <View
+                                                onLayout={[Function]}
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#b7bbc866",
+                                                      "height": 1,
+                                                      "width": "100%",
+                                                    }
+                                                  }
+                                                />
+                                              </View>
                                             </View>
-                                          </View>
-                                        </RCTScrollView>
+                                          </RCTScrollView>
+                                        </View>
                                       </View>
                                     </View>
-                                  </View>
+                                  </RCTSafeAreaView>
+                                  <View />
                                 </RCTSafeAreaView>
-                              </RCTSafeAreaView>
+                              </View>
                             </View>
-                          </View>
-                        </Modal>
+                          </Modal>
+                        </View>
                       </View>
                     </RCTSafeAreaView>
                   </View>

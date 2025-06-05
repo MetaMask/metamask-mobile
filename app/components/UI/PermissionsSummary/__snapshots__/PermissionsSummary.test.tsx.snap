@@ -198,6 +198,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
               }
               getItem={[Function]}
               getItemCount={[Function]}
+              handlerTag={-1}
+              handlerType="NativeViewGestureHandler"
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
               onGestureHandlerEvent={[Function]}
@@ -1363,6 +1365,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               data={[]}
               getItem={[Function]}
               getItemCount={[Function]}
+              handlerTag={-1}
+              handlerType="NativeViewGestureHandler"
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
               onGestureHandlerEvent={[Function]}
@@ -3273,6 +3277,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
               }
               getItem={[Function]}
               getItemCount={[Function]}
+              handlerTag={-1}
+              handlerType="NativeViewGestureHandler"
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
               onGestureHandlerEvent={[Function]}
@@ -4442,6 +4448,8 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
               }
               getItem={[Function]}
               getItemCount={[Function]}
+              handlerTag={-1}
+              handlerType="NativeViewGestureHandler"
               keyExtractor={[Function]}
               onContentSizeChange={[Function]}
               onGestureHandlerEvent={[Function]}
