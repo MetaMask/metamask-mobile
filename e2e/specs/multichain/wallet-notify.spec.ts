@@ -3,25 +3,25 @@
 /**
  * E2E tests for wallet_notify API
  * Tests receiving notifications for subscribed events on specific chains
- * 
+ *
  * TEST FLOW:
  * 1. Create a session with MetaMask Mobile
  * 2. Subscribe to blockchain events using eth_subscribe
  * 3. Verify the subscription returns a valid ID (hex string)
  * 4. Wait for and verify that notifications are delivered to the dapp
- * 
+ *
  * WHAT WE'RE TESTING:
  * - wallet_notify allows dapps to receive real-time blockchain event notifications
  * - eth_subscribe creates a subscription and returns a subscription ID
  * - The wallet delivers notifications which appear as "wallet-notify-details-X" elements
- * 
+ *
  * DETOX WEBVIEW LIMITATIONS AND METHODOLOGY:
  * ==========================================
  * Detox has significant limitations when working with webviews:
  * 1. Cannot use by.web.text() or by.web.attr() - only by.web.id() and by.web.className() work
  * 2. Cannot get innerHTML or text content directly from elements
  * 3. Elements might exist in DOM but not be "visible" according to Detox visibility rules
- * 
+ *
  * Our methodology to work around these limitations:
  * 1. Use element IDs exclusively for selection (added id="wallet-notify-empty" to the dapp)
  * 2. Use scrollToView() to bring elements into viewport

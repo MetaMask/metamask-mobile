@@ -6,7 +6,7 @@
  * Adapted from MetaMask extension multichain tests
  *
  * Uses native Detox selectors for reliable WebView interaction
- * 
+ *
  * RESULT VERIFICATION:
  * The tests attempt to extract and log actual RPC results using runScript().
  * While Detox WebView limitations mean this doesn't always work reliably,
@@ -14,7 +14,7 @@
  * - eth_chainId returns "0x1" for Ethereum mainnet
  * - eth_getBalance returns a hex string balance (e.g., "0x...")
  * - eth_gasPrice returns a hex string gas price (e.g., "0x...")
- * 
+ *
  * Even when result reading fails, the tests verify that:
  * 1. The method invocation button works
  * 2. Result elements are created in the DOM
@@ -84,7 +84,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         // Click the direct method button using native selector
                         const directButton = webview.element(by.web.id(directButtonId));
                         console.log(`🔍 Looking for button with ID: ${directButtonId}`);
-                        
+
                         try {
                             // First check if button exists
                             await Assertions.checkIfVisible(Promise.resolve(directButton));
@@ -93,7 +93,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             console.log('❌ Button not visible, waiting...');
                             await TestHelpers.delay(2000);
                         }
-                        
+
                         await directButton.tap();
                         console.log('✅ Direct method button clicked');
 
@@ -118,22 +118,22 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             // First check if there's a details wrapper (for truncated results)
                             const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
                             console.log(`🔍 Checking for details wrapper: ${detailsId}`);
-                            
+
                             try {
                                 const detailsElement = webview.element(by.web.id(detailsId));
                                 await detailsElement.scrollToView();
                                 console.log('✅ Found details wrapper (truncated result)');
-                                
+
                                 // The result is inside the details element
                                 const resultElement = webview.element(by.web.id(resultElementId));
                                 await resultElement.scrollToView();
                                 console.log('✅ Result element found inside details');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_chainId, we expect "0x1" for Ethereum mainnet
                                     if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
                                         console.log('✅ eth_chainId returned expected value: 0x1 (Ethereum mainnet)');
@@ -143,19 +143,19 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                 }
                             } catch (e) {
                                 console.log('ℹ️ No details wrapper, checking for direct result');
-                                
+
                                 // Try non-truncated result format
                                 const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
                                 const itemElement = webview.element(by.web.id(itemId));
                                 await itemElement.scrollToView();
                                 console.log('✅ Found non-truncated result item');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultElement = webview.element(by.web.id(resultElementId));
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_chainId, we expect "0x1" for Ethereum mainnet
                                     if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
                                         console.log('✅ eth_chainId returned expected value: 0x1 (Ethereum mainnet)');
@@ -256,22 +256,22 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         try {
                             // First check if there's a details wrapper (for truncated results)
                             const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
-                            
+
                             try {
                                 const detailsElement = webview.element(by.web.id(detailsId));
                                 await detailsElement.scrollToView();
                                 console.log('✅ Found details wrapper (truncated result)');
-                                
+
                                 // The result is inside the details element
                                 const resultElement = webview.element(by.web.id(resultElementId));
                                 await resultElement.scrollToView();
                                 console.log('✅ Result element found inside details');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_getBalance, we expect a hex string balance
                                     if (method === 'eth_getBalance' && resultText.includes('"0x')) {
                                         console.log('✅ eth_getBalance returned a valid hex balance');
@@ -281,19 +281,19 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                 }
                             } catch (e) {
                                 console.log('ℹ️ No details wrapper, checking for direct result');
-                                
+
                                 // Try non-truncated result format
                                 const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
                                 const itemElement = webview.element(by.web.id(itemId));
                                 await itemElement.scrollToView();
                                 console.log('✅ Found non-truncated result item');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultElement = webview.element(by.web.id(resultElementId));
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_getBalance, we expect a hex string balance
                                     if (method === 'eth_getBalance' && resultText.includes('"0x')) {
                                         console.log('✅ eth_getBalance returned a valid hex balance');
@@ -302,7 +302,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                     console.log('⚠️ Could not read result text (Detox limitation)');
                                 }
                             }
-                            
+
                             console.log('🎉 eth_getBalance method invocation test PASSED');
 
                         } catch (resultError) {
@@ -383,22 +383,22 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         try {
                             // First check if there's a details wrapper (for truncated results)
                             const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
-                            
+
                             try {
                                 const detailsElement = webview.element(by.web.id(detailsId));
                                 await detailsElement.scrollToView();
                                 console.log('✅ Found details wrapper (truncated result)');
-                                
+
                                 // The result is inside the details element
                                 const resultElement = webview.element(by.web.id(resultElementId));
                                 await resultElement.scrollToView();
                                 console.log('✅ Result element found inside details');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_gasPrice, we expect a hex string gas price
                                     if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
                                         console.log('✅ eth_gasPrice returned a valid hex gas price');
@@ -408,19 +408,19 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                 }
                             } catch (e) {
                                 console.log('ℹ️ No details wrapper, checking for direct result');
-                                
+
                                 // Try non-truncated result format
                                 const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
                                 const itemElement = webview.element(by.web.id(itemId));
                                 await itemElement.scrollToView();
                                 console.log('✅ Found non-truncated result item');
-                                
+
                                 // Try to read the actual result value
                                 try {
                                     const resultElement = webview.element(by.web.id(resultElementId));
                                     const resultText = await resultElement.runScript((el) => el.textContent || '');
                                     console.log(`📊 Actual RPC result: ${resultText}`);
-                                    
+
                                     // For eth_gasPrice, we expect a hex string gas price
                                     if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
                                         console.log('✅ eth_gasPrice returned a valid hex gas price');
@@ -429,7 +429,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                     console.log('⚠️ Could not read result text (Detox limitation)');
                                 }
                             }
-                            
+
                             console.log('🎉 eth_gasPrice method invocation test PASSED');
 
                         } catch (resultError) {
@@ -689,7 +689,7 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                                 const detailsElement = webview.element(by.web.id(detailsId));
                                 await detailsElement.scrollToView();
                                 console.log(`✅ ${method} result found`);
-                                
+
                                 // Try to read the result
                                 try {
                                     const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
