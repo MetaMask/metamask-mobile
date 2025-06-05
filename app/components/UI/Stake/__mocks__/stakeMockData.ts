@@ -1,6 +1,5 @@
 import {
   ChainId,
-  StakingType,
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
@@ -102,8 +101,6 @@ const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
 
 export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
 };
 
 export const MOCK_ETH_MAINNET_ASSET = createMockToken(

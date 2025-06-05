@@ -5,7 +5,6 @@ import {
   LendingProvider,
   EarnApiService,
   LendingProtocol,
-  EarnEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,

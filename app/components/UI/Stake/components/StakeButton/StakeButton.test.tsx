@@ -26,10 +26,7 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 const mockNavigate = jest.fn();
 
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
-  Ethereum: '2.3',
   USDC: '4.5',
-  USDT: '4.1',
-  DAI: '5.0',
 };
 
 jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
@@ -48,16 +45,31 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
         },
       ];
 
-      return {
-        ...token,
-        balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
-        balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
-        balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
-        balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
-        experiences,
-        tokenUsdExchangeRate: 0,
-        experience: experiences[0],
-      };
+      if (token.symbol === 'Ethereum') {
+        return {
+          ...token,
+          balanceFormatted: token.symbol === 'Ethereum' ? '6 ETH' : '0',
+          balanceFiat: token.symbol === 'Ethereum' ? '$1.50' : '$0.00',
+          balanceMinimalUnit: token.symbol === 'Ethereum' ? '6' : '0',
+          balanceFiatNumber: token.symbol === 'Ethereum' ? 1.5 : 0,
+          experiences,
+          tokenUsdExchangeRate: 0,
+          experience: experiences[0],
+        };
+      }
+
+      if (token.symbol === 'USDC') {
+        return {
+          ...token,
+          balanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+          balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+          balanceMinimalUnit: token.symbol === 'USDC' ? '6.84314' : '0',
+          balanceFiatNumber: token.symbol === 'USDC' ? 6.84314 : 0,
+          experiences,
+          tokenUsdExchangeRate: 0,
+          experience: experiences[0],
+        };
+      }
     },
   }),
 }));
@@ -146,9 +158,19 @@ const STATE_MOCK = {
   engine: {
     backgroundState: {
       NetworkController: {
-        ...mockNetworkState({
+        provider: {
           chainId: '0x1',
-        }),
+          type: 'mainnet',
+          ticker: 'ETH',
+        },
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurations: {
+          mainnet: {
+            chainId: '0x1',
+            ticker: 'ETH',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+          },
+        },
       },
       MultichainNetworkController: {
         isEvmSelected: true,
