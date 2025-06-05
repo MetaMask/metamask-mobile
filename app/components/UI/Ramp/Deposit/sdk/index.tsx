@@ -15,9 +15,11 @@ import {
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
+  TransakEnvironment,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
+  resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
 
@@ -31,7 +33,19 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
+  clearAuthToken: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
+}
+
+const isDevelopment =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.RAMP_DEV_BUILD === 'true';
+const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
+let environment = TransakEnvironment.Production;
+if (isDevelopmentOrInternalBuild) {
+  environment = TransakEnvironment.Staging;
 }
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
@@ -48,7 +62,7 @@ export const DepositSDKProvider = ({
   const [sdkError, setSdkError] = useState<Error>();
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
+  const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
 
   useEffect(() => {
     try {
@@ -56,10 +70,13 @@ export const DepositSDKProvider = ({
         throw new Error('Deposit SDK requires valid API key and frontend auth');
       }
 
-      const sdkInstance = new NativeRampsSdk({
-        partnerApiKey: providerApiKey,
-        frontendAuth: providerFrontendAuth,
-      });
+      const sdkInstance = new NativeRampsSdk(
+        {
+          partnerApiKey: providerApiKey,
+          frontendAuth: providerFrontendAuth,
+        },
+        environment,
+      );
 
       setSdk(sdkInstance);
     } catch (error) {
@@ -74,11 +91,11 @@ export const DepositSDKProvider = ({
     }
   }, [sdk, authToken]);
 
-  const checkExistingToken = async (): Promise<boolean> => {
+  const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
       if (tokenResponse.success && tokenResponse.token) {
-        setAuthTokenState(tokenResponse.token);
+        setAuthToken(tokenResponse.token);
         return true;
       }
       return false;
@@ -86,14 +103,14 @@ export const DepositSDKProvider = ({
       console.error('Error checking existing token:', error);
       return false;
     }
-  };
+  }, []);
 
-  const setAuthToken = useCallback(
+  const setAuthTokenCallback = useCallback(
     async (token: NativeTransakAccessToken): Promise<boolean> => {
       try {
         const storeResult = await storeProviderToken(token);
         if (storeResult.success) {
-          setAuthTokenState(token);
+          setAuthToken(token);
           setIsAuthenticated(true);
           if (sdk) {
             sdk.setAccessToken(token);
@@ -109,6 +126,15 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
+  const clearAuthToken = useCallback(async () => {
+    await resetProviderToken();
+    setAuthToken(undefined);
+    setIsAuthenticated(false);
+    if (sdk) {
+      sdk.clearAccessToken();
+    }
+  }, [sdk]);
+
   const contextValue = useMemo(
     (): DepositSDK => ({
       sdk,
@@ -119,7 +145,8 @@ export const DepositSDKProvider = ({
       setEmail,
       isAuthenticated,
       authToken,
-      setAuthToken,
+      setAuthToken: setAuthTokenCallback,
+      clearAuthToken,
       checkExistingToken,
     }),
     [
@@ -130,7 +157,9 @@ export const DepositSDKProvider = ({
       email,
       isAuthenticated,
       authToken,
-      setAuthToken,
+      setAuthTokenCallback,
+      clearAuthToken,
+      checkExistingToken,
     ],
   );
 
@@ -146,3 +175,12 @@ export const useDepositSDK = () => {
   }
   return contextValue;
 };
+
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const withDepositSDK = (Component: React.FC) => (props: any) =>
+  (
+    <DepositSDKProvider>
+      <Component {...props} />
+    </DepositSDKProvider>
+  );
