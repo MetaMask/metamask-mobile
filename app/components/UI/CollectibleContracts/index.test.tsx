@@ -1059,4 +1059,67 @@ describe('CollectibleContracts', () => {
         assetType: 'collectible',
     });
   });
+
+  it('shows filter controls when evm is selected', () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockNavigation = {
+      navigate: jest.fn(),
+      push: jest.fn(),
+    };
+    const { getByTestId } = renderWithProvider(<CollectibleContracts
+    navigation={mockNavigation}/>, {
+      state: mockState,
+    });
+
+    const filterControlersButton = getByTestId('token-network-filter');
+    fireEvent.press(filterControlersButton);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+
+
+  });
 });
