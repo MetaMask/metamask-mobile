@@ -14,6 +14,8 @@ import {
   SectionList,
   ActivityIndicator,
   SectionListRenderItem,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -260,18 +262,24 @@ const UrlAutocomplete = forwardRef<
 
   return (
     <View ref={resultsRef} style={styles.wrapper}>
-      <SectionList<AutocompleteSearchResult, ResultsWithCategory>
-        contentContainerStyle={styles.contentContainer}
-        sections={resultsByCategory}
-        keyExtractor={(item) =>
-          item.category === UrlAutocompleteCategory.Tokens
-            ? `${item.category}-${item.chainId}-${item.address}`
-            : `${item.category}-${item.url}`
-        }
-        renderSectionHeader={renderSectionHeader}
-        renderItem={renderItem}
-        keyboardShouldPersistTaps="handled"
-      />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
+        <SectionList<AutocompleteSearchResult, ResultsWithCategory>
+          contentContainerStyle={styles.contentContainer}
+          sections={resultsByCategory}
+          keyExtractor={(item) =>
+            item.category === UrlAutocompleteCategory.Tokens
+              ? `${item.category}-${item.chainId}-${item.address}`
+              : `${item.category}-${item.url}`
+          }
+          renderSectionHeader={renderSectionHeader}
+          renderItem={renderItem}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
       {networkModal}
     </View>
   );

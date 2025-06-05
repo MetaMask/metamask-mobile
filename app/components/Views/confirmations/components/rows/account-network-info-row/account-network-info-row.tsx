@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import Expandable from '../../UI/expandable';
@@ -19,7 +19,7 @@ const AccountNetworkInfo = () => {
       collapsedContent={<AccountNetworkInfoCollapsed />}
       expandedContent={<AccountNetworkInfoExpanded />}
       expandedContentTitle={strings('confirm.details')}
-      testID={ConfirmationPageSectionsSelectorIDs.ACCOUNT_NETWORK_SECTION}
+      testID={ConfirmationRowComponentIDs.ACCOUNT_NETWORK}
     />
   );
 };

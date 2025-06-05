@@ -1,6 +1,7 @@
 import React from 'react';
+
 import { ScrollView } from 'react-native-gesture-handler';
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import {
@@ -51,6 +52,7 @@ const AdvancedDetailsRow = () => {
   return (
     <>
       <Expandable
+        testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
         collapsedContent={
           <InfoSection>
             <InfoRow
@@ -134,7 +136,6 @@ const AdvancedDetailsRow = () => {
           </>
         }
         expandedContentTitle={strings('stake.advanced_details')}
-        testID={ConfirmationPageSectionsSelectorIDs.ACCOUNT_NETWORK_SECTION}
         isCompact
       />
     </>

@@ -153,6 +153,16 @@ stages:
   create_android_release:
     workflows:
       - build_android_release: {}
+  create_android_release_new:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_beta: {}
+      - build_android_main_rc: {}
+  create_ios_release_new:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -1344,7 +1354,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
@@ -1371,7 +1383,12 @@ workflows:
                 fi
 
                 # Generate new names based on build type and version
-                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename APK
                 if [ "$IS_DEV_BUILD" = "true" ]; then
@@ -1428,6 +1445,48 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:android:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:android:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1866,7 +1925,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
@@ -1903,7 +1964,12 @@ workflows:
                 fi
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename binary
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
@@ -1948,6 +2014,33 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: "main"
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"

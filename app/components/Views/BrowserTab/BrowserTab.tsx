@@ -10,8 +10,6 @@ import {
   Alert,
   BackHandler,
   ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -1248,7 +1246,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -1390,8 +1387,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
@@ -1500,7 +1496,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ErrorBoundary>
   );
 });

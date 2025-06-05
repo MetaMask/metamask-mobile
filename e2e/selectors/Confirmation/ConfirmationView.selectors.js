@@ -18,20 +18,31 @@ export const ConfirmationTopSheetSelectorsText = {
 export const ConfirmationRequestTypeIDs = {
   PERSONAL_SIGN_REQUEST: ApprovalType.PersonalSign,
   TYPED_SIGN_REQUEST: ApprovalType.EthSignTypedData,
+  TRANSACTION_REQUEST: ApprovalType.Transaction,
 };
+
+export const ConfirmationUIType = {
+  MODAL: 'modal-confirmation-container',
+  FLAT: 'flat-confirmation-container',
+}
+
+export const ConfirmationRowComponentIDs = {
+  ACCOUNT_NETWORK: 'account-network',
+  ADVANCED_DETAILS: 'advanced-details',
+  FROM_TO: 'from-to',
+  GAS_FEES_DETAILS: 'gas-fees-details',
+  MESSAGE: 'message',
+  NETWORK: 'network',
+  ORIGIN_INFO: 'origin-info',
+  SIMULATION_DETAILS: 'simulation-details',
+  SIWE_SIGNING_ACCOUNT_INFO: 'siwe-signing-account-info',
+  STAKING_DETAILS: 'staking-details',
+  TOKEN_HERO: 'token-hero',
+}
 
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
-};
-
-export const ConfirmationPageSectionsSelectorIDs = {
-  ACCOUNT_NETWORK_SECTION: 'account-network-section',
-  ORIGIN_INFO_SECTION: 'origin-info-section',
-  SIWE_SIGNING_ACCOUNT_INFO_SECTION: 'siwe-signing-account-info-section',
-  MESSAGE_SECTION: 'message-section',
-  STAKING_DETAILS_SECTION: 'staking-details-section',
-  INLINE_ALERT: 'inline-alert',
 };
 
 export const ConfirmAlertModalSelectorsIDs = {
@@ -49,3 +60,6 @@ export const AlertModalSelectorsText = {
   ALERT_ORIGIN_MISMATCH_TITLE: enContent.alert_system.domain_mismatch.title,
 };
 
+export const AlertTypeIDs = {
+  INLINE_ALERT: 'inline-alert',
+}

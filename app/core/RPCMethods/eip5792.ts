@@ -35,8 +35,8 @@ type JSONRPCRequest = JsonRpcRequest & {
 
 export const getAccounts = async () => {
   const { AccountsController } = Engine.context;
-  const selectedAddress = AccountsController.getSelectedAccount()?.address;
-  return Promise.resolve(selectedAddress ? [selectedAddress] : []);
+  const addresses = AccountsController.listAccounts().map((acc) => acc.address);
+  return Promise.resolve(addresses);
 };
 
 function validateSendCallsVersion(sendCalls: SendCalls) {
