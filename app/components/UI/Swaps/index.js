@@ -80,7 +80,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import AccountSelector from '../Ramp/components/AccountSelector';
+import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';

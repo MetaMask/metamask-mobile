@@ -441,6 +441,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -1143,6 +1144,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -1845,6 +1847,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -2564,6 +2567,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -3283,6 +3287,7 @@ exports[`Amount displays correct balance 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -3984,6 +3989,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -5352,6 +5358,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -6049,6 +6056,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -6822,6 +6830,7 @@ exports[`Amount renders correctly 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -7518,6 +7527,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                   disabled={true}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={
@@ -8138,6 +8148,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                   disabled={false}
                                   onPress={[Function]}
                                   style={{}}
+                                  testID="max-button"
                                 >
                                   <Text
                                     style={

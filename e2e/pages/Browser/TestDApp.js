@@ -168,6 +168,20 @@ class TestDApp {
     );
   }
 
+  get erc721MintButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
+    );
+  }
+
+  get sendEIP1559Button() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -224,6 +238,10 @@ class TestDApp {
     await this.tapButton(this.nftTransferFromTokensButton);
   }
 
+  async tabERC721MintButton() {
+    await this.tapButton(this.erc721MintButton);
+  }
+
   async tapNFTSetApprovalForAllButton() {
     await this.tapButton(this.nftSetApprovalForAllButton);
   }
@@ -263,6 +281,10 @@ class TestDApp {
 
   async switchChainFromTestDapp() {
     await this.tapButton(this.switchChainFromTestDappButton);
+  }
+
+  async tapSendEIP1559Button() {
+    await this.tapButton(this.sendEIP1559Button);
   }
 }
 
