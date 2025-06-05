@@ -79,7 +79,7 @@ const EnterEmail = () => {
           </Row>
 
           <View style={styles.field}>
-            <Label variant={TextVariant.HeadingSMRegular} style={styles.label}>
+            <Label variant={TextVariant.BodyLGMedium} style={styles.label}>
               {strings('deposit.enter_email.input_label')}
             </Label>
             <TextField

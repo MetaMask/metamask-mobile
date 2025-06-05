@@ -45,8 +45,8 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       marginRight: 20,
     },
     warning: {
-      ...typography.sHeadingSMRegular,
-      fontFamily: getFontFamily(TextVariant.HeadingSMRegular),
+      ...typography.sBodyLGMedium,
+      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
       color: colors.text.default,
       paddingHorizontal: 24,
       marginBottom: 16,
