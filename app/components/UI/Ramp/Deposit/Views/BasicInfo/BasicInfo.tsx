@@ -22,7 +22,7 @@ export const createBasicInfoNavDetails = createNavigationDetails(
   Routes.DEPOSIT.BASIC_INFO,
 );
 
-interface FormData {
+export interface BasicInfoFormData {
   firstName: string;
   lastName: string;
   phoneNumber: string;
@@ -34,7 +34,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const initialFormData: FormData = {
+  const initialFormData: BasicInfoFormData = {
     firstName: '',
     lastName: '',
     phoneNumber: '',
@@ -43,7 +43,7 @@ const BasicInfo = (): JSX.Element => {
   };
 
   // TODO: Add more comprehensive validation logic
-  const validateForm = (data: FormData): Record<string, string> => {
+  const validateForm = (data: BasicInfoFormData): Record<string, string> => {
     const errors: Record<string, string> = {};
 
     if (!data.firstName.trim()) {
@@ -70,7 +70,7 @@ const BasicInfo = (): JSX.Element => {
   };
 
   const { formData, errors, handleChange, validateFormData } =
-    useForm<FormData>({
+    useForm<BasicInfoFormData>({
       initialFormData,
       validateForm,
     });
@@ -87,10 +87,9 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      // TODO: Send form data here?
-      navigation.navigate(...createEnterAddressNavDetails());
+      navigation.navigate(...createEnterAddressNavDetails({ formData }));
     }
-  }, [navigation, validateFormData]);
+  }, [formData, navigation, validateFormData]);
 
   return (
     <ScreenLayout>

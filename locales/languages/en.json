@@ -477,7 +477,7 @@
       "state": "State/Region",
       "city": "City",
       "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "country": "Country",
     }
   },
   "receive": {
