@@ -226,8 +226,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -252,8 +250,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -1004,6 +1000,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1019,9 +1021,11 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-
                 export METAMASK_ENVIRONMENT='local'
+                 node -v
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                echo "ANVIL VERSION"
+                node_modules/.bin/anvil --version
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
@@ -1092,6 +1096,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1240,6 +1250,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1268,7 +1284,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                node -v
+                # node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then

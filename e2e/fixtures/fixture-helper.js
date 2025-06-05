@@ -63,42 +63,18 @@ export const defaultGanacheOptions = {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [
-      {
-        type: localNodeOptions,
-        options:
-          localNodeOptions === 'ganache'
-            ? defaultGanacheOptions
-            : localNodeOptions === 'anvil'
-            ? defaultOptions
-            : {},
-      },
-    ];
+    return [{ type: localNodeOptions, options: {} }];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return {
-          type: node,
-          options:
-            node === 'ganache'
-              ? defaultGanacheOptions
-              : node === 'anvil'
-              ? defaultOptions
-              : {},
-        };
+        return { type: node, options: {} };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
-        const type = node.type || 'ganache';
         return {
-          type,
-          options:
-            type === 'ganache'
-              ? { ...defaultGanacheOptions, ...(node.options || {}) }
-              : type === 'anvil'
-              ? { ...defaultOptions, ...(node.options || {}) }
-              : node.options || {},
+          type: node.type || 'anvil',
+          options: node.options || {},
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);
@@ -108,8 +84,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     // Case 4: Passing an options object without type
     return [
       {
-        type: 'ganache',
-        options: { ...defaultGanacheOptions, ...localNodeOptions },
+        type: 'anvil',
+        options: localNodeOptions,
       },
     ];
   }
@@ -185,7 +161,7 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     disableGanache,
     dapp,
-    localNodeOptions = 'ganache',
+    localNodeOptions = 'anvil',
     dappOptions,
     dappPath = undefined,
     dappPaths,
@@ -219,8 +195,6 @@ export async function withFixtures(options, testSuite) {
             localNode = new AnvilManager();
             await localNode.start(nodeOptions);
             localNodes.push(localNode);
-            await localNode.setAccountBalance('1200');
-
             break;
 
           case 'ganache':
