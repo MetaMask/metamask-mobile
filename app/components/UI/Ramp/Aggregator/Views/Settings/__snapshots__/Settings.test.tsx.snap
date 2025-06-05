@@ -1154,18 +1154,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     </TouchableOpacity>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>
@@ -1892,18 +1880,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     </TouchableOpacity>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>
@@ -2455,18 +2431,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     </View>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>
@@ -3056,18 +3020,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>
@@ -4825,18 +4777,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     </TouchableOpacity>
                                   </View>
                                 </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                />
                               </View>
                             </View>
                           </View>
