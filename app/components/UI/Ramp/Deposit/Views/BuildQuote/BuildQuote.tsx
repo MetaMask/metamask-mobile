@@ -12,7 +12,7 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import DepositTextField from '../../components/DepositTextField';
 
 const BuildQuote = () => {

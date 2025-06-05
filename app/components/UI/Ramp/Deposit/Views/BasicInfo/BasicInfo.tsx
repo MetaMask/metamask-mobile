@@ -78,12 +78,11 @@ const BasicInfo = (): JSX.Element => {
       validateForm,
     });
 
-  const formattedFormData = useMemo(
-    () => ({
-      ...formData,
-      mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-    }),
-    [formData],
+  const handleFormDataChange = useCallback(
+    (field: keyof BasicInfoFormData) => (value: string) => {
+      handleChange(field, value);
+    },
+    [handleChange],
   );
 
   useEffect(() => {
@@ -98,11 +97,16 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
+      const formattedFormData = {
+        ...formData,
+        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
+      };
+
       navigation.navigate(
         ...createEnterAddressNavDetails({ formData: formattedFormData }),
       );
     }
-  }, [formattedFormData, navigation, validateFormData]);
+  }, [navigation, validateFormData]);
 
   return (
     <ScreenLayout>
@@ -117,7 +121,7 @@ const BasicInfo = (): JSX.Element => {
               label="First Name"
               placeholder="John"
               value={formData.firstName}
-              onChangeText={(text) => handleChange('firstName', text)}
+              onChangeText={handleFormDataChange('firstName')}
               error={errors.firstName}
               returnKeyType="next"
               testID="first-name-input"
@@ -128,7 +132,7 @@ const BasicInfo = (): JSX.Element => {
               label="Last Name"
               placeholder="Smith"
               value={formData.lastName}
-              onChangeText={(text) => handleChange('lastName', text)}
+              onChangeText={handleFormDataChange('lastName')}
               error={errors.lastName}
               returnKeyType="next"
               testID="last-name-input"
@@ -142,7 +146,7 @@ const BasicInfo = (): JSX.Element => {
             label="Phone Number"
             placeholder="(234) 567-8910"
             value={formData.mobileNumber}
-            onChangeText={(text) => handleChange('mobileNumber', text)}
+            onChangeText={handleFormDataChange('mobileNumber')}
             error={errors.mobileNumber}
             testID="phone-number-input"
             returnKeyType="next"
@@ -161,7 +165,7 @@ const BasicInfo = (): JSX.Element => {
             label="Date of Birth"
             placeholder="MM/DD/YYYY"
             value={formData.dob}
-            onChangeText={(text) => handleChange('dob', text)}
+            onChangeText={handleFormDataChange('dob')}
             error={errors.dob}
             returnKeyType="next"
             keyboardType="number-pad"
@@ -174,7 +178,7 @@ const BasicInfo = (): JSX.Element => {
             label="Social Security Number"
             placeholder="XXX-XX-XXXX"
             value={formData.ssn}
-            onChangeText={(text) => handleChange('ssn', text)}
+            onChangeText={handleFormDataChange('ssn')}
             error={errors.ssn}
             returnKeyType="done"
             keyboardType="number-pad"

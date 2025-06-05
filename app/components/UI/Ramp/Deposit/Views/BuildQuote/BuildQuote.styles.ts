@@ -1,7 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     header: {
       textAlign: 'center',
       marginTop: 20,
@@ -29,12 +32,11 @@ const styleSheet = () =>
       marginBottom: 12,
       paddingBottom: 8,
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
+      borderBottomColor: theme.colors.border.default,
     },
     quoteSummary: {
       marginTop: 16,
       padding: 16,
-      backgroundColor: '#f5f5f5',
       borderRadius: 8,
     },
     summaryTitle: {
@@ -43,5 +45,6 @@ const styleSheet = () =>
       marginBottom: 8,
     },
   });
+};
 
 export default styleSheet;
