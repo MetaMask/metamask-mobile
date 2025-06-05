@@ -112,32 +112,32 @@ function Settings() {
               </Row>
             ) : null}
 
-            {isAuthenticated || displayLogoutMessage ? (
+            {isAuthenticated ? (
               <Row>
-                {isAuthenticated ? (
-                  <Button
-                    variant={ButtonVariants.Secondary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    onPress={handleResetDepositAuth}
-                    label={strings(
-                      'app_settings.fiat_on_ramp.deposit_provider_logout_button',
-                      {
-                        depositProviderName,
-                      },
-                    )}
-                  />
-                ) : null}
-                {displayLogoutMessage ? (
-                  <Text>
-                    {strings(
-                      'app_settings.fiat_on_ramp.deposit_provider_logged_out',
-                      {
-                        depositProviderName,
-                      },
-                    )}
-                  </Text>
-                ) : null}
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  onPress={handleResetDepositAuth}
+                  label={strings(
+                    'app_settings.fiat_on_ramp.deposit_provider_logout_button',
+                    {
+                      depositProviderName,
+                    },
+                  )}
+                />
+              </Row>
+            ) : null}
+            {displayLogoutMessage ? (
+              <Row>
+                <Text>
+                  {strings(
+                    'app_settings.fiat_on_ramp.deposit_provider_logged_out',
+                    {
+                      depositProviderName,
+                    },
+                  )}
+                </Text>
               </Row>
             ) : null}
           </ScreenLayout.Content>
