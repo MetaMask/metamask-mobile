@@ -9,7 +9,9 @@ import React, {
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
+import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
+import { selectPermissionControllerState } from '../../../selectors/snaps';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
   closeAllTabs,
@@ -26,7 +28,10 @@ import {
 import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { getPermittedAccounts } from '../../../core/Permissions';
+import {
+  getPermittedCaipAccountIdsByHostname,
+  sortMultichainAccountsByLastSelected,
+} from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
@@ -78,9 +83,10 @@ export const Browser = (props) => {
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
-  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
+  const { accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
+
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -89,6 +95,7 @@ export const Browser = (props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
 
   const homePageUrl = useCallback(
     () =>
@@ -182,29 +189,41 @@ export const Browser = (props) => {
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
-      const permittedEvmAccounts = getPermittedAccounts(hostnameForToastCheck);
-      const activeAccountAddress = permittedEvmAccounts?.[0];
+      const permittedAccounts = getPermittedCaipAccountIdsByHostname(
+        permittedAccountsList,
+        hostnameForToastCheck,
+      );
 
-      if (activeAccountAddress) {
-        const accountName = getAccountNameWithENS({
-          caipAccountId: `eip155:0:${activeAccountAddress}`,
-          accounts,
-          ensByAccountAddress,
-        });
-        // Show active account toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Account,
-          labelOptions: [
-            {
-              label: `${accountName} `,
-              isBold: true,
-            },
-            { label: strings('toast.now_active') },
-          ],
-          accountAddress: activeAccountAddress,
-          accountAvatarType,
-        });
+      const sortedPermittedAccounts =
+        sortMultichainAccountsByLastSelected(permittedAccounts);
+
+      if (!sortedPermittedAccounts.length) {
+        return;
       }
+
+      const activeCaipAccountId = sortedPermittedAccounts[0];
+
+      const { address } = parseCaipAccountId(activeCaipAccountId);
+
+      const accountName = getAccountNameWithENS({
+        caipAccountId: activeCaipAccountId,
+        accounts,
+        ensByAccountAddress,
+      });
+
+      // Show active account toast
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Account,
+        labelOptions: [
+          {
+            label: `${accountName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        accountAddress: address,
+        accountAvatarType,
+      });
     };
 
     const urlForEffect = browserUrl || currentUrl;
@@ -221,6 +240,7 @@ export const Browser = (props) => {
     currentUrl,
     browserUrl,
     accounts,
+    permittedAccountsList,
     ensByAccountAddress,
     accountAvatarType,
     toastRef,

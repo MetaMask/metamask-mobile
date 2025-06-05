@@ -55,7 +55,7 @@ export const isMultichainAccountsFeatureEnabled = (
 
   return (
     featureVersion === featureVersionToCheck &&
-    compareVersions.compare(minimumVersion, APP_VERSION, '>=')
+    compareVersions.compare(minimumVersion, APP_VERSION, '<=')
   );
 };
 
