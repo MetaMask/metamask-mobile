@@ -1,6 +1,8 @@
 import { getErrorMessage } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
+import Logger from '../../util/Logger';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 export const performSignIn = async () => {
   try {
@@ -34,8 +36,36 @@ export const setIsBackupAndSyncFeatureEnabled = async (
 
 export const syncInternalAccountsWithUserStorage = async () => {
   try {
+    Logger.log('🔄 STARTING syncInternalAccountsWithUserStorage');
+
+    // DEBUG: Check account names and addresses BEFORE sync
+    const accountsBefore =
+      Engine.context.AccountsController.state.internalAccounts.accounts;
+    Logger.log('📋 ACCOUNTS BEFORE SYNC:');
+    Object.values(accountsBefore).forEach((account: InternalAccount, index) => {
+      Logger.log(
+        `  Account ${index}: name="${account.metadata.name}", address="${account.address}"`,
+      );
+    });
+
     await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
+
+    // DEBUG: Check account names and addresses AFTER sync
+    const accountsAfter =
+      Engine.context.AccountsController.state.internalAccounts.accounts;
+    Logger.log('📋 ACCOUNTS AFTER SYNC:');
+    Object.values(accountsAfter).forEach((account: InternalAccount, index) => {
+      Logger.log(
+        `  Account ${index}: name="${account.metadata.name}", address="${account.address}"`,
+      );
+    });
+
+    Logger.log('✅ COMPLETED syncInternalAccountsWithUserStorage');
   } catch (error) {
+    Logger.log(
+      '❌ ERROR in syncInternalAccountsWithUserStorage:',
+      getErrorMessage(error),
+    );
     return getErrorMessage(error);
   }
 };

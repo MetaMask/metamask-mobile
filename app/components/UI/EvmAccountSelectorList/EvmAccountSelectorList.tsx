@@ -37,16 +37,18 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-
-// Internal dependencies.
-import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
-import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+
 import { Skeleton } from '../../../component-library/components/Skeleton';
+import Logger from '../../../util/Logger';
+
+// Internal dependencies.
+import { EvmAccountSelectorListProps } from './EvmAccountSelectorList.types';
+import styleSheet from './EvmAccountSelectorList.styles';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -249,6 +251,17 @@ const EvmAccountSelectorList = ({
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
+
+      // DEBUG: Log what account names are being rendered in the UI
+      Logger.log(
+        `🎨 UI RENDERING Account ${index}: name="${accountName}", address="${address}"`,
+      );
+
+      // DEBUG: Log what title is passed to Cell component
+      Logger.log(
+        `📱 CELL COMPONENT title="${accountName}" for address="${address}"`,
+      );
+
       let cellVariant = CellVariant.SelectWithMenu;
 
       if (isMultiSelect) {

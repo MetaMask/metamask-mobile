@@ -24,6 +24,7 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
         Logger.error(error);
       } else {
         const balanceHex = BNToHex(balance);
+        Logger.log(`💰 BALANCE CHECK: ${address} = ${balanceHex}`);
         resolve(balanceHex || ZERO_BALANCE);
       }
     });
@@ -34,6 +35,7 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
  */
 export default async () => {
   try {
+    Logger.log('🔍 STARTING importAdditionalAccounts');
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();
 
@@ -42,11 +44,13 @@ export default async () => {
       async ({ keyring }) => {
         for (let i = 0; i < MAX; i++) {
           const [newAccount] = await keyring.addAccounts(1);
+          Logger.log(`🆕 CREATED ACCOUNT ${i}: ${newAccount}`);
 
           let newAccountBalance = ZERO_BALANCE;
           try {
             newAccountBalance = await getBalance(newAccount, ethQuery);
           } catch (error) {
+            Logger.log(`❌ BALANCE ERROR for ${newAccount}:`, error);
             // Errors are gracefully handled so that `withKeyring`
             // will not rollback the primary keyring, and accounts
             // created in previous loop iterations will remain in place.
@@ -54,12 +58,18 @@ export default async () => {
 
           if (newAccountBalance === ZERO_BALANCE) {
             // remove extra zero balance account we just added and break the loop
+            Logger.log(`🗑️ REMOVING ZERO BALANCE ACCOUNT: ${newAccount}`);
             keyring.removeAccount?.(newAccount);
             break;
+          } else {
+            Logger.log(
+              `✅ KEEPING ACCOUNT WITH BALANCE: ${newAccount} (${newAccountBalance})`,
+            );
           }
         }
       },
     );
+    Logger.log('✅ COMPLETED importAdditionalAccounts');
   } finally {
     // We don't want to catch errors here, we let them bubble up to the caller
     // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way

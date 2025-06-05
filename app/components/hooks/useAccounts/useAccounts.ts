@@ -11,6 +11,7 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
+import Logger from '../../../util/Logger';
 
 // Internal dependencies
 import {
@@ -148,6 +149,16 @@ const useAccounts = ({
 
   const getAccounts = useCallback(() => {
     if (!isMountedRef.current) return;
+
+    // DEBUG: Log when useAccounts runs and what account names it sees
+    Logger.log('🔄 useAccounts.getAccounts() running...');
+    Logger.log('📋 useAccounts sees these internal accounts:');
+    internalAccounts.forEach((account, index) => {
+      Logger.log(
+        `  Account ${index}: name="${account.metadata.name}", address="${account.address}"`,
+      );
+    });
+
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
@@ -198,6 +209,7 @@ const useAccounts = ({
       },
     );
 
+    Logger.log('✅ useAccounts.getAccounts() completed, setting accounts');
     setAccounts(flattenedAccounts);
     setEVMAccounts(
       flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),

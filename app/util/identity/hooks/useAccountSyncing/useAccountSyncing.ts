@@ -12,6 +12,7 @@ import {
   selectIsAccountSyncingEnabled,
   selectIsSignedIn,
 } from '../../../../selectors/identity';
+import Logger from '../../../../util/Logger';
 
 /**
  * A utility used internally to decide if account syncing should be dispatched
@@ -32,6 +33,18 @@ export const useShouldDispatchAccountSyncing = () => {
   const isSignedIn = useSelector(selectIsSignedIn);
   const completedOnboarding = useSelector(selectCompletedOnboarding);
 
+  // DEBUG: Log all conditions for account syncing
+  Logger.log('🔍 ACCOUNT SYNCING CONDITIONS:');
+  Logger.log(`  basicFunctionality: ${basicFunctionality}`);
+  Logger.log(`  isBackupAndSyncEnabled: ${isBackupAndSyncEnabled}`);
+  Logger.log(`  isAccountSyncingEnabled: ${isAccountSyncingEnabled}`);
+  Logger.log(`  isUnlocked: ${isUnlocked}`);
+  Logger.log(`  isSignedIn: ${isSignedIn}`);
+  Logger.log(`  completedOnboarding: ${completedOnboarding}`);
+  Logger.log(
+    `  isAccountSyncingReadyToBeDispatched: ${isAccountSyncingReadyToBeDispatched}`,
+  );
+
   const shouldDispatchAccountSyncing: boolean = Boolean(
     basicFunctionality &&
       isBackupAndSyncEnabled &&
@@ -41,6 +54,8 @@ export const useShouldDispatchAccountSyncing = () => {
       completedOnboarding &&
       isAccountSyncingReadyToBeDispatched,
   );
+
+  Logger.log(`  shouldDispatchAccountSyncing: ${shouldDispatchAccountSyncing}`);
 
   return shouldDispatchAccountSyncing;
 };
@@ -55,9 +70,19 @@ export const useAccountSyncing = () => {
   const shouldDispatchAccountSyncing = useShouldDispatchAccountSyncing();
 
   const dispatchAccountSyncing = useCallback(() => {
+    Logger.log('🎯 dispatchAccountSyncing called');
+    Logger.log(
+      `🎯 shouldDispatchAccountSyncing: ${shouldDispatchAccountSyncing}`,
+    );
+
     if (!shouldDispatchAccountSyncing) {
+      Logger.log('❌ Account syncing conditions not met, skipping sync');
       return;
     }
+
+    Logger.log(
+      '✅ Account syncing conditions met, calling syncInternalAccountsWithUserStorage',
+    );
     syncInternalAccountsWithUserStorage();
   }, [shouldDispatchAccountSyncing]);
 

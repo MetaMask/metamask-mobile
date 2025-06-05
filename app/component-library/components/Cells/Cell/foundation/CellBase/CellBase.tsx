@@ -46,6 +46,7 @@ const CellBase = ({
           numberOfLines={1}
           variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
           testID={CellComponentSelectorsIDs.BASE_TITLE}
+          accessibilityLabel={typeof title === 'string' ? title : undefined}
         >
           {title}
         </Text>

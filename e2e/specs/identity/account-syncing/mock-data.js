@@ -21,7 +21,7 @@ export const accountsToMockForAccountsSync = [
   },
   {
     v: '1',
-    a: '0xd2a4aFe5c2fF0a16Bf81F77ba4201A8107AA874b',
+    a: '0xd2a4afe5c2ff0a16bf81f77ba4201a8107aa874b',
     i: '1111-1111',
     n: 'Hello from account 2',
     nlu: 1738590287,

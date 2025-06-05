@@ -29,12 +29,13 @@ import {
 } from './AccountConnectMultiSelector.types';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { CaipAccountId } from '@metamask/utils';
 import { Box } from '../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../UI/Box/box.types';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import AddAccountSelection from '../AddAccount/AddAccount';
+
+import { areAddressesEqual } from '../../../../util/address';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -68,7 +69,7 @@ const AccountConnectMultiSelector = ({
     (accAddress: CaipAccountId) => {
       const updatedSelectedAccountAddresses = selectedAddresses.filter(
         (selectedAccountId) =>
-          !isEqualCaseInsensitive(selectedAccountId, accAddress),
+          !areAddressesEqual(selectedAccountId, accAddress),
       );
 
       if (updatedSelectedAccountAddresses.length === selectedAddresses.length) {

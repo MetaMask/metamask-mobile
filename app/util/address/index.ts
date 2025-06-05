@@ -35,7 +35,6 @@ import Logger from '../../../app/util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
-  isEqualCaseInsensitive,
   type NetworkType,
   toChecksumHexAddress,
 } from '@metamask/controller-utils';
@@ -95,7 +94,16 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function toFormattedAddress(address: string) {
-  return isEthAddress(address) ? toChecksumHexAddress(address) : address;
+  // eslint-disable-next-line no-console
+  // console.log('toFormattedAddress called with ', address);
+  if (isEthAddress(address)) {
+    // eslint-disable-next-line no-console
+    // console.log('address is an eth address ', address);
+    return toChecksumHexAddress(address);
+  }
+  // eslint-disable-next-line no-console
+  // console.log('address is not an eth address ', address);
+  return address;
 }
 
 /**
@@ -367,9 +375,7 @@ export function getLabelTextByAddress(address: string) {
       case ExtendedKeyringTypes.hd:
         if (shouldShowSrpPill) {
           const hdKeyringIndex = hdKeyrings.findIndex((kr: KeyringObject) =>
-            kr.accounts.find((account) =>
-              isEqualCaseInsensitive(account, address),
-            ),
+            kr.accounts.find((account) => areAddressesEqual(account, address)),
           );
           // -1 means the address is not found in any of the hd keyrings
           if (hdKeyringIndex !== -1) {
