@@ -1,4 +1,7 @@
-import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import {
+  normalizeTransactionParams,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
