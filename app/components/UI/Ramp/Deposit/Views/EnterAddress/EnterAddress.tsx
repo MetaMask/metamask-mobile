@@ -86,14 +86,31 @@ const EnterAddress = (): JSX.Element => {
     ...formData,
   };
 
-  const [{ data: response, error, isFetching }, postKycForm] =
-    useDepositSdkMethod(
-      {
-        method: 'patchUser',
-        onMount: false,
-      },
-      combinedFormData,
-    );
+  const [
+    { data: kycResponse, error: kycError, isFetching: kycIsFetching },
+    postKycForm,
+  ] = useDepositSdkMethod(
+    {
+      method: 'patchUser',
+      onMount: false,
+    },
+    combinedFormData,
+  );
+
+  const [
+    {
+      data: purposeResponse,
+      error: purposeError,
+      isFetching: purposeIsFetching,
+    },
+    submitPurpose,
+  ] = useDepositSdkMethod(
+    {
+      method: 'submitPurposeOfUsageForm',
+      onMount: false,
+    },
+    ['Buying/selling crypto for investments'],
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -106,26 +123,39 @@ const EnterAddress = (): JSX.Element => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    if (validateFormData()) {
-      await postKycForm({
-        ...basicInfoFormData,
-        ...formData,
-      });
+    if (!validateFormData()) return;
 
-      if (response && !error) {
-        navigation.navigate(Routes.DEPOSIT.KYC_PROCESSING);
-      } else {
-        console.error('Error submitting form:', error);
+    try {
+      await postKycForm(combinedFormData);
+
+      if (kycError || !kycResponse) {
+        console.error('KYC form submission failed:', kycError);
+        return;
       }
+
+      console.log('kycResponse', kycResponse);
+
+      await submitPurpose();
+
+      console.log('purposeResponse', purposeResponse);
+
+      if (purposeError || !purposeResponse) {
+        console.error('Purpose submission failed:', purposeError);
+        return;
+      }
+
+      navigation.navigate(Routes.DEPOSIT.KYC_PROCESSING);
+    } catch (error) {
+      console.error('Unexpected error during form submission:', error);
     }
   }, [
-    basicInfoFormData,
-    response,
-    error,
-    formData,
-    navigation,
-    postKycForm,
     validateFormData,
+    postKycForm,
+    combinedFormData,
+    kycError,
+    submitPurpose,
+    purposeError,
+    navigation,
   ]);
 
   return (
@@ -211,7 +241,7 @@ const EnterAddress = (): JSX.Element => {
                 type="confirm"
                 onPress={handleOnPressContinue}
                 testID="address-continue-button"
-                disabled={isFetching}
+                disabled={kycIsFetching || purposeIsFetching}
               >
                 {strings('deposit.enter_address.continue')}
               </StyledButton>
