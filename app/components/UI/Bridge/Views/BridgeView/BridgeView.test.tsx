@@ -14,6 +14,8 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { isHardwareAccount } from '../../../../../util/address';
+import { strings } from '../../../../../../locales/i18n';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -69,6 +71,9 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         isSelected: true,
       },
     ],
+    ensByAccountAddress: {
+      '0x1234567890123456789012345678901234567890': '',
+    },
   }),
 }));
 
@@ -121,6 +126,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn().mockReturnValue(false),
+  formatAddress: jest.fn().mockImplementation((address) => address),
+  getLabelTextByAddress: jest.fn().mockReturnValue(''),
 }));
 
 describe('BridgeView', () => {
