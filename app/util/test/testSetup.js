@@ -252,27 +252,6 @@ jest.mock('react-native-reanimated', () =>
 );
 
 NativeModules.RNGestureHandlerModule = {
-  attachGestureHandler: jest.fn(),
-  createGestureHandler: jest.fn(),
-  dropGestureHandler: jest.fn(),
-  updateGestureHandler: jest.fn(),
-  forceTouchAvailable: jest.fn(),
-  install: jest.fn(),
-  flushOperations: jest.fn(),
-  State: {
-    UNDETERMINED: 0,
-    FAILED: 1,
-    BEGAN: 2,
-    CANCELLED: 3,
-    ACTIVE: 4,
-    END: 5,
-  },
-  Directions: {
-    RIGHT: 1,
-    LEFT: 2,
-    UP: 4,
-    DOWN: 8,
-  },
   getConstants: jest.fn(() => ({
     State: {
       UNDETERMINED: 0,
