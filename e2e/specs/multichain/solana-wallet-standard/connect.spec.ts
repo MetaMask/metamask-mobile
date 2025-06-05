@@ -6,6 +6,9 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountSnap } from '../../../common-solana';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 
 describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -64,26 +67,59 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     });
   });
 
-  describe('Page refresh', () => {
-    it('Should not disconnect the dapp', async () => {
-      await withSolanaAccountSnap({}, async () => {
-        await navigateToSolanaTestDApp();
+  describe('Switch account', () => {
+    it('Switching between 2 accounts should reflect in the dapp', async () => {
+      await withSolanaAccountSnap(
+        {
+          numberOfAccounts: 2,
+        },
+        async () => {
+          await navigateToSolanaTestDApp();
+          await connectSolanaTestDapp({ selectAllAccounts: true });
 
-        await connectSolanaTestDapp();
+          const header = SolanaTestDApp.getHeader();
+          const account = await header.getAccount();
+          await Assertions.checkIfTextMatches(account, '9Wa2...Dj2U');
 
-        // Should be connected
-        const header = SolanaTestDApp.getHeader();
-        const account = await header.getAccount();
-        await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+          await TabBarComponent.tapWallet();
+          await WalletView.tapCurrentMainWalletAccountActions();
 
-        // Refresh the page
-        await SolanaTestDApp.reloadSolanaTestDApp();
-        await TestHelpers.delay(4000);
+          await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
+          await TabBarComponent.tapBrowser();
 
-        // Should still be connected after refresh
-        const headerAfterRefresh = SolanaTestDApp.getHeader();
-        const accountAfterRefresh = await headerAfterRefresh.getAccount();
-        await Assertions.checkIfTextMatches(accountAfterRefresh, 'CEQ8...Yrrd');
+          const accountAfterSwitch = await header.getAccount();
+          await Assertions.checkIfTextMatches(
+            accountAfterSwitch,
+            'CEQ8...Yrrd',
+          );
+        },
+      );
+    });
+
+    describe('Page refresh', () => {
+      it('Should not disconnect the dapp', async () => {
+        await withSolanaAccountSnap({}, async () => {
+          await navigateToSolanaTestDApp();
+
+          await connectSolanaTestDapp();
+
+          // Should be connected
+          const header = SolanaTestDApp.getHeader();
+          const account = await header.getAccount();
+          await Assertions.checkIfTextMatches(account, 'CEQ8...Yrrd');
+
+          // Refresh the page
+          await SolanaTestDApp.reloadSolanaTestDApp();
+          await TestHelpers.delay(4000);
+
+          // Should still be connected after refresh
+          const headerAfterRefresh = SolanaTestDApp.getHeader();
+          const accountAfterRefresh = await headerAfterRefresh.getAccount();
+          await Assertions.checkIfTextMatches(
+            accountAfterRefresh,
+            'CEQ8...Yrrd',
+          );
+        });
       });
     });
   });

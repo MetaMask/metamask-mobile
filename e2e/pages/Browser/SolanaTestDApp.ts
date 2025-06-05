@@ -13,9 +13,7 @@ export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPo
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<
-  Detox.IndexableWebElement & Detox.SecuredWebElementFacade
-> {
+): Promise<Detox.IndexableWebElement & Detox.SecuredWebElementFacade> {
   const { extraXPath = '', tag = 'div' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
@@ -150,11 +148,59 @@ class SolanaTestDApp {
 
   getSendSolTest() {
     return {
-      signTransaction: async () => await this.tapButton(await getTestElement(dataTestIds.testPage.sendSol.signTransaction, { tag: 'button' })),
-      sendTransaction: async () => await this.tapButton(await getTestElement(dataTestIds.testPage.sendSol.sendTransaction, { tag: 'button' })),
-      getSignedTransaction: async () => (await getTestElement(dataTestIds.testPage.sendSol.signedTransaction, { tag: 'pre' })).getText(),
-      getTransactionHash: async () => (await getTestElement(dataTestIds.testPage.sendSol.transactionHash, { tag: 'pre' })).getText(),
+      signTransaction: async () =>
+        await this.tapButton(
+          await getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
+            tag: 'button',
+          }),
+        ),
+      sendTransaction: async () =>
+        await this.tapButton(
+          await getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
+            tag: 'button',
+          }),
+        ),
+      getSignedTransaction: async () =>
+        (
+          await getTestElement(dataTestIds.testPage.sendSol.signedTransaction, {
+            tag: 'pre',
+          })
+        ).getText(),
+      getTransactionHash: async () =>
+        (
+          await getTestElement(dataTestIds.testPage.sendSol.transactionHash, {
+            tag: 'pre',
+          })
+        ).getText(),
     };
+  }
+
+  async confirmTransaction(): Promise<void> {
+    const button = Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON_SELECTOR,
+    );
+    await Gestures.waitAndTap(button);
+  }
+
+  async cancelTransaction(): Promise<void> {
+    const button = Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CANCEL_TRANSACTION_BUTTON_SELECTOR,
+    );
+    await Gestures.waitAndTap(button);
+  }
+
+  async confirmSignMessage(): Promise<void> {
+    const button = Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON_SELECTOR,
+    );
+    await Gestures.waitAndTap(button);
+  }
+
+  async cancelSignMessage(): Promise<void> {
+    const button = Matchers.getElementByID(
+      SolanaTestDappSelectorsWebIDs.CANCEL_SIGN_MESSAGE_BUTTON_SELECTOR,
+    );
+    await Gestures.waitAndTap(button);
   }
 }
 
