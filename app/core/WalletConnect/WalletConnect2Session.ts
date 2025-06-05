@@ -29,6 +29,7 @@ import {
 import Engine from '../Engine/Engine';
 import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
+import { toHex } from 'viem';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -192,7 +193,7 @@ class WalletConnect2Session {
   private getNetworkClientIdForChainId(chainId: number) {
     if (isPerDappSelectedNetworkEnabled()) {
       const networkConfigurationsByChainId = selectEvmNetworkConfigurationsByChainId(store.getState());
-      const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[`0x${chainId.toString(16)}`];
+      const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[`0x${toHex(chainId)}`];
       return networkClientId;
     }
     return getGlobalNetworkClientId();
