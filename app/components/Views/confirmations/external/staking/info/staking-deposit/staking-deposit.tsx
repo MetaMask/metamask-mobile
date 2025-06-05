@@ -9,7 +9,7 @@ import InfoSectionAccordion from '../../../../components/UI/info-section-accordi
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import StakingDetails from '../../components/staking-details/staking-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
-import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 
 const StakingDeposit = () => {
   useNavbar(strings('stake.stake'));
@@ -58,7 +58,7 @@ const StakingDeposit = () => {
     <>
       <HeroRow />
       <StakingDetails />
-      <GasFeesDetails disableUpdate />
+      <GasFeesDetailsRow disableUpdate />
       <InfoSectionAccordion
         onStateChange={handleAdvancedDetailsToggledEvent}
         header={strings('stake.advanced_details')}
