@@ -17,9 +17,6 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../reducers';
 import { Hex } from '@metamask/utils';
-import { formatWithThreshold } from '../../../../../../util/assets';
-import I18n from '../../../../../../../locales/i18n';
-import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
 
 const SendFlowAddressFrom = ({
   chainId,
@@ -31,7 +28,6 @@ const SendFlowAddressFrom = ({
   const ticker = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, chainId as Hex),
   );
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const accounts = accountsByChainId[chainId];
 
@@ -72,36 +68,6 @@ const SendFlowAddressFrom = ({
 
   const selectedAssetRef = useRef(selectedAsset);
 
-  const calculateBalance = useCallback(
-    (address: string) => {
-      let balance = '';
-      let balanceIsZero = true;
-
-      if (!isEvmSelected) {
-        // For non-EVM accounts like Solana, use the asset balance from selectedAsset
-        if (selectedAsset?.balance) {
-          const minimumDisplayThreshold = 0.00001;
-          balance = `${formatWithThreshold(
-            parseFloat(selectedAsset.balance),
-            minimumDisplayThreshold,
-            I18n.locale,
-            { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-          )} ${selectedAsset.symbol || getTicker(ticker)}`;
-          balanceIsZero = parseFloat(selectedAsset.balance) === 0;
-        }
-      } else if (accounts?.[address]) {
-        // For EVM accounts, use the balance from accounts object
-        balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
-          ticker,
-        )}`;
-        balanceIsZero = hexToBN(accounts[address].balance).isZero();
-      }
-
-      return { balance, balanceIsZero };
-    },
-    [isEvmSelected, selectedAsset, accounts, ticker],
-  );
-
   useEffect(() => {
     if (
       selectedAssetRef.current.isETH ||
@@ -121,11 +87,12 @@ const SendFlowAddressFrom = ({
           checksummedSelectedAddress,
           chainId,
         );
-
-        const { balance, balanceIsZero } = calculateBalance(
-          checksummedSelectedAddress,
-        );
-
+        const balance = `${renderFromWei(
+          accounts[checksummedSelectedAddress].balance,
+        )} ${getTicker(ticker)}`;
+        const balanceIsZero = hexToBN(
+          accounts[checksummedSelectedAddress].balance,
+        ).isZero();
         setAccountName(ens || selectedInternalAccount?.metadata.name);
         setAccountBalance(balance);
         fromAccountBalanceState(balanceIsZero);
@@ -133,8 +100,9 @@ const SendFlowAddressFrom = ({
     }
     getAccount();
   }, [
-    calculateBalance,
+    accounts,
     checksummedSelectedAddress,
+    ticker,
     chainId,
     fromAccountBalanceState,
     selectedInternalAccount?.metadata.name,
@@ -142,11 +110,12 @@ const SendFlowAddressFrom = ({
 
   const onSelectAccount = async (address: string) => {
     const name = selectedInternalAccount?.metadata.name;
-    const { balance, balanceIsZero } = calculateBalance(address);
-
+    const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
+      ticker,
+    )}`;
     const ens = await doENSReverseLookup(address);
     const accName = ens || name;
-
+    const balanceIsZero = hexToBN(accounts[address].balance).isZero();
     selectedAssetAction(getEther(ticker as string));
     setAccountAddress(address);
     setAccountName(accName);
