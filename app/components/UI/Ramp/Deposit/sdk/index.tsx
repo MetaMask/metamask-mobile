@@ -21,7 +21,6 @@ import {
   resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
-import { RampSDKProvider } from '../../Aggregator/sdk';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
