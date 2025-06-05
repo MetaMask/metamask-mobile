@@ -323,7 +323,7 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
 jest.mock('expo-navigation-bar', () => ({
-  setPositionAsync: jest.fn(),
+  setVisibilityAsync: jest.fn(),
 }));
 
 jest.mock('../theme', () => ({
