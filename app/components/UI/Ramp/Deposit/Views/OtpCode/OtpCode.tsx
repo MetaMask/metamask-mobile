@@ -82,7 +82,10 @@ const OtpCode = () => {
       value,
     );
 
-  const { sdkMethod: resendOtp } = useDepositSdkMethod('sendUserOtp', email);
+  const [, resendOtp] = useDepositSdkMethod(
+    { method: 'sendUserOtp', onMount: false },
+    email,
+  );
 
   useEffect(() => {
     inputRef.current?.focus();
