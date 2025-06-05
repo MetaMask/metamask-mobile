@@ -13,6 +13,28 @@ import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebv
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
+const formExample = [
+  {
+    active: true,
+    hideProgress: false,
+    id: 'personalDetails',
+    isSubmitted: false,
+  },
+  {
+    hideProgress: false,
+    id: 'address',
+    isSubmitted: false,
+    onSubmit: 'updateUserData',
+  },
+  {
+    active: false,
+    hideProgress: false,
+    id: 'purposeOfUsage',
+    isSubmitted: false,
+    onSubmit: 'updateUserData',
+  },
+];
+
 const BuildQuote = () => {
   const navigation = useNavigation();
   const { theme } = useStyles(styleSheet, {});

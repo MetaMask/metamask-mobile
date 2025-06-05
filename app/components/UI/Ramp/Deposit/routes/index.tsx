@@ -15,6 +15,7 @@ import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 interface DepositParamList {
   [key: string]:
@@ -75,6 +76,16 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.KYC_PROCESSING}
         component={KycProcessing}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
+        component={ProviderWebview}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.KYC_PENDING}
+        component={() => <Text>KYC Pending page</Text>}
         options={getAnimationOptions}
       />
       <Stack.Screen
