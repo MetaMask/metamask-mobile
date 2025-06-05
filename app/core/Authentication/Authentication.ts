@@ -430,6 +430,7 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
+      const { AccountTreeController, AccountsController } = Engine.context;
       trace({
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
@@ -447,6 +448,8 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
       
+      AccountTreeController.init();
+      AccountsController.updateAccounts();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -473,6 +476,7 @@ class AuthenticationService {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
+      const { AccountTreeController, AccountsController } = Engine.context;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -501,6 +505,8 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
       
+      AccountTreeController.init();
+      AccountsController.updateAccounts();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
