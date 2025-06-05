@@ -296,10 +296,6 @@ class Assertions {
       .toExist()
       .withTimeout(timeout);
   }
-
-  static async checkIfElementWithTextDoesNotExist(text) {
-    return await expect(element(by.text(text))).not.toExist();
-  }
 }
 
 export default Assertions;
