@@ -32,6 +32,9 @@ describe('getUserStorageControllerMessenger', () => {
         'NetworkController:addNetwork',
         'NetworkController:removeNetwork',
         'NetworkController:updateNetwork',
+        'AddressBookController:list',
+        'AddressBookController:set',
+        'AddressBookController:delete',
       ],
       allowedEvents: [
         'KeyringController:lock',
@@ -39,6 +42,8 @@ describe('getUserStorageControllerMessenger', () => {
         'AccountsController:accountAdded',
         'AccountsController:accountRenamed',
         'NetworkController:networkRemoved',
+        'AddressBookController:contactUpdated',
+        'AddressBookController:contactDeleted',
       ],
     });
 

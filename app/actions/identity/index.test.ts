@@ -4,6 +4,7 @@ import {
   performSignOut,
   setIsBackupAndSyncFeatureEnabled,
   syncInternalAccountsWithUserStorage,
+  syncContactsWithUserStorage,
 } from '.';
 import Engine from '../../core/Engine';
 
@@ -17,6 +18,7 @@ jest.mock('../../core/Engine', () => ({
     UserStorageController: {
       setIsBackupAndSyncFeatureEnabled: jest.fn(),
       syncInternalAccountsWithUserStorage: jest.fn(),
+      syncContactsWithUserStorage: jest.fn(),
     },
   },
 }));
@@ -95,6 +97,19 @@ describe('Identity actions', () => {
 
     expect(
       Engine.context.UserStorageController.syncInternalAccountsWithUserStorage,
+    ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('syncs contacts with user storage', async () => {
+    (
+      Engine.context.UserStorageController.syncContactsWithUserStorage as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await syncContactsWithUserStorage();
+
+    expect(
+      Engine.context.UserStorageController.syncContactsWithUserStorage,
     ).toHaveBeenCalled();
     expect(result).toBeUndefined();
   });

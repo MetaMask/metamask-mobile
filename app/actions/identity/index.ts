@@ -51,3 +51,11 @@ export const setIsAccountSyncingReadyToBeDispatched = async (
     return getErrorMessage(error);
   }
 };
+
+export const syncContactsWithUserStorage = async () => {
+  try {
+    await Engine.context.UserStorageController.syncContactsWithUserStorage();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
