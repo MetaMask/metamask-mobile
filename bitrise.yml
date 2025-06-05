@@ -132,6 +132,7 @@ stages:
       - build_ios_qa: {}
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
   create_build_release:
     workflows:
       - build_android_release: {}
