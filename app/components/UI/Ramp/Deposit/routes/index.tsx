@@ -88,11 +88,6 @@ const DepositRoutes = () => (
         component={() => <Text>KYC Pending page</Text>}
         options={getAnimationOptions}
       />
-      <Stack.Screen
-        name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
-        component={ProviderWebview}
-        options={getAnimationOptions}
-      />
     </Stack.Navigator>
   </DepositSDKProvider>
 );
