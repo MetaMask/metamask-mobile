@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
-index f2fa0b0..d18e6a4 100644
+index f2fa0b0..3d7202d 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 @@ -21,6 +21,7 @@ const transaction_controller_1 = require("@metamask/transaction-controller");
@@ -15,7 +15,7 @@ index f2fa0b0..d18e6a4 100644
              return finalTransactionMeta;
          });
 -        _BridgeStatusController_handleApprovalTx.set(this, async (isBridgeTx, quoteResponse) => {
-+        _BridgeStatusController_handleApprovalTx.set(this, async (isBridgeTx, quoteResponse, requireApproval) => {
++        _BridgeStatusController_handleApprovalTx.set(this, async (isBridgeTx, quoteResponse, requireApproval = false) => {
              const { approval } = quoteResponse;
              if (approval) {
                  const approveTx = async () => {
@@ -97,28 +97,19 @@ index f2fa0b0..d18e6a4 100644
                  }
              }
          });
-@@ -413,9 +433,10 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
-          *
-          * @param quoteResponse - The quote response
-          * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
-+         * @param requireApproval - Whether to require approval for the transaction
-          * @returns The transaction meta
-          */
--        this.submitTx = async (quoteResponse, isStxEnabledOnClient) => {
-+        this.submitTx = async (quoteResponse, isStxEnabledOnClient, requireApproval) => {
-             let txMeta;
-             const isBridgeTx = (0, bridge_controller_1.isCrossChain)(quoteResponse.quote.srcChainId, quoteResponse.quote.destChainId);
-             // Submit SOLANA tx
-@@ -437,7 +458,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -436,8 +456,10 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+             let approvalTime, approvalTxId;
              if (!(0, bridge_controller_1.isSolanaChainId)(quoteResponse.quote.srcChainId) &&
                  typeof quoteResponse.trade !== 'string') {
++                const requireApproval = __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === types_1.BridgeClientId.MOBILE &&
++                    (0, bridge_controller_1.isHardwareWallet)(__classPrivateFieldGet(this, _BridgeStatusController_instances, "m", _BridgeStatusController_getMultichainSelectedAccount).call(this));
                  // Set approval time and id if an approval tx is needed
 -                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse);
 +                const approvalTxMeta = await __classPrivateFieldGet(this, _BridgeStatusController_handleApprovalTx, "f").call(this, isBridgeTx, quoteResponse, requireApproval);
                  approvalTime = approvalTxMeta?.time;
                  approvalTxId = approvalTxMeta?.id;
                  // Handle smart transactions if enabled
-@@ -450,9 +471,20 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -450,9 +472,19 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                              srcChainId: (0, bridge_controller_1.formatChainIdToCaip)(quoteResponse.quote.srcChainId),
                              stxEnabled: true,
                          },
@@ -132,10 +123,9 @@ index f2fa0b0..d18e6a4 100644
 +                    }));
                  }
                  else {
-+                    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 +                    // For hardware wallets on Mobile, this is fixes an issue where the Ledger does not get prompted for the 2nd approval
-+                    if (requireApproval && __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === types_1.BridgeClientId.MOBILE) {
-+                        await delay(2000);
++                    if (requireApproval) {
++                        await (0, bridge_status_1.delay)(2000);
 +                    }
                      txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
                          name: isBridgeTx
@@ -156,7 +146,7 @@ index f2fa0b0..d18e6a4 100644
              }
              if (!txMeta) {
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
-index 951fce4..325429b 100644
+index 951fce4..c73ddfc 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.d.cts
 @@ -4,8 +4,9 @@ import type { TransactionController } from "@metamask/transaction-controller";
@@ -170,16 +160,34 @@ index 951fce4..325429b 100644
  /** The input to start polling for the {@link BridgeStatusController} */
  type BridgeStatusPollingInput = FetchBridgeTxStatusArgs;
  export type FetchBridgeTxStatusArgs = {
-@@ -58,9 +59,10 @@ export declare class BridgeStatusController extends BridgeStatusController_base<
-      *
-      * @param quoteResponse - The quote response
-      * @param isStxEnabledOnClient - Whether smart transactions are enabled on the client, for example the getSmartTransactionsEnabled selector value from the extension
-+     * @param requireApproval - Whether to require approval for the transaction
-      * @returns The transaction meta
-      */
--    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
-+    submitTx: (quoteResponse: QuoteResponse<TxData | string> & QuoteMetadata, isStxEnabledOnClient: boolean, requireApproval: boolean) => Promise<TransactionMeta & Partial<SolanaTransactionMeta>>;
- }
- export {};
- //# sourceMappingURL=bridge-status-controller.d.cts.map
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.cjs b/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.cjs
+index f65d8bc..77e2c87 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.cjs
++++ b/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.cjs
+@@ -1,6 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.getStatusRequestWithSrcTxHash = exports.fetchBridgeTxStatus = exports.getStatusRequestDto = exports.getBridgeStatusUrl = exports.getClientIdHeader = void 0;
++exports.delay = exports.getStatusRequestWithSrcTxHash = exports.fetchBridgeTxStatus = exports.getStatusRequestDto = exports.getBridgeStatusUrl = exports.getClientIdHeader = void 0;
+ const validators_1 = require("./validators.cjs");
+ const getClientIdHeader = (clientId) => ({
+     'X-Client-Id': clientId,
+@@ -48,4 +48,6 @@ const getStatusRequestWithSrcTxHash = (quote, srcTxHash) => {
+     };
+ };
+ exports.getStatusRequestWithSrcTxHash = getStatusRequestWithSrcTxHash;
++const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
++exports.delay = delay;
+ //# sourceMappingURL=bridge-status.cjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.d.cts b/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.d.cts
+index 7751352..c127369 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.d.cts
++++ b/node_modules/@metamask/bridge-status-controller/dist/utils/bridge-status.d.cts
+@@ -7,4 +7,5 @@ export declare const getBridgeStatusUrl: (bridgeApiBaseUrl: string) => string;
+ export declare const getStatusRequestDto: (statusRequest: StatusRequestWithSrcTxHash) => StatusRequestDto;
+ export declare const fetchBridgeTxStatus: (statusRequest: StatusRequestWithSrcTxHash, clientId: string, fetchFn: FetchFunction, bridgeApiBaseUrl: string) => Promise<StatusResponse>;
+ export declare const getStatusRequestWithSrcTxHash: (quote: Quote, srcTxHash: string) => StatusRequestWithSrcTxHash;
++export declare const delay: (ms: number) => Promise<unknown>;
+ //# sourceMappingURL=bridge-status.d.cts.map
 \ No newline at end of file
