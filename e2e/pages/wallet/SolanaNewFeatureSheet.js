@@ -36,10 +36,6 @@ class SolanaNewFeatureSheet {
   // Interaction methods
   async tapCreateAccountButton() {
     await Gestures.waitAndTap(this.createAccountButton);
-    if (device.getPlatform() === 'android') {
-      // on android, keyboard is open and overlays the bottom sheet, so we need to close it
-      await device.pressBack();
-    }
   }
 
   async tapViewAccountButton() {

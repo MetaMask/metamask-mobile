@@ -112,10 +112,6 @@ class AccountListBottomSheet {
 
   async tapAddEthereumAccountButton() {
     await Gestures.waitAndTap(this.addEthereumAccountButton);
-    if (device.getPlatform() === 'android') {
-      // on android, keyboard is open and overlays the bottom sheet, so we need to close it
-      await device.pressBack();
-    }
   }
 
   async longPressImportedAccount() {
