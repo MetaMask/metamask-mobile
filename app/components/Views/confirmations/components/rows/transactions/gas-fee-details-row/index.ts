@@ -1,1 +1,1 @@
-export { default } from './gas-fee-details';
+export { default } from './gas-fee-details-row';
