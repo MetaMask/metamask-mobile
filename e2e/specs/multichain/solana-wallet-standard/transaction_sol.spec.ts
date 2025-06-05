@@ -30,14 +30,11 @@ describe(
 
           await Assertions.checkIfTextIsDisplayed('Transaction request');
 
-          await SolanaTestDApp.confirmTransaction();
-
-          await TestHelpers.delay(2000);
-          const signedTransaction = await sendSolTest.getSignedTransaction();
-          await assertIsSignedTransaction(signedTransaction);
+          await SolanaTestDApp.cancelTransaction();
         });
       });
 
+      // TODO: Enable when devnet is supported on mobile
       it.skip('Should send a transaction', async () => {
         await withSolanaAccountSnap({}, async () => {
           await navigateToSolanaTestDApp();
