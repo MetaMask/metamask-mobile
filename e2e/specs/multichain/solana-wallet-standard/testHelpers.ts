@@ -1,5 +1,6 @@
 import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
@@ -12,11 +13,19 @@ import Assertions from '../../../utils/Assertions';
  * @param options.includeDevnet
  */
 export const connectSolanaTestDapp = async (
-  _options: { selectAllAccounts?: boolean; includeDevnet?: boolean } = {},
+  options: { selectAllAccounts?: boolean; includeDevnet?: boolean } = {},
 ): Promise<void> => {
+  const { selectAllAccounts } = options;
+
   const header = SolanaTestDApp.getHeader();
   await header.connect();
   await header.selectMetaMask();
+
+  if (selectAllAccounts) {
+    await ConnectedAccountsModal.tapAccountListBottomSheet();
+    await ConnectBottomSheet.tapSelectAllButton();
+    await ConnectBottomSheet.tapAccountConnectMultiSelectButton();
+  }
 
   // Click connect button
   await ConnectBottomSheet.tapConnectButton();
@@ -26,4 +35,12 @@ export const navigateToSolanaTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
   await Assertions.checkIfVisible(BrowserView.browserScreenID);
   await SolanaTestDApp.navigateToSolanaTestDApp();
+};
+
+export const assertIsSignedTransaction = async (signedTransaction: string) => {
+  if (!/^.{88}$/.test(signedTransaction)) {
+    throw new Error(
+      `Signed transaction does not match regex: ${signedTransaction}`,
+    );
+  }
 };

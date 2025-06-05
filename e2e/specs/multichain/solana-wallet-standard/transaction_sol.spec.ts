@@ -1,11 +1,12 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
-import Gestures from '../../../utils/Gestures';
-import Matchers from '../../../utils/Matchers';
+import {
+  assertIsSignedTransaction,
+  connectSolanaTestDapp,
+  navigateToSolanaTestDApp,
+} from './testHelpers';
 import { withSolanaAccountSnap } from '../../../common-solana';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import Assertions from '../../../utils/Assertions';
 import TestHelpers from '../../../helpers';
 
@@ -17,32 +18,40 @@ describe(
     });
 
     describe('Send a transaction', () => {
-      it('Should send a transaction', async () => {
-        await withSolanaAccountSnap({},
-          async () => {
-            await navigateToSolanaTestDApp();
+      it('Should sign a transaction', async () => {
+        await withSolanaAccountSnap({}, async () => {
+          await navigateToSolanaTestDApp();
+          await connectSolanaTestDapp();
 
-            await connectSolanaTestDapp();
+          await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
-            const sendSolTest = SolanaTestDApp.getSendSolTest();
-            await sendSolTest.signTransaction();
+          const sendSolTest = SolanaTestDApp.getSendSolTest();
+          await sendSolTest.signTransaction();
 
-            await TestHelpers.delay(3000);
-            console.log('looking for cancel button');
-            // await FooterActions.tapCancelButton();
+          await Assertions.checkIfTextIsDisplayed('Transaction request');
 
-            // const cancelButton = Matchers.getElementByText('Cancel');
-            const cancelButton = Matchers.getElementByID('confirm-sign-and-send-transaction-cancel-snap-footer-button');
-            await Gestures.waitAndTap(cancelButton);
-            console.log('tapped cancel button');
+          await SolanaTestDApp.confirmTransaction();
 
+          await TestHelpers.delay(2000);
+          const signedTransaction = await sendSolTest.getSignedTransaction();
+          await assertIsSignedTransaction(signedTransaction);
+        });
+      });
 
-            await TestHelpers.delay(2000);
+      it.skip('Should send a transaction', async () => {
+        await withSolanaAccountSnap({}, async () => {
+          await navigateToSolanaTestDApp();
+          await connectSolanaTestDapp();
 
-            // const element = Matchers.getElementByXPath('//*[@text="Transaction request"]');
-            // await Assertions.checkIfTextIsDisplayed('Transaction request', 100);
-          },
-        );
+          await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
+
+          const sendSolTest = SolanaTestDApp.getSendSolTest();
+          await sendSolTest.sendTransaction();
+
+          await Assertions.checkIfTextIsDisplayed('Transaction request');
+
+          await SolanaTestDApp.cancelTransaction();
+        });
       });
     });
   },
