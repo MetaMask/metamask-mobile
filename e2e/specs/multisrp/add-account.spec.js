@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAccounts } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -59,31 +59,34 @@ const addAccountToSrp = async (srp, accountName) => {
   await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 };
 
-describe(SmokeAccounts('Multi-SRP: Add new account to a specific SRP'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withImportedHdKeyringController()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+describe(
+  SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
+  () => {
+    beforeAll(async () => {
+      await TestHelpers.reverseServerPort();
+      const fixture = new FixtureBuilder()
+        .withImportedHdKeyringController()
+        .build();
+      await startFixtureServer(fixtureServer);
+      await loadFixture(fixtureServer, { fixture });
+      await TestHelpers.launchApp({
+        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      });
+      await loginToApp();
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
     });
-    await loginToApp();
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-  });
 
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
-  });
+    afterAll(async () => {
+      await stopFixtureServer(fixtureServer);
+    });
 
-  it('adds an account to default SRP', async () => {
-    await addAccountToSrp(SRP_1, 'Account 3');
-  });
+    it('adds an account to default SRP', async () => {
+      await addAccountToSrp(SRP_1, 'Account 3');
+    });
 
-  it('adds an account to the imported SRP', async () => {
-    await addAccountToSrp(SRP_2, 'Account 4');
-  });
-});
+    it('adds an account to the imported SRP', async () => {
+      await addAccountToSrp(SRP_2, 'Account 4');
+    });
+  },
+);
