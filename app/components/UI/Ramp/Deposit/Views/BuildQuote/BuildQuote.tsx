@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -7,11 +7,36 @@ import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
+import { useDepositSDK } from '../../sdk';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
+import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
   const { theme } = useStyles(styleSheet, {});
+
+  const [paymentMethod] = useState<string>('credit_debit_card');
+  const [cryptoCurrency] = useState<string>('USDC');
+  const [fiatCurrency] = useState<string>('USD');
+  const [network] = useState<string>('ethereum');
+  const [amount] = useState<string>('100');
+  const { isAuthenticated } = useDepositSDK();
+
+  const [, getQuote] = useDepositSdkMethod(
+    { method: 'getBuyQuote', onMount: false },
+    fiatCurrency,
+    cryptoCurrency,
+    network,
+    paymentMethod,
+    amount,
+  );
+
+  const [, fetchKycForms] = useDepositSdkMethod({
+    method: 'getKYCForms',
+    onMount: false,
+  });
 
   useEffect(() => {
     navigation.setOptions(
@@ -19,9 +44,42 @@ const BuildQuote = () => {
     );
   }, [navigation, theme]);
 
-  const handleOnPressContinue = useCallback(() => {
-    navigation.navigate(...createEnterEmailNavDetails());
-  }, [navigation]);
+  const handleOnPressContinue = useCallback(async () => {
+    const quote = await getQuote(
+      fiatCurrency,
+      cryptoCurrency,
+      network,
+      paymentMethod,
+      amount,
+    );
+
+    if (quote) {
+      const forms = await fetchKycForms(quote);
+      const { forms: requiredForms } = forms || {};
+      if (isAuthenticated) {
+        if (requiredForms?.length === 0) {
+          navigation.navigate(...createProviderWebviewNavDetails());
+        } else {
+          navigation.navigate(...createBasicInfoNavDetails());
+        }
+      } else {
+        navigation.navigate(...createEnterEmailNavDetails());
+      }
+    } else {
+      // TODO: Handle error case where quote can not be generated
+      console.error('Failed to fetch quote');
+    }
+  }, [
+    amount,
+    cryptoCurrency,
+    fetchKycForms,
+    fiatCurrency,
+    getQuote,
+    isAuthenticated,
+    navigation,
+    network,
+    paymentMethod,
+  ]);
 
   return (
     <ScreenLayout>
