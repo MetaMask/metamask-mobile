@@ -69,6 +69,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         type: 'HD Key Tree',
         yOffset: 0,
         isSelected: true,
+        caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       },
     ],
     ensByAccountAddress: {
@@ -679,7 +680,7 @@ describe('BridgeView', () => {
 
       // Wait for the banner text to appear
       await waitFor(() => {
-        expect(getByText(strings('bridge.hardware_wallet_not_supported'))).toBeTruthy();
+        expect(getByText(strings('bridge.hardware_wallet_not_supported_solana'))).toBeTruthy();
       });
     });
   });

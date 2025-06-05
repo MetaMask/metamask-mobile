@@ -624,7 +624,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 4,
                                           "height": 16,
                                           "justifyContent": "center",
                                           "marginRight": 0,
@@ -660,7 +660,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 4,
                                           "height": 16,
                                           "justifyContent": "center",
                                           "marginRight": 0,
