@@ -1157,6 +1157,29 @@ class FixtureBuilder {
   }
 
   /**
+   * Set the favicons property in the browser state.
+   * @param {Array|null} favicons - The value to set for favicons. Pass null to explicitly set to null.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withEmptyFavicon() {
+    if (!this.fixture.state.browser) {
+      this.fixture.state.browser = {
+        history: [],
+        whitelist: [],
+        tabs: [
+          {
+            url: 'https://google.com',
+            id: 1692550481062,
+          },
+        ],
+        activeTab: 1692550481062,
+        favicons: []
+      };
+    }
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */

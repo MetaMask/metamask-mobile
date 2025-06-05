@@ -18,7 +18,8 @@ describe(SmokeWalletPlatform('Search for a website with broken SVG and open it')
     await withFixtures(
       {
         dapp: false,
-        fixture: new FixtureBuilder().build(),
+        // Set favicons to null to prevent issues with broken SVG favicons
+        fixture: new FixtureBuilder().withEmptyFavicon().build(),
         restartDevice: true,
         testSpecificMock: false,
       },
