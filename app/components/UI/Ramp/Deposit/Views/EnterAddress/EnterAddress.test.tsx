@@ -4,6 +4,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -24,19 +25,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.ENTER_ADDRESS,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
 }
 
 describe('EnterAddress Component', () => {

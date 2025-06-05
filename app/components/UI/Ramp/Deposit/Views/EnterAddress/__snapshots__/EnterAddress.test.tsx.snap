@@ -2379,6 +2379,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={0.2}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     [
