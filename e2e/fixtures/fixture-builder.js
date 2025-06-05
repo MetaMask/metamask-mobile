@@ -470,9 +470,6 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
         },
-        wizard: {
-          step: 0,
-        },
         onboarding: {
           events: [],
         },
@@ -644,7 +641,6 @@ class FixtureBuilder {
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
-        '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       },
@@ -795,7 +791,7 @@ class FixtureBuilder {
       .map((id) => ({
         [`eip155:${parseInt(id)}`]: { accounts: [] },
       }))
-      .reduce(((acc, obj) => ({ ...acc, ...obj })));
+      .reduce((acc, obj) => ({ ...acc, ...obj }));
 
     const defaultCaip25CaveatValue = {
       optionalScopes,

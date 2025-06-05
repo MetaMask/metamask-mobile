@@ -70,45 +70,6 @@
     "subtitle3": "Acesse via MetaMask e faça transações para investir, lucrar, jogar, vender e muito mais!",
     "get_started": "Comece agora"
   },
-  "onboarding_wizard": {
-    "skip_tutorial": "Pular tutorial",
-    "coachmark": {
-      "action_back": "Não, agradeço",
-      "action_next": "Faça o tour",
-      "progress_back": "Voltar",
-      "progress_next": "Entendi!"
-    },
-    "step1": {
-      "title": "Bem-vindo(a) à sua nova carteira!",
-      "content1": "Para usar o blockchain, você precisa de uma carteira. Algumas ações custam Ether (ETH).",
-      "content2": "Nós mostraremos como comprar ETH – ou você pode pedir alguns a um amigo."
-    },
-    "step2": {
-      "title": "Suas contas",
-      "content1": "Esta é sua primeira conta, o valor total, com um endereço público exclusivo (0x...).",
-      "content2": "Você pode criar várias contas dentro desta carteira: basta tocar no ícone Perfil."
-    },
-    "step3": {
-      "title": "Editar nome da conta",
-      "content1": "Que tal dar à sua conta um nome diferente e fácil de lembrar?",
-      "content2": "Toque longo",
-      "content3": "Agora vamos editar o nome da conta."
-    },
-    "step4": {
-      "title": "Navegação principal",
-      "content1": "Toque aqui",
-      "content2": "para acessar a carteira, o navegador e o histórico de transações.",
-      "content3": "Você pode realizar outras ações com suas contas e acessar as configurações do MetaMask."
-    },
-    "step5": {
-      "title": "Explore o navegador",
-      "content1": "Você pode explorar a web3 usando o navegador"
-    },
-    "step6": {
-      "title": "Buscar",
-      "content": "Busque os websites ou digite um URL, se você souber aonde ir."
-    }
-  },
   "create_wallet": {
     "title": "Criando sua carteira...",
     "subtitle": "Não deve demorar"

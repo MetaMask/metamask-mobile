@@ -67,45 +67,6 @@
     "subtitle3": "使用 MetaMask 登录并进行交易，以便投资、赚钱、玩游戏、销售等！",
     "get_started": "开始使用"
   },
-  "onboarding_wizard": {
-    "skip_tutorial": "跳过教程",
-    "coachmark": {
-      "action_back": "不，谢谢",
-      "action_next": "进行导览",
-      "progress_back": "返回",
-      "progress_next": "知道了！"
-    },
-    "step1": {
-      "title": "欢迎使用您的新钱包！",
-      "content1": "要使用区块链，您需要一个钱包！有些操作可能需要花费以太币 (ETH)。",
-      "content2": "我们将为您演示如何购买 ETH，或者，您可以向朋友索要一些。"
-    },
-    "step2": {
-      "title": "您的账户",
-      "content1": "这是您的第一个账户、总价值及其唯一公共地址 (0x...)。",
-      "content2": "通过点按个人资料图标，您可以在此钱包内创建多个账户。"
-    },
-    "step3": {
-      "title": "编辑账户名",
-      "content1": "为什么不给您的账户起一个好记又独特的名字呢？",
-      "content2": "立即",
-      "content3": "长按以编辑账户名。"
-    },
-    "step4": {
-      "title": "主导航",
-      "content1": "点按此处",
-      "content2": "可访问您的钱包、浏览器和交易历史记录。",
-      "content3": "您可以对账户执行更多操作及访问 MetaMask 设置。"
-    },
-    "step5": {
-      "title": "探索浏览器",
-      "content1": "您可以使用浏览器探索 web3"
-    },
-    "step6": {
-      "title": "搜索",
-      "content": "搜索站点；如果您知道要前往的目的地，键入 URL。"
-    }
-  },
   "create_wallet": {
     "title": "正在创建您的钱包...",
     "subtitle": "这应该不需要很长时间"

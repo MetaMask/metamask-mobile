@@ -10,7 +10,6 @@ import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView'
 import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import Browser from '../../pages/Browser/BrowserView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
@@ -37,14 +36,6 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingView.container);
   });
 
-  it('should be able to opt-out of the onboarding-wizard', async () => {
-    await OnboardingView.tapCreateWallet();
-    await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-    await MetaMetricsOptIn.tapNoThanksButton();
-    await acceptTermOfUse();
-    await Assertions.checkIfVisible(CreatePasswordView.container);
-  });
-
   it('should be able to create a new wallet', async () => {
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.enterPassword(PASSWORD);
@@ -66,54 +57,9 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
 
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+    await Assertions.checkIfVisible(
+      EnableAutomaticSecurityChecksView.container,
+    );
     await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should go through the onboarding wizard flow', async () => {
-    // Check that Take the tour CTA is visible and tap it
-    await TestHelpers.delay(3000);
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapTakeTourButton();
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepTwoContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 3 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
-    // await WalletView.editAccountName(ACCOUNT);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    // Tap on Back
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 6 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 6 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 7 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSevenContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Check that we are on the Browser page
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });

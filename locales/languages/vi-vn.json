@@ -70,45 +70,6 @@
     "subtitle3": "Đăng nhập bằng MetaMask và thực hiện các giao dịch để đầu tư, kiếm tiền, chơi trò chơi, bán hàng và nhiều hoạt động khác!",
     "get_started": "Bắt đầu"
   },
-  "onboarding_wizard": {
-    "skip_tutorial": "Bỏ qua phần hướng dẫn",
-    "coachmark": {
-      "action_back": "Không, cảm ơn",
-      "action_next": "Xem thử một vòng",
-      "progress_back": "Quay lại",
-      "progress_next": "Đã hiểu!"
-    },
-    "step1": {
-      "title": "Chào mừng bạn đến với ví mới của mình!",
-      "content1": "Để sử dụng chuỗi khối, bạn cần có một ví! Một số hành động có thể tiêu tốn Ether (ETH).",
-      "content2": "Chúng tôi sẽ hướng dẫn bạn cách mua ETH hoặc bạn có thể yêu cầu một người bạn gửi cho mình."
-    },
-    "step2": {
-      "title": "Tài khoản của bạn",
-      "content1": "Đây là tài khoản đầu tiên của bạn, tổng giá trị và địa chỉ công khai duy nhất của tài khoản đó (0x...).",
-      "content2": "Bạn có thể tạo nhiều tài khoản trong ví này bằng cách nhấn vào biểu tượng hồ sơ."
-    },
-    "step3": {
-      "title": "Chỉnh sửa tên tài khoản",
-      "content1": "Chẳng có lý do gì mà không đặt một tên dễ nhớ và khác biệt cho tài khoản của bạn.",
-      "content2": "Nhấn giữ",
-      "content3": "bây giờ để chỉnh sửa tên tài khoản."
-    },
-    "step4": {
-      "title": "Bảng điều hướng chính",
-      "content1": "Nhấn vào đây",
-      "content2": "để truy cập Ví, Trình duyệt và Lịch sử giao dịch của bạn.",
-      "content3": "Bạn có thể thực hiện nhiều hành động khác với tài khoản của mình và truy cập vào phần cài đặt MetaMask."
-    },
-    "step5": {
-      "title": "Khám phá Trình duyệt",
-      "content1": "Bạn có thể khám phá web3 bằng trình duyệt"
-    },
-    "step6": {
-      "title": "Tìm kiếm",
-      "content": "Tìm kiếm trang web hoặc nhập một URL nếu bạn biết địa chỉ truy cập."
-    }
-  },
   "create_wallet": {
     "title": "Đang tạo ví của bạn...",
     "subtitle": "Quá trình này sẽ không mất nhiều thời gian"

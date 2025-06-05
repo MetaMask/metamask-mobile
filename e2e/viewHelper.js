@@ -9,7 +9,6 @@ import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from './pages/Onboarding/OnboardingWizardModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -47,17 +46,6 @@ These onboarding modals are becoming a bit wild. We need less of these so we don
 have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
-
-  // Handle Onboarding wizard
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
 
   try {
     await Assertions.checkIfVisible(ToastModal.container);
@@ -133,7 +121,6 @@ export const importWalletWithRecoveryPhrase = async ({
   // Should dismiss Automatic Security checks screen
   await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
-  // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals();
 };
@@ -169,10 +156,6 @@ export const CreateNewWallet = async () => {
   //'Should dismiss Automatic Security checks screen'
   await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
-
-  // 'should dismiss the onboarding wizard'
-  // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals();
 
   // Dismissing to protect your wallet modal
   await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
@@ -253,10 +236,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }

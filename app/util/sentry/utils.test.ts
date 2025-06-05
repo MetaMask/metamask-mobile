@@ -397,9 +397,7 @@ describe('captureSentryFeedback', () => {
         seedphraseBackedUp: true,
         userLoggedIn: true,
       },
-      wizard: {
-        step: 1,
-      },
+
       onboarding: {
         events: [],
       },
@@ -519,7 +517,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -560,7 +557,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -596,8 +592,6 @@ describe('captureSentryFeedback', () => {
         swaps: 'object',
         transaction: 'object',
         confirmationMetrics: 'object',
-        user: 'object',
-        wizard: 'object',
       });
     });
 

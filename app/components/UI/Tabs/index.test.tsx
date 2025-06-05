@@ -5,9 +5,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,

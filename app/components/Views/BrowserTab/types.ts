@@ -90,15 +90,14 @@ export type BrowserTabProps = {
   /**
    * Function to update the tab information
    */
-  updateTabInfo: (tabID: number, info: { url?: string, isArchived?: boolean, image?: string }) => void;
+  updateTabInfo: (
+    tabID: number,
+    info: { url?: string; isArchived?: boolean; image?: string },
+  ) => void;
   /**
    * Function to update the tab information
    */
   showTabs: () => void;
-  /**
-   * Current onboarding wizard step
-   */
-  wizardStep: number;
   /**
    * the current version of the app
    */

@@ -70,45 +70,6 @@
     "subtitle3": "MetaMask로 로그인하고 투자, 수익 활동, 게임, 판매 등을 위한 거래를 시작하세요!",
     "get_started": "시작하기"
   },
-  "onboarding_wizard": {
-    "skip_tutorial": "자습서 건너뛰기",
-    "coachmark": {
-      "action_back": "괜찮습니다",
-      "action_next": "둘러보기",
-      "progress_back": "뒤로",
-      "progress_next": "알겠습니다!"
-    },
-    "step1": {
-      "title": "새 지갑을 선택한 여러분 환영합니다!",
-      "content1": "블록체인을 사용하려면 지갑이 필요합니다! 일부 작업에는 이더(ETH)가 필요합니다.",
-      "content2": "ETH 구매 방법을 알려드리겠습니다. 또는 친구에게 요청하실 수도 있습니다."
-    },
-    "step2": {
-      "title": "귀하의 계정",
-      "content1": "귀하의 첫 번째 계정, 총 가치, 고유한 공개 주소(0x...)입니다.",
-      "content2": "프로필 아이콘을 탭하여 이 지갑에 여러 계정을 만들 수 있습니다."
-    },
-    "step3": {
-      "title": "계정 이름 편집",
-      "content1": "계정에 기억하기 싶고 특별한 이름을 지어주면 어떨까요?",
-      "content2": "지금 길게 탭하여",
-      "content3": "계정 이름을 편집하세요."
-    },
-    "step4": {
-      "title": "기본 탐색",
-      "content1": "여기를 탭하여",
-      "content2": "지갑, 브라우저, 거래 내역에 액세스하세요.",
-      "content3": "계정에서 다양한 작업을 수행하고 MetaMask 설정에 액세스할 수 있습니다."
-    },
-    "step5": {
-      "title": "브라우저 탐색",
-      "content1": "브라우저를 사용하여 web3를 탐색할 수 있습니다."
-    },
-    "step6": {
-      "title": "검색",
-      "content": "사이트를 검색하거나 주소를 알고 있는 경우 URL을 입력하세요."
-    }
-  },
   "create_wallet": {
     "title": "지갑 생성 중...",
     "subtitle": "오래 걸리지 않습니다."

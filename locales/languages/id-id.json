@@ -70,45 +70,6 @@
     "subtitle3": "Login dengan MetaMask dan buat transaksi untuk berinvestasi, menghasilkan, main game, menjual, dan banyak lagi!",
     "get_started": "Persiapan"
   },
-  "onboarding_wizard": {
-    "skip_tutorial": "Lewatkan Tutorial",
-    "coachmark": {
-      "action_back": "Tidak, Terima Kasih",
-      "action_next": "Ikuti turnya",
-      "progress_back": "Kembali",
-      "progress_next": "Mengerti!"
-    },
-    "step1": {
-      "title": "Selamat datang di dompet baru Anda!",
-      "content1": "Untuk menggunakan blockchain, Anda memerlukan dompet! Beberapa tindakan menghabiskan Ether (ETH).",
-      "content2": "Kami akan menunjukkan kepada Anda cara membeli ETH, atau Anda dapat meminta beberapa dari teman."
-    },
-    "step2": {
-      "title": "Akun Anda",
-      "content1": "Inilah akun pertama Anda, nilai total, dan alamat publik uniknya (0x...).",
-      "content2": "Anda dapat membuat beberapa akun menggunakan dompet ini dengan mengetuk ikon profil."
-    },
-    "step3": {
-      "title": "Edit Nama Akun",
-      "content1": "Mengapa tidak memberikan akun Anda nama yang khas dan mudah diingat?",
-      "content2": "Ketuk lama",
-      "content3": "sekarang edit nama akun."
-    },
-    "step4": {
-      "title": "Navigasi Utama",
-      "content1": "Ketuk di sini",
-      "content2": "untuk mengakses Dompet, Browser, dan riwayat Transaksi.",
-      "content3": "Anda dapat mengambil lebih banyak tindakan dengan akun Anda & mengakses pengaturan MetaMask."
-    },
-    "step5": {
-      "title": "Jelajahi Browser",
-      "content1": "Anda dapat menjelajahi web3 menggunakan browser"
-    },
-    "step6": {
-      "title": "Cari",
-      "content": "Cari situs, atau ketikkan URL jika Anda tahu tujuan Anda."
-    }
-  },
   "create_wallet": {
     "title": "Membuat dompet Anda...",
     "subtitle": "Ini semestinya tidak lama"

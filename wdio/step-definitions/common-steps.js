@@ -10,7 +10,6 @@ import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletS
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
@@ -114,12 +113,6 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
   await ImportFromSeedScreen.clickImportButton();
 });
 
-Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
-  await OnboardingWizardModal.isVisible();
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
-  await OnboardingWizardModal.tapNoThanksButton();
-});
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
   const timeout = 2500;
@@ -307,37 +300,3 @@ Then(/^tokens (.*) in account should be displayed$/, async (token) => {
   await CommonScreen.isTextDisplayed(token)
 });
 
-Given(/^I close all the onboarding modals$/, async () => {
-  // Handle Onboarding wizard
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-
-  try {
-    // Handle Marketing consent modal
-
-    await ExperienceEnhancerModal.waitForDisplay();
-    await ExperienceEnhancerModal.tapNoThanks();
-    await ExperienceEnhancerModal.waitForDisappear();
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
-  try {
-    await OnboardingWizardModal.isVisible();
-    await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-});
-Then(/^I use the back button on Android$/, async () => {
-  await driver.back();
-});

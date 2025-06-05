@@ -15,9 +15,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,
