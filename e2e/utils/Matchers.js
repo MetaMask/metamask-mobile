@@ -87,12 +87,9 @@ class Matchers {
    * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
-    if (process.env.CI) {
-      return device.getPlatform() === 'ios'
-        ? web(by.id(elementId))
-        : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
-    }
-    return web(by.id(elementId));
+    return device.getPlatform() === 'ios'
+      ? web(by.id(elementId))
+      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
   }
 
   /**
