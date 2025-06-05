@@ -1,9 +1,16 @@
 import FixtureBuilder from './fixtures/fixture-builder';
-import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, DEFAULT_SOLANA_TEST_DAPP_PATH, withFixtures } from './fixtures/fixture-helper';
+import {
+  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+  DEFAULT_SOLANA_TEST_DAPP_PATH,
+  withFixtures,
+} from './fixtures/fixture-helper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import WalletView from './pages/wallet/WalletView';
+import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 
 export async function withSolanaAccountSnap(
   {
@@ -29,23 +36,17 @@ export async function withSolanaAccountSnap(
       await TestHelpers.reverseServerPort();
       await loginToApp();
 
-      // Create Solana account
+      // Create 1st Solana account through the new feature sheet
       await SolanaNewFeatureSheet.tapCreateAccountButton();
       await AddNewHdAccountComponent.tapConfirm();
 
-      // TODO: Adapt for mobile
-      /* for (let i = 1; i <= numberOfAccounts; i++) {
-        await headerComponent.openAccountMenu();
-        await accountListPage.addAccount({
-          accountType: ACCOUNT_TYPE.Solana,
-          accountName: `Solana ${i}`,
-        });
-        await headerComponent.check_accountLabel(`Solana ${i}`);
+      // Create remaining Solana accounts through the wallet view
+      for (let i = 1; i < numberOfAccounts; i++) {
+        await WalletView.tapCurrentMainWalletAccountActions();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapAddSolanaAccount();
+        await AddNewHdAccountComponent.tapConfirm();
       }
-
-      if (numberOfAccounts > 0) {
-        await headerComponent.check_accountLabel(`Solana ${numberOfAccounts}`);
-      } */
 
       await test();
     },
