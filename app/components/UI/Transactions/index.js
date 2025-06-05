@@ -388,7 +388,23 @@ class Transactions extends PureComponent {
   renderEmpty = () => {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
-    if (this.props.tokenChainId !== this.props.chainId) {
+
+    const shouldShowSwitchNetwork = () => {
+      if (!this.props.tokenChainId || !this.props.chainId) {
+        return false;
+      }
+
+      if (
+        isNonEvmChainId(this.props.chainId) ||
+        isNonEvmChainId(this.props.tokenChainId)
+      ) {
+        return this.props.tokenChainId !== this.props.chainId;
+      }
+
+      return this.props.tokenChainId !== this.props.chainId;
+    };
+
+    if (shouldShowSwitchNetwork()) {
       return (
         <View style={styles.emptyContainer}>
           <Text style={styles.textTransactions}>
@@ -410,14 +426,25 @@ class Transactions extends PureComponent {
       providerConfig: { type },
       selectedAddress,
       close,
+      chainId,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      const { url, title } = getBlockExplorerAddressUrl(
-        type,
-        selectedAddress,
-        rpcBlockExplorer,
-      );
+      let url, title;
+
+      if (isNonEvmChainId(chainId) && rpcBlockExplorer) {
+        url = `${rpcBlockExplorer}/address/${selectedAddress}`;
+        title = getBlockExplorerName(rpcBlockExplorer);
+      } else {
+        const result = getBlockExplorerAddressUrl(
+          type,
+          selectedAddress,
+          rpcBlockExplorer,
+        );
+        url = result.url;
+        title = result.title;
+      }
+
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -443,6 +470,15 @@ class Transactions extends PureComponent {
       providerConfig: { type },
     } = this.props;
     const blockExplorerText = () => {
+      if (isNonEvmChainId(chainId)) {
+        if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+          return `${strings(
+            'transactions.view_full_history_on',
+          )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
+        }
+        return null;
+      }
+
       if (isMainnetByChainId(chainId) || type !== RPC) {
         return strings('transactions.view_full_history_on_etherscan');
       }

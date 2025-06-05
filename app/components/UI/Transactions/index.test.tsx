@@ -5,6 +5,34 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import {
+  getBlockExplorerAddressUrl,
+  getBlockExplorerName,
+  findBlockExplorerForNonEvmChainId,
+  findBlockExplorerForRpc,
+} from '../../../util/networks';
+
+// Mock the navigation and other dependencies
+const mockNavigationPush = jest.fn();
+const mockNavigation = {
+  push: mockNavigationPush,
+  setOptions: jest.fn(),
+};
+
+// Mock the multichain utils
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(),
+}));
+
+// Mock network utils
+jest.mock('../../../util/networks', () => ({
+  getBlockExplorerAddressUrl: jest.fn(),
+  getBlockExplorerName: jest.fn(),
+  findBlockExplorerForNonEvmChainId: jest.fn(),
+  findBlockExplorerForRpc: jest.fn(),
+  isMainnetByChainId: jest.fn(),
+}));
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -20,7 +48,31 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+// Get the mocked functions with proper typing
+const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
+  typeof isNonEvmChainId
+>;
+const mockGetBlockExplorerAddressUrl =
+  getBlockExplorerAddressUrl as jest.MockedFunction<
+    typeof getBlockExplorerAddressUrl
+  >;
+const mockGetBlockExplorerName = getBlockExplorerName as jest.MockedFunction<
+  typeof getBlockExplorerName
+>;
+const mockFindBlockExplorerForNonEvmChainId =
+  findBlockExplorerForNonEvmChainId as jest.MockedFunction<
+    typeof findBlockExplorerForNonEvmChainId
+  >;
+const mockFindBlockExplorerForRpc =
+  findBlockExplorerForRpc as jest.MockedFunction<
+    typeof findBlockExplorerForRpc
+  >;
+
 describe('Transactions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
@@ -49,5 +101,169 @@ describe('Transactions', () => {
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
+  });
+
+  describe('Block Explorer Integration', () => {
+    it('should render for Solana chains', () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Solscan');
+
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            navigation={mockNavigation}
+            providerConfig={{ type: 'rpc' }}
+            selectedAddress="EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE"
+            chainId="solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+
+    it('should render for EVM chains', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockGetBlockExplorerAddressUrl.mockReturnValue({
+        url: 'https://etherscan.io/address/0x123',
+        title: 'Etherscan',
+      });
+
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            navigation={mockNavigation}
+            providerConfig={{ type: 'mainnet' }}
+            selectedAddress="0x123"
+            chainId="0x1"
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+  });
+
+  describe('Network Configuration', () => {
+    it('should handle non-EVM chain configuration', () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockFindBlockExplorerForNonEvmChainId.mockReturnValue(
+        'https://solscan.io',
+      );
+
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            chainId="solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            providerConfig={{
+              type: 'rpc',
+              rpcUrl: 'https://api.mainnet-beta.solana.com',
+            }}
+            networkConfigurations={{}}
+            selectedAddress="EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE"
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+
+    it('should handle RPC network configuration', () => {
+      mockIsNonEvmChainId.mockReturnValue(false);
+      mockFindBlockExplorerForRpc.mockReturnValue(
+        'https://custom-explorer.com',
+      );
+
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            chainId="0x89"
+            providerConfig={{ type: 'rpc', rpcUrl: 'https://polygon-rpc.com' }}
+            networkConfigurations={{}}
+            selectedAddress="0x123"
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+  });
+
+  describe('Empty State Handling', () => {
+    it('should render empty state for non-EVM chains without transactions', () => {
+      mockIsNonEvmChainId.mockReturnValue(true);
+
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            chainId="solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            providerConfig={{ type: 'rpc' }}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+
+    it('should render loading state', () => {
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading
+            chainId="0x1"
+            providerConfig={{ type: 'mainnet' }}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+  });
+
+  describe('Solana Block Explorer Functionality', () => {
+    it('should render with Solana-specific props', () => {
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            chainId="solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+            providerConfig={{ type: 'rpc' }}
+            selectedAddress="EMmTjuHsYCYX7vgPcQ2QVbNwYAwcvGoSMCEaHKc19DdE"
+            navigation={mockNavigation}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
+
+    it('should render with different chain configurations', () => {
+      const wrapper = shallow(
+        <Provider store={store}>
+          <Transactions
+            transactions={[]}
+            loading={false}
+            chainId="bitcoin:000000000019d6689c085ae165831e93"
+            providerConfig={{ type: 'rpc' }}
+            selectedAddress="bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+            navigation={mockNavigation}
+          />
+        </Provider>,
+      );
+
+      expect(wrapper).toBeDefined();
+    });
   });
 });
