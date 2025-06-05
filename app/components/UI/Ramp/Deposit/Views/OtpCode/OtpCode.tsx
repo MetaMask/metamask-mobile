@@ -22,11 +22,11 @@ import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity
 import { useDepositSDK } from '../../sdk';
 import Row from '../../../Aggregator/components/Row';
 
-const ResendButton: FC<{ onPress: any; text: string; button: string }> = ({
-  onPress,
-  text,
-  button,
-}) => {
+const ResendButton: FC<{
+  onPress: VoidFunction;
+  text: string;
+  button: string;
+}> = ({ onPress, text, button }) => {
   const { styles } = useStyles(styleSheet, {});
   return (
     <>
