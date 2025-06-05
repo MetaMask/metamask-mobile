@@ -16,9 +16,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
-import useBalance from '../Ramp/hooks/useBalance';
+import useBalance from '../Ramp/Aggregator/hooks/useBalance';
 import {
   ButtonSize,
   ButtonVariants,
@@ -28,7 +28,7 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import Box from '../Ramp/components/Box';
+import Box from '../Ramp/Aggregator/components/Box';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Routes from '../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';

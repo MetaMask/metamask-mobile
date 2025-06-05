@@ -10,7 +10,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
