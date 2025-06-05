@@ -7,7 +7,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import { useTwrncTheme } from '../../../../../../hooks/useTwrncTheme';
+import { useTailwind } from '@metamask-previews/design-system-twrnc-preset';
 import Text from '../../../../Texts/Text';
 import Button from '../../../../Buttons/Button';
 import ButtonIcon from '../../../../Buttons/ButtonIcon';
@@ -37,7 +37,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
-  const { tw } = useTwrncTheme();
+  const tw = useTailwind();
 
   const renderTitle = () =>
     typeof title === 'string' ? (

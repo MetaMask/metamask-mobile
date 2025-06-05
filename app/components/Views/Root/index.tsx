@@ -8,7 +8,6 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
 import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
-import TwrncThemeProvider from '../../../component-library/providers/TwrncThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
@@ -71,18 +70,16 @@ const Root = ({ foxCode }: RootProps) => {
             ///: END:ONLY_INCLUDE_IF
           }
           <ThemeProvider>
-            <TwrncThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
-            </TwrncThemeProvider>
+            <NavigationProvider>
+              <ControllersGate>
+                <ToastContextWrapper>
+                  <ErrorBoundary view="Root">
+                    <ReducedMotionConfig mode={ReduceMotion.Never} />
+                    <App />
+                  </ErrorBoundary>
+                </ToastContextWrapper>
+              </ControllersGate>
+            </NavigationProvider>
           </ThemeProvider>
         </PersistGate>
       </Provider>
