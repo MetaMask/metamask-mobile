@@ -14,6 +14,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export const createKycProcessingNavDetails = createNavigationDetails(
   Routes.DEPOSIT.KYC_PROCESSING,
@@ -51,6 +56,12 @@ const KycProcessing = () => {
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
+              <Icon
+                name={IconName.CircleX}
+                size={IconSize.Lg}
+                color={IconColor.Error}
+              />
+
               <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
@@ -78,10 +89,10 @@ const KycProcessing = () => {
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
-              <ActivityIndicator
-                size="large"
-                color={theme.colors.primary.default}
-                testID="activity-indicator"
+              <Icon
+                name={IconName.CheckBold}
+                size={IconSize.Lg}
+                color={IconColor.Success}
               />
 
               <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
