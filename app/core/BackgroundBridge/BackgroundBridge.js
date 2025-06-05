@@ -422,10 +422,23 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   async getProviderState(origin, networkClientId) {
-    return {
-      isUnlocked: this.isUnlocked(),
-      ...(await this.getProviderNetworkState(origin, networkClientId)),
+    console.log('[METAMASK-DEBUG] BackgroundBridge getProviderState called with origin:', origin, 'networkClientId:', networkClientId);
+    try {
+      const isUnlocked = this.isUnlocked();
+      const networkState = await this.getProviderNetworkState(origin, networkClientId);
+      console.log('[METAMASK-DEBUG] BackgroundBridge getProviderState - isUnlocked:', isUnlocked);
+      console.log('[METAMASK-DEBUG] BackgroundBridge getProviderState - networkState:', JSON.stringify(networkState));
+      
+      const result = {
+        isUnlocked,
+        ...networkState,
     };
+      console.log('[METAMASK-DEBUG] BackgroundBridge getProviderState returning:', JSON.stringify(result));
+      return result;
+    } catch (error) {
+      console.error('[METAMASK-DEBUG] BackgroundBridge getProviderState ERROR:', error);
+      throw error;
+    }
   }
 
   sendStateUpdate = () => {
@@ -433,7 +446,30 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    this.port.emit('message', { name: msg.name, data: msg.data });
+    console.log('[METAMASK-DEBUG] BackgroundBridge.onMessage received:', JSON.stringify(msg));
+    
+    // Handle nested message structure from BrowserTab
+    // BrowserTab sends: {target: "...", data: {name: "...", data: {...}}, origin: "..."}
+    // We need to extract: {name: "...", data: {...}}
+    let name, data;
+    
+    if (msg.data && msg.data.name && msg.data.data) {
+      // Nested structure from BrowserTab
+      name = msg.data.name;
+      data = msg.data.data;
+      console.log('[METAMASK-DEBUG] BackgroundBridge.onMessage using nested structure');
+    } else if (msg.name && msg.data) {
+      // Direct structure (legacy support)
+      name = msg.name;
+      data = msg.data;
+      console.log('[METAMASK-DEBUG] BackgroundBridge.onMessage using direct structure');
+    } else {
+      console.error('[METAMASK-DEBUG] BackgroundBridge.onMessage: Invalid message structure:', JSON.stringify(msg));
+      return;
+    }
+    
+    console.log('[METAMASK-DEBUG] BackgroundBridge.onMessage emitting to port:', JSON.stringify({name, data}));
+    this.port.emit('message', { name, data });
   };
 
   onDisconnect = () => {
@@ -474,16 +510,30 @@ export class BackgroundBridge extends EventEmitter {
    * @param {*} outStream - The stream to provide over.
    */
   setupProviderConnectionEip1193(outStream) {
+    console.log('[METAMASK-DEBUG] BackgroundBridge setupProviderConnectionEip1193 starting (EIP-1193)');
     this.engine = this.setupProviderEngineEip1193();
 
     // setup connection
     const providerStream = createEngineStream({ engine: this.engine });
 
+    // Add debug logging for EIP-1193 stream data
+    outStream.on('data', (data) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge EIP-1193 outStream received data:', JSON.stringify(data));
+    });
+
+    providerStream.on('data', (data) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge EIP-1193 providerStream sending data:', JSON.stringify(data));
+    });
+
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.engine.destroy();
-      if (err) Logger.log('Error with provider stream conn', err);
+      if (err) {
+        console.log('[METAMASK-DEBUG] BackgroundBridge EIP-1193 pump error:', err);
+        Logger.log('Error with provider stream conn', err);
+      }
     });
+    console.log('[METAMASK-DEBUG] BackgroundBridge setupProviderConnectionEip1193 completed (EIP-1193)');
   }
 
   /**
@@ -492,11 +542,21 @@ export class BackgroundBridge extends EventEmitter {
    * @param {*} outStream - The stream to provide over.
    */
   setupProviderConnectionCaip(outStream) {
+    console.log('[METAMASK-DEBUG] BackgroundBridge setupProviderConnectionCaip starting (MULTICHAIN)');
     this.multichainEngine = this.setupProviderEngineCaip();
 
     // setup connection
     const providerStream = createEngineStream({
       engine: this.multichainEngine,
+    });
+
+    // Add debug logging for multichain stream data
+    outStream.on('data', (data) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge CAIP outStream received data:', JSON.stringify(data));
+    });
+
+    providerStream.on('data', (data) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge CAIP providerStream sending data:', JSON.stringify(data));
     });
 
     // This is not delayed like it is in Extension because Mobile does not have to
@@ -510,8 +570,12 @@ export class BackgroundBridge extends EventEmitter {
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.multichainEngine.destroy();
-      if (err) Logger.log('Error with provider stream conn', err);
+      if (err) {
+        console.log('[METAMASK-DEBUG] BackgroundBridge CAIP pump error:', err);
+        Logger.log('Error with provider stream conn', err);
+      }
     });
+    console.log('[METAMASK-DEBUG] BackgroundBridge setupProviderConnectionCaip completed (MULTICHAIN)');
   }
 
   /**
@@ -663,6 +727,15 @@ export class BackgroundBridge extends EventEmitter {
 
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
+
+    // Add debug middleware to log all EIP-1193 requests
+    engine.push((req, res, next, end) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge EIP-1193 engine received request:', JSON.stringify(req));
+      return next((cb) => {
+        console.log('[METAMASK-DEBUG] BackgroundBridge EIP-1193 engine sending response:', JSON.stringify(res));
+        cb();
+      });
+    });
 
     // user-facing RPC methods
     engine.push(
@@ -824,6 +897,15 @@ export class BackgroundBridge extends EventEmitter {
       ),
     );
 
+    // Add debug middleware to log all multichain requests
+    engine.push((req, res, next, end) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge MULTICHAIN engine received request:', JSON.stringify(req));
+      return next((cb) => {
+        console.log('[METAMASK-DEBUG] BackgroundBridge MULTICHAIN engine sending response:', JSON.stringify(res));
+        cb();
+      });
+    });
+
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
@@ -833,10 +915,12 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     engine.push(async (req, res, _next, end) => {
+      console.log('[METAMASK-DEBUG] BackgroundBridge MULTICHAIN final middleware, req:', JSON.stringify(req));
       const { provider } = NetworkController.getNetworkClientById(
         req.networkClientId,
       );
       res.result = await provider.request(req);
+      console.log('[METAMASK-DEBUG] BackgroundBridge MULTICHAIN final middleware, result:', JSON.stringify(res.result));
       return end();
     });
 

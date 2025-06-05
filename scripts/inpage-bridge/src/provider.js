@@ -4,11 +4,15 @@ const pump = require('pump');
 const { v4: uuid } = require('uuid');
 const MobilePortStream = require('./MobilePortStream');
 const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
+const { Transform } = require('readable-stream');
 
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
 const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
+
+// Debugging flag - set to true to enable comprehensive logging
+const DEBUG_PROVIDER_INIT = true;
 
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
@@ -16,22 +20,63 @@ const metamaskStream = new ReactNativePostMessageStream({
   target: CONTENT_SCRIPT,
 });
 
-const init = () => {
-  // Initialize provider object (window.ethereum)
-  initializeProvider({
-    connectionStream: metamaskStream,
-    shouldSendMetadata: false,
-    providerInfo: {
-      uuid: uuid(),
-      name: process.env.METAMASK_BUILD_NAME,
-      icon: process.env.METAMASK_BUILD_ICON,
-      rdns: process.env.METAMASK_BUILD_APP_ID,
-    },
+// Create a transform stream to unwrap multiplexed messages for the raw provider
+const createUnwrapTransform = () => {
+  return new Transform({
+    objectMode: true,
+    transform(chunk, encoding, callback) {
+      console.log(`[METAMASK-DEBUG] UnwrapTransform received:`, JSON.stringify(chunk));
+      
+      // If this is a multiplexed message with name + data, unwrap it
+      if (chunk && typeof chunk === 'object' && chunk.name && chunk.data) {
+        console.log(`[METAMASK-DEBUG] UnwrapTransform unwrapping multiplexed message from channel: ${chunk.name}`);
+        this.push(chunk.data);
+      } else {
+        // Pass through non-multiplexed messages (like SYN/ACK)
+        console.log(`[METAMASK-DEBUG] UnwrapTransform passing through raw message`);
+        this.push(chunk);
+      }
+      callback();
+    }
   });
+};
+
+const init = () => {
+  console.log(`[METAMASK-DEBUG] Provider init starting`);
+  
+  const providerInfo = {
+    uuid: uuid(),
+    name: process.env.METAMASK_BUILD_NAME,
+    icon: process.env.METAMASK_BUILD_ICON,
+    rdns: process.env.METAMASK_BUILD_APP_ID,
+  };
+  
+  console.log(`[METAMASK-DEBUG] Provider info:`, JSON.stringify(providerInfo));
+
+  // FIXED APPROACH: Raw Stream + Unwrap Transform
+  // Create transform to unwrap multiplexed messages
+  const unwrapTransform = createUnwrapTransform();
+  
+  // Connect transform between metamaskStream and provider
+  pump(metamaskStream, unwrapTransform, (err) => {
+    if (err) console.log(`[METAMASK-DEBUG] Unwrap transform error:`, err);
+  });
+  
+  console.log(`[METAMASK-DEBUG] Using raw stream with unwrap transform - provider gets pure JSON-RPC`);
+
+  // Initialize the provider with UNWRAPPED stream
+  const provider = initializeProvider({
+    connectionStream: unwrapTransform, // Unwrapped stream - pure JSON-RPC
+    shouldSendMetadata: false,
+    providerInfo,
+  });
+
+  console.log(`[METAMASK-DEBUG] Provider initialized with unwrapped stream - receives pure JSON-RPC messages`);
 
   // Set content script post-setup function
   Object.defineProperty(window, '_metamaskSetupProvider', {
     value: () => {
+      console.log(`[METAMASK-DEBUG] setupProviderStreams called`);
       setupProviderStreams();
       delete window._metamaskSetupProvider;
     },
@@ -39,7 +84,7 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-}
+};
 
 // Functions
 
@@ -47,6 +92,8 @@ const init = () => {
  * Setup function called from content script after the DOM is ready.
  */
 function setupProviderStreams() {
+  console.log(`[METAMASK-DEBUG] Setting up provider streams`);
+  
   // the transport-specific streams for communication between inpage and background
   const pageStream = new ReactNativePostMessageStream({
     name: CONTENT_SCRIPT,
@@ -64,9 +111,9 @@ function setupProviderStreams() {
   const appMux = new ObjectMultiplex();
   appMux.setMaxListeners(25);
 
-  pump(pageMux, pageStream, pageMux, (err) =>
-    logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
-  );
+  pump(pageMux, pageStream, pageMux, (err) => {
+    logStreamDisconnectWarning('MetaMask Inpage Multiplex', err);
+  });
   pump(appMux, appStream, appMux, (err) => {
     logStreamDisconnectWarning('MetaMask Background Multiplex', err);
     notifyProviderOfStreamFailure();
@@ -90,12 +137,12 @@ function setupProviderStreams() {
 function forwardTrafficBetweenMuxes(channelName, muxA, muxB) {
   const channelA = muxA.createStream(channelName);
   const channelB = muxB.createStream(channelName);
-  pump(channelA, channelB, channelA, (err) =>
+  pump(channelA, channelB, channelA, (err) => {
     logStreamDisconnectWarning(
       `MetaMask muxed traffic for channel "${channelName}" failed.`,
       err,
-    ),
-  );
+    );
+  });
 }
 
 /**

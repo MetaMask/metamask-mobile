@@ -891,6 +891,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    */
   const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
     const data = nativeEvent.data;
+    console.log('[METAMASK-DEBUG] BrowserTab onMessage received:', typeof data === 'string' ? data.substring(0, 200) + '...' : JSON.stringify(data));
+    
     try {
       if (data.length > MAX_MESSAGE_LENGTH) {
         console.warn(
@@ -902,15 +904,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         return;
       }
       const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
-      if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+      console.log('[METAMASK-DEBUG] BrowserTab onMessage parsed:', JSON.stringify(dataParsed));
+      
+      // Fix: Check for nested name property (dataParsed.data.name) in addition to top-level properties
+      const hasNameProperty = dataParsed?.name || dataParsed?.data?.name;
+      if (!dataParsed || (!dataParsed.type && !hasNameProperty)) {
+        console.log('[METAMASK-DEBUG] BrowserTab onMessage FILTERED OUT - no type or name property');
         return;
       }
-      if (dataParsed.name) {
+      
+      // Handle both top-level name and nested name properties
+      if (dataParsed.name || dataParsed.data?.name) {
+        console.log('[METAMASK-DEBUG] BrowserTab onMessage forwarding to BackgroundBridge:', JSON.stringify(dataParsed));
         backgroundBridgeRef.current?.onMessage(dataParsed);
         return;
       }
     } catch (e: unknown) {
       const onMessageError = e as Error;
+      console.error('[METAMASK-DEBUG] BrowserTab onMessage ERROR:', onMessageError);
       Logger.error(
         onMessageError,
         `Browser::onMessage on ${resolvedUrlRef.current}`,
