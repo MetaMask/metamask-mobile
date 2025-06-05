@@ -2431,6 +2431,18 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     </View>
                                   </View>
                                 </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "marginVertical": 8,
+                                      },
+                                      undefined,
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
