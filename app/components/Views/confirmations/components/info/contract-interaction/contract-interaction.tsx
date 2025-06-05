@@ -9,7 +9,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import AccountNetworkInfo from '../../rows/account-network-info-row';
 import OriginRow from '../../rows/origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
 
 const ContractInteraction = () => {
@@ -30,7 +30,7 @@ const ContractInteraction = () => {
         isTransactionsRedesign
       />
       <OriginRow isSignatureRequest={false} />
-      <GasFeesDetails />
+      <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
   );

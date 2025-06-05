@@ -14,8 +14,8 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
 import { HeroRow } from '../../rows/transactions/hero-row';
 import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
-import FromTo from '../../rows/transactions/from-to';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
+import FromToRow from '../../rows/transactions/from-to-row';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
@@ -43,7 +43,7 @@ const Transfer = () => {
   return (
     <View>
       <HeroRow />
-      <FromTo />
+      <FromToRow />
       <NetworkAndOriginRow />
       {isDappTransfer && (
         <SimulationDetails
@@ -52,7 +52,7 @@ const Transfer = () => {
           isTransactionsRedesign
         />
       )}
-      <GasFeesDetails />
+      <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
   );

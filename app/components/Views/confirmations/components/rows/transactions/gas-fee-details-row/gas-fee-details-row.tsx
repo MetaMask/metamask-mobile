@@ -20,7 +20,7 @@ import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import { GasSpeed } from '../../../gas/gas-speed';
-import styleSheet from './gas-fee-details.styles';
+import styleSheet from './gas-fee-details-row.styles';
 
 
 const EstimationInfo = ({
@@ -71,7 +71,7 @@ const ClickableEstimationInfo = ({
   );
 };
 
-const GasFeesDetails = ({ disableUpdate = false }) => {
+const GasFeesDetailsRow = ({ disableUpdate = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
@@ -131,4 +131,4 @@ const GasFeesDetails = ({ disableUpdate = false }) => {
   );
 };
 
-export default GasFeesDetails;
+export default GasFeesDetailsRow;
