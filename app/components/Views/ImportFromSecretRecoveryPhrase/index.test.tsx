@@ -904,12 +904,4 @@ describe('handleOnFocus', () => {
     const input4 = getInput(4);
     expect(input4).toBeOnTheScreen();
   });
-
-  it('should handle new word input correctly', () => {
-    const { getByPlaceholderText, getByTestId } = renderScreen(
-      ImportFromSecretRecoveryPhrase,
-      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-      { state: initialState },
-    );
-  });
 });
