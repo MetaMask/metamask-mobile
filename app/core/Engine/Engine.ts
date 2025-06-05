@@ -226,6 +226,7 @@ import {
   MultichainRouterGetSupportedAccountsEvent,
   MultichainRouterIsSupportedScopeEvent,
 } from './controllers/multichain-router/constants';
+import { EarnEnvironments } from '@metamask/stake-sdk';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1334,6 +1335,9 @@ export class Engine {
           'NetworkController:getState',
         ],
       }),
+      addTransactionFn: transactionController.addTransaction.bind(
+        transactionController,
+      ),
     });
 
     this.context = {

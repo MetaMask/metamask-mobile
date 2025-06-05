@@ -42,9 +42,13 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
+        ...mockNetworkState({
           chainId: MOCK_CHAIN_ID,
-        },
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://etherscan.io',
+        }),
       } as unknown as NetworkController['state'],
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {

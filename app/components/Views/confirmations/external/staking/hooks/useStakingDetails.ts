@@ -9,14 +9,19 @@ import { selectConversionRateByChainId } from '../../../../../../selectors/curre
 import { fromWei, hexToBN } from '../../../../../../util/number';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useNetworkInfo } from '../../../../../../selectors/selectedNetworkController';
+import { getDecimalChainId } from '../../../../../../util/networks';
 
-export const useStakingDetails = () => {
+export const useStakingDetails = (chainId?: number) => {
   const transactionMeta = useTransactionMetadataRequest();
   const txValueWei = transactionMeta?.txParams?.value;
   const fiatFormatter = useFiatFormatter();
   const locale = I18n.locale;
+  const { chainId: selectedEvmChainId } = useNetworkInfo();
 
-  const { annualRewardRate: apr, annualRewardRateDecimal } = useVaultMetadata();
+  const { annualRewardRate: apr, annualRewardRateDecimal } = useVaultMetadata(
+    chainId || getDecimalChainId(selectedEvmChainId),
+  );
 
   const ethAmountInWei = hexToBN(txValueWei || '0x0');
   const ethAmountInBN = new BigNumber(fromWei(ethAmountInWei, 'ether'));

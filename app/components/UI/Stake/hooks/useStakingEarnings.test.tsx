@@ -5,6 +5,7 @@ import usePooledStakes from './usePooledStakes';
 import useBalance from './useBalance';
 import useVaultMetadata from './useVaultMetadata';
 import { MOCK_VAULT_DATA } from '../__mocks__/earnControllerMockData';
+import { TokenI } from '../../Tokens/types';
 
 // Mock dependencies
 jest.mock('./usePooledStakes');
@@ -12,6 +13,8 @@ jest.mock('./useBalance');
 jest.mock('./useVaultMetadata');
 
 describe('useStakingEarnings', () => {
+  const mockAsset: TokenI = { chainId: '1' } as TokenI;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -39,7 +42,9 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() =>
+      useStakingEarnings({ asset: mockAsset }),
+    );
 
     // Wait for state updates
     await waitFor(() => {
@@ -67,7 +72,9 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() =>
+      useStakingEarnings({ asset: mockAsset }),
+    );
 
     // Wait for state updates
     await waitFor(() => {
@@ -96,7 +103,9 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() =>
+      useStakingEarnings({ asset: mockAsset }),
+    );
 
     await waitFor(() => {
       expect(result.current.lifetimeRewardsETH).toBe('0 ETH'); // No lifetime rewards
@@ -127,7 +136,9 @@ describe('useStakingEarnings', () => {
       isLoadingPooledStakesData: false,
     });
 
-    const { result } = renderHook(() => useStakingEarnings());
+    const { result } = renderHook(() =>
+      useStakingEarnings({ asset: mockAsset }),
+    );
 
     await waitFor(() => {
       expect(result.current.lifetimeRewardsETH).toBe('0 ETH'); // No lifetime rewards

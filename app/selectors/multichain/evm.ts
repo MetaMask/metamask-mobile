@@ -88,6 +88,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
         }
       }
 
+      console.log('result result', accountsByChainId);
       return result;
     },
   );
@@ -242,6 +243,7 @@ export const selectAccountTokensAcrossChainsForAddress =
       selectNativeTokensAcrossChainsForAddress(state, address),
     (_: RootState, address: string | undefined) => address,
     (allTokens, networkConfigurations, nativeTokens, address) => {
+      console.log('allTokens fromselector', allTokens, address);
       const tokensByChain: {
         [chainId: string]: (
           | TokenI
@@ -259,7 +261,7 @@ export const selectAccountTokensAcrossChainsForAddress =
 
       // Create a list of available chainIds
       const chainIds = Object.keys(networkConfigurations);
-
+      console.log('chainIds', chainIds);
       for (const chainId of chainIds) {
         const currentChainId = chainId as Hex;
         const nonNativeTokens =
@@ -280,6 +282,7 @@ export const selectAccountTokensAcrossChainsForAddress =
         ];
       }
 
+      console.log('tokensByChain', tokensByChain);
       return tokensByChain;
     },
   );

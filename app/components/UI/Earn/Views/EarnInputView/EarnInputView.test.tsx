@@ -1,6 +1,10 @@
 import { BNToHex } from '@metamask/controller-utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import {
+  ChainId,
+  LendingProvider,
+  PooledStakingContract,
+} from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
@@ -41,7 +45,7 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
-import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
+import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
@@ -144,11 +148,28 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
+const mockLendingContracts = {
+  aave: {
+    '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2': {
+      estimateDepositGas: jest.fn(),
+      encodeDepositTransactionData: jest.fn(),
+      estimateWithdrawGas: jest.fn(),
+      encodeWithdrawTransactionData: jest.fn(),
+      estimateUnderlyingTokenApproveGas: jest.fn(),
+      encodeUnderlyingTokenApproveTransactionData: jest.fn(),
+      underlyingTokenAllowance: jest.fn(),
+      maxWithdraw: jest.fn(),
+      maxDeposit: jest.fn(),
+    } as unknown as LendingProvider,
+  },
+};
+
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
-      setSdkType: jest.fn(),
       stakingContract: mockPooledStakingContractService,
+      lendingContracts: mockLendingContracts,
+      networkClientId: 'hoodi',
     };
     return stakeContext;
   }),
@@ -163,13 +184,14 @@ jest.mock('../../../Stake/hooks/useBalance', () => ({
   }),
 }));
 
-jest.mock('../../../Stake/hooks/useStakingGasFee', () => ({
+jest.mock('../../../Earn/hooks/useEarnGasFee', () => ({
   __esModule: true,
   default: () => ({
-    estimatedGasFeeWei: mockGasFeeBN,
-    isLoadingStakingGasFee: false,
-    isStakingGasFeeError: false,
-    refreshGasValues: jest.fn(),
+    estimatedEarnGasFeeWei: mockGasFeeBN,
+    isLoadingEarnGasFee: false,
+    isEarnGasFeeError: false,
+    refreshEarnGasValues: jest.fn(),
+    getEstimatedEarnGasFee: jest.fn(),
   }),
 }));
 
@@ -442,7 +464,7 @@ describe('EarnInputView', () => {
 
   describe('navigates to ', () => {
     it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
-      const mockUseStakingGasFee = jest.spyOn(useStakingGasFee, 'default');
+      const mockUseStakingGasFee = jest.spyOn(useEarnGasFee, 'default');
       const mockUseBalance = jest.spyOn(useBalance, 'default');
       const useBalanceMockData = {
         balanceFiatNumber: weiToFiatNumber(

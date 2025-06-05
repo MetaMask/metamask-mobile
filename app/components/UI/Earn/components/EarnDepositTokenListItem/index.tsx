@@ -13,45 +13,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../hooks/useStyles';
-import { EarnTokenListItemProps } from './EarnTokenListItem.types';
+import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import styleSheet from './EarnTokenListItem.styles';
+import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
+import styleSheet from './EarnDepositTokenListItem.styles';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import { TokenI } from '../../../Tokens/types';
 
-interface EarnNetworkAvatarProps {
-  token: TokenI;
-}
-
-const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  if (token.isNative) {
-    return (
-      <NetworkAssetLogo
-        chainId={token.chainId ?? ''}
-        style={styles.networkAvatar}
-        ticker={token.ticker ?? ''}
-        big={false}
-        biggest={false}
-        testID={`earn-token-list-item-${token.symbol}-${token.chainId}`}
-      />
-    );
-  }
-
-  return (
-    <AvatarToken
-      name={token.symbol}
-      imageSource={{ uri: token.image }}
-      size={AvatarSize.Md}
-      style={styles.networkAvatar}
-    />
-  );
-};
-
-const EarnTokenListItem = ({
+const EarnDepositTokenListItem = ({
   token,
   primaryText,
   secondaryText,
@@ -62,7 +30,11 @@ const EarnTokenListItem = ({
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress(token)}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onPress(token)}
+      testID="earn-token-list-item"
+    >
       <View style={styles.left}>
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -70,14 +42,21 @@ const EarnTokenListItem = ({
             <Badge
               variant={BadgeVariant.Network}
               name={networkName}
-              // @ts-expect-error The utils/network file is still JS and this function expects a networkType that should be optional
-              imageSource={getNetworkImageSource({ chainId: token.chainId })}
+              imageSource={getNetworkImageSource({
+                chainId: token.chainId ?? '',
+              })}
+              isScaled={false}
+              size={AvatarSize.Xs}
             />
           }
         >
           <EarnNetworkAvatar token={token} />
         </BadgeWrapper>
-        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
+        <View style={styles.assetName}>
+          <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+            {token.name}
+          </Text>
+        </View>
       </View>
       <View style={styles.right}>
         <Text
@@ -99,4 +78,4 @@ const EarnTokenListItem = ({
   );
 };
 
-export default EarnTokenListItem;
+export default EarnDepositTokenListItem;

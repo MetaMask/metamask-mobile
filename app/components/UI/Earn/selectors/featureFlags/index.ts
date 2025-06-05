@@ -15,7 +15,7 @@ const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) =>
   Boolean(remoteFlag?.enabled) &&
   hasMinimumRequiredVersion(remoteFlag?.minimumVersion);
 
-const prioritizeFlagsByEnv = (
+export const prioritizeFlagsByEnv = (
   localFlag: boolean,
   remoteFlag: EarnLaunchDarklyFlag,
 ) => {
@@ -31,6 +31,7 @@ const prioritizeFlagsByEnv = (
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    console.log('remoteFeatureFlags', remoteFeatureFlags);
     const localFlag = process.env.MM_POOLED_STAKING_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as EarnLaunchDarklyFlag;
@@ -53,6 +54,7 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
 export const selectStablecoinLendingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
+    console.log('remoteFeatureFlags', remoteFeatureFlags);
     const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as EarnLaunchDarklyFlag;

@@ -54,6 +54,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     amountFiat,
     estimatedGasFee,
     estimatedGasFeePercentage,
+    chainId,
   } = route.params;
 
   const metricsEvent = useCallback(
@@ -110,21 +111,23 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           annualRewardsETH,
           annualRewardsFiat,
           annualRewardRate,
+          chainId,
         },
       });
     }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);
   }, [
-    activeAccount?.address,
-    amountFiat,
     amountWei,
+    isStakingDepositRedesignedEnabled,
+    metricsEvent,
+    attemptDepositTransaction,
+    activeAccount?.address,
+    navigate,
+    amountFiat,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    attemptDepositTransaction,
-    isStakingDepositRedesignedEnabled,
-    metricsEvent,
-    navigate,
+    chainId,
   ]);
 
   const footerButtons: ButtonProps[] = [
