@@ -13,9 +13,9 @@ import Icon, {
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import InfoSection from '../../../UI/info-row/info-section';
-import styleSheet from './from-to.styles';
+import styleSheet from './from-to-row.styles';
 
-const FromTo = () => {
+const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
@@ -61,4 +61,4 @@ const FromTo = () => {
   );
 };
 
-export default FromTo;
+export default FromToRow;

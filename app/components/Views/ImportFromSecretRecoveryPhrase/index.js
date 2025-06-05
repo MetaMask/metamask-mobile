@@ -158,6 +158,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
+    setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
   }, []);
@@ -559,6 +560,14 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
+  const canShowSeedPhraseWord = useCallback(
+    (index) =>
+      showAllSeedPhrase ||
+      errorWordIndexes[index] ||
+      index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+  );
+
   const learnMoreLink = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
@@ -704,9 +713,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    (!showAllSeedPhrase ||
-                                      !errorWordIndexes[index]) &&
-                                    seedPhraseInputFocusedIndex !== index
+                                    !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
@@ -738,6 +745,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   isError={errorWordIndexes[index]}
                                   autoCapitalize="none"
                                   numberOfLines={1}
+                                  autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                 />
                               </View>

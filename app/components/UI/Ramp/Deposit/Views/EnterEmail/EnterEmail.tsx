@@ -44,11 +44,10 @@ const EnterEmail = () => {
     );
   }, [navigation, theme]);
 
-  const {
-    error,
-    sdkMethod: submitEmail,
-    loading,
-  } = useDepositSdkMethod('sendUserOtp', email);
+  const [{ error, isFetching: loading }, submitEmail] = useDepositSdkMethod(
+    { method: 'sendUserOtp', onMount: false },
+    email,
+  );
 
   const emailInputRef = useRef<TextInput>(null);
 
