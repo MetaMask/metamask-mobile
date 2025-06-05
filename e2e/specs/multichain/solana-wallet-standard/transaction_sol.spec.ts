@@ -1,14 +1,9 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
-import {
-  assertIsSignedTransaction,
-  connectSolanaTestDapp,
-  navigateToSolanaTestDApp,
-} from './testHelpers';
+import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountSnap } from '../../../common-solana';
 import Assertions from '../../../utils/Assertions';
-import TestHelpers from '../../../helpers';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),
