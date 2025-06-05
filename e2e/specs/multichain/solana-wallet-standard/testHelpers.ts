@@ -5,6 +5,9 @@ import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 
+export const account1Short = 'CEQ8...Yrrd';
+export const account2Short = '9Wa2...Dj2U';
+
 /**
  * Connects the Solana test dapp to the wallet.
  *
