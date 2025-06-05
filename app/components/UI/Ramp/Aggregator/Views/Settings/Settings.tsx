@@ -41,7 +41,7 @@ function Settings() {
   const style = styles();
   const trackEvent = useAnalytics();
 
-  const [displayLogoutMessage, setDisplayLoggoutMessage] = useState(false);
+  const [displayLogoutMessage, setDisplayLogoutMessage] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -68,7 +68,7 @@ function Settings() {
 
   const handleResetDepositAuth = useCallback(async () => {
     await clearAuthToken();
-    setDisplayLoggoutMessage(true);
+    setDisplayLogoutMessage(true);
   }, [clearAuthToken]);
 
   return (
