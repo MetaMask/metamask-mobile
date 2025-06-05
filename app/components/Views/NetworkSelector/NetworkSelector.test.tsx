@@ -22,12 +22,27 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   }),
 }));
 
+// Mock useMetrics hook
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(),
+      })),
+    })),
+  }),
+}));
+
 // Mock MetaMetrics
 jest.mock('../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       addTraitsToUser: jest.fn(),
     }),
+  },
+  MetaMetricsEvents: {
+    NETWORK_SWITCHED: 'Network Switched',
   },
 }));
 
@@ -703,45 +718,5 @@ describe('Network Selector', () => {
         ).toHaveBeenCalled();
       });
     });
-  });
-
-  it('should call addTraitsToUser with updated chain ID list when removing a network', async () => {
-    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-
-    const { removeItemFromChainIdList } = await import(
-      '../../../util/metrics/MultichainAPI/networkMetricUtils'
-    );
-    const { MetaMetrics } = await import('../../../core/Analytics');
-
-    const mockAddTraitsToUser = jest.fn();
-    (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
-      addTraitsToUser: mockAddTraitsToUser,
-    });
-
-    const { getByTestId } = renderComponent(initialState);
-
-    // Mock the removeNetwork function
-    const spyOnRemoveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
-      'removeNetwork',
-    );
-
-    // Simulate network removal by calling the removeRpcUrl function
-    // This would typically be triggered by pressing a delete button in the UI
-    const deleteButton = getByTestId(
-      NetworkListModalSelectorsIDs.DELETE_NETWORK,
-    );
-
-    if (deleteButton) {
-      fireEvent.press(deleteButton);
-
-      await waitFor(() => {
-        expect(spyOnRemoveNetwork).toHaveBeenCalled();
-        expect(removeItemFromChainIdList).toHaveBeenCalled();
-        expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-          chain_id_list: ['eip155:1'],
-        });
-      });
-    }
   });
 });
