@@ -23,6 +23,7 @@ import {
   getPermittedCaipAccountIdsByHostname,
   removePermittedAccounts,
   getPermittedCaipChainIdsByHostname,
+  sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
@@ -87,7 +88,8 @@ import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../selectors/multichainNetworkController';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import AddNewAccount from '../AddNewAccount';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -109,8 +111,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
-  const evmNetworkConfigurationsByChainId = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const nonEvmNetworkConfigurationsByChainId = useSelector(selectNonEvmNetworkConfigurationsByChainId);
   const networkInfo = useNetworkInfo(hostname);
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
@@ -133,24 +133,29 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
   const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
     hostname,
   );
-  const permittedCaipAccountIds = uniq(
-    nonRemappedPermittedAccounts.map((caipAccountId) => {
-      const {
-        address,
-        chain: { namespace },
-      } = parseCaipAccountId(caipAccountId);
-      if (namespace === KnownCaipNamespace.Eip155) {
-        // this is very hacky, but it works for now
-        return `eip155:0:${address}` as CaipAccountId;
-      }
-      return caipAccountId;
-    }),
-  );
+  const permittedCaipAccountIds = useMemo(() => {
+    const unsortedPermittedAccounts = uniq(
+      nonRemappedPermittedAccounts.map((caipAccountId) => {
+        const {
+          address,
+          chain: { namespace },
+        } = parseCaipAccountId(caipAccountId);
+        if (namespace === KnownCaipNamespace.Eip155) {
+          // this is very hacky, but it works for now
+          return `eip155:0:${address}` as CaipAccountId;
+        }
+        return caipAccountId;
+      }),
+    );
+
+    return sortMultichainAccountsByLastSelected(unsortedPermittedAccounts);
+  }, [nonRemappedPermittedAccounts]);
 
   const permittedCaipChainIds = getPermittedCaipChainIdsByHostname(
     permittedAccountsList,
@@ -177,6 +182,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
     USER_INTENT.None,
   );
+
+  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+    | {
+        clientType?: WalletClientType;
+        scope?: CaipChainId;
+      }
+    | undefined // undefined is used for evm account creation.
+  >(undefined);
 
   const networks = Object.values(networkConfigurations).map((network) => ({
     name: network.name,
@@ -296,33 +309,45 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const handleCreateAccount = useCallback(
-    async () => {
-      const { KeyringController } = Engine.context;
-      try {
-        setIsLoading(true);
-        await KeyringController.addNewAccount();
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          ).build(),
-        );
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-            .addProperties({
-              source: metricsSource,
-              number_of_accounts: accounts?.length,
-            })
-            .build(),
-        );
-      } catch (e) {
-        Logger.error(e as Error, 'Error while trying to add a new account.');
-      } finally {
-        setIsLoading(false);
-      }
+    (clientType?: WalletClientType, scope?: CaipChainId) => {
+      setMultichainAccountOptions({
+        clientType,
+        scope,
+      });
+      setPermissionsScreen(AccountPermissionsScreens.AddAccount);
     },
-    /* eslint-disable-next-line */
-    [setIsLoading],
+    [],
   );
+
+  const handleAccountCreationComplete = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+        ).build(),
+      );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: metricsSource,
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
+      setPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
+    } catch (e) {
+      Logger.error(e as Error, 'Error while trying to add a new account.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    setIsLoading,
+    trackEvent,
+    createEventBuilder,
+    accounts?.length,
+    metricsSource,
+  ]);
 
   const handleSelectChainIds = useCallback(
     async (chainIds: CaipChainId[]) => {
@@ -424,7 +449,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         );
 
         if (accountsToAdd.length > 0) {
-          addPermittedAccounts(hostname, accountsToAdd, evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+          addPermittedAccounts(hostname, accountsToAdd);
           newPermittedAccounts = [...newPermittedAccounts, ...accountsToAdd];
         }
 
@@ -484,8 +509,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       }
     },
     [
-      evmNetworkConfigurationsByChainId,
-      nonEvmNetworkConfigurationsByChainId,
       permittedCaipAccountIds,
       setIsLoading,
       hostname,
@@ -563,11 +586,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           });
           break;
         }
-        case USER_INTENT.Create:
-        case USER_INTENT.CreateMultiple: {
-          handleCreateAccount();
-          break;
-        }
         case USER_INTENT.EditMultiple: {
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
           break;
@@ -615,6 +633,26 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     createEventBuilder,
   ]);
 
+  const renderAddNewAccount = useCallback(
+    ({
+      clientType,
+      scope,
+    }: {
+      clientType?: WalletClientType;
+      scope?: CaipChainId;
+    }) => (
+      <AddNewAccount
+        scope={scope}
+        clientType={clientType}
+        onActionComplete={handleAccountCreationComplete}
+        onBack={() => {
+          setPermissionsScreen(AccountPermissionsScreens.Connected);
+        }}
+      />
+    ),
+    [handleAccountCreationComplete],
+  );
+
   const renderConnectedScreen = useCallback(
     () => (
       <AccountPermissionsConnected
@@ -623,7 +661,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={permittedCaipAccountIds}
+        // This is only okay because permittedCaipAccountIds is sorted by lastSelected already
+        selectedAddresses={
+          permittedCaipAccountIds.length > 0 ? [permittedCaipAccountIds[0]] : []
+        }
         favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
@@ -668,6 +709,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -679,6 +722,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accounts,
     faviconSource,
     urlWithProtocol,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -696,6 +741,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
@@ -706,6 +752,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isRenderedAsBottomSheet,
       accounts,
       handleSelectAccountAddressesFromEditView,
+      handleCreateAccount,
     ],
   );
 
@@ -722,6 +769,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
         showDisconnectAllButton={false}
+        onCreateAccount={handleCreateAccount}
       />
     ),
     [
@@ -731,6 +779,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hostname,
       permittedCaipAccountIds,
       handleSelectAccountAddressesFromConnectMoreView,
+      handleCreateAccount,
     ],
   );
 
@@ -852,6 +901,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           AccountPermissionsScreens.ChooseFromPermittedNetworks,
         );
       },
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -868,6 +919,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     hostname,
     toastRef,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
@@ -886,6 +939,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return isNonDappNetworkSwitch
           ? renderNetworkPermissionSummaryScreen()
           : renderPermissionsSummaryScreen();
+      case AccountPermissionsScreens.AddAccount:
+        return renderAddNewAccount(multichainAccountOptions || {});
     }
   }, [
     permissionsScreen,
@@ -897,6 +952,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderChooseFromPermittedNetworksScreen,
     renderPermissionsSummaryScreen,
     renderNetworkPermissionSummaryScreen,
+    renderAddNewAccount,
+    multichainAccountOptions,
   ]);
 
   return isRenderedAsBottomSheet ? (
