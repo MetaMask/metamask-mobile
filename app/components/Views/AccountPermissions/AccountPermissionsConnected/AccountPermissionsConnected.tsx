@@ -5,7 +5,6 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import { strings } from '../../../../../locales/i18n';
-import EvmAccountSelectorList from '../../../../components/UI/EvmAccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import {
   ToastContext,
@@ -30,6 +29,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../core/Engine';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -42,7 +43,6 @@ const AccountPermissionsConnected = ({
   favicon,
   accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
-  const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
@@ -50,13 +50,12 @@ const AccountPermissionsConnected = ({
   }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
-    (address: string) => {
-      if (address !== activeAddress) {
-        Engine.setSelectedAddress(address);
-      }
+    (caipAccountId: CaipAccountId) => {
+      const {address} = parseCaipAccountId(caipAccountId);
+      Engine.setSelectedAddress(address);
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
-        accountAddress: address,
+        caipAccountId,
         accounts,
         ensByAccountAddress,
       });
@@ -75,7 +74,6 @@ const AccountPermissionsConnected = ({
       });
     },
     [
-      activeAddress,
       onDismissSheet,
       accounts,
       ensByAccountAddress,
@@ -120,7 +118,7 @@ const AccountPermissionsConnected = ({
           {strings('accounts.connected_accounts_title')}
         </Text>
       </View>
-      <EvmAccountSelectorList
+      <CaipAccountSelectorList
         onSelectAccount={switchActiveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}

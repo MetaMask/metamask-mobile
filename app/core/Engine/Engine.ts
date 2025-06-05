@@ -168,6 +168,8 @@ import {
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
+  SnapControllerIsMinimumPlatformVersionAction,
+  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
@@ -581,8 +583,9 @@ export class Engine {
         'AccountsController:setAccountName',
         'AccountsController:setAccountNameAndSelectAccount',
         'AccountsController:listMultichainAccounts',
-        'SnapController:handleRequest',
+        SnapControllerHandleRequestAction,
         SnapControllerGetSnapAction,
+        SnapControllerIsMinimumPlatformVersionAction,
       ],
       allowedEvents: [],
     });
@@ -1133,7 +1136,11 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
         ],
-        allowedEvents: [],
+        allowedEvents: [
+          'TransactionController:transactionConfirmed',
+          'TransactionController:transactionFailed',
+          'MultichainTransactionsController:transactionConfirmed',
+        ],
       }),
       state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
@@ -2033,6 +2040,7 @@ export class Engine {
     (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
+      transactionBatches: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
