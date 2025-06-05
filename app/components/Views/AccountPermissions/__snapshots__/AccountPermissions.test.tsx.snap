@@ -207,6 +207,9 @@ exports[`AccountPermissions renders correctly 1`] = `
               "isLoadingAccount": false,
               "isSelected": true,
               "name": "Account 1",
+              "scopes": [
+                "eip155:0",
+              ],
               "type": "HD Key Tree",
               "yOffset": 0,
             },
