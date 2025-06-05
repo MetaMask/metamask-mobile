@@ -2312,58 +2312,6 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                 value=""
                               />
                             </View>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "flexDirection": "row",
-                                    "marginTop": 12,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginRight": 4,
-                                  }
-                                }
-                              >
-                                Didn't receive the code?
-                              </Text>
-                              <TouchableOpacity
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginLeft": 4,
-                                    }
-                                  }
-                                >
-                                  Resend it
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
                           </View>
                         </View>
                         <View>
@@ -3158,58 +3106,6 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                 underlineColorAndroid="transparent"
                                 value=""
                               />
-                            </View>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "flexDirection": "row",
-                                    "marginTop": 12,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginRight": 4,
-                                  }
-                                }
-                              >
-                                Didn't receive the code?
-                              </Text>
-                              <TouchableOpacity
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginLeft": 4,
-                                    }
-                                  }
-                                >
-                                  Resend it
-                                </Text>
-                              </TouchableOpacity>
                             </View>
                           </View>
                         </View>
