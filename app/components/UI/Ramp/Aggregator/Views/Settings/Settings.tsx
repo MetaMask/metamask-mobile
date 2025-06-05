@@ -56,8 +56,7 @@ function Settings() {
 
   useEffect(() => {
     checkExistingToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkExistingToken]);
 
   const handleResetRegion = useCallback(() => {
     trackEvent('RAMP_REGION_RESET', {

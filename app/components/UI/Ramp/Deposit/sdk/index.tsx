@@ -91,7 +91,7 @@ export const DepositSDKProvider = ({
     }
   }, [sdk, authToken]);
 
-  const checkExistingToken = async (): Promise<boolean> => {
+  const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
       if (tokenResponse.success && tokenResponse.token) {
@@ -103,7 +103,7 @@ export const DepositSDKProvider = ({
       console.error('Error checking existing token:', error);
       return false;
     }
-  };
+  }, []);
 
   const setAuthTokenCallback = useCallback(
     async (token: NativeTransakAccessToken): Promise<boolean> => {
@@ -159,6 +159,7 @@ export const DepositSDKProvider = ({
       authToken,
       setAuthTokenCallback,
       clearAuthToken,
+      checkExistingToken,
     ],
   );
 
