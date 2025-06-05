@@ -96,6 +96,23 @@ jest.mock('../../sdk', () => ({
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
+const mockClearAuthToken = jest.fn();
+const mockCheckExistingToken = jest.fn();
+
+const mockUseDepositSDKInitialValues = {
+  isInternalBuild: false,
+  clearAuthToken: mockClearAuthToken,
+  isAuthenticated: false,
+  checkExistingToken: mockCheckExistingToken,
+};
+
+let mockUseDepositSDKValues = { ...mockUseDepositSDKInitialValues };
+
+jest.mock('../../../Deposit/sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDKValues,
+  withDepositSDK: jest.fn().mockImplementation((Component) => Component),
+}));
+
 describe('Settings', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -107,6 +124,9 @@ describe('Settings', () => {
     };
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
+    };
+    mockUseDepositSDKValues = {
+      ...mockUseDepositSDKInitialValues,
     };
   });
 
@@ -253,6 +273,52 @@ describe('Settings', () => {
       });
       fireEvent.press(removeActivationKeyButton);
       expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');
+    });
+  });
+  describe('Provider Authentication', () => {
+    it('does not show logout button when not authenticated', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: false,
+      };
+      render(Settings);
+      const logoutButton = screen.queryByRole('button', {
+        name: 'Log out of Transak',
+      });
+      expect(logoutButton).toBeNull();
+    });
+
+    it('shows logout button when authenticated', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: true,
+      };
+      render(Settings);
+      const logoutButton = screen.getByRole('button', {
+        name: 'Log out of Transak',
+      });
+      expect(logoutButton).toBeTruthy();
+    });
+
+    it('calls clearAuthToken when pressing logout button', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: true,
+      };
+      render(Settings);
+      const logoutButton = screen.getByRole('button', {
+        name: 'Log out of Transak',
+      });
+      fireEvent.press(logoutButton);
+      expect(mockClearAuthToken).toHaveBeenCalled();
+    });
+
+    it('calls checkExistingToken on component mount', () => {
+      render(Settings);
+      expect(mockCheckExistingToken).toHaveBeenCalled();
     });
   });
 });
