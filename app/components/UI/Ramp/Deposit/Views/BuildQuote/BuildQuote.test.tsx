@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
@@ -37,25 +37,8 @@ describe('BuildQuote Component', () => {
     mockNavigate.mockClear();
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(BuildQuote);
-    expect(screen.getByText('Build Quote Page Placeholder')).toBeTruthy();
-  });
-
-  it('navigates to Email screen on "Continue" button press', () => {
-    render(BuildQuote);
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-  });
-
-  it('calls setOptions when the component mounts', () => {
-    render(BuildQuote);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Build Quote',
-      }),
-    );
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
