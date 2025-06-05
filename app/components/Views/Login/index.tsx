@@ -10,9 +10,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button, {
@@ -61,6 +59,7 @@ import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
+import { TextVariant as LocalTextVariant } from '../../../component-library/components/Texts/Text';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
@@ -77,13 +76,15 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks/useStyles';
-import stylesheet from './styles';
+import { useTheme } from '../../../util/theme';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import FOX_LOGO from '../../../images/branding/fox.png';
-import { Text as DSText } from '@metamask-previews/design-system-react-native';
+import {
+  Text,
+  TextVariant,
+} from '@metamask-previews/design-system-react-native';
 import { useTailwind } from '@metamask-previews/design-system-twrnc-preset';
 
 /**
@@ -106,10 +107,7 @@ const Login: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: { locked: boolean } }, 'params'>>();
-  const {
-    styles,
-    theme: { colors, themeAppearance },
-  } = useStyles(stylesheet, {});
+  const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
@@ -378,32 +376,35 @@ const Login: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView style={tw`bg-background-default flex-1`}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
-          style={styles.wrapper}
+          style={tw`flex-1 px-8`}
         >
           <View testID={LoginViewSelectors.CONTAINER}>
             <TouchableOpacity
-              style={styles.foxWrapper}
+              style={tw`justify-center self-center w-32 h-32 mt-24`}
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={handleDownloadStateLogs}
               activeOpacity={1}
             >
               <Image
                 source={FOX_LOGO}
-                style={styles.image}
+                style={tw`self-center w-32 h-32`}
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <DSText style={tw`text-primary-default`}>Hello</DSText>
 
-            <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+            <Text
+              variant={TextVariant.HeadingMd}
+              testID={LoginViewSelectors.TITLE_ID}
+              style={tw`text-center mt-5 mb-5`}
+            >
               {strings('login.title')}
             </Text>
-            <View style={styles.field}>
-              <Label variant={TextVariant.BodyLGMedium} style={styles.label}>
+            <View style={tw`flex-1 mb-2 flex-col`}>
+              <Label variant={LocalTextVariant.BodyLGMedium} style={tw`mb-3`}>
                 {strings('login.password')}
               </Label>
               <TextField
@@ -434,16 +435,13 @@ const Login: React.FC = () => {
             {!!error && (
               <HelpText
                 severity={HelpTextSeverity.Error}
-                variant={TextVariant.BodyMD}
+                variant={LocalTextVariant.BodyMD}
                 testID={LoginViewSelectors.PASSWORD_ERROR}
               >
                 {error}
               </HelpText>
             )}
-            <View
-              style={styles.ctaWrapper}
-              testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-            >
+            <View style={tw`mt-5`} testID={LoginViewSelectors.LOGIN_BUTTON_ID}>
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}
@@ -462,12 +460,15 @@ const Login: React.FC = () => {
               />
             </View>
 
-            <View style={styles.footer}>
-              <Text variant={TextVariant.BodyLGMedium} style={styles.cant}>
+            <View style={tw`my-10 items-center`}>
+              <Text
+                variant={TextVariant.BodyLg}
+                style={tw`max-w-xs self-center justify-center text-center`}
+              >
                 {strings('login.go_back')}
               </Text>
               <Button
-                style={styles.goBack}
+                style={tw`my-4`}
                 variant={ButtonVariants.Link}
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
