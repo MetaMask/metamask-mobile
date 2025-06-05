@@ -38,7 +38,7 @@ class WalletActionsBottomSheet {
   }
 
   async tapSwapButton() {
-    await Gestures.waitAndTap(this.swapButton, { experimentalWaitForStability: true });
+    await Gestures.waitAndTap(this.swapButton);
   }
 
   async tapBridgeButton() {

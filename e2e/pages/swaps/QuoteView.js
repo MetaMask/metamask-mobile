@@ -63,7 +63,7 @@ class QuoteView {
 
   async selectToken(symbol, index = 1) {
     const element = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(element, { experimentalWaitForStability: true });
+    await Gestures.waitAndTap(element);
   }
 
   async tapOnGetQuotes() {

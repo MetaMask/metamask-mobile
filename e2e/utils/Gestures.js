@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { waitFor } from 'detox';
+import { waitFor, expect } from 'detox';
 
 /**
  * Class for handling user actions (Gestures)
@@ -58,16 +58,12 @@ class Gestures {
     const {
       timeout = 15000,
       delayBeforeTap = 0,
-      skipVisibilityCheck = false,
-      experimentalWaitForStability = false,
+      skipVisibilityCheck = false
     } = options;
     if (!skipVisibilityCheck) {
       await waitFor(await element)
         .toBeVisible()
         .withTimeout(timeout);
-      if (experimentalWaitForStability) {
-        await this.waitForElementStability(element);
-      }
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
@@ -84,89 +80,56 @@ class Gestures {
    * @param {number} [options.interval=200] - Time between position checks (ms)
    * @param {number} [options.stableCount=3] - Number of consecutive stable checks required
    */
-  static async waitForElementStability(element, options = {}) {
+  static async waitForElementToStopMoving(element, options = {}) {
     const { timeout = 5000, interval = 200, stableCount = 3 } = options;
     let lastPosition = null;
     let stableChecks = 0;
+    const fallBackTimeout = 2000;
     const start = Date.now();
-    let foundPosition = false;
-    let attributes;
-    let lastError = null;
+
+    const getPosition = async (element) => {
+      try {
+        const attributes = await element.getAttributes();
+        if (
+          attributes.frame &&
+          typeof attributes.frame.x === 'number' &&
+          typeof attributes.frame.y === 'number'
+        ) {
+          return { x: attributes.frame.x, y: attributes.frame.y };
+        } else {
+          return null;
+        }
+      } catch {
+        return null;
+      }
+    };
 
     while (Date.now() - start < timeout) {
-      try {
-        const el = await element;
+      const el = await element;
 
-        await expect(el).toExist();
+      const position = await getPosition(el);
 
-        attributes = await el.getAttributes();
+      if (!position) {
+        await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
+        return; // Return early if position is not available
+      }
 
-        if (
-          !attributes.frame ||
-          typeof attributes.frame.x !== 'number' ||
-          typeof attributes.frame.y !== 'number'
-        ) {
-          throw new Error('Element frame is invalid or missing position data');
-        }
-
-        const position = {
-          x: attributes.frame.x,
-          y: attributes.frame.y,
-        };
-        foundPosition = true;
-
-        if (lastPosition) {
-          if (position.x === lastPosition.x && position.y === lastPosition.y) {
-            stableChecks += 1;
-            if (stableChecks >= stableCount) {
-              return;
-            }
-          } else {
-            stableChecks = 1;
-            lastPosition = position;
-          }
-        } else {
-          lastPosition = position;
-          stableChecks = 1;
-        }
-
-        lastError = null;
-      } catch (err) {
-        lastError = err;
-
-        if (err.message.includes('No elements found')) {
-          console.log(
-            '[waitForElementStability] Element not found, waiting...',
-          );
-        } else if (err.message.includes('frame is invalid')) {
-          console.log(
-            '[waitForElementStability] Skipping stability check due to invalid frame',
-          );
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          return; // If the element is found but has no valid position, we can return early as this function is meant to track stability based on position. There is a buffer of 1500ms to allow the element to stabilize.
-        } else {
-          console.log(
-            '[waitForElementStability] Error reading position, retrying...',
-            err.message,
-          );
-        }
-        stableChecks = 0;
-        lastPosition = null;
+      if (
+        lastPosition &&
+        position.x === lastPosition.x &&
+        position.y === lastPosition.y
+      ) {
+        stableChecks += 1;
+        if (stableChecks >= stableCount) return;
+      } else {
+        lastPosition = position;
+        stableChecks = 1;
       }
 
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
 
-    if (foundPosition) {
-      throw new Error(
-        `Element did not become stable after ${timeout}ms\nElement: ${
-          attributes?.identifier ||
-          attributes?.label ||
-          attributes?.text ||
-          'could not retrieve identifier'
-        }\nLast known position: ${JSON.stringify(lastPosition)}`,
-      );
-    }
+    throw new Error('Element did not become stable in time');
   }
 
   /**

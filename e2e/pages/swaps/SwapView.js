@@ -65,7 +65,7 @@ class SwapView {
   async tapIUnderstandPriceWarning() {
     const isDisplayed = await this.isPriceWarningDisplayed();
     if (isDisplayed) {
-      await Gestures.waitAndTap(this.iUnderstandLabel, { experimentalWaitForStability: true });
+      await Gestures.waitAndTap(this.iUnderstandLabel);
     } else {
       // eslint-disable-next-line no-console
       console.log('Price warning not displayed');
@@ -73,7 +73,7 @@ class SwapView {
   }
 
   async tapViewDetailsAllQuotes() {
-    await Gestures.waitAndTap(this.viewDetailsButton, { experimentalWaitForStability: true });
+    await Gestures.waitAndTap(this.viewDetailsButton);
   }
 }
 

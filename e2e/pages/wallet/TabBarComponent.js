@@ -32,7 +32,7 @@ class TabBarComponent {
   }
 
   async tapActions() {
-    await Gestures.waitAndTap(this.tabBarActionButton, { experimentalWaitForStability: true });
+    await Gestures.waitAndTap(this.tabBarActionButton);
   }
 
   async tapSettings() {

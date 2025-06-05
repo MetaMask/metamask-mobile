@@ -27,11 +27,11 @@ import SoftAssert from '../../utils/SoftAssert';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import SwapView from '../../pages/swaps/SwapView.js';
 import QuotesModal from '../../pages/swaps/QuoteModal';
-import type { Mockttp } from 'mockttp';
+import type { MockttpServer } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
-let mockServer: Mockttp;
+let mockServer: MockttpServer;
 
 describe(SmokeTrade('Swaps - Metametrics'), () => {
   const wallet = ethers.Wallet.createRandom();
@@ -85,11 +85,13 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
+    await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     // This is to ensure we tap cancel before quotes are fetched - the cancel event is only sent if the quotes are not fetched
     await device.disableSynchronization();
     await QuoteView.tapOnGetQuotes();
+    await TestHelpers.delay(500);
     await QuoteView.tapOnCancelButton();
     await device.enableSynchronization();
     await Assertions.checkIfVisible(WalletView.container);
@@ -104,6 +106,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
+    await TestHelpers.delay(3000); 
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();
@@ -135,7 +138,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     const allAvailableQuotesOpenedEvent = events.find(
       (e: SegmentEvent) => e.event === EVENT_NAMES.ALL_AVAILABLE_QUOTES_OPENED,
-    );
+    ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
@@ -205,7 +208,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
 
     const quotesRequestCancelledEvent = events.find(
       (e: SegmentEvent) => e.event === EVENT_NAMES.QUOTES_REQUEST_CANCELLED,
-    );
+    ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
       async () => Assertions.checkIfObjectContains(
