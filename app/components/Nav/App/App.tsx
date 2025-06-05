@@ -134,7 +134,7 @@ import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet
 import NavigationService from '../../../core/NavigationService';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
-import AddNewAccount from '../../Views/AddNewAccount';
+import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 
 const clearStackNavigatorOptions = {
@@ -339,7 +339,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
-    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_ACCOUNT}
+      component={AddNewAccountBottomSheet}
+    />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}

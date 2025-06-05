@@ -8,7 +8,7 @@ import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import InfoSectionAccordion from '../../../../components/UI/info-section-accordion';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import StakingDetails from '../../components/staking-details/staking-details';
-import TokenHero from '../../../../components/rows/transactions/token-hero';
+import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
 
 const StakingDeposit = () => {
@@ -56,7 +56,7 @@ const StakingDeposit = () => {
 
   return (
     <>
-      <TokenHero />
+      <HeroRow />
       <StakingDetails />
       <GasFeesDetails disableUpdate />
       <InfoSectionAccordion

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import Name from '../../../../../../UI/Name/Name';
@@ -30,7 +31,7 @@ const FromTo = () => {
   const toAddress = transferRecipient;
 
   return (
-    <InfoSection>
+    <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
       <View style={styles.container}>
         <View style={[styles.nameContainer, styles.leftNameContainer]}>
           <Name
