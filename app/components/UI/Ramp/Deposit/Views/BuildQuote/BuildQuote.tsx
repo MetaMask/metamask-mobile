@@ -67,7 +67,6 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    console.log('BUILD QUOTE onClick');
     const quote = await getQuote(
       fiatCurrency,
       cryptoCurrency,
@@ -76,18 +75,14 @@ const BuildQuote = () => {
       amount,
     );
 
-    console.log('QUOTE', quote);
-
     if (quote) {
       const forms = await fetchKycForms(quote);
       const { forms: requiredForms } = forms || {};
-
-      console.log('REQURIED FORMS', requiredForms);
       if (isAuthenticated) {
         if (requiredForms?.length === 0) {
           navigation.navigate(...createProviderWebviewNavDetails());
         } else {
-          navigation.navigate(...createBasicInfoNavDetails({ quote }));
+          navigation.navigate(...createBasicInfoNavDetails());
         }
       } else {
         navigation.navigate(...createEnterEmailNavDetails());
