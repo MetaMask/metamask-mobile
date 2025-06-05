@@ -103,7 +103,7 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken, getPairedEarnTokens } = useEarnTokens();
+  const { getPairedEarnTokens } = useEarnTokens();
   const { toastRef } = useContext(ToastContext);
 
   const confirmButtonText = useMemo(
@@ -379,7 +379,7 @@ const EarnLendingDepositConfirmationView = () => {
         />
         <DepositReceiveSection
           token={token}
-          receiptTokenName={outputToken?.symbol || outputToken?.ticker || ''}
+          receiptTokenName={outputToken?.name || ''}
           receiptTokenAmount={
             renderFromTokenMinimalUnit(
               amountTokenMinimalUnit,

@@ -142,9 +142,10 @@ const selectEarnTokens = createDeepEqualSelector(
       earnTokenPairsByChainIdAndAddress: {},
       earnOutputTokenPairsByChainIdAndAddress: {},
       earnableTotalFiatNumber: 0,
-      earnableTotalFiatFormatted: '',
+      earnableTotalFiatFormatted: renderFiat(0, currentCurrency, 0),
     };
 
+    // console.log('isPortfolioViewEnabled', isPortfolioViewEnabled());
     if (!isPortfolioViewEnabled()) {
       return emptyEarnTokensData;
     }
@@ -154,6 +155,7 @@ const selectEarnTokens = createDeepEqualSelector(
       accountTokensAcrossChains,
     ).flat() as TokenI[];
 
+    // console.log('allTokens', allTokens);
     if (allTokens.length === 0) {
       return emptyEarnTokensData;
     }
@@ -167,11 +169,19 @@ const selectEarnTokens = createDeepEqualSelector(
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
       const decimalChainId = getDecimalChainId(token.chainId);
-
+      // console.log(
+      //   'lendingMarketsByChainIdAndTokenAddress',
+      //   lendingMarketsByChainIdAndTokenAddress,
+      // );
       const lendingMarketsForToken =
         lendingMarketsByChainIdAndTokenAddress?.[decimalChainId]?.[
           token.address.toLowerCase()
         ] || [];
+      // console.log(
+      //   'lendingMarketsForToken',
+      //   lendingMarketsForToken,
+      //   token.address.toLowerCase(),
+      // );
       const lendingMarketsForOutputToken =
         lendingMarketsByChainIdAndOutputTokenAddress?.[decimalChainId]?.[
           token.address.toLowerCase()
@@ -224,8 +234,10 @@ const selectEarnTokens = createDeepEqualSelector(
       const nativeCurrency =
         networkConfigs?.[token.chainId as Hex]?.nativeCurrency;
       const tokenExchangeRates = marketData?.[token.chainId as Hex] || {};
+
       const tokenToEthExchangeRate =
         tokenExchangeRates[token?.address as Hex]?.price ?? 0;
+
       const ethToUsdConversionRate =
         currencyRates?.[nativeCurrency]?.usdConversionRate ?? 0;
       // Token -> USD exchange rate needed for AAVE v3 risk-aware withdrawal calculations.
@@ -233,6 +245,11 @@ const selectEarnTokens = createDeepEqualSelector(
         .multipliedBy(tokenToEthExchangeRate)
         .dividedBy(1)
         .toNumber();
+
+      console.log('tokenUsdExchangeRate', tokenUsdExchangeRate);
+      console.log('selectedAddress', selectedAddress);
+      console.log('nativeCurrency', nativeCurrency);
+
       const ethToUserSelectedFiatConversionRate =
         currencyRates?.[nativeCurrency]?.conversionRate ?? 0;
       const balanceFiatNumber = weiToFiatNumber(
@@ -248,6 +265,11 @@ const selectEarnTokens = createDeepEqualSelector(
           ethToUserSelectedFiatConversionRate,
           currentCurrency || '',
         );
+      console.log('balanceFiatNumber', balanceFiatNumber);
+      console.log('balanceFiatCalculation', balanceFiatCalculation);
+      console.log('balanceValueFormatted', balanceValueFormatted);
+      console.log('balanceFiat', balanceFiat);
+
       let assetBalanceFiatNumber = balanceFiatNumber;
       if (!token.isETH) {
         assetBalanceFiatNumber =
@@ -255,8 +277,12 @@ const selectEarnTokens = createDeepEqualSelector(
             ? 0
             : balanceFiatCalculation;
       }
+      console.log('assetBalanceFiatNumber', assetBalanceFiatNumber);
 
-      let assetTicker = token?.ticker || token.symbol;
+      console.log('isPooledStakingEnabled', isPooledStakingEnabled);
+      console.log('isPooledStakingEligible', isPooledStakingEligible);
+
+      const assetTicker = token?.ticker || token.symbol;
       // is pooled staking enabled and eligible
       if (isPooledStakingEnabled && isPooledStakingEligible) {
         // TODO: we could add direct validator staking as an additional earn experience
@@ -276,7 +302,11 @@ const selectEarnTokens = createDeepEqualSelector(
           });
         }
       }
-
+      console.log(
+        'isStablecoinLendingEnabled',
+        isStablecoinLendingEnabled,
+        isStablecoinLendingEligible,
+      );
       // is stablecoin lending enabled and eligible
       if (isStablecoinLendingEnabled && isStablecoinLendingEligible) {
         if (isLendingToken) {
@@ -296,22 +326,22 @@ const selectEarnTokens = createDeepEqualSelector(
             });
           }
         }
-        if (isLendingOutputToken) {
-          for (const market of lendingMarketsForOutputToken) {
-            experiences.push({
-              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              apr: String(market.netSupplyRate),
-              ...getEstimatedAnnualRewards(
-                String(market.netSupplyRate),
-                assetBalanceFiatNumber,
-                tokenBalanceMinimalUnit.toString(),
-                currentCurrency,
-                token.decimals,
-                assetTicker,
-              ),
-              market,
-            });
-          }
+      }
+      if (isLendingOutputToken) {
+        for (const market of lendingMarketsForOutputToken) {
+          experiences.push({
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: String(market.netSupplyRate),
+            ...getEstimatedAnnualRewards(
+              String(market.netSupplyRate),
+              assetBalanceFiatNumber,
+              tokenBalanceMinimalUnit.toString(),
+              currentCurrency,
+              token.decimals,
+              assetTicker,
+            ),
+            market,
+          });
         }
       }
 

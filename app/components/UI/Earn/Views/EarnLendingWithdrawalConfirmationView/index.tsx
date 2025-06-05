@@ -92,7 +92,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   // Get lending and receipt token using either lending or receipt token to find pair.
   const { getPairedEarnTokens } = useEarnTokens();
-  const { earnToken: lendingToken } = getPairedEarnTokens(token);
+  const { outputToken: receiptToken } = getPairedEarnTokens(token);
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
@@ -180,7 +180,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(
-      toHex(lendingToken?.chainId as Hex),
+      toHex(receiptToken?.chainId as Hex),
     );
 
   const handleCancel = () => {
@@ -189,9 +189,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const handleConfirm = async () => {
     if (
-      !lendingToken?.address ||
+      !receiptToken?.address ||
+      !receiptToken?.experience?.market?.underlying.address ||
       !amountTokenMinimalUnit ||
-      !lendingToken?.chainId
+      !receiptToken?.chainId
     )
       return;
 
@@ -200,9 +201,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnit.toString(),
-        protocol: lendingToken.experience?.market?.protocol,
+        protocol: receiptToken.experience?.market?.protocol,
         underlyingTokenAddress:
-          lendingToken.experience?.market?.underlying?.address,
+          receiptToken.experience?.market?.underlying?.address,
         gasOptions: {},
         txOptions: {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,

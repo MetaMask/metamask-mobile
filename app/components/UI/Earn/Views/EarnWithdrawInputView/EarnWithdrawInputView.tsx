@@ -114,9 +114,8 @@ const EarnWithdrawInputView = () => {
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
     if (
-      lendingToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
+      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !activeAccount?.address ||
-      !lendingToken?.address ||
       !receiptToken?.address ||
       !receiptToken?.chainId
     )
@@ -126,7 +125,6 @@ const EarnWithdrawInputView = () => {
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
       activeAccount.address,
-      lendingToken as EarnTokenDetails,
       receiptToken as EarnTokenDetails,
     )
       .then((maxAmount) => {
@@ -137,7 +135,7 @@ const EarnWithdrawInputView = () => {
       });
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lendingToken?.symbol, lendingToken?.chainId]);
+  }, [receiptToken, activeAccount?.address]);
 
   const buttonLabel = useMemo(() => {
     if (!isNonZeroAmount) {
@@ -239,7 +237,7 @@ const EarnWithdrawInputView = () => {
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
       !activeAccount?.address ||
-      !lendingToken?.address ||
+      !receiptToken?.experience?.market?.underlying.address ||
       !receiptToken?.address ||
       !receiptToken?.chainId
     )
@@ -249,7 +247,7 @@ const EarnWithdrawInputView = () => {
       await calculateAaveV3HealthFactorAfterWithdrawal(
         activeAccount.address,
         amountTokenMinimalUnit.toString(),
-        lendingToken as EarnTokenDetails,
+        receiptToken as EarnTokenDetails,
       );
 
     setIsSubmittingStakeWithdrawalTransaction(true);
@@ -327,7 +325,6 @@ const EarnWithdrawInputView = () => {
     activeAccount?.address,
     amountFiatNumber,
     amountTokenMinimalUnit,
-    lendingToken,
     navigation,
     receiptToken,
   ]);
@@ -410,16 +407,16 @@ const EarnWithdrawInputView = () => {
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
     if (
-      lendingToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return handleLendingWithdrawalFlow();
     }
 
-    if (lendingToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (receiptToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING) {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    lendingToken?.experience?.type,
+    receiptToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
   ]);
@@ -446,7 +443,7 @@ const EarnWithdrawInputView = () => {
   const isWithdrawingMoreThanAvailableForLendingToken = useMemo(() => {
     // This check only applies to lending experience.
     if (
-      lendingToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
+      receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
       return false;
     }
@@ -456,7 +453,7 @@ const EarnWithdrawInputView = () => {
     );
   }, [
     amountTokenMinimalUnit,
-    lendingToken?.experience?.type,
+    receiptToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
 

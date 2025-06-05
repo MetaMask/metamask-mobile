@@ -195,7 +195,7 @@ describe('EmptyStateCta', () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
-      strings('earn.empty_state_cta.start_earning'),
+      strings('earn.empty_state_cta.earn'),
     );
 
     await act(() => {
@@ -214,7 +214,7 @@ describe('EmptyStateCta', () => {
     const { findByText } = renderComponent(mockEarnToken);
 
     const startEarningButton = await findByText(
-      strings('earn.empty_state_cta.start_earning'),
+      strings('earn.empty_state_cta.earn'),
     );
 
     await act(() => {

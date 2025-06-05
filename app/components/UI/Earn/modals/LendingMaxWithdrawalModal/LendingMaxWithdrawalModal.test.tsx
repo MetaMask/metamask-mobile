@@ -34,7 +34,7 @@ describe('LendingMaxWithdrawalModal', () => {
     // Check if the explanation text is rendered
     expect(
       getByText(
-        "This wallet has active borrow positions made outside of this app, such as through Aave's website.",
+        'This wallet has active borrow positions made outside of this app, such as through Aave’s website.',
       ),
     ).toBeTruthy();
     expect(

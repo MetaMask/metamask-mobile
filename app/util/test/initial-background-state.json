@@ -500,19 +500,10 @@
         }
       }
     },
-    "stablecoin_lending": {
-      "vaults": [
-        {
-          "symbol": "",
-          "name": "",
-          "chainId": 0,
-          "tokenAddress": "",
-          "vaultAddress": "",
-          "currentAPY": "0",
-          "supply": "0",
-          "liquidity": "0"
-        }
-      ]
+    "lending": {
+      "markets": [],
+      "positions": [],
+      "isEligible": false
     }
   },
   "DeFiPositionsController": {

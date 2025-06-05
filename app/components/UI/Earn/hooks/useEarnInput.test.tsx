@@ -16,7 +16,7 @@ import { Hex } from '@metamask/utils';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 
 jest.mock('../../Stake/hooks/useBalance');
-jest.mock('../../Stake/hooks/useStakingGasFee');
+jest.mock('../../Stake/hooks/useEarnGasFee');
 jest.mock('../../Stake/hooks/useVaultMetadata');
 
 jest.mock('../../../../selectors/currencyRateController', () => ({

@@ -1,4 +1,4 @@
-import { EarnControllerState } from '@metamask-previews/earn-controller';
+import { EarnControllerState } from '@metamask/earn-controller';
 import { EarnLaunchDarklyFlag } from '../selectors/featureFlags/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { hexToDecimal } from '../../../../util/conversions';

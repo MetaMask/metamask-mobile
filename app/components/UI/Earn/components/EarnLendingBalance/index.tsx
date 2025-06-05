@@ -60,7 +60,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const { getPairedEarnTokens, getEarnToken, getOutputToken } = useEarnTokens();
   const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
-
+  console.log('earnToken', earnToken);
   const isAssetReceiptToken = getOutputToken(asset);
 
   const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
@@ -142,8 +142,9 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      {userHasLendingPositions && (
-        <View style={styles.container}>
+      {/* {userHasLendingPositions && ( */}
+      <View style={styles.container}>
+        {userHasLendingPositions && receiptToken && (
           <Button
             variant={ButtonVariants.Secondary}
             style={styles.button}
@@ -152,6 +153,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             onPress={handleNavigateToWithdrawalInputScreen}
             testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
           />
+        )}
+        {userHasLendingPositions && earnToken && (
           <Button
             variant={ButtonVariants.Secondary}
             style={styles.button}
@@ -160,8 +163,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             onPress={handleNavigateToDepositInputScreen}
             testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
           />
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };

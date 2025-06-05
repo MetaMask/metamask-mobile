@@ -30,8 +30,14 @@ import {
 } from '../../__mocks__/earnMockData';
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn(),
-  selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => {
+    console.log('selectPooledStakingEnabledFlag');
+    return true;
+  }),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => {
+    console.log('selectStablecoinLendingEnabledFlag');
+    return true;
+  }),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
