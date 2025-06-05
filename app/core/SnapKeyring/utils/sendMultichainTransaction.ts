@@ -5,15 +5,15 @@ import { SnapId } from '@metamask/snaps-sdk';
 
 const controllerMessenger = Engine.controllerMessenger;
 
-interface SendMultichainTransactionParams {
-  account: string;
-  scope: string;
-  assetType?: string;
-}
-
 export async function sendMultichainTransaction(
   snapId: SnapId,
-  { account, scope, assetType }: SendMultichainTransactionParams,
+  {
+    account,
+    scope,
+  }: {
+    account: string;
+    scope: string;
+  },
 ) {
   await handleSnapRequest(controllerMessenger, {
     snapId,
@@ -24,7 +24,6 @@ export async function sendMultichainTransaction(
       params: {
         account,
         scope,
-        assetType,
       },
     },
   });

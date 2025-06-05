@@ -212,41 +212,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         );
       }
 
-      const assetTypeToUse = (() => {
-        if (asset.address) {
-          return asset.address as CaipAssetType;
-        }
-
-        if (!nativeCurrency) {
-          Logger.error(
-            new Error(
-              'No asset address provided, and could not find a fallback native asset for the selected account',
-            ),
-            'AssetOverview: Unable to determine asset type for multichain transaction',
-          );
-          return null;
-        }
-
-        return nativeCurrency as CaipAssetType;
-      })();
-
-      if (!assetTypeToUse) {
-        Logger.error(
-          new Error(
-            'Failed to determine asset type for multichain transaction',
-          ),
-          'AssetOverview: Cannot proceed with send transaction',
-        );
-        return;
-      }
-
       try {
         await sendMultichainTransaction(
           selectedInternalAccount.metadata.snap.id as SnapId,
           {
             account: selectedInternalAccount.id,
             scope: asset.chainId as CaipChainId,
-            assetType: assetTypeToUse,
           },
         );
         return;
