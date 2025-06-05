@@ -91,7 +91,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     // This is to ensure we tap cancel before quotes are fetched - the cancel event is only sent if the quotes are not fetched
     await device.disableSynchronization();
     await QuoteView.tapOnGetQuotes();
-    await TestHelpers.delay(500);
+    await TestHelpers.delay(1000);
     await QuoteView.tapOnCancelButton();
     await device.enableSynchronization();
     await Assertions.checkIfVisible(WalletView.container);
