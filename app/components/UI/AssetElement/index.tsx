@@ -1,22 +1,22 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
+import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
-import SkeletonText from '../Ramp/components/SkeletonText';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
-import { TokenI } from '../Tokens/types';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 interface AssetElementProps {

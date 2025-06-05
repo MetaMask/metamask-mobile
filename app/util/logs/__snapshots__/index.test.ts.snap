@@ -20,12 +20,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
-      "AppMetadataController": {
-        "currentAppVersion": "",
-        "currentMigrationVersion": 0,
-        "previousAppVersion": "",
-        "previousMigrationVersion": 0,
-      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -305,6 +299,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subjects": {},
       },
       "PreferencesController": {
+        "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": {},
@@ -500,6 +495,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastFetchedBlockNumbers": {},
         "methodData": {},
         "submitHistory": [],
+        "transactionBatches": [],
         "transactions": [],
       },
       "UserStorageController": {

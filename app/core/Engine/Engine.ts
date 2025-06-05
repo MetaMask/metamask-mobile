@@ -2041,6 +2041,7 @@ export class Engine {
     (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
+      transactionBatches: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
