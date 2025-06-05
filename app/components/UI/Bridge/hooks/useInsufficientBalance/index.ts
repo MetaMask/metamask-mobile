@@ -12,11 +12,15 @@ interface UseIsInsufficientBalanceParams {
 
 const normalizeAmount = (value: string, decimals: number): string => {
   // Check if the value is in scientific notation
-  if (value.includes('e') || value.includes('E')) {
+  if (value.toLowerCase().includes('e')) {
     // Convert to decimal notation using the token's decimal precision
     const num = Number(value);
-    const result = num.toFixed(decimals);
-    return result;
+    // Return '0' for invalid numbers
+    if (isNaN(num)) {
+      return '0';
+    }
+    // Remove trailing zeroes after converting from scientific notation
+    return num.toFixed(decimals).replace(/\.?0+$/, '');
   }
   return value;
 };
