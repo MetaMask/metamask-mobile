@@ -209,117 +209,134 @@ The issue is **architectural incompatibility**:
 - **Issue**: Request tracking for correct response routing
 - **Status**: **RESOLVED**
 
-### **🧪 Fix #7: Unwrap Transform Stream (LATEST)**
+### **🧪 Fix #7: Unwrap Transform Stream - FAILED**
 **Date Applied**: January 18, 2025  
 **File**: `scripts/inpage-bridge/src/provider.js`  
 **Issue**: Provider receives multiplexed messages but expects pure JSON-RPC  
-**Status**: **NEEDS TESTING**
+**Status**: **FAILED - StreamMiddleware Architecture Conflict**
 
-**Problem Identified**:
+**Root Cause**: Provider's internal StreamMiddleware lost track of request IDs through our transform pipeline, causing undefined responses and dapp crashes.
+
+---
+
+## ✅ **Fix #8: Extension-Style Channel Stream - APPLIED**
+**Date Applied**: January 18, 2025  
+**File**: `scripts/inpage-bridge/src/provider.js`  
+**Status**: **APPLIED - READY FOR TESTING**
+
+**Goal**: Match extension's exact working architecture - give provider its own dedicated channel stream
+
+**Implementation**: Successfully applied extension's exact working architecture:
 ```javascript
-// ❌ Provider currently receives:
-{"name":"metamask-multichain-provider","data":{"jsonrpc":"2.0","id":1,...}}
+// EXTENSION-STYLE ARCHITECTURE: Create ObjectMultiplex at inpage level
+const mux = new ObjectMultiplex();
+pipeline(metamaskStream, mux, metamaskStream);
 
-// ✅ Provider needs to receive:
-{"jsonrpc":"2.0","id":1,"method":"wallet_getSession",...}
-```
-
-**Solution**: Added Transform stream to unwrap multiplexed messages:
-```javascript
-const createUnwrapTransform = () => {
-  return new Transform({
-    objectMode: true,
-    transform(chunk, encoding, callback) {
-      // If this is a multiplexed message with name + data, unwrap it
-      if (chunk && typeof chunk === 'object' && chunk.name && chunk.data) {
-        this.push(chunk.data); // Send only the JSON-RPC data
-      } else {
-        this.push(chunk); // Pass through SYN/ACK messages
-      }
-      callback();
-    }
-  });
-};
-
-// Provider now receives unwrapped stream
+// EXTENSION PATTERN: Give provider its own dedicated channel stream
 initializeProvider({
-  connectionStream: unwrapTransform, // Pure JSON-RPC messages
-  shouldSendMetadata: false,
-  providerInfo,
+  connectionStream: mux.createStream('metamask-provider'), // ✅ Channel stream like extension!
+});
+
+initializeProvider({
+  connectionStream: mux.createStream('metamask-multichain-provider'), // ✅ Second channel!
 });
 ```
 
-**Expected Results** (NOT YET VALIDATED):
-- Eliminate `ObjectMultiplex - malformed chunk` errors
-- Eliminate `JSON.stringify(json).slice()` crashes  
-- Enable proper `wallet_getSession` response handling
-- Restore multichain functionality
+**Key Changes**:
+- ✅ **ObjectMultiplex at inpage level** (like extension)
+- ✅ **Dedicated channel streams** for each provider (like extension)  
+- ✅ **Pipeline connection** matching extension pattern
+- ✅ **Dual provider initialization** for EIP-1193 and Multichain
+- ✅ **Removed unwrap transform** that caused StreamMiddleware conflicts
+
+**Expected Results**:
+- ✅ Provider gets proper channel stream (not raw/unwrapped data)
+- ✅ StreamMiddleware can track requests/responses correctly
+- ✅ No more "Unknown response id" errors
+- ✅ No more `JSON.stringify(json).slice()` crashes
+- ✅ Multichain functionality should work (wallet_getSession/createSession)
+
+**Testing Steps**:
+1. **Build** inpage bridge: `yarn build:inpage-bridge`
+2. **Test** multichain dapp: wallet_getSession/createSession
+3. **Verify** no crashes or StreamMiddleware errors
 
 ---
 
-## 🧪 **TESTING REQUIRED**
+## 🎯 **ROOT CAUSE ANALYSIS - Extension Comparison**
 
-**Current Test**: Transform stream unwrapping approach
-- ❌ **NOT YET TESTED**
-- ❌ **NO VALIDATION OF FUNCTIONALITY**  
-- ❌ **PREVIOUS APPROACHES ALL FAILED**
+**After analyzing metamask-extension code (also using providers 22.1.0), the fundamental issue is:**
 
-**Critical Test Points**:
-1. **Provider Message Format**: Verify provider receives pure JSON-RPC (no `name` wrapper)
-2. **Multichain Requests**: Test `wallet_getSession` and `wallet_createSession` calls
-3. **Response Handling**: Ensure responses don't cause dapp crashes
-4. **Both Provider Types**: Verify EIP-1193 and CAIP providers both work
-5. **Error Elimination**: Confirm no more `ObjectMultiplex` or `JSON.stringify` errors
+### **Extension Architecture (WORKING)**:
+```javascript
+// inpage.js - Extension
+const mux = new ObjectMultiplex();
+pipeline(metamaskStream, mux, metamaskStream);
 
-**Test Steps**:
-1. Build inpage bridge with new unwrap transform
-2. Test multichain dapp connection flow
-3. Verify wallet session establishment  
-4. Check for console errors and crashes
-5. Test account switching and network changes
+initializeProvider({
+  connectionStream: mux.createStream(METAMASK_EIP_1193_PROVIDER), // ✅ Channel stream
+});
+```
 
----
+### **Mobile Architecture (BROKEN)**:
+```javascript
+// provider.js - Mobile  
+initializeProvider({
+  connectionStream: metamaskStream, // ❌ Raw stream OR unwrapped data
+});
+```
 
-## 📊 **IMPACT ASSESSMENT**
+### **Critical Difference**:
+- **Extension**: `initializeProvider` receives **`mux.createStream()`** - a **dedicated channel stream**
+- **Mobile**: `initializeProvider` receives **raw stream** or **unwrapped JSON-RPC data**
 
-### **Business Impact**: 
-- **HIGH**: Multichain functionality completely broken until resolved
-
-### **Technical Risk**:
-- **MEDIUM**: Multiple failed attempts suggest deep architectural issues
-- **Rollback**: Simple revert to 18.3.1 if approach fails
-
-### **Dependencies Updated**:
-- ✅ `@metamask/providers`: `18.3.1` → `22.1.0`  
-- ✅ `readable-stream`: `2.3.7` → `3.6.2`
-
-### **Architecture Changes**:
-- ✅ Metro configuration for readable-stream paths
-- ✅ Message filtering and parsing fixes
-- ✅ Request tracking for response routing
-- 🧪 Transform stream for message unwrapping (UNTESTED)
+**The new provider 22.1.0 expects to OWN a specific channel stream, not handle raw multiplexed data or unwrapped transforms.**
 
 ---
 
-## 📝 **LESSONS LEARNED**
+## 📋 **Next Approaches to Try**
 
-1. **Provider Compatibility**: Version updates can fundamentally change expected message formats
-2. **Stream Architecture**: Mobile has different patterns than extension that require adaptation
-3. **Testing Critical**: Multiple approaches failed - testing each change is essential
-4. **Message Format**: New provider expects pure JSON-RPC, not multiplexed message wrapper
-5. **Incremental Validation**: Each fix must be validated before claiming success
+### **🔥 Approach #8: Extension-Style Channel Stream (HIGH PRIORITY)**
+**Goal**: Match extension's exact architecture - give provider its own channel stream
+```javascript
+// Mobile should match Extension exactly:
+const mux = new ObjectMultiplex();
+pipeline(metamaskStream, mux, metamaskStream);
+
+initializeProvider({
+  connectionStream: mux.createStream('metamask-provider'), // ✅ Channel stream like extension
+});
+
+initializeProvider({
+  connectionStream: mux.createStream('metamask-multichain-provider'), // ✅ Second channel
+});
+```
+**Risk**: Medium - matches working extension architecture  
+**Files**: `scripts/inpage-bridge/src/provider.js`
+
+### **Approach #9: Dual Provider Instance**
+**Goal**: Separate provider instances for EIP-1193 vs Multichain like extension
+**Risk**: High - major architectural change
+
+### **Approach #10: Mobile-Specific Provider Wrapper**  
+**Goal**: Create wrapper that handles mobile's multiplexed architecture
+**Risk**: High - custom solution, maintenance burden
+
+### **Approach #11: Patch Provider Source**
+**Goal**: Modify @metamask/providers to handle mobile's architecture  
+**Risk**: Very High - upstream changes, versioning issues
 
 ---
 
-## 🔄 **NEXT STEPS**
-
-1. **BUILD AND TEST** unwrap transform approach
-2. **VALIDATE** multichain functionality works end-to-end  
-3. **VERIFY** no console errors or crashes
-4. **DOCUMENT** final working solution (if successful)
-5. **ROLLBACK** to 18.3.1 if transform approach fails
-
-**⚠️ IMPORTANT**: No claims of success until full testing validates the fix works in practice.
+## 📝 **Testing Requirements for Next Fix**
+When implementing Approach #8:
+1. **Build** inpage bridge: `yarn build:inpage-bridge`
+2. **Test** basic provider connection
+3. **Test** multichain dapp: wallet_getSession/createSession
+4. **Verify** no `JSON.stringify(json).slice()` crashes  
+5. **Check** no `StreamMiddleware - Unknown response id` errors
+6. **Confirm** both channels work independently
+7. **Validate** existing EIP-1193 functionality unchanged
 
 ## 🎯 **FINAL BREAKTHROUGH - Issue #6: Response Channel Routing** ✅
 
