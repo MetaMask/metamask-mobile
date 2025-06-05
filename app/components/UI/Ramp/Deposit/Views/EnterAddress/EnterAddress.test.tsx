@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
