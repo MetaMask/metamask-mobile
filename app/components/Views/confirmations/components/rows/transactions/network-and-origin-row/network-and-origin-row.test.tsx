@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
-import NetworkRow from './network-row';
+import { NetworkAndOriginRow } from './network-and-origin-row';
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
@@ -78,9 +78,9 @@ const dappOriginTransactionState = merge({}, transferConfirmationState, {
   },
 });
 
-describe('NetworkRow', () => {
+describe('NetworkAndOriginRow', () => {
   it('displays the correct network name', async () => {
-    const { getByText } = renderWithProvider(<NetworkRow />, {
+    const { getByText } = renderWithProvider(<NetworkAndOriginRow />, {
       state: internalTransactionState,
     });
 
@@ -89,7 +89,7 @@ describe('NetworkRow', () => {
   });
 
   it('displays origin info for dapp transactions', async () => {
-    const { getByText } = renderWithProvider(<NetworkRow />, {
+    const { getByText } = renderWithProvider(<NetworkAndOriginRow />, {
       state: dappOriginTransactionState,
     });
 
@@ -99,7 +99,7 @@ describe('NetworkRow', () => {
   });
 
   it('does not display origin info for internal transactions', async () => {
-    const { getByText, queryByText } = renderWithProvider(<NetworkRow />, {
+    const { getByText, queryByText } = renderWithProvider(<NetworkAndOriginRow />, {
       state: internalTransactionState,
     });
 
