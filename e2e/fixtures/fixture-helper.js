@@ -195,8 +195,6 @@ export async function withFixtures(options, testSuite) {
             localNode = new AnvilManager();
             await localNode.start(nodeOptions);
             localNodes.push(localNode);
-            await localNode.setAccountBalance('1200');
-
             break;
 
           case 'ganache':
