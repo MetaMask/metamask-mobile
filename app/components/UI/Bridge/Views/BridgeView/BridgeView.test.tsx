@@ -630,6 +630,47 @@ describe('BridgeView', () => {
 
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
+      // Mock isHardwareAccount to return true for this test only
+      const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
+      jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the banner text to appear
+      await waitFor(() => {
+        expect(getByText(strings('bridge.hardware_wallet_not_supported_solana'))).toBeTruthy();
+      });
+    });
   });
 
   describe('Error Banner Visibility', () => {

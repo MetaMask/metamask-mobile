@@ -119,6 +119,12 @@ const BridgeView = () => {
   } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareAddress = selectedAddress
+    ? !!isHardwareAccount(selectedAddress)
+    : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -156,9 +162,9 @@ const BridgeView = () => {
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const hasValidBridgeInputs =
-    isValidSourceAmount && 
-    !!sourceToken && 
-    !!destToken && 
+    isValidSourceAmount &&
+    !!sourceToken &&
+    !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
     (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
@@ -326,7 +332,9 @@ const BridgeView = () => {
     }
 
     const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
-    return isSwap ? strings('bridge.confirm_swap') : strings('bridge.confirm_bridge');
+    return isSwap
+      ? strings('bridge.confirm_swap')
+      : strings('bridge.confirm_bridge');
   };
 
   useEffect(() => {
@@ -379,12 +387,26 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
+          {isHardwareAddress && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={
+                isSolanaSourced
+                  ? strings('bridge.hardware_wallet_not_supported_solana')
+                  : strings('bridge.hardware_wallet_not_supported')
+              }
+            />
+          )}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
-            isDisabled={hasInsufficientBalance || isSubmittingTx}
+            isDisabled={
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              isHardwareAddress
+            }
           />
           <Button
             variant={ButtonVariants.Link}
