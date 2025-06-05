@@ -11,7 +11,7 @@ import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
-import { setPositionAsync } from 'expo-navigation-bar';
+import { setVisibilityAsync } from 'expo-navigation-bar';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -126,7 +126,7 @@ export const useAppTheme = (): Theme => {
     if (Device.isAndroid()) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
-      setPositionAsync('absolute');
+      setVisibilityAsync('hidden');
     }
   };
 
@@ -135,7 +135,7 @@ export const useAppTheme = (): Theme => {
     if (Device.isAndroid()) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
-      setPositionAsync('absolute');
+      setVisibilityAsync('hidden');
     }
   };
 
