@@ -10,6 +10,8 @@ ignores:
   - 'babel-plugin-inline-import'
   # This is used in index.d.ts
   - '@sentry/react'
+  # These dependencies are needed for react-compiler - https://react.dev/learn/react-compiler#using-react-compiler-with-react-17-or-18
+  - 'react-compiler-runtime'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
 
