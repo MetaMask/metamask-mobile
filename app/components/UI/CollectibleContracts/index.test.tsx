@@ -119,6 +119,67 @@ describe('CollectibleContracts', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
+  it('does not call updateNftMetadata when isIpfsGatewayEnabled and displayNftMedia are false', async () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const spyOnUpdateNftMetadata = jest
+      .spyOn(Engine.context.NftController, 'updateNftMetadata')
+      .mockImplementation(async () => undefined);
+
+    renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    await waitFor(() => {
+      expect(spyOnUpdateNftMetadata).not.toHaveBeenCalled();
+    });
+
+    spyOnUpdateNftMetadata.mockRestore();
+  });
+
   it('UI refresh changes NFT image when metadata image changes - detection disabled', async () => {
     const collectibleData = [
       {
