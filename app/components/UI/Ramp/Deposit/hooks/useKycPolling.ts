@@ -27,12 +27,10 @@ const useKycPolling = (
 ): KycPollingResult => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const {
-    sdkMethod: getUserDetails,
-    response: userDetailsResponse,
-    loading,
-    error,
-  } = useDepositSdkMethod('getUserDetails');
+  const [
+    { data: userDetailsResponse, error, isFetching: loading },
+    getUserDetails,
+  ] = useDepositSdkMethod('getUserDetails');
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
