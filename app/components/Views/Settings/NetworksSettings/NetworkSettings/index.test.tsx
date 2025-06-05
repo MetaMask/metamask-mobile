@@ -25,7 +25,6 @@ jest.mock(
   }),
 );
 
-// Mock useMetrics hook
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
@@ -35,11 +34,9 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
       })),
     })),
   }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withMetricsAwareness: (Component: any) => Component,
+  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
-// Mock MetaMetrics
 jest.mock('../../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({

@@ -15,14 +15,12 @@ import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 
-// Mock network metric utility functions
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1'],
   }),
 }));
 
-// Mock useMetrics hook
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
@@ -34,7 +32,6 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-// Mock MetaMetrics
 jest.mock('../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({

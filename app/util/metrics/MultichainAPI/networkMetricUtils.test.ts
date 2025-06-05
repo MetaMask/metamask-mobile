@@ -18,12 +18,15 @@ jest.mock('../../../selectors/networkController', () => ({
 
 import { store } from '../../../store';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { RootState } from '../../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
 const mockStore = store as jest.Mocked<typeof store>;
 const mockSelectNetworkConfigurations =
   selectNetworkConfigurations as jest.MockedFunction<
     typeof selectNetworkConfigurations
   >;
+
+const mockedState = {} as jest.Mocked<RootState>;
 
 describe('networkMetricUtils', () => {
   beforeEach(() => {
@@ -32,8 +35,7 @@ describe('networkMetricUtils', () => {
 
   describe('getConfiguredCaipChainIds', () => {
     it('should return empty array when no networks are configured', () => {
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       mockSelectNetworkConfigurations.mockReturnValue({});
 
       const result = getConfiguredCaipChainIds();
@@ -60,8 +62,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
 
@@ -84,8 +85,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
 
@@ -111,8 +111,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
 
@@ -140,8 +139,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
     });
@@ -217,8 +215,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
     });
@@ -268,8 +265,7 @@ describe('networkMetricUtils', () => {
         },
       };
 
-      // @ts-expect-error - mocking store for test
-      mockStore.getState.mockReturnValue({});
+      mockStore.getState.mockReturnValue(mockedState);
       // @ts-expect-error - mocking selector for test
       mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
 
