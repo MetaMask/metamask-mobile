@@ -88,7 +88,7 @@ export const setupAccountMockedBalances = async (mockServer, accounts) => {
       })
       .withJsonBodyIncluding({
         method: 'eth_getBalance',
-        params: [account],
+        params: [account.toLocaleLowerCase()],
       })
       .thenCallback(() => ({
         statusCode: 200,
