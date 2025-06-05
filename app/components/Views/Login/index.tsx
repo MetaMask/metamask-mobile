@@ -397,7 +397,7 @@ const Login: React.FC = () => {
             </TouchableOpacity>
 
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.DisplayMd}
               testID={LoginViewSelectors.TITLE_ID}
               style={tw`text-center mt-5 mb-5`}
             >
