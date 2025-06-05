@@ -14,6 +14,7 @@ import {
   SnapEnabled as SnapControllerSnapEnabledEventType,
   SnapDisabled as SnapControllerSnapDisabledEventType,
   GetAllSnaps as SnapControllerGetAllSnapsActionType,
+  IsMinimumPlatformVersion as SnapControllerIsMinimumPlatformVersionActionType,
   CreateInterface,
   UpdateInterface,
   ResolveInterface,
@@ -68,6 +69,9 @@ export const SnapControllerGetSnapFileAction: SnapControllerGetSnapFileActionTyp
 
 export const SnapControllerGetAllSnapsAction: SnapControllerGetAllSnapsActionType['type'] =
   'SnapController:getAll';
+
+export const SnapControllerIsMinimumPlatformVersionAction: SnapControllerIsMinimumPlatformVersionActionType['type'] =
+  'SnapController:isMinimumPlatformVersion';
 
 // SnapInterfaceController Actions
 export const SnapInterfaceControllerCreateInterfaceAction: CreateInterface['type'] =
