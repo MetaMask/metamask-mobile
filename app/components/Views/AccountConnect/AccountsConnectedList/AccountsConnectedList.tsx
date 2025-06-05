@@ -3,7 +3,13 @@ import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector, shallowEqual } from 'react-redux';
-import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipAccountId,
+  CaipChainId,
+  parseCaipAccountId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 
 // external dependencies
 import Engine from '../../../../core/Engine';
@@ -13,11 +19,7 @@ import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../../component-library/hooks';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import {
-  EnsByAccountAddress,
-  Account,
-  Assets,
-} from '../../../hooks/useAccounts';
+import { EnsByAccountAddress, Account } from '../../../hooks/useAccounts';
 import {
   AvatarAccountType,
   AvatarVariant,
@@ -42,7 +44,7 @@ import {
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
 
-const AccountsConnectedItemList = ({
+const AccountsConnectedList = ({
   selectedAddresses,
   ensByAccountAddress,
   accounts,
@@ -73,10 +75,37 @@ const AccountsConnectedItemList = ({
     shallowEqual,
   );
 
+  const getFilteredNetworkAvatars = useCallback(
+    (accountScopes: CaipChainId[] = []) => {
+      if (!accountScopes.length) return [];
+
+      return networkAvatars.filter((avatar) => {
+        const { namespace } = parseCaipChainId(avatar.caipChainId);
+
+        return accountScopes.some((scope) => {
+          switch (namespace) {
+            case KnownCaipNamespace.Bip122:
+              return scope.includes(KnownCaipNamespace.Bip122);
+            case KnownCaipNamespace.Solana:
+              return scope.includes(KnownCaipNamespace.Solana);
+            case KnownCaipNamespace.Eip155:
+              return scope.includes(KnownCaipNamespace.Eip155);
+            default:
+              return false;
+          }
+        });
+      });
+    },
+    [networkAvatars],
+  );
+
   const renderRightAccessory = useCallback(
-    ({ fiatBalance }: Assets, address: string) => {
-      const fiatBalanceStrSplit = fiatBalance.split('\n');
+    (account: Account) => {
+      const { assets, address, scopes = [] } = account;
+      const { fiatBalance } = assets || {};
+      const fiatBalanceStrSplit = fiatBalance?.split('\n') || [];
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
+      const filteredNetworkAvatars = getFilteredNetworkAvatars(scopes);
 
       return (
         <View
@@ -91,7 +120,7 @@ const AccountsConnectedItemList = ({
             {fiatBalanceAmount}
           </SensitiveText>
           <AvatarGroup
-            avatarPropsList={networkAvatars.map((avatar) => ({
+            avatarPropsList={filteredNetworkAvatars.map((avatar) => ({
               ...avatar,
               variant: AvatarVariant.Network,
             }))}
@@ -103,7 +132,7 @@ const AccountsConnectedItemList = ({
       styles.balancesContainer,
       styles.balanceLabel,
       privacyMode,
-      networkAvatars,
+      getFilteredNetworkAvatars,
     ],
   );
 
@@ -139,7 +168,7 @@ const AccountsConnectedItemList = ({
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
         >
-          {account?.assets && renderRightAccessory(account?.assets, address)}
+          {account && renderRightAccessory(account)}
         </Cell>
       );
     },
@@ -179,4 +208,4 @@ const AccountsConnectedItemList = ({
   );
 };
 
-export default AccountsConnectedItemList;
+export default AccountsConnectedList;
