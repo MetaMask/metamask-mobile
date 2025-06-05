@@ -194,10 +194,10 @@ describe('OtpCode Component', () => {
   it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
     const mockResendFn = jest.fn().mockResolvedValue('success');
 
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-      sdkMethod: mockResendFn,
-    };
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
 
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
