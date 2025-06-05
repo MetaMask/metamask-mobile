@@ -10,28 +10,26 @@ export const createProviderWebviewNavDetails = createNavigationDetails(
   Routes.DEPOSIT.PROVIDER_WEBVIEW,
 );
 
-const ProviderWebview = () => {
-  return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>
-            Provider Webview Page Placeholder
-          </Text>
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row>
-            <StyledButton type="confirm" accessibilityRole="button" accessible>
-              Continue
-            </StyledButton>
-          </Row>
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
-    </ScreenLayout>
-  );
-};
+const ProviderWebview = () => (
+  <ScreenLayout>
+    <ScreenLayout.Body>
+      <ScreenLayout.Content>
+        {/* eslint-disable-next-line react-native/no-inline-styles */}
+        <Text style={{ textAlign: 'center', marginTop: 40 }}>
+          Provider Webview Page Placeholder
+        </Text>
+      </ScreenLayout.Content>
+    </ScreenLayout.Body>
+    <ScreenLayout.Footer>
+      <ScreenLayout.Content>
+        <Row>
+          <StyledButton type="confirm" accessibilityRole="button" accessible>
+            Continue
+          </StyledButton>
+        </Row>
+      </ScreenLayout.Content>
+    </ScreenLayout.Footer>
+  </ScreenLayout>
+);
 
 export default ProviderWebview;
