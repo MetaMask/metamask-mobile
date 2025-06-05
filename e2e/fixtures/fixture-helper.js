@@ -172,8 +172,9 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {Object} options.fixture - The fixture to load.
  * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {Object} [options.testSpecificMock] - The specific mock to use for the test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
- * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
+ * @param {({contractRegistry, mockServer, localNodes}) => void} testSuite - The test suite function to execute after setting up the fixture.
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */

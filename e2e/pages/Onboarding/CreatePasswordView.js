@@ -22,7 +22,7 @@ class CreatePasswordView {
 
   get iUnderstandCheckbox() {
     return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
     );
   }
 
