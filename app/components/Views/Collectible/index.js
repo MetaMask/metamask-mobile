@@ -13,7 +13,8 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -29,6 +30,14 @@ const createStyles = (colors) =>
  */
 class Collectible extends PureComponent {
   static propTypes = {
+    /**
+     * Selected address
+     */
+    selectedAddress: PropTypes.string,
+    /**
+     * Object of networkConfigurations keyed by chainId
+     */
+    networkConfigurations: PropTypes.object,
     /**
      * Array of assets (in this case Collectibles)
      */
@@ -96,6 +105,8 @@ class Collectible extends PureComponent {
       route: { params },
       navigation,
       collectibleContractModalVisible,
+      networkConfigurations,
+      selectedAddress,
     } = this.props;
     const collectibleContract = params;
     const address = params.address;
@@ -142,6 +153,8 @@ class Collectible extends PureComponent {
             <View style={styles.wrapper}>
               <Collectibles
                 navigation={navigation}
+                selectedAddress={selectedAddress}
+                networkConfiguirations={networkConfigurations}
                 collectibles={filteredCollectibles}
                 collectibleContract={collectibleContract}
               />
@@ -169,6 +182,8 @@ class Collectible extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  networkConfiguirations: selectNetworkConfigurations(state),
   collectibles: collectiblesSelector(state),
   collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
 });
