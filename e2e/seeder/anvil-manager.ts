@@ -47,7 +47,7 @@ type Hex = `0x${string}`;
  * @property {boolean} noMining - Whether to disable automatic mining
  */
 export const defaultOptions = {
-  balance: 25,
+  balance: 1000,
   chainId: 1337,
   gasLimit: 30000000,
   gasPrice: 2000000000,
