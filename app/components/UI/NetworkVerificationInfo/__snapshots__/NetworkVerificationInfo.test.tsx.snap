@@ -101,7 +101,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderRadius": 8,
+                "borderRadius": 4,
                 "height": 16,
                 "justifyContent": "center",
                 "overflow": "hidden",
@@ -633,7 +633,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderRadius": 8,
+                "borderRadius": 4,
                 "height": 16,
                 "justifyContent": "center",
                 "overflow": "hidden",

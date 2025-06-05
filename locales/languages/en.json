@@ -1231,7 +1231,9 @@
       "key": "Key",
       "add": "Add",
       "update": "Update",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",
@@ -4139,7 +4141,8 @@
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
-    "hardware_wallet_not_supported": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
