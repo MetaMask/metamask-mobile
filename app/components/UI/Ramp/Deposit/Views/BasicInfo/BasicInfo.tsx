@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
@@ -106,7 +106,7 @@ const BasicInfo = (): JSX.Element => {
         ...createEnterAddressNavDetails({ formData: formattedFormData }),
       );
     }
-  }, [navigation, validateFormData]);
+  }, [navigation, validateFormData, formData]);
 
   return (
     <ScreenLayout>

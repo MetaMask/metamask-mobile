@@ -81,6 +81,13 @@ const EnterAddress = (): JSX.Element => {
       validateForm,
     });
 
+  const handleFormDataChange = useCallback(
+    (field: keyof AddressFormData) => (value: string) => {
+      handleChange(field, value);
+    },
+    [handleChange],
+  );
+
   const combinedFormData = {
     ...basicInfoFormData,
     ...formData,
@@ -171,7 +178,7 @@ const EnterAddress = (): JSX.Element => {
             label={strings('deposit.enter_address.address_line_1')}
             placeholder={strings('deposit.enter_address.address_line_1')}
             value={formData.addressLine1}
-            onChangeText={(text) => handleChange('addressLine1', text)}
+            onChangeText={handleFormDataChange('addressLine1')}
             error={errors.addressLine1}
             returnKeyType="next"
             testID="address-line-1-input"
@@ -181,7 +188,7 @@ const EnterAddress = (): JSX.Element => {
             label={strings('deposit.enter_address.address_line_2')}
             placeholder={strings('deposit.enter_address.address_line_2')}
             value={formData.addressLine2}
-            onChangeText={(text) => handleChange('addressLine2', text)}
+            onChangeText={handleFormDataChange('addressLine2')}
             returnKeyType="next"
             testID="address-line-2-input"
           />
@@ -191,7 +198,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.city')}
               placeholder={strings('deposit.enter_address.city')}
               value={formData.city}
-              onChangeText={(text) => handleChange('city', text)}
+              onChangeText={handleFormDataChange('city')}
               error={errors.city}
               returnKeyType="next"
               testID="city-input"
@@ -202,7 +209,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.state')}
               placeholder={strings('deposit.enter_address.state')}
               value={formData.state}
-              onChangeText={(text) => handleChange('state', text)}
+              onChangeText={handleFormDataChange('state')}
               error={errors.state}
               returnKeyType="next"
               testID="state-input"
@@ -215,7 +222,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.postal_code')}
               placeholder={strings('deposit.enter_address.postal_code')}
               value={formData.postCode}
-              onChangeText={(text) => handleChange('postCode', text)}
+              onChangeText={handleFormDataChange('postCode')}
               error={errors.postCode}
               returnKeyType="next"
               testID="postal-code-input"
@@ -226,7 +233,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.country')}
               placeholder={strings('deposit.enter_address.country')}
               value={formData.countryCode}
-              onChangeText={(text) => handleChange('countryCode', text)}
+              onChangeText={handleFormDataChange('countryCode')}
               error={errors.countryCode}
               returnKeyType="done"
               testID="country-input"
