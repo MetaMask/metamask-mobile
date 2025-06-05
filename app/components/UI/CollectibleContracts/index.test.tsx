@@ -14,7 +14,7 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 // eslint-disable-next-line import/no-namespace
 import * as networkSelectors from '../../../selectors/networkController';
-import { cleanup, waitFor } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
@@ -993,5 +993,70 @@ describe('CollectibleContracts', () => {
 
     spyOnDetectNfts.mockRestore();
     spyOnCheckOwnership.mockRestore();
+  });
+
+  it('navigates to add collectible screen', () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockNavigation = {
+      navigate: jest.fn(),
+      push: jest.fn(),
+    };
+    const { getByTestId } = renderWithProvider(<CollectibleContracts
+    navigation={mockNavigation}/>, {
+      state: mockState,
+    });
+
+    const addCollectibleButton = getByTestId('import-collectible-button');
+    fireEvent.press(addCollectibleButton);
+
+    expect(mockNavigation.push).toHaveBeenCalledTimes(1);
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
+        assetType: 'collectible',
+    });
   });
 });
