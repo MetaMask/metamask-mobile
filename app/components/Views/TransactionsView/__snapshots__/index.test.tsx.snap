@@ -461,6 +461,7 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                           </RCTScrollView>
                         </View>
                       </View>
+                      <View />
                     </View>
                   </View>
                 </View>

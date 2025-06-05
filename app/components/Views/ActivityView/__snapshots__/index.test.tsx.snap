@@ -601,6 +601,7 @@ exports[`ActivityView should render correctly 1`] = `
                                     />
                                   </View>
                                 </View>
+                                <View />
                               </View>
                             </View>
                           </View>

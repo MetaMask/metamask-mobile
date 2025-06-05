@@ -1034,6 +1034,7 @@ exports[`Confirm should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
+                        <View />
                       </View>
                       <RCTScrollView
                         style={
@@ -1643,6 +1644,9 @@ exports[`Confirm should render correctly 1`] = `
                                 </View>
                               </View>
                             </View>
+                            <View />
+                            <View />
+                            <View />
                           </View>
                           <View
                             style={
@@ -1784,6 +1788,7 @@ exports[`Confirm should render correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>

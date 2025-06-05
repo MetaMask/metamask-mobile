@@ -1138,6 +1138,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
+                      <View />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

@@ -314,7 +314,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               "lineHeight": 24,
             }
           }
-          testID="welcome-screen-get-started-button-id"
         >
           Get started
         </Text>
@@ -3011,7 +3010,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               "lineHeight": 24,
             }
           }
-          testID="welcome-screen-get-started-button-id"
         >
           Get started
         </Text>
@@ -3349,7 +3347,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               "lineHeight": 24,
             }
           }
-          testID="welcome-screen-get-started-button-id"
         >
           Get started
         </Text>
@@ -3687,7 +3684,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               "lineHeight": 24,
             }
           }
-          testID="welcome-screen-get-started-button-id"
         >
           Get started
         </Text>

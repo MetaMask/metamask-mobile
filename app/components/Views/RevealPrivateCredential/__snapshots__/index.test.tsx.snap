@@ -427,6 +427,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
     </RCTScrollView>
   </View>
   <View />
+  <View />
 </View>
 `;
 
@@ -857,6 +858,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
     </RCTScrollView>
   </View>
   <View />
+  <View />
 </View>
 `;
 
@@ -1213,6 +1215,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
     </RCTScrollView>
   </View>
   <View />
+  <View />
 </View>
 `;
 
@@ -1568,6 +1571,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
       </View>
     </RCTScrollView>
   </View>
+  <View />
   <View />
 </View>
 `;

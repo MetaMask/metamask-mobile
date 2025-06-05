@@ -36,6 +36,7 @@ exports[`Asset should display swaps button if the asset is allowed 1`] = `
       />
     </View>
   </View>
+  <View />
 </View>
 `;
 
@@ -75,6 +76,7 @@ exports[`Asset should not display swaps button if the asset is not allowed 1`] =
       />
     </View>
   </View>
+  <View />
 </View>
 `;
 
@@ -114,5 +116,6 @@ exports[`Asset should render correctly 1`] = `
       />
     </View>
   </View>
+  <View />
 </View>
 `;
