@@ -30,8 +30,6 @@ import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 import {
-  getAllNetworkConfigurations,
-  getNetworkConfigurationsByCaipChainId,
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
@@ -53,11 +51,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import {
-  isTestNet,
-  getDecimalChainId,
-  getAllNetworks,
-} from '../../../util/networks';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
