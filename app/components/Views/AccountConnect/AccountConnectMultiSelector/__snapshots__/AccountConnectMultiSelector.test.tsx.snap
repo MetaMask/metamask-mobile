@@ -247,6 +247,9 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 1",
+            "scopes": [
+              "eip155:0",
+            ],
             "type": "Simple Key Pair",
             "yOffset": 0,
           },
@@ -257,6 +260,9 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 2",
+            "scopes": [
+              "eip155:0",
+            ],
             "type": "Simple Key Pair",
             "yOffset": 0,
           },

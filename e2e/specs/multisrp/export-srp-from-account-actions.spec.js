@@ -12,12 +12,13 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import { goToAccountActions, completeSrpQuiz } from './utils';
+import { defaultOptions } from '../../seeder/anvil-manager';
 const fixtureServer = new FixtureServer();
 
 const FIRST_DEFAULT_HD_KEYRING_ACCOUNT = 0;
 const FIRST_IMPORTED_HD_KEYRING_ACCOUNT = 2;
 
-const DEFAULT_SRP = defaultGanacheOptions.mnemonic;
+const DEFAULT_SRP = defaultOptions.mnemonic;
 const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 

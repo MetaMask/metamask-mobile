@@ -235,7 +235,19 @@ exports[`NetworkDetails renders correctly 1`] = `
                     }
                   >
                     <View
-                      style={null}
+                      accessibilityLabel="Test Network"
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 4,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
+                        }
+                      }
+                      testID="network-avatar-picker"
                     >
                       <View
                         accessibilityLabel="Test Network"

@@ -553,6 +553,46 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -1062,12 +1102,13 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -1831,6 +1872,46 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -2340,12 +2421,13 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -3109,6 +3191,46 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -3618,12 +3740,13 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",

@@ -4,26 +4,10 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { DepositSdkResult } from '../../hooks/useDepositSdkMethod';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
-
-const mockUseDepositSdkMethodInitialValues: DepositSdkResult<'success'> = {
-  error: null,
-  loading: false,
-  sdkMethod: jest.fn().mockResolvedValue('Success'),
-  response: null,
-};
-
-let mockUseDepositSdkMethodValues: DepositSdkResult<'success'> = {
-  ...mockUseDepositSdkMethodInitialValues,
-};
-
-jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
-}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -62,20 +46,9 @@ function render(Component: React.ComponentType) {
 }
 
 describe('VerifyIdentity Component', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = {
-      ...mockUseDepositSdkMethodInitialValues,
-    };
-  });
-
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(VerifyIdentity);
-    expect(
-      screen.getByText(
-        'To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.',
-      ),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
