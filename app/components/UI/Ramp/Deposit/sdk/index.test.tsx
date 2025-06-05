@@ -10,7 +10,10 @@ import {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
-import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import {
+  NativeRampsSdk,
+  TransakEnvironment,
+} from '@consensys/native-ramps-sdk';
 
 jest.mock('../utils/ProviderTokenVault', () => ({
   getProviderToken: jest
@@ -19,21 +22,8 @@ jest.mock('../utils/ProviderTokenVault', () => ({
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
 }));
 
-declare module '@consensys/native-ramps-sdk' {
-  interface NativeRampsSdk {
-    getVersion: () => string;
-    getBuyQuote: (
-      fiatCurrency: string,
-      cryptoCurrency: string,
-      network: string,
-      paymentMethod: string,
-      fiatAmount: string,
-    ) => Promise<BuyQuote>;
-    getUserDetails: () => Promise<NativeTransakUserDetails>;
-  }
-}
-
 jest.mock('@consensys/native-ramps-sdk', () => ({
+  ...jest.requireActual('@consensys/native-ramps-sdk'),
   NativeRampsSdk: jest.fn().mockImplementation(() => ({
     getVersion: jest.fn().mockReturnValue('1.0.0'),
     getBuyQuote: jest.fn().mockResolvedValue({
@@ -146,10 +136,13 @@ describe('Deposit SDK Context', () => {
         },
       );
 
-      expect(NativeRampsSdk).toHaveBeenCalledWith({
-        partnerApiKey: 'test-provider-api-key',
-        frontendAuth: 'test-provider-frontend-auth',
-      });
+      expect(NativeRampsSdk).toHaveBeenCalledWith(
+        {
+          partnerApiKey: 'test-provider-api-key',
+          frontendAuth: 'test-provider-frontend-auth',
+        },
+        TransakEnvironment.Staging,
+      );
     });
   });
 
@@ -402,6 +395,54 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
+    });
+    it('clears authentication state when calling clearAuthToken', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const clearAccessTokenMock = jest.fn();
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        clearAccessToken: clearAccessTokenMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+
+      await act(async () => {
+        contextValue?.clearAuthToken();
+      });
+
+      expect(resetProviderTokenMock).toHaveBeenCalled();
+      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(contextValue?.isAuthenticated).toBe(false);
+      expect(contextValue?.authToken).toBeUndefined();
     });
   });
 });

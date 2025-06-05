@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { EthScope } from '@metamask/keyring-api';
 import { Account } from '../../hooks/useAccounts';
 import renderWithProvider, {
   DeepPartial,
@@ -34,7 +35,7 @@ const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
 const MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_1}`;
 const MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID = `eip155:0:${MOCK_EVM_ACCOUNT_2}`;
 
-const MOCK_EVM_CAIP_SCOPE_1 = 'eip155:0';
+const MOCK_EVM_CAIP_SCOPE_1 = EthScope.Eoa;
 
 const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
   {
@@ -49,8 +50,8 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_1_CAIP_ACCOUNT_ID,
-    scopes: ['eip155:0'],
     isLoadingAccount: false,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
   },
   {
     name: MOCK_EVM_ACCOUNT_2_NAME,
@@ -64,8 +65,8 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: MOCK_EVM_ACCOUNT_2_CAIP_ACCOUNT_ID,
-    scopes: ['eip155:0'],
     isLoadingAccount: false,
+    scopes: [MOCK_EVM_CAIP_SCOPE_1],
   },
 ];
 

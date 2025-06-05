@@ -72,7 +72,10 @@ const EvmAccountSelectorList = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
-  const { styles } = useStyles(styleSheet, {});
+
+  // Use constant empty object to prevent useStyles from recreating styles
+  const emptyVars = useMemo(() => ({}), []);
+  const { styles } = useStyles(styleSheet, emptyVars);
 
   const accountAvatarType = useSelector(
     (state: RootState) =>
@@ -81,6 +84,7 @@ const EvmAccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
+
   const getKeyExtractor = ({ address }: Account) => address;
 
   const selectedAddressesLookup = useMemo(() => {
@@ -290,6 +294,9 @@ const EvmAccountSelectorList = ({
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
+          titleProps={{
+            style: styles.titleText,
+          }}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
@@ -319,6 +326,7 @@ const EvmAccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
+      styles.titleText,
     ],
   );
 

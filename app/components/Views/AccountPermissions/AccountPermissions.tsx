@@ -10,6 +10,7 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isEqual, uniq } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import BottomSheet, {
@@ -133,6 +134,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
   const permittedAccountsList = useSelector(selectPermissionControllerState);
   const nonRemappedPermittedAccounts = getPermittedCaipAccountIdsByHostname(
     permittedAccountsList,
@@ -200,9 +202,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const networkAvatars: NetworkAvatarProps[] = permittedCaipChainIds.map(
     (selectedId) => {
-      const network = networks.find(
-        ({ caipChainId }) => caipChainId === selectedId,
-      );
+      const network = networks
+        .filter(
+          (currentNetwork) =>
+            !NON_EVM_TESTNET_IDS.includes(currentNetwork.caipChainId),
+        )
+        .find(({ caipChainId }) => caipChainId === selectedId);
       let imageSource = network?.imageSource;
 
       if (typeof imageSource === 'string') {
@@ -218,6 +223,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         imageSource,
         variant: AvatarVariant.Network,
         size: AvatarSize.Xs,
+        caipChainId: selectedId,
       };
     },
   );
@@ -708,6 +714,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountAddresses: permittedCaipAccountIds,
       accounts,
       networkAvatars,
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -719,6 +727,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accounts,
     faviconSource,
     urlWithProtocol,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -896,6 +906,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           AccountPermissionsScreens.ChooseFromPermittedNetworks,
         );
       },
+      setTabIndex,
+      tabIndex,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -912,6 +924,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hideSheet,
     hostname,
     toastRef,
+    setTabIndex,
+    tabIndex,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {

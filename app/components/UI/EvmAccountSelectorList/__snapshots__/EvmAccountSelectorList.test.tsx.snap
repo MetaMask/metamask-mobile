@@ -13,7 +13,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -27,7 +27,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -275,9 +275,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -353,9 +353,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -678,9 +678,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -756,9 +756,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -852,7 +852,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -866,7 +866,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -1115,9 +1115,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1480,9 +1480,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1615,7 +1615,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -1629,7 +1629,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -1877,9 +1877,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1955,9 +1955,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -2280,9 +2280,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -2358,9 +2358,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -2454,7 +2454,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
+        "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "isSelected": true,
         "name": "Account 1",
         "type": "HD Key Tree",
@@ -2468,7 +2468,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
           "tokens": [],
         },
         "balanceError": undefined,
-        "caipChainId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
+        "caipAccountId": "eip155:0:0xd018538C87232FF95acbCe4870629b75640a78E7",
         "isSelected": false,
         "name": "Account 2",
         "type": "HD Key Tree",
@@ -2716,9 +2716,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -2794,9 +2794,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -3119,9 +3119,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "400",
+                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -3197,9 +3197,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "400",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
