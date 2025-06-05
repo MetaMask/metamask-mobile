@@ -1,0 +1,114 @@
+import React, { useCallback, useEffect } from 'react';
+import { Image, View, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Text from '../../../../../Base/Text';
+import StyledButton from '../../../../StyledButton';
+import { strings } from '../../../../../../../locales/i18n';
+import { useDepositSDK } from '../../sdk';
+import Routes from '../../../../../../constants/navigation/Routes';
+import styleSheet from './GetStarted.styles';
+import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
+import { getDepositNavbarOptions } from '../../../../Navbar';
+import { useStyles } from '../../../../../../component-library/hooks';
+import getStartedIcon from '../../assets/deposit-get-started-illustration.png';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+
+const bulletPoints = [
+  {
+    title: strings('deposit.get_started.bullet_1_title'),
+    description: strings('deposit.get_started.bullet_1_description'),
+  },
+  {
+    title: strings('deposit.get_started.bullet_2_title'),
+    description: strings('deposit.get_started.bullet_2_description'),
+  },
+  {
+    title: strings('deposit.get_started.bullet_3_title'),
+    description: strings('deposit.get_started.bullet_3_description'),
+  },
+];
+
+const GetStarted: React.FC = () => {
+  const navigation = useNavigation();
+
+  const { styles, theme } = useStyles(styleSheet, {});
+
+  const { seenGetStarted, setSeenGetStarted } = useDepositSDK();
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(navigation, { title: 'Deposit' }, theme),
+    );
+  }, [navigation, theme]);
+
+  const handleOnPress = useCallback(() => {
+    setSeenGetStarted(true);
+  }, [setSeenGetStarted]);
+
+  useEffect(() => {
+    if (seenGetStarted) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
+            params: { animated: true },
+          },
+        ],
+      });
+    }
+  }, [navigation, seenGetStarted]);
+
+  if (seenGetStarted) {
+    // Avoid flashing the original content when the user has already seen it
+    return <ScreenLayout />;
+  }
+
+  return (
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <ScrollView contentContainerStyle={styles.container}>
+          <ScreenLayout.Content>
+            <View style={styles.getStartedImageWrapper}>
+              <Image source={getStartedIcon} style={styles.getStartedImage} />
+            </View>
+          </ScreenLayout.Content>
+          <ScreenLayout.Content>
+            <Text style={styles.title}>
+              {strings('deposit.get_started.title')}
+            </Text>
+          </ScreenLayout.Content>
+          <ScreenLayout.Content>
+            {bulletPoints.map((bulletPoint, index) => (
+              <View key={index} style={styles.bulletPointContainer}>
+                <IonicIcon
+                  size={24}
+                  name="checkmark"
+                  style={styles.checkIcon}
+                />
+                <View style={styles.bulletPointContent}>
+                  <Text style={styles.bulletPointTitle} bold>
+                    {bulletPoint.title}
+                  </Text>
+                  <Text style={styles.bulletPointDescription}>
+                    {bulletPoint.description}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScreenLayout.Content>
+        </ScrollView>
+      </ScreenLayout.Body>
+
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content>
+          <StyledButton type={'confirm'} onPress={handleOnPress}>
+            {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
+          </StyledButton>
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
+    </ScreenLayout>
+  );
+};
+
+export default GetStarted;

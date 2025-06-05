@@ -33,6 +33,8 @@ export interface DepositSDK {
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   checkExistingToken: () => Promise<boolean>;
+  seenGetStarted: boolean;
+  setSeenGetStarted: (seen: boolean) => void;
 }
 
 const isDevelopment =
@@ -61,6 +63,7 @@ export const DepositSDKProvider = ({
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
+  const [seenGetStarted, setSeenGetStarted] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -136,6 +139,8 @@ export const DepositSDKProvider = ({
       authToken,
       setAuthToken,
       checkExistingToken,
+      seenGetStarted,
+      setSeenGetStarted,
     }),
     [
       sdk,
@@ -146,6 +151,8 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
+      seenGetStarted,
+      setSeenGetStarted,
     ],
   );
 
