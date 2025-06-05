@@ -26,9 +26,93 @@ interface AddressFormData {
   addressLine2: string;
   city: string;
   state: string;
-  postalCode: string;
-  country: string;
+  postCode: string;
+  countryCode: string;
 }
+
+const exampleForm = [
+  {
+    cols: { lg: 12, md: 12, xs: 12 },
+    disabled: false,
+    format: '',
+    id: 'addressLine1',
+    isRequired: true,
+    name: 'Address Line',
+    placeholder: '1234 Main St.',
+    regex: '^(?!\\s+$)(?=.*[a-zA-Z]).{3,50}$',
+    regexErrorMessage:
+      '"Address Line" is a mandatory field which cannot be numeric only. Must have alphabets. Please enter a valid address greater than 2 characters and less than 51 characters',
+    type: 'text',
+    value: '',
+  },
+  {
+    cols: { lg: 12, md: 12, xs: 12 },
+    disabled: false,
+    format: '',
+    id: 'addressLine2',
+    isRequired: false,
+    name: 'Address Line 2 (Optional)',
+    placeholder: 'Apartment, studio, or floor',
+    regex: '^(?=.*[a-zA-Z]).{0,50}$|^\\s*$',
+    regexErrorMessage:
+      '"Address Line 2" cannot be numeric only. Should have alphabets too. Please enter a valid address greater than 2 characters & less than 51 characters',
+    type: 'text',
+    value: '',
+  },
+  {
+    cols: { xs: 6 },
+    disabled: false,
+    format: '',
+    id: 'state',
+    isRequired: true,
+    name: 'State/Region',
+    placeholder: '',
+    regex: '^(?!\\s+$)(?=.*[a-zA-Z]).{2,100}$',
+    regexErrorMessage:
+      "'State' is a mandatory field which cannot have only numbers! Must have alphabets. Please check and enter a valid state greater than 1 character & less than 100 characters",
+    type: 'text',
+    value: '',
+  },
+  {
+    cols: { xs: 6 },
+    disabled: false,
+    format: '',
+    id: 'city',
+    isRequired: true,
+    name: 'City',
+    placeholder: '',
+    regex: '^(?!\\s+$)(?=.*[a-zA-Z]).{2,25}$',
+    regexErrorMessage:
+      "'City' is a mandatory field which cannot have only numbers! Must contain alphabets. Please check and enter a valid city greater than 1 character & less than 26 characters",
+    type: 'text',
+    value: '',
+  },
+  {
+    cols: { xs: 6 },
+    disabled: false,
+    format: '',
+    id: 'postCode',
+    isRequired: true,
+    name: 'Postal/Zip Code',
+    placeholder: '',
+    regex: '^(?!s*$).+',
+    type: 'text',
+    value: '',
+  },
+  {
+    cols: { xs: 6 },
+    disabled: false,
+    format: '',
+    id: 'countryCode',
+    isRequired: true,
+    name: 'Country',
+    options: [],
+    placeholder: '',
+    regex: '^(?!s*$).+',
+    type: 'select',
+    value: null,
+  },
+];
 
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
@@ -40,15 +124,19 @@ const EnterAddress = (): JSX.Element => {
     >();
   const { formData: basicInfoFormData } = route.params;
 
-  const [{ error, isFetching }, postKycForm] = useDepositSdkMethod('patchUser');
+  const [{ data, error, isFetching }, postKycForm] = useDepositSdkMethod({
+    method: 'patchUser',
+    onMount: false,
+  });
+  console.log('EnterAddress patch responbse data:', data);
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
     addressLine2: '',
-    city: '',
     state: '',
-    postalCode: '',
-    country: '',
+    city: '',
+    postCode: '',
+    countryCode: '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {
@@ -66,12 +154,12 @@ const EnterAddress = (): JSX.Element => {
       errors.state = 'State/Region is required';
     }
 
-    if (!data.postalCode.trim()) {
-      errors.postalCode = 'Postal/Zip Code is required';
+    if (!data.postCode.trim()) {
+      errors.postCode = 'Postal/Zip Code is required';
     }
 
-    if (!data.country.trim()) {
-      errors.country = 'Country is required';
+    if (!data.countryCode.trim()) {
+      errors.countryCode = 'Country is required';
     }
 
     return errors;
@@ -99,9 +187,22 @@ const EnterAddress = (): JSX.Element => {
         ...basicInfoFormData,
         ...formData,
       });
-      navigation.navigate(Routes.DEPOSIT.KYC_PENDING);
+
+      if (data && !error) {
+        navigation.navigate(Routes.DEPOSIT.KYC_PENDING);
+      } else {
+        console.log('Error submitting form:', error);
+      }
     }
-  }, [basicInfoFormData, formData, navigation, postKycForm, validateFormData]);
+  }, [
+    basicInfoFormData,
+    data,
+    error,
+    formData,
+    navigation,
+    postKycForm,
+    validateFormData,
+  ]);
 
   return (
     <ScreenLayout>
@@ -159,9 +260,9 @@ const EnterAddress = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.enter_address.postal_code')}
               placeholder={strings('deposit.enter_address.postal_code')}
-              value={formData.postalCode}
-              onChangeText={(text) => handleChange('postalCode', text)}
-              error={errors.postalCode}
+              value={formData.postCode}
+              onChangeText={(text) => handleChange('postCode', text)}
+              error={errors.postCode}
               returnKeyType="next"
               testID="postal-code-input"
               containerStyle={styles.nameInputContainer}
@@ -170,9 +271,9 @@ const EnterAddress = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.enter_address.country')}
               placeholder={strings('deposit.enter_address.country')}
-              value={formData.country}
-              onChangeText={(text) => handleChange('country', text)}
-              error={errors.country}
+              value={formData.countryCode}
+              onChangeText={(text) => handleChange('countryCode', text)}
+              error={errors.countryCode}
               returnKeyType="done"
               testID="country-input"
               containerStyle={styles.nameInputContainer}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -17,6 +17,8 @@ import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { BuyQuote, KycForm } from '@consensys/native-ramps-sdk';
 
 export const createBasicInfoNavDetails = createNavigationDetails(
   Routes.DEPOSIT.BASIC_INFO,
@@ -25,44 +27,110 @@ export const createBasicInfoNavDetails = createNavigationDetails(
 export interface BasicInfoFormData {
   firstName: string;
   lastName: string;
-  phoneNumber: string;
-  dateOfBirth: string;
+  mobileNumber: string;
+  dob: string;
   ssn: string;
 }
+
+// const formDetailsExample: [
+//   {
+//     cols: { lg: 6; md: 6; xs: 6 };
+//     disabled: false;
+//     id: 'firstName';
+//     isRequired: true;
+//     name: 'First Name';
+//     placeholder: 'Satoshi';
+//     regex: '^(?!\\s+$).{1,35}$';
+//     regexErrorMessage: '"First Name" is a mandatory field. Please enter a valid first name less than 36 characters!';
+//     type: 'text';
+//     value: '';
+//   },
+//   {
+//     cols: { lg: 6; md: 6; xs: 6 };
+//     disabled: false;
+//     id: 'lastName';
+//     isRequired: true;
+//     name: 'Last Name';
+//     placeholder: 'Nakamoto';
+//     regex: '^(?!\\s+$).{1,35}$';
+//     regexErrorMessage: '"Last Name" is a mandatory field. Please enter a valid last name less than 36 characters!';
+//     type: 'text';
+//     value: '';
+//   },
+//   {
+//     cols: { lg: 12; md: 12; xs: 12 };
+//     disabled: false;
+//     format: '[country code][national number]';
+//     id: 'mobileNumber';
+//     isRequired: true;
+//     name: 'Mobile number';
+//     placeholder: '[country code][national number]';
+//     regex: '^\\+(?:[0-9]●?){6,14}[0-9]$';
+//     type: 'text';
+//     value: '';
+//   },
+//   {
+//     cols: { lg: 12; md: 12; xs: 12 };
+//     disabled: false;
+//     format: 'DD-MM-YYYY';
+//     id: 'dob';
+//     isRequired: true;
+//     name: 'Date of birth';
+//     placeholder: 'DD-MM-YYYY';
+//     regex: '^(?:(?:31(\\/|-|\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\/|-|\\.)(?:0?[13-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\/|-|\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\/|-|\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$';
+//     type: 'date';
+//     value: '';
+//   },
+// ];
 
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const route =
+    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
+  const { quote } = route.params;
+
+  const [{ data, error, isFetching }] = useDepositSdkMethod(
+    'getKycForm',
+    quote,
+    { id: 'address' } as KycForm,
+  );
+
+  useEffect(() => {
+    if (!isFetching && data) {
+      console.log(data.fields); // this is the example form data above
+    }
+  }, [data, isFetching]);
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
     lastName: '',
-    phoneNumber: '',
-    dateOfBirth: '',
+    mobileNumber: '',
+    dob: '',
     ssn: '',
   };
 
-  // TODO: Add more comprehensive validation logic
-  const validateForm = (data: BasicInfoFormData): Record<string, string> => {
+  const validateForm = (
+    formData: BasicInfoFormData,
+  ): Record<string, string> => {
     const errors: Record<string, string> = {};
-
-    if (!data.firstName.trim()) {
+    if (!formData.firstName.trim()) {
       errors.firstName = 'First name is required';
     }
 
-    if (!data.lastName.trim()) {
+    if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
     }
 
-    if (!data.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone number is required';
+    if (!formData.mobileNumber.trim()) {
+      errors.mobileNumber = 'Phone number is required';
     }
 
-    if (!data.dateOfBirth.trim()) {
-      errors.dateOfBirth = 'Date of birth is required';
+    if (!formData.dob.trim()) {
+      errors.dob = 'Date of birth is required';
     }
 
-    if (!data.ssn.trim()) {
+    if (!formData.ssn.trim()) {
       errors.ssn = 'Social security number is required';
     }
 
@@ -127,9 +195,9 @@ const BasicInfo = (): JSX.Element => {
             // TODO: Automatic formatting
             label="Phone Number"
             placeholder="(234) 567-8910"
-            value={formData.phoneNumber}
-            onChangeText={(text) => handleChange('phoneNumber', text)}
-            error={errors.phoneNumber}
+            value={formData.mobileNumber}
+            onChangeText={(text) => handleChange('mobileNumber', text)}
+            error={errors.mobileNumber}
             testID="phone-number-input"
             returnKeyType="next"
           />
@@ -146,9 +214,9 @@ const BasicInfo = (): JSX.Element => {
             }
             label="Date of Birth"
             placeholder="MM/DD/YYYY"
-            value={formData.dateOfBirth}
-            onChangeText={(text) => handleChange('dateOfBirth', text)}
-            error={errors.dateOfBirth}
+            value={formData.dob}
+            onChangeText={(text) => handleChange('dob', text)}
+            error={errors.dob}
             returnKeyType="next"
             keyboardType="number-pad"
             testID="dob-input"
