@@ -4,7 +4,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
@@ -55,7 +55,7 @@ class WalletConnect2Session {
   private requestByRequestId: {
     [requestId: string]: WalletKitTypes.SessionRequest;
   } = {};
-  private lastChainId: `0x${string}`;
+  private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
 
@@ -182,18 +182,18 @@ class WalletConnect2Session {
     return providerConfigChainId;
   }
 
-  private getChainIdForCaipChainId(caipChainId: `${string}:${string}`) {
+  private getChainIdForCaipChainId(caipChainId: CaipChainId) {
     const caipNetworkConfiguration = selectNetworkConfigurationsByCaipChainId(store.getState());
     const { chainId } = caipNetworkConfiguration[caipChainId];
     //TODO: Remove this cast when caipNetworkConfiguration is fixed, duplicate types for chainId
-    return chainId as `0x${string}`;
+    return chainId as Hex;
   }
 
-  private getNetworkClientIdForCaipChainId(caipChainId: `${string}:${string}`) {
+  private getNetworkClientIdForCaipChainId(caipChainId: CaipChainId) {
     const networkConfigurationsByChainId = selectEvmNetworkConfigurationsByChainId(store.getState());
     const chainId = this.getChainIdForCaipChainId(caipChainId);
-    //Casting is required, because caipnetwork config has duplicate types and we assume the correct one is 0xString
-    const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[chainId as `0x${string}`];
+    //Casting is required, because caipnetwork config has duplicate types and we assume the correct one is Hex
+    const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[chainId as Hex];
     return networkClientId;
   }
 
