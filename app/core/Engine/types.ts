@@ -270,6 +270,7 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
+import { AccountTreeController, AccountTreeControllerState } from '@metamask-previews/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
@@ -426,6 +427,7 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
   AccountsController: AccountsController;
+  AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
@@ -497,6 +499,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
+  AccountTreeController: AccountTreeControllerState;
   AddressBookController: AddressBookControllerState;
   AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
@@ -592,6 +595,7 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
+  | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'

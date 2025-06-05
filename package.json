@@ -169,6 +169,7 @@
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/accounts-controller": "^30.0.0",
+    "@metamask-previews/account-tree-controller": "0.0.0-preview-d9a49231",
     "@metamask/address-book-controller": "^6.0.3",
     "@metamask/app-metadata-controller": "^1.0.0",
     "@metamask/approval-controller": "^7.1.3",
