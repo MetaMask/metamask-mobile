@@ -202,6 +202,7 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
+import { captureException } from '@sentry/react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -317,6 +318,7 @@ export class Engine {
         btoa,
       }),
       additionalDefaultNetworks: [ChainId['megaeth-testnet']],
+      captureException,
     };
     const networkController = new NetworkController(networkControllerOpts);
 
