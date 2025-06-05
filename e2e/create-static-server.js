@@ -12,6 +12,12 @@ const createStaticServer = function (rootDirectory) {
         public: path.resolve('./node_modules'),
       });
     }
+
+
+    if (request.url.startsWith('/solana-test-dapp/')) {
+      request.url = request.url.slice('/solana-test-dapp'.length);
+    }
+
     return serveHandler(request, response, {
       directoryListing: false,
       public: rootDirectory,
