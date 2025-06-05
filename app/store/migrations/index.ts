@@ -78,11 +78,11 @@ import migration74 from './074';
 import migration75 from './075';
 import migration76 from './076';
 import migration77 from './077';
-import migration78 from './078';
+import migration78 from './082';
 import migration79 from './079';
 import migration80 from './080';
 import migration81 from './081';
-import migration82 from './082';
+import migration82 from './078';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
