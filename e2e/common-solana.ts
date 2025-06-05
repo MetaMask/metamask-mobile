@@ -1,6 +1,5 @@
 import FixtureBuilder from './fixtures/fixture-builder';
 import {
-  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
   DEFAULT_SOLANA_TEST_DAPP_PATH,
   withFixtures,
 } from './fixtures/fixture-helper';
@@ -27,8 +26,8 @@ export async function withSolanaAccountSnap(
 
   await withFixtures(
     {
-      ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
       fixture: fixtures,
+      dapp: true,
       dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
       restartDevice: true,
     },
