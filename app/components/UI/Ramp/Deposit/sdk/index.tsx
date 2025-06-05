@@ -62,7 +62,7 @@ export const DepositSDKProvider = ({
   const [sdkError, setSdkError] = useState<Error>();
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
+  const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
 
   useEffect(() => {
     try {
@@ -95,7 +95,7 @@ export const DepositSDKProvider = ({
     try {
       const tokenResponse = await getProviderToken();
       if (tokenResponse.success && tokenResponse.token) {
-        setAuthTokenState(tokenResponse.token);
+        setAuthToken(tokenResponse.token);
         return true;
       }
       return false;
@@ -105,12 +105,12 @@ export const DepositSDKProvider = ({
     }
   };
 
-  const setAuthToken = useCallback(
+  const setAuthTokenCallback = useCallback(
     async (token: NativeTransakAccessToken): Promise<boolean> => {
       try {
         const storeResult = await storeProviderToken(token);
         if (storeResult.success) {
-          setAuthTokenState(token);
+          setAuthToken(token);
           setIsAuthenticated(true);
           if (sdk) {
             sdk.setAccessToken(token);
@@ -128,7 +128,7 @@ export const DepositSDKProvider = ({
 
   const clearAuthToken = useCallback(async () => {
     await resetProviderToken();
-    setAuthTokenState(undefined);
+    setAuthToken(undefined);
     setIsAuthenticated(false);
     if (sdk) {
       sdk.clearAccessToken();
@@ -145,7 +145,7 @@ export const DepositSDKProvider = ({
       setEmail,
       isAuthenticated,
       authToken,
-      setAuthToken,
+      setAuthToken: setAuthTokenCallback,
       clearAuthToken,
       checkExistingToken,
     }),
@@ -157,7 +157,7 @@ export const DepositSDKProvider = ({
       email,
       isAuthenticated,
       authToken,
-      setAuthToken,
+      setAuthTokenCallback,
       clearAuthToken,
     ],
   );
