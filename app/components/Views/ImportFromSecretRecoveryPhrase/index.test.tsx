@@ -47,17 +47,57 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should toggle show/hide all button', () => {
-      const { getByText } = renderScreen(
+      const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
       );
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
 
+      const getInput = (index: number) =>
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+        );
+
+      fireEvent(getInput(0), 'focus');
+
+      expect(getInput(0).props.secureTextEntry).toBe(false);
+      for (let i = 1; i < 12; i++) {
+        expect(getInput(i)).toBeOnTheScreen();
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
+
+      // Press show all button
       const showAllButton = getByText('Show all');
       expect(showAllButton).toBeTruthy();
-
       fireEvent.press(showAllButton);
-      expect(getByText('Hide all')).toBeTruthy();
+
+      for (let i = 0; i < 12; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(false);
+      }
+
+      // Press hide all button
+      const hideAllButton = getByText('Hide all');
+      expect(hideAllButton).toBeTruthy();
+      fireEvent.press(hideAllButton);
+
+      expect(getInput(0).props.secureTextEntry).toBe(false);
+      for (let i = 1; i < 12; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
+      expect(getByText('Show all')).toBeTruthy();
+
+      fireEvent(getInput(11), 'focus');
+      expect(getInput(11).props.secureTextEntry).toBe(false);
+      for (let i = 0; i < 11; i++) {
+        expect(getInput(i).props.secureTextEntry).toBe(true);
+      }
     });
 
     it('should have continue button disabled initially', () => {

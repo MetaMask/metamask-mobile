@@ -3,24 +3,26 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 
+// TODO: This component will route to either:
+//   - build quote
+//   - pending orders
 const Root = () => {
   const navigation = useNavigation();
 
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  // TODO: for now it is hardcoded to build quote because order state is not implemented yet
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [initialRoute, setInitialRoute] = useState<string>(
+    Routes.DEPOSIT.BUILD_QUOTE,
+  );
   const { checkExistingToken } = useDepositSDK();
   const hasCheckedToken = useRef(false);
 
   useEffect(() => {
     const initializeFlow = async () => {
       if (hasCheckedToken.current) return;
-
-      const hasToken = await checkExistingToken();
-      setInitialRoute(
-        hasToken ? Routes.DEPOSIT.VERIFY_IDENTITY : Routes.DEPOSIT.BUILD_QUOTE,
-      );
+      await checkExistingToken();
       hasCheckedToken.current = true;
     };
-
     initializeFlow();
   }, [checkExistingToken]);
 
