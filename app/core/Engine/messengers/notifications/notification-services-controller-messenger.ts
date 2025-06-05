@@ -8,7 +8,6 @@ export function getNotificationServicesControllerMessenger(
     name: 'NotificationServicesController',
     allowedActions: [
       // Keyring Actions
-      'KeyringController:withKeyring',
       'KeyringController:getState',
       // Auth Actions
       'AuthenticationController:getBearerToken',

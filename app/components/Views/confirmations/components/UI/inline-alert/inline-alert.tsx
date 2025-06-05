@@ -11,6 +11,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { AlertTypeIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { IconSizes } from '../../../../../../component-library/components-temp/KeyValueRow';
 import { useTheme } from '../../../../../../util/theme';
 import { Alert, Severity } from '../../../types/alerts';
@@ -71,7 +72,7 @@ export default function InlineAlert({ alertObj, style }: InlineAlertProps) {
       ]}
     >
       <TouchableOpacity
-        testID="inline-alert"
+        testID={AlertTypeIDs.INLINE_ALERT}
         onPress={handleInlineAlertClick}
         style={styles.inlineContainer}
       >

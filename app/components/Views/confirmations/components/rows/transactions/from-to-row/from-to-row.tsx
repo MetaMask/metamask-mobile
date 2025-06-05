@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import Name from '../../../../../../UI/Name/Name';
@@ -12,9 +13,9 @@ import Icon, {
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import InfoSection from '../../../UI/info-row/info-section';
-import styleSheet from './from-to.styles';
+import styleSheet from './from-to-row.styles';
 
-const FromTo = () => {
+const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
@@ -30,7 +31,7 @@ const FromTo = () => {
   const toAddress = transferRecipient;
 
   return (
-    <InfoSection>
+    <InfoSection testID={ConfirmationRowComponentIDs.FROM_TO}>
       <View style={styles.container}>
         <View style={[styles.nameContainer, styles.leftNameContainer]}>
           <Name
@@ -60,4 +61,4 @@ const FromTo = () => {
   );
 };
 
-export default FromTo;
+export default FromToRow;
