@@ -60,7 +60,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const { getPairedEarnTokens, getOutputToken } = useEarnTokens();
   const { outputToken: receiptToken, earnToken } = getPairedEarnTokens(asset);
-  console.log('earnToken', earnToken);
+
   const isAssetReceiptToken = getOutputToken(asset);
 
   const pricePercentChange1d = useTokenPricePercentageChange(receiptToken);
@@ -147,9 +147,8 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         </View>
       )}
       {/* Buttons */}
-      {/* {userHasLendingPositions && ( */}
-      <View style={styles.container}>
-        {userHasLendingPositions && receiptToken && (
+      {userHasLendingPositions && (
+        <View style={styles.container}>
           <Button
             variant={ButtonVariants.Secondary}
             style={styles.button}
