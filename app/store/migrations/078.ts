@@ -18,20 +18,6 @@ const migration = (state: unknown): unknown => {
 
   try {
     if (
-      !hasProperty(state, 'engine') ||
-      !isObject(state.engine) ||
-      !hasProperty(state.engine, 'backgroundState') ||
-      !isObject(state.engine.backgroundState)
-    ) {
-      captureException(
-        new Error(
-          `Migration 078: Invalid engine state structure`,
-        ),
-      );
-      return state;
-    }
-
-    if (
       !hasProperty(state.engine.backgroundState, 'PhishingController') ||
       !isObject(state.engine.backgroundState.PhishingController)
     ) {
@@ -61,4 +47,4 @@ const migration = (state: unknown): unknown => {
   }
 };
 
-export default migration; 
+export default migration;

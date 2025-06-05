@@ -29,20 +29,6 @@ describe('Migration 078: Reset PhishingController phishingLists', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if engine state is invalid', () => {
-    const state = { invalidState: true };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      'Migration 078: Invalid engine state structure',
-    );
-  });
-
   it('captures exception if PhishingController state is invalid', () => {
     const state = {
       engine: {
