@@ -69,6 +69,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         type: 'HD Key Tree',
         yOffset: 0,
         isSelected: true,
+        caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       },
     ],
     ensByAccountAddress: {
