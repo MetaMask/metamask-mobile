@@ -1139,7 +1139,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
-                                    "opacity": 0.5,
+                                    "opacity": 1,
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -1155,7 +1155,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   <TextInput
                                     autoCapitalize="none"
                                     autoFocus={false}
-                                    editable={false}
+                                    editable={true}
                                     keyboardAppearance="light"
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
@@ -1215,8 +1215,9 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
+                              activeOpacity={0.2}
+                              disabled={false}
+                              onPress={[Function]}
                               style={
                                 [
                                   [
@@ -1231,9 +1232,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     },
                                     undefined,
                                   ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
+                                  null,
                                 ]
                               }
                             >
@@ -1246,9 +1245,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                       "fontWeight": "500",
                                       "textAlign": "center",
                                     },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
+                                    null,
                                     [
                                       {
                                         "fontFamily": "CentraNo1-Bold",
@@ -1261,13 +1258,11 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                       },
                                       undefined,
                                     ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
+                                    null,
                                   ]
                                 }
                               >
-                                Sending email...
+                                Send email
                               </Text>
                             </TouchableOpacity>
                           </View>
