@@ -54,7 +54,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
         { type: 'string', name: 'Message', value: 'Hi, Alice!' },
         { type: 'uint32', name: 'A number', value: '1337' },
       ],
-      '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
     ],
     origin: 'localhost',
   };
@@ -71,20 +71,11 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      try {
-        await Assertions.checkIfNotVisible(
-          ConfirmationView.securityAlertBanner,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log('The banner alert is not visible');
-      }
+      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
     });
   });
 
-  // TODO: Fix this test and remove the skip
-  // More info: https://github.com/MetaMask/metamask-mobile/issues/15726
-  it.skip('should show security alert for malicious request', async () => {
+  it('should show security alert for malicious request', async () => {
     const testSpecificMock = {
       GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
       POST: [
@@ -98,6 +89,13 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
             description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
             features: [],
           },
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
         },
       ],
     };

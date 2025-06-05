@@ -10,6 +10,7 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
+import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 
@@ -19,6 +20,7 @@ jest.mock('./useInsufficientBalanceAlert');
 jest.mock('./useAccountTypeUpgrade');
 jest.mock('./useSignedOrSubmittedAlert');
 jest.mock('./usePendingTransactionAlert');
+jest.mock('./useBatchedUnusedApprovalsAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -79,6 +81,15 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockBatchedUnusedApprovalsAlert: Alert[] = [
+    {
+      key: 'BatchedUnusedApprovalsAlert',
+      title: 'Test Batched UnusedApprovals Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -87,6 +98,7 @@ describe('useConfirmationAlerts', () => {
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
     (useSignedOrSubmittedAlert as jest.Mock).mockReturnValue([]);
     (usePendingTransactionAlert as jest.Mock).mockReturnValue([]);
+    (useBatchedUnusedApprovalsAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -139,6 +151,9 @@ describe('useConfirmationAlerts', () => {
     (usePendingTransactionAlert as jest.Mock).mockReturnValue(
       mockPendingTransactionAlert,
     );
+    (useBatchedUnusedApprovalsAlert as jest.Mock).mockReturnValue(
+      mockBatchedUnusedApprovalsAlert,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -146,6 +161,7 @@ describe('useConfirmationAlerts', () => {
       ...mockBlockaidAlerts,
       ...mockDomainMisMatchAlerts,
       ...mockInsufficientBalanceAlert,
+      ...mockBatchedUnusedApprovalsAlert,
       ...mockPendingTransactionAlert,
       ...mockSignedOrSubmittedAlert,
       ...mockUpgradeAccountAlert,
