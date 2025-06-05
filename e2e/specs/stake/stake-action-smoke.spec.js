@@ -46,7 +46,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(PopularNetworksList.zkSync)
-      .withNetworkController(CustomNetworks.Holesky)
+      .withNetworkController(CustomNetworks.Hoodi)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -201,7 +201,7 @@ describe.skip(SmokeTrade('Stake from Actions'), () => {
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);
     await TokenOverview.tapBackButton();
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
+    await NetworkListModal.changeNetworkTo(CustomNetworks.Hoodi.providerConfig.nickname);
     await NetworkEducationModal.tapGotItButton();
   });
 

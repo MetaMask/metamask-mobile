@@ -3,7 +3,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { pooledStakingApiService } from '../sdk/stakeSdkProvider';
 
 export interface EarningHistory {
   sumRewards: string;
@@ -31,13 +31,13 @@ const useStakingEarningsHistory = ({
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const fetchEarningsHistory = useCallback(async () => {
-    if (stakingApiService) {
+    if (pooledStakingApiService) {
       setIsLoading(true);
       setError(null);
 
       try {
         const earningHistoryResponse: EarningHistoryResponse =
-          await stakingApiService.getUserDailyRewards(
+          await pooledStakingApiService.getUserDailyRewards(
             numericChainId,
             selectedAddress,
             limitDays,
