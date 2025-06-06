@@ -45,6 +45,8 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { recreateVaultWithNewPassword } from '../Vault';
+import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 /**
@@ -504,6 +506,15 @@ class AuthenticationService {
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
+    try {
+      // check seedless password outdated skip cache when app lock
+      await this.checkIsSeedlessPasswordOutdated(true);
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        'Error in lockApp: checking seedless password outdated',
+      );
+    }
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
     NavigationService.navigation?.reset({
@@ -609,6 +620,84 @@ class AuthenticationService {
       Logger.error(error as Error);
       throw error;
     }
+  };
+
+  /**
+   * Sync latest global seedless password.
+   * Swap current device password with latest global password.
+   *
+   * @param {string} globalPassword - latest global seedless password
+   */
+  submitLatestGlobalSeedlessPassword = async (
+    globalPassword: string,
+    authType: AuthData,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    // If vault is not created, user is not using social login, return undefined
+    if (!SeedlessOnboardingController.state.vault) {
+      // this is only available for seedless onboarding flow
+      throw new Error(
+        'This method is only available for seedless onboarding flow',
+      );
+    }
+
+    // recover the current device password
+    const { password: currentDevicePassword } =
+      await SeedlessOnboardingController.recoverCurrentDevicePassword({
+        globalPassword,
+      });
+    // use current device password to unlock the keyringController vault
+    await this.userEntryAuth(currentDevicePassword, authType);
+
+    try {
+      // update seedlessOnboardingController to use latest global password
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
+        oldPassword: currentDevicePassword,
+        globalPassword,
+      });
+
+      // update vault password to global password
+      await recreateVaultWithNewPassword(
+        currentDevicePassword,
+        globalPassword,
+        selectSelectedInternalAccountFormattedAddress(
+          ReduxService.store.getState(),
+        ),
+        true,
+      );
+      await this.resetPassword();
+
+      // check password outdated again skip cache to reset the cache after successful syncing
+      await SeedlessOnboardingController.checkIsPasswordOutdated({
+        skipCache: true,
+      });
+    } catch (err) {
+      // lock app again on error after submitPassword succeeded
+      await this.lockApp({ locked: true });
+      throw err;
+    }
+  };
+
+  /**
+   * Checks if the seedless password is outdated.
+   *
+   * @param {boolean} skipCache - whether to skip the cache
+   * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   */
+  checkIsSeedlessPasswordOutdated = async (
+    skipCache = false,
+  ): Promise<boolean | undefined> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    // If vault is not created, user is not using social login, return undefined
+    if (!SeedlessOnboardingController.state.vault) {
+      return undefined;
+    }
+
+    const isSeedlessPasswordOutdated =
+      await SeedlessOnboardingController.checkIsPasswordOutdated({
+        skipCache,
+      });
+    return isSeedlessPasswordOutdated;
   };
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 }

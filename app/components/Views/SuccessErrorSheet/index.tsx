@@ -35,6 +35,7 @@ export interface SuccessErrorSheetParams {
   closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
+  isInteractable?: boolean;
 }
 
 export interface SuccessErrorSheetProps {
@@ -57,6 +58,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
+    isInteractable = true,
   } = route.params;
 
   const { colors } = useTheme();
@@ -90,7 +92,11 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   };
 
   return (
-    <BottomSheet ref={sheetRef} onClose={handleClose}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={isInteractable}
+      onClose={handleClose}
+    >
       <View style={styles.statusContainer}>
         <Icon
           name={getIcon()}

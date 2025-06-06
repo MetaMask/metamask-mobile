@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -90,6 +90,7 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 /**
  * View where returning users can authenticate
@@ -136,6 +137,17 @@ const Login: React.FC = () => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+  useEffect(() => {
+    // first error if seedless password is outdated
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+    }
+  }, [isSeedlessPasswordOutdated]);
+  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
   const handleBackPress = () => {
@@ -308,7 +320,12 @@ const Login: React.FC = () => {
 
       console.log('authType', authType);
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-      if (oauthLoginSuccess) {
+      if (isSeedlessPasswordOutdated) {
+        await Authentication.submitLatestGlobalSeedlessPassword(
+          password,
+          authType,
+        );
+      } else if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {
         ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
