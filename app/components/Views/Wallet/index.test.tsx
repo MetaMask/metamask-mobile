@@ -90,27 +90,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../core/Engine/Engine', () => ({
-  __esModule: true,
-  default: {
-    get context() {
-      return {
-        MultichainNetworkController: {
-          getNetworksWithTransactionActivityByAccounts: jest
-            .fn()
-            .mockResolvedValue(undefined),
-        },
-      };
-    },
-    get controllerMessenger() {
-      return {
-        subscribe: jest.fn(),
-        unsubscribe: jest.fn(),
-      };
-    },
-  },
-}));
-
 const mockInitialState = {
   networkOnboarded: {
     networkOnboardedState: {

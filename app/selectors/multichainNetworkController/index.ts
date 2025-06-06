@@ -17,7 +17,6 @@ import {
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
-import { getNetworkImageSource } from '../../util/networks';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -154,10 +153,7 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
     (_state: RootState, account: { address: string; scopes: CaipChainId[] }) =>
       account,
   ],
-  (
-    networksWithTransactionActivity,
-    account,
-  ): { caipChainId: string; imageSource: ImageSourcePropType }[] => {
+  (networksWithTransactionActivity, account): { caipChainId: string }[] => {
     if (!account?.scopes?.length) {
       return [];
     }
@@ -171,7 +167,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
         const caipChainId = toHex(chainNumber);
         return {
           caipChainId,
-          imageSource: getNetworkImageSource({ chainId: caipChainId }),
         };
       });
     }
@@ -180,7 +175,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: SolScope.Mainnet,
-          imageSource: getNetworkImageSource({ chainId: SolScope.Mainnet }),
         },
       ];
     }
@@ -190,7 +184,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: BtcScope.Mainnet,
-          imageSource: getNetworkImageSource({ chainId: BtcScope.Mainnet }),
         },
       ];
     }

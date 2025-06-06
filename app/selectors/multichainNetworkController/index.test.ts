@@ -1,3 +1,5 @@
+import { CaipChainId } from '@metamask/utils';
+import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
 import {
   selectMultichainNetworkControllerState,
   selectIsEvmNetworkSelected,
@@ -9,11 +11,6 @@ import {
   getActiveNetworksByScopes,
 } from './index';
 import { RootState } from '../../reducers';
-import { CaipChainId } from '@metamask/utils';
-
-jest.mock('../networkController', () => ({
-  selectTicker: jest.fn(),
-}));
 
 describe('Multichain Network Controller Selectors', () => {
   const mockState = {
@@ -140,18 +137,23 @@ describe('Multichain Network Controller Selectors', () => {
 });
 
 describe('getActiveNetworksByScopes', () => {
+  const MOCK_ETH_ACCOUNT = '0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3';
+  const MOCK_SOL_ACCOUNT = 'SoLaNaToTheMoonKopQixMzG9SMnKuCZQzQ9ujeZuvC5';
+  const MOCK_BTC_ACCOUNT = '1BitcoinSatoshiNakamoto123456789';
+  const MOCK_ETH_ACCOUNT_NO_ACTIVITY =
+    '0xNoActivityAccount1234567890123456789012';
   const baseState = {
     engine: {
       backgroundState: {
         MultichainNetworkController: {
           networksWithTransactionActivity: {
-            '0xabc': {
+            [MOCK_ETH_ACCOUNT.toLowerCase()]: {
               activeChains: ['0x1', '0x89'],
             },
-            '0xsol': {
+            [MOCK_SOL_ACCOUNT]: {
               activeChains: [],
             },
-            '0xbtc': {
+            [MOCK_BTC_ACCOUNT]: {
               activeChains: [],
             },
           },
@@ -162,53 +164,49 @@ describe('getActiveNetworksByScopes', () => {
 
   it('should return EVM networks with activity for an EOA account', () => {
     const account = {
-      address: '0xabc',
-      scopes: ['eip155:0' as CaipChainId],
+      address: MOCK_ETH_ACCOUNT,
+      scopes: [EthScope.Eoa],
     };
     const result = getActiveNetworksByScopes(baseState, account);
     expect(result).toEqual([
       {
         caipChainId: '0x1',
-        imageSource: expect.anything(),
       },
       {
         caipChainId: '0x89',
-        imageSource: expect.anything(),
       },
     ]);
   });
 
   it('should return Solana network for a Solana account', () => {
     const account = {
-      address: '0xsol',
-      scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId],
+      address: MOCK_SOL_ACCOUNT,
+      scopes: [SolScope.Mainnet],
     };
     const result = getActiveNetworksByScopes(baseState, account);
     expect(result).toEqual([
       {
-        caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        imageSource: expect.anything(),
+        caipChainId: SolScope.Mainnet,
       },
     ]);
   });
 
   it('should return Bitcoin network for a Bitcoin account', () => {
     const account = {
-      address: '0xbtc',
-      scopes: ['bip122:000000000019d6689c085ae165831e93' as CaipChainId],
+      address: MOCK_BTC_ACCOUNT,
+      scopes: [BtcScope.Mainnet],
     };
     const result = getActiveNetworksByScopes(baseState, account);
     expect(result).toEqual([
       {
-        caipChainId: 'bip122:000000000019d6689c085ae165831e93',
-        imageSource: expect.anything(),
+        caipChainId: BtcScope.Mainnet,
       },
     ]);
   });
 
   it('should return an empty array if account has no scopes', () => {
     const account = {
-      address: '0xabc',
+      address: MOCK_ETH_ACCOUNT,
       scopes: [] as CaipChainId[],
     };
     const result = getActiveNetworksByScopes(baseState, account);
@@ -225,8 +223,8 @@ describe('getActiveNetworksByScopes', () => {
 
   it('should return an empty array if no activity for EVM account', () => {
     const account = {
-      address: '0xdef',
-      scopes: ['eip155:0' as CaipChainId],
+      address: MOCK_ETH_ACCOUNT_NO_ACTIVITY,
+      scopes: [EthScope.Eoa],
     };
     const result = getActiveNetworksByScopes(baseState, account);
     expect(result).toEqual([]);

@@ -23,8 +23,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
         {
           "alignItems": "center",
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
-          "borderWidth": 2,
+          "borderRadius": 8,
           "height": 16,
           "justifyContent": "center",
           "overflow": "hidden",
@@ -60,8 +59,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
-          "borderWidth": 2,
+          "borderRadius": 8,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -100,8 +98,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
-          "borderWidth": 2,
+          "borderRadius": 8,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -140,8 +137,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
-          "borderWidth": 2,
+          "borderRadius": 8,
           "height": 16,
           "overflow": "hidden",
           "width": 16,

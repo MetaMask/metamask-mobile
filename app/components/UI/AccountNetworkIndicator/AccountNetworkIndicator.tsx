@@ -8,6 +8,7 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { getActiveNetworksByScopes } from '../../../selectors/multichainNetworkController';
 import styleSheet from './AccountNetworkIndicator.styles';
+import { getNetworkImageSource } from '../../../util/networks';
 
 const AccountNetworkIndicator = ({
   partialAccount,
@@ -18,11 +19,16 @@ const AccountNetworkIndicator = ({
   const networksWithTransactionActivity = useSelector((state: RootState) =>
     getActiveNetworksByScopes(state, partialAccount),
   );
+  const networksWithTransactionActivityAndImageSource =
+    networksWithTransactionActivity.map((networkInfo) => ({
+      ...networkInfo,
+      imageSource: getNetworkImageSource({ chainId: networkInfo.caipChainId }),
+    }));
 
   return (
     <View style={styles.networkTokensContainer} testID="network-container">
       <AvatarGroup
-        avatarPropsList={networksWithTransactionActivity
+        avatarPropsList={networksWithTransactionActivityAndImageSource
           .slice()
           .reverse()
           .map((networkInfo, index) => ({
@@ -32,7 +38,6 @@ const AccountNetworkIndicator = ({
             testID: `avatar-group-${index}`,
           }))}
         maxStackedAvatars={4}
-        renderOverflowCounter={false}
       />
     </View>
   );
