@@ -203,6 +203,6 @@ describe('OtpCode Component', () => {
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
     expect(mockResendFn).toHaveBeenCalled();
-    expect(screen.getByText('Resend code in', { exact: false })).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
