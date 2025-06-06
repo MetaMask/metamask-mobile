@@ -1,7 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: 'center',
@@ -16,6 +19,16 @@ const styleSheet = () =>
     description: {
       textAlign: 'center',
     },
+    iconContainer: {
+      width: 40,
+      height: 40,
+      padding: 4,
+      borderRadius: 40,
+      backgroundColor: theme.colors.primary.default,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
+};
 
 export default styleSheet;

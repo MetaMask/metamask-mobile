@@ -1,20 +1,9 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-
-export enum KycStatus {
-  NOT_SUBMITTED = 'NOT_SUBMITTED',
-  SUBMITTED = 'SUBMITTED',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
-
-export interface KycResponse {
-  status: KycStatus | null;
-  type: string | null;
-}
+import { useDepositSDK } from '../sdk';
 
 export interface KycPollingResult {
-  kycResponse: KycResponse | null;
+  kycApproved: boolean;
   loading: boolean;
   error: string | null;
   startPolling: () => void;
@@ -24,13 +13,24 @@ export interface KycPollingResult {
 const useKycPolling = (
   pollingInterval: number = 10000,
   autoStart: boolean = true,
+  maxPollingAttempts: number = 30,
 ): KycPollingResult => {
+  const { quote } = useDepositSDK();
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollCountRef = useRef<number>(0);
+  const [pollingError, setPollingError] = useState<string | null>(null);
 
   const [
-    { data: userDetailsResponse, error, isFetching: loading },
-    getUserDetails,
-  ] = useDepositSdkMethod('getUserDetails');
+    { data: kycForms, error: sdkError, isFetching: loading },
+    fetchKycForms,
+  ] = useDepositSdkMethod(
+    {
+      method: 'getKYCForms',
+      onMount: false,
+    },
+    quote,
+  );
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -41,29 +41,34 @@ const useKycPolling = (
 
   const startPolling = useCallback(() => {
     stopPolling();
+    pollCountRef.current = 0;
+    setPollingError(null);
 
     // Call immediately
-    getUserDetails();
+    fetchKycForms();
+    pollCountRef.current += 1;
 
     // Set up interval
     intervalRef.current = setInterval(() => {
-      getUserDetails();
+      pollCountRef.current += 1;
+
+      if (pollCountRef.current > maxPollingAttempts) {
+        setPollingError(
+          'KYC polling reached maximum attempts. Please try again later.',
+        );
+        stopPolling();
+        return;
+      }
+
+      fetchKycForms();
     }, pollingInterval);
-  }, [getUserDetails, pollingInterval, stopPolling]);
-
-  const status = userDetailsResponse?.kyc?.l1?.status ?? null;
-  const type = userDetailsResponse?.kyc?.l1?.type ?? null;
-
-  const kycResponse: KycResponse = {
-    status: status as KycStatus | null,
-    type,
-  };
+  }, [fetchKycForms, pollingInterval, stopPolling, maxPollingAttempts]);
 
   useEffect(() => {
-    if (status === KycStatus.APPROVED || status === KycStatus.REJECTED) {
+    if (kycForms?.isAllowedToPlaceOrder) {
       stopPolling();
     }
-  }, [status, stopPolling]);
+  }, [kycForms?.isAllowedToPlaceOrder, stopPolling]);
 
   useEffect(() => {
     if (autoStart) {
@@ -76,9 +81,9 @@ const useKycPolling = (
   }, [autoStart, startPolling, stopPolling]);
 
   return {
-    kycResponse,
+    kycApproved: kycForms?.isAllowedToPlaceOrder ?? false,
     loading,
-    error,
+    error: pollingError || sdkError,
     startPolling,
     stopPolling,
   };

@@ -4,7 +4,7 @@ import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import useKycPolling, { KycStatus } from '../../hooks/useKycPolling';
+import useKycPolling from '../../hooks/useKycPolling';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -28,7 +28,7 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { error, kycResponse, stopPolling } = useKycPolling();
+  const { error, kycApproved, stopPolling } = useKycPolling();
 
   useEffect(() => {
     navigation.setOptions(
@@ -53,7 +53,7 @@ const KycProcessing = () => {
     navigation.navigate(Routes.DEPOSIT.PROVIDER_WEBVIEW);
   };
 
-  if (error || kycResponse?.status === KycStatus.REJECTED) {
+  if (error) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -62,7 +62,7 @@ const KycProcessing = () => {
             <View style={styles.container}>
               <Icon
                 name={IconName.CircleX}
-                size={IconSize.Lg}
+                size={IconSize.Xl}
                 color={IconColor.Error}
               />
 
@@ -86,25 +86,27 @@ const KycProcessing = () => {
     );
   }
 
-  if (kycResponse?.status === KycStatus.APPROVED) {
+  if (kycApproved) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
-              <Icon
-                name={IconName.CheckBold}
-                size={IconSize.Lg}
-                color={IconColor.Success}
-              />
+              <View style={styles.iconContainer}>
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Xl}
+                  color={IconColor.Success}
+                />
+              </View>
 
               <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
                 {strings('deposit.kyc_processing.success_heading')}
               </Text>
 
               <Text variant={TextVariant.BodyMD} style={styles.description}>
-                {strings('deposit.kyc_processing.success_button')}
+                {strings('deposit.kyc_processing.success_description')}
               </Text>
             </View>
           </ScreenLayout.Content>
@@ -112,7 +114,7 @@ const KycProcessing = () => {
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
             <StyledButton type="confirm" onPress={handleContinue}>
-              {strings('deposit.kyc_processing.button')}
+              {strings('deposit.kyc_processing.success_button')}
             </StyledButton>
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
