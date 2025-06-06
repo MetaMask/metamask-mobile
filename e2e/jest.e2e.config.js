@@ -3,15 +3,8 @@ require('dotenv').config({ path: '.e2e.env' });
 module.exports = {
   rootDir: '..',
   testMatch: [
-    '<rootDir>/e2e/specs/*.spec.js',
-    '<rootDir>/e2e/specs/*/*.spec.js',
-    '<rootDir>/e2e/specs/*/*.spec.ts',
-    '<rootDir>/e2e/specs/*/*/*.spec.js',
-    '<rootDir>/e2e/specs/*/*/*/*.spec.js',
-    '<rootDir>/e2e/specs/*.spec.ts',
-    '<rootDir>/e2e/specs/*/*.spec.ts',
-    '<rootDir>/e2e/specs/*/*/*.spec.ts',
-    '<rootDir>/e2e/specs/*/*/*/*.spec.ts',
+    '<rootDir>/e2e/specs/**/*.spec.js',
+    '<rootDir>/e2e/specs/**/*.spec.ts',
   ],
   testTimeout: 250000,
   maxWorkers: process.env.CI ? 3 : 1,
