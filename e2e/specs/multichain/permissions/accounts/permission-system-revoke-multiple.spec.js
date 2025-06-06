@@ -12,6 +12,7 @@ import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
 import { SmokeNetworkExpansion } from '../../../../tags';
+import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 
 const AccountTwoText = 'Account 2';
 
@@ -46,7 +47,8 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AccountListBottomSheet.tapAddEthereumAccountButton();
+        await AddNewAccountSheet.tapConfirmButton();
         if (device.getPlatform() === 'android') {
           await Assertions.checkIfTextIsDisplayed(AccountTwoText);
         }

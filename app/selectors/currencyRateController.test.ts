@@ -3,9 +3,14 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
   selectConversionRateByChainId,
+  selectCurrencyRateForChainId,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
+import type { RootState } from '../reducers';
+// eslint-disable-next-line import/no-namespace
+import * as NetworkControllerSelectors from './networkController';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 jest.mock('../../app/util/networks', () => ({
   isTestNet: jest.fn(),
@@ -131,6 +136,89 @@ describe('CurrencyRateController Selectors', () => {
         {} as unknown as CurrencyRateState,
       );
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectCurrencyRateForChainId', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    const arrange = () => {
+      const mockState: RootState = {
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: {
+                USD: {
+                  conversionRate: 0.7,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const mockSelectNetworkConfigurationByChainId = jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue({
+          nativeCurrency: 'USD',
+        } as MultichainNetworkConfiguration);
+
+      return { mockState, mockSelectNetworkConfigurationByChainId };
+    };
+    it('returns conversion rate when currency rates and network config exist', () => {
+      const { mockState } = arrange();
+      const result = selectCurrencyRateForChainId(mockState, '0x1');
+      expect(result).toBe(0.7);
+    });
+
+    it('returns 0 when currency rates or network config are missing', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.CurrencyRateController.currencyRates =
+        {};
+      const result = selectCurrencyRateForChainId(mockState, '0x1');
+      expect(result).toBe(0);
+    });
+
+    it('handles parameter memoization correctly', () => {
+      const { mockState, mockSelectNetworkConfigurationByChainId } = arrange();
+      mockSelectNetworkConfigurationByChainId.mockImplementation(
+        (_state, chainId) => {
+          if (chainId === '0x1') {
+            return {
+              nativeCurrency: 'USD',
+            } as MultichainNetworkConfiguration;
+          }
+
+          // Return config with a missing native currency
+          return {
+            nativeCurrency: 'ETH',
+          } as MultichainNetworkConfiguration;
+        },
+      );
+
+      // Test selector with different parameters
+      const result1 = selectCurrencyRateForChainId(mockState, '0x1');
+      expect(result1).toBe(0.7);
+      const result2 = selectCurrencyRateForChainId(mockState, '0x2');
+      expect(result2).toBe(0);
+
+      // Assert - selector was called twice
+      expect(mockSelectNetworkConfigurationByChainId).toHaveBeenCalledTimes(2);
+      mockSelectNetworkConfigurationByChainId.mockClear();
+
+      // Test selector switching parameters again
+      const result3 = selectCurrencyRateForChainId(mockState, '0x1');
+      expect(result3).toBe(0.7);
+      const result4 = selectCurrencyRateForChainId(mockState, '0x2');
+      expect(result4).toBe(0);
+
+      // Assert - selector was not called again
+      expect(mockSelectNetworkConfigurationByChainId).toHaveBeenCalledTimes(0);
     });
   });
 });

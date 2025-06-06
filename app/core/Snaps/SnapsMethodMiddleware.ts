@@ -162,6 +162,7 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
+    getIsActive: () => true, // For now we consider the app to be always active.
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
     getEntropySources: () => {
       const state = controllerMessenger.call('KeyringController:getState');

@@ -5,6 +5,15 @@ import { useBatchApproveBalanceChanges } from '../../../Views/confirmations/hook
 import { useBatchApproveBalanceActions } from '../../../Views/confirmations/hooks/7702/useBatchApproveBalanceActions';
 import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
 import { AssetType, BalanceChange } from '../types';
+import InlineAlert from '../../../Views/confirmations/components/UI/inline-alert';
+import { useAlerts } from '../../../Views/confirmations/context/alert-system-context';
+import { RowAlertKey } from '../../../Views/confirmations/components/UI/info-row/alert-row/constants';
+
+const InlineAlertStyle = {
+  width: 70,
+  marginTop: -20,
+  marginLeft: 0,
+};
 
 const ApprovalEditTexts = {
   title: strings('confirm.simulation.edit_approval_limit_title'),
@@ -14,6 +23,10 @@ const ApprovalEditTexts = {
 const BatchApprovalRow = () => {
   const { value: approveBalanceChanges } =
     useBatchApproveBalanceChanges() ?? {};
+  const { fieldAlerts } = useAlerts();
+  const alertSelected = fieldAlerts.find(
+    (a) => a.field === RowAlertKey.BatchedApprovals,
+  );
 
   const { onApprovalAmountUpdate } = useBatchApproveBalanceActions();
 
@@ -33,6 +46,9 @@ const BatchApprovalRow = () => {
           onUpdate={onApprovalAmountUpdate}
         />
       ))}
+      {alertSelected && (
+        <InlineAlert alertObj={alertSelected} style={InlineAlertStyle} />
+      )}
     </>
   );
 };
