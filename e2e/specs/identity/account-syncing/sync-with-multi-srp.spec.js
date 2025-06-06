@@ -21,12 +21,15 @@ import { goToImportSrp, inputSrp } from '../../multisrp/utils';
 import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
+import { arrangeTestUtils } from '../utils/helpers';
+import { UserStorageMockttpControllerEvents } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
   SmokeWalletPlatform('Account syncing - syncs after adding a second SRP'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8003;
     let mockServer;
+    let userStorageMockttpController;
 
     const defaultAccountOneName = 'Account 1';
     const secondAccountName = 'My Second Account';
@@ -41,12 +44,15 @@ describe(
     ];
 
     beforeAll(async () => {
+      jest.setTimeout(2500000);
       mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      await userStorageMockttpControllerInstance.setupPath(
+      userStorageMockttpController = userStorageMockttpControllerInstance;
+
+      await userStorageMockttpController.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
       );
@@ -75,12 +81,23 @@ describe(
       });
 
       // Create second account for SRP 1
+      const {
+        waitUntilSyncedAccountsNumberEquals,
+        prepareEventsEmittedCounter,
+      } = arrangeTestUtils(userStorageMockttpController);
+
+      const { waitUntilEventsEmittedNumberEquals } =
+        prepareEventsEmittedCounter(
+          UserStorageMockttpControllerEvents.PUT_SINGLE,
+        );
+
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+
+      await waitUntilSyncedAccountsNumberEquals(1);
+
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(2000);
 
       await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
       await AccountActionsBottomSheet.renameActiveAccount(secondAccountName);
@@ -89,6 +106,10 @@ describe(
         WalletView.accountName,
         secondAccountName,
       );
+
+      // Wait for the account AND account name to be synced
+      await waitUntilSyncedAccountsNumberEquals(2);
+      await waitUntilEventsEmittedNumberEquals(1);
 
       // Add SRP 2
       await goToImportSrp();
@@ -104,7 +125,10 @@ describe(
       await AddNewHdAccountComponent.tapSrpSelector();
       await SRPListItemComponent.tapListItemByIndex(1);
       await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
-      await TestHelpers.delay(2000);
+
+      // Wait for the account AND account name to be synced
+      await waitUntilSyncedAccountsNumberEquals(4);
+      await waitUntilEventsEmittedNumberEquals(3);
 
       // Relaunch app
       await TestHelpers.launchApp({

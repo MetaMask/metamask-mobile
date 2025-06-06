@@ -18,10 +18,10 @@ export const getSrpIdentifierFromHeaders = (headers) => {
     authHeader?.toString()?.split(' ')[1] ||
     `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`
   );
-}
+};
 
 export const arrangeTestUtils = (userStorageMockttpController) => {
-  const BASE_TIMEOUT = 30000;
+  const BASE_TIMEOUT = 12000;
   const BASE_INTERVAL = 1000;
 
   /**
