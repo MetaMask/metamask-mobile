@@ -7,15 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
-- feat(bridge): fetch all tokens for bridge input([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
-- fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
-
-
  ## [7.47.0]
 
  ### Added
 
+ - feat(bridge): fetch all tokens for bridge input([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
+ - feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
  - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
  - feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
  - feat(bridge): implement quote expiration handling in Bridge feature ([#14872](https://github.com/MetaMask/metamask-mobile/pull/14872))
@@ -38,9 +35,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - feat(multi-srp): add new srp pills labels ([#14829](https://github.com/MetaMask/metamask-mobile/pull/14829))
  - feat(earn): add pooled-staking and stablecoin lending remote feature flags ([#14660](https://github.com/MetaMask/metamask-mobile/pull/14660))
  - feat: feat: AccountConnect and AccountApproval use dapp scanning ([#14514](https://github.com/MetaMask/metamask-mobile/pull/14514/))
+ - feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
+ - feat: add migration 082 to reset PhishingController phishingLists [#16067](https://github.com/MetaMask/metamask-mobile/pull/16067)
+ - feat:  fetch all tokens for bridge input [#16029](https://github.com/MetaMask/metamask-mobile/pull/16029)
+ - feat: add insufficient balance check for Soala swaps [#15509](https://github.com/MetaMask/metamask-mobile/pull/15509)
+ - feat: add red styling for insufficient balance on solana swaps [#15501](https://github.com/MetaMask/metamask-mobile/pull/15501)
+ - feat: cleaned up Vault Sentry logs [#15458](https://github.com/MetaMask/metamask-mobile/pull/15458)
+ - feat: Solana dapp connectivity announcement toast (cherry pick from #15224) [#15339](https://github.com/MetaMask/metamask-mobile/pull/15339)
 
  ### Fixed
 
+ - fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
+ - fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
  - fix(bridge): fix default swap destination token when source is USDC ([#15611](https://github.com/MetaMask/metamask-mobile/pull/15611))
  - fix(multi-srp): display multichain accounts in SRP list ([#14724](https://github.com/MetaMask/metamask-mobile/pull/14724))
  - fix(confirmations): remove transaction simulations from wallet initiated send flow ([#14994](https://github.com/MetaMask/metamask-mobile/pull/14994))
@@ -56,6 +62,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - fix(bridge): add insufficient balance check for Solana swaps
  - fix(bridge): disable Solana as destination network if no Solana account exists
  - fix(bridge): prevent quote error during bridge destination account selection
+ - fix: No selected account or hd keyrings when device is locked during create account flow [#16122](https://github.com/MetaMask/metamask-mobile/pull/16122)
+ - fix: show banner for hardware wallets not supported [#16152](https://github.com/MetaMask/metamask-mobile/pull/16152)
+ - fix: include gas and gas price in PPOM requests [#15836](https://github.com/MetaMask/metamask-mobile/pull/15836) [#16155](https://github.com/MetaMask/metamask-mobile/pull/16155)
+ - fix: accounts for scientific notation in amounts [#16146](https://github.com/MetaMask/metamask-mobile/pull/16146)
+ - fix: migration order to cherry pick the phishing controller migration in 7.47 [#16149](https://github.com/MetaMask/metamask-mobile/pull/16149)
+ - fix: not resetting BridgeStatusController when user resets account [#16143](https://github.com/MetaMask/metamask-mobile/pull/16143)
+ - fix: add retries on solana discovery fail [#16085](https://github.com/MetaMask/metamask-mobile/pull/16085)
+ - fix: fixing all ledger flow broken in android due to hermes engine bug. [#16065](https://github.com/MetaMask/metamask-mobile/pull/16065)
+ - fix: Fix alignment on Snap UI links and buttons [#16028](https://github.com/MetaMask/metamask-mobile/pull/16028)
+ - fix: Use SVG width/height when available [#16026](https://github.com/MetaMask/metamask-mobile/pull/16026)
+ - fix: fix keyring controller remove hardware account permission issue [#15994](https://github.com/MetaMask/metamask-mobile/pull/15994)
+ - fix: bridge controllers bumps [#15973](https://github.com/MetaMask/metamask-mobile/pull/15973)
+ - fix: update text color [#15985](https://github.com/MetaMask/metamask-mobile/pull/15985)
+ - fix: Prevent unnecessary re-renders when using Snaps forms [#15978](https://github.com/MetaMask/metamask-mobile/pull/15978)
+ - fix: Solana account reveal SRP with multiple imported SRPs … [#15974](https://github.com/MetaMask/metamask-mobile/pull/15974)
+ - fix: unable to scroll through currency in setting on android devices [#15944](https://github.com/MetaMask/metamask-mobile/pull/15944)
+ - fix: discards duplicate accounts on unlock [#15806](https://github.com/MetaMask/metamask-mobile/pull/15806)
+ - fix: close actions sheet after clicking on send [#15702](https://github.com/MetaMask/metamask-mobile/pull/15702)
+ - fix: persist completedOnboarding state value [#15789](https://github.com/MetaMask/metamask-mobile/pull/15789)
+ - fix: update critical message about not backing up SRP [#15778](https://github.com/MetaMask/metamask-mobile/pull/15778)
+ - fix: () allow formatting tokens to be done on either EVM or SOL chain [#15777](https://github.com/MetaMask/metamask-mobile/pull/15777)
+ - fix: added the pre-release to exclusion for this isTest [#15762](https://github.com/MetaMask/metamask-mobile/pull/15762)
+ - fix: rm import token footer on non evm [#15768](https://github.com/MetaMask/metamask-mobile/pull/15768)
+ - fix: Remove ethereum: prefix in account details QR code for non EVM accounts [#15737](https://github.com/MetaMask/metamask-mobile/pull/15737)
+ - fix: shorten bridge transaction details date formats [#15736](https://github.com/MetaMask/metamask-mobile/pull/15736)
+ - fix: add version awareness to bridge feature flag selector [#15725](https://github.com/MetaMask/metamask-mobile/pull/15725)
+ - fix: Sanitize gas values before transaction updater functions [#15701](https://github.com/MetaMask/metamask-mobile/pull/15701)
+ - fix: Replace commas when inputting numbers in `SnapUIInput` [#15694](https://github.com/MetaMask/metamask-mobile/pull/15694)
+ - fix: code fence [#15609](https://github.com/MetaMask/metamask-mobile/pull/15609)
+ - fix: Bridge long token values show the right hand side, make it show the left [#15517](https://github.com/MetaMask/metamask-mobile/pull/15517)
+ - perf: Improve `useSnapAssetDisplay` performance [#15585](https://github.com/MetaMask/metamask-mobile/pull/15585)
+ - fix: fix error when navigating to asset details from bridge/swap [#15559](https://github.com/MetaMask/metamask-mobile/pull/15559)
+ - fix: pass entropySource to default account created [#15553](https://github.com/MetaMask/metamask-mobile/pull/15553)
+ - fix: fix useRef re-render [#15540](https://github.com/MetaMask/metamask-mobile/pull/15540)
+ - fix: show accounts in AddNewAccount [#15531](https://github.com/MetaMask/metamask-mobile/pull/15531)
+ - fix: provide snap naming from client [#15534](https://github.com/MetaMask/metamask-mobile/pull/15534)
+ - fix: horizontal network picker not appearing in bridge and vertical + horizontal scroll [#15503](https://github.com/MetaMask/metamask-mobile/pull/15503)
+ - fix: switching to solana address in legacy swaps, redirect them to solana swaps UI [#15505](https://github.com/MetaMask/metamask-mobile/pull/15505)
+ - fix: reset swap/bridge state after submission [#15504](https://github.com/MetaMask/metamask-mobile/pull/15504)
+ - fix: Pass optional disabled prop into token details list item [#15461](https://github.com/MetaMask/metamask-mobile/pull/15461)
+ - fix: improve bridge screen layout and user experience [#15470](https://github.com/MetaMask/metamask-mobile/pull/15470)
+ - fix: tokens small amount crashing bridge [#15450](https://github.com/MetaMask/metamask-mobile/pull/15450)
+ - fix: Asset Detail Nav alignment [#15427](https://github.com/MetaMask/metamask-mobile/pull/15427)
+ - fix: bump bridge controllers and update quote response fields [#15376](https://github.com/MetaMask/metamask-mobile/pull/15376)
+ - fix: add MetaMask fee disclaimer text to bridge view [#15380](https://github.com/MetaMask/metamask-mobile/pull/15380)
+ - fix: fix endowment:caip25 error when removing dapp permitted chain [#15354](https://github.com/MetaMask/metamask-mobile/pull/15354)
+ - fix: cp-7.46.0 Add dummy file for migration 73 [#15315](https://github.com/MetaMask/metamask-mobile/pull/15315)
+ - fix: Add safe checksum method in `SendTo` page [#15309](https://github.com/MetaMask/metamask-mobile/pull/15309)
+ - fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))
+ - 
 
 ## [7.46.2]
 
@@ -71,8 +127,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
-- feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
 - feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
