@@ -248,16 +248,8 @@ describe('ManualBackupStep2', () => {
       { click: missingWordThree, text: missingWordItemThree.props.children },
     ];
 
-    // Get the original positions of the missing words in mockWords
-    const missingWordPositions = missingWordOrder.map(({ text }) =>
-      mockWords.indexOf(text),
-    );
-
-    // Sort the missing words based on their original positions
     const sortMissingOrder = missingWordOrder.sort(
-      (a, b) =>
-        missingWordPositions[mockWords.indexOf(a.text)] -
-        missingWordPositions[mockWords.indexOf(b.text)],
+      (a, b) => mockWords.indexOf(a.text) - mockWords.indexOf(b.text),
     );
 
     // Verify that the missing words are actually from mockWords
