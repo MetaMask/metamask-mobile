@@ -13,11 +13,8 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import {
-  SMART_CONTRACTS,
-  contractConfiguration,
-} from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { ActivitiesViewSelectorsText } from '../../selectors/Tran/sactions/ActivitiesView.selectors';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
