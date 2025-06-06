@@ -40,11 +40,10 @@ const useAccounts = ({
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const currentChainId = useSelector(selectChainId); // Always use global chain ID for ENS
+  const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  // For aggregated balances across all networks, don't pass chainId
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
 

@@ -47,10 +47,9 @@ const useMultichainBalancesForAllAccounts =
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
-    // For aggregated balances, always show all chains
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       accountsList,
-      true, // Always aggregate across chains for full portfolio view
+      true,
       allChainIDs,
     );
 
