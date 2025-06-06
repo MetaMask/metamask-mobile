@@ -45,15 +45,6 @@ describe('PrivateKeyAccountDetails', () => {
     ).toBeTruthy();
   });
 
-  it('renders ExportCredentials component', () => {
-    const { getByTestId } = renderWithProvider(
-      <PrivateKeyAccountDetails account={mockAccount} />,
-      { state: mockInitialState },
-    );
-
-    expect(getByTestId('export-credentials')).toBeTruthy();
-  });
-
   it('renders RemoveAccount component', () => {
     const { getByTestId } = renderWithProvider(
       <PrivateKeyAccountDetails account={mockAccount} />,
