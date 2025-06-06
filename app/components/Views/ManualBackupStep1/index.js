@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Appearance,
   FlatList,
   TouchableOpacity,
   ImageBackground,
@@ -51,12 +50,18 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
+const ManualBackupStep1 = ({
+  route,
+  navigation,
+  appTheme,
+  dispatchSaveOnboardingEvent,
+}) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
   const [password, setPassword] = useState(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
@@ -72,27 +77,32 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const steps = MANUAL_BACKUP_STEPS;
 
+  const headerLeft = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          color={colors.text.default}
+          style={styles.headerLeft}
+        />
+      </TouchableOpacity>
+    ),
+    [colors, navigation, styles.headerLeft],
+  );
+
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Icon
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={colors.text.default}
-                style={styles.headerLeft}
-              />
-            </TouchableOpacity>
-          ),
+          headerLeft,
         },
         colors,
         false,
       ),
     );
-  }, [colors, navigation, route, styles.headerLeft]);
+  }, [colors, navigation, route, headerLeft]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -157,6 +167,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
       ).build(),
+      dispatchSaveOnboardingEvent,
     );
   };
 
@@ -181,55 +192,34 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     tryUnlockWithPassword(password);
   };
 
-  const getBlurType = () => {
-    let blurType = 'light';
-    switch (appTheme) {
-      case 'light':
-        blurType = 'light';
-        break;
-      case 'dark':
-        blurType = 'dark';
-        break;
-      case 'os':
-        blurType = Appearance.getColorScheme();
-        break;
-      default:
-        blurType = 'light';
-    }
-    return blurType;
-  };
-
-  const renderSeedPhraseConcealer = () => {
-    const blurType = getBlurType();
-
-    return (
-      <View style={styles.seedPhraseConcealerContainer}>
-        <TouchableOpacity
-          onPress={revealSeedPhrase}
-          style={styles.blurContainer}
-        >
-          <ImageBackground
-            source={require('../../../images/blur.png')}
-            style={styles.blurView}
-            resizeMode="cover"
+  const renderSeedPhraseConcealer = () => (
+    <View style={styles.seedPhraseConcealerContainer}>
+      <TouchableOpacity
+        onPress={revealSeedPhrase}
+        style={styles.blurContainer}
+        testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
+      >
+        <ImageBackground
+          source={require('../../../images/blur.png')}
+          style={styles.blurView}
+          resizeMode="cover"
+        />
+        <View style={styles.seedPhraseConcealer}>
+          <Icon
+            name={IconName.EyeSlash}
+            size={IconSize.Xl}
+            color={colors.overlay.default}
           />
-          <View style={styles.seedPhraseConcealer}>
-            <Icon
-              name={IconName.EyeSlashSolid}
-              size={IconSize.Xl}
-              color={colors.overlay.default}
-            />
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {strings('manual_backup_step_1.reveal')}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-              {strings('manual_backup_step_1.watching')}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('manual_backup_step_1.reveal')}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            {strings('manual_backup_step_1.watching')}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView
@@ -249,7 +239,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             </View>
             <View style={styles.field}>
               <TextField
-                placeholder={'Password'}
+                placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
                 secureTextEntry
@@ -346,6 +336,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                     ellipsizeMode="tail"
                     numberOfLines={1}
                     style={styles.word}
+                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                   >
                     {item}
                   </Text>
@@ -390,10 +381,18 @@ ManualBackupStep1.propTypes = {
    * Theme that app is set to
    */
   appTheme: PropTypes.string,
+  /**
+   * Action to save onboarding event
+   */
+  dispatchSaveOnboardingEvent: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   appTheme: state.user.appTheme,
 });
 
-export default connect(mapStateToProps)(ManualBackupStep1);
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ManualBackupStep1);

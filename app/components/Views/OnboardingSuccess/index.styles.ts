@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
+import { ThemeColors } from '@metamask/design-tokens';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root: {
       flexGrow: 1,

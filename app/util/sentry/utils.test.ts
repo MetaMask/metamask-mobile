@@ -113,6 +113,22 @@ describe('deriveSentryEnvironment', () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
   });
+
+  it('returns main-rc for rc environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'rc';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-rc');
+  });
+
+  it('returns main-beta for beta environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'beta';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-beta');
+  });
 });
 
 describe('captureSentryFeedback', () => {
