@@ -3,9 +3,9 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
+import {DEFAULT_ANVIL_PORT} from '../../e2e/seeder/anvil-manager';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
-
 export const DEFAULT_MOCKSERVER_PORT = 8000;
 
 function transformToValidPort(defaultPort, pid) {
@@ -26,7 +26,9 @@ function getServerPort(defaultPort) {
 export function getGanachePort() {
   return getServerPort(DEFAULT_GANACHE_PORT);
 }
-
+export function AnvilPort() {
+  return getServerPort(DEFAULT_ANVIL_PORT);
+}
 export function getFixturesServerPort() {
   return getServerPort(DEFAULT_FIXTURE_SERVER_PORT);
 }
