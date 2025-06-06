@@ -131,34 +131,6 @@ class MultichainTestDApp {
   }
 
   /**
-   * Connect to the dapp by entering extension ID and clicking connect
-   */
-  async connect(_extensionId = 'window.postMessage'): Promise<boolean> {
-    // Get elements first
-    const inputElement = await this.extensionIdInput;
-    const connectBtn = await this.connectButton;
-
-    // Tap the input field to focus it
-    await this.tapButton(inputElement);
-
-    // Try a reliable direct approach - the dapp might set this to window.postMessage by default
-
-    // 1. Double tap to select all text
-    await Gestures.tapWebElement(Promise.resolve(inputElement as Detox.IndexableWebElement));
-
-    // 2. For iOS, try to select and delete text
-    await element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)).clearText();
-
-    // Tap the connect button
-    await this.tapButton(connectBtn);
-
-    // Wait for connection to establish
-    await TestHelpers.delay(1500);
-
-    return true;
-  }
-
-  /**
    * Create a session with the specified scopes
    */
   async initCreateSessionScopes(
@@ -172,41 +144,6 @@ class MultichainTestDApp {
     await this.tapButton(createSessionBtn);
 
     // Wait for session creation
-    await TestHelpers.delay(1500);
-
-    return true;
-  }
-
-  /**
-   * Get session data
-   */
-  async getSession(): Promise<SessionResponse> {
-    // Get element first
-    const getSessionBtn = await this.getSessionButton;
-
-    // Tap get session button
-    await this.tapButton(getSessionBtn);
-
-    // Wait for processing
-    await TestHelpers.delay(1000);
-
-    return {
-      success: true,
-      sessionScopes: { 'eip155:1': { accounts: ['0x...'] } },
-    };
-  }
-
-  /**
-   * Revoke session
-   */
-  async revokeSession(): Promise<boolean> {
-    // Get element first
-    const revokeSessionBtn = await this.revokeSessionButton;
-
-    // Tap revoke session button
-    await this.tapButton(revokeSessionBtn);
-
-    // Wait for processing
     await TestHelpers.delay(1500);
 
     return true;
@@ -300,7 +237,7 @@ class MultichainTestDApp {
 
       const isStillDisabled = await ethereumCheckbox.runScript('(el) => el ? el.disabled : true')
         .catch(() => true);
-        
+
       if (isStillDisabled) {
         console.error('❌ Connection failed - checkboxes remain disabled');
         return false;
@@ -588,7 +525,7 @@ class MultichainTestDApp {
       // Check if element exists and is checked, then uncheck
       const isChecked = await checkbox.runScript('(el) => el ? el.checked : false')
         .catch(() => false);
-        
+
       if (isChecked) {
         await checkbox.tap().catch(async () => {
           // If tap fails, try JS click
@@ -626,12 +563,12 @@ class MultichainTestDApp {
             return true;
           })
           .catch(() => false);
-          
+
         if (!clicked) {
           console.error(`❌ Failed to select network eip155:${chainId}`);
           return false;
         }
-        
+
         await TestHelpers.delay(1500); // Wait for UI update
       }
     }

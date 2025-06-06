@@ -33,7 +33,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 await Assertions.checkIfVisible(
                     Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
@@ -83,7 +83,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 const sessionResult = await MultichainTestDApp.createSessionWithNetworks(
                     MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON
@@ -128,7 +128,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 const sessionResult = await MultichainTestDApp.createSessionWithNetworks(
                     MultichainUtilities.NETWORK_COMBINATIONS.ALL_MAJOR_EVM
@@ -172,7 +172,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 const sessionResult = await MultichainTestDApp.createSessionWithNetworks([]);
 
@@ -204,7 +204,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 const createResult = await MultichainTestDApp.createSessionWithNetworks(
                     MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM
@@ -271,7 +271,7 @@ describe(SmokeMultichainApi('wallet_createSession'), () => {
                 await loginToApp();
                 await TabBarComponent.tapBrowser();
                 await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON;
 
