@@ -18,16 +18,10 @@ export const createProviderWebviewNavDetails = createNavigationDetails(
 const ProviderWebview = () => {
   const navigation = useNavigation();
 
-  const [
-    { data: userDetailsResponse, error, isFetching: loading },
-    getUserDetails,
-  ] = useDepositSdkMethod({ method: 'getUserDetails', onMount: false });
+  const [{ data: userDetailsResponse, error, isFetching: loading }] =
+    useDepositSdkMethod('getUserDetails');
 
   const { theme, styles } = useStyles(styleSheet, {});
-
-  useEffect(() => {
-    getUserDetails();
-  }, [getUserDetails]);
 
   useEffect(() => {
     navigation.setOptions(
