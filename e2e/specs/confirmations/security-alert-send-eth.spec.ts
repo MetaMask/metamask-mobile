@@ -1,4 +1,3 @@
-'use strict';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/Send/AmountView';
@@ -21,7 +20,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  const defaultFixture = new FixtureBuilder().withSepoliaNetwork().build();
+  const defaultFixture = new FixtureBuilder().withGanacheNetwork().build();
 
   const navigateToSendConfirmation = async () => {
     await loginToApp();
@@ -33,7 +32,10 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await AmountView.tapNextButton();
   };
 
-  const runTest = async (testSpecificMock, alertAssertion) => {
+  const runTest = async (testSpecificMock: {
+    GET?: Record<string, unknown>[];
+    POST?: Record<string, unknown>[];
+  }, alertAssertion: () => Promise<void>) => {
     await withFixtures(
       {
         fixture: defaultFixture,
@@ -50,9 +52,12 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.remoteFeatureFlags,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
       ],
-      POST: [mockEvents.POST.securityAlertApiValidate],
+      POST: [{...mockEvents.POST.securityAlertApiValidate,
+              urlEndpoint:
+        'https://security-alerts.api.cx.metamask.io/validate/0x539',
+      }],
     };
 
     await runTest(testSpecificMock, async () => {
@@ -70,11 +75,13 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.remoteFeatureFlags,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
       ],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
+          urlEndpoint:
+            'https://security-alerts.api.cx.metamask.io/validate/0x539',
           response: {
             block: 20733277,
             result_type: 'Malicious',
@@ -96,7 +103,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   it('should show security alerts for error when validating request fails', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.remoteFeatureFlags,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
         {
           urlEndpoint:
             'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
@@ -106,6 +113,8 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
+          urlEndpoint:
+            'https://security-alerts.api.cx.metamask.io/validate/0x539',
           response: {
             error: 'Internal Server Error',
             message: 'An unexpected error occurred on the server.',

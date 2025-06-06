@@ -31,13 +31,21 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  const runTest = async (testSpecificMock, alertAssertion) => {
+  const runTest = async (
+    testSpecificMock: {
+      GET?: Record<string, unknown>[];
+      POST?: Record<string, unknown>[];
+    },
+    alertAssertion: () => Promise<void>,
+  ) => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0xaa36a7']),
+          )
           .build(),
         restartDevice: true,
         testSpecificMock: {
@@ -152,7 +160,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
-            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(['0xaa36a7']),
+            )
             .build(),
           restartDevice: true,
           testSpecificMock: {

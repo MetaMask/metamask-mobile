@@ -50,7 +50,9 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         testSpecificMock,
         smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );

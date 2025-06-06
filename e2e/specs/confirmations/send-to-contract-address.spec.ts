@@ -13,10 +13,7 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import {
-  SMART_CONTRACTS,
-  contractConfiguration,
-} from '../../../app/util/test/smart-contracts';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -47,7 +44,9 @@ describe(SmokeConfirmations('Send to contract address'), () => {
         smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const hstAddress = await contractRegistry.getContractAddress(
           HST_CONTRACT,
         );
