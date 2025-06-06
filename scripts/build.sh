@@ -239,7 +239,7 @@ buildAndroidDevBuild(){
 	TASK_NAME="assembleProdDebug"
 
   if [ "$METAMASK_ENVIRONMENT" = "qa" ] ; then
-    TASK_NAME="assembleQaDebug"
+    TASK_NAME="assembleQaDebug app:assembleQaDebugAndroidTest"
 	elif [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		TASK_NAME="assembleFlaskDebug"
 	fi
