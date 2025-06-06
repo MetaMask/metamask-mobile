@@ -67,6 +67,7 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { areAddressesEqual } from '../../../util/address';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -218,8 +219,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     };
 
     accounts.forEach((account) => {
-      const lowercasedAccount = account.address.toLowerCase();
-      if (permittedAccounts.includes(lowercasedAccount)) {
+      const isPermitted = permittedAccounts.some((permittedAccount) =>
+        areAddressesEqual(account.address, permittedAccount),
+      );
+
+      if (isPermitted) {
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
