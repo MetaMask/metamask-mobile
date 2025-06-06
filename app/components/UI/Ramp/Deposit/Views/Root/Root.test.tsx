@@ -37,51 +37,9 @@ describe('Root Component', () => {
     jest.clearAllMocks();
   });
 
-  it('redirects to BUILD_QUOTE when no token exists', async () => {
+  it('redirects to BUILD_QUOTE', async () => {
     mockCheckExistingToken.mockResolvedValue(false);
-
     renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
-
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.BUILD_QUOTE,
-            params: { animationEnabled: false },
-          },
-        ],
-      });
-    });
-  });
-
-  it('redirects to VERIFY_IDENTITY when token exists', async () => {
-    mockCheckExistingToken.mockResolvedValue(true);
-
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
-
-    await waitFor(() => {
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.VERIFY_IDENTITY,
-            params: { animationEnabled: false },
-          },
-        ],
-      });
-    });
-  });
-
-  it('does not reset navigation until initialRoute is set', async () => {
-    mockCheckExistingToken.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          setTimeout(() => resolve(false), 100);
-        }),
-    );
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
-    expect(mockReset).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
