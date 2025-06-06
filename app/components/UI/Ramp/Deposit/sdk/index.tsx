@@ -13,6 +13,7 @@ import {
   selectDepositProviderApiKey,
 } from '../../../../../selectors/featureFlagController/deposit';
 import {
+  BuyQuote,
   NativeRampsSdk,
   NativeTransakAccessToken,
   TransakEnvironment,
@@ -33,8 +34,8 @@ export interface DepositSDK {
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   checkExistingToken: () => Promise<boolean>;
-  quote?: any;
-  setQuote: (quote: any) => void;
+  quote?: BuyQuote;
+  setQuote: (quote: BuyQuote) => void;
 }
 
 const isDevelopment =
