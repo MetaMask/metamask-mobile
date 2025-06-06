@@ -20,7 +20,6 @@ import {
 import {
   getProviderToken,
   storeProviderToken,
-  resetProviderToken,
 } from '../utils/ProviderTokenVault';
 
 export interface DepositSDK {
