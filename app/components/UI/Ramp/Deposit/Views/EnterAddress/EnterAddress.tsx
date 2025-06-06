@@ -93,23 +93,17 @@ const EnterAddress = (): JSX.Element => {
     ...formData,
   };
 
-  const [
-    { data: kycResponse, error: kycError, isFetching: kycIsFetching },
-    postKycForm,
-  ] = useDepositSdkMethod(
-    {
-      method: 'patchUser',
-      onMount: false,
-    },
-    combinedFormData,
-  );
+  const [{ error: kycError, isFetching: kycIsFetching }, postKycForm] =
+    useDepositSdkMethod(
+      {
+        method: 'patchUser',
+        onMount: false,
+      },
+      combinedFormData,
+    );
 
   const [
-    {
-      data: purposeResponse,
-      error: purposeError,
-      isFetching: purposeIsFetching,
-    },
+    { error: purposeError, isFetching: purposeIsFetching },
     submitPurpose,
   ] = useDepositSdkMethod(
     {
@@ -135,18 +129,14 @@ const EnterAddress = (): JSX.Element => {
     try {
       await postKycForm(combinedFormData);
 
-      if (kycError || !kycResponse) {
+      if (kycError) {
         console.error('KYC form submission failed:', kycError);
         return;
       }
 
-      console.log('kycResponse', kycResponse);
-
       await submitPurpose();
 
-      console.log('purposeResponse', purposeResponse);
-
-      if (purposeError || !purposeResponse) {
+      if (purposeError) {
         console.error('Purpose submission failed:', purposeError);
         return;
       }
