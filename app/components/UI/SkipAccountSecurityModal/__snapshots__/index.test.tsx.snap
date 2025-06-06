@@ -142,6 +142,7 @@ exports[`SkipAccountSecurityModal should render correctly 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="Cancel-Skip"
         type="Secondary"
       >
         <Text
@@ -182,6 +183,7 @@ exports[`SkipAccountSecurityModal should render correctly 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="Skip-button"
         type="Primary"
       >
         <Text
