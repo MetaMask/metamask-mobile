@@ -64,10 +64,10 @@ class CreatePasswordView {
   async tapIUnderstandCheckBox() {
     try {
       // Try the generic checkbox first (used in import flow)
-      await Gestures.waitAndTap(this.iUnderstandCheckbox);
+      await Gestures.tap(this.iUnderstandCheckbox);
     } catch (error) {
       // Fall back to platform-specific checkbox (used in onboarding flow)
-      await Gestures.waitAndTap(this.iUnderstandCheckboxPlatformSpecific);
+      await Gestures.tap(this.iUnderstandCheckboxPlatformSpecific);
     }
   }
 
