@@ -2,7 +2,6 @@
 import { SmokeAccounts } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
-  defaultGanacheOptions,
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
@@ -12,6 +11,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import { startExportForKeyring, completeSrpQuiz } from './utils';
+import { defaultOptions } from '../../seeder/anvil-manager';
 
 const fixtureServer = new FixtureServer();
 
@@ -25,7 +25,7 @@ const SRP_2 = {
   id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
 };
 
-const DEFAULT_SRP = defaultGanacheOptions.mnemonic;
+const DEFAULT_SRP = defaultOptions.mnemonic;
 const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
