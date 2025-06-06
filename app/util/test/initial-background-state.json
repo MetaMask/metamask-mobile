@@ -510,6 +510,7 @@
     }
   },
   "DeFiPositionsController": {
-    "allDeFiPositions": {}
+    "allDeFiPositions": {},
+    "allDeFiPositionsCount": {}
   }
 }

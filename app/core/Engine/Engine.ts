@@ -1270,7 +1270,6 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
-      chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
@@ -1285,10 +1284,10 @@ export class Engine {
           'AssetsContractController:getERC1155BalanceOf',
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
           'AccountsController:selectedEvmAccountChange',
         ],
       }),
@@ -1413,6 +1412,7 @@ export class Engine {
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
         }),
         disabled: false,

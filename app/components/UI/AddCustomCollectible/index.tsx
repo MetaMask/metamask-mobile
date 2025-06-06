@@ -12,7 +12,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -89,6 +89,7 @@ const AddCustomCollectible = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const chainId = useSelector(selectChainId);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useEffect(() => {
     setMounted(true);
@@ -200,7 +201,7 @@ const AddCustomCollectible = ({
 
     trace({ name: TraceName.ImportNfts });
 
-    await NftController.addNft(address, tokenId);
+    await NftController.addNft(address, tokenId, selectedNetworkClientId);
 
     endTrace({ name: TraceName.ImportNfts });
 
@@ -242,6 +243,7 @@ const AddCustomCollectible = ({
         onConfirmPress={addNft}
         confirmDisabled={!address || !tokenId}
         loading={loading}
+        confirmTestID={'add-collectible-button'}
       >
         <View>
           <View style={styles.rowWrapper}>

@@ -19,10 +19,6 @@ import Avatar, {
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import { getDecimalChainId } from '../../../util/networks';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
@@ -54,7 +50,6 @@ const styles = StyleSheet.create({
 const AccountRightButton = ({
   selectedAddress,
   onPress,
-  isNetworkVisible,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -114,7 +109,7 @@ const AccountRightButton = ({
 
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
-    if (!selectedAddress && isNetworkVisible) {
+    if (!selectedAddress) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
         params: {
@@ -134,7 +129,6 @@ const AccountRightButton = ({
   }, [
     dismissKeyboard,
     selectedAddress,
-    isNetworkVisible,
     navigate,
     trackEvent,
     createEventBuilder,
@@ -164,21 +158,7 @@ const AccountRightButton = ({
     >
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (
-        isNetworkVisible ? (
-          <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
-            }
-          >
-            {renderAvatarAccount()}
-          </BadgeWrapper>
-        ) : (
-          renderAvatarAccount()
-        )
+        renderAvatarAccount()
       ) : (
         <Avatar
           variant={AvatarVariant.Network}

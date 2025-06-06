@@ -33,11 +33,7 @@ describe('AccountRightButton', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       () => (
-        <AccountRightButton
-          selectedAddress="0x123"
-          onPress={() => undefined}
-          isNetworkVisible
-        />
+        <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
       ),
       {
         name: 'AccountRightButton',

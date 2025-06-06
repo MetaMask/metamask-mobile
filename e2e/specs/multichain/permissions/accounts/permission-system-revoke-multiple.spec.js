@@ -38,9 +38,8 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         //TODO: should re add connecting to an external swap step after detox has been updated
-
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await TestHelpers.delay(2000);
 
@@ -56,14 +55,14 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await AccountListBottomSheet.tapConnectAccountsButton();
 
         // should revoke accounts
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
 
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         // await ConnectedAccountsModal.tapDisconnectButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();

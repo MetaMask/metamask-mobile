@@ -46,6 +46,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { parseCaipAccountId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../util/networks';
@@ -93,6 +94,9 @@ const EvmAccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
+  const useMultichainAccountDesign = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
@@ -108,7 +112,7 @@ const EvmAccountSelectorList = ({
       { fiatBalance, tokens }: Assets,
       address: string,
       isLoadingAccount: boolean,
-      networkImage: ImageSourcePropType
+      networkImage: ImageSourcePropType,
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
@@ -131,15 +135,19 @@ const EvmAccountSelectorList = ({
               </SensitiveText>
 
               <AvatarGroup
-                avatarPropsList={tokens ? tokens.map((tokenObj) => ({
-                  ...tokenObj,
-                  variant: AvatarVariant.Token,
-                })) : [
-                  {
-                    variant: AvatarVariant.Network,
-                    imageSource: networkImage,
-                  },
-                ]}
+                avatarPropsList={
+                  tokens
+                    ? tokens.map((tokenObj) => ({
+                        ...tokenObj,
+                        variant: AvatarVariant.Token,
+                      }))
+                    : [
+                        {
+                          variant: AvatarVariant.Network,
+                          imageSource: networkImage,
+                        },
+                      ]
+                }
               />
             </>
           )}
@@ -291,6 +299,18 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        if (useMultichainAccountDesign) {
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+          return;
+        }
+
         onNavigateToAccountActions(address);
       };
 
@@ -327,23 +347,30 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, address, isLoadingAccount, networkImage))}
+              renderAccountBalances(
+                assets,
+                address,
+                isLoadingAccount,
+                networkImage,
+              ))}
         </Cell>
       );
     },
     [
-      onNavigateToAccountActions,
-      accountAvatarType,
-      onSelectAccount,
-      renderAccountBalances,
       ensByAccountAddress,
       isLoading,
-      selectedAddressesLookup,
+      isSelectionDisabled,
       isMultiSelect,
       isSelectWithoutMenu,
+      selectedAddressesLookup,
+      accountAvatarType,
       renderRightAccessory,
-      isSelectionDisabled,
+      renderAccountBalances,
       onLongPress,
+      onSelectAccount,
+      useMultichainAccountDesign,
+      onNavigateToAccountActions,
+      navigate,
       styles.titleText,
     ],
   );

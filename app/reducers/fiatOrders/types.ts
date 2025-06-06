@@ -15,6 +15,7 @@ import {
   resetFiatOrders,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedDeposit,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
   updateFiatCustomIdData,
@@ -85,6 +86,7 @@ export interface FiatOrdersState {
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
   getStartedSell: boolean;
+  getStartedDeposit: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
 }
@@ -100,6 +102,7 @@ export const ACTIONS = {
   FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
   FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
   FIAT_SET_GETSTARTED_SELL: 'FIAT_SET_GETSTARTED_SELL',
+  FIAT_SET_GETSTARTED_DEPOSIT: 'FIAT_SET_GETSTARTED_DEPOSIT',
   FIAT_ADD_CUSTOM_ID_DATA: 'FIAT_ADD_CUSTOM_ID_DATA',
   FIAT_UPDATE_CUSTOM_ID_DATA: 'FIAT_UPDATE_CUSTOM_ID_DATA',
   FIAT_REMOVE_CUSTOM_ID_DATA: 'FIAT_REMOVE_CUSTOM_ID_DATA',
@@ -122,6 +125,7 @@ export type Action =
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>
   | ReturnType<typeof setFiatOrdersGetStartedSell>
+  | ReturnType<typeof setFiatOrdersGetStartedDeposit>
   | ReturnType<typeof addFiatCustomIdData>
   | ReturnType<typeof updateFiatCustomIdData>
   | ReturnType<typeof removeFiatCustomIdData>

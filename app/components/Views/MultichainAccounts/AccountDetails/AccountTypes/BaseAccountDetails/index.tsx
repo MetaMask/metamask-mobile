@@ -66,10 +66,8 @@ export const BaseAccountDetails = ({
   }, [navigation, account]);
 
   const handleEditWalletName = useCallback(() => {
-    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      account,
-    });
-  }, [navigation, account]);
+    // TODO: implement when the account group
+  }, []);
 
   return (
     <SafeAreaView>
