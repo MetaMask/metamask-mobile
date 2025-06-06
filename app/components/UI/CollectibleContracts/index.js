@@ -24,7 +24,7 @@ import {
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
@@ -339,7 +339,7 @@ const CollectibleContracts = ({
   const renderCollectibleContract = useCallback(
     (item, index) => {
       const contractCollectibles = collectibles?.filter((collectible) =>
-        toLowerCaseEquals(collectible.address, item.address),
+        areAddressesEqual(collectible.address, item.address),
       );
       return (
         <CollectibleContractElement
