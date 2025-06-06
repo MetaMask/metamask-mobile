@@ -464,12 +464,13 @@ exports[`PermissionsSummary should render correctly 1`] = `
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -997,12 +998,13 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
@@ -1756,7 +1758,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
+                        "borderRadius": 4,
                         "height": 16,
                         "justifyContent": "center",
                         "overflow": "hidden",
@@ -3098,12 +3100,13 @@ exports[`PermissionsSummary should render only the network permissions card when
                       testID="avatargroup-avatar-container-0"
                     >
                       <View
+                        caipChainId="eip155:1"
                         style={
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderColor": "#ffffff",
-                            "borderRadius": 8,
+                            "borderRadius": 4,
                             "borderWidth": 1.5,
                             "height": 16,
                             "justifyContent": "center",
@@ -3830,12 +3833,13 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -4363,12 +4367,13 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
@@ -5096,12 +5101,13 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -5629,12 +5635,13 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         testID="avatargroup-avatar-container-0"
                       >
                         <View
+                          caipChainId="eip155:1"
                           style={
                             {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "justifyContent": "center",
