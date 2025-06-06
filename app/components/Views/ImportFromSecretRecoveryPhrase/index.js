@@ -934,23 +934,28 @@ const ImportFromSecretRecoveryPhrase = ({
                   style={styles.checkbox}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
-                <TouchableOpacity
+                <Button
+                  variant={ButtonVariants.Link}
                   onPress={() => setLearnMore(!learnMore)}
                   style={styles.learnMoreTextContainer}
                   testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    {strings('import_from_seed.learn_more')}
+                  label={
                     <Text
                       variant={TextVariant.BodySM}
-                      color={TextColor.Primary}
-                      onPress={learnMoreLink}
-                      testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
+                      color={TextColor.Default}
                     >
-                      {' ' + strings('reset_password.learn_more')}
+                      {strings('import_from_seed.learn_more')}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Primary}
+                        onPress={learnMoreLink}
+                        testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
+                      >
+                        {' ' + strings('reset_password.learn_more')}
+                      </Text>
                     </Text>
-                  </Text>
-                </TouchableOpacity>
+                  }
+                />
               </View>
 
               <View style={styles.seedPhraseCtaContainer}>
