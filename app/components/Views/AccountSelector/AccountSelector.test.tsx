@@ -59,6 +59,11 @@ const mockInitialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTrees: {
+          roots: {},
+        },
+      },
       PreferencesController: {
         privacyMode: false,
       },
@@ -82,11 +87,11 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../components/hooks/useAccounts', () => ({
-  useAccounts: jest.fn().mockReturnValue({
+  useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
+    evmAccounts: mockAccounts,
     ensByAccountAddress: mockEnsByAccountAddress,
-    isLoading: false,
-  }),
+  })),
 }));
 
 jest.mock('../../../core/Engine', () => ({
