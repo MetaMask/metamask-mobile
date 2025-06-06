@@ -250,8 +250,7 @@ class MultichainTestDApp {
    */
   async selectNetwork(chainId: string): Promise<boolean> {
     const webview = this.getWebView();
-    // Escape colons in chain ID to match the dapp's escapeHtmlId function
-    const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+    const escapedChainId = this.escapeChainIdForHtml(chainId);
     const networkCheckbox = webview.element(by.web.id(`network-checkbox-${escapedChainId}`));
 
     await networkCheckbox.scrollToView();
@@ -486,7 +485,7 @@ class MultichainTestDApp {
     const states: Record<string, boolean> = {};
 
     for (const chainId of chainIds) {
-      const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+      const escapedChainId = this.escapeChainIdForHtml(chainId);
       const checkboxId = `network-checkbox-${escapedChainId}`;
 
       // Use CSS :checked pseudo-selector - the only method that works reliably
@@ -502,16 +501,19 @@ class MultichainTestDApp {
   }
 
   /**
-   * Select specific networks by chain IDs
+   * Escape chain ID for HTML element IDs (matches dapp's escapeHtmlId function)
+   * @param chainId - Decimal chain ID (e.g., '1')
+   * @returns Escaped chain ID for HTML element ID (e.g., 'eip155-1')
    */
-  async selectNetworks(chainIds: string[]): Promise<boolean> {
-    const webview = this.getWebView();
-    // Scroll to the network selection area first
-    await this.scrollToPageTop();
-    await TestHelpers.delay(1000);
+  private escapeChainIdForHtml(chainId: string): string {
+    return `eip155:${chainId}`.replace(/:/g, '-');
+  }
 
-    // First uncheck all networks
-    const allNetworks = [
+  /**
+   * Get all supported network chain IDs for the dapp
+   */
+  private getAllSupportedNetworks(): string[] {
+    return [
       MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
       MultichainUtilities.CHAIN_IDS.LINEA_MAINNET, 
       MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE,
@@ -523,10 +525,17 @@ class MultichainTestDApp {
       MultichainUtilities.CHAIN_IDS.BASE,
       MultichainUtilities.CHAIN_IDS.LOCALHOST,
     ];
+  }
 
-    for (const chainId of allNetworks) {
-      // Escape colons in chain ID to match the dapp's escapeHtmlId function
-      const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+  /**
+   * Clear all network selections
+   */
+  async clearAllNetworkSelections(): Promise<boolean> {
+    const webview = this.getWebView();
+    const allNetworks = this.getAllSupportedNetworks();
+
+          for (const chainId of allNetworks) {
+      const escapedChainId = this.escapeChainIdForHtml(chainId);
       const checkboxId = `network-checkbox-${escapedChainId}`;
 
       const checkbox = webview.element(by.web.id(checkboxId));
@@ -544,10 +553,28 @@ class MultichainTestDApp {
       }
     }
 
+    return true;
+  }
+
+  /**
+   * Select specific networks by chain IDs
+   */
+  async selectNetworks(chainIds: string[]): Promise<boolean> {
+    const webview = this.getWebView();
+    // Scroll to the network selection area first
+    await this.scrollToPageTop();
+    await TestHelpers.delay(1000);
+
+    // First clear all network selections
+    const cleared = await this.clearAllNetworkSelections();
+    if (!cleared) {
+      console.error('❌ Failed to clear network selections');
+      return false;
+    }
+
     // Then select the requested networks
     for (const chainId of chainIds) {
-      // Escape colons in chain ID to match the dapp's escapeHtmlId function
-      const escapedChainId = `eip155:${chainId}`.replace(/:/g, '-');
+      const escapedChainId = this.escapeChainIdForHtml(chainId);
       const checkboxId = `network-checkbox-${escapedChainId}`;
 
       const checkbox = webview.element(by.web.id(checkboxId));
