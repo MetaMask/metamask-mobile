@@ -130,7 +130,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             // Could not read result text (Detox limitation)
                         }
                     }
-
                 },
             );
         });
@@ -216,8 +215,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             // Could not read result text (Detox limitation)
                         }
                     }
-
-
                 },
             );
         });
@@ -303,8 +300,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             // Could not read result text (Detox limitation)
                         }
                     }
-
-
                 },
             );
         });
@@ -351,7 +346,6 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                     await cancelButton.tap();
                     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
                     console.log('✅ eth_sendTransaction confirmation dialog test passed');
-
                 },
             );
         });
