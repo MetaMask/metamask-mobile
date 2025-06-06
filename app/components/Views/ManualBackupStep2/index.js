@@ -146,9 +146,9 @@ const ManualBackupStep2 = ({
     if (showStatusBottomSheet) return;
 
     const rows = [0, 1, 2, 3];
-    const sortedRows = rows.sort(() => 0.5 - Math.random());
-    const randomRows = sortedRows.slice(0, 3);
-    const indexesToEmpty = randomRows.map((row) => {
+    const sortGridRows = rows.sort(() => 0.5 - Math.random());
+    const selectRandomSlots = sortGridRows.slice(0, 3);
+    const emptySlotsIndexes = selectRandomSlots.map((row) => {
       const col = Math.floor(Math.random() * 3);
       return row * 3 + col;
     });
@@ -156,16 +156,16 @@ const ManualBackupStep2 = ({
     const tempGrid = [...words];
     const removed = [];
 
-    indexesToEmpty.forEach((i) => {
+    emptySlotsIndexes.forEach((i) => {
       removed.push(tempGrid[i]);
       tempGrid[i] = '';
     });
 
     setGridWords(tempGrid);
     setMissingWords(removed);
-    setEmptySlots(indexesToEmpty);
-    const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
-    setSortedSlots(indexesToEmpty.filter((_, i) => i !== 0));
+    setEmptySlots(emptySlotsIndexes);
+    const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
+    setSortedSlots(emptySlotsIndexes.filter((_, i) => i !== 0));
     setSelectedSlot(sortedIndexes[0]);
   }, [words, showStatusBottomSheet]);
 
@@ -173,8 +173,8 @@ const ManualBackupStep2 = ({
     (word) => {
       const updatedGrid = [...gridWords];
       if (sortedSlots.length === 0) {
-        const indexesToEmpty = [...emptySlots];
-        const sortedIndexes = indexesToEmpty.sort((a, b) => a - b);
+        const emptySlotsIndexes = [...emptySlots];
+        const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
         setSortedSlots(sortedIndexes);
       }
 
@@ -241,6 +241,51 @@ const ManualBackupStep2 = ({
 
   const innerWidth = Dimensions.get('window').width;
 
+  const renderGridItemText = useCallback(
+    (item, index, isEmpty) => (
+      <>
+        <Text style={styles.gridItemIndex}>{index + 1}.</Text>
+        <Text style={styles.gridItemText}>{isEmpty ? item : '••••••'}</Text>
+      </>
+    ),
+    [styles.gridItemIndex, styles.gridItemText],
+  );
+
+  const renderGridItem = useCallback(
+    ({ item, index }) => {
+      const isEmpty = emptySlots.includes(index);
+      const isSelected = selectedSlot === index;
+
+      return (
+        <TouchableOpacity
+          key={index}
+          testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
+          style={[
+            styles.gridItem,
+            isEmpty && styles.emptySlot,
+            isSelected && styles.selectedSlotBox,
+            {
+              width: innerWidth / 3.85,
+            },
+          ]}
+          onPress={() => handleSlotPress(index)}
+        >
+          {renderGridItemText(item, index, isEmpty)}
+        </TouchableOpacity>
+      );
+    },
+    [
+      emptySlots,
+      handleSlotPress,
+      innerWidth,
+      renderGridItemText,
+      selectedSlot,
+      styles.emptySlot,
+      styles.gridItem,
+      styles.selectedSlotBox,
+    ],
+  );
+
   const renderGrid = useCallback(
     () => (
       <View style={[styles.seedPhraseContainer]}>
@@ -248,47 +293,11 @@ const ManualBackupStep2 = ({
           data={gridWords}
           numColumns={3}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => {
-            const isEmpty = emptySlots.includes(index);
-            const isSelected = selectedSlot === index;
-
-            return (
-              <TouchableOpacity
-                key={index}
-                testID={ManualBackUpStepsSelectorsIDs.GRID_ITEM}
-                style={[
-                  styles.gridItem,
-                  isEmpty && styles.emptySlot,
-                  isSelected && styles.selectedSlotBox,
-                  {
-                    width: innerWidth / 3.85,
-                  },
-                ]}
-                onPress={() => handleSlotPress(index)}
-              >
-                <Text style={styles.gridItemIndex}>{index + 1}.</Text>
-                <Text style={styles.gridItemText}>
-                  {isEmpty ? item : '••••••'}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={renderGridItem}
         />
       </View>
     ),
-    [
-      styles.seedPhraseContainer,
-      styles.gridItem,
-      styles.emptySlot,
-      styles.selectedSlotBox,
-      gridWords,
-      emptySlots,
-      selectedSlot,
-      innerWidth,
-      handleSlotPress,
-      styles.gridItemIndex,
-      styles.gridItemText,
-    ],
+    [styles.seedPhraseContainer, gridWords, renderGridItem],
   );
 
   const renderMissingWords = useCallback(

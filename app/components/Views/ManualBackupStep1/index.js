@@ -206,7 +206,7 @@ const ManualBackupStep1 = ({
         />
         <View style={styles.seedPhraseConcealer}>
           <Icon
-            name={IconName.EyeSlashSolid}
+            name={IconName.EyeSlash}
             size={IconSize.Xl}
             color={colors.overlay.default}
           />

@@ -6,13 +6,11 @@ import {
   ScrollView,
   BackHandler,
   Alert,
-  Linking,
   TouchableOpacity,
   Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
@@ -566,10 +564,6 @@ class OptinMetrics extends PureComponent {
       paddingAllowance;
     // Check when scroll has reached the end.
     if (currentYOffset >= endThreshold) this.onScrollEndReached();
-  };
-
-  handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
 
   render() {

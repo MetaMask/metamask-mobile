@@ -1,3 +1,163 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SuccessErrorSheet renders correctly with all props 1`] = `[Function]`;
+exports[`SuccessErrorSheet render matches snapshot 1`] = `
+<div
+  data-testid="mock-bottom-sheet"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "column",
+        "gap": 16,
+        "justifyContent": "center",
+        "padding": 16,
+        "width": "100%",
+      }
+    }
+  >
+    <SvgMock
+      color="#1c7e33"
+      fill="currentColor"
+      height={32}
+      name="CheckBold"
+      style={
+        {
+          "height": 32,
+          "width": 32,
+        }
+      }
+      width={32}
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginHorizontal": "auto",
+          "textAlign": "center",
+          "width": "70%",
+        }
+      }
+    >
+      Test Title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+          "width": "100%",
+        }
+      }
+    >
+      Test Description
+    </Text>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "marginTop": 16,
+            "width": "100%",
+          },
+          {
+            "flexDirection": "row-reverse",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Secondary
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Primary
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</div>
+`;
