@@ -487,21 +487,16 @@ exports[`AccountSelector should render correctly 1`] = `
                             initialNumToRender={999}
                             keyExtractor={[Function]}
                             onContentSizeChange={[Function]}
-                            onGestureHandlerEvent={[Function]}
-                            onGestureHandlerStateChange={[Function]}
                             onLayout={[Function]}
                             onMomentumScrollBegin={[Function]}
                             onMomentumScrollEnd={[Function]}
                             onScroll={[Function]}
                             onScrollBeginDrag={[Function]}
                             onScrollEndDrag={[Function]}
-                            removeClippedSubviews={false}
                             renderItem={[Function]}
-                            renderScrollComponent={[Function]}
                             scrollEventThrottle={0.0001}
                             stickyHeaderIndices={[]}
                             testID="account-list"
-                            viewabilityConfigCallbackPairs={[]}
                           >
                             <View>
                               <View

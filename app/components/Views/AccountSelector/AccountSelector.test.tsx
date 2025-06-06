@@ -31,8 +31,6 @@ const mockAccounts = [
   },
 ];
 
-const mockEvmAccounts = [mockAccounts[0], mockAccounts[2]];
-
 const mockEnsByAccountAddress = {
   '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
 };
@@ -66,6 +64,11 @@ const mockInitialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTrees: {
+          roots: {},
+        },
+      },
       PreferencesController: {
         privacyMode: false,
       },
@@ -88,13 +91,12 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(mockInitialState),
 }));
 
-jest.mock('../../hooks/useAccounts', () => ({
-  useAccounts: () => ({
+jest.mock('../../../components/hooks/useAccounts', () => ({
+  useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
-    evmAccounts: mockEvmAccounts,
+    evmAccounts: mockAccounts,
     ensByAccountAddress: mockEnsByAccountAddress,
-    isLoading: false,
-  }),
+  })),
 }));
 
 jest.mock('../../../core/Engine', () => ({

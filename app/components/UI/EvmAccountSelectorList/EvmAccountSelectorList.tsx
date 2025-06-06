@@ -251,29 +251,24 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ section: { title } }: { section: AccountSection }) => {
-      if (!multichainAccountsState1Enabled) return null;
-
-      return (
+    ({ section: { title } }: { section: AccountSection }) => (
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionHeaderText}>{title}</Text>
         <Text style={styles.sectionDetailsLink}>
           Details
         </Text>
       </View>
-    );
-  }, [styles.sectionHeader, styles.sectionHeaderText, styles.sectionDetailsLink, multichainAccountsState1Enabled]);
+    ), [styles.sectionHeader, styles.sectionHeaderText, styles.sectionDetailsLink]);
 
   const renderSectionFooter = useCallback(
     ({ section }: { section: AccountSection }) => {
-      if (!multichainAccountsState1Enabled) return null;
       // Find the index of this section
       const sectionIndex = accountSections.findIndex(s => s.title === section.title);
       // Only render separator if it's not the last section
       const isLastSection = sectionIndex === accountSections.length - 1;
       return isLastSection ? null : <View style={styles.sectionSeparator} />;
     },
-    [styles.sectionSeparator, accountSections, multichainAccountsState1Enabled],
+    [styles.sectionSeparator, accountSections],
   );
 
   const scrollToSelectedAccount = useCallback(() => {
@@ -465,8 +460,8 @@ const EvmAccountSelectorList = ({
       keyExtractor={getKeyExtractor}
       // @ts-expect-error - This will work, for some reason typescript sees null as an option here, but it's not.
       renderItem={renderAccountItem}
-      renderSectionHeader={renderSectionHeader}
-      renderSectionFooter={renderSectionFooter}
+      renderSectionHeader={multichainAccountsState1Enabled ? renderSectionHeader : undefined}
+      renderSectionFooter={multichainAccountsState1Enabled ? renderSectionFooter : undefined}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
