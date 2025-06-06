@@ -22,47 +22,50 @@ export const createBasicInfoNavDetails = createNavigationDetails(
   Routes.DEPOSIT.BASIC_INFO,
 );
 
-interface FormData {
+export interface BasicInfoFormData {
   firstName: string;
   lastName: string;
-  phoneNumber: string;
-  dateOfBirth: string;
+  mobileNumber: string;
+  dob: string;
   ssn: string;
 }
+
+// TODO: Country Code must be dynamic and not hardcoded to USA
+const COUNTRY_CODE = '1';
 
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const initialFormData: FormData = {
+  const initialFormData: BasicInfoFormData = {
     firstName: '',
     lastName: '',
-    phoneNumber: '',
-    dateOfBirth: '',
+    mobileNumber: '',
+    dob: '',
     ssn: '',
   };
 
-  // TODO: Add more comprehensive validation logic
-  const validateForm = (data: FormData): Record<string, string> => {
+  const validateForm = (
+    formData: BasicInfoFormData,
+  ): Record<string, string> => {
     const errors: Record<string, string> = {};
-
-    if (!data.firstName.trim()) {
+    if (!formData.firstName.trim()) {
       errors.firstName = 'First name is required';
     }
 
-    if (!data.lastName.trim()) {
+    if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
     }
 
-    if (!data.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone number is required';
+    if (!formData.mobileNumber.trim()) {
+      errors.mobileNumber = 'Phone number is required';
     }
 
-    if (!data.dateOfBirth.trim()) {
-      errors.dateOfBirth = 'Date of birth is required';
+    if (!formData.dob.trim()) {
+      errors.dob = 'Date of birth is required';
     }
 
-    if (!data.ssn.trim()) {
+    if (!formData.ssn.trim()) {
       errors.ssn = 'Social security number is required';
     }
 
@@ -70,10 +73,17 @@ const BasicInfo = (): JSX.Element => {
   };
 
   const { formData, errors, handleChange, validateFormData } =
-    useForm<FormData>({
+    useForm<BasicInfoFormData>({
       initialFormData,
       validateForm,
     });
+
+  const handleFormDataChange = useCallback(
+    (field: keyof BasicInfoFormData) => (value: string) => {
+      handleChange(field, value);
+    },
+    [handleChange],
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -87,10 +97,16 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      // TODO: Send form data here?
-      navigation.navigate(...createEnterAddressNavDetails());
+      const formattedFormData = {
+        ...formData,
+        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
+      };
+
+      navigation.navigate(
+        ...createEnterAddressNavDetails({ formData: formattedFormData }),
+      );
     }
-  }, [navigation, validateFormData]);
+  }, [navigation, validateFormData, formData]);
 
   return (
     <ScreenLayout>
@@ -105,7 +121,7 @@ const BasicInfo = (): JSX.Element => {
               label="First Name"
               placeholder="John"
               value={formData.firstName}
-              onChangeText={(text) => handleChange('firstName', text)}
+              onChangeText={handleFormDataChange('firstName')}
               error={errors.firstName}
               returnKeyType="next"
               testID="first-name-input"
@@ -116,7 +132,7 @@ const BasicInfo = (): JSX.Element => {
               label="Last Name"
               placeholder="Smith"
               value={formData.lastName}
-              onChangeText={(text) => handleChange('lastName', text)}
+              onChangeText={handleFormDataChange('lastName')}
               error={errors.lastName}
               returnKeyType="next"
               testID="last-name-input"
@@ -126,11 +142,12 @@ const BasicInfo = (): JSX.Element => {
           <DepositPhoneField
             // TODO: Add internationalization for phone number format
             // TODO: Automatic formatting
+            countryCode={COUNTRY_CODE}
             label="Phone Number"
             placeholder="(234) 567-8910"
-            value={formData.phoneNumber}
-            onChangeText={(text) => handleChange('phoneNumber', text)}
-            error={errors.phoneNumber}
+            value={formData.mobileNumber}
+            onChangeText={handleFormDataChange('mobileNumber')}
+            error={errors.mobileNumber}
             testID="phone-number-input"
             returnKeyType="next"
           />
@@ -147,9 +164,9 @@ const BasicInfo = (): JSX.Element => {
             }
             label="Date of Birth"
             placeholder="MM/DD/YYYY"
-            value={formData.dateOfBirth}
-            onChangeText={(text) => handleChange('dateOfBirth', text)}
-            error={errors.dateOfBirth}
+            value={formData.dob}
+            onChangeText={handleFormDataChange('dob')}
+            error={errors.dob}
             returnKeyType="next"
             keyboardType="number-pad"
             testID="dob-input"
@@ -161,7 +178,7 @@ const BasicInfo = (): JSX.Element => {
             label="Social Security Number"
             placeholder="XXX-XX-XXXX"
             value={formData.ssn}
-            onChangeText={(text) => handleChange('ssn', text)}
+            onChangeText={handleFormDataChange('ssn')}
             error={errors.ssn}
             returnKeyType="done"
             keyboardType="number-pad"
