@@ -16,7 +16,8 @@ import {
 import { strings } from '../../../../locales/i18n';
 import {
   renderFullAddress,
-  safeToChecksumAddress,
+  areAddressesEqual,
+  toFormattedAddress,
 } from '../../../util/address';
 import { sumHexWEIs } from '../../../util/conversions';
 import {
@@ -30,7 +31,6 @@ import {
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
-import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import {
   isEIP1559Transaction,
@@ -117,8 +117,8 @@ function getTokenTransfer(args) {
 
   const [, , encodedAmount] = decodeTransferData('transfer', data);
   const amount = hexToBN(encodedAmount);
-  const userHasToken = safeToChecksumAddress(to) in tokens;
-  const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
+  const userHasToken = toFormattedAddress(to) in tokens;
+  const token = userHasToken ? tokens[toFormattedAddress(to)] : null;
   const renderActionKey = token
     ? `${strings('transactions.sent')} ${token.symbol}`
     : actionKey;
@@ -220,7 +220,7 @@ function getCollectibleTransfer(args) {
   const [, tokenId] = decodeTransferData('transfer', data);
   const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const collectible = collectibleContracts.find((collectible) =>
-    toLowerCaseEquals(collectible.address, to),
+    areAddressesEqual(collectible.address, to),
   );
   if (collectible) {
     actionKey = `${strings('transactions.sent')} ${collectible.name}`;
@@ -449,7 +449,7 @@ function decodeTransferFromTx(args) {
     data,
   );
   const collectible = collectibleContracts.find((collectible) =>
-    toLowerCaseEquals(collectible.address, to),
+    areAddressesEqual(collectible.address, to),
   );
   let actionKey = args.actionKey;
   if (collectible) {
@@ -814,8 +814,7 @@ function decodeSwapsTx(args) {
 
   const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
     ? 1
-    : contractExchangeRates?.[safeToChecksumAddress(sourceToken.address)]
-        ?.price;
+    : contractExchangeRates?.[toFormattedAddress(sourceToken.address)]?.price;
   const renderSourceTokenFiatNumber = balanceToFiatNumber(
     decimalSourceAmount,
     conversionRate,
@@ -824,7 +823,7 @@ function decodeSwapsTx(args) {
 
   const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
     ? 1
-    : contractExchangeRates?.[safeToChecksumAddress(destinationToken.address)]
+    : contractExchangeRates?.[toFormattedAddress(destinationToken.address)]
         ?.price;
   const renderDestinationTokenFiatNumber = balanceToFiatNumber(
     decimalDestinationAmount,

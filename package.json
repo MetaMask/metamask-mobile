@@ -3,6 +3,8 @@
   "version": "7.46.2",
   "private": true,
   "scripts": {
+    "install:foundryup": "yarn mm-foundryup",
+    "anvil": "node_modules/.bin/anvil",
     "audit:ci": "./scripts/yarn-audit.sh",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
@@ -69,9 +71,9 @@
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:ios:build:qa-release": "IS_TEST='true' detox build -c ios.sim.qa",
-    "test:e2e:ios:run:qa-release": "IS_TEST='true' detox test -c ios.sim.qa",
-    "test:e2e:android:build:qa-release": "IS_TEST='true' detox build -c android.emu.release.qa",
-    "test:e2e:android:run:qa-release": "IS_TEST='true' detox test -c android.emu.release.qa --headless --record-logs all",
+    "test:e2e:ios:run:qa-release": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.qa",
+    "test:e2e:android:build:qa-release": "NO_FLIPPER='1' IS_TEST='true' detox build -c android.emu.release.qa",
+    "test:e2e:android:run:qa-release": "NO_FLIPPER='1' IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c android.emu.release.qa --headless --record-logs all",
     "test:e2e:ios:debug:build": "IS_TEST='true' detox build -c ios.sim.debug",
     "test:e2e:ios:debug:run": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox reset-lock-file && NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.debug",
     "test:e2e:android:debug:build": "IS_TEST='true' detox build -c android.emu.debug",
@@ -427,6 +429,7 @@
     "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
   },
+  
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
@@ -447,6 +450,7 @@
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
     "@metamask/test-dapp": "^9.2.0",
+    "@metamask/foundryup": "1.0.0",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
@@ -501,6 +505,7 @@
     "babel-loader": "^9.1.3",
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
+    "babel-plugin-react-compiler": "^19.1.0-rc.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
     "browserstack-local": "^1.5.1",
@@ -520,6 +525,7 @@
     "eslint-plugin-jsdoc": "43.0.7",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "7.34.1",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "eslint-plugin-react-native": "^4.0.0",
     "execa": "^8.0.1",
     "fbjs-scripts": "^3.0.1",
@@ -543,6 +549,7 @@
     "portfinder": "^1.0.32",
     "prettier": "2.8.8",
     "prettier-plugin-gherkin": "^1.1.1",
+    "react-compiler-runtime": "^19.1.0-rc.2",
     "react-dom": "18.2.0",
     "react-native-launch-arguments": "^4.0.1",
     "react-native-performance": "^5.1.2",
@@ -630,5 +637,23 @@
       "ts-node>@swc/core": false
     }
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "foundryup": {
+    "binaries": [
+      "anvil"
+    ],
+    "checksums": {
+      "algorithm": "sha256",
+      "binaries": {
+        "anvil": {
+          "darwin-amd64": "8404e555223fe884557d5e22de494baf8b5f0b82c6f87a4c790c5150e546c9d0",
+          "darwin-arm64": "888500bc210752e71a355ed4d492ad6dcb4c0ef54d283c105a29a5ccc73d0dbd",
+          "linux-amd64": "6104069b183fa0f3cdcb692681da9dbd203a3c1bceb435853bbf7abd991c649e",
+          "linux-arm64": "d66ed8f848e829882ebb65d28aaac72aeab6a101655bb62147186040655928b5",
+          "win32-amd64": "6c71d9a7be39ed32b53c89bdbc83aa748f41587517212ffe2a8b955c3e9c2e9b"
+        }
+      }
+    },
+    "version": "v0.3.0"
+  }
 }

@@ -119,6 +119,7 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { toFormattedAddress } from '../../../util/address';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -666,13 +667,15 @@ const Wallet = ({
         // Return early if no address selected
         if (!selectedAddress) return;
 
+        const formattedSelectedAddress = toFormattedAddress(selectedAddress);
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
         const { NftDetectionController, NftController } = Engine.context;
         const previousNfts = cloneDeep(
-          NftController.state.allNfts[selectedAddress.toLowerCase()],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         try {
@@ -683,7 +686,7 @@ const Wallet = ({
         }
 
         const newNfts = cloneDeep(
-          NftController.state.allNfts[selectedAddress.toLowerCase()],
+          NftController.state.allNfts[formattedSelectedAddress],
         );
 
         const eventParams = prepareNftDetectionEvents(
