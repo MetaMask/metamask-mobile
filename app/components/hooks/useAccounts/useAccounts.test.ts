@@ -18,6 +18,14 @@ jest.mock('../../../core/Engine', () => ({
     totalNativeTokenBalance: '0',
     ticker: 'ETH',
   }),
+  getTotalEvmFiatAccountBalanceAcrossAllNetworks: jest.fn().mockReturnValue({
+    ethFiat: 0,
+    ethFiat1dAgo: 0,
+    tokenFiat: 0,
+    tokenFiat1dAgo: 0,
+    totalNativeTokenBalance: '0',
+    ticker: 'ETH',
+  }),
 }));
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
