@@ -1,19 +1,21 @@
+import { ImageSourcePropType } from 'react-native';
+import { createSelector } from 'reselect';
 import {
   MultichainNetworkControllerState,
   NON_EVM_TESTNET_IDS,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
-import { RootState } from '../../reducers';
-import { createSelector } from 'reselect';
+import { toHex } from '@metamask/controller-utils';
 import { CaipChainId } from '@metamask/utils';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   BtcScope,
   ///: END:ONLY_INCLUDE_IF
   SolScope,
+  EthScope,
 } from '@metamask/keyring-api';
+import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
-import { ImageSourcePropType } from 'react-native';
 import { createDeepEqualSelector } from '../util';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
@@ -143,4 +145,50 @@ export const selectNetworksWithActivity = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.networksWithTransactionActivity,
+);
+
+export const getActiveNetworksByScopes = createDeepEqualSelector(
+  [
+    selectNetworksWithActivity,
+    (_state: RootState, account: { address: string; scopes: CaipChainId[] }) =>
+      account,
+  ],
+  (networksWithTransactionActivity, account): { caipChainId: string }[] => {
+    if (!account?.scopes?.length) {
+      return [];
+    }
+
+    const chainsWithActivityByAddress =
+      networksWithTransactionActivity[account?.address.toLowerCase()]
+        ?.activeChains;
+
+    if (account.scopes.includes(EthScope.Eoa) && chainsWithActivityByAddress) {
+      return chainsWithActivityByAddress.map((chainNumber) => {
+        const caipChainId = toHex(chainNumber);
+        return {
+          caipChainId,
+        };
+      });
+    }
+
+    if (account.scopes.includes(SolScope.Mainnet)) {
+      return [
+        {
+          caipChainId: SolScope.Mainnet,
+        },
+      ];
+    }
+
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    if (account.scopes.includes(BtcScope.Mainnet)) {
+      return [
+        {
+          caipChainId: BtcScope.Mainnet,
+        },
+      ];
+    }
+    ///: END:ONLY_INCLUDE_IF(bitcoin)
+
+    return [];
+  },
 );

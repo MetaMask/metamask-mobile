@@ -20,6 +20,7 @@ jest.mock('react-native-blob-util', () => ({
       DocumentDir: '/mock/docs',
     },
     writeFile: jest.fn(),
+    exists: jest.fn().mockResolvedValue(true),
   },
 }));
 
