@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -11,7 +10,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
 
 const mockUseKycPolling = {
-  kycResponse: null,
+  kycApproved: false,
   loading: false,
   error: null as string | null,
   startPolling: jest.fn(),
@@ -37,65 +36,27 @@ jest.mock('../../hooks/useKycPolling', () => ({
   default: jest.fn(() => mockUseKycPolling),
 }));
 
-jest.mock('../../../Navbar', () => ({
+jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'KYC Processing',
   }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: { [key: string]: string } = {
-      'deposit.kyc_processing.title': 'KYC Processing',
-      'deposit.kyc_processing.heading': "We're processing your information",
-      'deposit.kyc_processing.description':
-        "This may take a few moments. We'll notify you once it's complete.",
-      'deposit.kyc_processing.button': 'Browse tokens',
-      'deposit.kyc_processing.status_approved':
-        'Your identity has been approved',
-      'deposit.kyc_processing.status_rejected':
-        'Your identity verification was rejected',
-      'deposit.kyc_processing.status_submitted':
-        'Your identity is being reviewed',
-      'deposit.kyc_processing.status_not_submitted':
-        'Identity verification required',
-      generic_error_try_again: 'Something went wrong. Please try again.',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
-
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.KYC_PROCESSING,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.KYC_PROCESSING);
 }
 
 describe('KycProcessing Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseKycPolling.error = null;
-    mockUseKycPolling.kycResponse = null;
+    mockUseKycPolling.kycApproved = false;
+    mockUseKycPolling.loading = false;
   });
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     render(KycProcessing);
-    expect(screen.getByText("We're processing your information")).toBeTruthy();
-    expect(
-      screen.getByText(
-        "This may take a few moments. We'll notify you once it's complete.",
-      ),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -107,18 +68,28 @@ describe('KycProcessing Component', () => {
     );
   });
 
-  it('shows error state when there is an error', () => {
-    mockUseKycPolling.error = 'Network error';
-
+  it('renders loading state snapshot', () => {
+    mockUseKycPolling.loading = true;
     render(KycProcessing);
-    expect(
-      screen.getByText('Something went wrong. Please try again.'),
-    ).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state snapshot', () => {
+    mockUseKycPolling.error = 'Network error';
+    render(KycProcessing);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders approved state snapshot', () => {
+    mockUseKycPolling.kycApproved = true;
+    render(KycProcessing);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to browser tab on button press and stops polling', async () => {
     render(KycProcessing);
-    fireEvent.press(screen.getByRole('button', { name: 'Browse tokens' }));
+    const button = screen.getByRole('button');
+    fireEvent.press(button);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER_TAB_HOME);
