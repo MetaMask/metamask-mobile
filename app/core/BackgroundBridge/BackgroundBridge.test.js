@@ -261,8 +261,8 @@ describe('BackgroundBridge', () => {
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotification');
-      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState')
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationEip1193');
+      const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
 
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
       expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
