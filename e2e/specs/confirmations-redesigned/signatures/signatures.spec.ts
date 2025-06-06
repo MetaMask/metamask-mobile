@@ -1,9 +1,9 @@
 'use strict';
 import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView.js';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions.js';
+import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes.js';
+import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp.js';
 import TestHelpers from '../../../helpers.js';
@@ -15,7 +15,7 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents.js';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 
 const SIGNATURE_LIST = [
   {
