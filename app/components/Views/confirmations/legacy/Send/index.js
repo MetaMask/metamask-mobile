@@ -36,7 +36,7 @@ import {
   generateTransferData,
 } from '../../../../../util/transactions';
 import Logger from '../../../../../util/Logger';
-import { getAddress } from '../../../../../util/address';
+import { getAddress, areAddressesEqual } from '../../../../../util/address';
 import { MAINNET } from '../../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -60,7 +60,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
-import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 import {
@@ -428,7 +427,7 @@ class Send extends PureComponent {
 
     newTxMeta.from = selectedAddress;
     const fromAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, selectedAddress),
+      areAddressesEqual(account.address, selectedAddress),
     );
     newTxMeta.transactionFromName = fromAccount.metadata.name;
     this.props.setTransactionObject(newTxMeta);

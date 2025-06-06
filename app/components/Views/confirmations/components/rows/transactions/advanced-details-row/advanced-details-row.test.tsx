@@ -90,6 +90,20 @@ describe('AdvancedDetailsRow', () => {
     expect(useEditNonce).toHaveBeenCalled();
   });
 
+  it('renders data scroll view when data is too long', () => {
+    const state = cloneDeep(generateContractInteractionState);
+    state.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+      '0x' + 'a'.repeat(1000);
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state },
+      false,
+    );
+    fireEvent.press(getByText('Advanced details'));
+    expect(getByTestId('scroll-view-data')).toBeTruthy();
+  });
+
   it('display correct information for downgrade confirmation', () => {
     const { getByText, queryByText } = renderWithProvider(
       <AdvancedDetailsRow />,
@@ -122,18 +136,16 @@ describe('AdvancedDetailsRow', () => {
   });
 
   it('display correct information for upgrade+batch confirmation', () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      {
-        state: getAppStateForConfirmation(upgradeAccountConfirmation),
-      },
-    );
+    const { getByText } = renderWithProvider(<AdvancedDetailsRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
 
     fireEvent.press(getByText('Advanced details'));
 
     expect(getByText('Nonce')).toBeTruthy();
     expect(getByText('Interacting with')).toBeTruthy();
     expect(getByText('Smart contract')).toBeTruthy();
-    expect(queryByText('Data')).toBeTruthy();
+    expect(getByText('Transaction 1')).toBeTruthy();
+    expect(getByText('Transaction 2')).toBeTruthy();
   });
 });

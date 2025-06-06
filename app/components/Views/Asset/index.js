@@ -31,8 +31,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -49,7 +48,7 @@ import ActivityHeader from './ActivityHeader';
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,
-} from '../../UI/Ramp/utils';
+} from '../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -327,8 +326,8 @@ class Asset extends PureComponent {
     } = tx;
 
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -337,7 +336,7 @@ class Asset extends PureComponent {
       }
       if (isTransfer) {
         return this.props.tokens.find(({ address }) =>
-          toLowerCaseEquals(address, transferInformation.contractAddress),
+          areAddressesEqual(address, transferInformation.contractAddress),
         );
       }
 
@@ -356,8 +355,8 @@ class Asset extends PureComponent {
       transferInformation,
     } = tx;
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -426,14 +425,14 @@ class Asset extends PureComponent {
       });
 
       submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (!toLowerCaseEquals(from, this.selectedAddress)) {
+        if (!areAddressesEqual(from, this.selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (confirmedTransaction) =>
-            toLowerCaseEquals(
-              safeToChecksumAddress(confirmedTransaction.txParams.from),
+            areAddressesEqual(
+              confirmedTransaction.txParams.from,
               this.selectedAddress,
             ) && confirmedTransaction.txParams.nonce === nonce,
         );

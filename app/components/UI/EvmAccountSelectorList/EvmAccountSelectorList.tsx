@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import {
   Alert,
+  ImageSourcePropType,
   InteractionManager,
   ListRenderItem,
   View,
@@ -13,18 +14,21 @@ import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
-
 // External dependencies.
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  areAddressesEqual,
+  formatAddress,
+  getLabelTextByAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -42,6 +46,9 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { Skeleton } from '../../../component-library/components/Skeleton';
+import { parseCaipAccountId } from '@metamask/utils';
+import { getNetworkImageSource } from '../../../util/networks';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -72,7 +79,10 @@ const EvmAccountSelectorList = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
-  const { styles } = useStyles(styleSheet, {});
+
+  // Use constant empty object to prevent useStyles from recreating styles
+  const emptyVars = useMemo(() => ({}), []);
+  const { styles } = useStyles(styleSheet, emptyVars);
 
   const accountAvatarType = useSelector(
     (state: RootState) =>
@@ -81,49 +91,57 @@ const EvmAccountSelectorList = ({
         : AvatarAccountType.JazzIcon,
     shallowEqual,
   );
+
   const getKeyExtractor = ({ address }: Account) => address;
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
     const lookupSet = new Set<string>();
     selectedAddresses.forEach((addr) => {
-      if (addr) lookupSet.add(addr.toLowerCase());
+      if (addr) lookupSet.add(toFormattedAddress(addr));
     });
     return lookupSet;
   }, [selectedAddresses]);
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance, tokens }: Assets,
+      address: string,
+      isLoadingAccount: boolean,
+      networkImage: ImageSourcePropType
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
+
       return (
         <View
           style={styles.balancesContainer}
           testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
         >
-          <SensitiveText
-            length={SensitiveTextLength.Long}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-          >
-            {fiatBalanceAmount}
-          </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {isLoadingAccount ? (
+            <Skeleton width={60} height={24} />
+          ) : (
+            <>
+              <SensitiveText
+                length={SensitiveTextLength.Long}
+                style={styles.balanceLabel}
+                isHidden={privacyMode}
+              >
+                {fiatBalanceAmount}
+              </SensitiveText>
+
+              <AvatarGroup
+                avatarPropsList={tokens ? tokens.map((tokenObj) => ({
+                  ...tokenObj,
+                  variant: AvatarVariant.Token,
+                })) : [
+                  {
+                    variant: AvatarVariant.Network,
+                    imageSource: networkImage,
+                  },
+                ]}
+              />
+            </>
           )}
         </View>
       );
@@ -215,16 +233,28 @@ const EvmAccountSelectorList = ({
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        isLoadingAccount,
+        caipAccountId,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
+      const chainId = parseCaipAccountId(caipAccountId).chainId;
+      const networkImage = getNetworkImageSource({ chainId });
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       let cellVariant = CellVariant.SelectWithMenu;
+
       if (isMultiSelect) {
         cellVariant = CellVariant.MultiSelect;
       }
@@ -233,7 +263,9 @@ const EvmAccountSelectorList = ({
       }
       let isSelectedAccount = isSelected;
       if (selectedAddressesLookup) {
-        isSelectedAccount = selectedAddressesLookup.has(address.toLowerCase());
+        isSelectedAccount = selectedAddressesLookup.has(
+          toFormattedAddress(address),
+        );
       }
 
       const cellStyle: ViewStyle = {
@@ -247,7 +279,8 @@ const EvmAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           index,
         });
@@ -279,6 +312,9 @@ const EvmAccountSelectorList = ({
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
+          titleProps={{
+            style: styles.titleText,
+          }}
           secondaryText={shortAddress}
           showSecondaryTextIcon={false}
           tertiaryText={balanceError}
@@ -290,7 +326,8 @@ const EvmAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets &&
+              renderAccountBalances(assets, address, isLoadingAccount, networkImage))}
         </Cell>
       );
     },
@@ -307,6 +344,7 @@ const EvmAccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
+      styles.titleText,
     ],
   );
 
@@ -317,9 +355,9 @@ const EvmAccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedAddressLower = selectedAddresses[0].toLowerCase();
-        selectedAccount = accounts.find(
-          (acc) => acc.address.toLowerCase() === selectedAddressLower,
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
         );
       }
       // Fall back to the account with isSelected flag if no override or match found
