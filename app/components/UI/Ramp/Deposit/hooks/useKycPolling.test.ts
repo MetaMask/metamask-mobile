@@ -6,6 +6,7 @@ import {
 } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import {
+  BuyQuote,
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
@@ -41,7 +42,7 @@ describe('useKycPolling', () => {
       mockFetchKycForms,
     ]);
     mockUseDepositSDK.mockReturnValue({
-      quote: { id: 'test-quote' },
+      quote: { quoteId: 'test-quote' } as BuyQuote,
       sdk: {} as NativeRampsSdk,
       sdkError: undefined,
       providerApiKey: 'test-key',
