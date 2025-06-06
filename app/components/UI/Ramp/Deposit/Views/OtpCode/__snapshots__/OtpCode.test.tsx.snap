@@ -2344,6 +2344,58 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                             >
                               Invalid code
                             </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "flexDirection": "row",
+                                    "marginTop": 12,
+                                  },
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#9ca1af",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "marginRight": 4,
+                                  }
+                                }
+                              >
+                                Didn't receive the code?
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginLeft": 4,
+                                    }
+                                  }
+                                >
+                                  Resend it
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                         <View>
