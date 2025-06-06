@@ -9,7 +9,7 @@ import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import Label from '../../../../../../component-library/components/Form/Label';
 import TextField, {
@@ -22,6 +22,7 @@ import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export const createEnterEmailNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_EMAIL,
@@ -31,6 +32,10 @@ const EnterEmail = () => {
   const navigation = useNavigation();
   const { email, setEmail } = useDepositSDK();
   const [validationError, setValidationError] = useState(false);
+
+  const route =
+    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
+  const { quote } = route.params;
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -58,7 +63,7 @@ const EnterEmail = () => {
         await submitEmail();
 
         if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails());
+          navigation.navigate(...createOtpCodeNavDetails({ quote }));
         }
       } else {
         setValidationError(true);
@@ -66,7 +71,7 @@ const EnterEmail = () => {
     } catch (e) {
       console.error('Error submitting email');
     }
-  }, [email, error, navigation, submitEmail]);
+  }, [email, error, navigation, submitEmail, quote]);
 
   return (
     <ScreenLayout>
