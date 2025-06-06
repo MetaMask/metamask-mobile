@@ -362,6 +362,7 @@ const EvmAccountSelectorList = ({
       onLongPress,
       styles.titleText,
       useMultichainAccountDesign,
+      navigate,
     ],
   );
 
