@@ -8,7 +8,6 @@ import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from './pages/Onboarding/OnboardingWizardModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -59,37 +58,22 @@ have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
 
-  // Handle Onboarding wizard
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-
   try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-    /* eslint-disable no-undef */
-
+    // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
   }
 
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log("Solana feature sheet: 'Not Now' tapped.");
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    console.log("Solana feature sheet: 'Create Account' tapped.");
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
-    console.log("Solana feature sheet: 'View Account' tapped.");
   }
 };
 
