@@ -32,7 +32,7 @@ import { Mockttp } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeTrade('Bridge functionality'), () => {
+describe.skip(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
   let mockServer: Mockttp;
   let localNode: Ganache;

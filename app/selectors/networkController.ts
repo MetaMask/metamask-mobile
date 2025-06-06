@@ -224,13 +224,15 @@ export const getNetworkConfigurationsByCaipChainId = (
     };
   });
 
-  Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
-    const caipChainId = _caipChainId as CaipChainId;
-    networkConfigurationsByCaipChainId[caipChainId] = {
-      ...networkConfiguration,
-      caipChainId
-    };
-  });
+  Object.entries(nonEvmNetworkConfigurationsByChainId || {}).forEach(
+    ([_caipChainId, networkConfiguration]) => {
+      const caipChainId = _caipChainId as CaipChainId;
+      networkConfigurationsByCaipChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId,
+      };
+    },
+  );
 
   return networkConfigurationsByCaipChainId;
 };
