@@ -12,6 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { ConfirmationRowComponentIDs } from '../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Text, {
   TextColor,
   TextVariant,
@@ -69,7 +70,7 @@ const ErrorContent: React.FC<{
  * Content when there are no balance changes.
  */
 const EmptyContent: React.FC = () => (
-  <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  <Text>
     {strings('simulation_details.no_balance_changes')}
   </Text>
 );
@@ -126,11 +127,15 @@ const HeaderLayout: React.FC<{
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
+  noBalanceChanges?: boolean;
   children?: React.ReactNode;
-}> = ({ inHeader, children, isTransactionsRedesign }) => {
-  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
+}> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
+  const { styles } = useStyles(styleSheet, { isTransactionsRedesign, noBalanceChanges });
   return (
-    <View style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}>
+    <View 
+      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}} 
+      testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
+    >
       <View style={[styles.container]}>
         <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
           {inHeader}
@@ -215,7 +220,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const empty = balanceChanges.length === 0;
   if (empty) {
     return (
-      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign} noBalanceChanges>
         <EmptyContent />
       </SimulationDetailsLayout>
     );

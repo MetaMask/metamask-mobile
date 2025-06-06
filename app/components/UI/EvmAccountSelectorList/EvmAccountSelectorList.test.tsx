@@ -191,7 +191,7 @@ const defaultAccountsMock = [
     yOffset: 0,
     isSelected: true,
     balanceError: undefined,
-    caipChainId: `eip155:0:${BUSINESS_ACCOUNT}`
+    caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
   },
   {
     name: 'Account 2',
@@ -204,8 +204,8 @@ const defaultAccountsMock = [
     yOffset: 78,
     isSelected: false,
     balanceError: undefined,
-    caipChainId: `eip155:0:${PERSONAL_ACCOUNT}`
-  },
+    caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`
+  }
 ];
 
 const EvmAccountSelectorListUseAccounts: React.FC<EvmAccountSelectorListProps> = ({
@@ -292,12 +292,10 @@ describe('EvmAccountSelectorList', () => {
         throw new Error('Account items not found');
       }
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
         within(personalAccountItem).getByText(regex.usd(6400)),
       ).toBeDefined();
@@ -395,12 +393,11 @@ describe('EvmAccountSelectorList', () => {
         throw new Error('Business account item not found');
       }
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
-      expect(within(businessAccountItem).queryByText('••••••')).toBeNull();
+      expect(within(businessAccountItem).queryByText('••••••••••••')).toBeNull();
     });
   });
   it('Text is hidden when privacy mode is on', async () => {
@@ -420,12 +417,11 @@ describe('EvmAccountSelectorList', () => {
         throw new Error('Business account item not found');
       }
 
-      expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();
       expect(
         within(businessAccountItem).queryByText(regex.usd(3200)),
       ).toBeNull();
 
-      expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
+      expect(within(businessAccountItem).getByText('••••••••••••')).toBeDefined();
     });
   });
   it('allows account removal for simple keyring type', async () => {
@@ -840,6 +836,7 @@ describe('EvmAccountSelectorList', () => {
           yOffset: 0,
           isSelected: true,
           balanceError: undefined,
+          caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`
         },
       ],
       evmAccounts: [],

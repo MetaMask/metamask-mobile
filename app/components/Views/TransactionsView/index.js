@@ -16,9 +16,8 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
 } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
+import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -125,16 +124,14 @@ const TransactionsView = ({
 
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
-        if (!toLowerCaseEquals(from, selectedAddress)) {
+        if (!areAddressesEqual(from, selectedAddress)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
         const alreadyConfirmed = confirmedTxs.find(
           (tx) =>
-            toLowerCaseEquals(
-              safeToChecksumAddress(tx.txParams.from),
-              selectedAddress,
-            ) && tx.txParams.nonce === nonce,
+            areAddressesEqual(tx.txParams.from, selectedAddress) &&
+            tx.txParams.nonce === nonce,
         );
         if (alreadyConfirmed) {
           return false;
