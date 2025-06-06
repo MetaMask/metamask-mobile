@@ -24,7 +24,12 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  areAddressesEqual,
+  formatAddress,
+  getLabelTextByAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -79,7 +84,7 @@ const AccountSelectorList = ({
     if (!selectedAddresses?.length) return null;
     const lookupSet = new Set<string>();
     selectedAddresses.forEach((addr) => {
-      if (addr) lookupSet.add(addr.toLowerCase());
+      if (addr) lookupSet.add(toFormattedAddress(addr));
     });
     return lookupSet;
   }, [selectedAddresses]);
@@ -225,7 +230,9 @@ const AccountSelectorList = ({
       }
       let isSelectedAccount = isSelected;
       if (selectedAddressesLookup) {
-        isSelectedAccount = selectedAddressesLookup.has(address.toLowerCase());
+        isSelectedAccount = selectedAddressesLookup.has(
+          toFormattedAddress(address),
+        );
       }
 
       const cellStyle: ViewStyle = {
@@ -309,9 +316,9 @@ const AccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedAddressLower = selectedAddresses[0].toLowerCase();
-        selectedAccount = accounts.find(
-          (acc) => acc.address.toLowerCase() === selectedAddressLower,
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
         );
       }
       // Fall back to the account with isSelected flag if no override or match found

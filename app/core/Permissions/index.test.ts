@@ -187,11 +187,11 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:1': {
-                          accounts: []
+                          accounts: [],
                         },
                         'eip155:2': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -209,8 +209,8 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:3': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -232,7 +232,7 @@ describe('Permission Utility Functions', () => {
           return ['0x1', '0x2'];
         }
         return ['0x3'];
-          });
+      });
 
       const result = getPermittedChainIdsByHostname(
         mockState,
@@ -252,9 +252,9 @@ describe('Permission Utility Functions', () => {
                     type: Caip25CaveatType,
                     value: {
                       optionalScopes: {
-                        'wallet': {
-                          accounts: []
-                        }
+                        wallet: {
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -266,7 +266,6 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-
       (getPermittedEthChainIds as jest.Mock).mockImplementation((value) => {
         if (
           value ===
@@ -276,7 +275,7 @@ describe('Permission Utility Functions', () => {
         ) {
           return [];
         }
-          });
+      });
 
       const result = getPermittedChainIdsByHostname(
         mockState,
@@ -736,7 +735,9 @@ describe('Permission Utility Functions', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
 
-      expect(() => updatePermittedChains('https://example.com', ['0x1'])).toThrow(
+      expect(() =>
+        updatePermittedChains('https://example.com', ['0x1']),
+      ).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
     });
@@ -842,18 +843,22 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should handle case insensitive address comparison', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = [
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      ];
       const internalAccounts = [
         {
-          address: '0X1', // Uppercase
+          address: '0xC4955C0D639D99699BFD7EC54D9FAFEE40E4D272', // Uppercase
           metadata: { lastSelected: 100 },
         },
         {
-          address: '0x2',
+          address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
           metadata: { lastSelected: 300 },
         },
         {
-          address: '0x3',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
           metadata: { lastSelected: 200 },
         },
       ];
@@ -861,7 +866,11 @@ describe('Permission Utility Functions', () => {
       mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x2', '0x3', '0x1']);
+      expect(result).toEqual([
+        '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      ]);
     });
   });
 
