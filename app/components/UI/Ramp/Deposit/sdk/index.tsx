@@ -64,7 +64,7 @@ export const DepositSDKProvider = ({
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
-  const [quote, setQuote] = useState<any>();
+  const [quote, setQuote] = useState<BuyQuote>();
 
   useEffect(() => {
     try {
