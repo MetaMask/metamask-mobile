@@ -154,34 +154,11 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const OnboardingSuccessComponent = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
-
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
-
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -219,7 +196,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
