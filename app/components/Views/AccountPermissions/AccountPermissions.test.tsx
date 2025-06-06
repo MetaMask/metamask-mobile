@@ -127,6 +127,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
+    },
     PermissionController: {
       revokeAllPermissions: jest.fn(),
     },
@@ -426,7 +429,7 @@ describe('AccountPermissions', () => {
     });
 
     expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
+      Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
     ).toHaveBeenCalled();
     expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
       'test',
