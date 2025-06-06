@@ -8,6 +8,7 @@ import {
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
+import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -64,13 +65,16 @@ import {
   SCALE_FACTOR,
 } from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
-import { parseCaipAccountId } from '@metamask/utils';
+import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -81,6 +85,7 @@ const PermissionsSummary = ({
   onCancel,
   onConfirm,
   onUserAction,
+  onCreateAccount,
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
@@ -97,6 +102,7 @@ const PermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  promptToCreateSolanaAccount = false,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
@@ -140,9 +146,9 @@ const PermissionsSummary = ({
     onCancel?.();
   };
 
-  const handleEditAccountsButtonPress = () => {
+  const handleEditAccountsButtonPress = useCallback(() => {
     onEdit?.();
-  };
+  }, [onEdit]);
 
   const handleEditNetworksButtonPress = () => {
     onEditNetworks?.();
@@ -547,6 +553,51 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
+  const filteredAccountAddresses = useMemo(
+    () =>
+      accountAddresses.filter((address) => {
+        const { chainId: caipChainId } = parseCaipAccountId(address);
+        return !NON_EVM_TESTNET_IDS.includes(caipChainId as CaipChainId);
+      }),
+    [accountAddresses],
+  );
+  const renderAccountsConnectedList = useCallback(
+    (
+      accountsConnectedTabKey: string,
+      restAccountsConnectedTabProps: Record<string, unknown>,
+    ) =>
+      promptToCreateSolanaAccount ? (
+        <AccountConnectCreateInitialAccount
+          key={accountsConnectedTabKey}
+          onCreateAccount={() => {
+            onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+          }}
+          {...restAccountsConnectedTabProps}
+        />
+      ) : (
+        <AccountsConnectedList
+          key={accountsConnectedTabKey}
+          selectedAddresses={filteredAccountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+      ),
+    [
+      ensByAccountAddress,
+      privacyMode,
+      networkAvatars,
+      handleEditAccountsButtonPress,
+      promptToCreateSolanaAccount,
+      onCreateAccount,
+      accounts,
+      filteredAccountAddresses,
+    ],
+  );
+
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
       accountsConnectedTabProps;
@@ -558,16 +609,10 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedList
-          key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
-          ensByAccountAddress={ensByAccountAddress}
-          accounts={accounts}
-          privacyMode={privacyMode}
-          networkAvatars={networkAvatars}
-          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-          {...restAccountsConnectedTabProps}
-        />
+        {renderAccountsConnectedList(
+          accountsConnectedTabKey,
+          restAccountsConnectedTabProps,
+        )}
         <View
           key={permissionsTabKey}
           style={styles.permissionsManagementContainer}

@@ -8,8 +8,16 @@ import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+
+const toHexOrFallback = (value: string) => {
+  try {
+    return toHex(value);
+  } catch {
+    return value as Hex;
+  }
+};
 
 async function approveTransaction({
   deeplinkManager,
@@ -40,7 +48,7 @@ async function approveTransaction({
 
   const spenderAddress = await getAddress(
     parameters?.address || '',
-    chain_id as string,
+    (chain_id && toHexOrFallback(chain_id)) as string,
   );
 
   if (!spenderAddress) {
@@ -63,7 +71,7 @@ async function approveTransaction({
   };
 
   const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    chain_id as Hex,
+    toHexOrFallback(chain_id as string),
   );
 
   addTransaction(txParams, {

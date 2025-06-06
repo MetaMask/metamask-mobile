@@ -144,7 +144,7 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../UI/Ramp/hooks/useRampNetwork', () => ({
+jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
@@ -326,7 +326,7 @@ describe('WalletActions', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
     (isBridgeAllowed as jest.Mock).mockReturnValue(false);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([false]);
 
     const mockState: DeepPartial<RootState> = {
@@ -380,7 +380,7 @@ describe('WalletActions', () => {
 
   it('should call the onBuy function when the Buy button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -400,7 +400,7 @@ describe('WalletActions', () => {
 
   it('should call the onSell function when the Sell button is pressed', () => {
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -513,7 +513,7 @@ describe('WalletActions', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
     jest
-      .requireMock('../../UI/Ramp/hooks/useRampNetwork')
+      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =

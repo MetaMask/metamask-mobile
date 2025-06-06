@@ -1,9 +1,8 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RouteProp } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import SimulationDetails from '../../../../../../UI/SimulationDetails/SimulationDetails';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -13,16 +12,14 @@ import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
-import TokenHero from '../../../../components/rows/transactions/token-hero';
-import GasFeesDetails from '../../../../components/rows/transactions/gas-fee-details';
-import styleSheet from './staking-claim.styles';
+import { HeroRow } from '../../../../components/rows/transactions/hero-row';
+import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 
 const StakingClaim = ({
   route,
 }: {
   route: RouteProp<{ params: { amountWei: string } }, 'params'>;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   useNavbar(strings('stake.claim'), false);
   useClearConfirmationOnBackSwipe();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -49,18 +46,16 @@ const StakingClaim = ({
 
   return (
     <>
-      <TokenHero amountWei={route?.params?.amountWei} />
-      <View style={styles.simulationsDetailsContainer}>
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics={false}
-          isTransactionsRedesign
-        />
-      </View>
+      <HeroRow amountWei={route?.params?.amountWei} />
+      <SimulationDetails
+        transaction={transactionMetadata as TransactionMeta}
+        enableMetrics={false}
+        isTransactionsRedesign
+      />
       <InfoSection>
         <StakingContractInteractionDetails />
       </InfoSection>
-      <GasFeesDetails disableUpdate />
+      <GasFeesDetailsRow disableUpdate />
     </>
   );
 };

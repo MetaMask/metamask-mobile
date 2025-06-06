@@ -1,6 +1,5 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/Onboarding/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -79,19 +78,17 @@ have to have all these workarounds in the tests
 
     console.log('The marketing toast is not visible');
   }
-  
+
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log('Solana feature sheet: \'Not Now\' tapped.');
-
+    console.log("Solana feature sheet: 'Not Now' tapped.");
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    console.log('Solana feature sheet: \'Create Account\' tapped.');
-
+    console.log("Solana feature sheet: 'Create Account' tapped.");
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
-    console.log('Solana feature sheet: \'View Account\' tapped.');
+    console.log("Solana feature sheet: 'View Account' tapped.");
   }
 };
 
@@ -143,26 +140,29 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  
-  
-
   await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
-  await ImportWalletView.enterPassword(password ?? validAccount.password);
-  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
+
+  await ImportWalletView.tapTitle();
+  await ImportWalletView.tapContinueButton();
+
+  await TestHelpers.delay(3500);
+
+  await CreatePasswordView.enterPassword(password ?? validAccount.password);
+  await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
-  // Should dismiss Automatic Security checks screen
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
+  
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(solanaSheetAction);
@@ -196,9 +196,6 @@ export const CreateNewWallet = async () => {
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
-  //'Should dismiss Automatic Security checks screen'
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
@@ -283,10 +280,11 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
-
     } catch (error) {
       if (attempt === MAX_RETRIES) {
-        throw new Error(`Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw new Error(
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
       }
       await TestHelpers.delay(RETRY_DELAY);
     }

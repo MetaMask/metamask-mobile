@@ -9,7 +9,9 @@ import React, {
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
+import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
+import { selectPermissionControllerState } from '../../../selectors/snaps';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
   closeAllTabs,
@@ -26,7 +28,10 @@ import {
 import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { getPermittedAccounts } from '../../../core/Permissions';
+import {
+  getPermittedCaipAccountIdsByHostname,
+  sortMultichainAccountsByLastSelected,
+} from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
@@ -35,7 +40,10 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { appendURLParams, isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
+import {
+  appendURLParams,
+  isTokenDiscoveryBrowserEnabled,
+} from '../../../util/browser';
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -46,9 +54,6 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
-import { useFocusEffect } from '@react-navigation/native';
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
 
@@ -78,9 +83,10 @@ export const Browser = (props) => {
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
-  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
+  const { accounts, ensByAccountAddress } = useAccounts();
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
+
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -89,59 +95,34 @@ export const Browser = (props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
-  ///: END:ONLY_INCLUDE_IF
-
-const homePageUrl = useCallback(
-  () =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
-  const newTab = useCallback((url, linkType) => {
-    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
-    if (tabs.length >= MAX_BROWSER_TABS) {
-      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-    } else {
-      const newTabUrl = isTokenDiscoveryBrowserEnabled() ? undefined : url || homePageUrl();
-      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-      createNewTab(newTabUrl, linkType);
-    }
-  }, [tabs, navigation, createNewTab, homePageUrl]);
+  const newTab = useCallback(
+    (url, linkType) => {
+      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+      if (tabs.length >= MAX_BROWSER_TABS) {
+        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+      } else {
+        const newTabUrl = isTokenDiscoveryBrowserEnabled()
+          ? undefined
+          : url || homePageUrl();
+        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+        createNewTab(newTabUrl, linkType);
+      }
+    },
+    [tabs, navigation, createNewTab, homePageUrl],
+  );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // TODO remove after we release Solana dapp connectivity
-  useFocusEffect(
-    useCallback(() => {
-      if (isSolanaAccount(currentSelectedAccount)) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Network,
-          networkImageSource: require('../../../images/solana-logo.png'),
-          labelOptions: [
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.title',
-              )} \n`,
-              isBold: true,
-            },
-            {
-              label: `${strings(
-                'browser.toast.solana_dapp_connection_coming_soon.message',
-              )}`,
-            },
-          ],
-        });
-      }
-    }, [toastRef, currentSelectedAccount]),
-  );
-  ///: END:ONLY_INCLUDE_IF
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -208,29 +189,41 @@ const homePageUrl = useCallback(
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
-      const permittedEvmAccounts = getPermittedAccounts(hostnameForToastCheck);
-      const activeAccountAddress = permittedEvmAccounts?.[0];
+      const permittedAccounts = getPermittedCaipAccountIdsByHostname(
+        permittedAccountsList,
+        hostnameForToastCheck,
+      );
 
-      if (activeAccountAddress) {
-        const accountName = getAccountNameWithENS({
-          caipAccountId: `eip155:0:${activeAccountAddress}`,
-          accounts,
-          ensByAccountAddress,
-        });
-        // Show active account toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Account,
-          labelOptions: [
-            {
-              label: `${accountName} `,
-              isBold: true,
-            },
-            { label: strings('toast.now_active') },
-          ],
-          accountAddress: activeAccountAddress,
-          accountAvatarType,
-        });
+      const sortedPermittedAccounts =
+        sortMultichainAccountsByLastSelected(permittedAccounts);
+
+      if (!sortedPermittedAccounts.length) {
+        return;
       }
+
+      const activeCaipAccountId = sortedPermittedAccounts[0];
+
+      const { address } = parseCaipAccountId(activeCaipAccountId);
+
+      const accountName = getAccountNameWithENS({
+        caipAccountId: activeCaipAccountId,
+        accounts,
+        ensByAccountAddress,
+      });
+
+      // Show active account toast
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Account,
+        labelOptions: [
+          {
+            label: `${accountName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        accountAddress: address,
+        accountAvatarType,
+      });
     };
 
     const urlForEffect = browserUrl || currentUrl;
@@ -243,7 +236,15 @@ const homePageUrl = useCallback(
       hasAccounts.current = true;
       prevSiteHostname.current = newHostname;
     }
-  }, [currentUrl, browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+  }, [
+    currentUrl,
+    browserUrl,
+    accounts,
+    permittedAccountsList,
+    ensByAccountAddress,
+    accountAvatarType,
+    toastRef,
+  ]);
 
   // componentDidMount
   useEffect(
@@ -406,19 +407,20 @@ const homePageUrl = useCallback(
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
-        .map((tab) => (
-          (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
-          <BrowserTab
-            key={`tab_${tab.id}`}
-            id={tab.id}
-            initialUrl={tab.url}
-            linkType={tab.linkType}
-            updateTabInfo={updateTabInfo}
-            showTabs={showTabsView}
-            newTab={newTab}
-            isInTabsView={shouldShowTabs}
-            homePageUrl={homePageUrl()}
-          />) : (
+        .map((tab) =>
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+            <BrowserTab
+              key={`tab_${tab.id}`}
+              id={tab.id}
+              initialUrl={tab.url}
+              linkType={tab.linkType}
+              updateTabInfo={updateTabInfo}
+              showTabs={showTabsView}
+              newTab={newTab}
+              isInTabsView={shouldShowTabs}
+              homePageUrl={homePageUrl()}
+            />
+          ) : (
             <DiscoveryTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -426,16 +428,9 @@ const homePageUrl = useCallback(
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          )
-        )),
-    [
-      tabs,
-      shouldShowTabs,
-      newTab,
-      homePageUrl,
-      updateTabInfo,
-      showTabsView,
-    ],
+          ),
+        ),
+    [tabs, shouldShowTabs, newTab, homePageUrl, updateTabInfo, showTabsView],
   );
 
   return (
@@ -499,7 +494,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';
