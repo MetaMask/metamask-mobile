@@ -95,11 +95,17 @@ import Realm from 'realm';
 import { RealmProvider, useQuery, useRealm } from '@realm/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+/**
+ *  User type for TS
+ */
 interface IUser {
   id: string;
   name: string;
 }
 
+/**
+ *  User schema for Realm
+ */
 const UserSchema: Realm.ObjectSchema = {
   name: 'User',
   primaryKey: 'id',
@@ -109,6 +115,9 @@ const UserSchema: Realm.ObjectSchema = {
   },
 };
 
+/**
+ *  Realm configuration
+ */
 const realmConfig: Realm.Configuration = {
   schema: [UserSchema],
   schemaVersion: 1,
@@ -117,8 +126,14 @@ const realmConfig: Realm.Configuration = {
 const useUsers = () => {
   const realm = useRealm();
 
+  /**
+   *  Read users from Realm
+   */
   const users = useQuery<IUser>('User');
 
+  /**
+   *  Add user to Realm
+   */
   const addUser = useCallback(() => {
     realm.write(() => {
       realm.create<IUser>('User', {
@@ -128,6 +143,9 @@ const useUsers = () => {
     });
   }, []);
 
+  /**
+   *  Delete user from Realm
+   */
   const deleteUser = useCallback((id: string) => {
     realm.write(() => {
       const user = realm.objectForPrimaryKey<IUser>('User', id);
