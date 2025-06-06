@@ -12,7 +12,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 import { useFeeCalculations } from './useFeeCalculations';
 import { type GasOption } from '../../types/gas';
-import { GasOptionIcon } from '../../constants/gas';
+import { EMPTY_VALUE_STRING, GasOptionIcon } from '../../constants/gas';
 
 const HEX_ZERO = '0x0';
 
@@ -115,8 +115,8 @@ export const useGasPriceEstimateOption = ({
         key: 'gasPrice',
         name: strings(`transactions.gas_modal.network_suggested`),
         onSelect: () => onGasPriceEstimateLevelClick(),
-        value: preciseNativeCurrencyFee || '--',
-        valueInFiat: currentCurrencyFee || '',
+        value: preciseNativeCurrencyFee || EMPTY_VALUE_STRING,
+        valueInFiat: currentCurrencyFee || EMPTY_VALUE_STRING,
       },
     ];
   }, [

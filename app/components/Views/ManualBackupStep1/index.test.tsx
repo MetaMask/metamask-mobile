@@ -7,7 +7,6 @@ import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
-import { shallow } from 'enzyme';
 import { strings } from '../../../../locales/i18n';
 
 const mockStore = configureMockStore();
@@ -82,14 +81,6 @@ describe('ManualBackupStep1', () => {
     },
   };
 
-  const mockRouteOne = {
-    params: {
-      words: mockWords,
-      backupFlow: true,
-      settingsBackup: true,
-    },
-  };
-
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -131,6 +122,7 @@ describe('ManualBackupStep1', () => {
       mockDispatch,
     };
   };
+
   const setupTestDark = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -172,6 +164,7 @@ describe('ManualBackupStep1', () => {
       mockDispatch,
     };
   };
+
   const setupTestOs = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
@@ -213,81 +206,17 @@ describe('ManualBackupStep1', () => {
       mockDispatch,
     };
   };
-  const setupTestMockRouteOne = () => {
-    const mockNavigate = jest.fn();
-    const mockGoBack = jest.fn();
-    const mockSetOptions = jest.fn();
-    const mockDispatch = jest.fn();
-
-    storeOs.dispatch = mockDispatch;
-
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetOptions,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      isFocused: jest.fn(),
-    });
-
-    const wrapper = renderWithProvider(
-      <Provider store={storeOs}>
-        <ManualBackupStep1
-          route={mockRouteOne}
-          navigation={{
-            navigate: mockNavigate,
-            goBack: mockGoBack,
-            setOptions: mockSetOptions,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            isFocused: jest.fn(),
-          }}
-        />
-      </Provider>,
-    );
-
-    return {
-      wrapper,
-      mockNavigate,
-      mockGoBack,
-      mockSetOptions,
-      mockDispatch,
-    };
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <ManualBackupStep1
-          route={{
-            params: {
-              words: [
-                'abstract',
-                'accident',
-                'acoustic',
-                'announce',
-                'artefact',
-                'attitude',
-                'bachelor',
-                'broccoli',
-                'business',
-                'category',
-                'champion',
-                'cinnamon',
-              ],
-            },
-          }}
-        />
-      </Provider>,
-    );
+  it('render matches snapshot', () => {
+    const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render 2 step confirm password', async () => {
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with light theme', async () => {
     const { wrapper } = setupTest();
     expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
 
@@ -310,7 +239,7 @@ describe('ManualBackupStep1', () => {
     });
   });
 
-  it('should render 2 step confirm password with dark theme', async () => {
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with dark theme', async () => {
     const { wrapper } = setupTestDark();
     expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
 
@@ -333,7 +262,7 @@ describe('ManualBackupStep1', () => {
     });
   });
 
-  it('should render 2 step confirm password with os theme', async () => {
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with os theme', async () => {
     const { wrapper, mockNavigate } = setupTestOs();
     expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
 
@@ -372,7 +301,7 @@ describe('ManualBackupStep1', () => {
     expect(confirmButton).toBeTruthy();
   });
 
-  it('should render 2 step confirm', async () => {
+  it('render Step 2 of 3 and after reveal seedPhrase navigate to Step 3 of 3 i.e. ManualBackupStep2', async () => {
     const { wrapper, mockNavigate } = setupTestOs();
     expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
 
@@ -414,8 +343,8 @@ describe('ManualBackupStep1', () => {
     });
   });
 
-  it('should render with mock route one', async () => {
-    const { wrapper } = setupTestMockRouteOne();
+  it('render SeedPhrase reveal container', async () => {
+    const { wrapper } = setupTest();
     expect(wrapper.getByText('Step 2 of 3')).toBeTruthy();
 
     expect(

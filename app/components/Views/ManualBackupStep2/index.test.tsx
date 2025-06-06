@@ -179,7 +179,7 @@ describe('ManualBackupStep2', () => {
     jest.clearAllMocks();
   });
 
-  it('should handle word selection and placement', () => {
+  it('render and handle word selection in grid', () => {
     const { wrapper } = setupTest();
     const gridItems = wrapper.getAllByTestId('grid-item');
 
@@ -188,7 +188,7 @@ describe('ManualBackupStep2', () => {
     expect(gridItems[0]).toHaveStyle({ backgroundColor: expect.any(String) });
   });
 
-  it('should show error modal when seed phrase is invalid', () => {
+  it('render SuccessErrorSheet with type error when seed phrase is invalid', () => {
     const { wrapper, mockNavigate } = setupTest();
 
     // Fill words incorrectly
@@ -220,7 +220,7 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  it('should navigate to HomeNav when seed phrase is valid and backupFlow is true', async () => {
+  it('render SuccessErrorSheet with type success when seed phrase is valid and navigate to HomeNav', async () => {
     const { wrapper, mockNavigate } = setupTest();
 
     const missingWordOne = wrapper.getByTestId(
