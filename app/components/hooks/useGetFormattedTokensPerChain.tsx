@@ -122,8 +122,6 @@ export const useGetFormattedTokensPerChain = (
       ? stableAllChainIDs
       : [currentEvmChainID, currentSolChainID];
 
-
-
     function getTokenFiatBalances({
       tokens,
       accountAddress,

@@ -1793,7 +1793,6 @@ export class Engine {
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 
-    // Get all network configurations to aggregate across all networks
     const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
 
     networkConfigurations.forEach((networkConfig) => {
@@ -1826,7 +1825,6 @@ export class Engine {
         primaryTicker = ticker;
       }
 
-      // Calculate native token balance for this chain
       const accountData = accountsByChainId?.[chainIdHex]?.[selectedInternalAccountFormattedAddress];
       if (accountData) {
         const balanceHex = accountData.balance;
@@ -1858,7 +1856,6 @@ export class Engine {
           totalEthFiat1dAgo += chainEthFiat1dAgo;
         }
 
-        // Aggregate native token balance (use the sum instead of just the largest)
         const chainNativeBalance = renderFromWei(balanceHex);
         if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
           const currentAggregated = parseFloat(aggregatedNativeTokenBalance || '0');
@@ -1866,7 +1863,6 @@ export class Engine {
         }
       }
 
-      // Calculate ALL token balances for this chain (ERC-20, etc.)
       const tokens = TokensController.state.allTokens?.[chainIdHex]?.[selectedInternalAccount.address] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
@@ -1924,8 +1920,6 @@ export class Engine {
       ticker: primaryTicker,
     };
   };
-
-
 
   /**
    * Gets a subset of preferences from the PreferencesController to pass to a snap.
