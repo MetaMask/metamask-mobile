@@ -34,10 +34,12 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectProviderType,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -170,6 +172,22 @@ const CollectibleContracts = ({
   displayNftMedia,
 }) => {
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const allNetworkClientIds = useMemo(
+    () =>
+      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        const entry = allNetworks[chainId];
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultRpcEndpointIndex;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [tokenNetworkFilter, allNetworks],
+  );
 
   const filteredCollectibleContracts = useMemo(
     () =>
@@ -402,8 +420,13 @@ const CollectibleContracts = ({
 
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
+
       await Promise.allSettled(actions);
       setRefreshing(false);
 
@@ -431,6 +454,7 @@ const CollectibleContracts = ({
     getNftDetectionAnalyticsParams,
     selectedAddress,
     trackEvent,
+    allNetworkClientIds,
   ]);
 
   const goToLearnMore = useCallback(
