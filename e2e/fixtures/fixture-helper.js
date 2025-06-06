@@ -78,8 +78,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
           localNodeOptions === 'ganache'
             ? defaultGanacheOptions
             : localNodeOptions === 'anvil'
-              ? defaultOptions
-              : {},
+            ? defaultOptions
+            : {},
       },
     ];
   } else if (Array.isArray(localNodeOptions)) {
@@ -92,21 +92,20 @@ function normalizeLocalNodeOptions(localNodeOptions) {
             node === 'ganache'
               ? defaultGanacheOptions
               : node === 'anvil'
-                ? defaultOptions
-                : {},
+              ? defaultOptions
+              : {},
         };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
-        const type = node.type || 'ganache';
         return {
           type,
           options:
             type === 'ganache'
               ? { ...defaultGanacheOptions, ...(node.options || {}) }
               : type === 'anvil'
-                ? { ...defaultOptions, ...(node.options || {}) }
-                : node.options || {},
+              ? { ...defaultOptions, ...(node.options || {}) }
+              : node.options || {},
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);
@@ -116,8 +115,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     // Case 4: Passing an options object without type
     return [
       {
-        type: 'ganache',
-        options: { ...defaultGanacheOptions, ...localNodeOptions },
+        type: 'anvil',
+        options: localNodeOptions,
       },
     ];
   }
@@ -202,7 +201,7 @@ export async function withFixtures(options, testSuite) {
     disableGanache,
     dapp,
     multichainDapp = false,
-    localNodeOptions = 'ganache',
+    localNodeOptions = 'anvil',
     dappOptions,
     dappPath = undefined,
     dappPaths,
@@ -236,8 +235,6 @@ export async function withFixtures(options, testSuite) {
             localNode = new AnvilManager();
             await localNode.start(nodeOptions);
             localNodes.push(localNode);
-            await localNode.setAccountBalance('1200');
-
             break;
 
           case 'ganache':
