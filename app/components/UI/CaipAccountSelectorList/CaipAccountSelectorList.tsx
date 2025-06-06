@@ -220,7 +220,6 @@ const CaipAccountSelectorList = ({
       },
       index,
     }) => {
-      console.log('assets', assets);
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];

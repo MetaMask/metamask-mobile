@@ -32,7 +32,6 @@ import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
-  chainId,
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
@@ -41,13 +40,13 @@ const useAccounts = ({
   const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const currentChainId = chainId || useSelector(selectChainId);
-  console.log('chainId in useAccounts', currentChainId);
+  const currentChainId = useSelector(selectChainId); // Always use global chain ID for ENS
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
+  // For aggregated balances across all networks, don't pass chainId
   const { multichainBalancesForAllAccounts } =
-    useMultichainBalancesForAllAccounts(currentChainId);
+    useMultichainBalancesForAllAccounts();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -127,14 +126,8 @@ const useAccounts = ({
       }
     > = {};
 
-    console.log({multichainBalancesForAllAccounts})
     internalAccounts.forEach((account) => {
       const balanceForAccount = multichainBalancesForAllAccounts?.[account.id];
-      console.log(
-        'balanceForAccount',
-        account.id,
-        {balanceForAccount},
-      );
       const displayBalance = balanceForAccount
         ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
         : '';
