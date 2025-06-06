@@ -2069,6 +2069,8 @@ PODS:
     - React-utils (= 0.76.9)
   - ReactNativePayments (2.0.0):
     - React
+  - RealmJS (12.14.2):
+    - React
   - RNCAsyncStorage (1.23.1):
     - React-Core
   - RNCCheckbox (0.5.17):
@@ -2459,6 +2461,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
+  - RealmJS (from `../node_modules/realm`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -2733,6 +2736,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
+  RealmJS:
+    :path: "../node_modules/realm"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -2922,6 +2927,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 25c2c1bed6e2c89daaa9e61c40e8680803df3c8f
   ReactCommon: 9cd9f89d1600b392c3a94552afc34def5fe54d02
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
+  RealmJS: ff8a7d6d6e339c1b3410a96ceb4151b151fe56f5
   RNCAsyncStorage: aa75595c1aefa18f868452091fa0c411a516ce11
   RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
   RNCClipboard: ee059e6006b137e369caed5eb852b4aad9f5d886
