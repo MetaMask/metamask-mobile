@@ -30,7 +30,7 @@ describe('SuccessErrorSheet', () => {
       title: 'Test Title',
       description: 'Test Description',
       type: 'success' as const,
-      icon: IconName.SuccessSolid,
+      icon: IconName.CheckBold,
       primaryButtonLabel: 'Primary',
       secondaryButtonLabel: 'Secondary',
       onPrimaryButtonPress: jest.fn(),
@@ -48,8 +48,15 @@ describe('SuccessErrorSheet', () => {
     jest.clearAllMocks();
   });
 
+  it('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(
+      <SuccessErrorSheet route={mockRoute} />,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders correctly with all props', () => {
-    const { getByText, toJSON, getByRole } = renderWithProvider(
+    const { getByText, getByRole } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
 
@@ -64,8 +71,6 @@ describe('SuccessErrorSheet', () => {
 
     fireEvent.press(secondaryButton);
     expect(mockRoute.params.onSecondaryButtonPress).toHaveBeenCalled();
-
-    expect(toJSON).toMatchSnapshot();
   });
 
   it('renders correctly with error type', () => {

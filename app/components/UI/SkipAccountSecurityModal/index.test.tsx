@@ -45,6 +45,10 @@ jest.mock(
 );
 
 describe('SkipAccountSecurityModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();

@@ -10,7 +10,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
@@ -30,18 +29,6 @@ const createStyles = (colors) =>
       color: colors.error.default,
       marginBottom: 16,
     },
-    modalNoBorder: {
-      borderTopWidth: 0,
-      paddingHorizontal: 0,
-    },
-    skipTitle: {
-      fontSize: 24,
-      marginTop: 12,
-      marginBottom: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
     skipModalContainer: {
       flexDirection: 'column',
       justifyContent: 'center',
@@ -49,13 +36,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
       paddingTop: 16,
       width: '100%',
-    },
-    skipModalXButton: {
-      alignItems: 'flex-end',
-    },
-    skipModalXIcon: {
-      fontSize: 16,
-      color: colors.text.default,
     },
     skipModalActionButtons: {
       flexDirection: 'row',
@@ -68,14 +48,6 @@ const createStyles = (colors) =>
       width: 18,
       marginRight: 12,
       marginTop: 3,
-    },
-    skipModalText: {
-      flex: 1,
-      ...fontStyles.normal,
-      lineHeight: 20,
-      fontSize: 14,
-      paddingHorizontal: 10,
-      color: colors.text.default,
     },
     ctaContainer: {
       flexDirection: 'row',
@@ -127,7 +99,7 @@ const SkipAccountSecurityModal = ({ route }) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.skipModalContainer}>
         <Icon
-          name={IconName.DangerSolid}
+          name={IconName.Danger}
           size={IconSize.Lg}
           style={styles.imageWarning}
           {...generateTestId(Platform, 'skip-backup-warning')}
