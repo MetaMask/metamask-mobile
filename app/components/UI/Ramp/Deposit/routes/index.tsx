@@ -15,7 +15,6 @@ import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
-import Text from '../../../../../component-library/components/Texts/Text';
 
 interface DepositParamList {
   [key: string]:

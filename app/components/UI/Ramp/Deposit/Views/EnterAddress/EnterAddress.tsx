@@ -89,19 +89,11 @@ const EnterAddress = (): JSX.Element => {
     [handleChange],
   );
 
-  const combinedFormData = {
-    ...basicInfoFormData,
-    ...formData,
-  };
-
   const [{ error: kycError, isFetching: kycIsFetching }, postKycForm] =
-    useDepositSdkMethod(
-      {
-        method: 'patchUser',
-        onMount: false,
-      },
-      combinedFormData,
-    );
+    useDepositSdkMethod({
+      method: 'patchUser',
+      onMount: false,
+    });
 
   const [
     { error: purposeError, isFetching: purposeIsFetching },
@@ -128,6 +120,10 @@ const EnterAddress = (): JSX.Element => {
     if (!validateFormData()) return;
 
     try {
+      const combinedFormData = {
+        ...basicInfoFormData,
+        ...formData,
+      };
       await postKycForm(combinedFormData);
 
       if (kycError) {
@@ -148,8 +144,9 @@ const EnterAddress = (): JSX.Element => {
     }
   }, [
     validateFormData,
+    basicInfoFormData,
+    formData,
     postKycForm,
-    combinedFormData,
     kycError,
     submitPurpose,
     purposeError,

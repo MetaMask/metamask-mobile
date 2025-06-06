@@ -1,8 +1,14 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import React from 'react';
 import useKycPolling from './useKycPolling';
-import { useDepositSdkMethod } from './useDepositSdkMethod';
+import {
+  DepositSdkMethodState,
+  useDepositSdkMethod,
+} from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
+import {
+  NativeRampsSdk,
+  NativeTransakAccessToken,
+} from '@consensys/native-ramps-sdk';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -16,9 +22,9 @@ const mockUseDepositSDK = useDepositSDK as jest.MockedFunction<
 >;
 
 const mockFetchKycForms = jest.fn();
-const mockSdkResponse = {
-  data: null as any,
-  error: null as string | null,
+const mockSdkResponse: DepositSdkMethodState<'getKYCForms'> = {
+  data: null,
+  error: null,
   isFetching: false,
 };
 
@@ -36,14 +42,14 @@ describe('useKycPolling', () => {
     ]);
     mockUseDepositSDK.mockReturnValue({
       quote: { id: 'test-quote' },
-      sdk: {} as any,
+      sdk: {} as NativeRampsSdk,
       sdkError: undefined,
       providerApiKey: 'test-key',
       providerFrontendAuth: 'test-auth',
       email: 'test@test.com',
       setEmail: jest.fn(),
       isAuthenticated: true,
-      authToken: { token: 'test-token' } as any,
+      authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       setQuote: jest.fn(),
@@ -93,7 +99,7 @@ describe('useKycPolling', () => {
   it('should return current KYC approval status', () => {
     mockSdkResponse.data = {
       isAllowedToPlaceOrder: true,
-    };
+    } as DepositSdkMethodState<'getKYCForms'>['data'];
 
     const { result } = renderHook(() => useKycPolling());
 
@@ -103,7 +109,7 @@ describe('useKycPolling', () => {
   it('should return false when KYC is not approved', () => {
     mockSdkResponse.data = {
       isAllowedToPlaceOrder: false,
-    };
+    } as DepositSdkMethodState<'getKYCForms'>['data'];
 
     const { result } = renderHook(() => useKycPolling());
 
@@ -117,7 +123,7 @@ describe('useKycPolling', () => {
 
     mockSdkResponse.data = {
       isAllowedToPlaceOrder: true,
-    };
+    } as DepositSdkMethodState<'getKYCForms'>['data'];
     rerender();
 
     // Should not continue polling
