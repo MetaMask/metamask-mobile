@@ -4,6 +4,7 @@ import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -17,12 +18,9 @@ const mockFormData: BasicInfoFormData = {
   ssn: '123-45-6789',
 };
 
-// Mock the quote object
 const mockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-} as any;
+  quoteId: 'test-quote-id',
+} as BuyQuote;
 
 const mockUseDepositSdkMethodInitialState = {
   data: null,
@@ -39,7 +37,7 @@ let mockPurposeValues = [
 ];
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: jest.fn((config, ...args) => {
+  useDepositSdkMethod: jest.fn((config) => {
     if (config?.method === 'patchUser') {
       return mockKycValues;
     }
