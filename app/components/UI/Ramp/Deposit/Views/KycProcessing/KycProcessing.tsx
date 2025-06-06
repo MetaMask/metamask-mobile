@@ -19,6 +19,8 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
+import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 
 export const createKycProcessingNavDetails = createNavigationDetails(
   Routes.DEPOSIT.KYC_PROCESSING,
@@ -46,11 +48,11 @@ const KycProcessing = () => {
   };
 
   const handleRetryVerification = () => {
-    navigation.navigate(Routes.DEPOSIT.VERIFY_IDENTITY);
+    navigation.navigate(...createVerifyIdentityNavDetails());
   };
 
   const handleContinue = () => {
-    navigation.navigate(Routes.DEPOSIT.PROVIDER_WEBVIEW);
+    navigation.navigate(...createProviderWebviewNavDetails());
   };
 
   if (error) {
