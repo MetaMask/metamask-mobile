@@ -1,5 +1,5 @@
 // Third party dependencies
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,13 +28,18 @@ import styles from './Settings.styles';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
+import { useDepositSDK, withDepositSDK } from '../../../Deposit/sdk';
 
 function Settings() {
   const navigation = useNavigation();
   const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
+  const { clearAuthToken, isAuthenticated, checkExistingToken } =
+    useDepositSDK();
   const { colors } = useAppTheme();
   const style = styles();
   const trackEvent = useAnalytics();
+
+  const [displayLogoutMessage, setDisplayLogoutMessage] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -47,12 +52,21 @@ function Settings() {
     );
   }, [colors, navigation]);
 
+  useEffect(() => {
+    checkExistingToken();
+  }, [checkExistingToken]);
+
   const handleResetRegion = useCallback(() => {
     trackEvent('RAMP_REGION_RESET', {
       location: 'Settings Screen',
     });
     setSelectedRegion(null);
   }, [setSelectedRegion, trackEvent]);
+
+  const handleResetDepositAuth = useCallback(async () => {
+    await clearAuthToken();
+    setDisplayLogoutMessage(true);
+  }, [clearAuthToken]);
 
   return (
     <KeyboardAvoidingView
@@ -94,10 +108,26 @@ function Settings() {
                 <ActivationKeys />
               </Row>
             ) : null}
+            {isAuthenticated ? (
+              <Row>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  onPress={handleResetDepositAuth}
+                  label="log out of transak"
+                />
+              </Row>
+            ) : null}
+            {displayLogoutMessage ? (
+              <Row>
+                <Text>logged out</Text>
+              </Row>
+            ) : null}
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
     </KeyboardAvoidingView>
   );
 }
-export default withRampSDK(Settings);
+export default withDepositSDK(withRampSDK(Settings));
