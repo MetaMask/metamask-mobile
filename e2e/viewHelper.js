@@ -1,6 +1,5 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/Onboarding/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -147,9 +146,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
-  // Should dismiss Automatic Security checks screen
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
+  
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(solanaSheetAction);
@@ -183,9 +180,6 @@ export const CreateNewWallet = async () => {
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
-  //'Should dismiss Automatic Security checks screen'
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.

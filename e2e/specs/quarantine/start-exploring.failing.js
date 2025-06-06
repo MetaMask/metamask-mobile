@@ -7,7 +7,6 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
@@ -61,11 +60,4 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     // Press Done on the Onboarding Success screen
     await OnboardingSuccessView.tapDone();
   });
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
 });
