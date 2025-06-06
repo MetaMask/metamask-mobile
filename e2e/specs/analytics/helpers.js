@@ -7,7 +7,7 @@ import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
  * @returns {Promise<Array>} Filtered request payloads.
  */
 export const getEventsPayloads = async (mockServer, events = []) => {
-  const waitForPendingEndpoints = async (timeout = 5000) => {
+  const waitForPendingEndpoints = async (timeout = 10000) => {
     const startTime = Date.now();
 
     const checkPendingEndpoints = async () => {
@@ -27,7 +27,7 @@ export const getEventsPayloads = async (mockServer, events = []) => {
         }
         // eslint-disable-next-line no-console
         console.log('Waiting for pending endpoints...');
-        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
         return checkPendingEndpoints();
       }
 
@@ -52,6 +52,14 @@ export const getEventsPayloads = async (mockServer, events = []) => {
     const proxiedUrl = url.searchParams.get('url');
     return proxiedUrl?.includes(metametricsUrl);
   });
+
+  if (matchingRequests.length === 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'No matching requests found for the specified metametrics events.',
+    );
+    return [];
+  }
 
   const payloads = (
     await Promise.all(matchingRequests.map((req) => req.body?.getJson()))

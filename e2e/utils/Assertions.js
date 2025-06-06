@@ -31,12 +31,10 @@ class Assertions {
 
   /**
    * Check if an element with the specified ID is not visible.
-   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} element - The element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfNotVisible(element, timeout = TIMEOUT) {
-    // rename this. We are checking if element is not visible.
-
     return await waitFor(await element)
       .not.toBeVisible()
       .withTimeout(timeout);
