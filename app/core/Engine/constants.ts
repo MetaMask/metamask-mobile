@@ -71,6 +71,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'DeFiPositionsController:stateChange',
+  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  'SeedlessOnboardingController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
 ] as const;
 
 export const swapsSupportedChainIds = [

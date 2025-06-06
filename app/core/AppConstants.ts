@@ -1,6 +1,7 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+import { getBundleId } from 'react-native-device-info';
 
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
@@ -138,9 +139,12 @@ export default {
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
-    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: 'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts'
+    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
+      'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
   },
-  DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
+  DECODING_API_URL:
+    process.env.DECODING_API_URL ||
+    'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -228,5 +232,19 @@ export default {
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
-  TOKEN_DISCOVERY_BROWSER_ENABLED: process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
+  SEEDLESS_ONBOARDING: {
+    AUTH_SERVER_URL: process.env.AUTH_SERVER_URL,
+    IOS_APPLE_CLIENT_ID: getBundleId
+      ? getBundleId()
+      : process.env.IOS_APPLE_CLIENT_ID,
+    IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID,
+    IOS_GOOGLE_REDIRECT_URI: process.env.IOS_GOOGLE_REDIRECT_URI,
+    ANDROID_WEB_GOOGLE_CLIENT_ID: process.env.ANDROID_WEB_GOOGLE_CLIENT_ID,
+    ANDROID_WEB_APPLE_CLIENT_ID: process.env.ANDROID_WEB_APPLE_CLIENT_ID,
+    AUTH_CONNECTION_ID: process.env.AUTH_CONNECTION_ID,
+    GROUPED_AUTH_CONNECTION_ID: process.env.GROUPED_AUTH_CONNECTION_ID,
+    WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
+  },
+  TOKEN_DISCOVERY_BROWSER_ENABLED:
+    process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
 } as const;
