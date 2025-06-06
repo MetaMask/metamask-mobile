@@ -8,7 +8,6 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/wallet/WalletView';
-import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/wallet/LoginView';
@@ -54,12 +53,6 @@ describe(
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
       await OnboardingSuccessView.tapDone();
-    });
-
-    it('Should dismiss Automatic Security checks screen', async () => {
-      await TestHelpers.delay(3500);
-      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-      await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
     it('should dismiss the onboarding wizard', async () => {
