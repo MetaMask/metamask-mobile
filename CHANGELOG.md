@@ -111,7 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - fix: cp-7.46.0 Add dummy file for migration 73 [#15315](https://github.com/MetaMask/metamask-mobile/pull/15315)
  - fix: Add safe checksum method in `SendTo` page [#15309](https://github.com/MetaMask/metamask-mobile/pull/15309)
  - fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))
- - 
+ 
 
 ## [7.46.2]
 
