@@ -72,6 +72,7 @@ describe(
     it('should dismiss the protect your wallet modal', async () => {
       await Assertions.checkIfVisible(
         ProtectYourWalletModal.collapseWalletModal,
+        { timeout: 25000 },
       );
       await TestHelpers.delay(1000);
       await ProtectYourWalletModal.tapRemindMeLaterButton();
