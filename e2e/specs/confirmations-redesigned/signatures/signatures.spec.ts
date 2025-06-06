@@ -60,10 +60,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  // using for loop here to ensure synchronous execution
-  for (let index = 0; index < SIGNATURE_LIST.length; index++) {
-    const { specName, testDappBtn, requestType, additionAssertions } =
-      SIGNATURE_LIST[index];
+  for (const { specName, testDappBtn, requestType, additionAssertions } of SIGNATURE_LIST) {
     it(`should sign ${specName} message`, async () => {
       await withFixtures(
         {

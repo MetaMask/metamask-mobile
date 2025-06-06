@@ -47,7 +47,9 @@ describe(SmokeConfirmations('Send to contract address'), () => {
         smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const hstAddress = await contractRegistry.getContractAddress(
           HST_CONTRACT,
         );

@@ -1,36 +1,40 @@
 'use strict';
-
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import {
+  SMART_CONTRACTS,
+  contractConfiguration,
+} from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 
-describe(SmokeConfirmations('Failing contracts'), () => {
-  const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
+const HST_CONTRACT = SMART_CONTRACTS.HST;
 
+describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('sends a failing contract transaction', async () => {
+  it('send an ERC20 token from a dapp', async () => {
     const testSpecificMock  = {
-        GET: [
-          mockEvents.GET.suggestedGasFeesApiGanache
-        ],
-      };
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations
+      ],
+    };
+
     await withFixtures(
       {
         dapp: true,
@@ -40,36 +44,41 @@ describe(SmokeConfirmations('Failing contracts'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        smartContract: FAILING_CONTRACT,
+        smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const failingAddress = await contractRegistry.getContractAddress(
-          FAILING_CONTRACT,
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const hstAddress = await contractRegistry.getContractAddress(
+          HST_CONTRACT,
         );
         await loginToApp();
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
         await TestDApp.navigateToTestDappWithContract({
-          contractAddress: failingAddress,
+          contractAddress: hstAddress,
         });
-
-        // Send a failing transaction
-        await TestDApp.tapSendFailingTransactionButton();
         await TestHelpers.delay(3000);
 
+        // Transfer ERC20 tokens
+        await TestDApp.tapERC20TransferButton();
+        await TestHelpers.delay(3000);
+
+        // Tap confirm button
         await TestDApp.tapConfirmButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert the failed transaction is displayed
+        // Assert "Sent Tokens" transaction is displayed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION
-        );
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.FAILED_TEXT
+          ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
+            // contractConfiguration is not typed
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (contractConfiguration[HST_CONTRACT] as any).tokenName as string,
+          ),
         );
       },
     );
