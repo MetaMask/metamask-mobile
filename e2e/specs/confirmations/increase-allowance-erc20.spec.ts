@@ -1,32 +1,32 @@
 'use strict';
-
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../utils/Assertions';
-import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
+import Assertions from '../../utils/Assertions';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 
-describe(SmokeConfirmations('ERC1155 token'), () => {
-  const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
+const HST_CONTRACT = SMART_CONTRACTS.HST;
 
+describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.reverseServerPort();
+    }
   });
 
-  it('approve all ERC1155 tokens', async () => {
+  it('from a dApp', async () => {
     const testSpecificMock  = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache
@@ -42,26 +42,38 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        smartContract: ERC1155_CONTRACT,
+        smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const erc1155Address = await contractRegistry.getContractAddress(
-          ERC1155_CONTRACT,
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const hstAddress = await contractRegistry.getContractAddress(
+          HST_CONTRACT,
         );
         await loginToApp();
-
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-        await TestDApp.navigateToTestDappWithContract({
-          contractAddress: erc1155Address,
-        });
 
-        // Set approval for all ERC1155 tokens
-        await TestDApp.tapERC1155SetApprovalForAllButton();
-        await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalBottomSheetSelectorsText.APPROVE,
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: hstAddress,
+        });
+        await TestDApp.tapIncreaseAllowanceButton();
+
+        //Input custom token amount
+        await Assertions.checkIfVisible(
+          ContractApprovalBottomSheet.approveTokenAmount,
         );
+        await ContractApprovalBottomSheet.clearInput();
+        await ContractApprovalBottomSheet.inputCustomAmount('2');
+
+        // Assert that custom token amount is shown
+        await Assertions.checkIfElementToHaveText(
+          ContractApprovalBottomSheet.approveTokenAmount,
+          '2',
+        );
+        // Tap next button
+        await ContractApprovalBottomSheet.tapNextButton();
 
         // Tap approve button
         await ContractApprovalBottomSheet.tapApproveButton();
@@ -69,9 +81,9 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
-        // Assert that the ERC1155 activity is an set approve for all and it is confirmed
+        // Assert that the ERC20 activity is an increase allowance and it is confirmed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SET_APPROVAL_FOR_ALL_METHOD,
+          ActivitiesViewSelectorsText.INCREASE_ALLOWANCE_METHOD,
         );
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,

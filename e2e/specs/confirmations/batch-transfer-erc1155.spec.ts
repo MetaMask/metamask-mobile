@@ -45,7 +45,9 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
         smartContract: ERC1155_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const erc1155Address = await contractRegistry.getContractAddress(
           ERC1155_CONTRACT,
         );

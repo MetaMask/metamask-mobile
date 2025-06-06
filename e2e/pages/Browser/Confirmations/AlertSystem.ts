@@ -10,11 +10,11 @@ class AlertSystem {
   }
 
   get securityAlertResponseFailedBanner() {
-    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE) && Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_DESCRIPTION);
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE);
   }
 
   get securityAlertResponseMaliciousBanner() {
-    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE) && Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_DESCRIPTION);
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE);
   }
 
   get inlineAlert() {

@@ -14,18 +14,19 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
+import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
+import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 
-describe(SmokeConfirmations('ERC721 tokens'), () => {
-  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+describe(SmokeConfirmations('ERC1155 token'), () => {
+  const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
   beforeAll(async () => {
-    jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('approve an ERC721 token from a dapp', async () => {
+  it('approve all ERC1155 tokens', async () => {
     const testSpecificMock  = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache
@@ -41,26 +42,39 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        smartContract: NFT_CONTRACT,
+        smartContract: ERC1155_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const erc1155Address = await contractRegistry.getContractAddress(
+          ERC1155_CONTRACT,
         );
         await loginToApp();
+
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
         await TestDApp.navigateToTestDappWithContract({
-          contractAddress: nftsAddress,
+          contractAddress: erc1155Address,
         });
-        // Approve NFT
-        await TestDApp.tapApproveERC721TokenButton();
-        await TestHelpers.delay(3000);
-        await TestDApp.tapApproveButton();
+
+        // Set approval for all ERC1155 tokens
+        await TestDApp.tapERC1155SetApprovalForAllButton();
+        await Assertions.checkIfTextIsDisplayed(
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
+        );
+
+        // Tap approve button
+        await ContractApprovalBottomSheet.tapApproveButton();
+
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
-        // Assert NFT is approved
+
+        // Assert that the ERC1155 activity is an set approve for all and it is confirmed
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.SET_APPROVAL_FOR_ALL_METHOD,
+        );
         await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
