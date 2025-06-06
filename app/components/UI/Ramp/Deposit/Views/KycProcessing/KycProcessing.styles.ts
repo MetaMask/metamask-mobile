@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     heading: {
       textAlign: 'center',
-      marginTop: 22,
+      marginTop: 12,
       marginBottom: 16,
     },
     description: {
@@ -24,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 40,
       padding: 4,
       borderRadius: 40,
-      backgroundColor: theme.colors.primary.default,
+      backgroundColor: theme.colors.success.muted,
       justifyContent: 'center',
       alignItems: 'center',
     },
