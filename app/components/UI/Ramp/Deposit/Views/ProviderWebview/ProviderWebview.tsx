@@ -27,7 +27,7 @@ const ProviderWebview = () => {
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title: 'Provider Webview' }, theme),
     );
-  }, [navigation]);
+  }, [navigation, theme]);
 
   const getKycText = () => {
     if (loading) return 'Loading KYC status...';
