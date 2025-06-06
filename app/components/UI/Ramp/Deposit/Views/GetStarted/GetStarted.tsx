@@ -5,7 +5,6 @@ import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../StyledButton';
 import { strings } from '../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../sdk';
-import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './GetStarted.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -33,7 +32,7 @@ const GetStarted: React.FC = () => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { seenGetStarted, setSeenGetStarted } = useDepositSDK();
+  const { getStarted, setGetStarted } = useDepositSDK();
 
   useEffect(() => {
     navigation.setOptions(
@@ -42,24 +41,10 @@ const GetStarted: React.FC = () => {
   }, [navigation, theme]);
 
   const handleOnPress = useCallback(() => {
-    setSeenGetStarted(true);
-  }, [setSeenGetStarted]);
+    setGetStarted(true);
+  }, [setGetStarted]);
 
-  useEffect(() => {
-    if (seenGetStarted) {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
-            params: { animated: true },
-          },
-        ],
-      });
-    }
-  }, [navigation, seenGetStarted]);
-
-  if (seenGetStarted) {
+  if (getStarted) {
     // Avoid flashing the original content when the user has already seen it
     return <ScreenLayout />;
   }

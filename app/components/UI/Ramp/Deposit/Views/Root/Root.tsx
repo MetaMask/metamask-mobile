@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
@@ -6,26 +6,21 @@ import GetStarted from '../GetStarted/GetStarted';
 
 const Root = () => {
   const navigation = useNavigation();
-  const [initialRoute] = useState<string>(
-    Routes.DEPOSIT.BUILD_QUOTE,
-  );
-  const { checkExistingToken, seenGetStarted } = useDepositSDK();
+  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
+  const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
 
   useEffect(() => {
-    if (!seenGetStarted) {
-      return;
-    }
     const initializeFlow = async () => {
       if (hasCheckedToken.current) return;
       await checkExistingToken();
       hasCheckedToken.current = true;
     };
     initializeFlow();
-  }, [checkExistingToken, seenGetStarted]);
+  }, [checkExistingToken, getStarted]);
 
   useEffect(() => {
-    if (initialRoute === null || !seenGetStarted) return;
+    if (initialRoute === null || !getStarted) return;
     navigation.reset({
       index: 0,
       routes: [{ name: initialRoute, params: { animationEnabled: false } }],

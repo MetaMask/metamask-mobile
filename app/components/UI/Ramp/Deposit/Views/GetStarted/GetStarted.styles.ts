@@ -1,7 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-const styles = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
       flexGrow: 1,
       justifyContent: 'flex-start',
@@ -17,7 +20,6 @@ const styles = () =>
     },
     getStartedImage: {
       width: '100%',
-      height: undefined,
       aspectRatio: 4 / 3,
       resizeMode: 'contain',
       maxWidth: 300,
@@ -41,8 +43,9 @@ const styles = () =>
       opacity: 0.8,
     },
     checkIcon: {
-      color: 'green',
+      color: theme.colors.success.default,
     },
   });
+};
 
-export default styles;
+export default styleSheet;

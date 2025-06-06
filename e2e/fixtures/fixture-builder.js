@@ -634,6 +634,7 @@ class FixtureBuilder {
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
           getStartedSell: false,
+          getStartedDeposit: false,
           authenticationUrls: [],
           activationKeys: [],
         },
