@@ -866,7 +866,11 @@ describe('Permission Utility Functions', () => {
       mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x2', '0x3', '0x1']);
+      expect(result).toEqual([
+        '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      ]);
     });
   });
 
