@@ -9,6 +9,8 @@ import ApeNetworkImg from '../../../../../images/ape-network.png';
 import GravityImg from '../../../../../images/gravity.png';
 import KaiaImg from '../../../../../images/kaia.png';
 import XrpLevmImg from '../../../../../images/xrp-logo.png';
+import SophonImg from '../../../../../images/sophon.png';
+import SophonTestnetImg from '../../../../../images/sophon-testnet.png';
 
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
@@ -21,4 +23,6 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: ethImg,
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: XrpLevmImg,
+  [NETWORK_CHAIN_ID.SOPHON]: SophonImg,
+  [NETWORK_CHAIN_ID.SOPHON_TESTNET]: SophonTestnetImg,
 };
