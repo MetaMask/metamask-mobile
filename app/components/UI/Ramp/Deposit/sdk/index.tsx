@@ -13,7 +13,6 @@ import {
   selectDepositProviderApiKey,
 } from '../../../../../selectors/featureFlagController/deposit';
 import {
-  BuyQuote,
   NativeRampsSdk,
   NativeTransakAccessToken,
   TransakEnvironment,
@@ -34,8 +33,6 @@ export interface DepositSDK {
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   checkExistingToken: () => Promise<boolean>;
-  quote?: BuyQuote;
-  setQuote: (quote: BuyQuote) => void;
 }
 
 const isDevelopment =
@@ -64,7 +61,6 @@ export const DepositSDKProvider = ({
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
-  const [quote, setQuote] = useState<BuyQuote>();
 
   useEffect(() => {
     try {
@@ -140,8 +136,6 @@ export const DepositSDKProvider = ({
       authToken,
       setAuthToken,
       checkExistingToken,
-      quote,
-      setQuote,
     }),
     [
       sdk,
@@ -152,7 +146,6 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
-      quote,
     ],
   );
 

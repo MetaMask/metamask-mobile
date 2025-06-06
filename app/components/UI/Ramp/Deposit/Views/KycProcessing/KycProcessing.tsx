@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import StyledButton from '../../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import useKycPolling from '../../hooks/useKycPolling';
@@ -21,6 +21,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export const createKycProcessingNavDetails = createNavigationDetails(
   Routes.DEPOSIT.KYC_PROCESSING,
@@ -30,7 +31,16 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { error, kycApproved, stopPolling } = useKycPolling();
+  const route =
+    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
+  const { quote } = route.params;
+
+  const { error, kycApproved, stopPolling } = useKycPolling(
+    10000,
+    true,
+    30,
+    quote,
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -48,11 +58,11 @@ const KycProcessing = () => {
   };
 
   const handleRetryVerification = () => {
-    navigation.navigate(...createVerifyIdentityNavDetails());
+    navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
   };
 
   const handleContinue = () => {
-    navigation.navigate(...createProviderWebviewNavDetails());
+    navigation.navigate(...createProviderWebviewNavDetails({ quote }));
   };
 
   if (error) {

@@ -29,6 +29,8 @@ const mockSdkResponse: DepositSdkMethodState<'getKYCForms'> = {
   isFetching: false,
 };
 
+const mockQuote: BuyQuote = { quoteId: 'test-quote' } as BuyQuote;
+
 jest.useFakeTimers();
 
 describe('useKycPolling', () => {
@@ -42,7 +44,6 @@ describe('useKycPolling', () => {
       mockFetchKycForms,
     ]);
     mockUseDepositSDK.mockReturnValue({
-      quote: { quoteId: 'test-quote' } as BuyQuote,
       sdk: {} as NativeRampsSdk,
       sdkError: undefined,
       providerApiKey: 'test-key',
@@ -53,7 +54,6 @@ describe('useKycPolling', () => {
       authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
-      setQuote: jest.fn(),
     });
   });
 
@@ -62,7 +62,7 @@ describe('useKycPolling', () => {
   });
 
   it('should start polling automatically by default', () => {
-    renderHook(() => useKycPolling());
+    renderHook(() => useKycPolling(10000, true, 30, mockQuote));
 
     // Should call immediately
     expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
@@ -75,7 +75,7 @@ describe('useKycPolling', () => {
   });
 
   it('should not start polling when autoStart is false', () => {
-    renderHook(() => useKycPolling(10000, false));
+    renderHook(() => useKycPolling(10000, false, 30, mockQuote));
 
     expect(mockFetchKycForms).not.toHaveBeenCalled();
 
@@ -86,7 +86,7 @@ describe('useKycPolling', () => {
   });
 
   it('should use custom polling interval', () => {
-    renderHook(() => useKycPolling(2000));
+    renderHook(() => useKycPolling(2000, true, 30, mockQuote));
 
     expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
 
@@ -102,7 +102,9 @@ describe('useKycPolling', () => {
       isAllowedToPlaceOrder: true,
     } as DepositSdkMethodState<'getKYCForms'>['data'];
 
-    const { result } = renderHook(() => useKycPolling());
+    const { result } = renderHook(() =>
+      useKycPolling(10000, true, 30, mockQuote),
+    );
 
     expect(result.current.kycApproved).toBe(true);
   });
@@ -112,13 +114,17 @@ describe('useKycPolling', () => {
       isAllowedToPlaceOrder: false,
     } as DepositSdkMethodState<'getKYCForms'>['data'];
 
-    const { result } = renderHook(() => useKycPolling());
+    const { result } = renderHook(() =>
+      useKycPolling(10000, true, 30, mockQuote),
+    );
 
     expect(result.current.kycApproved).toBe(false);
   });
 
   it('should stop polling when KYC is approved', () => {
-    const { rerender } = renderHook(() => useKycPolling());
+    const { rerender } = renderHook(() =>
+      useKycPolling(10000, true, 30, mockQuote),
+    );
 
     expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
 
@@ -135,7 +141,9 @@ describe('useKycPolling', () => {
   });
 
   it('should allow manual start and stop of polling', () => {
-    const { result } = renderHook(() => useKycPolling(10000, false));
+    const { result } = renderHook(() =>
+      useKycPolling(10000, false, 30, mockQuote),
+    );
 
     expect(mockFetchKycForms).not.toHaveBeenCalled();
 
@@ -155,7 +163,9 @@ describe('useKycPolling', () => {
   });
 
   it('should cleanup polling on unmount', () => {
-    const { unmount } = renderHook(() => useKycPolling());
+    const { unmount } = renderHook(() =>
+      useKycPolling(10000, true, 30, mockQuote),
+    );
 
     expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
 
@@ -172,14 +182,18 @@ describe('useKycPolling', () => {
     mockSdkResponse.isFetching = true;
     mockSdkResponse.error = 'Network error';
 
-    const { result } = renderHook(() => useKycPolling());
+    const { result } = renderHook(() =>
+      useKycPolling(10000, true, 30, mockQuote),
+    );
 
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe('Network error');
   });
 
   it('should stop polling after max attempts', () => {
-    const { result } = renderHook(() => useKycPolling(1000, true, 2));
+    const { result } = renderHook(() =>
+      useKycPolling(1000, true, 2, mockQuote),
+    );
 
     expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
 

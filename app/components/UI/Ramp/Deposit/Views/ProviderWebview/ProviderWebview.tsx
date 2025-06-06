@@ -7,9 +7,10 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import styleSheet from './ProviderWebview.styles';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export const createProviderWebviewNavDetails = createNavigationDetails(
   Routes.DEPOSIT.PROVIDER_WEBVIEW,
@@ -17,6 +18,10 @@ export const createProviderWebviewNavDetails = createNavigationDetails(
 
 const ProviderWebview = () => {
   const navigation = useNavigation();
+
+  const route =
+    useRoute<RouteProp<Record<string, { quote?: BuyQuote }>, string>>();
+  const { quote } = route.params || {};
 
   const [{ data: userDetailsResponse, error, isFetching: loading }] =
     useDepositSdkMethod('getUserDetails');
@@ -46,6 +51,7 @@ const ProviderWebview = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           <Text style={styles.description}>{getKycText()}</Text>
+          <Text style={styles.description}>Quote: {JSON.stringify(quote)}</Text>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>

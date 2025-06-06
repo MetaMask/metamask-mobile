@@ -17,6 +17,7 @@ import Row from '../../../Aggregator/components/Row';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export const createEnterAddressNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_ADDRESS,
@@ -37,9 +38,12 @@ const EnterAddress = (): JSX.Element => {
 
   const route =
     useRoute<
-      RouteProp<Record<string, { formData: BasicInfoFormData }>, string>
+      RouteProp<
+        Record<string, { formData: BasicInfoFormData; quote: BuyQuote }>,
+        string
+      >
     >();
-  const { formData: basicInfoFormData } = route.params;
+  const { formData: basicInfoFormData, quote } = route.params;
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -123,6 +127,8 @@ const EnterAddress = (): JSX.Element => {
       const combinedFormData = {
         ...basicInfoFormData,
         ...formData,
+        ssn: undefined,
+        mobileNumber: '5491161729622',
       };
       await postKycForm(combinedFormData);
 
@@ -138,7 +144,7 @@ const EnterAddress = (): JSX.Element => {
         return;
       }
 
-      navigation.navigate(...createKycProcessingNavDetails());
+      navigation.navigate(...createKycProcessingNavDetails({ quote }));
     } catch (error) {
       console.error('Unexpected error during form submission:', error);
     }
@@ -151,6 +157,7 @@ const EnterAddress = (): JSX.Element => {
     submitPurpose,
     purposeError,
     navigation,
+    quote,
   ]);
 
   return (

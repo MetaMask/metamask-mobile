@@ -12,6 +12,12 @@ import {
 
 const EMAIL = 'test@email.com';
 
+const mockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+} as any;
+
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useDepositSDK: jest.fn().mockReturnValue({
@@ -56,6 +62,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -133,7 +142,6 @@ describe('OtpCode Component', () => {
       setAuthToken: mockSetAuthToken,
       isAuthenticated: false,
       checkExistingToken: jest.fn(),
-      setQuote: jest.fn(),
     });
 
     const { getByTestId } = render(OtpCode);
@@ -153,7 +161,7 @@ describe('OtpCode Component', () => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        undefined,
+        { quote: mockQuote },
       );
     });
   });
