@@ -20,6 +20,7 @@ import {
 import {
   getProviderToken,
   storeProviderToken,
+  resetProviderToken,
 } from '../utils/ProviderTokenVault';
 
 export interface DepositSDK {
@@ -33,6 +34,8 @@ export interface DepositSDK {
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   checkExistingToken: () => Promise<boolean>;
+  quote?: any;
+  setQuote: (quote: any) => void;
 }
 
 const isDevelopment =
@@ -61,6 +64,7 @@ export const DepositSDKProvider = ({
   const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthTokenState] = useState<NativeTransakAccessToken>();
+  const [quote, setQuote] = useState<any>();
 
   useEffect(() => {
     try {
@@ -136,6 +140,8 @@ export const DepositSDKProvider = ({
       authToken,
       setAuthToken,
       checkExistingToken,
+      quote,
+      setQuote,
     }),
     [
       sdk,
@@ -146,6 +152,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken,
+      quote,
     ],
   );
 

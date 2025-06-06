@@ -24,7 +24,7 @@ const BuildQuote = () => {
   const [fiatCurrency] = useState<string>('USD');
   const [network] = useState<string>('ethereum');
   const [amount, setAmount] = useState<string>('100');
-  const { isAuthenticated } = useDepositSDK();
+  const { isAuthenticated, setQuote } = useDepositSDK();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -56,6 +56,8 @@ const BuildQuote = () => {
     );
 
     if (quote) {
+      setQuote(quote);
+
       const forms = await fetchKycForms(quote);
       const { forms: requiredForms } = forms || {};
       if (isAuthenticated) {
@@ -81,6 +83,7 @@ const BuildQuote = () => {
     navigation,
     network,
     paymentMethod,
+    setQuote,
   ]);
 
   const handleAmountChange = (text: string) => {
