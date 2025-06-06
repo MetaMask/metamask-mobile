@@ -493,7 +493,7 @@ const Login: React.FC = () => {
                 variant={ButtonVariants.Link}
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.reset_wallet')}
+                label={strings('login.forgot_password')}
               />
             </View>
           </View>

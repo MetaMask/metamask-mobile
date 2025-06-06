@@ -277,6 +277,17 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
+ * judge address is a private key account or not
+ *
+ * @param {InternalAccount} account - InternalAccount object
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isPrivateKeyAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === KeyringTypes.simple;
+}
+
+
+/**
  * Checks if an address is an ethereum one.
  *
  * @param address - An address.
@@ -310,27 +321,23 @@ export function getInternalAccountByAddress(
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
   const { KeyringController } = Engine.context;
-  const { keyrings, keyringsMetadata } = KeyringController.state;
+  const { keyrings } = KeyringController.state;
   const internalAccount = getInternalAccountByAddress(address);
-  const hdKeyringsWithMetadata = keyrings
-    .map((keyring, index) => ({
-      ...keyring,
-      metadata: keyringsMetadata[index],
-    }))
-    .filter((keyring) => keyring.type === ExtendedKeyringTypes.hd);
+  const hdKeyrings = keyrings.filter(
+    (keyring) => keyring.type === ExtendedKeyringTypes.hd,
+  );
   const keyring = internalAccount?.metadata?.keyring;
   // We do show pills only if we have multiple SRPs (and thus, multiple HD keyrings).
-  const shouldShowSrpPill = hdKeyringsWithMetadata.length > 1;
+  const shouldShowSrpPill = hdKeyrings.length > 1;
 
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.hd:
         if (shouldShowSrpPill) {
-          const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
-            (kr: KeyringObject) =>
-              kr.accounts.find((account) =>
-                isEqualCaseInsensitive(account, address),
-              ),
+          const hdKeyringIndex = hdKeyrings.findIndex((kr: KeyringObject) =>
+            kr.accounts.find((account) =>
+              isEqualCaseInsensitive(account, address),
+            ),
           );
           // -1 means the address is not found in any of the hd keyrings
           if (hdKeyringIndex !== -1) {
@@ -352,12 +359,14 @@ export function getLabelTextByAddress(address: string) {
         if (shouldShowSrpPill) {
           const { entropySource } = internalAccount?.options || {};
           if (entropySource) {
-            const hdKeyringIndex = hdKeyringsWithMetadata.findIndex(
+            const hdKeyringIndex = hdKeyrings.findIndex(
               (kr) => kr.metadata.id === entropySource,
             );
             // -1 means the address is not found in any of the hd keyrings
             if (hdKeyringIndex !== -1) {
-              return strings('accounts.srp_index', { index: hdKeyringIndex + 1 });
+              return strings('accounts.srp_index', {
+                index: hdKeyringIndex + 1,
+              });
             }
           }
         }
@@ -443,7 +452,7 @@ export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
-export function safeToChecksumAddress(address: string) {
+export function safeToChecksumAddress(address?: string) {
   if (!address) return undefined;
   return toChecksumAddress(address) as Hex;
 }
@@ -721,7 +730,7 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  const { standard, name, symbol, decimals } = tokenData;
+  const { standard, name, symbol, decimals, balance } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
@@ -733,6 +742,7 @@ export const getTokenDetails = async (
     symbol,
     decimals,
     standard,
+    balance,
   };
 };
 

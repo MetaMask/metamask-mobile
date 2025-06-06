@@ -167,7 +167,6 @@ import passwordcheckSVG from './assets/password-check.svg';
 import pendingSVG from './assets/pending.svg';
 import peopleSVG from './assets/people.svg';
 import personcancelSVG from './assets/person-cancel.svg';
-import petrolPumpSVG from './assets/petrol-pump.svg';
 import pinSVG from './assets/pin.svg';
 import plantSVG from './assets/plant.svg';
 import plugSVG from './assets/plug.svg';
@@ -223,10 +222,8 @@ import snapsSVG from './assets/snaps.svg';
 import sortbyalphaSVG from './assets/sort-by-alpha.svg';
 import sortSVG from './assets/sort.svg';
 import sparkleSVG from './assets/sparkle.svg';
-import sparkleFilledSVG from './assets/sparkle-filled.svg';
 import speedSVG from './assets/speed.svg';
 import speedometerSVG from './assets/speedometer.svg';
-import speedometerFilledSVG from './assets/speedometer-filled.svg';
 import squareSVG from './assets/square.svg';
 import stakeSVG from './assets/stake.svg';
 import starfilledSVG from './assets/star-filled.svg';
@@ -276,10 +273,6 @@ import webtrafficSVG from './assets/web-traffic.svg';
 import widgetsSVG from './assets/widgets.svg';
 import wifioffSVG from './assets/wifi-off.svg';
 import wifiSVG from './assets/wifi.svg';
-import eyeSlashSolidSVG from './assets/eye-slash-solid.svg';
-import eyeSolidSVG from './assets/eye-solid.svg';
-import dangerSolidSVG from './assets/danger-solid.svg';
-import successSolidSVG from './assets/success.svg';
 import xSVG from './assets/x.svg';
 
 /**
@@ -449,7 +442,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Pending]: pendingSVG,
   [IconName.People]: peopleSVG,
   [IconName.PersonCancel]: personcancelSVG,
-  [IconName.PetrolPump]: petrolPumpSVG,
   [IconName.Pin]: pinSVG,
   [IconName.Plant]: plantSVG,
   [IconName.Plug]: plugSVG,
@@ -505,10 +497,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.SortByAlpha]: sortbyalphaSVG,
   [IconName.Sort]: sortSVG,
   [IconName.Sparkle]: sparkleSVG,
-  [IconName.SparkleFilled]: sparkleFilledSVG,
   [IconName.Speed]: speedSVG,
   [IconName.Speedometer]: speedometerSVG,
-  [IconName.SpeedometerFilled]: speedometerFilledSVG,
   [IconName.Square]: squareSVG,
   [IconName.Stake]: stakeSVG,
   [IconName.StarFilled]: starfilledSVG,
@@ -558,9 +548,5 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Widgets]: widgetsSVG,
   [IconName.WifiOff]: wifioffSVG,
   [IconName.Wifi]: wifiSVG,
-  [IconName.EyeSlashSolid]: eyeSlashSolidSVG,
-  [IconName.EyeSolid]: eyeSolidSVG,
-  [IconName.DangerSolid]: dangerSolidSVG,
-  [IconName.SuccessSolid]: successSolidSVG,
   [IconName.X]: xSVG,
 };

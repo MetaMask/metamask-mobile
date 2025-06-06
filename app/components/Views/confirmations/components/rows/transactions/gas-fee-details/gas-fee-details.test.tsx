@@ -9,6 +9,9 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import GasFeesDetails from './gas-fee-details';
 
+jest.mock('../../../gas/gas-speed', () => ({
+  GasSpeed: () => null,
+}));
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -18,9 +21,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
   },
 }));
@@ -105,5 +105,12 @@ describe('GasFeesDetails', () => {
         tooltip: TOOLTIP_TYPES.NETWORK_FEE,
       }),
     );
+  });
+
+  it('shows gas speed row', async () => {
+    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('Speed')).toBeDefined();
   });
 });

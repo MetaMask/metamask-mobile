@@ -13,6 +13,10 @@ import {
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import Info from './info-root';
 
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -38,6 +42,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     AccountsController: {
       state: {
@@ -49,9 +54,6 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         },
       },
-    },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
     },
     TransactionController: {
       getTransactions: jest.fn().mockReturnValue([]),

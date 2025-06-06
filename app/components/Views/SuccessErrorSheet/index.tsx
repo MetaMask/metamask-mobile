@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -19,6 +19,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
@@ -60,7 +61,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   } = route.params;
 
   const { colors } = useTheme();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const handleClose = () => {
     if (onClose) {
@@ -68,32 +69,36 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
-  const getIcon = () => {
+  const currentIcon = useMemo(() => {
     if (icon) {
       return icon;
     }
-    return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
-  };
+    return type === 'success' ? IconName.CheckBold : IconName.CircleX;
+  }, [icon, type]);
 
   const handleSecondaryButtonPress = () => {
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
     }
-    closeOnSecondaryButtonPress && sheetRef.current?.onCloseBottomSheet();
+    if (closeOnSecondaryButtonPress) {
+      bottomSheetRef.current?.onCloseBottomSheet();
+    }
   };
 
   const handlePrimaryButtonPress = () => {
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
     }
-    closeOnPrimaryButtonPress && sheetRef.current?.onCloseBottomSheet();
+    if (closeOnPrimaryButtonPress) {
+      bottomSheetRef.current?.onCloseBottomSheet();
+    }
   };
 
   return (
-    <BottomSheet ref={sheetRef} onClose={handleClose}>
+    <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
       <View style={styles.statusContainer}>
         <Icon
-          name={getIcon()}
+          name={currentIcon}
           size={IconSize.Xl}
           color={
             type === 'success' ? colors.success.default : colors.error.default

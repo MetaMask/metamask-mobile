@@ -21,6 +21,10 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
+jest.mock('../../Earn/constants/tempLendingConstants', () => ({
+  USER_HAS_LENDING_POSITIONS: false,
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {

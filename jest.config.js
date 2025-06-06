@@ -12,8 +12,6 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
-process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
-
 process.env.WEB3AUTH_NETWORK = 'sapphire_devnet';
 
 const config = {

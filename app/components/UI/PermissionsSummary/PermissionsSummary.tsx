@@ -55,7 +55,7 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import AccountsConnectedItemList from '../../Views/AccountConnect/AccountsConnectedItemList';
+import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import {
   BOTTOM_SHEET_BASE_HEIGHT,
@@ -71,6 +71,9 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -81,6 +84,7 @@ const PermissionsSummary = ({
   onCancel,
   onConfirm,
   onUserAction,
+  onCreateAccount,
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
@@ -95,10 +99,18 @@ const PermissionsSummary = ({
   onChooseFromPermittedNetworks = () => undefined,
   setTabIndex = () => undefined,
   tabIndex = 0,
+  showAccountsOnly = false,
+  showPermissionsOnly = false,
+  promptToCreateSolanaAccount = false,
 }: PermissionsSummaryProps) => {
+  const nonTabView = showAccountsOnly || showPermissionsOnly;
+  const fullNonTabView = showAccountsOnly && showPermissionsOnly;
+
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {
     isRenderedAsBottomSheet,
+    nonTabView,
+    fullNonTabView,
   });
   const navigation = useNavigation();
   const { navigate } = navigation;
@@ -133,9 +145,9 @@ const PermissionsSummary = ({
     onCancel?.();
   };
 
-  const handleEditAccountsButtonPress = () => {
+  const handleEditAccountsButtonPress = useCallback(() => {
     onEdit?.();
-  };
+  }, [onEdit]);
 
   const handleEditNetworksButtonPress = () => {
     onEditNetworks?.();
@@ -152,7 +164,9 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return isPerDappSelectedNetworkEnabled() && isAlreadyConnected ? (
+    return isPerDappSelectedNetworkEnabled() &&
+      isAlreadyConnected &&
+      !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
           onPress={switchNetwork}
@@ -538,6 +552,43 @@ const PermissionsSummary = ({
     [styles, colors],
   );
 
+  const renderAccountsConnectedList = useCallback(
+    (
+      accountsConnectedTabKey: string,
+      restAccountsConnectedTabProps: Record<string, unknown>,
+    ) =>
+      promptToCreateSolanaAccount ? (
+        <AccountConnectCreateInitialAccount
+          key={accountsConnectedTabKey}
+          onCreateAccount={() => {
+            onCreateAccount?.(WalletClientType.Solana, SolScope.Mainnet);
+          }}
+          {...restAccountsConnectedTabProps}
+        />
+      ) : (
+        <AccountsConnectedList
+          key={accountsConnectedTabKey}
+          selectedAddresses={accountAddresses}
+          ensByAccountAddress={ensByAccountAddress}
+          accounts={accounts}
+          privacyMode={privacyMode}
+          networkAvatars={networkAvatars}
+          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+          {...restAccountsConnectedTabProps}
+        />
+      ),
+    [
+      accountAddresses,
+      ensByAccountAddress,
+      accounts,
+      privacyMode,
+      networkAvatars,
+      handleEditAccountsButtonPress,
+      promptToCreateSolanaAccount,
+      onCreateAccount,
+    ],
+  );
+
   const renderTabsContent = () => {
     const { key: accountsConnectedTabKey, ...restAccountsConnectedTabProps } =
       accountsConnectedTabProps;
@@ -549,16 +600,10 @@ const PermissionsSummary = ({
         renderTabBar={renderTabBar}
         onChangeTab={onChangeTab}
       >
-        <AccountsConnectedItemList
-          key={accountsConnectedTabKey}
-          selectedAddresses={accountAddresses}
-          ensByAccountAddress={ensByAccountAddress}
-          accounts={accounts}
-          privacyMode={privacyMode}
-          networkAvatars={networkAvatars}
-          handleEditAccountsButtonPress={handleEditAccountsButtonPress}
-          {...restAccountsConnectedTabProps}
-        />
+        {renderAccountsConnectedList(
+          accountsConnectedTabKey,
+          restAccountsConnectedTabProps,
+        )}
         <View
           key={permissionsTabKey}
           style={styles.permissionsManagementContainer}
@@ -606,7 +651,14 @@ const PermissionsSummary = ({
               {strings('permissions.non_permitted_network_description')}
             </TextComponent>
           )}
-          <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+          {!nonTabView ? (
+            <View style={styles.tabsContainer}>{renderTabsContent()}</View>
+          ) : (
+            <View style={styles.container}>
+              {showAccountsOnly && renderAccountPermissionsRequestInfoCard()}
+              {showPermissionsOnly && renderNetworkPermissionsRequestInfoCard()}
+            </View>
+          )}
         </View>
         <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (

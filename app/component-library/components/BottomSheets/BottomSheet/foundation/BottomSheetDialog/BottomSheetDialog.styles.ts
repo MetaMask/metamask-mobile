@@ -38,10 +38,11 @@ const styleSheet = (params: {
         borderTopRightRadius: 8,
         maxHeight: maxSheetHeight,
         overflow: 'hidden',
-        paddingBottom:
-          Platform.OS === 'ios'
-            ? screenBottomPadding
-            : screenBottomPadding + 16,
+        paddingBottom: Platform.select({
+          ios: screenBottomPadding,
+          macos: screenBottomPadding,
+          default: screenBottomPadding + 16,
+        }),
         borderWidth: 1,
         borderColor: colors.border.muted,
         ...(isFullscreen && { height: maxSheetHeight }),

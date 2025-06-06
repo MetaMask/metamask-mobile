@@ -18,7 +18,7 @@ type MessageOrContent =
       /**
        * The message is a summary of the alert details.
        */
-      message?: string;
+      message?: string | ReactElement;
     }
   | {
       /**
@@ -29,7 +29,7 @@ type MessageOrContent =
       /**
        * The message is a summary of the alert details.
        */
-      message: string;
+      message: string | ReactElement;
     };
 
 /**
@@ -75,5 +75,5 @@ export type Alert = {
   /**
    * The title of the alert.
    */
-  title: string;
+  title?: string;
 } & MessageOrContent;

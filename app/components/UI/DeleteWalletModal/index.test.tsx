@@ -1,14 +1,13 @@
 import React from 'react';
 import DeleteWalletModal from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { strings } from '../../../../locales/i18n';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -77,31 +76,32 @@ describe('DeleteWalletModal', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('signs the user out when deleting the wallet', async () => {
-    const { getByTestId } = renderComponent(mockInitialState);
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+  it('should render forgot password', async () => {
+    const wrapper = renderComponent(mockInitialState);
 
-    waitFor(() => {
-      expect(mockSignOut).toHaveBeenCalled();
+    const title = wrapper.getByText(strings('login.forgot_password_desc'));
+    expect(title).toBeTruthy();
+
+    const button = wrapper.getByRole('button', {
+      name: strings('login.reset_wallet'),
     });
-  });
+    expect(button).toBeTruthy();
 
-  it('sets completedOnboarding to false when deleting the wallet', async () => {
-    const { getByTestId } = renderComponent(mockInitialState);
+    fireEvent.press(button);
 
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+    const title2 = wrapper.getByText(strings('login.are_you_sure'));
+    expect(title2).toBeTruthy();
 
-    waitFor(() => {
-      expect(mockUseDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: SET_COMPLETED_ONBOARDING,
-          completedOnboarding: false,
-        }),
-      );
+    const button2 = wrapper.getByRole('button', {
+      name: strings('login.erase_my'),
     });
+    expect(button2).toBeTruthy();
+
+    fireEvent.press(button2);
+
+    // Wait for all promises to resolve
+    await Promise.resolve();
+
+    expect(mockSignOut).toHaveBeenCalled();
   });
 });
