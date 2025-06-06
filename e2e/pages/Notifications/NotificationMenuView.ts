@@ -1,4 +1,4 @@
-// @ts-check
+import type { IndexableNativeElement } from 'detox/detox';
 import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,
@@ -29,13 +29,10 @@ class EnableNotificationsModal {
     );
   }
 
-  selectNotificationItem(
-    /** @type {string} */
-    id,
-  ) {
-    return /** @type {Promise<Detox.IndexableNativeElement>} */ (
-      Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id))
-    );
+  selectNotificationItem(id: string) {
+    return Matchers.getElementByID(
+      NotificationMenuViewSelectorsIDs.ITEM(id),
+    ) as Promise<IndexableNativeElement>;
   }
 
   async tapOnWalletTab() {
@@ -44,16 +41,10 @@ class EnableNotificationsModal {
   async tapOnAnnouncementsTab() {
     await Gestures.waitAndTap(this.announcements_tab);
   }
-  async tapOnNotificationItem(
-    /** @type {string} */
-    id,
-  ) {
+  async tapOnNotificationItem(id: string) {
     await Gestures.waitAndTap(this.selectNotificationItem(id));
   }
-  async scrollToNotificationItem(
-    /** @type {string} */
-    id,
-  ) {
+  async scrollToNotificationItem(id: string) {
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,

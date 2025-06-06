@@ -1,4 +1,3 @@
-// @ts-check
 import enContent from '../../../locales/languages/en.json';
 
 export const NotificationMenuViewSelectorsText = {
@@ -10,9 +9,6 @@ export const NotificationMenuViewSelectorsText = {
 export const NotificationMenuViewSelectorsIDs = {
   TITLE: 'notification-menu-view-title',
   COG_WHEEL: 'notification-menu-view-cog-wheel',
-  ITEM: (
-    /** @type {string} */
-    id,
-  ) => `notification-menu-view-item-${id}`,
+  ITEM: (id: string) => `notification-menu-view-item-${id}`,
   ITEM_LIST_SCROLLVIEW: 'notification-menu-scroll-view',
 };

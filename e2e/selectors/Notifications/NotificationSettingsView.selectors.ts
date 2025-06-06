@@ -1,4 +1,3 @@
-// @ts-check
 import enContent from '../../../locales/languages/en.json';
 
 export const NotificationSettingsViewSelectorsText = {
@@ -11,8 +10,6 @@ export const NotificationSettingsViewSelectorsIDs = {
   PUSH_NOTIFICATIONS_TOGGLE: 'notification-settings-push-notifications-toggle',
   FEATURE_ANNOUNCEMENTS_TOGGLE:
     'notification-settings-feature-announcements-toggle',
-  ACCOUNT_NOTIFICATION_TOGGLE: (
-    /** @type {string} */
-    address,
-  ) => `notification-settings-account-notifications-${address}`,
+  ACCOUNT_NOTIFICATION_TOGGLE: (address: string) =>
+    `notification-settings-account-notifications-${address}`,
 };
