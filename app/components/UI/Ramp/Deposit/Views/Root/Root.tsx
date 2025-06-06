@@ -6,8 +6,9 @@ import GetStarted from '../GetStarted/GetStarted';
 
 const Root = () => {
   const navigation = useNavigation();
-
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const [initialRoute] = useState<string>(
+    Routes.DEPOSIT.BUILD_QUOTE,
+  );
   const { checkExistingToken, seenGetStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
 
@@ -17,14 +18,9 @@ const Root = () => {
     }
     const initializeFlow = async () => {
       if (hasCheckedToken.current) return;
-
-      const hasToken = await checkExistingToken();
-      setInitialRoute(
-        hasToken ? Routes.DEPOSIT.VERIFY_IDENTITY : Routes.DEPOSIT.BUILD_QUOTE,
-      );
+      await checkExistingToken();
       hasCheckedToken.current = true;
     };
-
     initializeFlow();
   }, [checkExistingToken, seenGetStarted]);
 
