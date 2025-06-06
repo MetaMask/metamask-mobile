@@ -41,7 +41,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
@@ -104,7 +104,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { navigation, route, dispatchSaveOnboardingEvent } = props;
+  const { route, dispatchSaveOnboardingEvent } = props;
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -114,6 +114,8 @@ const AccountBackupStep1 = (props) => {
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), dispatchSaveOnboardingEvent);
   };
+
+  const { navigation } = useNavigation();
 
   const headerLeft = useCallback(
     () => (
@@ -163,7 +165,7 @@ const AccountBackupStep1 = (props) => {
   );
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+    navigation.navigate('ManualBackupStep1', { ...props.route.params });
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
@@ -179,15 +181,18 @@ const AccountBackupStep1 = (props) => {
       routes: [
         {
           name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            step: 1,
+          },
         },
       ],
     });
     if (isMetricsEnabled()) {
-      props.navigation.dispatch(resetAction);
+      navigation.dispatch(resetAction);
     } else {
-      props.navigation.navigate('OptinMetrics', {
+      navigation.navigate('OptinMetrics', {
         onContinue: () => {
-          props.navigation.dispatch(resetAction);
+          navigation.dispatch(resetAction);
         },
       });
     }
@@ -196,7 +201,7 @@ const AccountBackupStep1 = (props) => {
   const showRemindLater = () => {
     if (hasFunds) return;
 
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
         onConfirm: skip,
@@ -207,7 +212,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   const showWhatIsSeedphrase = () => {
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
   };
@@ -288,10 +293,6 @@ const AccountBackupStep1 = (props) => {
 };
 
 AccountBackupStep1.propTypes = {
-  /**
-  /* navigation object required to push and pop other views
-  */
-  navigation: PropTypes.object,
   /**
    * Object that represents the current route info like params passed to it
    */
