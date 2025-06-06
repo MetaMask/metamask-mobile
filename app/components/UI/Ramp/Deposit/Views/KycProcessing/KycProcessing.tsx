@@ -49,6 +49,10 @@ const KycProcessing = () => {
     navigation.navigate(Routes.DEPOSIT.VERIFY_IDENTITY);
   };
 
+  const handleContinue = () => {
+    navigation.navigate(Routes.DEPOSIT.PROVIDER_WEBVIEW);
+  };
+
   if (error || kycResponse?.status === KycStatus.REJECTED) {
     return (
       <ScreenLayout>
@@ -107,7 +111,7 @@ const KycProcessing = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            <StyledButton type="confirm" onPress={handleBrowseTokens}>
+            <StyledButton type="confirm" onPress={handleContinue}>
               {strings('deposit.kyc_processing.button')}
             </StyledButton>
           </ScreenLayout.Content>
