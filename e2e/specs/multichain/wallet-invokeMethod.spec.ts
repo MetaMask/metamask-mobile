@@ -275,15 +275,12 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                         const resultElement = webview.element(by.web.id(resultElementId));
                         await resultElement.scrollToView();
 
-                        try {
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_gasPrice result: ${resultText}`);
-                            if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
-                                console.log('✅ eth_gasPrice returned a valid hex gas price');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
+                        const resultText = await resultElement.runScript((el) => el.textContent || '');
+                        console.log(`eth_gasPrice result: ${resultText}`);
+                        if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
+                            console.log('✅ eth_gasPrice returned a valid hex gas price');
                         }
+
                     } catch (e) {
                         const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
                         const itemElement = webview.element(by.web.id(itemId));
@@ -385,24 +382,14 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                     for (const method of writeOperations) {
                         const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
 
-                        try {
-                            const directButton = webview.element(by.web.id(directButtonId));
-                            await directButton.tap();
+                        const directButton = webview.element(by.web.id(directButtonId));
+                        await directButton.tap();
 
-                            try {
-                                // Both eth_sendTransaction and personal_sign use Cancel button
-                                const cancelButton = element(by.text('Cancel'));
-                                await waitFor(cancelButton).toBeVisible().withTimeout(10000);
-                                await cancelButton.tap();
-                                console.log(`✅ ${method} confirmation screen test passed`);
-
-                            } catch (confirmError) {
-                                throw new Error(`${method} should have triggered confirmation screen but didn't`);
-                            }
-
-                        } catch (methodError) {
-                            throw new Error(`${method} method invocation failed - this is a test failure`);
-                        }
+                        // Both eth_sendTransaction and personal_sign use Cancel button
+                        const cancelButton = element(by.text('Cancel'));
+                        await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+                        await cancelButton.tap();
+                        console.log(`✅ ${method} confirmation screen test passed`);
 
                         await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
                     }
@@ -467,14 +454,11 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             const detailsElement = webview.element(by.web.id(detailsId));
                             await detailsElement.scrollToView();
 
-                            try {
-                                const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-                                const resultElement = webview.element(by.web.id(resultElementId));
-                                const resultText = await resultElement.runScript((el) => el.textContent || '');
-                                console.log(`${method} result: ${resultText}`);
-                            } catch (e) {
-                                // Could not read result text
-                            }
+                            const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
+                            const resultElement = webview.element(by.web.id(resultElementId));
+                            const resultText = await resultElement.runScript((el) => el.textContent || '');
+                            console.log(`${method} result: ${resultText}`);
+
                         } catch (resultError) {
                             // Result not immediately visible
                         }
