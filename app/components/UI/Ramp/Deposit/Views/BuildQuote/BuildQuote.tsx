@@ -24,7 +24,7 @@ const BuildQuote = () => {
   const [fiatCurrency] = useState<string>('USD');
   const [network] = useState<string>('ethereum');
   const [amount, setAmount] = useState<string>('100');
-  const { isAuthenticated, setGetStarted } = useDepositSDK();
+  const { isAuthenticated } = useDepositSDK();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -47,7 +47,6 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    setGetStarted(false);
     const quote = await getQuote(
       fiatCurrency,
       cryptoCurrency,
@@ -82,7 +81,6 @@ const BuildQuote = () => {
     navigation,
     network,
     paymentMethod,
-    setGetStarted,
   ]);
 
   const handleAmountChange = (text: string) => {
