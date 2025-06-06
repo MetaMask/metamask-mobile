@@ -21,6 +21,12 @@ class CreatePasswordView {
   }
 
   get iUnderstandCheckbox() {
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+  }
+
+  get iUnderstandCheckboxPlatformSpecific() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(
           ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
@@ -56,7 +62,13 @@ class CreatePasswordView {
   }
 
   async tapIUnderstandCheckBox() {
-    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+    try {
+      // Try the generic checkbox first (used in import flow)
+      await Gestures.waitAndTap(this.iUnderstandCheckbox);
+    } catch (error) {
+      // Fall back to platform-specific checkbox (used in onboarding flow)
+      await Gestures.waitAndTap(this.iUnderstandCheckboxPlatformSpecific);
+    }
   }
 
   async tapCreatePasswordButton() {
