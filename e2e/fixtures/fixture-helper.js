@@ -99,11 +99,11 @@ function normalizeLocalNodeOptions(localNodeOptions) {
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
         return {
-          type,
+          type: node.type,
           options:
-            type === 'ganache'
+            node.type === 'ganache'
               ? { ...defaultGanacheOptions, ...(node.options || {}) }
-              : type === 'anvil'
+              : node.type === 'anvil'
               ? { ...defaultOptions, ...(node.options || {}) }
               : node.options || {},
         };
