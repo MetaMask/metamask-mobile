@@ -74,7 +74,23 @@ describe('Collectible', () => {
       collectibles: [defaultCollectible],
       modals: { collectibleContractModalVisible: true },
       engine: {
-        backgroundState,
+        backgroundState: {
+          ...backgroundState,
+        NetworkController: {
+          selectedNetworkClientId: 'mainnet',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+          },
+        },
+        },
       },
     });
     const container = render(

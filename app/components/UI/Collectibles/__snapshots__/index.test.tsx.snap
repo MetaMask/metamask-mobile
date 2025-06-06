@@ -1,6 +1,244 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Collectibles should render correctly 1`] = `
+exports[`Collectibles should render correctly collectibles 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+  testID="collectibles"
+>
+  <RCTScrollView
+    data={
+      [
+        {
+          "address": "0x0fFf2B70d503f5D2338baBFBD5543Bf79f38b936",
+          "attributes": [
+            "Array",
+          ],
+          "chainId": 1,
+          "collection": [
+            "Object",
+          ],
+          "description": "New parrot",
+          "favorite": false,
+          "image": "https://img.reservoir.tools/images/v2/mainnet/7%2FrdF%2Fe%2F0iXY8HduhRCoIehkmFeXPeOQQFbbmIPfjCYLapx5D%2FHfgAdkVqiLDYeAuYvkErlgvEb4j3GXPLlSSxRuSpAPzzdPW09BoCPpfOXSHgGi%2BecZL9GPQzFwIkBgPCmRnk7MRRaqdrVLVr3GdQ%3D%3D.png?width=512",
+          "imageOriginal": "ipfs://bafybeibdpyixlnmk5fqnexn4zchpiiygmbxzb2gvlip26bekiu5yzj4mra/2",
+          "imageThumbnail": "https://img.reservoir.tools/images/v2/mainnet/7%2FrdF%2Fe%2F0iXY8HduhRCoIehkmFeXPeOQQFbbmIPfjCYLapx5D%2FHfgAdkVqiLDYeAuYvkErlgvEb4j3GXPLlSSxRuSpAPzzdPW09BoCPpfOXSHgGi%2BecZL9GPQzFwIkBgPCmRnk7MRRaqdrVLVr3GdQ%3D%3D.png?width=250",
+          "isCurrentlyOwned": true,
+          "lastSale": [
+            "Object",
+          ],
+          "name": "Parrot",
+          "rarityRank": 2,
+          "rarityScore": 10.667,
+          "standard": "ERC1155",
+          "tokenId": "2",
+        },
+      ]
+    }
+    extraData={
+      {
+        "refreshing": false,
+      }
+    }
+    getItem={[Function]}
+    getItemCount={[Function]}
+    keyExtractor={[Function]}
+    onContentSizeChange={[Function]}
+    onLayout={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onMomentumScrollEnd={[Function]}
+    onScroll={[Function]}
+    onScrollBeginDrag={[Function]}
+    onScrollEndDrag={[Function]}
+    removeClippedSubviews={false}
+    renderItem={[Function]}
+    scrollEventThrottle={0.0001}
+    stickyHeaderIndices={[]}
+    viewabilityConfigCallbackPairs={[]}
+  >
+    <View>
+      <View
+        onFocusCapture={[Function]}
+        onLayout={[Function]}
+        style={null}
+      >
+        <TouchableOpacity
+          disabled={false}
+          onLongPress={[Function]}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "flex-start",
+              "flex": 1,
+              "flexDirection": "row",
+              "paddingHorizontal": 15,
+              "paddingVertical": 10,
+            }
+          }
+          testID="asset-undefined"
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "borderRadius": 12,
+                  "flex": 0,
+                }
+              }
+            >
+              <View>
+                <Image
+                  onError={[Function]}
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f3f5f9",
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "height": 50,
+                        "width": 50,
+                      },
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-ipfs"
+                />
+                <View
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "black",
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                     #2
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "marginLeft": 20,
+                  "marginTop": 6,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Parrot
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "marginRight": 8,
+                    "marginTop": 4,
+                  }
+                }
+              >
+                #
+                2
+              </Text>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "alignSelf": "flex-end",
+                "flexShrink": 0,
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
+`;
+
+exports[`Collectibles should render empty collectibles correctly 1`] = `
 <View
   style={
     {
