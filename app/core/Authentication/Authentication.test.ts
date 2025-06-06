@@ -57,6 +57,12 @@ jest.mock('../Engine', () => ({
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
     },
+    AccountTreeController: {
+      init: jest.fn(),
+    },
+    AccountsController: {
+      updateAccounts: jest.fn(),
+    },
   },
 }));
 

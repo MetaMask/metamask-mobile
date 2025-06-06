@@ -100,7 +100,7 @@ class AuthenticationService {
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
     });
     ///: END:ONLY_INCLUDE_IF
-    
+
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -117,14 +117,14 @@ class AuthenticationService {
         },
       );
       await client.addDiscoveredAccounts(primaryHdKeyringId);
-      
+
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
 
     try {
       await retryWithExponentialDelay(
         performSolanaAccountDiscovery,
-        3, // maxRetries 
+        3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
@@ -442,12 +442,12 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
       AccountTreeController.init();
       AccountsController.updateAccounts();
       // TODO: Replace "any" with type
@@ -499,12 +499,12 @@ class AuthenticationService {
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
-      
+
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
-      
+
       AccountTreeController.init();
       AccountsController.updateAccounts();
       // TODO: Replace "any" with type

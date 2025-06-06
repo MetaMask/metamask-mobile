@@ -14,11 +14,19 @@ const selectAccountTreeControllerState = (state: RootState) => state.engine.back
  */
 export const selectAccountSections = createSelector(
   [selectAccountTreeControllerState],
-  (accountTreeState) =>
+  (accountTreeState) => {
     // TODO: Replace with actual AccountTreeController state structure
     // For now, return a simple hardcoded structure
-    Object.values(accountTreeState.accountTrees.roots).map((root) => ({
+    if (!accountTreeState?.accountTrees?.roots) {
+      return [{
+        title: 'Default Group',
+        data: [],
+      }];
+    }
+
+    return Object.values(accountTreeState.accountTrees.roots).map((root) => ({
       title: root.metadata.name,
       data: Object.values(root.groups).map((group) => group.accounts).flat(),
-    }))
+    }));
+  }
 );

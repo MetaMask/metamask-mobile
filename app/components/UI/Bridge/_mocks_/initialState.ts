@@ -291,6 +291,11 @@ export const initialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTrees: {
+          roots: {},
+        },
+      },
       SmartTransactionsController: {
         smartTransactionsState: {
           liveness: true,
