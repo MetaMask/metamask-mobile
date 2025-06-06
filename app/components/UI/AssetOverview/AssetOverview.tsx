@@ -218,6 +218,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           {
             account: selectedInternalAccount.id,
             scope: asset.chainId as CaipChainId,
+            assetType: asset.address as CaipAssetType,
           },
         );
         return;
