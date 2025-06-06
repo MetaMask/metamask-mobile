@@ -2,13 +2,11 @@ import { useSelector } from 'react-redux';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import {
   selectChainId,
-  selectIsPopularNetwork,
   selectProviderConfig,
   selectEvmTicker,
   selectEvmChainId,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIsTokenNetworkFilterEqualCurrentNetwork, selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
@@ -34,45 +32,26 @@ import {
   getShouldShowAggregatedPercentage,
 } from './utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
 /**
  * Hook to manage portfolio balance data across chains.
  *
  * @returns Portfolio balance data
  */
 const useMultichainBalancesForAllAccounts =
-  (_chainId): UseAllAccountsMultichainBalancesHook => {
+  (): UseAllAccountsMultichainBalancesHook => {
     const accountsList = useSelector(selectInternalAccounts);
-    const chainId = _chainId || useSelector(selectChainId);
-    const evmChainId = _chainId || useSelector(selectEvmChainId);
+    const chainId = useSelector(selectChainId);
+    const evmChainId = useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
     const allChainIDs = useSelector(getChainIdsToPoll);
-    const tokenNetworkFilter = useSelector(
-      selectTokenNetworkFilter,
-    );
-    const isTokenNetworkFilterEqualCurrentNetwork =
-      Object.keys(tokenNetworkFilter).length === 1 &&
-      Object.keys(tokenNetworkFilter)[0] === chainId
-
-    const isPopularNetwork =
-      chainId === CHAIN_IDS.MAINNET ||
-      chainId === CHAIN_IDS.LINEA_MAINNET ||
-      PopularList.some((network) => network.chainId === chainId)
-
-    console.log({isTokenNetworkFilterEqualCurrentNetwork, isPopularNetwork})
-
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       accountsList,
-      !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
+      true,
       allChainIDs,
-      chainId
     );
-
-    console.log({formattedTokensWithBalancesPerChain})
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
       accountsList,
@@ -84,8 +63,6 @@ const useMultichainBalancesForAllAccounts =
       ticker,
       type,
     );
-
-    console.log('useMultichainBalancesForAllAccounts', {chainId, evmChainId})
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
@@ -114,7 +91,6 @@ const useMultichainBalancesForAllAccounts =
           nonEvmChainId,
           shouldShowFiat,
           ///: END:ONLY_INCLUDE_IF
-          chainId,
         );
         result[account.id] = {
           displayBalance: accountBalanceData.displayBalance,

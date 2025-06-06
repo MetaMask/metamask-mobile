@@ -172,9 +172,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
-  console.log('AccountPermission', {hostname, networkInfo})
   const { accounts, ensByAccountAddress } = useAccounts({
-    chainId: networkInfo.chainId,
     isLoading,
   });
   const previousPermittedAccounts = useRef<CaipAccountId[]>();

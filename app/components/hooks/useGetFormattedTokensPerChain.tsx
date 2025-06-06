@@ -82,7 +82,6 @@ export const useGetFormattedTokensPerChain = (
   accounts: InternalAccount[],
   shouldAggregateAcrossChains: boolean, // We don't always want to aggregate across chains.
   allChainIDs: string[],
-  chainId?: string,
 ): {
   [address: string]: {
     chainId: string;
@@ -91,7 +90,7 @@ export const useGetFormattedTokensPerChain = (
 } => {
   const stableAccounts = useStableReference(accounts);
   const stableAllChainIDs = useStableReference(allChainIDs);
-  const currentEvmChainID = chainId ?? useSelector(selectEvmChainId);
+  const currentEvmChainID = useSelector(selectEvmChainId);
   const currentSolChainID = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const importedTokens: AllTokens = useSelector(selectAllTokens);
@@ -123,7 +122,7 @@ export const useGetFormattedTokensPerChain = (
       ? stableAllChainIDs
       : [currentEvmChainID, currentSolChainID];
 
-    console.log({shouldAggregateAcrossChains, networksToFormat})
+
 
     function getTokenFiatBalances({
       tokens,

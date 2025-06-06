@@ -81,6 +81,10 @@ export interface UseAccountsParams {
    * @default false
    */
   isLoading?: boolean;
+  /**
+   * Optional chain ID to filter balances for a specific chain. If not provided, uses the currently selected chain.
+   */
+  chainId?: string;
 }
 
 /**
