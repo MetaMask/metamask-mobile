@@ -8,6 +8,7 @@ import Browser from './BrowserView';
 import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
+import MultichainUtilities from '../../utils/MultichainUtilities';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -106,10 +107,7 @@ class MultichainTestDApp {
    * @param urlParams - Optional URL parameters to append (e.g., '?autoMode=true')
    */
   async navigateToMultichainTestDApp(urlParams = ''): Promise<void> {
-    // Using Browser methods to navigate
     await Browser.tapUrlInputBox();
-
-    // Get the configured dapp URL
     const baseUrl = getMultichainTestDappUrl();
     const dappUrl = `${baseUrl}${urlParams}`;
     await Browser.navigateToURL(dappUrl);
@@ -345,7 +343,7 @@ class MultichainTestDApp {
   /**
    * Complete multichain connection flow
    */
-  async completeMultichainFlow(chainIds: string[] = ['1', '59144']): Promise<boolean> {
+  async completeMultichainFlow(chainIds: string[] = [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET, MultichainUtilities.CHAIN_IDS.LINEA_MAINNET]): Promise<boolean> {
     // Scroll to top
     await this.scrollToPageTop();
 
@@ -513,7 +511,18 @@ class MultichainTestDApp {
     await TestHelpers.delay(1000);
 
     // First uncheck all networks
-    const allNetworks = ['1', '59144', '42161', '43114', '56', '10', '137', '324', '8453', '1337'];
+    const allNetworks = [
+      MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
+      MultichainUtilities.CHAIN_IDS.LINEA_MAINNET, 
+      MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE,
+      MultichainUtilities.CHAIN_IDS.AVALANCHE,
+      MultichainUtilities.CHAIN_IDS.BSC,
+      MultichainUtilities.CHAIN_IDS.OPTIMISM,
+      MultichainUtilities.CHAIN_IDS.POLYGON,
+      MultichainUtilities.CHAIN_IDS.ZKSYNC_ERA,
+      MultichainUtilities.CHAIN_IDS.BASE,
+      MultichainUtilities.CHAIN_IDS.LOCALHOST,
+    ];
 
     for (const chainId of allNetworks) {
       // Escape colons in chain ID to match the dapp's escapeHtmlId function

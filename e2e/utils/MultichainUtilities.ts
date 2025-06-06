@@ -73,10 +73,13 @@ export default class MultichainUtilities {
             ETHEREUM_MAINNET: this.getDecimalChainId(NETWORKS_CHAIN_ID.MAINNET),
             LINEA_MAINNET: this.getDecimalChainId(NETWORKS_CHAIN_ID.LINEA_MAINNET),
             ARBITRUM_ONE: this.getDecimalChainId(NETWORKS_CHAIN_ID.ARBITRUM),
+            AVALANCHE: this.getDecimalChainId(NETWORKS_CHAIN_ID.AVAXCCHAIN),
             OPTIMISM: this.getDecimalChainId(NETWORKS_CHAIN_ID.OPTIMISM),
             POLYGON: this.getDecimalChainId(NETWORKS_CHAIN_ID.POLYGON),
+            ZKSYNC_ERA: this.getDecimalChainId(NETWORKS_CHAIN_ID.ZKSYNC_ERA),
             BASE: this.getDecimalChainId(NETWORKS_CHAIN_ID.BASE),
             BSC: this.getDecimalChainId(NETWORKS_CHAIN_ID.BSC),
+            LOCALHOST: this.getDecimalChainId(NETWORKS_CHAIN_ID.LOCALHOST),
         };
     }
 
@@ -89,10 +92,13 @@ export default class MultichainUtilities {
             ETHEREUM_MAINNET: this.getEIP155Scope(chainIds.ETHEREUM_MAINNET),
             LINEA_MAINNET: this.getEIP155Scope(chainIds.LINEA_MAINNET),
             ARBITRUM_ONE: this.getEIP155Scope(chainIds.ARBITRUM_ONE),
+            AVALANCHE: this.getEIP155Scope(chainIds.AVALANCHE),
             OPTIMISM: this.getEIP155Scope(chainIds.OPTIMISM),
             POLYGON: this.getEIP155Scope(chainIds.POLYGON),
+            ZKSYNC_ERA: this.getEIP155Scope(chainIds.ZKSYNC_ERA),
             BASE: this.getEIP155Scope(chainIds.BASE),
             BSC: this.getEIP155Scope(chainIds.BSC),
+            LOCALHOST: this.getEIP155Scope(chainIds.LOCALHOST),
         };
     }
 
@@ -269,10 +275,13 @@ export default class MultichainUtilities {
             [this.CHAIN_IDS.ETHEREUM_MAINNET]: 'Ethereum Mainnet',
             [this.CHAIN_IDS.LINEA_MAINNET]: 'Linea Mainnet',
             [this.CHAIN_IDS.ARBITRUM_ONE]: 'Arbitrum One',
+            [this.CHAIN_IDS.AVALANCHE]: 'Avalanche',
             [this.CHAIN_IDS.OPTIMISM]: 'OP Mainnet',
             [this.CHAIN_IDS.POLYGON]: 'Polygon Mainnet',
+            [this.CHAIN_IDS.ZKSYNC_ERA]: 'zkSync Era',
             [this.CHAIN_IDS.BASE]: 'Base',
             [this.CHAIN_IDS.BSC]: 'BNB Smart Chain',
+            [this.CHAIN_IDS.LOCALHOST]: 'Localhost',
         };
     }
 
