@@ -21,6 +21,9 @@ const styleSheet = () =>
       justifyContent: 'center',
       width: 50,
     },
+    multichain_accounts_row_wrapper: {
+      width: '100%',
+    },
   });
 
 export default styleSheet;

@@ -1,0 +1,82 @@
+import React from 'react';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { Box } from '../../../../../UI/Box/Box';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  EIP7702NetworkConfiguration,
+  useEIP7702Networks,
+} from '../../../../confirmations/hooks/7702/useEIP7702Networks';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { Hex } from '@metamask/utils';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import styleSheet from './SmartAccount.styles';
+import { useStyles } from '../../../../../hooks/useStyles';
+import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { ButtonSize } from '../../../../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
+
+interface SmartAccountDetailsProps {
+  account: InternalAccount;
+}
+
+export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
+  const { styles } = useStyles(styleSheet, {});
+  const {
+    network7702List,
+  }: { network7702List: EIP7702NetworkConfiguration[] } = useEIP7702Networks(
+    account.address,
+  );
+  const navigation = useNavigation();
+
+  const handleLearnMore = () => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://metamask.io/smart-accounts/',
+        title: 'Smart Accounts',
+      },
+    });
+  };
+
+  if (!isEvmAccountType(account.type)) {
+    return null;
+  }
+
+  return (
+    <Box
+      style={styles.container}
+      flexDirection={FlexDirection.Column}
+      alignItems={AlignItems.flexStart}
+    >
+      <Text variant={TextVariant.BodyMDMedium}>
+        {strings('multichain_accounts.smart_account.title')}
+      </Text>
+      <Box
+        style={styles.description}
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.flexStart}
+      >
+        <Text>{strings('multichain_accounts.smart_account.description')}</Text>
+        <ButtonLink
+          onPress={handleLearnMore}
+          label={strings('multichain_accounts.smart_account.learn_more')}
+          size={ButtonSize.Sm}
+        >
+          {strings('multichain_accounts.smart_account.learn_more')}
+        </ButtonLink>
+      </Box>
+
+      {network7702List?.map((network) => (
+        <AccountNetworkRow
+          key={network.chainId}
+          network={network}
+          address={account.address as Hex}
+        />
+      ))}
+    </Box>
+  );
+};

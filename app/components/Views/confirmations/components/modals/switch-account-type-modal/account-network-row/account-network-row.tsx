@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../../../../locales/i18n';
@@ -24,6 +24,16 @@ import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Ne
 import { useBatchAuthorizationRequests } from '../../../../hooks/7702/useBatchAuthorizationRequests';
 import { useEIP7702Accounts } from '../../../../hooks/7702/useEIP7702Accounts';
 import styleSheet from './account-network-row.styles';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../../../reducers';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../../UI/Box/box.types';
+import { Box } from '../../../../../../UI/Box/Box';
+import { useTheme } from '../../../../../../../util/theme';
+import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
 
 const AccountNetworkRow = ({
   address,
@@ -32,10 +42,15 @@ const AccountNetworkRow = ({
   address: Hex;
   network: EIP7702NetworkConfiguration;
 }) => {
+  const useMultichainAccountDesign = useSelector(
+    (state: RootState) => state.settings.useMultichainAccountDesign,
+  );
   const navigation = useNavigation();
   const { downgradeAccount, upgradeAccount } = useEIP7702Accounts(
     network as unknown as NetworkConfiguration,
   );
+  const theme = useTheme();
+  const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
 
   const { name, chainId, isSupported, upgradeContractAddress } = network;
@@ -84,6 +99,32 @@ const AccountNetworkRow = ({
     }
     prevHasPendingRequests.current = hasPendingRequests;
   }, [addressSupportSmartAccount, hasPendingRequests, prevHasPendingRequests]);
+
+  if (useMultichainAccountDesign) {
+    return (
+      <Box
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
+        alignItems={AlignItems.center}
+        style={styles.multichain_accounts_row_wrapper}
+      >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+          {network.name}
+        </Text>
+        <Switch
+          testID={SmartAccountIds.SMART_ACCOUNT_SWITCH}
+          value={addressSupportSmartAccount}
+          onValueChange={onSwitch}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={theme.brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+        />
+      </Box>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
