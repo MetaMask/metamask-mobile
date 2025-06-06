@@ -32,7 +32,6 @@ const Routes = {
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
     PROVIDER_WEBVIEW: 'ProviderWebview',
-    KYC_PENDING: 'KycPending',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
