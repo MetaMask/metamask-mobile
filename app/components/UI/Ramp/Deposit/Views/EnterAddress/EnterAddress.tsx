@@ -16,6 +16,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import Row from '../../../Aggregator/components/Row';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 
 export const createEnterAddressNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_ADDRESS,
@@ -141,7 +142,7 @@ const EnterAddress = (): JSX.Element => {
         return;
       }
 
-      navigation.navigate(Routes.DEPOSIT.KYC_PROCESSING);
+      navigation.navigate(...createKycProcessingNavDetails());
     } catch (error) {
       console.error('Unexpected error during form submission:', error);
     }
