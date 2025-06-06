@@ -346,9 +346,9 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
 
                     const directButton = webview.element(by.web.id(directButtonId));
                     await directButton.tap();
-                    const rejectButton = element(by.text('Reject'));
-                    await waitFor(rejectButton).toBeVisible().withTimeout(10000);
-                    await rejectButton.tap();
+                    const cancelButton = element(by.text('Cancel'));
+                    await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+                    await cancelButton.tap();
                     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))).toBeVisible().withTimeout(5000);
                     console.log('✅ eth_sendTransaction confirmation dialog test passed');
 
@@ -396,15 +396,10 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                             await directButton.tap();
 
                             try {
-                                if (method === 'eth_sendTransaction') {
-                                    const rejectButton = element(by.text('Reject'));
-                                    await waitFor(rejectButton).toBeVisible().withTimeout(10000);
-                                    await rejectButton.tap();
-                                } else {
-                                    const cancelButton = element(by.text('Cancel'));
-                                    await waitFor(cancelButton).toBeVisible().withTimeout(10000);
-                                    await cancelButton.tap();
-                                }
+                                // Both eth_sendTransaction and personal_sign use Cancel button
+                                const cancelButton = element(by.text('Cancel'));
+                                await waitFor(cancelButton).toBeVisible().withTimeout(10000);
+                                await cancelButton.tap();
                                 console.log(`✅ ${method} confirmation screen test passed`);
 
                             } catch (confirmError) {
