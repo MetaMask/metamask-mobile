@@ -16,6 +16,7 @@ const tags = {
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
+  smokeNetworkEnablement: 'SmokeNetworkEnablement',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -45,6 +46,8 @@ const SmokeNetworkAbstractions = (testName) =>
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
 
+const SmokeNetworkEnablement = (testName) =>
+  `${tags.SmokeNetworkEnablement} ${testName}`;
 export {
   Regression,
   SmokeAccounts,
@@ -63,4 +66,5 @@ export {
   SmokeRamps,
   SmokeNotifications,
   SmokeAnalytics,
+  SmokeNetworkEnablement
 };
