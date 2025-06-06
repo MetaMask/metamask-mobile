@@ -9,7 +9,7 @@ import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import Engine from '../../../../../core/Engine';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
-import { toLowerCaseEquals } from '../../../../../util/general';
+import { areAddressesEqual } from '../../../../../util/address';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails, stateHasOrder } from '../utils';
@@ -49,7 +49,7 @@ function useHandleSuccessfulOrder() {
 
       if (
         !tokens.find((stateToken: Token) =>
-          toLowerCaseEquals(stateToken.address, address),
+          areAddressesEqual(stateToken.address, address),
         )
       ) {
         await TokensController.addToken({
