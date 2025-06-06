@@ -20,7 +20,7 @@ exports[`SkipAccountSecurityModal should render correctly 1`] = `
       color="#121314"
       fill="currentColor"
       height={24}
-      name="DangerSolid"
+      name="Danger"
       style={
         {
           "alignSelf": "center",
