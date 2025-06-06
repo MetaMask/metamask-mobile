@@ -1765,174 +1765,6 @@ export class Engine {
         AccountsController.state.internalAccounts.selectedAccount,
       );
 
-    if (selectedInternalAccount) {
-      const selectedInternalAccountFormattedAddress = toFormattedAddress(
-        selectedInternalAccount.address,
-      );
-      const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.getNetworkClientById(
-        getGlobalNetworkClientId(NetworkController),
-      ).configuration;
-
-      const { settings: { showFiatOnTestnets } = {} } = store.getState();
-
-      if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return {
-          ethFiat: 0,
-          tokenFiat: 0,
-          ethFiat1dAgo: 0,
-          tokenFiat1dAgo: 0,
-          totalNativeTokenBalance: '0',
-          ticker: '',
-        };
-      }
-
-      const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
-
-      const { accountsByChainId } = AccountTrackerController.state;
-      const chainIdHex = toHexadecimal(chainId);
-      const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
-        ] || [];
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
-
-      let ethFiat = 0;
-      let ethFiat1dAgo = 0;
-      let tokenFiat = 0;
-      let tokenFiat1dAgo = 0;
-      let totalNativeTokenBalance = '0';
-      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      if (
-        accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectedInternalAccountFormattedAddress
-        ]
-      ) {
-        const balanceHex =
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].balance;
-
-        const balanceBN = hexToBN(balanceHex);
-        totalNativeTokenBalance = renderFromWei(balanceHex);
-
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const stakedBalanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].stakedBalance || '0x00',
-        );
-        const totalAccountBalance = balanceBN
-          .add(stakedBalanceBN)
-          .toString('hex');
-        ethFiat = weiToFiatNumber(
-          totalAccountBalance,
-          conversionRate,
-          decimalsToShow,
-        );
-      }
-
-      const ethPricePercentChange1d =
-        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
-
-      ethFiat1dAgo =
-        ethPricePercentChange1d !== undefined
-          ? ethFiat / (1 + ethPricePercentChange1d / 100)
-          : ethFiat;
-
-      if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
-
-        const tokenBalances =
-          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
-          ] ?? {};
-        tokens.forEach(
-          (item: { address: string; balance?: string; decimals: number }) => {
-            const exchangeRate =
-              tokenExchangeRates?.[item.address as Hex]?.price;
-
-            const tokenBalance =
-              item.balance ||
-              (item.address in tokenBalances
-                ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
-                : undefined);
-            const tokenBalanceFiat = balanceToFiatNumber(
-              // TODO: Fix this by handling or eliminating the undefined case
-              // @ts-expect-error This variable can be `undefined`, which would break here.
-              tokenBalance,
-              conversionRate,
-              exchangeRate,
-              decimalsToShow,
-            );
-
-            const tokenPricePercentChange1d =
-              tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
-
-            const tokenBalance1dAgo =
-              tokenPricePercentChange1d !== undefined
-                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-                : tokenBalanceFiat;
-
-            tokenFiat += tokenBalanceFiat;
-            tokenFiat1dAgo += tokenBalance1dAgo;
-          },
-        );
-      }
-
-      return {
-        ethFiat: ethFiat ?? 0,
-        ethFiat1dAgo: ethFiat1dAgo ?? 0,
-        tokenFiat: tokenFiat ?? 0,
-        tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
-        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
-        ticker,
-      };
-    }
-    // if selectedInternalAccount is undefined, return default 0 value.
-    return {
-      ethFiat: 0,
-      tokenFiat: 0,
-      ethFiat1dAgo: 0,
-      tokenFiat1dAgo: 0,
-      totalNativeTokenBalance: '0',
-      ticker: '',
-    };
-  };
-
-  getTotalEvmFiatAccountBalanceAcrossAllNetworks = (
-    account?: InternalAccount,
-  ): {
-    ethFiat: number;
-    tokenFiat: number;
-    tokenFiat1dAgo: number;
-    ethFiat1dAgo: number;
-    totalNativeTokenBalance: string;
-    ticker: string;
-  } => {
-    const {
-      CurrencyRateController,
-      AccountsController,
-      AccountTrackerController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokensController,
-      NetworkController,
-    } = this.context;
-
-    const selectedInternalAccount =
-      account ??
-      AccountsController.getAccount(
-        AccountsController.state.internalAccounts.selectedAccount,
-      );
-
     if (!selectedInternalAccount) {
       return {
         ethFiat: 0,
@@ -1962,29 +1794,30 @@ export class Engine {
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
 
-     const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
+    // Get all network configurations to aggregate across all networks
+    const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
 
-          networkConfigurations.forEach((networkConfig) => {
-       const { chainId } = networkConfig;
-       const chainIdHex = toHexadecimal(chainId);
+    networkConfigurations.forEach((networkConfig) => {
+      const { chainId } = networkConfig;
+      const chainIdHex = toHexadecimal(chainId);
 
-       if (isTestNet(chainId) && !showFiatOnTestnets) {
-         return;
-       }
+      if (isTestNet(chainId) && !showFiatOnTestnets) {
+        return;
+      }
 
-       let ticker = '';
-       try {
-         const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
-         if (networkClientId) {
-           const networkClient = NetworkController.getNetworkClientById(networkClientId);
-           ticker = networkClient.configuration.ticker;
-         }
-       } catch (error) {
-         return;
-       }
+      let ticker = '';
+      try {
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+        if (networkClientId) {
+          const networkClient = NetworkController.getNetworkClientById(networkClientId);
+          ticker = networkClient.configuration.ticker;
+        }
+      } catch (error) {
+        return;
+      }
 
-       const conversionRate =
-         CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
+      const conversionRate =
+        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;
@@ -1994,6 +1827,7 @@ export class Engine {
         primaryTicker = ticker;
       }
 
+      // Calculate native token balance for this chain
       const accountData = accountsByChainId?.[chainIdHex]?.[selectedInternalAccountFormattedAddress];
       if (accountData) {
         const balanceHex = accountData.balance;
@@ -2008,23 +1842,32 @@ export class Engine {
           decimalsToShow,
         );
 
-        totalEthFiat += chainEthFiat;
+        // Avoid NaN and Infinity values
+        if (isFinite(chainEthFiat)) {
+          totalEthFiat += chainEthFiat;
+        }
 
         const tokenExchangeRates = marketData?.[chainIdHex];
         const ethPricePercentChange1d = tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
-        const chainEthFiat1dAgo = ethPricePercentChange1d !== undefined
-          ? chainEthFiat / (1 + ethPricePercentChange1d / 100)
-          : chainEthFiat;
+        let chainEthFiat1dAgo = chainEthFiat;
+        if (ethPricePercentChange1d !== undefined && isFinite(ethPricePercentChange1d) && ethPricePercentChange1d !== -100) {
+          chainEthFiat1dAgo = chainEthFiat / (1 + ethPricePercentChange1d / 100);
+        }
 
-        totalEthFiat1dAgo += chainEthFiat1dAgo;
+        if (isFinite(chainEthFiat1dAgo)) {
+          totalEthFiat1dAgo += chainEthFiat1dAgo;
+        }
 
+        // Aggregate native token balance (use the sum instead of just the largest)
         const chainNativeBalance = renderFromWei(balanceHex);
-        if (!aggregatedNativeTokenBalance || parseFloat(chainNativeBalance) > parseFloat(aggregatedNativeTokenBalance)) {
-          aggregatedNativeTokenBalance = chainNativeBalance;
+        if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
+          const currentAggregated = parseFloat(aggregatedNativeTokenBalance || '0');
+          aggregatedNativeTokenBalance = (currentAggregated + parseFloat(chainNativeBalance)).toString();
         }
       }
 
+      // Calculate ALL token balances for this chain (ERC-20, etc.)
       const tokens = TokensController.state.allTokens?.[chainIdHex]?.[selectedInternalAccount.address] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
@@ -2035,8 +1878,8 @@ export class Engine {
         tokens.forEach((item: { address: string; balance?: string; decimals: number }) => {
           const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
 
-          if (!exchangeRate) {
-            return; // Skip if no exchange rate available
+          if (!exchangeRate || !isFinite(exchangeRate)) {
+            return;
           }
 
           const tokenBalance = item.balance ||
@@ -2045,7 +1888,7 @@ export class Engine {
               : undefined);
 
           if (!tokenBalance) {
-            return; // Skip if no balance available
+            return;
           }
 
           const tokenBalanceFiat = balanceToFiatNumber(
@@ -2055,13 +1898,20 @@ export class Engine {
             decimalsToShow,
           );
 
-          const tokenPricePercentChange1d = tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
-          const tokenBalance1dAgo = tokenPricePercentChange1d !== undefined
-            ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-            : tokenBalanceFiat;
+          if (isFinite(tokenBalanceFiat)) {
+            totalTokenFiat += tokenBalanceFiat;
+          }
 
-          totalTokenFiat += tokenBalanceFiat;
-          totalTokenFiat1dAgo += tokenBalance1dAgo;
+          const tokenPricePercentChange1d = tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+          let tokenBalance1dAgo = tokenBalanceFiat;
+
+          if (tokenPricePercentChange1d !== undefined && isFinite(tokenPricePercentChange1d) && tokenPricePercentChange1d !== -100) {
+            tokenBalance1dAgo = tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
+          }
+
+          if (isFinite(tokenBalance1dAgo)) {
+            totalTokenFiat1dAgo += tokenBalance1dAgo;
+          }
         });
       }
     });
@@ -2075,6 +1925,8 @@ export class Engine {
       ticker: primaryTicker,
     };
   };
+
+
 
   /**
    * Gets a subset of preferences from the PreferencesController to pass to a snap.
@@ -2448,11 +2300,6 @@ export default {
   getTotalEvmFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
     return instance.getTotalEvmFiatAccountBalance(account);
-  },
-
-  getTotalEvmFiatAccountBalanceAcrossAllNetworks(account?: InternalAccount) {
-    assertEngineExists(instance);
-    return instance.getTotalEvmFiatAccountBalanceAcrossAllNetworks(account);
   },
 
   hasFunds() {
