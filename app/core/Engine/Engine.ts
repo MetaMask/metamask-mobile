@@ -1907,6 +1907,175 @@ export class Engine {
     };
   };
 
+  getTotalEvmFiatAccountBalanceAcrossAllNetworks = (
+    account?: InternalAccount,
+  ): {
+    ethFiat: number;
+    tokenFiat: number;
+    tokenFiat1dAgo: number;
+    ethFiat1dAgo: number;
+    totalNativeTokenBalance: string;
+    ticker: string;
+  } => {
+    const {
+      CurrencyRateController,
+      AccountsController,
+      AccountTrackerController,
+      TokenBalancesController,
+      TokenRatesController,
+      TokensController,
+      NetworkController,
+    } = this.context;
+
+    const selectedInternalAccount =
+      account ??
+      AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
+
+    if (!selectedInternalAccount) {
+      return {
+        ethFiat: 0,
+        tokenFiat: 0,
+        ethFiat1dAgo: 0,
+        tokenFiat1dAgo: 0,
+        totalNativeTokenBalance: '0',
+        ticker: '',
+      };
+    }
+
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
+      selectedInternalAccount.address,
+    );
+    const { currentCurrency } = CurrencyRateController.state;
+    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+
+    const { accountsByChainId } = AccountTrackerController.state;
+    const { marketData } = TokenRatesController.state;
+
+    let totalEthFiat = 0;
+    let totalEthFiat1dAgo = 0;
+    let totalTokenFiat = 0;
+    let totalTokenFiat1dAgo = 0;
+    let aggregatedNativeTokenBalance = '';
+    let primaryTicker = '';
+
+    const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+
+     const networkConfigurations = Object.values(NetworkController.state.networkConfigurationsByChainId || {});
+
+          networkConfigurations.forEach((networkConfig) => {
+       const { chainId } = networkConfig;
+       const chainIdHex = toHexadecimal(chainId);
+
+       if (isTestNet(chainId) && !showFiatOnTestnets) {
+         return;
+       }
+
+       let ticker = '';
+       try {
+         const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+         if (networkClientId) {
+           const networkClient = NetworkController.getNetworkClientById(networkClientId);
+           ticker = networkClient.configuration.ticker;
+         }
+       } catch (error) {
+         return;
+       }
+
+       const conversionRate =
+         CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ?? 0;
+
+      if (conversionRate === 0) {
+        return;
+      }
+
+      if (!primaryTicker) {
+        primaryTicker = ticker;
+      }
+
+      const accountData = accountsByChainId?.[chainIdHex]?.[selectedInternalAccountFormattedAddress];
+      if (accountData) {
+        const balanceHex = accountData.balance;
+        const balanceBN = hexToBN(balanceHex);
+
+        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+
+        const chainEthFiat = weiToFiatNumber(
+          totalAccountBalance,
+          conversionRate,
+          decimalsToShow,
+        );
+
+        totalEthFiat += chainEthFiat;
+
+        const tokenExchangeRates = marketData?.[chainIdHex];
+        const ethPricePercentChange1d = tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
+        const chainEthFiat1dAgo = ethPricePercentChange1d !== undefined
+          ? chainEthFiat / (1 + ethPricePercentChange1d / 100)
+          : chainEthFiat;
+
+        totalEthFiat1dAgo += chainEthFiat1dAgo;
+
+        const chainNativeBalance = renderFromWei(balanceHex);
+        if (!aggregatedNativeTokenBalance || parseFloat(chainNativeBalance) > parseFloat(aggregatedNativeTokenBalance)) {
+          aggregatedNativeTokenBalance = chainNativeBalance;
+        }
+      }
+
+      const tokens = TokensController.state.allTokens?.[chainIdHex]?.[selectedInternalAccount.address] || [];
+      const tokenExchangeRates = marketData?.[chainIdHex];
+
+      if (tokens.length > 0) {
+        const { tokenBalances: allTokenBalances } = TokenBalancesController.state;
+        const tokenBalances = allTokenBalances?.[selectedInternalAccount.address as Hex]?.[chainId] ?? {};
+
+        tokens.forEach((item: { address: string; balance?: string; decimals: number }) => {
+          const exchangeRate = tokenExchangeRates?.[item.address as Hex]?.price;
+
+          if (!exchangeRate) {
+            return; // Skip if no exchange rate available
+          }
+
+          const tokenBalance = item.balance ||
+            (item.address in tokenBalances
+              ? renderFromTokenMinimalUnit(tokenBalances[item.address as Hex], item.decimals)
+              : undefined);
+
+          if (!tokenBalance) {
+            return; // Skip if no balance available
+          }
+
+          const tokenBalanceFiat = balanceToFiatNumber(
+            tokenBalance,
+            conversionRate,
+            exchangeRate,
+            decimalsToShow,
+          );
+
+          const tokenPricePercentChange1d = tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+          const tokenBalance1dAgo = tokenPricePercentChange1d !== undefined
+            ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
+            : tokenBalanceFiat;
+
+          totalTokenFiat += tokenBalanceFiat;
+          totalTokenFiat1dAgo += tokenBalance1dAgo;
+        });
+      }
+    });
+
+    return {
+      ethFiat: totalEthFiat ?? 0,
+      ethFiat1dAgo: totalEthFiat1dAgo ?? 0,
+      tokenFiat: totalTokenFiat ?? 0,
+      tokenFiat1dAgo: totalTokenFiat1dAgo ?? 0,
+      totalNativeTokenBalance: aggregatedNativeTokenBalance ?? '0',
+      ticker: primaryTicker,
+    };
+  };
+
   /**
    * Gets a subset of preferences from the PreferencesController to pass to a snap.
    */
@@ -2279,6 +2448,11 @@ export default {
   getTotalEvmFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
     return instance.getTotalEvmFiatAccountBalance(account);
+  },
+
+  getTotalEvmFiatAccountBalanceAcrossAllNetworks(account?: InternalAccount) {
+    assertEngineExists(instance);
+    return instance.getTotalEvmFiatAccountBalanceAcrossAllNetworks(account);
   },
 
   hasFunds() {

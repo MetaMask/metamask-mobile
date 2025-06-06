@@ -26,7 +26,7 @@ const getEvmBalance = (
   totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
   currentCurrency: string,
 ) => {
-  const balance = Engine.getTotalEvmFiatAccountBalance(account);
+  const balance = Engine.getTotalEvmFiatAccountBalanceAcrossAllNetworks(account);
   let total;
 
   const isPortfolioEnabled = isPortfolioViewEnabled();
@@ -98,7 +98,7 @@ export const getShouldShowAggregatedPercentage = (chainId: SupportedCaipChainId)
 };
 
 export const getAggregatedBalance = (account: InternalAccount) => {
-  const balance = Engine.getTotalEvmFiatAccountBalance(account);
+  const balance = Engine.getTotalEvmFiatAccountBalanceAcrossAllNetworks(account);
   return {
     ethFiat: balance?.ethFiat ?? 0,
     tokenFiat: balance?.tokenFiat ?? 0,
