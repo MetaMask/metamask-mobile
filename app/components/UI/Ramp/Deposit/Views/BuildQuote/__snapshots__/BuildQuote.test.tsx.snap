@@ -368,6 +368,289 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                             >
                               Build Quote Page Placeholder
                             </Text>
+                            <View
+                              style={
+                                {
+                                  "marginVertical": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "marginBottom": 16,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 6,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Enter amount
+                                </Text>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 48,
+                                      "opacity": 1,
+                                      "paddingHorizontal": 16,
+                                    }
+                                  }
+                                  testID="textfield"
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TextInput
+                                      autoFocus={false}
+                                      editable={true}
+                                      keyboardAppearance="light"
+                                      onBlur={[Function]}
+                                      onChangeText={[Function]}
+                                      onFocus={[Function]}
+                                      placeholderTextColor="#9ca1af"
+                                      style={
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "transparent",
+                                          "borderWidth": 1,
+                                          "color": "#121314",
+                                          "fontFamily": "CentraNo1-Book",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "height": 24,
+                                          "letterSpacing": 0,
+                                          "opacity": 1,
+                                          "paddingVertical": 0,
+                                        }
+                                      }
+                                      value="100"
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 16,
+                                    "fontWeight": "bold",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "marginBottom": 16,
+                                  }
+                                }
+                              >
+                                Quote Details
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "borderBottomColor": "#b7bbc8",
+                                    "borderBottomWidth": 1,
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                    "marginBottom": 12,
+                                    "paddingBottom": 8,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Payment Method:
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  CREDIT DEBIT_CARD
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "borderBottomColor": "#b7bbc8",
+                                    "borderBottomWidth": 1,
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                    "marginBottom": 12,
+                                    "paddingBottom": 8,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Crypto Currency:
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  USDC
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "borderBottomColor": "#b7bbc8",
+                                    "borderBottomWidth": 1,
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                    "marginBottom": 12,
+                                    "paddingBottom": 8,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Fiat Currency:
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  USD
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "borderBottomColor": "#b7bbc8",
+                                    "borderBottomWidth": 1,
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                    "marginBottom": 12,
+                                    "paddingBottom": 8,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Network:
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  Ethereum
+                                </Text>
+                              </View>
+                            </View>
                           </View>
                         </View>
                         <View>

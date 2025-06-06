@@ -91,13 +91,8 @@ class Browser {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(BrowserViewSelectorsIDs.AVATAR_IMAGE)
-      : Matchers.getElementByDescendant(
-          AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
-          BrowserViewSelectorsIDs.AVATAR_IMAGE,
-        );
+  get networkAvatarOrAccountButton() {
+    return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
   get addBookmarkButton() {
@@ -153,9 +148,9 @@ class Browser {
     await Gestures.waitAndTap(this.multiTabButton);
   }
 
-  async tapNetworkAvatarButtonOnBrowser() {
+  async tapNetworkAvatarOrAccountButtonOnBrowser() {
     await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.networkAvatarButton);
+    await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 
   async tapAddToFavoritesButton() {

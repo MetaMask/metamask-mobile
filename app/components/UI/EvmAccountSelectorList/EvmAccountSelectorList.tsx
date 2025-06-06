@@ -23,7 +23,12 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  areAddressesEqual,
+  formatAddress,
+  getLabelTextByAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -41,6 +46,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { parseCaipAccountId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../util/networks';
@@ -88,12 +94,15 @@ const EvmAccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
+  const useMultichainAccountDesign = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
     const lookupSet = new Set<string>();
     selectedAddresses.forEach((addr) => {
-      if (addr) lookupSet.add(addr.toLowerCase());
+      if (addr) lookupSet.add(toFormattedAddress(addr));
     });
     return lookupSet;
   }, [selectedAddresses]);
@@ -103,7 +112,7 @@ const EvmAccountSelectorList = ({
       { fiatBalance, tokens }: Assets,
       address: string,
       isLoadingAccount: boolean,
-      networkImage: ImageSourcePropType
+      networkImage: ImageSourcePropType,
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
@@ -126,15 +135,19 @@ const EvmAccountSelectorList = ({
               </SensitiveText>
 
               <AvatarGroup
-                avatarPropsList={tokens ? tokens.map((tokenObj) => ({
-                  ...tokenObj,
-                  variant: AvatarVariant.Token,
-                })) : [
-                  {
-                    variant: AvatarVariant.Network,
-                    imageSource: networkImage,
-                  },
-                ]}
+                avatarPropsList={
+                  tokens
+                    ? tokens.map((tokenObj) => ({
+                        ...tokenObj,
+                        variant: AvatarVariant.Token,
+                      }))
+                    : [
+                        {
+                          variant: AvatarVariant.Network,
+                          imageSource: networkImage,
+                        },
+                      ]
+                }
               />
             </>
           )}
@@ -258,7 +271,9 @@ const EvmAccountSelectorList = ({
       }
       let isSelectedAccount = isSelected;
       if (selectedAddressesLookup) {
-        isSelectedAccount = selectedAddressesLookup.has(address.toLowerCase());
+        isSelectedAccount = selectedAddressesLookup.has(
+          toFormattedAddress(address),
+        );
       }
 
       const cellStyle: ViewStyle = {
@@ -284,6 +299,18 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        if (useMultichainAccountDesign) {
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+          return;
+        }
+
         onNavigateToAccountActions(address);
       };
 
@@ -320,23 +347,30 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, address, isLoadingAccount, networkImage))}
+              renderAccountBalances(
+                assets,
+                address,
+                isLoadingAccount,
+                networkImage,
+              ))}
         </Cell>
       );
     },
     [
-      onNavigateToAccountActions,
-      accountAvatarType,
-      onSelectAccount,
-      renderAccountBalances,
       ensByAccountAddress,
       isLoading,
-      selectedAddressesLookup,
+      isSelectionDisabled,
       isMultiSelect,
       isSelectWithoutMenu,
+      selectedAddressesLookup,
+      accountAvatarType,
       renderRightAccessory,
-      isSelectionDisabled,
+      renderAccountBalances,
       onLongPress,
+      onSelectAccount,
+      useMultichainAccountDesign,
+      onNavigateToAccountActions,
+      navigate,
       styles.titleText,
     ],
   );
@@ -348,9 +382,9 @@ const EvmAccountSelectorList = ({
       let selectedAccount: Account | undefined;
 
       if (selectedAddresses?.length) {
-        const selectedAddressLower = selectedAddresses[0].toLowerCase();
-        selectedAccount = accounts.find(
-          (acc) => acc.address.toLowerCase() === selectedAddressLower,
+        const selectedAddress = selectedAddresses[0];
+        selectedAccount = accounts.find((acc) =>
+          areAddressesEqual(acc.address, selectedAddress),
         );
       }
       // Fall back to the account with isSelected flag if no override or match found
