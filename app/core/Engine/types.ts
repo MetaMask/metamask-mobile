@@ -270,7 +270,7 @@ import {
   AppMetadataControllerEvents,
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
-import { AccountTreeController, AccountTreeControllerState } from '@metamask-previews/account-tree-controller';
+import { AccountTreeController, AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
