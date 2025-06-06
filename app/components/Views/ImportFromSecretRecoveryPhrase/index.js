@@ -93,6 +93,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
