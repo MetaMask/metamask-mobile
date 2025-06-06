@@ -86,6 +86,8 @@ import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSet
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../../../util/device';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -264,7 +266,7 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
 
       if (!enabled) {
         setLoading(false);

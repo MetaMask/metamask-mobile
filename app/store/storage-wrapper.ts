@@ -2,14 +2,8 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
-import {
-  EXISTING_USER,
-  FRESH_INSTALL_CHECK_DONE,
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
-} from '../constants/storage';
 import Logger from '../util/Logger';
-import { Platform } from 'react-native';
+
 /**
  * Wrapper class for MMKV.
  * Provides a unified interface for storage operations, with fallback to AsyncStorage in E2E test mode.
@@ -160,80 +154,9 @@ class StorageWrapper {
     }
     return StorageWrapper.instance;
   }
-
-  /**
-   * Checks if this is a fresh install with restored MMKV data from a backup on iOS devices.
-   * If so, clears the MMKV storage to ensure a clean state.
-   */
-  static handleFreshInstallWithRestoredData = () => {
-    (async () => {
-      try {
-        if (Platform.OS !== 'ios') return;
-
-        const storage = StorageWrapper.getInstance();
-        const alreadyChecked = await AsyncStorage.getItem(
-          FRESH_INSTALL_CHECK_DONE,
-        );
-
-        Logger.log('StorageWrapper: Checking for restored data', {
-          alreadyChecked,
-          platform: Platform.OS,
-        });
-
-        if (!alreadyChecked) {
-          // Check if MMKV has user data (persists through backup)
-          const hasMMKVUserData = await storage.getItem(EXISTING_USER);
-          Logger.log('StorageWrapper: MMKV user data check', {
-            hasMMKVUserData,
-          });
-
-          // Check if AsyncStorage has any app-specific marker (gets cleared on restore)
-          const hasAsyncStorageMarker = await AsyncStorage.getItem(
-            'APP_LAUNCHED_BEFORE',
-          );
-          Logger.log('StorageWrapper: AsyncStorage marker check', {
-            hasAsyncStorageMarker,
-          });
-
-          // Get current app version
-          const currentVersion = await storage.getItem(CURRENT_APP_VERSION);
-          const lastVersion = await storage.getItem(LAST_APP_VERSION);
-          Logger.log('StorageWrapper: Version check', {
-            currentVersion,
-            lastVersion,
-          });
-
-          // If this is an app update (currentVersion !== lastVersion) or a restore (hasMMKVUserData && hasAsyncStorageMarker === null)
-          if (
-            currentVersion !== lastVersion ||
-            (hasMMKVUserData && hasAsyncStorageMarker === null)
-          ) {
-            Logger.log('StorageWrapper: Clearing MMKV storage', {
-              reason: currentVersion !== lastVersion ? 'version_change' : 'restore',
-            });
-            // Clear MMKV storage to ensure a clean state
-            await storage.clearAll();
-          }
-
-          // Set markers for future checks
-          await AsyncStorage.setItem('APP_LAUNCHED_BEFORE', 'true');
-          await AsyncStorage.setItem(FRESH_INSTALL_CHECK_DONE, 'true');
-          Logger.log('StorageWrapper: Set markers for future checks');
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error checking for restored data');
-      }
-    })();
-  };
 }
 
 // Get the singleton instance
 const storageWrapperInstance = StorageWrapper.getInstance();
 
-// Create an enhanced instance that maintains the singleton pattern
-const enhancedInstance = Object.assign(storageWrapperInstance, {
-  handleFreshInstallWithRestoredData:
-    StorageWrapper.handleFreshInstallWithRestoredData,
-});
-
-export default enhancedInstance;
+export default storageWrapperInstance;

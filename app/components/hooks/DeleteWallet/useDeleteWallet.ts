@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import StorageWrapper from '../../../store/storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Logger from '../../../util/Logger';
 import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
@@ -16,9 +16,7 @@ const useDeleteWallet = () => {
       });
       await clearAllVaultBackups();
       await Authentication.lockApp();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
     }
@@ -26,12 +24,10 @@ const useDeleteWallet = () => {
 
   const deleteUser = async () => {
     try {
-      await StorageWrapper.removeItem(EXISTING_USER);
+      await FilesystemStorage.removeItem(EXISTING_USER);
       await metrics.createDataDeletionTask();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const errorMsg = `Failed to remove key: ${EXISTING_USER} from MMKV`;
+    } catch (error) {
+      const errorMsg = `Failed to remove key: ${EXISTING_USER} from FilesystemStorage`;
       Logger.log(error, errorMsg);
     }
   };

@@ -135,6 +135,7 @@ import NavigationService from '../../../core/NavigationService';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccount from '../../Views/AddNewAccount';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -741,7 +742,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+      const existingUser = await FilesystemStorage.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {

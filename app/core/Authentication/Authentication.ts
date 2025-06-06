@@ -37,6 +37,8 @@ import {
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF(beta)
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -176,7 +178,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUser = await FilesystemStorage.getItem(EXISTING_USER);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -335,7 +337,7 @@ class AuthenticationService {
     try {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
@@ -368,7 +370,7 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;

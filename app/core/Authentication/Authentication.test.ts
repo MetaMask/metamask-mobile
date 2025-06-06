@@ -1,4 +1,6 @@
 import StorageWrapper from '../../store/storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
@@ -25,6 +27,18 @@ jest.mock('../../store/storage-wrapper', () => ({
   }),
   clearAll: jest.fn(() => {
     Object.keys(storage).forEach((key) => delete storage[key]);
+    return Promise.resolve();
+  }),
+}));
+
+jest.mock('redux-persist-filesystem-storage', () => ({
+  setItem: jest.fn((key, value, _isIOS) => {
+    storage[key] = value;
+    return Promise.resolve();
+  }),
+  getItem: jest.fn((key) => Promise.resolve(storage[key] ?? null)),
+  removeItem: jest.fn((key) => {
+    delete storage[key];
     return Promise.resolve();
   }),
 }));
@@ -95,7 +109,7 @@ describe('Authentication', () => {
     SecureKeychain.getGenericPassword = jest
       .fn()
       .mockReturnValue(mockCredentials);
-    await StorageWrapper.setItem(EXISTING_USER, TRUE);
+    await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
@@ -103,7 +117,7 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user exists and there are no available biometrics options but the password does not exist in the keychain', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    await StorageWrapper.setItem(EXISTING_USER, TRUE);
+    await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
     SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
@@ -112,7 +126,7 @@ describe('Authentication', () => {
 
   it('should return a type AUTHENTICATION_TYPE.PASSWORD if the user does not exist and there are no available biometrics options', async () => {
     SecureKeychain.getSupportedBiometryType = jest.fn().mockReturnValue(null);
-    await StorageWrapper.setItem(EXISTING_USER, TRUE);
+    await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
     const result = await Authentication.getType();
     expect(result.availableBiometryType).toBeNull();
     expect(result.currentAuthType).toEqual(AUTHENTICATION_TYPE.PASSWORD);

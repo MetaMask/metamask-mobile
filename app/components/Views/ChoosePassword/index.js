@@ -63,6 +63,8 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -380,7 +382,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);

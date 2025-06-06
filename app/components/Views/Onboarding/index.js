@@ -49,6 +49,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -258,7 +259,7 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUser = await FilesystemStorage.getItem(EXISTING_USER);
     if (existingUser !== null) {
       this.setState({ existingUser: true });
     }
