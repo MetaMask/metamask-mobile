@@ -1,4 +1,4 @@
-// @ts-check
+import type { Mockttp } from 'mockttp';
 import {
   getMockAuthNonceResponse,
   getMockAuthLoginResponse,
@@ -68,9 +68,7 @@ mockFeatureAnnouncementResponse.url =
   mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
 if (mockFeatureAnnouncementResponse.response.items?.[0]) {
   mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
-    /** @type {`${number}-${number}-${number}T${number}:${number}:${number}Z`} */ (
-      new Date().toString()
-    );
+    new Date().toString() as `${number}-${number}-${number}T${number}:${number}:${number}Z`;
 }
 
 export function getMockWalletNotificationItemIds() {
@@ -89,7 +87,7 @@ export function getMockFeatureAnnouncementItemId() {
  *
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
-export async function mockNotificationServices(server) {
+export async function mockNotificationServices(server: Mockttp) {
   // Auth
   mockAPICall(server, getMockAuthNonceResponse());
   mockAPICall(server, getMockAuthLoginResponse());
@@ -131,16 +129,13 @@ export async function mockNotificationServices(server) {
   };
 }
 
-/**
- *
- * @param {import('mockttp').Mockttp} server
- * @param {{
- *   requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
- *   url: string | RegExp;
- *   response: unknown;
- * }} response
- */
-function mockAPICall(server, response) {
+interface ResponseParam {
+  requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  url: string | RegExp;
+  response: unknown;
+}
+
+function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {

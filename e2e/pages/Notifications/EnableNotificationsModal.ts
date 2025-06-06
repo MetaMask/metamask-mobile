@@ -1,4 +1,3 @@
-// @ts-check
 import { EnableNotificationModalSelectorsIDs } from '../../selectors/Notifications/EnableNotificationModal.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
