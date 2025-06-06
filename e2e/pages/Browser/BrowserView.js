@@ -140,6 +140,11 @@ class Browser {
     await Gestures.waitAndTap(this.tabsButton);
   }
 
+  async tapSecondTabButton() {
+    const secondTab = Matchers.getElementByText('localhost', 1);
+    await Gestures.waitAndTap(secondTab);
+  }
+
   async tapCloseTabsButton() {
     await Gestures.waitAndTap(this.closeAllTabsButton);
   }
@@ -190,7 +195,7 @@ class Browser {
   }
 
   async waitForBrowserPageToLoad() {
-    await TestHelpers.delay(5000);
+    await TestHelpers.delay(20000);
   }
 
   async navigateToTestDApp() {

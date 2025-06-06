@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { getGanachePort } from './utils';
+import { getGanachePort, getSecondTestDappPort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -304,7 +304,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
-                    scopes: ['eip155:0']
+                    scopes: ['eip155:0'],
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -455,6 +455,11 @@ class FixtureBuilder {
             {
               url: 'https://google.com',
               id: 1692550481062,
+            },
+            {
+              url: `http://localhost:${getSecondTestDappPort()}`,
+              id: 1749234797566,
+              isArchived: false,
             },
           ],
           activeTab: 1692550481062,
