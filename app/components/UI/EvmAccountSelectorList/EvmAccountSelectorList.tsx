@@ -49,6 +49,7 @@ import { toHex } from '@metamask/controller-utils';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 import { parseCaipAccountId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../util/networks';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -93,6 +94,9 @@ const EvmAccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
+  const useMultichainAccountDesign = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
@@ -291,6 +295,18 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        if (useMultichainAccountDesign) {
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+          return;
+        }
+
         onNavigateToAccountActions(address);
       };
 
@@ -345,6 +361,7 @@ const EvmAccountSelectorList = ({
       isSelectionDisabled,
       onLongPress,
       styles.titleText,
+      useMultichainAccountDesign,
     ],
   );
 
