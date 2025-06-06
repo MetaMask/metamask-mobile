@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - feat: add red styling for insufficient balance on solana swaps [#15501](https://github.com/MetaMask/metamask-mobile/pull/15501)
  - feat: cleaned up Vault Sentry logs [#15458](https://github.com/MetaMask/metamask-mobile/pull/15458)
  - feat: Solana dapp connectivity announcement toast (cherry pick from #15224) [#15339](https://github.com/MetaMask/metamask-mobile/pull/15339)
+ - feat: add "hardware wallets not supported" error when attempting Solana [#15743](https://github.com/MetaMask/metamask-mobile/pull/15743)
 
  ### Fixed
 
@@ -108,10 +109,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - fix: bump bridge controllers and update quote response fields [#15376](https://github.com/MetaMask/metamask-mobile/pull/15376)
  - fix: add MetaMask fee disclaimer text to bridge view [#15380](https://github.com/MetaMask/metamask-mobile/pull/15380)
  - fix: fix endowment:caip25 error when removing dapp permitted chain [#15354](https://github.com/MetaMask/metamask-mobile/pull/15354)
- - fix: cp-7.46.0 Add dummy file for migration 73 [#15315](https://github.com/MetaMask/metamask-mobile/pull/15315)
+ - fix: Add dummy file for migration 73 [#15315](https://github.com/MetaMask/metamask-mobile/pull/15315)
  - fix: Add safe checksum method in `SendTo` page [#15309](https://github.com/MetaMask/metamask-mobile/pull/15309)
  - fix(bridge): reset state to prevent stale quotes on token switch ([#15571](https://github.com/MetaMask/metamask-mobile/pull/15571))
- 
+ - fix: fix watchAsset [#15882](https://github.com/MetaMask/metamask-mobile/pull/15882)
+ - fix: Do not lowercase account addresses [#16068](https://github.com/MetaMask/metamask-mobile/pull/16068)
+ - fix: add loader if account balance is not defined  [#16011](https://github.com/MetaMask/metamask-mobile/pull/16011)
 
 ## [7.46.2]
 
