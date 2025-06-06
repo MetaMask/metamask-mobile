@@ -14,6 +14,19 @@ const initialState = {
   },
 };
 
+const mockIsEnabled = jest.fn().mockReturnValue(true);
+
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
+
 describe('ImportFromSecretRecoveryPhrase', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(

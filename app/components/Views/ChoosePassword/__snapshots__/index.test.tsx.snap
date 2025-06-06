@@ -417,7 +417,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              accessibilityLabel="password-understand-box"
+              accessibilityLabel="i-understand-checkbox"
               disabled={false}
               onPress={[Function]}
               style={
@@ -428,7 +428,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "opacity": 1,
                 }
               }
-              testID="password-understand-box"
+              testID="i-understand-checkbox"
             >
               <View
                 accessibilityRole="checkbox"

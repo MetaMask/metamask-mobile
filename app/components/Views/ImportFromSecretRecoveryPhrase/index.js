@@ -85,6 +85,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
   NUM_COLUMNS,
@@ -92,6 +93,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -144,6 +146,7 @@ const ImportFromSecretRecoveryPhrase = ({
     [seedPhraseLength],
   );
 
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
   };
@@ -525,10 +528,23 @@ const ImportFromSecretRecoveryPhrase = ({
         });
         !onboardingWizard && setOnboardingWizardStep(1);
 
-        navigation.reset({
+        const resetAction = CommonActions.reset({
           index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+            },
+          ],
         });
+        if (isMetricsEnabled()) {
+          navigation.dispatch(resetAction);
+        } else {
+          navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.dispatch(resetAction);
+            },
+          });
+        }
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -1014,7 +1030,8 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  dispatchSaveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
+  dispatchSaveOnboardingEvent: (...eventArgs) =>
+    dispatch(saveOnboardingEvent(eventArgs)),
 });
 
 export default connect(
