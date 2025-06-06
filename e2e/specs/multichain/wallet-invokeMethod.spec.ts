@@ -95,40 +95,19 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                     await TestHelpers.delay(3000);
 
                     const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-
-                    const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
+                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
+                    const itemElement = webview.element(by.web.id(itemId));
+                    await itemElement.scrollToView();
 
                     try {
-                        const detailsElement = webview.element(by.web.id(detailsId));
-                        await detailsElement.scrollToView();
-
                         const resultElement = webview.element(by.web.id(resultElementId));
-                        await resultElement.scrollToView();
-
-                        try {
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_chainId result: ${resultText}`);
-                            if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
-                                console.log('✅ eth_chainId returned expected value: 0x1');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
+                        const resultText = await resultElement.runScript((el) => el.textContent || '');
+                        console.log(`eth_chainId result (fallback): ${resultText}`);
+                        if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
+                            console.log('✅ eth_chainId returned expected value: 0x1 (fallback)');
                         }
-                    } catch (e) {
-                        const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                        const itemElement = webview.element(by.web.id(itemId));
-                        await itemElement.scrollToView();
-
-                        try {
-                            const resultElement = webview.element(by.web.id(resultElementId));
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_chainId result (fallback): ${resultText}`);
-                            if (method === 'eth_chainId' && resultText.includes('"0x1"')) {
-                                console.log('✅ eth_chainId returned expected value: 0x1 (fallback)');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
-                        }
+                    } catch (readError) {
+                        // Could not read result text (Detox limitation)
                     }
                 },
             );
@@ -180,40 +159,15 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                     await TestHelpers.delay(3000);
 
                     const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
+                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
+                    const itemElement = webview.element(by.web.id(itemId));
+                    await itemElement.scrollToView();
 
-                    const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
-
-                    try {
-                        const detailsElement = webview.element(by.web.id(detailsId));
-                        await detailsElement.scrollToView();
-
-                        const resultElement = webview.element(by.web.id(resultElementId));
-                        await resultElement.scrollToView();
-
-                        try {
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_getBalance result: ${resultText}`);
-                            if (method === 'eth_getBalance' && resultText.includes('"0x')) {
-                                console.log('✅ eth_getBalance returned a valid hex balance');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
-                        }
-                    } catch (e) {
-                        const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                        const itemElement = webview.element(by.web.id(itemId));
-                        await itemElement.scrollToView();
-
-                        try {
-                            const resultElement = webview.element(by.web.id(resultElementId));
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_getBalance result (fallback): ${resultText}`);
-                            if (method === 'eth_getBalance' && resultText.includes('"0x')) {
-                                console.log('✅ eth_getBalance returned a valid hex balance (fallback)');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
-                        }
+                    const resultElement = webview.element(by.web.id(resultElementId));
+                    const resultText = await resultElement.runScript((el) => el.textContent || '');
+                    console.log(`eth_getBalance result (fallback): ${resultText}`);
+                    if (method === 'eth_getBalance' && resultText.includes('"0x')) {
+                        console.log('✅ eth_getBalance returned a valid hex balance (fallback)');
                     }
                 },
             );
@@ -265,39 +219,16 @@ describe(SmokeMultichainApi('wallet_invokeMethod'), () => {
                     await TestHelpers.delay(3000);
 
                     const resultElementId = `invoke-method-${escapedScopeForButton}-${method}-result-0`;
-
-                    const detailsId = `method-result-details-${escapedScopeForButton}-${method}-0`;
-
-                    try {
-                        const detailsElement = webview.element(by.web.id(detailsId));
-                        await detailsElement.scrollToView();
-
-                        const resultElement = webview.element(by.web.id(resultElementId));
-                        await resultElement.scrollToView();
-
-                        const resultText = await resultElement.runScript((el) => el.textContent || '');
-                        console.log(`eth_gasPrice result: ${resultText}`);
-                        if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
-                            console.log('✅ eth_gasPrice returned a valid hex gas price');
-                        }
-
-                    } catch (e) {
-                        const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
-                        const itemElement = webview.element(by.web.id(itemId));
-                        await itemElement.scrollToView();
-
-                        try {
-                            const resultElement = webview.element(by.web.id(resultElementId));
-                            const resultText = await resultElement.runScript((el) => el.textContent || '');
-                            console.log(`eth_gasPrice result (fallback): ${resultText}`);
-                            if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
-                                console.log('✅ eth_gasPrice returned a valid hex gas price (fallback)');
-                            }
-                        } catch (readError) {
-                            // Could not read result text (Detox limitation)
-                        }
+                    const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
+                    const itemElement = webview.element(by.web.id(itemId));
+                    await itemElement.scrollToView();
+                    const resultElement = webview.element(by.web.id(resultElementId));
+                    const resultText = await resultElement.runScript((el) => el.textContent || '');
+                    console.log(`eth_gasPrice result: ${resultText}`);
+                    if (method === 'eth_gasPrice' && resultText.includes('"0x')) {
+                        console.log('✅ eth_gasPrice returned a valid hex gas price');
                     }
-                },
+                }
             );
         });
     });
