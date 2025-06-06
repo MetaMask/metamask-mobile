@@ -16,11 +16,11 @@ import { RootState } from '../../../../../../../reducers';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
-import styleSheet from './network-row.styles';
+import styleSheet from './network-and-origin-row.styles';
 import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 
-const NetworkRow = () => {
+export const NetworkAndOriginRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const chainId = transactionMetadata?.chainId;
@@ -64,5 +64,3 @@ const NetworkRow = () => {
     </InfoSection>
   );
 };
-
-export default NetworkRow;

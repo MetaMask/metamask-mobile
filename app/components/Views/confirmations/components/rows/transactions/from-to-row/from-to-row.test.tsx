@@ -5,7 +5,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
-import FromTo from './from-to';
+import FromToRow from './from-to-row';
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
@@ -56,7 +56,7 @@ const erc20TransferState = merge({}, transferConfirmationState, {
   },
 });
 
-describe('FromTo', () => {
+describe('FromToRow', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -69,7 +69,7 @@ describe('FromTo', () => {
   });
 
   it('displays the correct addresses for native transfer', async () => {
-    const { getByText } = renderWithProvider(<FromTo />, {
+    const { getByText } = renderWithProvider(<FromToRow />, {
       state: nativeTransferState,
     });
 
@@ -78,7 +78,7 @@ describe('FromTo', () => {
   });
 
   it('displays the correct addresses for erc20 transfer', async () => {
-    const { getByText } = renderWithProvider(<FromTo />, {
+    const { getByText } = renderWithProvider(<FromToRow />, {
       state: erc20TransferState,
     });
 

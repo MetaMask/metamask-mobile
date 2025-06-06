@@ -15,6 +15,34 @@ import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 
+jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
+  removeItemFromChainIdList: jest.fn().mockReturnValue({
+    chain_id_list: ['eip155:1'],
+  }),
+}));
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(),
+      })),
+    })),
+  }),
+}));
+
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn().mockReturnValue({
+      addTraitsToUser: jest.fn(),
+    }),
+  },
+  MetaMetricsEvents: {
+    NETWORK_SWITCHED: 'Network Switched',
+  },
+}));
+
 // eslint-disable-next-line import/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 // eslint-disable-next-line import/no-namespace
@@ -297,7 +325,9 @@ describe('Network Selector', () => {
       rpcUrl: '',
       domainIsConnectedDapp: true,
     };
-    jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+    jest
+      .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+      .mockReturnValue(true);
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
       .mockImplementation(() => testMock);
@@ -646,7 +676,9 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      jest.spyOn(networks, 'isPerDappSelectedNetworkEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isPerDappSelectedNetworkEnabled')
+        .mockReturnValue(true);
       // Reset the mock before each test
       jest.clearAllMocks();
     });
