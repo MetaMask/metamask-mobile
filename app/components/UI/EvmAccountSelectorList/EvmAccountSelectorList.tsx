@@ -93,7 +93,6 @@ const EvmAccountSelectorList = ({
   // Use constant empty object to prevent useStyles from recreating styles
   const emptyVars = useMemo(() => ({}), []);
   const { styles } = useStyles(styleSheet, emptyVars);
-  const { styles } = useStyles(styleSheet, {});
 
   const accountAvatarType = useSelector(
     (state: RootState) =>
