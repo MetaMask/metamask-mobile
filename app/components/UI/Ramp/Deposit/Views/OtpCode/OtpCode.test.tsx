@@ -133,6 +133,7 @@ describe('OtpCode Component', () => {
       setAuthToken: mockSetAuthToken,
       isAuthenticated: false,
       checkExistingToken: jest.fn(),
+      setQuote: jest.fn(),
     });
 
     const { getByTestId } = render(OtpCode);

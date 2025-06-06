@@ -80,7 +80,10 @@ describe('EnterAddress Component', () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.DEPOSIT.KYC_PROCESSING,
+        undefined,
+      );
     });
   });
 
