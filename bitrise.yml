@@ -1414,7 +1414,6 @@ workflows:
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 fi
-
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
 
