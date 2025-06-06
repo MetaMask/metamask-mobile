@@ -172,6 +172,7 @@ app/reducers/settings @MetaMask/wallet-ux
 app/components/Views/transactions @MetaMask/transactions
 
 # Web3Auth Team
+app/core/OAuthService                                       @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 

@@ -348,6 +348,7 @@ export enum IconName {
   Wifi = 'Wifi',
   Google = 'Google',
   Apple = 'Apple',
+  AppleWhite = 'AppleWhite',
   EyeSlashSolid = 'EyeSlashSolid',
   EyeSolid = 'EyeSolid',
   DangerSolid = 'DangerSolid',

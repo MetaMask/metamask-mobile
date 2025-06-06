@@ -120,6 +120,7 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -791,6 +792,10 @@ const Wallet = ({
     [styles],
   );
 
+  const isSeedlessOnboardingFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   /**
    * Return current step of onboarding wizard if not step 5 nor 0
    */
@@ -810,7 +815,7 @@ const Wallet = ({
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? renderContent() : renderLoader()}
 
-        {renderOnboardingWizard()}
+        {!isSeedlessOnboardingFlow && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
   );
