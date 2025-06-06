@@ -2,7 +2,7 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
-  type PublishBatchHookTransaction
+  type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController, {
   SmartTransactionsControllerSmartTransactionEvent,
@@ -27,6 +27,7 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
 import { Messenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
+import { isLegacyTransaction } from '../transactions';
 
 export type AllowedActions = never;
 
@@ -176,7 +177,8 @@ class SmartTransactionHook {
     const useRegularTransactionSubmit = { transactionHash: undefined };
     if (
       !this.#shouldUseSmartTransaction ||
-      this.#transactionMeta.origin === RAMPS_SEND
+      this.#transactionMeta.origin === RAMPS_SEND ||
+      isLegacyTransaction(this.#transactionMeta)
     ) {
       return useRegularTransactionSubmit;
     }
