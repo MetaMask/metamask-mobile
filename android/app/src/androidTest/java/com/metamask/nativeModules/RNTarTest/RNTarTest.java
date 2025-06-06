@@ -36,7 +36,7 @@ public class RNTarTest {
 
   @Before
   public void setUp() {
-    reactContext = new ReactApplicationContext(ApplicationProvider.getApplicationContext());
+    reactContext = mock(ReactApplicationContext.class);
     tar = new RNTar(reactContext);
     promise = mock(Promise.class);
   }

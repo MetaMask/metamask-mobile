@@ -1,3 +1,4 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -22,6 +23,10 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: () => mockUpdateQuoteParams,
+}));
+
+jest.mock('../../utils/quoteUtils', () => ({
+  getQuoteRefreshRate: jest.fn(() => 15000),
 }));
 
 const initialMetrics = {

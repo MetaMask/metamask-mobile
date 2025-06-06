@@ -32,7 +32,7 @@ import {
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
-import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
+import { Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 interface Option {
   label: string;

@@ -54,6 +54,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={24}
           name="Wallet"
           style={
@@ -91,6 +92,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#9ca1af"
+          fill="currentColor"
           height={24}
           name="Activity"
           style={
@@ -128,6 +130,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={20}
           name="SwapVertical"
           style={
@@ -165,6 +168,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#9ca1af"
+          fill="currentColor"
           height={24}
           name="Explore"
           style={
@@ -202,6 +206,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#9ca1af"
+          fill="currentColor"
           height={24}
           name="Setting"
           style={

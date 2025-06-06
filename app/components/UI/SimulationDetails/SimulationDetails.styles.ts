@@ -1,11 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const styleSheet = (
-  params: {
-    theme: Theme;
-    vars: { isTransactionsRedesign: boolean };
-  }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isTransactionsRedesign: boolean };
+}) => {
   const { theme, vars } = params;
   const { isTransactionsRedesign } = vars;
 
@@ -17,7 +16,9 @@ const styleSheet = (
       borderRadius: 8,
       padding: 16,
       gap: 16,
-      backgroundColor: isTransactionsRedesign ? theme.colors.background.default: undefined,
+      backgroundColor: isTransactionsRedesign
+        ? theme.colors.background.default
+        : undefined,
     },
     errorContentContainer: {
       flexDirection: 'row',

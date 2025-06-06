@@ -763,7 +763,7 @@ const mapStateToProps = (state) => {
     showCustomNonce: selectShowCustomNonce(state),
     chainId,
     activeTabUrl: getActiveTabUrl(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };

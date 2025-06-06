@@ -27,9 +27,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
-import Engine from '../../../../core/Engine';
-import { PermissionKeys } from '../../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../../core/Permissions/constants';
 import Logger from '../../../../util/Logger';
 
 // Internal dependencies.
@@ -50,6 +47,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
+import { getCaip25Caveat } from '../../../../core/Permissions';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { toHex } from '@metamask/controller-utils';
 
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -70,16 +70,11 @@ const NetworkPermissionsConnected = ({
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        return caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
+      const caveat = getCaip25Caveat(hostname);
+      if (!caveat) {
+        return [];
       }
+      return getPermittedEthChainIds(caveat.value);
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -91,13 +86,12 @@ const NetworkPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(key))
+    .filter(([key]) => permittedChainIds.includes(toHex(key)))
     .map(([key, network]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),

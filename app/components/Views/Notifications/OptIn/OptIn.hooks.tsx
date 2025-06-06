@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { IUseMetricsHook, MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 
 /**
  * Creating wallet notifications can take time, so we will use optimistic loader
@@ -56,7 +56,7 @@ export function useHandleOptInClick(props: {
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const handleOptInClick = useCallback(async () => {
     // Navigate to Basic Functionality if not enabled
@@ -79,7 +79,7 @@ export function useHandleOptInClick(props: {
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
         .addProperties({
           action_type: 'activated',
-          is_profile_syncing_enabled: isProfileSyncingEnabled,
+          is_profile_syncing_enabled: isBackupAndSyncEnabled,
         })
         .build(),
     );
@@ -87,7 +87,7 @@ export function useHandleOptInClick(props: {
     basicFunctionalityEnabled,
     enableNotifications,
     navigation,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     trackEvent,
     createEventBuilder,
   ]);
@@ -103,7 +103,7 @@ export function useHandleOptInCancel(props: {
   const { navigation, metrics, isCreatingNotifications } = props;
   const { trackEvent, createEventBuilder } = metrics;
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const handleOptInCancel = useCallback(() => {
     if (!isCreatingNotifications) {
@@ -111,7 +111,7 @@ export function useHandleOptInCancel(props: {
         createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
           .addProperties({
             action_type: 'dismissed',
-            is_profile_syncing_enabled: isProfileSyncingEnabled,
+            is_profile_syncing_enabled: isBackupAndSyncEnabled,
           })
           .build(),
       );
@@ -120,7 +120,7 @@ export function useHandleOptInCancel(props: {
   }, [
     createEventBuilder,
     isCreatingNotifications,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     navigation,
     trackEvent,
   ]);

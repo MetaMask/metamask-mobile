@@ -75,7 +75,7 @@ const CloseButton: React.FC<CloseButtonProps> = ({ onPress, style }) => (
     onPress={onPress}
     hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
   >
-    <IonicIcon name="ios-close" style={style.closeIcon} size={30} />
+    <IonicIcon name="close" style={style.closeIcon} size={30} />
   </TouchableOpacity>
 );
 

@@ -1,3 +1,4 @@
+import '../_mocks_/initialState';
 import { getBridgeTxActivityTitle } from './transaction-history';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { ChainId, StatusTypes } from '@metamask/bridge-controller';

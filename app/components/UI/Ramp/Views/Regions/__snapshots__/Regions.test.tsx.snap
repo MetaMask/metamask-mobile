@@ -244,7 +244,13 @@ exports[`Regions View renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -252,6 +258,7 @@ exports[`Regions View renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -629,6 +636,7 @@ exports[`Regions View renders correctly 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -729,63 +737,6 @@ exports[`Regions View renders correctly 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[MockFunction]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -1044,7 +995,13 @@ exports[`Regions View renders correctly while loading 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1052,6 +1009,7 @@ exports[`Regions View renders correctly while loading 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1639,7 +1597,13 @@ exports[`Regions View renders correctly with error 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1647,6 +1611,7 @@ exports[`Regions View renders correctly with error 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1847,6 +1812,7 @@ exports[`Regions View renders correctly with error 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -1872,7 +1838,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -2272,7 +2238,13 @@ exports[`Regions View renders correctly with no data 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2280,6 +2252,7 @@ exports[`Regions View renders correctly with no data 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2867,7 +2840,13 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2875,6 +2854,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3075,6 +3055,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -3100,7 +3081,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -3500,7 +3481,13 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3508,6 +3495,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3888,6 +3876,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -3983,63 +3972,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[MockFunction]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -4298,7 +4230,13 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4306,6 +4244,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4683,6 +4622,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -4963,6 +4903,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -5184,35 +5125,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             </View>
                           </View>
                         </Modal>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -5471,7 +5383,13 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5479,6 +5397,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5856,6 +5775,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -6136,6 +6056,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -6357,35 +6278,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                             </View>
                           </View>
                         </Modal>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -6644,7 +6536,13 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -6652,6 +6550,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7029,6 +6928,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -7129,34 +7029,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[MockFunction]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                         <Modal
                           animationType="none"
                           deviceHeight={null}
@@ -7504,6 +7376,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -7523,7 +7396,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             ]
                                           }
                                         >
-                                          
+                                          
                                         </Text>
                                         <TextInput
                                           onChangeText={[Function]}
@@ -7625,7 +7498,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           onScrollBeginDrag={[Function]}
                                           onScrollEndDrag={[Function]}
                                           renderItem={[Function]}
-                                          scrollEventThrottle={50}
+                                          scrollEventThrottle={0.0001}
                                           stickyHeaderIndices={[]}
                                           style={
                                             {
@@ -7644,110 +7517,108 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               onLayout={[Function]}
                                               style={null}
                                             >
-                                              <View>
-                                                <TouchableOpacity
-                                                  accessibilityRole="button"
+                                              <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessible={true}
+                                                disabled={false}
+                                                onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 4,
+                                                    "opacity": 1,
+                                                    "paddingHorizontal": 24,
+                                                    "position": "relative",
+                                                  }
+                                                }
+                                              >
+                                                <View
+                                                  accessibilityRole="none"
                                                   accessible={true}
-                                                  disabled={false}
-                                                  onPress={[Function]}
                                                   style={
                                                     {
-                                                      "backgroundColor": "#ffffff",
-                                                      "borderRadius": 4,
-                                                      "opacity": 1,
-                                                      "paddingHorizontal": 24,
-                                                      "position": "relative",
+                                                      "padding": 16,
                                                     }
                                                   }
                                                 >
                                                   <View
-                                                    accessibilityRole="none"
-                                                    accessible={true}
                                                     style={
                                                       {
-                                                        "padding": 16,
+                                                        "alignItems": "center",
+                                                        "flexDirection": "row",
                                                       }
                                                     }
                                                   >
                                                     <View
                                                       style={
                                                         {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
+                                                          "flex": 1,
                                                         }
                                                       }
+                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
                                                           {
-                                                            "flex": 1,
+                                                            "alignItems": "center",
+                                                            "flexDirection": "row",
                                                           }
                                                         }
-                                                        testID="listitemcolumn"
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "alignItems": "center",
-                                                              "flexDirection": "row",
+                                                              "paddingRight": 16,
                                                             }
                                                           }
                                                         >
-                                                          <View
+                                                          <Text
+                                                            accessibilityRole="text"
                                                             style={
                                                               {
-                                                                "paddingRight": 16,
+                                                                "color": "#121314",
+                                                                "fontFamily": "CentraNo1-Book",
+                                                                "fontSize": 16,
+                                                                "fontWeight": "400",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 24,
                                                               }
                                                             }
                                                           >
-                                                            <Text
-                                                              accessibilityRole="text"
-                                                              style={
-                                                                {
-                                                                  "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Book",
-                                                                  "fontSize": 16,
-                                                                  "fontWeight": "400",
-                                                                  "letterSpacing": 0,
-                                                                  "lineHeight": 24,
-                                                                }
+                                                            🇨🇱
+                                                          </Text>
+                                                        </View>
+                                                        <View>
+                                                          <Text
+                                                            accessibilityRole="text"
+                                                            style={
+                                                              {
+                                                                "color": "#121314",
+                                                                "fontFamily": "CentraNo1-Medium",
+                                                                "fontSize": 18,
+                                                                "fontWeight": "500",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 24,
                                                               }
-                                                            >
-                                                              🇨🇱
-                                                            </Text>
-                                                          </View>
-                                                          <View>
-                                                            <Text
-                                                              accessibilityRole="text"
-                                                              style={
-                                                                {
-                                                                  "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Medium",
-                                                                  "fontSize": 18,
-                                                                  "fontWeight": "500",
-                                                                  "letterSpacing": 0,
-                                                                  "lineHeight": 24,
-                                                                }
-                                                              }
-                                                            >
-                                                              Chile
-                                                            </Text>
-                                                          </View>
+                                                            }
+                                                          >
+                                                            Chile
+                                                          </Text>
                                                         </View>
                                                       </View>
                                                     </View>
                                                   </View>
-                                                </TouchableOpacity>
-                                                <View
-                                                  style={
-                                                    {
-                                                      "backgroundColor": "#b7bbc866",
-                                                      "height": 1,
-                                                      "width": "100%",
-                                                    }
+                                                </View>
+                                              </TouchableOpacity>
+                                              <View
+                                                style={
+                                                  {
+                                                    "backgroundColor": "#b7bbc866",
+                                                    "height": 1,
+                                                    "width": "100%",
                                                   }
-                                                />
-                                              </View>
+                                                }
+                                              />
                                             </View>
                                             <View
                                               onFocusCapture={[Function]}
@@ -7872,34 +7743,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                     </View>
                                   </View>
                                 </RCTSafeAreaView>
-                                <Modal
-                                  animationType="none"
-                                  deviceHeight={null}
-                                  deviceWidth={null}
-                                  hardwareAccelerated={false}
-                                  hideModalContentWhileAnimating={false}
-                                  onBackdropPress={[Function]}
-                                  onModalHide={[Function]}
-                                  onModalWillHide={[Function]}
-                                  onModalWillShow={[Function]}
-                                  onRequestClose={[Function]}
-                                  panResponderThreshold={4}
-                                  scrollHorizontal={false}
-                                  scrollOffset={0}
-                                  scrollOffsetMax={0}
-                                  scrollTo={null}
-                                  statusBarTranslucent={false}
-                                  supportedOrientations={
-                                    [
-                                      "portrait",
-                                      "landscape",
-                                    ]
-                                  }
-                                  swipeDirection="down"
-                                  swipeThreshold={100}
-                                  transparent={true}
-                                  visible={false}
-                                />
                               </RCTSafeAreaView>
                             </View>
                           </View>
