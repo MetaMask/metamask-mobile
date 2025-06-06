@@ -22,21 +22,22 @@ const AccountNetworkIndicator = ({
   const networksWithTransactionActivityAndImageSource =
     networksWithTransactionActivity.map((networkInfo) => ({
       ...networkInfo,
-      imageSource: getNetworkImageSource({ chainId: networkInfo.caipChainId }),
+      imageSource: getNetworkImageSource({
+        chainId: networkInfo.caipChainId,
+      }),
     }));
 
   return (
     <View style={styles.networkTokensContainer} testID="network-container">
       <AvatarGroup
-        avatarPropsList={networksWithTransactionActivityAndImageSource
-          .slice()
-          .reverse()
-          .map((networkInfo, index) => ({
+        avatarPropsList={networksWithTransactionActivityAndImageSource.map(
+          (networkInfo, index) => ({
             ...networkInfo,
             variant: AvatarVariant.Network,
             imageSource: networkInfo.imageSource,
             testID: `avatar-group-${index}`,
-          }))}
+          }),
+        )}
         maxStackedAvatars={4}
       />
     </View>

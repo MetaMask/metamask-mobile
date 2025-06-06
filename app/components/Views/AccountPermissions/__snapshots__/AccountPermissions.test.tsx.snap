@@ -570,7 +570,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                                 testID="avatargroup-avatar-container-0"
                               >
                                 <View
-                                  caipChainId="0x38"
+                                  caipChainId="0x1"
                                   style={
                                     {
                                       "alignItems": "center",
@@ -609,7 +609,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                                 testID="avatargroup-avatar-container-1"
                               >
                                 <View
-                                  caipChainId="0x1"
+                                  caipChainId="0x38"
                                   style={
                                     {
                                       "alignItems": "center",

@@ -98,7 +98,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(true);
 
       await addNewHdAccount();
-      await fetchAccountsWithActivity();
+      fetchAccountsWithActivity();
 
       trackEvent(
         createEventBuilder(
