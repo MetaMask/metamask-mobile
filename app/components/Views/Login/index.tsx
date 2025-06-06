@@ -306,7 +306,6 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      console.log('authType', authType);
       ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
