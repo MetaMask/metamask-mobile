@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
-import { RampSDK, withRampSDK } from '../../sdk';
+import { RampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
 import {
   renderScreen,
@@ -10,6 +10,7 @@ import {
 } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -42,6 +43,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../utils/withRampAndDepositSDK', () =>
+  jest.fn((Component) => (props: Record<string, unknown>) => (
+    <Component {...props} />
+  )),
+);
 
 const mockedActivationKeys: ActivationKey[] = [
   {
@@ -93,7 +100,6 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
 
 jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
-  withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
 const mockClearAuthToken = jest.fn();
@@ -110,7 +116,6 @@ let mockUseDepositSDKValues = { ...mockUseDepositSDKInitialValues };
 
 jest.mock('../../../Deposit/sdk', () => ({
   useDepositSDK: () => mockUseDepositSDKValues,
-  withDepositSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
 describe('Settings', () => {
@@ -133,7 +138,7 @@ describe('Settings', () => {
   it('renders correctly', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(withRampSDK).toHaveBeenCalled();
+    expect(withRampAndDepositSDK).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {

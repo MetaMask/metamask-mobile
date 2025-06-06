@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import { RampSDKProvider, useRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
 import Text, {
@@ -28,7 +28,8 @@ import styles from './Settings.styles';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
-import { DepositSDKProvider, useDepositSDK } from '../../../Deposit/sdk';
+import { useDepositSDK } from '../../../Deposit/sdk';
+import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
 
 const depositProviderName = 'Transak';
 
@@ -143,16 +144,6 @@ function Settings() {
         </ScreenLayout.Body>
       </ScreenLayout>
     </KeyboardAvoidingView>
-  );
-}
-
-function withRampAndDepositSDK(Component: React.ComponentType) {
-  return (props: Record<string, unknown>) => (
-    <DepositSDKProvider>
-      <RampSDKProvider>
-        <Component {...props} />
-      </RampSDKProvider>
-    </DepositSDKProvider>
   );
 }
 
