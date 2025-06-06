@@ -1,10 +1,13 @@
 import React from 'react';
 import DeleteWalletModal from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
+import { fireEvent } from '@testing-library/react-native';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { RootState } from '../../../reducers';
+import { strings } from '../../../../locales/i18n';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -54,47 +57,51 @@ jest.mock('../../hooks/DeleteWallet', () => ({
   ],
 }));
 
+const Stack = createStackNavigator();
+
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="DeleteWalletModal" options={{}}>
+        {() => <DeleteWalletModal />}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
 describe('DeleteWalletModal', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
-    });
+    const wrapper = renderComponent(mockInitialState);
 
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('signs the user out when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
+  it('should render forgot password', async () => {
+    const wrapper = renderComponent(mockInitialState);
+
+    const title = wrapper.getByText(strings('login.forgot_password_desc'));
+    expect(title).toBeTruthy();
+
+    const button = wrapper.getByRole('button', {
+      name: strings('login.reset_wallet'),
     });
+    expect(button).toBeTruthy();
 
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+    fireEvent.press(button);
 
-    waitFor(() => {
-      expect(mockSignOut).toHaveBeenCalled();
+    const title2 = wrapper.getByText(strings('login.are_you_sure'));
+    expect(title2).toBeTruthy();
+
+    const button2 = wrapper.getByRole('button', {
+      name: strings('login.erase_my'),
     });
-  });
+    expect(button2).toBeTruthy();
 
-  it('sets completedOnboarding to false when deleting the wallet', async () => {
-    const { getByTestId } = renderWithProvider(<DeleteWalletModal />, {
-      state: mockInitialState,
-    });
+    fireEvent.press(button2);
 
-    fireEvent.press(getByTestId(DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON));
-    fireEvent.press(
-      getByTestId(DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON),
-    );
+    // Wait for all promises to resolve
+    await Promise.resolve();
 
-    waitFor(() => {
-      expect(mockUseDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: SET_COMPLETED_ONBOARDING,
-          completedOnboarding: false,
-        }),
-      );
-    });
+    expect(mockSignOut).toHaveBeenCalled();
   });
 });
