@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -14,34 +14,42 @@ import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import Row from '../../../Aggregator/components/Row';
+import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 
 export const createEnterAddressNavDetails = createNavigationDetails(
   Routes.DEPOSIT.ENTER_ADDRESS,
 );
 
-interface FormData {
+interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;
   state: string;
-  postalCode: string;
-  country: string;
+  postCode: string;
+  countryCode: string;
 }
 
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const initialFormData: FormData = {
+  const route =
+    useRoute<
+      RouteProp<Record<string, { formData: BasicInfoFormData }>, string>
+    >();
+  const { formData: basicInfoFormData } = route.params;
+
+  const initialFormData: AddressFormData = {
     addressLine1: '',
     addressLine2: '',
-    city: '',
     state: '',
-    postalCode: '',
-    country: '',
+    city: '',
+    postCode: '',
+    countryCode: '',
   };
 
-  const validateForm = (data: FormData): Record<string, string> => {
+  const validateForm = (data: AddressFormData): Record<string, string> => {
     const errors: Record<string, string> = {};
 
     if (!data.addressLine1.trim()) {
@@ -56,22 +64,43 @@ const EnterAddress = (): JSX.Element => {
       errors.state = 'State/Region is required';
     }
 
-    if (!data.postalCode.trim()) {
-      errors.postalCode = 'Postal/Zip Code is required';
+    if (!data.postCode.trim()) {
+      errors.postCode = 'Postal/Zip Code is required';
     }
 
-    if (!data.country.trim()) {
-      errors.country = 'Country is required';
+    if (!data.countryCode.trim()) {
+      errors.countryCode = 'Country is required';
     }
 
     return errors;
   };
 
   const { formData, errors, handleChange, validateFormData } =
-    useForm<FormData>({
+    useForm<AddressFormData>({
       initialFormData,
       validateForm,
     });
+
+  const handleFormDataChange = useCallback(
+    (field: keyof AddressFormData) => (value: string) => {
+      handleChange(field, value);
+    },
+    [handleChange],
+  );
+
+  const combinedFormData = {
+    ...basicInfoFormData,
+    ...formData,
+  };
+
+  const [{ data: response, error, isFetching }, postKycForm] =
+    useDepositSdkMethod(
+      {
+        method: 'patchUser',
+        onMount: false,
+      },
+      combinedFormData,
+    );
 
   useEffect(() => {
     navigation.setOptions(
@@ -83,12 +112,28 @@ const EnterAddress = (): JSX.Element => {
     );
   }, [navigation, theme]);
 
-  const handleOnPressContinue = useCallback(() => {
+  const handleOnPressContinue = useCallback(async () => {
     if (validateFormData()) {
-      // TODO: Implement form submission logic and update the route
-      navigation.navigate(Routes.DEPOSIT.BUILD_QUOTE);
+      await postKycForm({
+        ...basicInfoFormData,
+        ...formData,
+      });
+
+      if (response && !error) {
+        navigation.navigate(Routes.DEPOSIT.KYC_PENDING);
+      } else {
+        console.error('Error submitting form:', error);
+      }
     }
-  }, [navigation, validateFormData]);
+  }, [
+    basicInfoFormData,
+    response,
+    error,
+    formData,
+    navigation,
+    postKycForm,
+    validateFormData,
+  ]);
 
   return (
     <ScreenLayout>
@@ -103,7 +148,7 @@ const EnterAddress = (): JSX.Element => {
             label={strings('deposit.enter_address.address_line_1')}
             placeholder={strings('deposit.enter_address.address_line_1')}
             value={formData.addressLine1}
-            onChangeText={(text) => handleChange('addressLine1', text)}
+            onChangeText={handleFormDataChange('addressLine1')}
             error={errors.addressLine1}
             returnKeyType="next"
             testID="address-line-1-input"
@@ -113,7 +158,7 @@ const EnterAddress = (): JSX.Element => {
             label={strings('deposit.enter_address.address_line_2')}
             placeholder={strings('deposit.enter_address.address_line_2')}
             value={formData.addressLine2}
-            onChangeText={(text) => handleChange('addressLine2', text)}
+            onChangeText={handleFormDataChange('addressLine2')}
             returnKeyType="next"
             testID="address-line-2-input"
           />
@@ -123,7 +168,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.city')}
               placeholder={strings('deposit.enter_address.city')}
               value={formData.city}
-              onChangeText={(text) => handleChange('city', text)}
+              onChangeText={handleFormDataChange('city')}
               error={errors.city}
               returnKeyType="next"
               testID="city-input"
@@ -134,7 +179,7 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.state')}
               placeholder={strings('deposit.enter_address.state')}
               value={formData.state}
-              onChangeText={(text) => handleChange('state', text)}
+              onChangeText={handleFormDataChange('state')}
               error={errors.state}
               returnKeyType="next"
               testID="state-input"
@@ -146,9 +191,9 @@ const EnterAddress = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.enter_address.postal_code')}
               placeholder={strings('deposit.enter_address.postal_code')}
-              value={formData.postalCode}
-              onChangeText={(text) => handleChange('postalCode', text)}
-              error={errors.postalCode}
+              value={formData.postCode}
+              onChangeText={handleFormDataChange('postCode')}
+              error={errors.postCode}
               returnKeyType="next"
               testID="postal-code-input"
               containerStyle={styles.nameInputContainer}
@@ -157,9 +202,9 @@ const EnterAddress = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.enter_address.country')}
               placeholder={strings('deposit.enter_address.country')}
-              value={formData.country}
-              onChangeText={(text) => handleChange('country', text)}
-              error={errors.country}
+              value={formData.countryCode}
+              onChangeText={handleFormDataChange('countryCode')}
+              error={errors.countryCode}
               returnKeyType="done"
               testID="country-input"
               containerStyle={styles.nameInputContainer}
@@ -173,6 +218,7 @@ const EnterAddress = (): JSX.Element => {
                 type="confirm"
                 onPress={handleOnPressContinue}
                 testID="address-continue-button"
+                disabled={isFetching}
               >
                 {strings('deposit.enter_address.continue')}
               </StyledButton>

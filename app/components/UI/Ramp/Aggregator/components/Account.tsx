@@ -11,7 +11,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   selectInternalAccounts,
 } from '../../../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../../../util/general';
+import { areAddressesEqual } from '../../../../../util/address';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type
@@ -59,11 +59,13 @@ const Account = ({
 
   const selectedInternalAccount = address
     ? internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, address),
+        areAddressesEqual(account.address, address),
       )
-    : internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, selectedAddress),
-      );
+    : selectedAddress
+    ? internalAccounts.find((account) =>
+        areAddressesEqual(account.address, selectedAddress),
+      )
+    : undefined;
 
   const accountName = selectedInternalAccount?.metadata?.name || '';
   return (

@@ -79,7 +79,15 @@ describe('BasicInfo Component', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      ...createEnterAddressNavDetails(),
+      ...createEnterAddressNavDetails({
+        formData: {
+          dob: '01/01/1990',
+          firstName: 'John',
+          lastName: 'Smith',
+          mobileNumber: '+11234567890',
+          ssn: '123456789',
+        },
+      }),
     );
   });
 
