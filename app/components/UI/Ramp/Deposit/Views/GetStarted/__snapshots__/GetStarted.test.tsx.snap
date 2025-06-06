@@ -61,7 +61,6 @@ exports[`GetStarted render matches snapshot 1`] = `
                 style={
                   {
                     "aspectRatio": 1.3333333333333333,
-                    "height": undefined,
                     "maxWidth": 300,
                     "resizeMode": "contain",
                     "width": "100%",
@@ -156,7 +155,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                       "fontSize": 24,
                     },
                     {
-                      "color": "green",
+                      "color": "#1c7e33",
                     },
                     {
                       "fontFamily": "Ionicons",
@@ -286,7 +285,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                       "fontSize": 24,
                     },
                     {
-                      "color": "green",
+                      "color": "#1c7e33",
                     },
                     {
                       "fontFamily": "Ionicons",
@@ -416,7 +415,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                       "fontSize": 24,
                     },
                     {
-                      "color": "green",
+                      "color": "#1c7e33",
                     },
                     {
                       "fontFamily": "Ionicons",
