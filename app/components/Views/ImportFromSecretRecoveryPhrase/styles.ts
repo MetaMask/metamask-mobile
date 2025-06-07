@@ -171,8 +171,8 @@ const createStyles = (colors: any) =>
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       gap: 1,
-      width: '100%',
       flexWrap: 'wrap',
+      width: '95%',
     },
     headerLeft: {
       marginLeft: 16,
