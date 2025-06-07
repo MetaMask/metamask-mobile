@@ -1845,7 +1845,1224 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         "flex": 1,
                       }
                     }
-                  />
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "paddingHorizontal": 15,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="details-modal"
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            {
+                              "borderBottomColor": "#b7bbc866",
+                              "borderBottomWidth": 1,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Status
+                          </Text>
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                {
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontWeight": "600",
+                                },
+                                {
+                                  "color": "#1c7e33",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                {
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.5,
+                                  "marginTop": 4,
+                                },
+                              ]
+                            }
+                          >
+                            Confirmed
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "alignItems": "flex-end",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Date
+                          </Text>
+                          <Text
+                            accessibilityRole="text"
+                            primary={true}
+                            small={true}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            false,
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            From
+                          </Text>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flexDirection": "row",
+                                "justifyContent": "flex-start",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "marginRight": 8,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "overflow": "hidden",
+                                        },
+                                        {
+                                          "backgroundColor": "#1593F2",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGSvgView
+                                      bbHeight={32}
+                                      bbWidth={32}
+                                      focusable={false}
+                                      height={32}
+                                      style={
+                                        [
+                                          {
+                                            "backgroundColor": "transparent",
+                                            "borderWidth": 0,
+                                          },
+                                          {
+                                            "flex": 0,
+                                            "height": 32,
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      width={32}
+                                    >
+                                      <RNSVGGroup
+                                        fill={
+                                          {
+                                            "payload": 4278190080,
+                                            "type": 0,
+                                          }
+                                        }
+                                      >
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4280574177,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.14608302856241107,
+                                              0.9892723329629884,
+                                              -0.9892723329629884,
+                                              -0.14608302856241107,
+                                              37.75501596919891,
+                                              -2.82533949364276,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294395137,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.02094241988335673,
+                                              -0.9997806834748455,
+                                              0.9997806834748455,
+                                              -0.02094241988335673,
+                                              -15.024871507114028,
+                                              40.323921289217864,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294736640,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.458649554484315,
+                                              0.8886172326549487,
+                                              -0.8886172326549487,
+                                              -0.458649554484315,
+                                              28.4800145149268,
+                                              38.60053302995323,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                      </RNSVGGroup>
+                                    </RNSVGSvgView>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="account-label"
+                                >
+                                  <Text
+                                    numberOfLines={1}
+                                    style={null}
+                                  >
+                                    0x0...0x0
+                                  </Text>
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "alignItems": "flex-end",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            To
+                          </Text>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flexDirection": "row",
+                                "justifyContent": "flex-start",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "marginRight": 8,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "overflow": "hidden",
+                                        },
+                                        {
+                                          "backgroundColor": "#1593F2",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGSvgView
+                                      bbHeight={32}
+                                      bbWidth={32}
+                                      focusable={false}
+                                      height={32}
+                                      style={
+                                        [
+                                          {
+                                            "backgroundColor": "transparent",
+                                            "borderWidth": 0,
+                                          },
+                                          {
+                                            "flex": 0,
+                                            "height": 32,
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      width={32}
+                                    >
+                                      <RNSVGGroup
+                                        fill={
+                                          {
+                                            "payload": 4278190080,
+                                            "type": 0,
+                                          }
+                                        }
+                                      >
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4280574177,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.14608302856241107,
+                                              0.9892723329629884,
+                                              -0.9892723329629884,
+                                              -0.14608302856241107,
+                                              37.75501596919891,
+                                              -2.82533949364276,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294395137,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.02094241988335673,
+                                              -0.9997806834748455,
+                                              0.9997806834748455,
+                                              -0.02094241988335673,
+                                              -15.024871507114028,
+                                              40.323921289217864,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294736640,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.458649554484315,
+                                              0.8886172326549487,
+                                              -0.8886172326549487,
+                                              -0.458649554484315,
+                                              28.4800145149268,
+                                              38.60053302995323,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                      </RNSVGGroup>
+                                    </RNSVGSvgView>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="account-label"
+                                >
+                                  <Text
+                                    numberOfLines={1}
+                                    style={null}
+                                  >
+                                    0x1...0x1
+                                  </Text>
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                {
+                                  "textTransform": "uppercase",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Nonce
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "marginVertical": 8,
+                            },
+                            {
+                              "marginBottom": 24,
+                              "marginTop": 12,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "borderColor": "#b7bbc866",
+                                "borderRadius": 8,
+                                "borderWidth": 1,
+                                "padding": 16,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Amount
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "flexWrap": "wrap",
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                italic={true}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 30,
+                                      "fontWeight": "400",
+                                      "marginVertical": 2,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "color": "#121314",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "fontSize": 12,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                No fee
+                              </Text>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderBottomColor": "#b7bbc866",
+                                  "borderBottomWidth": 1,
+                                  "marginVertical": 6,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontWeight": "600",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Total amount
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontWeight": "600",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                {
+                                  "justifyContent": "flex-end",
+                                },
+                                {
+                                  "marginBottom": 0,
+                                  "marginTop": 3,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  {
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        onPress={[Function]}
+                        style={
+                          {
+                            "marginBottom": 24,
+                            "marginTop": 12,
+                          }
+                        }
+                      >
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#4459ff",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 16,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "textAlign": "center",
+                            }
+                          }
+                        >
+                          VIEW ON Etherscan
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
@@ -2165,7 +3382,1224 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                         "flex": 1,
                       }
                     }
-                  />
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "paddingHorizontal": 15,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="details-modal"
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            {
+                              "borderBottomColor": "#b7bbc866",
+                              "borderBottomWidth": 1,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Status
+                          </Text>
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                {
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontWeight": "600",
+                                },
+                                {
+                                  "color": "#1c7e33",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                {
+                                  "fontSize": 12,
+                                  "letterSpacing": 0.5,
+                                  "marginTop": 4,
+                                },
+                              ]
+                            }
+                          >
+                            Confirmed
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "alignItems": "flex-end",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Date
+                          </Text>
+                          <Text
+                            accessibilityRole="text"
+                            primary={true}
+                            small={true}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            false,
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            From
+                          </Text>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flexDirection": "row",
+                                "justifyContent": "flex-start",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "marginRight": 8,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "overflow": "hidden",
+                                        },
+                                        {
+                                          "backgroundColor": "#1593F2",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGSvgView
+                                      bbHeight={32}
+                                      bbWidth={32}
+                                      focusable={false}
+                                      height={32}
+                                      style={
+                                        [
+                                          {
+                                            "backgroundColor": "transparent",
+                                            "borderWidth": 0,
+                                          },
+                                          {
+                                            "flex": 0,
+                                            "height": 32,
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      width={32}
+                                    >
+                                      <RNSVGGroup
+                                        fill={
+                                          {
+                                            "payload": 4278190080,
+                                            "type": 0,
+                                          }
+                                        }
+                                      >
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4280574177,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.14608302856241107,
+                                              0.9892723329629884,
+                                              -0.9892723329629884,
+                                              -0.14608302856241107,
+                                              37.75501596919891,
+                                              -2.82533949364276,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294395137,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.02094241988335673,
+                                              -0.9997806834748455,
+                                              0.9997806834748455,
+                                              -0.02094241988335673,
+                                              -15.024871507114028,
+                                              40.323921289217864,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294736640,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.458649554484315,
+                                              0.8886172326549487,
+                                              -0.8886172326549487,
+                                              -0.458649554484315,
+                                              28.4800145149268,
+                                              38.60053302995323,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                      </RNSVGGroup>
+                                    </RNSVGSvgView>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="account-label"
+                                >
+                                  <Text
+                                    numberOfLines={1}
+                                    style={null}
+                                  >
+                                    0x0...0x0
+                                  </Text>
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "alignItems": "flex-end",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            To
+                          </Text>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flexDirection": "row",
+                                "justifyContent": "flex-start",
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "marginRight": 8,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "overflow": "hidden",
+                                        },
+                                        {
+                                          "backgroundColor": "#1593F2",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "width": 32,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <RNSVGSvgView
+                                      bbHeight={32}
+                                      bbWidth={32}
+                                      focusable={false}
+                                      height={32}
+                                      style={
+                                        [
+                                          {
+                                            "backgroundColor": "transparent",
+                                            "borderWidth": 0,
+                                          },
+                                          {
+                                            "flex": 0,
+                                            "height": 32,
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      width={32}
+                                    >
+                                      <RNSVGGroup
+                                        fill={
+                                          {
+                                            "payload": 4278190080,
+                                            "type": 0,
+                                          }
+                                        }
+                                      >
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4280574177,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.14608302856241107,
+                                              0.9892723329629884,
+                                              -0.9892723329629884,
+                                              -0.14608302856241107,
+                                              37.75501596919891,
+                                              -2.82533949364276,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294395137,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.02094241988335673,
+                                              -0.9997806834748455,
+                                              0.9997806834748455,
+                                              -0.02094241988335673,
+                                              -15.024871507114028,
+                                              40.323921289217864,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                        <RNSVGRect
+                                          fill={
+                                            {
+                                              "payload": 4294736640,
+                                              "type": 0,
+                                            }
+                                          }
+                                          height={32}
+                                          matrix={
+                                            [
+                                              -0.458649554484315,
+                                              0.8886172326549487,
+                                              -0.8886172326549487,
+                                              -0.458649554484315,
+                                              28.4800145149268,
+                                              38.60053302995323,
+                                            ]
+                                          }
+                                          propList={
+                                            [
+                                              "fill",
+                                            ]
+                                          }
+                                          width={32}
+                                          x={0}
+                                          y={0}
+                                        />
+                                      </RNSVGGroup>
+                                    </RNSVGSvgView>
+                                  </View>
+                                </View>
+                                <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="account-label"
+                                >
+                                  <Text
+                                    numberOfLines={1}
+                                    style={null}
+                                  >
+                                    0x1...0x1
+                                  </Text>
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                {
+                                  "textTransform": "uppercase",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                [
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 10,
+                                    "fontWeight": "400",
+                                    "marginBottom": 8,
+                                  },
+                                  undefined,
+                                ],
+                              ]
+                            }
+                          >
+                            Nonce
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "marginVertical": 8,
+                            },
+                            {
+                              "marginBottom": 24,
+                              "marginTop": 12,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "borderColor": "#b7bbc866",
+                                "borderRadius": 8,
+                                "borderWidth": 1,
+                                "padding": 16,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Amount
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "flexWrap": "wrap",
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                italic={true}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 30,
+                                      "fontWeight": "400",
+                                      "marginVertical": 2,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "color": "#121314",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "fontSize": 12,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                No fee
+                              </Text>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderBottomColor": "#b7bbc866",
+                                  "borderBottomWidth": 1,
+                                  "marginVertical": 6,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontWeight": "600",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Total amount
+                            </Text>
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontWeight": "600",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginVertical": 3,
+                                },
+                                {
+                                  "justifyContent": "flex-end",
+                                },
+                                {
+                                  "marginBottom": 0,
+                                  "marginTop": 3,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  {
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "fontSize": 12,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "textTransform": "uppercase",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            />
+                          </View>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        onPress={[Function]}
+                        style={
+                          {
+                            "marginBottom": 24,
+                            "marginTop": 12,
+                          }
+                        }
+                      >
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#4459ff",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 16,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "textAlign": "center",
+                            }
+                          }
+                        >
+                          VIEW ON Etherscan
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>

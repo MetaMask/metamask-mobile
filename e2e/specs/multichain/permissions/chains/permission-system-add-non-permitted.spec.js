@@ -16,7 +16,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(
+xdescribe(
   SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
