@@ -36,6 +36,12 @@ class ChangePasswordView {
     );
   }
 
+  get submitButton() {
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+  }
+
   async typeInConfirmPasswordInputBox(PASSWORD) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, PASSWORD);
   }
@@ -52,6 +58,10 @@ class ChangePasswordView {
       await TestHelpers.delay(1000);
       await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
+  }
+
+  async tapSubmitButton() {
+    await Gestures.waitAndTap(this.submitButton);
   }
 }
 
