@@ -32,7 +32,7 @@ class CreatePasswordView {
           ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
         )
       : Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
+          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
         );
   }
 
