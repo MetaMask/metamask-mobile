@@ -10,6 +10,7 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -85,6 +86,13 @@ class DeeplinkManager {
       rampPath,
       navigation: this.navigation,
       rampType: RampType.SELL,
+    });
+  }
+
+  _handleSwap(swapPath: string) {
+    handleSwapUrl({
+      swapPath,
+      navigation: this.navigation,
     });
   }
 
