@@ -241,6 +241,9 @@ exports[`OtpCode Component disables submit button and shows loading state when l
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1036,6 +1039,9 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1846,6 +1852,9 @@ exports[`OtpCode Component render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2641,6 +2650,9 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={3}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={

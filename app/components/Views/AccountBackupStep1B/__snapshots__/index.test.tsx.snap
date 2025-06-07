@@ -281,6 +281,9 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1135,6 +1138,8 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
+                      <View />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

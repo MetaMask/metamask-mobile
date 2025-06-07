@@ -21,6 +21,8 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     data={[]}
     getItem={[Function]}
     getItemCount={[Function]}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     keyExtractor={[Function]}
     onContentSizeChange={[Function]}
     onGestureHandlerEvent={[Function]}
@@ -215,6 +217,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     }
     getItem={[Function]}
     getItemCount={[Function]}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     keyExtractor={[Function]}
     onContentSizeChange={[Function]}
     onGestureHandlerEvent={[Function]}

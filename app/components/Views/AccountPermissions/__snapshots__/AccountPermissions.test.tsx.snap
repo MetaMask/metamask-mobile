@@ -63,6 +63,9 @@ exports[`AccountPermissions renders correctly 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -217,6 +220,8 @@ exports[`AccountPermissions renders correctly 1`] = `
         }
         getItem={[Function]}
         getItemCount={[Function]}
+        handlerTag={-1}
+        handlerType="NativeViewGestureHandler"
         initialNumToRender={999}
         keyExtractor={[Function]}
         onContentSizeChange={[Function]}
@@ -727,7 +732,6 @@ exports[`AccountPermissions renders correctly 1`] = `
             "marginVertical": 16,
           }
         }
-        testID="connect-accounts-buttons"
       >
         <View>
           <TouchableOpacity
@@ -750,6 +754,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="connect-accounts-buttons"
           >
             <Text
               accessibilityRole="text"

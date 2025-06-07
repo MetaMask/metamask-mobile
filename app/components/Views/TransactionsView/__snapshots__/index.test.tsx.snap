@@ -241,6 +241,9 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -458,6 +461,7 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                           </RCTScrollView>
                         </View>
                       </View>
+                      <View />
                     </View>
                   </View>
                 </View>

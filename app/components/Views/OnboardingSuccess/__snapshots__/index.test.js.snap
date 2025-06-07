@@ -230,6 +230,7 @@ Change these at any time.
         </Text>
       </TouchableOpacity>
     </View>
+    <View />
   </View>
 </RCTScrollView>
 `;
