@@ -67,12 +67,12 @@ import type { BridgeDestTokenSelectorRouteParams } from '../../components/Bridge
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { isHardwareAccount } from '../../../../../util/address';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../util/address';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -111,6 +111,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
+
   const {
     activeQuote,
     isLoading,
@@ -327,6 +328,8 @@ const BridgeView = () => {
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (isSubmittingTx && selectedAddress && isHardwareAccount(selectedAddress))
+      return strings('bridge.submitting_transaction_hardware_wallet');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     // Solana uses the continue button since they have a snap confirmation modal
