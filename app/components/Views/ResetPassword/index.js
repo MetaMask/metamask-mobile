@@ -737,7 +737,7 @@ class ResetPassword extends PureComponent {
                     }}
                     boxType="square"
                     testID={
-                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
                   />
                   <Text

@@ -30,7 +30,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { getEventsPayloads } from '../analytics/helpers.js';
+import { getEventsPayloads } from '../analytics/helpers.ts';
 import {
   startMockServer,
   stopMockServer,
