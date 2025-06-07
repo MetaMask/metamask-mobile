@@ -11,7 +11,10 @@ import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { LINEA_MAINNET } from '../../../../../app/constants/network';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+
+import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
 describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
   beforeAll(async () => {
@@ -38,26 +41,55 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
-        await Browser.tapOpenAllTabsButton();
-        await Browser.tapSecondTabButton();
 
+        await Browser.waitForBrowserPageToLoad();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-
+        await device.enableSynchronization();
         // Navigate to chain permissions
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
+
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-        // Uncheck Sepolia and check Linea Sepolia
-        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        // Update network to Linea Sepolia
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
+        await Assertions.checkIfElementHasLabel(
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          'Use your enabled networks Linea Sepolia',
+        );
+
+        // await TestHelpers.delay(2000);
+        await PermissionSummaryBottomSheet.tapBackButton();
+        await ConnectedAccountsModal.scrollToBottomOfModal();
+
+                await TestHelpers.delay(2000);
+        await Browser.tapOpenAllTabsButton();
+        await Browser.tapCloseTabsButton();
+        await Browser.tapOpenNewTabButton();
+
+        await Browser.navigateToSecondTestDApp();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+        await NetworkConnectMultiSelector.tapUpdateButton();
+
+        await Assertions.checkIfElementHasLabel(
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          'Use your enabled networks Ethereum Main Network',
+        );
+
+        await PermissionSummaryBottomSheet.tapBackButton();
+        await ConnectedAccountsModal.scrollToBottomOfModal();
         // Update in Wallet
         await TabBarComponent.tapWallet();
         await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        await NetworkListModal.changeNetworkTo('Linea Mainnet');
+        await NetworkListModal.changeNetworkTo('Linea Main Network');
         await device.disableSynchronization();
         await NetworkEducationModal.tapGotItButton();
         await device.enableSynchronization();
@@ -68,19 +100,34 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         // Navigate to chain permissions
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
-        // checking that dapp doesn't show the global selected network which in this case is linea mainnet
-        await Assertions.checkIfTextIsDisplayed('Linea Sepolia');
 
-        await Browser.navigateToTestDApp();
+        await Assertions.checkIfElementHasLabel(
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          'Use your enabled networks Ethereum Main Network',
+        );
+
+        // // checking that dapp doesn't show the global selected network which in this case is linea mainnet
+        await PermissionSummaryBottomSheet.tapBackButton();
+        await ConnectedAccountsModal.scrollToBottomOfModal();
+
+        // // Going back to test dapp 1 to verify that the network is still  linea sepolia
+        await TestHelpers.delay(2000);
         await Browser.tapOpenAllTabsButton();
-        await Browser.tapSecondTabButton();
+        await Browser.tapCloseTabsButton();
+        await Browser.tapOpenNewTabButton();
+        await Browser.navigateToTestDApp();
+
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Navigate to chain permissions
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
-        // checking that dapp doesn't show the global selected network which in this case is linea mainnet
-        await Assertions.checkIfTextIsDisplayed('Ethereum');
+
+        await Assertions.checkIfElementHasLabel(
+          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          'Use your enabled networks Linea Sepolia',
+        );
+
       },
     );
   });

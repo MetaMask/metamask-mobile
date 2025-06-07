@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from './TestDApp';
+import { TEST_DAPP_LOCAL_URL,SECOND_TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -201,6 +201,11 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await waitForTestDappToLoad();
+  }
+  async navigateToSecondTestDApp() {
+    await this.tapUrlInputBox();
+    await this.navigateToURL(SECOND_TEST_DAPP_LOCAL_URL);
     await waitForTestDappToLoad();
   }
 
