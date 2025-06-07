@@ -89,7 +89,7 @@
 
 // export default Root;
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, FlatList, Button } from 'react-native';
 import Realm from 'realm';
 import { RealmProvider, useQuery, useRealm } from '@realm/react';
@@ -100,7 +100,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  */
 interface IUser {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  // name: string;
 }
 
 /**
@@ -111,8 +113,33 @@ const UserSchema: Realm.ObjectSchema = {
   primaryKey: 'id',
   properties: {
     id: 'string',
-    name: 'string',
+    firstName: 'string',
+    lastName: 'string',
+    // name: 'string',
   },
+};
+
+/**
+ *  Realm migration function to process data migrations
+ * @param oldRealm - The old realm instance (where old data lives)
+ * @param newRealm - The new realm instance (where new data will be stored)
+ */
+const realmMigration: Realm.MigrationCallback = (oldRealm, newRealm) => {
+  if (oldRealm.schemaVersion < 2) {
+    // Migrate users to split name into firstName and lastName
+    const oldUsers = oldRealm.objects('User');
+
+    for (const oldUser of oldUsers) {
+      const oldUserId = oldUser.id as string;
+      const oldUserName = oldUser.name as string;
+      const newUser = newRealm.objectForPrimaryKey<IUser>('User', oldUserId);
+      const [firstName, lastName] = oldUserName.split(' ');
+      if (newUser) {
+        newUser.firstName = firstName;
+        newUser.lastName = lastName;
+      }
+    }
+  }
 };
 
 /**
@@ -120,9 +147,14 @@ const UserSchema: Realm.ObjectSchema = {
  */
 const realmConfig: Realm.Configuration = {
   schema: [UserSchema],
-  schemaVersion: 1,
+  schemaVersion: 2,
+  // onMigration: realmMigration,
+  // deleteRealmIfMigrationNeeded: true,
 };
 
+/**
+ *  Custom hook to manage users in Realm
+ */
 const useUsers = () => {
   const realm = useRealm();
 
@@ -138,7 +170,8 @@ const useUsers = () => {
     realm.write(() => {
       realm.create<IUser>('User', {
         id: Date.now().toString(),
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doey',
       });
     });
   }, []);
@@ -170,7 +203,9 @@ const Dummy = () => {
         data={users}
         renderItem={({ item }) => (
           <View>
-            <Text>{`${item.name} - ${item.id}`}</Text>
+            <Text>{item.id}</Text>
+            <Text>{item.firstName}</Text>
+            <Text>{item.lastName}</Text>
             <Button title="Delete User" onPress={() => deleteUser(item.id)} />
           </View>
         )}
