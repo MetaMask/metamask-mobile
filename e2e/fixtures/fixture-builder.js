@@ -470,6 +470,11 @@ class FixtureBuilder {
               url: 'https://google.com',
               id: 1692550481062,
             },
+            {
+              url: `http://localhost:${getSecondTestDappPort()}`,
+              id: 1749234797566,
+              isArchived: false,
+            },
           ],
           activeTab: 1692550481062,
         },

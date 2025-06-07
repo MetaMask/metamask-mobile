@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL,SECOND_TEST_DAPP_LOCAL_URL } from './TestDApp';
+import { TEST_DAPP_LOCAL_URL, SECOND_TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -137,16 +137,33 @@ class Browser {
   }
 
   async tapOpenAllTabsButton() {
-    await Gestures.waitAndTap(this.tabsButton);
+    await Gestures.waitAndTap(this.tabsButton, { delayBeforeTap: 4000 });
   }
 
   async tapSecondTabButton() {
-    const secondTab = Matchers.getElementByText('localhost', 1);
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+
+    const secondTab = Matchers.getElementByID('browser-tab-1749234797566');
+    await Gestures.waitAndTap(secondTab);
+  }
+
+  async tapFirstTabButton() {
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+    const secondTab = Matchers.getElementByID('browser-tab-1692550481062');
     await Gestures.waitAndTap(secondTab);
   }
 
   async tapCloseTabsButton() {
     await Gestures.waitAndTap(this.closeAllTabsButton);
+  }
+
+  async tapCloseSecondTabButton() {
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+    const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
+    await Gestures.waitAndTap(secondTab);
   }
 
   async tapOpenNewTabButton() {

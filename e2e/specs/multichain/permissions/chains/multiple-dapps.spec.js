@@ -39,10 +39,26 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
-        // Step 2: Navigate to test dApp and open network settings
+        // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
         await Browser.navigateToTestDApp();
 
         await Browser.waitForBrowserPageToLoad();
+
+        // Navigate to 2nd test dapp to load page. This is a verification check. It should  be connected to global network selector: Eth mainnet
+        await Browser.tapOpenAllTabsButton();
+        await Browser.tapSecondTabButton();
+        await Browser.waitForBrowserPageToLoad();
+
+        // This is here to debug whether or not the second test dapp loads and connected to chain
+        // await TestHelpers.delay(10000)
+
+        // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
+        await Browser.tapOpenAllTabsButton();
+        await Browser.tapCloseSecondTabButton();
+
+        // Back to First Dapp
+        await Browser.tapFirstTabButton();
+
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await device.enableSynchronization();
         // Navigate to chain permissions
@@ -51,7 +67,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-        // Update network to Linea Sepolia
+        // In 1st Dapp, Update networks: grant Linea Sepolia permissions and remove permissions from mainnet
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
@@ -65,20 +81,29 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await PermissionSummaryBottomSheet.tapBackButton();
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
-                await TestHelpers.delay(2000);
+        // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseTabsButton();
         await Browser.tapOpenNewTabButton();
+
+        // In 2nd Dapp, Should verify that we are connected to Eth mainnet
 
         await Browser.navigateToSecondTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        /* ** A POTENTIAL BUG: On second Dapp Eth Mainnet should be selected by default. 
+          The test is tapping to select ETH mainnet because it is deselected. 
+          Also LineaSepolia is selected by default which says that the network selector from Dapp 1 carries over to Dapp 2 
+          Feel free to remove lines 102 - 104 if/when this bug is fixed.
+        */
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
+        await device.enableSynchronization(); // re-enabling synchronization
         await Assertions.checkIfElementHasLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
           'Use your enabled networks Ethereum Main Network',
@@ -86,7 +111,8 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         await PermissionSummaryBottomSheet.tapBackButton();
         await ConnectedAccountsModal.scrollToBottomOfModal();
-        // Update in Wallet
+
+        // Update in Global selector in Wallet
         await TabBarComponent.tapWallet();
         await WalletView.tapNetworksButtonOnNavBar();
         await NetworkListModal.changeNetworkTo('Linea Main Network');
@@ -97,7 +123,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
-        // Navigate to chain permissions
+        // Navigate back to second Dapp and verify chain permissions
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
@@ -127,7 +153,6 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
           'Use your enabled networks Linea Sepolia',
         );
-
       },
     );
   });
