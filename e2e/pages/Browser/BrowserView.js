@@ -195,7 +195,7 @@ class Browser {
   }
 
   async waitForBrowserPageToLoad() {
-    await TestHelpers.delay(20000);
+    await TestHelpers.delay(5000);
   }
 
   async navigateToTestDApp() {
