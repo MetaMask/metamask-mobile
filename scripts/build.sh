@@ -255,7 +255,7 @@ buildAndroidDevBuild(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -595,7 +595,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache --parallel && cd ..
+	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildIos() {
