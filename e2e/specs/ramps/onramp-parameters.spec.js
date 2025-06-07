@@ -13,8 +13,12 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import QuotesView from '../../pages/Ramps/QuotesView';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../fixtures/utils';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../utils/SoftAssert';
 
 const unitedStatesRegion = {
   currencies: ['/currencies/fiat/usd'],
@@ -27,14 +31,22 @@ const unitedStatesRegion = {
   detected: false,
 };
 
+let mockServer;
+let mockServerPort;
+
 const setupOnRampTest = async (testFn) => {
   await withFixtures(
     {
       fixture: new FixtureBuilder()
         .withNetworkController(CustomNetworks.Tenderly.Mainnet)
         .withRampsSelectedRegion(unitedStatesRegion)
+        .withMetaMetricsOptIn()
         .build(),
       restartDevice: true,
+      launchArgs: {
+        mockServerPort,
+        sendMetaMetricsinE2E: true,
+      },
     },
     async () => {
       await loginToApp();
@@ -48,11 +60,21 @@ const setupOnRampTest = async (testFn) => {
 
 describe(SmokeTrade('On-Ramp Parameters'), () => {
   beforeAll(async () => {
+    const segmentMock = {
+      POST: [mockEvents.POST.segmentTrack],
+    };
+
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(segmentMock, mockServerPort);
     await TestHelpers.reverseServerPort();
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+  });
+
+  afterAll(async () => {
+    await stopMockServer(mockServer);
   });
 
   it('should select currency and verify display', async () => {
@@ -90,5 +112,50 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
       await Assertions.checkIfTextIsNotDisplayed(paymentMethod);
       await Assertions.checkIfTextIsDisplayed('Debit or Credit');
     });
+  });
+
+  it('should validate segment/metametric events for a successful onramp flow (parameters)', async () => {
+    const expectedEvents = {
+      RAMPS_REGION_SELECTED: 'Ramp Region Selected',
+      ONRAMP_PAYMENT_METHOD_SELECTED: 'On-ramp Payment Method Selected',
+    };
+
+    const events = await getEventsPayloads(mockServer, [
+      expectedEvents.RAMPS_REGION_SELECTED,
+      expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED,
+    ]);
+
+    const softAssert = new SoftAssert();
+
+    const rampRegionSelected = events.find((event) => event.event === expectedEvents.RAMPS_REGION_SELECTED);
+    await softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsPresent(rampRegionSelected);
+    }, 'Ramp Region Selected: Should be present');
+
+    await softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfObjectHasKeysAndValidValues(rampRegionSelected.properties, {
+        is_unsupported_onramp: 'boolean',
+        is_unsupported_offramp: 'boolean',
+        country_id: 'string',
+        state_id: 'string',
+        location: 'string',
+      });
+    }, 'Ramp Region Selected: Should have correct properties');
+
+    const onRampPaymentMethodSelected = events.find((event) => event.event === expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED);
+    await softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfValueIsPresent(onRampPaymentMethodSelected);
+    }, 'On-ramp Payment Method Selected: Should be present');
+
+    await softAssert.checkAndCollect(async () => {
+      await Assertions.checkIfObjectHasKeysAndValidValues(onRampPaymentMethodSelected.properties, {
+        payment_method_id: 'string',
+        available_payment_method_ids: 'array',
+        region: 'string',
+        location: 'string',
+      });
+    }, 'On-ramp Payment Method Selected: Should have correct properties');
+
+    softAssert.throwIfErrors();
   });
 });
