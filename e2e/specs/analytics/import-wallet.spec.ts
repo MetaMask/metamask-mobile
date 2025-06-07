@@ -22,6 +22,7 @@ import {
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../identity/utils/constants';
 import SoftAssert from '../../utils/SoftAssert';
+import { MockttpServer } from 'mockttp';
 
 const balanceMock = getBalanceMocks([
   {
@@ -49,7 +50,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
           sendMetaMetricsinE2E: true,
         },
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
@@ -223,7 +224,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
           sendMetaMetricsinE2E: true,
         },
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,

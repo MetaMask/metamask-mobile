@@ -17,6 +17,7 @@ import {
   INFURA_MOCK_BALANCE_1_ETH,
 } from '../../api-mocking/mock-responses/balance-mocks';
 import SoftAssert from '../../utils/SoftAssert';
+import { MockttpServer } from 'mockttp';
 
 const balanceMock = getBalanceMocks([
   {
@@ -58,7 +59,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
           sendMetaMetricsinE2E: true,
         },
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await CreateNewWallet();
 
         const events = await getEventsPayloads(mockServer, eventNames);
@@ -92,7 +93,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
           sendMetaMetricsinE2E: true,
         },
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await CreateNewWallet({
           optInToMetrics: false,
         });
