@@ -55,6 +55,7 @@ import {
 import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const defaultNumberOfWords = 12;
 
@@ -98,6 +99,10 @@ const ImportNewSecretRecoveryPhrase = () => {
   const hdKeyrings = useSelector(selectHDKeyrings);
   const { trackEvent, createEventBuilder } = useMetrics();
   const copyToClipboard = useCopyClipboard();
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   useEffect(() => {
     mounted.current = true;
@@ -237,6 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+      fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
