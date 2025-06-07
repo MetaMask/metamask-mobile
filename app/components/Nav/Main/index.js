@@ -93,6 +93,8 @@ import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const Stack = createStackNavigator();
 
@@ -208,25 +210,23 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
-
-  const toggleRemindLater = () => {
-    setShowRemindLaterModal(!showRemindLaterModal);
-  };
-
-  const toggleSkipCheckbox = () => {
-    setSkipCheckbox(!skipCheckbox);
-  };
-
   const skipAccountModalSecureNow = () => {
-    toggleRemindLater();
     props.navigation.navigate('SetPasswordFlow', {
-      screen: 'AccountBackupStep1B',
-      params: { ...props.route.params },
+      screen: 'ManualBackupStep1',
+      params: { backupFlow: true },
     });
   };
 
-  const skipAccountModalSkip = () => {
-    if (skipCheckbox) toggleRemindLater();
+  const navigation = useNavigation();
+
+  const toggleRemindLater = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: navigation.goBack,
+        onCancel: skipAccountModalSecureNow,
+      },
+    });
   };
 
   /**
@@ -444,13 +444,6 @@ const Main = (props) => {
           props.chainId,
           props.backUpSeedphraseVisible,
         )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
         <ProtectYourWalletModal navigation={props.navigation} />
         <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
@@ -500,10 +493,6 @@ Main.propTypes = {
    * Remove not visible notifications from state
    */
   removeNotVisibleNotifications: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
   /**
    * Current chain id
    */

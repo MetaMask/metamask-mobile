@@ -52,6 +52,11 @@ jest.mock('react-native', () => {
   };
 });
 
+// Mock Math.random to return deterministic values
+const mockMath = Object.create(global.Math);
+mockMath.random = () => 0.5;
+global.Math = mockMath;
+
 describe('ManualBackupStep2', () => {
   const mockWords = [
     'abstract',

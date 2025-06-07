@@ -117,6 +117,8 @@ export const importWalletWithRecoveryPhrase = async ({
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
+
+  await TestHelpers.delay(3500);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   if (optInToMetrics) {
@@ -131,15 +133,14 @@ export const importWalletWithRecoveryPhrase = async ({
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
-
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-
   await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
+  await TestHelpers.delay(3500);
   await CreatePasswordView.tapCreatePasswordButton();
 
   //'Should dismiss Enable device Notifications checks alert'
