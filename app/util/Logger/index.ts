@@ -62,7 +62,7 @@ export class AsyncLogger {
   ): Promise<void> {
     if (__DEV__) {
       console.warn(DEBUG, error); // eslint-disable-line no-console
-      return;
+      // return;
     }
 
     if (!error) {
