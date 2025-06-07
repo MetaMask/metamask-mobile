@@ -27,13 +27,9 @@ class CreatePasswordView {
   }
 
   get iUnderstandCheckboxPlatformSpecific() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
-        )
-      : Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
-        );
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.CREATE_PASSWORD_I_UNDERSTAND_BUTTON_ID,
+     );
   }
 
   get submitButton() {
