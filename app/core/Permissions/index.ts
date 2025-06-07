@@ -28,6 +28,7 @@ import {
 } from '@metamask/permission-controller';
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import { areAddressesEqual } from '../../util/address';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -48,8 +49,8 @@ const captureKeyringTypesWithMissingIdentities = (
 ) => {
   const accountsMissingIdentities = accounts.filter(
     (address) =>
-      !internalAccounts.some(
-        (account) => account.address.toLowerCase() === address.toLowerCase(),
+      !internalAccounts.some((account) =>
+        areAddressesEqual(account.address, address),
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
@@ -74,33 +75,27 @@ const captureKeyringTypesWithMissingIdentities = (
  * Sorts a list of addresses by most recently selected by using the lastSelected value for
  * the matching InternalAccount object from the list of internalAccounts provided.
  */
-const sortAddressesWithInternalAccounts = <T extends string>(addresses: T[], internalAccounts: InternalAccount[]): T[] =>
+const sortAddressesWithInternalAccounts = <T extends string>(
+  addresses: T[],
+  internalAccounts: InternalAccount[],
+): T[] =>
   [...addresses].sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, firstAddress),
     );
 
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      areAddressesEqual(internalAccount.address, secondAddress),
     );
 
     if (!firstAccount) {
-      captureKeyringTypesWithMissingIdentities(
-        internalAccounts,
-        addresses,
-      );
+      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
       throw new Error(`Missing identity for address: "${firstAddress}".`);
     } else if (!secondAccount) {
-      captureKeyringTypesWithMissingIdentities(
-        internalAccounts,
-        addresses,
-      );
+      captureKeyringTypesWithMissingIdentities(internalAccounts, addresses);
       throw new Error(`Missing identity for address: "${secondAddress}".`);
     } else if (
-      firstAccount.metadata.lastSelected ===
-      secondAccount.metadata.lastSelected
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
     ) {
       return 0;
     } else if (firstAccount.metadata.lastSelected === undefined) {
@@ -127,16 +122,19 @@ export const sortEvmAccountsByLastSelected = (addresses: Hex[]): Hex[] => {
  * Sorts a list of caip account id by most recently selected by using the lastSelected value for
  * the matching InternalAccount object from the list of internalAccounts provided.
  */
-const sortCaipAccountIdsWithInternalAccounts = (caipAccountIds: CaipAccountId[], internalAccounts: InternalAccount[]): CaipAccountId[] =>
+const sortCaipAccountIdsWithInternalAccounts = (
+  caipAccountIds: CaipAccountId[],
+  internalAccounts: InternalAccount[],
+): CaipAccountId[] =>
   [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        isInternalAccountInPermittedAccountIds(internalAccount, [firstAccountId])
+    const firstAccount = internalAccounts.find((internalAccount) =>
+      isInternalAccountInPermittedAccountIds(internalAccount, [firstAccountId]),
     );
 
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        isInternalAccountInPermittedAccountIds(internalAccount, [secondAccountId])
+    const secondAccount = internalAccounts.find((internalAccount) =>
+      isInternalAccountInPermittedAccountIds(internalAccount, [
+        secondAccountId,
+      ]),
     );
 
     if (!firstAccount) {
@@ -152,8 +150,7 @@ const sortCaipAccountIdsWithInternalAccounts = (caipAccountIds: CaipAccountId[],
       );
       throw new Error(`Missing identity for address: "${secondAccountId}".`);
     } else if (
-      firstAccount.metadata.lastSelected ===
-      secondAccount.metadata.lastSelected
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
     ) {
       return 0;
     } else if (firstAccount.metadata.lastSelected === undefined) {
@@ -171,9 +168,15 @@ const sortCaipAccountIdsWithInternalAccounts = (caipAccountIds: CaipAccountId[],
  * Sorts a list of multichain account ids by most recently selected by using
  * the lastSelected value for the matching InternalAccount object stored in state.
  */
-export const sortMultichainAccountsByLastSelected = (caipAccountIds: CaipAccountId[]) => {
-  const internalAccounts = Engine.context.AccountsController.listMultichainAccounts();
-  return sortCaipAccountIdsWithInternalAccounts(caipAccountIds, internalAccounts);
+export const sortMultichainAccountsByLastSelected = (
+  caipAccountIds: CaipAccountId[],
+) => {
+  const internalAccounts =
+    Engine.context.AccountsController.listMultichainAccounts();
+  return sortCaipAccountIdsWithInternalAccounts(
+    caipAccountIds,
+    internalAccounts,
+  );
 };
 
 // TODO: Replace "any" with type
@@ -339,9 +342,15 @@ export const addPermittedAccounts = (
 
   let updatedPermittedChainIds = [...existingPermittedChainIds];
 
-  const evmNetworkConfigurationsByChainId = Engine.context.NetworkController.state.networkConfigurationsByChainId;
-  const nonEvmNetworkConfigurationsByChainId = Engine.context.MultichainNetworkController.state.multichainNetworkConfigurationsByChainId;
-  const networkConfigurations = getNetworkConfigurationsByCaipChainId(evmNetworkConfigurationsByChainId, nonEvmNetworkConfigurationsByChainId);
+  const evmNetworkConfigurationsByChainId =
+    Engine.context.NetworkController.state.networkConfigurationsByChainId;
+  const nonEvmNetworkConfigurationsByChainId =
+    Engine.context.MultichainNetworkController.state
+      .multichainNetworkConfigurationsByChainId;
+  const networkConfigurations = getNetworkConfigurationsByCaipChainId(
+    evmNetworkConfigurationsByChainId,
+    nonEvmNetworkConfigurationsByChainId,
+  );
   const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
 
   updatedAccountIds.forEach((caipAccountAddress) => {
