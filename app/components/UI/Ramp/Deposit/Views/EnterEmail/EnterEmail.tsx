@@ -7,9 +7,12 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import Label from '../../../../../../component-library/components/Form/Label';
 import TextField, {
@@ -24,18 +27,18 @@ import { useDepositSDK } from '../../sdk';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createEnterEmailNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_EMAIL,
-);
+export interface EnterEmailParams {
+  quote: BuyQuote;
+}
+
+export const createEnterEmailNavDetails =
+  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
 
 const EnterEmail = () => {
   const navigation = useNavigation();
   const { email, setEmail } = useDepositSDK();
   const [validationError, setValidationError] = useState(false);
-
-  const route =
-    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
-  const { quote } = route.params;
+  const { quote } = useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 

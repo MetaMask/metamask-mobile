@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './EnterAddress.styles';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -19,9 +22,13 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createEnterAddressNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_ADDRESS,
-);
+export interface EnterAddressParams {
+  formData: BasicInfoFormData;
+  quote: BuyQuote;
+}
+
+export const createEnterAddressNavDetails =
+  createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
 interface AddressFormData {
   addressLine1: string;
@@ -35,15 +42,8 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const route =
-    useRoute<
-      RouteProp<
-        Record<string, { formData: BasicInfoFormData; quote: BuyQuote }>,
-        string
-      >
-    >();
-  const { formData: basicInfoFormData, quote } = route.params;
+  const { formData: basicInfoFormData, quote } =
+    useParams<EnterAddressParams>();
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
