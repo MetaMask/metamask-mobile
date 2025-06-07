@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAccounts } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -30,7 +30,7 @@ const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
 describe(
-  SmokeAccounts('Multi-SRP: Exports the correct srp in account actions'),
+  SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
