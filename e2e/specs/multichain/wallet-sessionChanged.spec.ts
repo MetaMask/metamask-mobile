@@ -21,7 +21,7 @@ describe(SmokeMultichainApi('wallet_sessionChanged'), () => {
         jest.setTimeout(150000);
     });
 
-    it('should receive a wallet_sessionChanged event when a new network is added to the session', async () => {
+    it('should receive a wallet_sessionChanged event when creating a new session with different networks', async () => {
         await withFixtures(
             {
                 ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
