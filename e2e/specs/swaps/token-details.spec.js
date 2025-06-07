@@ -26,7 +26,6 @@ describe(SmokeTrade('Token Chart Tests'), () => {
       TokenOverview.tokenPrice,
       '$0',
     );
-
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
     await TokenOverview.tapChartPeriod1w();
