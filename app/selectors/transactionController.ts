@@ -6,9 +6,14 @@ import { selectPendingSmartTransactionsBySender } from './smartTransactionsContr
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
 
-const selectTransactionsStrict = createSelector(
+export const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) => transactionControllerState.transactions,
+);
+
+export const selectTransactionBatchesStrict = createSelector(
+  selectTransactionControllerState,
+  (transactionControllerState) => transactionControllerState.transactionBatches,
 );
 
 export const selectTransactions = createDeepEqualSelector(
@@ -44,4 +49,10 @@ export const selectTransactionMetadataById = createDeepEqualSelector(
   selectTransactionsStrict,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
+);
+
+export const selectTransactionBatchMetadataById = createDeepEqualSelector(
+  selectTransactionBatchesStrict,
+  (_: RootState, id: string) => id,
+  (transactionBatches, id) => transactionBatches?.find((tx) => tx.id === id),
 );

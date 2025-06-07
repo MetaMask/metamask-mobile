@@ -931,6 +931,26 @@ export const generateContractInteractionState = {
   },
 };
 
+export const generateStablecoinLendingDepositConfirmationState = {
+  ...contractInteractionBaseState,
+  engine: {
+    ...contractInteractionBaseState.engine,
+    backgroundState: {
+      ...contractInteractionBaseState.engine.backgroundState,
+      // Set a completely new ApprovalController to reject the approval in
+      // stakingConfirmationBaseState
+      ApprovalController: {
+        pendingApprovals: { [mockTxId]: { ...mockApprovalRequest, type: 'transaction_batch', origin: 'metamask' } },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      TransactionController: {
+        transactions: [{ ...mockTransaction, origin: 'metamask' }],
+      },
+    },
+  },
+};
+
 export const transferConfirmationState = merge(
   {},
   stakingConfirmationBaseState,
