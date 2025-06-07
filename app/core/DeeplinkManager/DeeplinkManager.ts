@@ -10,6 +10,7 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import Routes from '../../constants/navigation/Routes';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -86,6 +87,10 @@ class DeeplinkManager {
       navigation: this.navigation,
       rampType: RampType.SELL,
     });
+  }
+  // FRANK: *Step 7: open the home screen
+  _handleOpenHome() {
+    this.navigation.navigate(Routes.WALLET.HOME);
   }
 
   parse(
