@@ -1,0 +1,146 @@
+import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Box } from '../../../../../UI/Box/Box';
+import {
+  isHDOrFirstPartySnapAccount,
+  isPrivateKeyAccount,
+} from '../../../../../../util/address';
+import styleSheet from './ExportCredentials.styles';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../locales/i18n';
+import { TouchableOpacity } from 'react-native';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
+import { useHdKeyringsWithSnapAccounts } from '../../../../../hooks/useHdKeyringsWithSnapAccounts';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  FlexDirection,
+  JustifyContent,
+  AlignItems,
+} from '../../../../../UI/Box/box.types';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
+interface ExportCredentialsProps {
+  account: InternalAccount;
+}
+
+export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
+  const { navigate } = useNavigation();
+  const canExportPrivateKey =
+    account.metadata.keyring.type === KeyringTypes.hd ||
+    isPrivateKeyAccount(account);
+  const canExportMnemonic = isHDOrFirstPartySnapAccount(account);
+  const bothOptionsEnabled = canExportPrivateKey && canExportMnemonic;
+  const { styles } = useStyles(styleSheet, { bothOptionsEnabled });
+
+  const { seedphraseBackedUp } = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.user,
+  );
+
+  const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
+  const srpName = useMemo(() => {
+    const keyringIndex = hdKeyringsWithSnapAccounts.findIndex((keyring) =>
+      keyring.accounts.find(
+        (address) => address.toLowerCase() === account.address.toLowerCase(),
+      ),
+    );
+
+    const name =
+      keyringIndex !== -1
+        ? `${strings('accounts.secret_recovery_phrase')} ${keyringIndex + 1}`
+        : undefined;
+
+    return name;
+  }, [hdKeyringsWithSnapAccounts, account]);
+
+  const showSeedphraseBackedUp = useMemo(() => {
+    const [primaryKeyring] = hdKeyringsWithSnapAccounts;
+    const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
+      (address) => address.toLowerCase() === account.address.toLowerCase(),
+    );
+
+    return !seedphraseBackedUp && accountAssociatedWithPrimaryKeyring;
+  }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
+
+  const onExportMnemonic = useCallback(() => {
+    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL, {
+      account,
+    });
+  }, [navigate, account]);
+
+  const onExportPrivateKey = () => {
+    navigate(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        account,
+      },
+    );
+  };
+
+  return (
+    <Box style={styles.container} data-testid={ExportCredentialsIds.CONTAINER}>
+      {canExportMnemonic && srpName && (
+        <TouchableOpacity onPress={onExportMnemonic}>
+          <Box
+            style={styles.exportMnemonic}
+            flexDirection={FlexDirection.Row}
+            justifyContent={JustifyContent.spaceBetween}
+            alignItems={AlignItems.center}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              data-testid={ExportCredentialsIds.SRP_NAME}
+            >
+              {srpName}
+            </Text>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.flexEnd}
+              gap={8}
+            >
+              {showSeedphraseBackedUp && (
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Error}
+                >
+                  {strings('multichain_accounts.export_credentials.backup')}
+                </Text>
+              )}
+              <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
+            </Box>
+          </Box>
+        </TouchableOpacity>
+      )}
+      {canExportPrivateKey && (
+        <TouchableOpacity onPress={onExportPrivateKey} testID="hihi">
+          <Box
+            style={styles.exportPrivateKey}
+            flexDirection={FlexDirection.Row}
+            justifyContent={JustifyContent.spaceBetween}
+            alignItems={AlignItems.center}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              data-testid={ExportCredentialsIds.PRIVATE_KEY_LINK}
+            >
+              {strings('multichain_accounts.account_details.private_key')}
+            </Text>
+            <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
+          </Box>
+        </TouchableOpacity>
+      )}
+    </Box>
+  );
+};
