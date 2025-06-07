@@ -177,18 +177,19 @@ export const stopFixtureServer = async (fixtureServer) => {
  *
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
- * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
- * @param {boolean} [options.disableGanache=false] - If true, disables the ganache server.
- * @param {boolean} [options.dapp=false] - If true, starts the dapp server.
- * @param {boolean} [options.multichainDapp=false] - If true, starts the multichain dapp server.
- * @param {string} [options.localNodeOptions='ganache'] - The local node options to use.
- * @param {Object} [options.dappOptions] - The dapp options to use.
- * @param {string} [options.dappPath] - The dapp path to use.
- * @param {string[]} [options.dappPaths] - The dapp paths to use.
- * @param {Object} [options.testSpecificMock] - The test specific mock to use.
- * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.dapp] - The dapp to load.
+ * @param {boolean} [options.multichainDapp=false] 
+ * @param {Object} [options.ganacheOptions] - The test specific mock to load for test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
+ * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
+ * @param {Object} [options.smartContract] - The smart contract to load for test.
+ * @param {Object} [options.testSpecificMock] - The test specific mock to load for test.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
+ * @param {Object} testSuite.params - The parameters passed to the test suite function.
+ * @param {Object} [testSuite.params.contractRegistry] - Registry of deployed smart contracts.
+ * @param {Object} [testSuite.params.mockServer] - Mock server instance for API mocking.
+ * @param {Array} testSuite.params.localNodes - Array of local blockchain nodes (Anvil/Ganache instances).
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */

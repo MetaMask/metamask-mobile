@@ -18,11 +18,9 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { formatAddress, getLabelTextByAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -44,7 +42,12 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
-import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import AccountNetworkIndicator from '../AccountNetworkIndicator/AccountNetworkIndicator';
+import {
+  CaipAccountId,
+  parseCaipAccountId,
+  CaipChainId,
+} from '@metamask/utils';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -79,14 +82,16 @@ const CaipAccountSelectorList = ({
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance }: Assets,
+      partialAccount: { address: string; scopes: CaipChainId[] },
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}
@@ -95,22 +100,7 @@ const CaipAccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
-          )}
+          <AccountNetworkIndicator partialAccount={partialAccount} />
         </View>
       );
     },
@@ -157,12 +147,14 @@ const CaipAccountSelectorList = ({
                   const [nextCaipAccountId] =
                     sortMultichainAccountsByLastSelected(nextCaipAccountIds);
 
-                  const nextAddress = nextCaipAccountId ? parseCaipAccountId(nextCaipAccountId).address : '';
+                  const nextAddress = nextCaipAccountId
+                    ? parseCaipAccountId(nextCaipAccountId).address
+                    : '';
                   const selectedAccountAddress = accounts.find(
                     (acc) => acc.isSelected,
                   )?.address;
                   nextActiveAddress =
-                  nextAddress || selectedAccountAddress || '';
+                    nextAddress || selectedAccountAddress || '';
                 }
 
                 // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
@@ -217,9 +209,14 @@ const CaipAccountSelectorList = ({
         isSelected,
         balanceError,
         caipAccountId,
+        scopes,
       },
       index,
     }) => {
+      const partialAccount = {
+        address,
+        scopes,
+      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
@@ -249,7 +246,8 @@ const CaipAccountSelectorList = ({
         onLongPress({
           address,
           isAccountRemoveable:
-            type === KeyringTypes.simple || (type === KeyringTypes.snap && !isSolanaAddress(address)),
+            type === KeyringTypes.simple ||
+            (type === KeyringTypes.snap && !isSolanaAddress(address)),
           isSelected: isSelectedAccount,
           caipAccountId,
         });
@@ -292,7 +290,7 @@ const CaipAccountSelectorList = ({
           buttonProps={buttonProps}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets && renderAccountBalances(assets, partialAccount))}
         </Cell>
       );
     },
