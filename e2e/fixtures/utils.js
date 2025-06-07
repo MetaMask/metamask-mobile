@@ -41,6 +41,11 @@ export function getMockServerPort() {
   return getServerPort(DEFAULT_MOCKSERVER_PORT);
 }
 
+export function getSecondTestDappPort() {
+  // Use a different base port for the second dapp
+  return getServerPort(DEFAULT_DAPP_SERVER_PORT + 1);
+}
+
 export function buildPermissions(chainIds) {
   // default mainnet
   const optionalScopes = { 'eip155:1': { accounts: [] } };
