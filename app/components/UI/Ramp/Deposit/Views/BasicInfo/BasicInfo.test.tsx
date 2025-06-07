@@ -34,6 +34,9 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
+    useRoute: () => ({
+      params: { quote: mockQuote as unknown as BuyQuote },
+    }),
   };
 });
 
