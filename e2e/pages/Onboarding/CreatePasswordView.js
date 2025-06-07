@@ -26,9 +26,9 @@ class CreatePasswordView {
     );
   }
 
-  get iUnderstandCheckboxPlatformSpecific() {
+  get iUnderstandCheckboxNewWallet() {
     return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CREATE_PASSWORD_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.CREATE_WALLET_I_UNDERSTAND_BUTTON_ID,
      );
   }
 
@@ -63,7 +63,7 @@ class CreatePasswordView {
       await Gestures.tap(this.iUnderstandCheckbox);
     } catch (error) {
       // Fall back to platform-specific checkbox (used in onboarding flow)
-      await Gestures.tap(this.iUnderstandCheckboxPlatformSpecific);
+      await Gestures.tap(this.iUnderstandCheckboxNewWallet);
     }
   }
 
