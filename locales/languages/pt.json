@@ -45,6 +45,10 @@
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
       "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Configuração da carteira",
+    "title": "Let’s get started!",
     "sync_desc": "Caso você já tenha a extensão da MetaMask ou outra carteira, sincronize-a ou importe-a para gerenciar seus ativos existentes.",
     "create_desc": "Configure sua primeira carteira e comece a explorar aplicativos descentralizados.",
     "import": "Importe uma carteira existente ou crie uma nova",
@@ -142,7 +146,8 @@
     "scan_step_4": "Leia o código QR para iniciar a sincronização",
     "success": "Sucesso",
     "your_wallet": "Sua carteira foi excluída com sucesso",
-    "delete_current": "Excluindo carteira atual"
+    "delete_current": "Excluindo carteira atual",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Parabéns!",
@@ -167,7 +172,7 @@
     "title2": "Administre seus ativos digitais",
     "title3": "Sua porta de entrada para a Web3",
     "subtitle1": "Com a confiança de milhões de usuários, a MetaMask é uma carteira segura que torna o mundo da Web3 acessível a todos.",
-    "subtitle2": "Armazene, gaste e envie ativos digitais como tokens, Ethereum e colecionáveis únicos.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "Entre com a MetaMask e faça transações para investir, ganhar, jogar, vender e mais!",
     "get_started": "Primeiros passos"
   },
@@ -313,7 +318,7 @@
     "show": "Exibir",
     "hide": "Ocultar",
     "seed_phrase": "Frase de Recuperação Secreta",
-    "must_be_at_least": "Deve ter pelo menos {{number}} caracteres",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "Lembrar de mim",
     "security_alert_title": "Alerta de segurança",
     "security_alert_message": "Para prosseguir, você precisa ativar o código de acesso ou algum método de autenticação por biometria compatível com o seu dispositivo (Face ID, Touch ID ou impressão digital)",
@@ -321,7 +326,10 @@
     "learn_more": "Saiba mais.",
     "secure": "Carteira segura",
     "confirm": "Confirmar Frase de Recuperação Secreta",
-    "disable_biometric_error": "Você desativou a biometria para o app. Atualize as configurações de Lembrar de mim e tente novamente."
+    "disable_biometric_error": "Você desativou a biometria para o app. Atualize as configurações de Lembrar de mim e tente novamente.",
+    "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "Alterar senha",
@@ -351,7 +359,7 @@
     "successfully_changed": "Sua senha foi alterada com sucesso"
   },
   "import_from_seed": {
-    "title": "Importar da Frase de Recuperação Secreta",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "Insira sua Frase de Recuperação Secreta",
     "new_password": "Nova senha",
     "confirm_password": "Confirmar senha",
@@ -360,10 +368,32 @@
     "password_length_error": "A senha precisa ter pelo menos 8 caracteres",
     "password_dont_match": "As senhas não coincidem",
     "seed_phrase_requirements": "As Frases de Recuperação Secretas contêm 12, 15, 18, 21 ou 24 palavras",
-    "invalid_seed_phrase": "Frase de Recuperação Secreta inválida",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "Erro",
     "invalid_qr_code_title": "Código QR inválido",
-    "invalid_qr_code_message": "Esse código QR não representa uma Frase de Recuperação Secreta válida"
+    "invalid_qr_code_message": "Esse código QR não representa uma Frase de Recuperação Secreta válida",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -809,6 +839,7 @@
     "srp_index": "FRS #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Criar nova conta",
+    "new_account": "New account",
     "import_account": "Importar uma conta",
     "connect_hardware": "Conectar carteira de hardware",
     "imported": "Importadas",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Falha ao criar a conta {{clientType}}"
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "Esse recurso alerta você sobre atividades mal-intencionadas analisando ativamente as solicitações de transações e assinaturas.",
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Ative as transações inteligentes para fazer transações mais confiáveis e seguras nas redes suportadas.",
     "smart_transactions_learn_more": "Saiba mais.",
@@ -1810,13 +1847,7 @@
       "generic": "Esse site foi bloqueado e impedido de abrir aplicativos externos automaticamente"
     },
     "ipfs_gateway_off_title": "O gateway IPFS está desligado",
-    "ipfs_gateway_off_content": "Para ver esse site, ative o gateway IPFS nas configurações de privacidade e segurança.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Conexão de dapps Solana em breve",
-        "message": "Você pode se conectar aos dapps Solana na extensão ou negociar tokens Solana dentro do app."
-      }
-    }
+    "ipfs_gateway_off_content": "Para ver esse site, ative o gateway IPFS nas configurações de privacidade e segurança."
   },
   "backup_alert": {
     "title": "Proteja sua carteira",
@@ -2348,25 +2379,40 @@
     "progressThree": "Confirmar Frase de Recuperação Secreta"
   },
   "manual_backup_step_1": {
-    "action": "Anote sua Frase de Recuperação Secreta",
-    "info": "Esta é a sua Frase de Recuperação Secreta. Anote-a em um papel e guarde-a em um lugar seguro. Você precisará reinserir a frase (em ordem) no próximo passo.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continuar",
-    "reveal": "Toque para revelar sua Frase de Recuperação Secreta",
+    "reveal": "Tap to reveal",
     "watching": "Certifique-se de que não há ninguém vendo sua tela.",
     "view": "Ver",
     "confirm_password": "Confirme sua senha",
     "before_continiuing": "Antes de continuar, precisamos que confirme sua senha",
-    "confirm": "CONFIRMAR",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Entendi",
-    "learn_more": "Saiba mais"
+    "learn_more": "Saiba mais",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Confirmar Frase de Recuperação Secreta",
-    "info": "Selecione cada palavra na ordem em que foi apresentada a você.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Concluir backup",
-    "success": "Sucesso"
+    "success": "Sucesso",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Parabéns",
     "success": "Você protegeu sua carteira com sucesso. Lembre-se de guardar sua Frase de Recuperação Secreta em segurança. É sua responsabilidade!",
     "hint": "Deseja criar uma dica para você?",
@@ -3438,10 +3484,11 @@
     "description": "Verificar atualizações automaticamente pode expor seu endereço IP aos servidores do GitHub. Isso apenas indica que o seu endereço IP está usando a MetaMask. Nenhuma outra informação ou endereços de conta são expostos."
   },
   "terms_of_use_modal": {
-    "title": "Revise nossos Termos de Uso mais recentes",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "Eu concordo com os Termos de Uso, que se aplicam ao meu uso da MetaMask e de todos os seus recursos",
     "accept_cta": "Aceitar",
-    "accept_helper_description": "Role para ler todas as seções"
+    "accept_helper_description": "Role para ler todas as seções",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "Obtenha os recursos mais recentes",
@@ -3893,7 +3940,7 @@
     "failed": "Houve um erro ao carregar sua estimativa.",
     "fiat_not_available": "Não disponível",
     "incoming_heading": "Você recebe",
-    "no_balance_changes": "Nenhuma alteração prevista para sua carteira",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "Você envia",
     "reverted": "Essa transação provavelmente falhará",
     "title": "Alterações estimadas",
@@ -4048,8 +4095,10 @@
     "none": "Nenhum",
     "advanced_details": "Detalhes avançados",
     "interacting_with": "Interagindo com",
+    "data": "Data",
     "review": "Revisar",
-    "transferRequest": "Solicitação de transferência"
+    "transferRequest": "Solicitação de transferência",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "Enviando",
     "fetching_quote": "Buscando cotação",
     "fee_disclaimer": "Inclui taxa de 0,875% da MM",
-    "hardware_wallet_not_supported": "Carteiras de hardware ainda não são compatíveis com Solana. Use uma hot wallet para continuar."
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "Novas cotações estão disponíveis",

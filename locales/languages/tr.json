@@ -45,6 +45,10 @@
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
       "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "Tamam"
   },
   "onboarding": {
-    "title": "Cüzdan kurulumu",
+    "title": "Let’s get started!",
     "sync_desc": "Zaten MetaMask uzantısı veya başka bir cüzdan aldıysanız mevcut varlıklarınızı yönetmek için onu senkronize edin veya içe aktarın.",
     "create_desc": "İlk cüzdan kurulumunuzu yapın ve merkeziyetsiz uygulamaları keşfetmeye başlayın.",
     "import": "Mevcut bir cüzdanı içe aktarın veya yeni bir tane oluşturun.",
@@ -142,7 +146,8 @@
     "scan_step_4": "Senkronize etmeye başlamak için QR kodunu tarayın",
     "success": "Başarılı",
     "your_wallet": "Cüzdanınız başarılı bir şekilde silindi",
-    "delete_current": "Geçerli cüzdan siliniyor"
+    "delete_current": "Geçerli cüzdan siliniyor",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Tebrikler!",
@@ -167,7 +172,7 @@
     "title2": "Dijital varlıklarını yönet",
     "title3": "web3 ağ geçidiniz",
     "subtitle1": "Milyonların güvendiği MetaMask web3 dünyasını herkes için erişilebilir kılan güvenli bir cüzdandır.",
-    "subtitle2": "Token, ethereum, eşsiz koleksiyonlar gibi dijital varlıkları tutun, harcayın ve gönderin.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "MetaMask ile oturum açın ve yatırım yapmak, kazanmak, oyun oynamak ve satmak ve daha fazlası için işlem yapın!",
     "get_started": "Başla"
   },
@@ -313,7 +318,7 @@
     "show": "Göster",
     "hide": "Gizle",
     "seed_phrase": "Gizli Kurtarma İfadesi",
-    "must_be_at_least": "En az {{number}} karakter olmalıdır",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
@@ -321,7 +326,10 @@
     "learn_more": "Daha fazlasını öğren.",
     "secure": "Cüzdanı güvenli hale getir",
     "confirm": "Gizli Kurtarma İfadesini onayla",
-    "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin."
+    "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin.",
+    "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "Şifreyi değiştir",
@@ -351,7 +359,7 @@
     "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi"
   },
   "import_from_seed": {
-    "title": "Gizli Kurtarma İfadesinden içe aktar",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
     "new_password": "Yeni Şifre",
     "confirm_password": "Şifreyi onayla",
@@ -360,10 +368,32 @@
     "password_length_error": "Şifre en az 8 karakter uzunluğunda olmalıdır",
     "password_dont_match": "Şifreler uyumlu değil",
     "seed_phrase_requirements": "Gizli Kurtarma İfadeleri 12, 15, 18, 21 veya 24 sözcük içerir",
-    "invalid_seed_phrase": "Gizli Kurtarma İfadesi geçersiz",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "Hata",
     "invalid_qr_code_title": "QR Kodu geçersiz",
-    "invalid_qr_code_message": "Bu QR kodu geçerli bir Gizli Kurtarma İfadesini temsil etmiyor"
+    "invalid_qr_code_message": "Bu QR kodu geçerli bir Gizli Kurtarma İfadesini temsil etmiyor",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "Merkeziyetsiz uygulamalar",
@@ -809,6 +839,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Yeni hesap oluştur",
+    "new_account": "New account",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "Bu özellik, işlem ve imza taleplerini aktif bir şekilde inceleyerek kötü amaçlı aktivite konusunda sizi uyarır.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
     "smart_transactions_opt_in_desc_supported_networks": "Desteklenen ağlarda daha güvenilir ve güvenli işlemler için Akıllı İşlemleri açın.",
     "smart_transactions_learn_more": "Daha fazla bilgi edinin.",
@@ -1810,13 +1847,7 @@
       "generic": "Bu web sitesinin otomatik olarak harici bir uygulamayı açması engellendi"
     },
     "ipfs_gateway_off_title": "IPFS ağ geçidi kapalı",
-    "ipfs_gateway_off_content": "Bu siteyi görmek için Gizlilik ve Güvenlik Ayarlarında IPFS ağ geçidini açın.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp bağlantısı çok yakında hizmetinizde",
-        "message": "Uzantıda Solana dapp'lerine bağlanabilir veya uygulama içinde Solana token işlemleri yapabilirsiniz."
-      }
-    }
+    "ipfs_gateway_off_content": "Bu siteyi görmek için Gizlilik ve Güvenlik Ayarlarında IPFS ağ geçidini açın."
   },
   "backup_alert": {
     "title": "Cüzdanınızı koruyun",
@@ -2348,25 +2379,40 @@
     "progressThree": "Gizli Kurtarma İfadesini onayla"
   },
   "manual_backup_step_1": {
-    "action": "Gizli Kurtarma İfadenizi yazın",
-    "info": "Bu sizin Gizli Kurtarma İfadenizdir. Bunu kağıda yazıp güvenli bir yerde tutun. Sonraki adımda bu ifadeyi (sırasıyla) tekrar girmeniz istenecek.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Devam",
-    "reveal": "Gizli Kurtarma İfadenizi göstermek için dokunun",
+    "reveal": "Tap to reveal",
     "watching": "Hiç kimsenin ekranınızı izlemediğinden emin olun.",
     "view": "Görüntüle",
     "confirm_password": "Şifrenizi onaylayın",
     "before_continiuing": "Devam etmeden önce şifrenizi onaylamanız gerekiyor",
-    "confirm": "ONAYLA",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Anladım",
-    "learn_more": "Daha Fazlasını Öğren"
+    "learn_more": "Daha Fazlasını Öğren",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Gizli Kurtarma İfadesini onayla",
-    "info": "Her bir sözcüğü size sunulan sıralamada seçin.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Yedeklemeyi tamamla",
-    "success": "Başarılı"
+    "success": "Başarılı",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Tebrikler",
     "success": "Cüzdanınızı başarılı bir şekilde korudunuz! Gizli Kurtarma İfadenizi güvende tutmayı unutmayın, bu sizin sorumluluğunuzdadır!",
     "hint": "Kendine bir ipucu bırak?",
@@ -3438,10 +3484,11 @@
     "description": "Güncellemelerin otomatik kontrolü IP adresini GitHub sunucularında açığa çıkarabilir. Bu durum sadece IP adresinin MetaMask kullandığını gösterir. Başka hiçbir bilgi ya da hesap adresi açığa çıkmaz."
   },
   "terms_of_use_modal": {
-    "title": "En yeni Kullanım Şartları bölümümüzü inceleyin",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "MetaMask ve tüm özelliklerini kullanırken geçerli olan Kullanım Koşulları bölümünü kabul ediyorum",
     "accept_cta": "Kabul Edin",
-    "accept_helper_description": "Tüm bölümleri okumak için lütfen kaydırın"
+    "accept_helper_description": "Tüm bölümleri okumak için lütfen kaydırın",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "En yeni özelliklere sahip olun",
@@ -3893,7 +3940,7 @@
     "failed": "Tahmininiz yüklenirken bir hata oldu.",
     "fiat_not_available": "Mevcut Değil",
     "incoming_heading": "Aldığınız",
-    "no_balance_changes": "Cüzdanınız için herhangi bir değişiklik öngörülmüyor",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "Gönderdiğiniz",
     "reverted": "Bu işlemin başarısız olması muhtemel",
     "title": "Tahmini değişiklikler",
@@ -4048,8 +4095,10 @@
     "none": "Hiçbiri",
     "advanced_details": "Gelişmiş bilgiler",
     "interacting_with": "Etkileşimde",
+    "data": "Data",
     "review": "İncele",
-    "transferRequest": "Transfer talebi"
+    "transferRequest": "Transfer talebi",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "Gönderiliyor",
     "fetching_quote": "Teklif alınıyor",
     "fee_disclaimer": "%0,875 MM ücreti dahildir",
-    "hardware_wallet_not_supported": "Donanım cüzdanları henüz Solana için desteklenmiyor. Devam etmek için sıcak cüzdan kullanın."
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "Yeni teklifler mevcut",

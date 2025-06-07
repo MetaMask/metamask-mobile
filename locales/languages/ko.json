@@ -45,6 +45,10 @@
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
       "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "확인"
   },
   "onboarding": {
-    "title": "지갑 설정",
+    "title": "Let’s get started!",
     "sync_desc": "MetaMask 확장 프로그램 또는 다른 지갑을 사용하고 있으신 경우, 기존에 보유한 자산 관리를 위해 이를 연동하거나 가져오세요.",
     "create_desc": "첫 지갑을 설정하고 탈중앙화된 앱을 체험해 보세요.",
     "import": "기존 지갑을 가져오거나 새 지갑을 생성하세요",
@@ -142,7 +146,8 @@
     "scan_step_4": "QR 코드를 스캔하여 동기화를 시작",
     "success": "성공",
     "your_wallet": "지갑을 성공적으로 지웠습니다",
-    "delete_current": "현재 지갑 삭제"
+    "delete_current": "현재 지갑 삭제",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "축하합니다!",
@@ -167,7 +172,7 @@
     "title2": "디지털 자산을 관리하세요",
     "title3": "웹 3.0으로 가는 관문",
     "subtitle1": "수백만 명의 신뢰를 받는 MetaMask는 웹 3.0의 세계를 누구나 사용할 수 있게 만들어줄 안전 지갑입니다.",
-    "subtitle2": "토큰, 에테르리움, 유니크한 콜렉티블 등 디지털 자산을 저장, 사용, 전송하세요.",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "MetaMask에 로그인하여 투자, 적립, 게임 플레이, 판매 등의 트랜잭션을 진행하세요!",
     "get_started": "시작하기"
   },
@@ -313,7 +318,7 @@
     "show": "보이기",
     "hide": "숨기기",
     "seed_phrase": "비밀복구구문",
-    "must_be_at_least": "최소 {{number}}자여야 합니다",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "로그인 정보 저장",
     "security_alert_title": "보안 경고",
     "security_alert_message": "계속하려면, 비밀번호를 켜거나 또는 회원님의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)",
@@ -321,7 +326,10 @@
     "learn_more": "더 알아보기.",
     "secure": "지갑 보호",
     "confirm": "비밀복구구문 컨펌",
-    "disable_biometric_error": "앱에 대해 생체 인식을 비활성화했습니다. 로그인 저장 정보를 업데이트하고 다시 시도하세요."
+    "disable_biometric_error": "앱에 대해 생체 인식을 비활성화했습니다. 로그인 저장 정보를 업데이트하고 다시 시도하세요.",
+    "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "비밀번호 변경",
@@ -351,7 +359,7 @@
     "successfully_changed": "암호가 성공적으로 변경되었습니다"
   },
   "import_from_seed": {
-    "title": "비밀복구구문에서 가져오기",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "비밀복구구문을 입력하세요",
     "new_password": "신규 비밀번호",
     "confirm_password": "비밀번호 컨펌",
@@ -360,10 +368,32 @@
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
     "password_dont_match": "비밀번호가 일치하지 않습니다",
     "seed_phrase_requirements": "비밀복구구문에은 12, 15, 18, 21 또는 24 단어가 포함됩니다",
-    "invalid_seed_phrase": "잘못된 비밀복구구문",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "오류",
     "invalid_qr_code_title": "잘못된 QR 코드",
-    "invalid_qr_code_message": "이 QR 코드는 유효한 비밀복구구문이 아닙니다"
+    "invalid_qr_code_message": "이 QR 코드는 유효한 비밀복구구문이 아닙니다",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "디앱",
@@ -809,6 +839,7 @@
     "srp_index": "비밀복구구문 #{{index}}",
     "snap_account_tag": "Snap(베타)",
     "create_new_account": "신규 계정 생성",
+    "new_account": "New account",
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "이 기능은 트랜잭션과 서명 요청을 적극적으로 검토하여 악의적인 활동을 경고합니다.",
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "스마트 트랜잭션",
     "smart_transactions_opt_in_desc_supported_networks": "지원되는 네트워크에서 더 안정적이고 안전하게 트랜잭션을 진행하려면 스마트 트랜잭션을 활성화하세요.",
     "smart_transactions_learn_more": "자세히 알아보세요.",
@@ -1810,13 +1847,7 @@
       "generic": "이 웹사이트는 자동 외부 앱 열기가 차단되어 있습니다"
     },
     "ipfs_gateway_off_title": "IPFS 게이트웨이 꺼짐",
-    "ipfs_gateway_off_content": "이 사이트를 보려면 개인정보 및 보안 설정에서 IPFS 게이트웨이를 켜야 합니다.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "솔라나 디앱 연결 기능이 곧 제공됩니다",
-        "message": "확장 프로그램에서 솔라나 디앱에 연결하거나, 앱 내에서 솔라나 토큰을 거래할 수 있습니다."
-      }
-    }
+    "ipfs_gateway_off_content": "이 사이트를 보려면 개인정보 및 보안 설정에서 IPFS 게이트웨이를 켜야 합니다."
   },
   "backup_alert": {
     "title": "지갑 보호하기",
@@ -2348,25 +2379,40 @@
     "progressThree": "비밀복구구문 컨펌"
   },
   "manual_backup_step_1": {
-    "action": "비밀복구구문을 작성하세요",
-    "info": "회원님의 비밀복구구문입니다. 종이에 적어 안전한 곳에 보관하세요. 다음 단계에서 이 구문을 (순서에 따라) 다시 입력해야 합니다.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "계속",
-    "reveal": "탭하여 비밀복구구문을 확인하세요",
+    "reveal": "Tap to reveal",
     "watching": "다른 사람이 본인의 화면을 보고 있지는 않은지 확인하세요.",
     "view": "보기",
     "confirm_password": "비밀번호 컨펌하기",
     "before_continiuing": "계속 진행하기 전에 회원님의 비밀번호를 컨펌해야 합니다",
-    "confirm": "컨펌",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "확인",
-    "learn_more": "자세히 알아보기"
+    "learn_more": "자세히 알아보기",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "비밀복구구문 컨펌",
-    "info": "보여진 대로 모든 단어를 순서에 맞게 선택하세요.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "백업 완료",
-    "success": "성공"
+    "success": "성공",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "축하합니다",
     "success": "지갑을 성공적으로 보호했습니다. 비밀복구구문을 꼭 안전하게 보관하세요. 이 구문의 보안 책임을 본인에게 있습니다!",
     "hint": "힌트를 남기고 싶으신가요?",
@@ -3438,10 +3484,11 @@
     "description": "업데이트를 위한 자동 보안 점검의 경우 GitHub 서버에 IP 주소가 노출될 수 있습니다. 이때 노출되는 정보는 해당 IP 주소가 MetaMask를 사용한다는 사실뿐입니다. 다른 정보나 계정 주소는 노출되지 않습니다."
   },
   "terms_of_use_modal": {
-    "title": "최근 이용약관 검토",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "본인은 MetaMask의 사용과 관련 모든 기능에 적용되는 이용약관에 동의합니다",
     "accept_cta": "수락",
-    "accept_helper_description": "스크롤하여 모든 섹션의 내용을 읽으세요"
+    "accept_helper_description": "스크롤하여 모든 섹션의 내용을 읽으세요",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "최신 기능 받기",
@@ -3893,7 +3940,7 @@
     "failed": "추정치를 불러오는 동안 오류가 발생했습니다.",
     "fiat_not_available": "이용할 수 없음",
     "incoming_heading": "받음:",
-    "no_balance_changes": "지갑에 예상 변동 사항 없음",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "보냄:",
     "reverted": "이 트랜잭션은 실패할 가능성이 높습니다",
     "title": "예상 변동 사항",
@@ -4048,8 +4095,10 @@
     "none": "없음",
     "advanced_details": "고급 세부 정보",
     "interacting_with": "상호작용 대상:",
+    "data": "Data",
     "review": "검토",
-    "transferRequest": "전송 요청"
+    "transferRequest": "전송 요청",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "제출 중",
     "fetching_quote": "견적 가져오기",
     "fee_disclaimer": "MetaMask 수수료 0.875% 포함",
-    "hardware_wallet_not_supported": "솔라나는 아직 하드웨어 지갑이 지원하지 않습니다. 계속하려면 핫월렛을 사용하세요."
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "새로운 견적이 있습니다",

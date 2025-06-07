@@ -45,6 +45,10 @@
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
       "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "ठीक है"
   },
   "onboarding": {
-    "title": "वॉलेट का सेटअप",
+    "title": "Let’s get started!",
     "sync_desc": "यदि आप पहले ही MetaMask एक्सटेंशन या दूसरा वॉलेट पा चुके हैं, तो अपनी वर्तमान संपत्तियों को प्रबंधित करने के लिए इसे सिंक या इम्पोर्ट करें।",
     "create_desc": "अपने पहले वॉलेट को सेट अप करें और विकेन्द्रित ऐप को एक्सप्लोर करना शुरु करें।",
     "import": "एक वर्तमान वॉलेट इम्पोर्ट करें या एक नया बनाएं",
@@ -142,7 +146,8 @@
     "scan_step_4": "सिंक करना शुरु करने के लिए QR कोड को स्कैन करें",
     "success": "सफलता",
     "your_wallet": "आपके वॉलेट को सफलतापूर्वक हटा दिया गया है",
-    "delete_current": "वर्तमान वॉलेट को डिलीट कर रहे हैं"
+    "delete_current": "वर्तमान वॉलेट को डिलीट कर रहे हैं",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "बधाई!",
@@ -167,7 +172,7 @@
     "title2": "अपनी डिजिटल संपत्तियों को प्रबंधित करें",
     "title3": "Web3 के लिए आपका प्रवेशद्वारा",
     "subtitle1": "लाखों लोगों का भरोसा, MetaMask एक सुरक्षित वॉलेट है जो वेब3 की दुनिया को सबके लिए सुलभ बनाता है।",
-    "subtitle2": "टोकन, ethereum, अद्वितीय संग्रहणीय वस्तुओं को स्टोर करें, खर्च करें और भेजें।",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "MetaMask के साथ लॉग इन करें और निवेश करने, अर्जित करने, गेम खेलने, बेचने और बहुत कुछ के लिए लेन-देन करें! ",
     "get_started": "शुरुआत करें"
   },
@@ -313,7 +318,7 @@
     "show": "दिखाएं",
     "hide": "छिपाएं",
     "seed_phrase": "सीक्रेट रिकवरी फ्रेज ",
-    "must_be_at_least": "कम से कम {{number}} कैरेक्टर होने चाहिएं",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "मुझे याद रखें",
     "security_alert_title": "सुरक्षा चेतावनी",
     "security_alert_message": "आगे बढ़ने के दौरान, आपको अपने पासकोड या आपके डिवाइस का समर्थन करने वाले किसी बायोमेट्रिक प्रमाणित तरीके को चालू करने की जरुरत है (फेसID, टचID या फिंगरप्रिंट)",
@@ -321,7 +326,10 @@
     "learn_more": "ज्यादा जानें।",
     "secure": "वॉलेट सुरक्षित करें",
     "confirm": "सीक्रेट रिकवरी फ्रेज की पुष्टि करें",
-    "disable_biometric_error": "ऐप के लिए आपके पास खराब बायोमेट्रिक हैं। मुझे याद रखें सेटिंग को अपडेट करें और फिर से कोशिश करें।"
+    "disable_biometric_error": "ऐप के लिए आपके पास खराब बायोमेट्रिक हैं। मुझे याद रखें सेटिंग को अपडेट करें और फिर से कोशिश करें।",
+    "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "पासवर्ड बदलें",
@@ -351,7 +359,7 @@
     "successfully_changed": "आपका पासवर्ड सफलतापूर्वक बदल दिया गया है"
   },
   "import_from_seed": {
-    "title": "सीक्रेट रिकवरी फ्रेज़ से इंपोर्ट करें",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "अपना सीक्रेट रिकवरी फ्रेज दर्ज करें",
     "new_password": "नया पासवर्ड",
     "confirm_password": "पासवर्ड की पुष्टि करें",
@@ -360,10 +368,32 @@
     "password_length_error": "पासवर्ड में कम से कम 8 कैरेक्टर होने चाहिए ",
     "password_dont_match": "पासवर्ड मेल नहीं खाते",
     "seed_phrase_requirements": "सीक्रेट रिकवरी फ्रेज में 12, 15, 18, 21, या 24 शब्द होते हैं",
-    "invalid_seed_phrase": "अमान्य सीक्रेट रिकवरी फ्रेज",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "त्रुटि",
     "invalid_qr_code_title": "अमान्य QR कोड",
-    "invalid_qr_code_message": "यह QR कोड एक मान्य सीक्रेट रिकवरी फ्रेज का प्रतिनिधित्व नहीं करता "
+    "invalid_qr_code_message": "यह QR कोड एक मान्य सीक्रेट रिकवरी फ्रेज का प्रतिनिधित्व नहीं करता ",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -809,6 +839,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (बीटा)",
     "create_new_account": "नया खाता बनाएं",
+    "new_account": "New account",
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "यह फीचर सक्रिय रूप से ट्रांसेक्शन और सिग्नेचर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है।",
     "security_alerts": "सुरक्षा एलर्ट",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "स्मार्ट ट्रांसेक्शन",
     "smart_transactions_opt_in_desc_supported_networks": "समर्थित नेटवर्क पर अधिक विश्वसनीय और सुरक्षित ट्रांसेक्शन के लिए स्मार्ट ट्रांसेक्शन चालू करें।",
     "smart_transactions_learn_more": "अधिक जानें।",
@@ -1810,13 +1847,7 @@
       "generic": "इस वेबसाइट को स्वचालित रूप से किसी बाहरी एप्लिकेशन को खोलने से ब्लॉक कर दिया गया है।"
     },
     "ipfs_gateway_off_title": "IPFS गेटवे बंद है",
-    "ipfs_gateway_off_content": "इस साइट को देखने के लिए, गोपनीयता और सुरक्षा सेटिंग्स में IPFS गेटवे को चालू करें।",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp कनेक्शन जल्द ही आ रहा है",
-        "message": "आप एक्सटेंशन में Solana dapp से कनेक्ट कर सकते हैं या इन-ऐप Solana टोकन ट्रेड कर सकते हैं।"
-      }
-    }
+    "ipfs_gateway_off_content": "इस साइट को देखने के लिए, गोपनीयता और सुरक्षा सेटिंग्स में IPFS गेटवे को चालू करें।"
   },
   "backup_alert": {
     "title": "अपने वॉलेट की सुरक्षा करें",
@@ -2348,25 +2379,40 @@
     "progressThree": "सीक्रेट रिकवरी फ्रेज की पुष्टि करें"
   },
   "manual_backup_step_1": {
-    "action": "अपने सीक्रेट रिकवरी फ्रेज को लिखें",
-    "info": "यह आपका सीक्रेट रिकवरी फ्रेज है। इसे कागज पर लिखें और एक सुरक्षित स्थान पर रखें। आपसे इस फ्रेज (क्रम में) को अगले चरण में फिर से दर्ज करने को कहा जाएगा।",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "जारी रखें",
-    "reveal": "अपने सीक्रेट रिकवरी फ्रेज को प्रकट करने के लिए टैप करें",
+    "reveal": "Tap to reveal",
     "watching": "सुनिश्चित करें कि कोई आपकी स्क्रीन ना देख रहा हो।",
     "view": "देखें",
     "confirm_password": "अपने पासवर्ड की पुष्टि करें",
     "before_continiuing": "जारी रखने से पहले हमें आपके पासवर्ड की पुष्टि की जरुरत है",
-    "confirm": "पुष्टि करें",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "समझ गए",
-    "learn_more": "और अधिक जानें"
+    "learn_more": "और अधिक जानें",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "सीक्रेट रिकवरी फ्रेज की पुष्टि करें",
-    "info": "हर शब्द को उस क्रम में चुनें जैसा आपके सामने प्रस्तुत किया गया था।",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "बैकअप पूरा करें",
-    "success": "सफलता"
+    "success": "सफलता",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "बधाई",
     "success": "आपने अपने वॉलेट को सफलतापूर्वक सुरक्षित कर लिया है। अपने सीक्रेट रिकवरी फ्रेज को सुरक्षित रखना याद रखें, यह आपकी जिम्मेदारी है!",
     "hint": "अपने लिए एक संकेत छोड़ें?",
@@ -3438,10 +3484,11 @@
     "description": "अपडेट के लिए ऑटोमैटिक तौर पर जांच करने से आपका IP ऐड्रेस GitHub सर्वर पर प्रदर्शित हो सकता है। यह सिर्फ इस ओर इशारा करता है कि आपका आईपी ऐड्रेस MetaMask का उपयोग कर रहा है। कोई अन्य जानकारी या अकाउंट ऐड्रेस उजागर नहीं होते हैं।"
   },
   "terms_of_use_modal": {
-    "title": "हमारी नवीनतम उपयोग की शर्तों की समीक्षा करें",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "मैं उपयोग की शर्तों से सहमत हूं, जो मेरे द्वारा MetaMask और इसकी सभी फीचर्स के उपयोग पर लागू होती हैं",
     "accept_cta": "स्वीकार करें",
-    "accept_helper_description": "सभी अनुच्छेदों को पढ़ने के लिए कृपया स्क्रॉल करें"
+    "accept_helper_description": "सभी अनुच्छेदों को पढ़ने के लिए कृपया स्क्रॉल करें",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "नवीनतम फीचर्स प्राप्त करें",
@@ -3893,7 +3940,7 @@
     "failed": "आपका एस्टीमेशन लोड करने में गड़बड़ी हुई।",
     "fiat_not_available": "उपलब्ध नहीं है",
     "incoming_heading": "आप प्राप्त करते हैं",
-    "no_balance_changes": "आपके वॉलेट के लिए किसी बदलाव का प्रेडिक्शन नहीं किया गया है",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "आप भेजते हैं",
     "reverted": "यह ट्रांसेक्शन विफल हो सकता है",
     "title": "अनुमानित बदलाव",
@@ -4048,8 +4095,10 @@
     "none": "कोई नहीं",
     "advanced_details": "एडवांस्ड विवरण",
     "interacting_with": "के साथ इंटरैक्ट कर रहा है",
+    "data": "Data",
     "review": "समीक्षा करें",
-    "transferRequest": "ट्रांसफर अनुरोध"
+    "transferRequest": "ट्रांसफर अनुरोध",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "सबमिट किया जा रहा है",
     "fetching_quote": "कोटेशन लाया जा रहा है",
     "fee_disclaimer": "0.875% MM शुल्क शामिल है",
-    "hardware_wallet_not_supported": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।"
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "नये कोटेशन उपलब्ध हैं",
