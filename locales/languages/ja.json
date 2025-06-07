@@ -45,6 +45,10 @@
       "title": "Pending transaction",
       "message": "This transaction won't go through until the previous transaction is complete.",
       "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "ウォレットのセットアップ",
+    "title": "Let’s get started!",
     "sync_desc": "すでにMetaMask拡張機能または別のウォレットをお持ちの場合は、既存のアセットを管理できるよう同期またはインポートしてください。",
     "create_desc": "最初のウォレットを設定して分散型アプリを使い始めましょう。",
     "import": "既存のウォレットをインポートするか、新しいウォレットを作成してください",
@@ -142,7 +146,8 @@
     "scan_step_4": "QRコードをスキャンして同期を開始します",
     "success": "成功",
     "your_wallet": "ウォレットが消去されました",
-    "delete_current": "現在のウォレットを削除しています"
+    "delete_current": "現在のウォレットを削除しています",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "おめでとうございます！",
@@ -167,7 +172,7 @@
     "title2": "デジタル資産の管理",
     "title3": "Web3へのゲートウェイ",
     "subtitle1": "多くのユーザーを持つMetaMaskは、すべての人にWeb3への門戸を開く安全なウォレットです。",
-    "subtitle2": "トークン、イーサリアム、ユニークなコレクティブルなどのデジタル資産を保管、使用、転送できます。",
+    "subtitle2": "Store, spend and send digital assets like tokens, Ethereum, unique collectibles.",
     "subtitle3": "MetaMaskにログインすることで、投資、収益の獲得、売却、ゲームなどのトランザクションを行うことができます。",
     "get_started": "開始"
   },
@@ -313,7 +318,7 @@
     "show": "表示",
     "hide": "非表示",
     "seed_phrase": "シークレットリカバリーフレーズ",
-    "must_be_at_least": "{{number}}文字以上必要です",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "認証情報を保存",
     "security_alert_title": "セキュリティアラート",
     "security_alert_message": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
@@ -321,7 +326,10 @@
     "learn_more": "詳細。",
     "secure": "ウォレットの安全を確保",
     "confirm": "シークレットリカバリーフレーズの確認",
-    "disable_biometric_error": "アプリの生体認証が無効になっています。認証情報の保存設定を更新してもう一度お試しください。"
+    "disable_biometric_error": "アプリの生体認証が無効になっています。認証情報の保存設定を更新してもう一度お試しください。",
+    "confirm_cta": "Confirm",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "パスワードを変更",
@@ -351,7 +359,7 @@
     "successfully_changed": "パスワードが変更されました"
   },
   "import_from_seed": {
-    "title": "シークレットリカバリーフレーズからインポート",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "シークレットリカバリーフレーズを入力してください",
     "new_password": "新しいパスワード",
     "confirm_password": "パスワードの確認",
@@ -360,10 +368,32 @@
     "password_length_error": "パスワードには8文字以上必要です",
     "password_dont_match": "パスワードが一致していません",
     "seed_phrase_requirements": "シークレットリカバリーフレーズは12、15、18、21、24の単語のいずれかで構成されています",
-    "invalid_seed_phrase": "無効なシークレットリカバリーフレーズ",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "エラー",
     "invalid_qr_code_title": "無効なQRコード",
-    "invalid_qr_code_message": "QRコードが有効なシークレットリカバリーフレーズを表していません"
+    "invalid_qr_code_message": "QRコードが有効なシークレットリカバリーフレーズを表していません",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t reset this password if you forget it",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Not quite right. Double-check your Secret Recovery Phrase and try again.",
+    "enter_strong_password": "Enter a strong password"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -809,6 +839,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snap (ベータ)",
     "create_new_account": "新規アカウントの作成",
+    "new_account": "New account",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "この機能は、トランザクションと署名要求を能動的に確認し、悪質なアクティビティに関するアラートを発します。",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
     "smart_transactions_opt_in_desc_supported_networks": "スマートトランザクションをオンにして、サポートされているネットワーク上でのトランザクションの信頼性と安全性を高めましょう。",
     "smart_transactions_learn_more": "詳細。",
@@ -1810,13 +1847,7 @@
       "generic": "このWebサイトは自動的に外部アプリケーションを開けないようブロックされています"
     },
     "ipfs_gateway_off_title": "IPFSゲートウェイが無効です",
-    "ipfs_gateway_off_content": "このサイトを見るには、プライバシーとセキュリティの設定でIPFSゲートウェイを有効にしてください。",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "SolanaのDApp接続が近日追加されます",
-        "message": "拡張機能でSolana DAppに接続したり、アプリ内でSolanaトークンを取引したりできます。"
-      }
-    }
+    "ipfs_gateway_off_content": "このサイトを見るには、プライバシーとセキュリティの設定でIPFSゲートウェイを有効にしてください。"
   },
   "backup_alert": {
     "title": "ウォレットを保護",
@@ -2348,25 +2379,40 @@
     "progressThree": "シークレットリカバリーフレーズの確認"
   },
   "manual_backup_step_1": {
-    "action": "シークレットリカバリーフレーズを書き留めてください",
-    "info": "これはシークレットリカバリーフレーズです。紙に書き留めて、安全な場所に保管してください。次のステップで (正しい順序で) 再入力するよう求められます。",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "続行",
-    "reveal": "シークレットリカバリーフレーズを表示するにはタップしてください",
+    "reveal": "Tap to reveal",
     "watching": "誰にも画面を見られていないことを確認してください。",
     "view": "表示",
     "confirm_password": "パスワードの確認",
     "before_continiuing": "続行する前にパスワードの確認が必要です",
-    "confirm": "確認",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "了解",
-    "learn_more": "詳細"
+    "learn_more": "詳細",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "シークレットリカバリーフレーズの確認",
-    "info": "各単語を表示された順序通りに選択してください。",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "バックアップを完了",
-    "success": "成功"
+    "success": "成功",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "おめでとうございます",
     "success": "ウォレットが保護されました。シークレットリカバリーフレーズを安全に保管するのは、ユーザーの責任であることをお忘れなく。",
     "hint": "ヒントを残しますか？",
@@ -3438,10 +3484,11 @@
     "description": "自動的にアップデートを確認すると、GitHubサーバーにIPアドレスが開示される可能性があります。これにより、当該IPアドレスがMetaMaskを使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。"
   },
   "terms_of_use_modal": {
-    "title": "最新の利用規約を確認してください",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "私は、MetaMaskおよびその全ての機能の使用に適用される利用規約に同意します",
     "accept_cta": "同意する",
-    "accept_helper_description": "スクロールしてすべてのセクションをお読みください"
+    "accept_helper_description": "スクロールしてすべてのセクションをお読みください",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "最新機能を入手",
@@ -3893,7 +3940,7 @@
     "failed": "予測結果の読み込み中にエラーが発生しました。",
     "fiat_not_available": "利用できません",
     "incoming_heading": "受取額",
-    "no_balance_changes": "ウォレット残高の増減は予測されていません",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "送金額",
     "reverted": "このトランザクションはおそらく失敗します",
     "title": "予測される増減額",
@@ -4048,8 +4095,10 @@
     "none": "なし",
     "advanced_details": "高度な詳細",
     "interacting_with": "相手",
+    "data": "Data",
     "review": "確認",
-    "transferRequest": "送金リクエスト"
+    "transferRequest": "送金リクエスト",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "送信中",
     "fetching_quote": "クォートを取得中",
     "fee_disclaimer": "0.875% のMM手数料込み",
-    "hardware_wallet_not_supported": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。"
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "新しい価格が利用可能です",

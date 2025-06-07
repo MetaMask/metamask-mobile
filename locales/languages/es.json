@@ -42,9 +42,13 @@
       "message": "Aún se está firmando o enviando una transacción anterior."
     },
     "pending_transaction": {
-      "title": "Pending transaction",
-      "message": "This transaction won't go through until the previous transaction is complete.",
-      "learn_more": "Learn how to cancel or speed up a transaction."
+      "title": "Transacción pendiente",
+      "message": "Esta transacción no se realizará hasta que se complete la transacción anterior.",
+      "learn_more": "Más información sobre cómo cancelar o acelerar una transacción."
+    },
+    "batched_unused_approvals": {
+      "title": "Permiso innecesario",
+      "message": "Le estás dando permiso a otra persona para que retire tus tokens, aunque no sea necesario para esta transacción."
     }
   },
   "blockaid_banner": {
@@ -110,7 +114,7 @@
     "ok": "Aceptar"
   },
   "onboarding": {
-    "title": "Configuración de monedero",
+    "title": "¡Comencemos!",
     "sync_desc": "Si ya tiene la extensión MetaMask u otro monedero, sincronícelo o impórtelo para administrar sus activos existentes.",
     "create_desc": "Configure su primer monedero y empiece a explorar aplicaciones descentralizadas.",
     "import": "Importar un monedero existente o crear uno nuevo",
@@ -142,7 +146,8 @@
     "scan_step_4": "Escanee el código QR para empezar la sincronización",
     "success": "Correcto",
     "your_wallet": "El monedero se borró correctamente",
-    "delete_current": "Borrando monedero actual"
+    "delete_current": "Borrando monedero actual",
+    "have_existing_wallet": "Tengo una billetera existente"
   },
   "onboarding_success": {
     "title": "¡Felicidades!",
@@ -167,7 +172,7 @@
     "title2": "Administrar sus activos digitales",
     "title3": "Su puerta de enlace a Web3",
     "subtitle1": "Con la confianza de millones de usuarios, MetaMask es un monedero seguro que permite que todos puedan acceder al mundo de Web3.",
-    "subtitle2": "Almacene, gaste y envíe activos digitales como tokens, Ethereum, coleccionables únicos.",
+    "subtitle2": "Almacena, gasta y envía activos digitales como tokens, Ethereum y objetos coleccionables únicos.",
     "subtitle3": "Inicie sesión con MetaMask y lleve a cabo transacciones para invertir, ganar, jugar juegos, vender y mucho más.",
     "get_started": "Empezar"
   },
@@ -313,7 +318,7 @@
     "show": "Mostrar",
     "hide": "Ocultar",
     "seed_phrase": "Frase secreta de recuperación",
-    "must_be_at_least": "Debe tener al menos {{number}} caracteres",
+    "must_be_at_least": "La contraseña debe tener al menos {{number}} caracteres",
     "remember_me": "Recordarme",
     "security_alert_title": "Alerta de seguridad",
     "security_alert_message": "Para continuar, debe activar el código de acceso o cualquier método de autenticación biométrica compatible con el dispositivo (FaceID, TouchID o huella dactilar)",
@@ -321,7 +326,10 @@
     "learn_more": "Obtenga más información.",
     "secure": "Proteger monedero",
     "confirm": "Confirmar frase secreta de recuperación",
-    "disable_biometric_error": "Ha inhabilitado la biometría en la aplicación. Actualice la configuración de Recordarme me e intente de nuevo."
+    "disable_biometric_error": "Ha inhabilitado la biometría en la aplicación. Actualice la configuración de Recordarme me e intente de nuevo.",
+    "confirm_cta": "Confirmar",
+    "steps": "Paso {{currentStep}} de {{totalSteps}}",
+    "password_error": "Las contraseñas no coinciden, inténtalo de nuevo."
   },
   "reset_password": {
     "title": "Cambiar contraseña",
@@ -351,7 +359,7 @@
     "successfully_changed": "La contraseña se cambió correctamente"
   },
   "import_from_seed": {
-    "title": "Importar desde la frase de recuperación secreta",
+    "title": "Importar una billetera",
     "seed_phrase_placeholder": "Ingrese la frase secreta de recuperación",
     "new_password": "Nueva contraseña",
     "confirm_password": "Confirmar contraseña",
@@ -360,10 +368,32 @@
     "password_length_error": "La contraseña debe tener al menos 8 caracteres",
     "password_dont_match": "Las contraseñas no coinciden",
     "seed_phrase_requirements": "Las frases secretas de recuperación contienen 12, 15, 18, 21 o 24 palabras",
-    "invalid_seed_phrase": "Frase secreta de recuperación no válida",
+    "invalid_seed_phrase": "No se encontró la frase secreta de recuperación.",
     "error": "Error",
     "invalid_qr_code_title": "Código QR no válido",
-    "invalid_qr_code_message": "Este código QR no representa ninguna frase secreta de recuperación válida"
+    "invalid_qr_code_message": "Este código QR no representa ninguna frase secreta de recuperación válida",
+    "enter_your_secret_recovery_phrase": "Ingresa tu frase secreta de recuperación",
+    "create_password": "Crear una contraseña",
+    "seed_phrase_required": "Se requiere una frase secreta de recuperación",
+    "re_enter_password": "Vuelve a ingresar tu contraseña",
+    "use_at_least_8_characters": "Utiliza al menos 8 caracteres",
+    "unlock_with_face_id": "¿Desbloquear con Face ID?",
+    "learn_more": "MetaMask no puede restablecer esta contraseña si la olvidas",
+    "seed_phrase_length_error": "La frase secreta de recuperación debe tener 12, 15, 18, 21 o 24 palabras",
+    "continue": "Continuar",
+    "clear_all": "Borrar todo",
+    "show_all": "Mostrar todo",
+    "paste": "Pegar",
+    "hide_all": "Ocultar todo",
+    "srp": "Frase secreta de recuperación",
+    "srp_placeholder": "Añade un espacio entre cada palabra y asegúrate de que nadie esté mirando 👀",
+    "learn_more_link": "Más información",
+    "confirm": "Confirmar",
+    "pass_flow": "Continuar con Flow",
+    "steps": "Paso {{currentStep}} de {{totalSteps}}",
+    "password_error": "Las contraseñas no coinciden, inténtalo de nuevo.",
+    "spellcheck_error": "No es del todo correcto. Revisa tu frase secreta de recuperación e inténtalo de nuevo.",
+    "enter_strong_password": "Ingresa una contraseña segura"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -434,20 +464,20 @@
       "button": "Comenzar"
     },
     "basic_info": {
-      "title": "Enter your basic info",
-      "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information."
+      "title": "Ingresa tu información básica",
+      "continue": "Continuar",
+      "subtitle": "Para comenzar a verificar tu identidad, necesitamos información básica."
     },
     "enter_address": {
-      "title": "Enter your address",
-      "subtitle": "Please enter your most recent permanent address.",
-      "continue": "Continue",
-      "address_line_1": "Address line 1",
-      "address_line_2": "Address line 2 (optional)",
-      "state": "State/Region",
-      "city": "City",
-      "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "title": "Ingresa tu dirección",
+      "subtitle": "Ingresa tu dirección permanente más reciente.",
+      "continue": "Continuar",
+      "address_line_1": "Línea de dirección 1",
+      "address_line_2": "Línea de dirección 2 (opcional)",
+      "state": "Estado/Región",
+      "city": "Ciudad",
+      "postal_code": "Código postal",
+      "country": "País"
     }
   },
   "receive": {
@@ -772,7 +802,7 @@
     "all_time_high": "Punto más alto",
     "all_time_low": "Punto más bajo",
     "fully_diluted": "Totalmente diluido",
-    "unknown": "Unknown"
+    "unknown": "Desconocido"
   },
   "collectible": {
     "collectible_address": "Dirección",
@@ -809,6 +839,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Crear cuenta nueva",
+    "new_account": "Nueva cuenta",
     "import_account": "Importar una cuenta",
     "connect_hardware": "Conectar monedero físico",
     "imported": "Importado",
@@ -878,6 +909,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "No se pudo crear la cuenta de {{clientType}}"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Se requiere una cuenta de Solana para conectarse a este sitio.",
+      "button": "Crear cuenta de Solana"
     }
   },
   "toast": {
@@ -1289,6 +1324,8 @@
     "blockaid_desc": "Esta función le alerta sobre actividades maliciosas al revisar activamente las solicitudes de transacciones y firmas.",
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
+    "dismiss_smart_account_update_heading": "Descartar la sugerencia \"Cambiar a cuenta inteligente\"",
+    "dismiss_smart_account_update_desc": "Activa esta opción para que ya no aparezca la sugerencia \"Cambiar a cuenta inteligente\" en ninguna cuenta. Las cuentas inteligentes permiten transacciones más rápidas, comisiones de red más bajas y mayor flexibilidad de pago.",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras en las redes compatibles.",
     "smart_transactions_learn_more": "Más información.",
@@ -1810,13 +1847,7 @@
       "generic": "Este sitio web ha sido bloqueado para que no abra automáticamente una aplicación externa"
     },
     "ipfs_gateway_off_title": "Puerta de enlace IPFS desactivada",
-    "ipfs_gateway_off_content": "Para ver este sitio, active la puerta de enlace IPFS en Configuración de privacidad y seguridad.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Pronto habrá conexión con dapps de Solana",
-        "message": "Puede conectarse a dapps de Solana en la extensión o intercambiar tokens de Solana en la aplicación."
-      }
-    }
+    "ipfs_gateway_off_content": "Para ver este sitio, active la puerta de enlace IPFS en Configuración de privacidad y seguridad."
   },
   "backup_alert": {
     "title": "Proteger su monedero",
@@ -1924,35 +1955,35 @@
     "smart_account_downgrade": "Cambiar a cuenta estándar",
     "batched_transactions": "Transacciones por lotes",
     "gas_modal": {
-      "edit_network_fee": "Edit network fee",
-      "advanced_gas_fee": "Advanced network fee",
-      "site_suggested": "Site suggested",
-      "advanced": "Advanced",
-      "low": "Low",
-      "medium": "Market",
-      "high": "Aggressive",
-      "network_suggested": "Network suggested",
-      "gas_limit": "Gas Limit",
-      "save": "Save",
-      "max_base_fee": "Max Base Fee",
-      "priority_fee": "Priority Fee",
-      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
-      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
-      "estimated_base_fee": "Current: {{value}} GWEI",
-      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
-      "gas_price": "Gas price",
-      "field_required": "{{field}} is required",
-      "max_base_fee_required": "Max base fee is required",
-      "gas_price_required": "Gas price is required",
-      "priority_fee_required": "Priority fee is required",
-      "gas_limit_required": "Gas limit is required",
-      "only_numbers_allowed": "Only numbers are allowed",
-      "negative_values_not_allowed": "Negative values are not allowed",
-      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
-      "gas_limit_too_low": "Gas limit must be greater than 21000",
-      "priority_fee_too_high": "Priority fee must be less than max base fee",
-      "no_zero_value": "{{field}} must be greater than 0",
-      "speed": "Speed"
+      "edit_network_fee": "Editar tarifa de red",
+      "advanced_gas_fee": "Tarifa de red avanzada",
+      "site_suggested": "Sitio sugerido",
+      "advanced": "Avanzado",
+      "low": "Bajo",
+      "medium": "Mercado",
+      "high": "Agresivo",
+      "network_suggested": "Red sugerida",
+      "gas_limit": "Límite de gas",
+      "save": "Guardar",
+      "max_base_fee": "Tarifa base máxima",
+      "priority_fee": "Tarifa de prioridad",
+      "current_priority_fee": "Actual: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 h: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Actual: {{value}} GWEI",
+      "historical_base_fee": "12 h: {{min}} - {{max}} GWEI",
+      "gas_price": "Precio del gas",
+      "field_required": "Se requiere {{field}}",
+      "max_base_fee_required": "Se requiere tarifa base máxima",
+      "gas_price_required": "Se requiere el precio del gas",
+      "priority_fee_required": "Se requiere tarifa de prioridad",
+      "gas_limit_required": "Se requiere límite de gas",
+      "only_numbers_allowed": "Solo se permiten números",
+      "negative_values_not_allowed": "No se permiten valores negativos",
+      "max_base_fee_must_be_greater_than_priority_fee": "La tarifa base máxima debe ser mayor que la tarifa de prioridad",
+      "gas_limit_too_low": "El límite de gas debe ser mayor a 21000",
+      "priority_fee_too_high": "La tarifa de prioridad debe ser menor que la tarifa base máxima",
+      "no_zero_value": "{{field}} debe ser mayor que 0",
+      "speed": "Velocidad"
     }
   },
   "smart_transactions": {
@@ -2348,25 +2379,40 @@
     "progressThree": "Confirmar frase secreta de recuperación"
   },
   "manual_backup_step_1": {
-    "action": "Anote la frase secreta de recuperación",
-    "info": "Esta es su frase secreta de recuperación. Anótela en un papel y guárdela en un lugar seguro. Se le pedirá que vuelva a ingresar esta frase (en orden) en el siguiente paso.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continuar",
-    "reveal": "Toque para conocer la frase secreta de recuperación",
+    "reveal": "Tap to reveal",
     "watching": "Asegúrese de que no haya nadie mirando la pantalla.",
     "view": "Ver",
     "confirm_password": "Confirmar la contraseña",
     "before_continiuing": "Antes de seguir, es necesario que confirme su contraseña",
-    "confirm": "CONFIRMAR",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Entendido",
-    "learn_more": "Más información"
+    "learn_more": "Más información",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Confirmar frase secreta de recuperación",
-    "info": "Seleccione cada palabra en el orden en que las vio.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Completar copia de seguridad",
-    "success": "Correcto"
+    "success": "Correcto",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Felicitaciones",
     "success": "Protegió correctamente su monedero. Recuerde guardar la frase secreta de recuperación en un lugar seguro; ¡es su responsabilidad!",
     "hint": "¿Quiere dejarse una pista?",
@@ -3438,10 +3484,11 @@
     "description": "La búsqueda automática de actualizaciones puede exponer su dirección IP a los servidores de GitHub. Esto solo indica que su dirección IP está usando MetaMask. No se exponen otros datos ni direcciones de cuentas."
   },
   "terms_of_use_modal": {
-    "title": "Revise nuestros últimos Términos de uso",
+    "title": "Revisa nuestros Términos de Uso",
     "terms_of_use_check_description": "Acepto los Términos de uso, que se aplican a mi uso de MetaMask y todas sus funcionalidades",
     "accept_cta": "Aceptar",
-    "accept_helper_description": "Por favor, desplácese para leer todas las secciones"
+    "accept_helper_description": "Por favor, desplácese para leer todas las secciones",
+    "agree_cta": "Acepto"
   },
   "update_needed": {
     "title": "Accede a las funciones más recientes",
@@ -3725,8 +3772,8 @@
       "withdrawal_time": "El tiempo que lleva retirar tu token del protocolo y recuperarlo en tu billetera",
       "receive": "Este token se utiliza para hacer un seguimiento de tus activos y recompensas. No los transfieras ni los intercambies, ya que no podrás retirarlos."
     },
-    "withdraw": "Withdraw",
-    "deposit_more": "Deposit more"
+    "withdraw": "Retirar",
+    "deposit_more": "Depositar más"
   },
   "stake": {
     "stake": "Staking",
@@ -3893,7 +3940,7 @@
     "failed": "Se produjo un error al cargar su estimación.",
     "fiat_not_available": "No disponible",
     "incoming_heading": "Usted recibe",
-    "no_balance_changes": "No se prevén cambios para su monedero",
+    "no_balance_changes": "Sin cambios",
     "outgoing_heading": "Envía",
     "reverted": "Es probable que esta transacción falle",
     "title": "Cambios estimados",
@@ -4000,12 +4047,12 @@
       "resources": "Recursos"
     },
     "simulation": {
-      "cancel": "Cancel",
+      "cancel": "Cancelar",
       "decoded_tooltip_bid_nft": "Una vez aceptada la oferta, el NFT se reflejará en su monedero.",
       "decoded_tooltip_list_nft": "Espere cambios solamente si alguien compra sus NFT.",
-      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
-      "edit_approval_limit_title": "Edit approval limit",
-      "edit_value_balance_info": "Account balance:",
+      "edit_approval_limit_description": "Ingresa el monto que consideras cómodo para que se gaste en tu nombre.",
+      "edit_approval_limit_title": "Editar límite de aprobación",
+      "edit_value_balance_info": "Saldo de cuenta:",
       "info_permit": "Le está dando permiso al gastador para gastar esta cantidad de tokens de su cuenta.",
       "info_revoke": "Va a eliminar el permiso de alguien para gastar tokens de su cuenta.",
       "label_change_type_bidding": "Usted hace una oferta",
@@ -4018,7 +4065,7 @@
       "label_change_type_transfer": "Usted envía",
       "label_change_type_approve": "Apruebas",
       "personal_sign_info": "Está entrando en un sitio y no hay cambios previstos en su cuenta.",
-      "save": "Save",
+      "save": "Guardar",
       "title": "Cambios estimados",
       "tooltip": "Los cambios estimados son lo que podría ocurrir si se lleva a cabo esta transacción. Esto es solo una predicción, no una garantía.",
       "unavailable": "No disponible"
@@ -4048,8 +4095,10 @@
     "none": "Ninguno",
     "advanced_details": "Datos avanzados",
     "interacting_with": "Interactuando con",
+    "data": "Datos",
     "review": "Revisar",
-    "transferRequest": "Solicitud de transferencia"
+    "transferRequest": "Solicitud de transferencia",
+    "nested_transaction_heading": "{{index}} de transacción"
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",
@@ -4102,7 +4151,8 @@
     "submitting_transaction": "Enviando",
     "fetching_quote": "Obteniendo cotización",
     "fee_disclaimer": "Incluye comisión MM del 0,875 %",
-    "hardware_wallet_not_supported": "Las billeteras físicas aún no son compatibles con Solana. Usa una billetera en caliente para continuar."
+    "hardware_wallet_not_supported": "Las billeteras físicas aún no son compatibles. Usa una billetera en caliente para continuar.",
+    "hardware_wallet_not_supported_solana": "Las billeteras físicas aún no son compatibles con Solana. Usa una billetera en caliente para continuar."
   },
   "quote_expired_modal": {
     "title": "Hay nuevas cotizaciones disponibles",
@@ -4163,60 +4213,60 @@
   },
   "multichain_accounts": {
     "account_details": {
-      "header_title": "Account Details",
-      "account_name": "Account Name",
-      "account_address": "Account Address",
-      "wallet": "Wallet",
-      "private_key": "Private key"
+      "header_title": "Detalles de la cuenta",
+      "account_name": "Nombre de la cuenta",
+      "account_address": "Dirección de la cuenta",
+      "wallet": "Billetera",
+      "private_key": "Clave privada"
     },
     "smart_account": {
-      "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks. {{learnMore}}",
-      "learn_more": "Learn more"
+      "title": "Activar cuenta inteligente",
+      "description": "Puedes habilitar las funciones de cuenta inteligente en redes compatibles. {{learnMore}}",
+      "learn_more": "Más información"
     },
     "edit_account_name": {
-      "title": "Edit Account Name",
-      "name": "Name",
-      "save_button": "Save",
-      "error_duplicate_name": "This account name already exists"
+      "title": "Editar el nombre de la cuenta",
+      "name": "Nombre",
+      "save_button": "Guardar",
+      "error_duplicate_name": "Este nombre de cuenta ya existe"
     },
     "delete_account": {
-      "title": "Remove Account",
-      "warning_title": "This account will be removed from MetaMask.",
-      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
-      "remove_button": "Remove",
-      "cancel_button": "Cancel",
-      "error": "Failed to delete account"
+      "title": "Eliminar cuenta",
+      "warning_title": "Esta cuenta se eliminará de MetaMask.",
+      "warning_description": "Asegúrate de tener la frase secreta de recuperación o la clave privada de esta cuenta antes de eliminarla.",
+      "remove_button": "Eliminar",
+      "cancel_button": "Cancelar",
+      "error": "No se pudo eliminar la cuenta"
     },
     "share_address": {
-      "title": "Share Address",
-      "copy_address": "Copy address",
-      "view_on_explorer_button": "View on {{explorer}}",
-      "view_on_block_explorer": "View on Block Explorer"
+      "title": "Compartir dirección",
+      "copy_address": "Copiar dirección",
+      "view_on_explorer_button": "Ver en {{explorer}}",
+      "view_on_block_explorer": "Ver en explorador de bloques"
     },
     "export_credentials": {
-      "export_private_key": "Private key",
-      "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
-      "credential_as_text": "Text",
-      "credential_as_qr": "QR code",
-      "export_mnemonic": "Export mnemonic",
-      "backup": "Backup"
+      "export_private_key": "Clave privada",
+      "private_key_warning_title": "Nunca reveles esta clave.",
+      "private_key_warning_description": "Cualquier persona que tenga tu clave privada podrá robar cualquier activo guardado en tu cuenta.",
+      "credential_as_text": "Texto",
+      "credential_as_qr": "Código QR",
+      "export_mnemonic": "Exportar mnemónico",
+      "backup": "Copia de respaldo"
     },
     "reveal_private_key": {
-      "title": "Show private key",
-      "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
-      "enter_password": "Enter your password",
-      "password_placeholder": "Password",
-      "next": "Next",
-      "copy": "Copy"
+      "title": "Mostrar clave privada",
+      "banner_title": "Nunca reveles esta clave.",
+      "banner_description": "Cualquier persona que tenga tu clave privada podrá robar cualquier activo guardado en tu cuenta.",
+      "enter_password": "Ingresa tu contraseña",
+      "password_placeholder": "Contraseña",
+      "next": "Siguiente",
+      "copy": "Copiar"
     },
     "reveal_srp": {
-      "header": "Security quiz",
-      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
-      "get_started": "Get started",
-      "learn_more": "Learn more"
+      "header": "Cuestionario de seguridad",
+      "description": "Para revelar tu frase secreta de recuperación, debes responder correctamente dos preguntas",
+      "get_started": "Comenzar",
+      "learn_more": "Más información"
     }
   }
 }
