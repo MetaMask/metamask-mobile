@@ -5,6 +5,19 @@ import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
+
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -87,6 +100,7 @@ describe('BasicInfo Component', () => {
           mobileNumber: '+11234567890',
           ssn: '123456789',
         },
+        quote: mockQuote as unknown as BuyQuote,
       }),
     );
   });
