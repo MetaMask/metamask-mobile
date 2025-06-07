@@ -38,6 +38,7 @@ export const NETWORKS_CHAIN_ID = {
   GOERLI: toHex('5'),
   LINEA_MAINNET: toHex('59144'),
   ZKSYNC_ERA: toHex('324'),
+  LOCALHOST: toHex('1337'),
   ARBITRUM_GOERLI: toHex('421613'),
   OPTIMISM_GOERLI: toHex('420'),
   MUMBAI: toHex('80001'),
