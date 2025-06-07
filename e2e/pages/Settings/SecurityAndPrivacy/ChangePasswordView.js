@@ -61,7 +61,9 @@ class ChangePasswordView {
   }
 
   async tapSubmitButton() {
-    await Gestures.waitAndTap(this.submitButton);
+    if (device.getPlatform() === 'android') {
+      await Gestures.waitAndTap(this.submitButton);
+    }
   }
 }
 
