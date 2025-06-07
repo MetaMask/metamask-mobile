@@ -703,7 +703,7 @@ const mapStateToProps = (state, ownProps) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
-  ticker: isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, ownProps.tx.chainId) : undefined,
+  ticker:  selectTickerByChainId(state, ownProps.tx.chainId),
 });
 
 TransactionElement.contextType = ThemeContext;
