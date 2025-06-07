@@ -39,10 +39,10 @@ const KycProcessing = () => {
   const { quote } = useParams<KycProcessingParams>();
 
   const { error, kycApproved, stopPolling } = useKycPolling(
+    quote,
     10000,
     true,
     30,
-    quote,
   );
 
   useEffect(() => {
