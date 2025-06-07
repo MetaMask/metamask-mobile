@@ -12,6 +12,12 @@ import {
 
 const EMAIL = 'test@email.com';
 
+const mockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+} as any;
+
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useDepositSDK: jest.fn().mockReturnValue({
@@ -56,6 +62,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -152,7 +161,7 @@ describe('OtpCode Component', () => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        undefined,
+        { quote: mockQuote },
       );
     });
   });
@@ -189,5 +198,20 @@ describe('OtpCode Component', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.press(submitButton);
     expect(mockSdkMethod).not.toHaveBeenCalled();
+  });
+
+  it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
+    const mockResendFn = jest.fn().mockResolvedValue('success');
+
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
+
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
+    expect(mockResendFn).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

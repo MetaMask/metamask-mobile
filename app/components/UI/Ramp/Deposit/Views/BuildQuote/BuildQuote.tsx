@@ -60,12 +60,12 @@ const BuildQuote = () => {
       const { forms: requiredForms } = forms || {};
       if (isAuthenticated) {
         if (requiredForms?.length === 0) {
-          navigation.navigate(...createProviderWebviewNavDetails());
+          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
         } else {
-          navigation.navigate(...createBasicInfoNavDetails());
+          navigation.navigate(...createBasicInfoNavDetails({ quote }));
         }
       } else {
-        navigation.navigate(...createEnterEmailNavDetails());
+        navigation.navigate(...createEnterEmailNavDetails({ quote }));
       }
     } else {
       // TODO: Handle error case where quote can not be generated

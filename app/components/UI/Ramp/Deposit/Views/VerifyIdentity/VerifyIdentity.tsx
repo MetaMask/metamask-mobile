@@ -7,11 +7,12 @@ import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export const createVerifyIdentityNavDetails = createNavigationDetails(
   Routes.DEPOSIT.VERIFY_IDENTITY,
@@ -21,6 +22,10 @@ const VerifyIdentity = () => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const route =
+    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
+  const { quote } = route.params;
 
   useEffect(() => {
     navigation.setOptions(
@@ -33,7 +38,7 @@ const VerifyIdentity = () => {
   }, [navigation, theme]);
 
   const handleSubmit = async () => {
-    navigation.navigate(...createBasicInfoNavDetails());
+    navigation.navigate(...createBasicInfoNavDetails({ quote }));
   };
 
   return (
