@@ -15,11 +15,13 @@ import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 interface DepositParamList {
   [key: string]:
     | {
         animationEnabled?: boolean;
+        quote?: BuyQuote;
       }
     | undefined;
 }

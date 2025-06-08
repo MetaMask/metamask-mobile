@@ -3,20 +3,30 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import Row from '../../../Aggregator/components/Row';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import styleSheet from './ProviderWebview.styles';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createProviderWebviewNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.PROVIDER_WEBVIEW,
-);
+export interface ProviderWebviewParams {
+  quote: BuyQuote;
+}
+
+export const createProviderWebviewNavDetails =
+  createNavigationDetails<ProviderWebviewParams>(
+    Routes.DEPOSIT.PROVIDER_WEBVIEW,
+  );
 
 const ProviderWebview = () => {
   const navigation = useNavigation();
+  const { quote } = useParams<ProviderWebviewParams>();
 
   const [{ data: userDetailsResponse, error, isFetching: loading }] =
     useDepositSdkMethod('getUserDetails');
@@ -46,6 +56,7 @@ const ProviderWebview = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           <Text style={styles.description}>{getKycText()}</Text>
+          <Text style={styles.description}>Quote: {JSON.stringify(quote)}</Text>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>

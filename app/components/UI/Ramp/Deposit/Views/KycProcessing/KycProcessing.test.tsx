@@ -17,6 +17,18 @@ const mockUseKycPolling = {
   stopPolling: mockStopPolling,
 };
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -27,6 +39,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });

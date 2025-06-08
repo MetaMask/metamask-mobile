@@ -24,7 +24,7 @@ const BuildQuote = () => {
   const [fiatCurrency] = useState<string>('USD');
   const [network] = useState<string>('ethereum');
   const [amount, setAmount] = useState<string>('100');
-  const { isAuthenticated, setQuote } = useDepositSDK();
+  const { isAuthenticated } = useDepositSDK();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
@@ -56,18 +56,16 @@ const BuildQuote = () => {
     );
 
     if (quote) {
-      setQuote(quote);
-
       const forms = await fetchKycForms(quote);
       const { forms: requiredForms } = forms || {};
       if (isAuthenticated) {
         if (requiredForms?.length === 0) {
-          navigation.navigate(...createProviderWebviewNavDetails());
+          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
         } else {
-          navigation.navigate(...createBasicInfoNavDetails());
+          navigation.navigate(...createBasicInfoNavDetails({ quote }));
         }
       } else {
-        navigation.navigate(...createEnterEmailNavDetails());
+        navigation.navigate(...createEnterEmailNavDetails({ quote }));
       }
     } else {
       // TODO: Handle error case where quote can not be generated
@@ -83,7 +81,6 @@ const BuildQuote = () => {
     navigation,
     network,
     paymentMethod,
-    setQuote,
   ]);
 
   const handleAmountChange = (text: string) => {

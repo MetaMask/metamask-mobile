@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { useDepositSDK } from '../sdk';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export interface KycPollingResult {
   kycApproved: boolean;
@@ -11,12 +11,11 @@ export interface KycPollingResult {
 }
 
 const useKycPolling = (
+  quote: BuyQuote,
   pollingInterval: number = 10000,
   autoStart: boolean = true,
   maxPollingAttempts: number = 30,
 ): KycPollingResult => {
-  const { quote } = useDepositSDK();
-
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
   const [pollingError, setPollingError] = useState<string | null>(null);
