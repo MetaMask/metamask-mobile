@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import useKycPolling from '../../hooks/useKycPolling';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -23,23 +26,23 @@ import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createKycProcessingNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.KYC_PROCESSING,
-);
+export interface KycProcessingParams {
+  quote: BuyQuote;
+}
+
+export const createKycProcessingNavDetails =
+  createNavigationDetails<KycProcessingParams>(Routes.DEPOSIT.KYC_PROCESSING);
 
 const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const route =
-    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
-  const { quote } = route.params;
+  const { quote } = useParams<KycProcessingParams>();
 
   const { error, kycApproved, stopPolling } = useKycPolling(
+    quote,
     10000,
     true,
     30,
-    quote,
   );
 
   useEffect(() => {

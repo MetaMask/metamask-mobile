@@ -22,12 +22,18 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
 // Mock the quote object
-const mockQuote = {
+const mockQuote: MockQuote = {
   id: 'test-quote-id',
   amount: 100,
   currency: 'USD',
-} as any;
+};
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,

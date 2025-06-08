@@ -5,9 +5,12 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   CodeField,
@@ -22,7 +25,11 @@ import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity
 import { useDepositSDK } from '../../sdk';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createOtpCodeNavDetails = createNavigationDetails(
+export interface OtpCodeParams {
+  quote: BuyQuote;
+}
+
+export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
   Routes.DEPOSIT.OTP_CODE,
 );
 
@@ -32,10 +39,7 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { email, setAuthToken } = useDepositSDK();
-
-  const route =
-    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
-  const { quote } = route.params;
+  const { quote } = useParams<OtpCodeParams>();
 
   useEffect(() => {
     navigation.setOptions(

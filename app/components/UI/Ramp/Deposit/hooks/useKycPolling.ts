@@ -11,10 +11,10 @@ export interface KycPollingResult {
 }
 
 const useKycPolling = (
+  quote: BuyQuote,
   pollingInterval: number = 10000,
   autoStart: boolean = true,
   maxPollingAttempts: number = 30,
-  quote: BuyQuote,
 ): KycPollingResult => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);

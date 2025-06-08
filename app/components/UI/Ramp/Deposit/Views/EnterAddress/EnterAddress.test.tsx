@@ -5,6 +5,12 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -18,11 +24,11 @@ const mockFormData: BasicInfoFormData = {
 };
 
 // Mock the quote object
-const mockQuote = {
+const mockQuote: MockQuote = {
   id: 'test-quote-id',
   amount: 100,
   currency: 'USD',
-} as any;
+};
 
 const mockUseDepositSdkMethodInitialState = {
   data: null,
@@ -39,7 +45,7 @@ let mockPurposeValues = [
 ];
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: jest.fn((config, ...args) => {
+  useDepositSdkMethod: jest.fn((config, ..._args) => {
     if (config?.method === 'patchUser') {
       return mockKycValues;
     }

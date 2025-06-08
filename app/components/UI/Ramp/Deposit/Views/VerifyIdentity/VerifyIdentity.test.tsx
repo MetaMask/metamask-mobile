@@ -9,12 +9,18 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
 // Mock the quote object
-const mockQuote = {
+const mockQuote: MockQuote = {
   id: 'test-quote-id',
   amount: 100,
   currency: 'USD',
-} as any;
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');

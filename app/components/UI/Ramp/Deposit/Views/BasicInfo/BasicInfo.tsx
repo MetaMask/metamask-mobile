@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -8,7 +8,10 @@ import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -19,9 +22,12 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createBasicInfoNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.BASIC_INFO,
-);
+export interface BasicInfoParams {
+  quote: BuyQuote;
+}
+
+export const createBasicInfoNavDetails =
+  createNavigationDetails<BasicInfoParams>(Routes.DEPOSIT.BASIC_INFO);
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -37,10 +43,7 @@ const COUNTRY_CODE = '1';
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const route =
-    useRoute<RouteProp<Record<string, { quote: BuyQuote }>, string>>();
-  const { quote } = route.params;
+  const { quote } = useParams<BasicInfoParams>();
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
