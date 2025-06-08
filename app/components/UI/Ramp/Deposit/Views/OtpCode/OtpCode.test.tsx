@@ -121,11 +121,12 @@ describe('OtpCode Component', () => {
       ttl: 1000,
       userId: 'mock-user-id',
     } as NativeTransakAccessToken;
+
     const mockSubmitCode = jest.fn().mockResolvedValue(mockResponse);
     const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
 
     mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, data: mockResponse },
+      { ...mockUseDepositSdkMethodInitialState, data: null },
       mockSubmitCode,
     ];
 
@@ -149,7 +150,6 @@ describe('OtpCode Component', () => {
     const { getByTestId } = render(OtpCode);
 
     const codeInput = getByTestId('otp-code-input');
-
     fireEvent.changeText(codeInput, '123456');
 
     fireEvent.press(
@@ -158,12 +158,20 @@ describe('OtpCode Component', () => {
       }),
     );
 
+    expect(mockSubmitCode).toHaveBeenCalled();
+
+    mockUseDepositSdkMethodValues[0] = {
+      ...mockUseDepositSdkMethodValues[0],
+      data: mockResponse,
+    };
+
+    render(OtpCode);
+
     await waitFor(() => {
-      expect(mockSubmitCode).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        { email: EMAIL, quote: mockQuote },
+        { quote: mockQuote },
       );
     });
   });
