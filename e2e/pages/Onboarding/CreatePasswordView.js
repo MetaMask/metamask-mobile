@@ -26,6 +26,12 @@ class CreatePasswordView {
     );
   }
 
+  get iUnderstandCheckboxNewWallet() {
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.CREATE_WALLET_I_UNDERSTAND_BUTTON_ID,
+     );
+  }
+
   get submitButton() {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
@@ -52,7 +58,13 @@ class CreatePasswordView {
   }
 
   async tapIUnderstandCheckBox() {
-    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+    try {
+      // Try the generic checkbox first (used in import flow)
+      await Gestures.tap(this.iUnderstandCheckbox);
+    } catch (error) {
+      // Fall back to platform-specific checkbox (used in onboarding flow)
+      await Gestures.tap(this.iUnderstandCheckboxNewWallet);
+    }
   }
 
   async tapCreatePasswordButton() {
