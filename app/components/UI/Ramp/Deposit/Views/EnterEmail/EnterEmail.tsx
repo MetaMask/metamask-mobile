@@ -7,7 +7,10 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,15 +24,20 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createEnterEmailNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_EMAIL,
-);
+export interface EnterEmailParams {
+  quote: BuyQuote;
+}
+
+export const createEnterEmailNavDetails =
+  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
 
 const EnterEmail = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState(false);
+  const { quote } = useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -57,7 +65,7 @@ const EnterEmail = () => {
         await submitEmail();
 
         if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails({ email }));
+          navigation.navigate(...createOtpCodeNavDetails({ quote, email }));
         }
       } else {
         setValidationError(true);
@@ -65,7 +73,7 @@ const EnterEmail = () => {
     } catch (e) {
       console.error('Error submitting email');
     }
-  }, [email, error, navigation, submitEmail]);
+  }, [email, error, navigation, submitEmail, quote]);
 
   return (
     <ScreenLayout>

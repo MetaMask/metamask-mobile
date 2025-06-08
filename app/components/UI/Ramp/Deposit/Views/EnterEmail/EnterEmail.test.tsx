@@ -22,6 +22,19 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+// Mock the quote object
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
@@ -36,6 +49,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -53,7 +69,10 @@ function render(Component: React.ComponentType) {
 describe('EnterEmail Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = [mockResponse, jest.fn()];
+    mockUseDepositSdkMethodValues = [
+      { ...mockResponse },
+      jest.fn().mockResolvedValue('Success'),
+    ];
   });
 
   it('render matches snapshot', () => {
@@ -87,6 +106,7 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
+        quote: mockQuote,
       });
     });
   });

@@ -478,6 +478,18 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
     }
   },
   "receive": {
@@ -2382,25 +2394,40 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
-    "action": "Write down your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continue",
-    "reveal": "Tap to reveal your Secret Recovery Phrase",
+    "reveal": "Tap to reveal",
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM",
+    "enter_current_password": "Enter your current password",
+    "confirm": "Confirm",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn More",
+    "password": "Password"
   },
   "manual_backup_step_2": {
-    "action": "Confirm Secret Recovery Phrase",
-    "info": "Select each word in the order it was presented to you.",
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "action": "Confirm your Secret Recovery Phrase",
+    "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
-    "success": "Success"
+    "success": "Success",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
+    "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Congratulations",
     "success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
     "hint": "Leave yourself a hint?",
@@ -4139,7 +4166,8 @@
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
-    "hardware_wallet_not_supported": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

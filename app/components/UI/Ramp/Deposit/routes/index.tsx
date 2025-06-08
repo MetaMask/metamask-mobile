@@ -13,12 +13,15 @@ import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
+import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 interface DepositParamList {
   [key: string]:
     | {
         animationEnabled?: boolean;
+        quote?: BuyQuote;
       }
     | undefined;
 }
@@ -69,6 +72,11 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.ENTER_ADDRESS}
         component={EnterAddress}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.KYC_PROCESSING}
+        component={KycProcessing}
         options={getAnimationOptions}
       />
       <Stack.Screen
