@@ -12,11 +12,17 @@ import {
 
 const EMAIL = 'test@email.com';
 
-const mockQuote = {
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+const mockQuote: MockQuote = {
   id: 'test-quote-id',
   amount: 100,
   currency: 'USD',
-} as any;
+};
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
