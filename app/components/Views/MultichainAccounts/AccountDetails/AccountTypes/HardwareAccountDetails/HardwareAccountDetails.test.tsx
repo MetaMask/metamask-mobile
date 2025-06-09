@@ -5,12 +5,21 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
+import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
 
-const mockIsRemoteAccountAvailable = jest.fn();
-
-jest.mock('../../../../../../util/address', () => ({
-  isRemoteAccountAvailable: () => mockIsRemoteAccountAvailable(),
-}));
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+  };
+});
 
 const mockInitialState = {
   settings: {
@@ -54,8 +63,6 @@ describe('HardwareAccountDetails', () => {
       EthAccountType.Eoa,
     );
 
-    mockIsRemoteAccountAvailable.mockReturnValue(true);
-
     const { getByTestId } = renderWithProvider(
       <HardwareAccountDetails account={mockAccount} />,
       { state: mockInitialState },
@@ -74,59 +81,14 @@ describe('HardwareAccountDetails', () => {
       EthAccountType.Eoa,
     );
 
-    mockIsRemoteAccountAvailable.mockReturnValue(true);
-
     const { getByTestId } = renderWithProvider(
       <HardwareAccountDetails account={mockAccount} />,
       { state: mockInitialState },
     );
 
-    expect(getByTestId('remove-account')).toBeTruthy();
-  });
-
-  it('calls isRemoteAccountAvailable with correct account', () => {
-    const mockAccount = createMockInternalAccount(
-      '0x1234567890123456789012345678901234567890',
-      'Hardware Account',
-      KeyringTypes.ledger,
-      EthAccountType.Eoa,
-    );
-
-    mockIsRemoteAccountAvailable.mockReturnValue(true);
-
-    renderWithProvider(<HardwareAccountDetails account={mockAccount} />, {
-      state: mockInitialState,
-    });
-
-    expect(mockIsRemoteAccountAvailable).toHaveBeenCalledWith(mockAccount);
-  });
-
-  it('renders components regardless of remote account availability', () => {
-    const mockAccount = createMockInternalAccount(
-      '0x1234567890123456789012345678901234567890',
-      'Hardware Account',
-      KeyringTypes.ledger,
-      EthAccountType.Eoa,
-    );
-
-    mockIsRemoteAccountAvailable.mockReturnValue(true);
-    const { getByTestId, rerender } = renderWithProvider(
-      <HardwareAccountDetails account={mockAccount} />,
-      { state: mockInitialState },
-    );
-
     expect(
-      getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
+      getByTestId(MultichainDeleteAccountsSelectors.deleteAccountRemoveButton),
     ).toBeTruthy();
-    expect(getByTestId('remove-account')).toBeTruthy();
-
-    mockIsRemoteAccountAvailable.mockReturnValue(false);
-    rerender(<HardwareAccountDetails account={mockAccount} />);
-
-    expect(
-      getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-    ).toBeTruthy();
-    expect(getByTestId('remove-account')).toBeTruthy();
   });
 
   it.each(hardwareWalletTypes)(
@@ -139,9 +101,7 @@ describe('HardwareAccountDetails', () => {
         EthAccountType.Eoa,
       );
 
-      mockIsRemoteAccountAvailable.mockReturnValue(false);
-
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <HardwareAccountDetails account={hardwareAccount} />,
         { state: mockInitialState },
       );
@@ -149,33 +109,14 @@ describe('HardwareAccountDetails', () => {
       expect(
         getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
       ).toBeTruthy();
-      expect(getByText(name)).toBeTruthy();
-      expect(getByTestId('remove-account')).toBeTruthy();
-      expect(mockIsRemoteAccountAvailable).toHaveBeenCalledWith(
-        hardwareAccount,
-      );
-    },
-  );
-
-  it.each(hardwareWalletTypes)(
-    'calls isRemoteAccountAvailable for $name',
-    ({ type, name, address }) => {
-      const hardwareAccount = createMockInternalAccount(
-        address,
+      expect(getByTestId(HEADERBASE_TITLE_TEST_ID).children).toStrictEqual([
         name,
-        type,
-        EthAccountType.Eoa,
-      );
-
-      mockIsRemoteAccountAvailable.mockReturnValue(true);
-
-      renderWithProvider(<HardwareAccountDetails account={hardwareAccount} />, {
-        state: mockInitialState,
-      });
-
-      expect(mockIsRemoteAccountAvailable).toHaveBeenCalledWith(
-        hardwareAccount,
-      );
+      ]);
+      expect(
+        getByTestId(
+          MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+        ),
+      ).toBeTruthy();
     },
   );
 });
