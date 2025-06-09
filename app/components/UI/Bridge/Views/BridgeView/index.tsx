@@ -73,6 +73,7 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
+import AppConstants from '../../../../../core/AppConstants';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -306,7 +307,13 @@ const BridgeView = () => {
   };
 
   const handleTermsPress = () => {
-    // TODO: Implement terms and conditions navigation
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
+        title: strings('bridge.terms_and_conditions'),
+      },
+    });
   };
 
   const handleSourceTokenPress = () =>
@@ -415,7 +422,7 @@ const BridgeView = () => {
           <Button
             variant={ButtonVariants.Link}
             label={
-              <Text color={TextColor.Alternative}>
+              <Text color={TextColor.Primary}>
                 {strings('bridge.terms_and_conditions')}
               </Text>
             }
