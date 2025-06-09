@@ -48,7 +48,7 @@ describe(SmokeAccounts('Import new srp to wallet'), () => {
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
+      WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
   });
@@ -60,7 +60,7 @@ describe(SmokeAccounts('Import new srp to wallet'), () => {
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
+      WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
   });

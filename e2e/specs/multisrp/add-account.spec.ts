@@ -21,15 +21,18 @@ const fixtureServer = new FixtureServer();
 
 const SRP_1 = {
   index: 1,
-  id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+  id: '01JX9NJ15HPNS6RRRYBCKDK33R',
 };
 
 const SRP_2 = {
   index: 2,
-  id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+  id: '01JX9NZWRAVQKES02TWSN8GD91',
 };
 
-const addAccountToSrp = async (srp, accountName) => {
+const addAccountToSrp = async (
+  srp: { index: number; id: string },
+  accountName: string,
+) => {
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapCreateAccount();
   await Assertions.checkIfVisible(AddNewHdAccountComponent.container);
@@ -55,7 +58,7 @@ const addAccountToSrp = async (srp, accountName) => {
   } else {
     await AddNewHdAccountComponent.tapConfirm();
   }
-
+  await WalletView.tapIdenticon();
   await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 };
 
@@ -63,7 +66,7 @@ describe(SmokeAccounts('Multi-SRP: Add new account to a specific SRP'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withImportedHdKeyringController()
+      .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -80,10 +83,10 @@ describe(SmokeAccounts('Multi-SRP: Add new account to a specific SRP'), () => {
   });
 
   it('adds an account to default SRP', async () => {
-    await addAccountToSrp(SRP_1, 'Account 3');
+    await addAccountToSrp(SRP_1, 'Account 4');
   });
 
   it('adds an account to the imported SRP', async () => {
-    await addAccountToSrp(SRP_2, 'Account 4');
+    await addAccountToSrp(SRP_2, 'Account 5');
   });
 });
