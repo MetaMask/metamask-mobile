@@ -1,28 +1,28 @@
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Result, TransactionType } from '@metamask/transaction-controller';
+import { useRoute } from '@react-navigation/native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
 } from '.';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
-import { useRoute } from '@react-navigation/native';
-import { getStakingNavbar } from '../../../Navbar';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
-import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
-import {
-  CONFIRMATION_FOOTER_TEST_IDS,
-  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
-} from './components/ConfirmationFooter';
-import { act, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestUtils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import Engine from '../../../../../core/Engine';
-import { Result, TransactionType } from '@metamask/transaction-controller';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { getStakingNavbar } from '../../../Navbar';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
+import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
+import {
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+  CONFIRMATION_FOOTER_TEST_IDS,
+} from './components/ConfirmationFooter';
+import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
+import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -197,8 +197,6 @@ describe('EarnLendingDepositConfirmationView', () => {
       backgroundState,
     },
   };
-
-  const USDC_TOKEN_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
   const AAVE_V3_ETHEREUM_MAINNET_POOL_CONTRACT_ADDRESS =
     CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS['0x1'];

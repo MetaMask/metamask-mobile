@@ -1,22 +1,21 @@
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import EarnLendingBalance, { EARN_LENDING_BALANCE_TEST_IDS } from '.';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { createMockToken } from '../../../Stake/testUtils';
+import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
+import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnTokens from '../../hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
-import useEarnTokens from '../../hooks/useEarnTokens';
-import { createMockToken } from '../../../Stake/testUtils';
-import { TokenI } from '../../../Tokens/types';
-import { act, fireEvent } from '@testing-library/react-native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EARN_EMPTY_STATE_CTA_TEST_ID } from '../EmptyStateCta';
-import { strings } from '../../../../../../locales/i18n';
-import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 
 const mockNavigate = jest.fn();
 

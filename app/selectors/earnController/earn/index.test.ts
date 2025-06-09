@@ -19,6 +19,7 @@ import {
 } from '../../../components/UI/Stake/__mocks__/earnControllerMockData';
 import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
 import { RootState } from '../../../reducers';
+// eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import {
   internalAccount2,
@@ -224,16 +225,12 @@ const mockState = {
 describe('Earn Controller Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    console.log('beforeEach', selectPooledStakingEnabledFlag);
 
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
         typeof selectPooledStakingEnabledFlag
       >
-    ).mockImplementation(() => {
-      console.log('selectPooledStakingEnabledFlag');
-      return true;
-    });
+    ).mockReturnValue(true);
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
         typeof selectPooledStakingEnabledFlag

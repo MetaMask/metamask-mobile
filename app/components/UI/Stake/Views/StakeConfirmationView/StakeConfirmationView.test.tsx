@@ -82,16 +82,13 @@ jest.mock('../../hooks/usePooledStakes', () => ({
 }));
 
 expect.addSnapshotSerializer({
-  test: (val) => {
-    return (
-      val &&
-      typeof val === 'object' &&
-      (val.props?.source?.uri === '' ||
-        val.props?.onLayout ||
-        val.props?.onError ||
-        val.props?.onLoadEnd)
-    );
-  },
+  test: (val) =>
+    val &&
+    typeof val === 'object' &&
+    (val.props?.source?.uri === '' ||
+      val.props?.onLayout ||
+      val.props?.onError ||
+      val.props?.onLoadEnd),
   print: () => 'IGNORED_RANDOM_ELEMENT',
 });
 

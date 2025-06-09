@@ -7,9 +7,9 @@ import {
 } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { BigNumber } from 'bignumber.js';
 import BN4 from 'bnjs4';
 import { Contract, BigNumber as EthersBigNumber } from 'ethers';
-import { BigNumber } from 'bignumber.js';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -17,7 +17,6 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 // eslint-disable-next-line import/no-namespace
-import * as tempLendingUtils from '../../utils/tempLending';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -45,21 +44,21 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
+import Engine from '../../../../../core/Engine';
+// eslint-disable-next-line import/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
   createMockToken,
   getCreateMockTokenOptions,
 } from '../../../Stake/testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
-import EarnInputView from './EarnInputView';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import useEarnTokens from '../../hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import Engine from '../../../../../core/Engine';
 import { useEarnMetadata } from '../../hooks/useEarnMetadata';
-import { getByText } from '@testing-library/react';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import EarnInputView from './EarnInputView';
+import { EarnInputViewProps } from './EarnInputView.types';
 
 jest.mock('../../hooks/useEarnMetadata', () => ({
   useEarnMetadata: jest.fn(() => ({
@@ -374,31 +373,21 @@ describe('EarnInputView', () => {
           estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
         },
       })),
-      getOutputToken: jest.fn(() => {
-        return {
-          ...MOCK_ETH_MAINNET_ASSET,
-          name: 'Staked ETH',
-          symbol: 'stETH',
-          decimals: 18,
-          balance: '1.5',
-          balanceFiat: '$3000',
-          balanceWei: mockBalanceBN,
-          balanceMinimalUnit: mockBalanceBN,
-          balanceFiatNumber: 6000,
-          isStaked: true,
-          isNative: true,
-          isETH: true,
-          experiences: [
-            {
-              type: 'STABLECOIN_LENDING',
-              apr: '2.5%',
-              estimatedAnnualRewardsFormatted: '0.00946 ETH',
-              estimatedAnnualRewardsFiatNumber: 0.00946,
-              estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
-              estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
-            },
-          ],
-          experience: {
+      getOutputToken: jest.fn(() => ({
+        ...MOCK_ETH_MAINNET_ASSET,
+        name: 'Staked ETH',
+        symbol: 'stETH',
+        decimals: 18,
+        balance: '1.5',
+        balanceFiat: '$3000',
+        balanceWei: mockBalanceBN,
+        balanceMinimalUnit: mockBalanceBN,
+        balanceFiatNumber: 6000,
+        isStaked: true,
+        isNative: true,
+        isETH: true,
+        experiences: [
+          {
             type: 'STABLECOIN_LENDING',
             apr: '2.5%',
             estimatedAnnualRewardsFormatted: '0.00946 ETH',
@@ -406,8 +395,16 @@ describe('EarnInputView', () => {
             estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
             estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
           },
-        };
-      }),
+        ],
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '2.5%',
+          estimatedAnnualRewardsFormatted: '0.00946 ETH',
+          estimatedAnnualRewardsFiatNumber: 0.00946,
+          estimatedAnnualRewardsTokenMinimalUnit: '0.00946',
+          estimatedAnnualRewardsTokenFormatted: '0.00946 ETH',
+        },
+      })),
     });
   });
 

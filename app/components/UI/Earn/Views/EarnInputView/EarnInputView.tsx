@@ -26,9 +26,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
-import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
-import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
   EVENT_LOCATIONS,
@@ -36,27 +34,29 @@ import {
 } from '../../../Stake/constants/events';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
+import InputDisplay from '../../components/InputDisplay';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import useEarnInputHandlers from '../../hooks/useEarnInput';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import styleSheet from './EarnInputView.styles';
 import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import useEarnInputHandlers from '../../hooks/useEarnInput';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 // import {
 //   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
 //   getErc20SpendingLimit,
 // } from '../../utils/tempLending';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import BigNumber from 'bignumber.js';
+import Engine from '../../../../../core/Engine';
+import { getDecimalChainId } from '../../../../../util/networks';
+import useEarnTokens from '../../hooks/useEarnTokens';
 import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
 } from '../../types/lending.types';
-import useEarnTokens from '../../hooks/useEarnTokens';
-import Engine from '../../../../../core/Engine';
-import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
-import { getDecimalChainId } from '../../../../../util/networks';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -136,7 +136,12 @@ const EarnInputView = () => {
   };
 
   const handleLendingFlow = useCallback(async () => {
-    if (!activeAccount?.address) return;
+    if (
+      !activeAccount?.address ||
+      !earnToken?.experience?.market?.underlying?.address ||
+      !earnToken?.experience?.market?.protocol
+    )
+      return;
 
     // TODO: Add GasCostImpact for lending deposit flow after launch.
     const amountTokenMinimalUnitString = amountTokenMinimalUnit.toString();
@@ -147,8 +152,8 @@ const EarnInputView = () => {
 
     const allowanceMinimalTokenUnitBN =
       await Engine.context.EarnController.getLendingTokenAllowance(
-        earnToken.experience.market?.protocol,
-        earnToken.experience.market?.underlying?.address,
+        earnToken.experience.market.protocol,
+        earnToken.experience.market.underlying.address,
       );
 
     const allowanceMinimalTokenUnit = allowanceMinimalTokenUnitBN
@@ -245,6 +250,7 @@ const EarnInputView = () => {
       // redesigned confirmations architecture relies on the transaction
       // metadata object being defined by the time the confirmation is displayed
       // to the user.
+      if (!attemptDepositTransaction) return;
       await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,

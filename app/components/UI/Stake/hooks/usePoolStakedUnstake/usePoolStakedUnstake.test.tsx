@@ -1,13 +1,9 @@
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import { BigNumber, Contract } from 'ethers';
 import usePoolStakedUnstake from '.';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  PooledStakingContract,
-  StakingType,
-  ChainId,
-} from '@metamask/stake-sdk';
-import { BigNumber, Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import useBalance from '../useBalance';
 
@@ -47,7 +43,6 @@ const ENCODED_TX_UNSTAKE_DATA = {
   value: '0',
 };
 
-const mockConnectSignerOrProvider = jest.fn().mockReturnValue({ provider: {} });
 const mockEstimateEnterExitQueueGas = jest
   .fn()
   .mockResolvedValue(MOCK_UNSTAKE_GAS_LIMIT);
@@ -90,7 +85,6 @@ jest.mock('../../../../../core/Engine', () => {
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: mockConnectSignerOrProvider,
   contract: {
     ...new Contract('0x0000000000000000000000000000000000000000', []),
     provider: {
@@ -111,8 +105,6 @@ const mockPooledStakingContractService: PooledStakingContract = {
 
 const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
   networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
@@ -170,7 +162,11 @@ describe('usePoolStakedUnstake', () => {
       expect(mockGetShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
+        BigNumber.from(MOCK_USER_SHARES),
+        MOCK_RECEIVER_ADDRESS,
+        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
+      );
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });

@@ -216,12 +216,6 @@ jest.mock('../../hooks/useEarnTokens', () => ({
       return null;
     }),
     getPairedEarnTokens: jest.fn().mockImplementation((token) => {
-      console.log(
-        'token from getPairedEarnTokens',
-        token,
-        MOCK_ETH_MAINNET_ASSET.address,
-        MOCK_USDC_MAINNET_ASSET.address,
-      );
       if (token.symbol === MOCK_ETH_MAINNET_ASSET.symbol) {
         return {
           earnToken: {
@@ -507,7 +501,7 @@ describe('EarnWithdrawalInputView', () => {
     });
 
     it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
-      const { getByText, findByText } = render(EarnWithdrawInputView);
+      const { getByText } = render(EarnWithdrawInputView);
 
       jest.useFakeTimers({ legacyFakeTimers: true });
 

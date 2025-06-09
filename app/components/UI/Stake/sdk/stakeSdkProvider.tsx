@@ -1,26 +1,25 @@
 import {
-  StakingType,
-  EarnSdk,
-  PooledStakingContract,
-  LendingProvider,
   EarnApiService,
+  EarnSdk,
   LendingProtocol,
-  EarnEnvironments,
+  LendingProvider,
+  PooledStakingContract,
+  StakingType,
 } from '@metamask/stake-sdk';
 import React, {
-  useState,
-  useEffect,
   createContext,
-  useMemo,
   PropsWithChildren,
+  useEffect,
+  useMemo,
+  useState,
 } from 'react';
-import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import {
   selectEvmChainId,
   selectNetworkClientId,
 } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
+import { getProviderByChainId } from '../../../../util/notifications';
 
 export const earnApiService = new EarnApiService();
 export const stakingApiService = earnApiService.pooledStaking;

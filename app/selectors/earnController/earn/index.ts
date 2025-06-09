@@ -1,46 +1,42 @@
-import { Hex } from '@metamask/utils';
-import BN4 from 'bnjs4';
-import { createSelector } from 'reselect';
-import { selectAccountTokensAcrossChains } from '../../multichain';
 import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../currencyRateController';
-import { selectAccountsByChainId } from '../../accountTrackerController';
-import { selectNetworkConfigurations } from '../../networkController';
-import { selectSelectedInternalAccountAddress } from '../../accountsController';
-import { selectTokenMarketData } from '../../tokenRatesController';
-import { selectTokensBalances } from '../../tokenBalancesController';
-import {
+  isSupportedPooledStakingChain,
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
-  isSupportedPooledStakingChain,
 } from '@metamask/earn-controller';
-import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
+import { Hex } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
+import BN4 from 'bnjs4';
+import { createSelector } from 'reselect';
+import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
+import { getEstimatedAnnualRewards } from '../../../components/UI/Earn/utils/token';
 import { TokenI } from '../../../components/UI/Tokens/types';
+import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
+import { RootState } from '../../../reducers';
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import BigNumber from 'bignumber.js';
-import { deriveBalanceFromAssetMarketDetails } from '../../../components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails';
-import { EARN_EXPERIENCES } from '../../../components/UI/Earn/constants/experiences';
-import { getEstimatedAnnualRewards } from '../../../components/UI/Earn/utils/token';
+import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
+import { selectSelectedInternalAccountAddress } from '../../accountsController';
+import { selectAccountsByChainId } from '../../accountTrackerController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../currencyRateController';
+import { selectAccountTokensAcrossChains } from '../../multichain';
+import { selectNetworkConfigurations } from '../../networkController';
+import { selectTokensBalances } from '../../tokenBalancesController';
+import { selectTokenMarketData } from '../../tokenRatesController';
 import { pooledStakingSelectors } from '../pooledStaking';
-import { RootState } from '../../../reducers';
 
+import { toChecksumAddress } from 'ethereumjs-util';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { createDeepEqualSelector } from '../../util';
-import { toChecksumAddress } from 'ethereumjs-util';
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import {
-  isNonEvmAddress,
-  isNonEvmChainId,
-} from '../../../core/Multichain/utils';
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -145,7 +141,6 @@ const selectEarnTokens = createDeepEqualSelector(
       earnableTotalFiatFormatted: renderFiat(0, currentCurrency, 0),
     };
 
-    // console.log('isPortfolioViewEnabled', isPortfolioViewEnabled());
     if (!isPortfolioViewEnabled()) {
       return emptyEarnTokensData;
     }
@@ -155,7 +150,6 @@ const selectEarnTokens = createDeepEqualSelector(
       accountTokensAcrossChains,
     ).flat() as TokenI[];
 
-    // console.log('allTokens', allTokens);
     if (allTokens.length === 0) {
       return emptyEarnTokensData;
     }
@@ -169,19 +163,10 @@ const selectEarnTokens = createDeepEqualSelector(
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
       const decimalChainId = getDecimalChainId(token.chainId);
-      // console.log(
-      //   'lendingMarketsByChainIdAndTokenAddress',
-      //   lendingMarketsByChainIdAndTokenAddress,
-      // );
       const lendingMarketsForToken =
         lendingMarketsByChainIdAndTokenAddress?.[decimalChainId]?.[
           token.address.toLowerCase()
         ] || [];
-      // console.log(
-      //   'lendingMarketsForToken',
-      //   lendingMarketsForToken,
-      //   token.address.toLowerCase(),
-      // );
       const lendingMarketsForOutputToken =
         lendingMarketsByChainIdAndOutputTokenAddress?.[decimalChainId]?.[
           token.address.toLowerCase()
@@ -246,10 +231,6 @@ const selectEarnTokens = createDeepEqualSelector(
         .dividedBy(1)
         .toNumber();
 
-      console.log('tokenUsdExchangeRate', tokenUsdExchangeRate);
-      console.log('selectedAddress', selectedAddress);
-      console.log('nativeCurrency', nativeCurrency);
-
       const ethToUserSelectedFiatConversionRate =
         currencyRates?.[nativeCurrency]?.conversionRate ?? 0;
       const balanceFiatNumber = weiToFiatNumber(
@@ -265,10 +246,6 @@ const selectEarnTokens = createDeepEqualSelector(
           ethToUserSelectedFiatConversionRate,
           currentCurrency || '',
         );
-      console.log('balanceFiatNumber', balanceFiatNumber);
-      console.log('balanceFiatCalculation', balanceFiatCalculation);
-      console.log('balanceValueFormatted', balanceValueFormatted);
-      console.log('balanceFiat', balanceFiat);
 
       let assetBalanceFiatNumber = balanceFiatNumber;
       if (!token.isETH) {
@@ -277,10 +254,6 @@ const selectEarnTokens = createDeepEqualSelector(
             ? 0
             : balanceFiatCalculation;
       }
-      console.log('assetBalanceFiatNumber', assetBalanceFiatNumber);
-
-      console.log('isPooledStakingEnabled', isPooledStakingEnabled);
-      console.log('isPooledStakingEligible', isPooledStakingEligible);
 
       const assetTicker = token?.ticker || token.symbol;
       // is pooled staking enabled and eligible
@@ -302,11 +275,7 @@ const selectEarnTokens = createDeepEqualSelector(
           });
         }
       }
-      console.log(
-        'isStablecoinLendingEnabled',
-        isStablecoinLendingEnabled,
-        isStablecoinLendingEligible,
-      );
+
       // is stablecoin lending enabled and eligible
       if (isStablecoinLendingEnabled && isStablecoinLendingEligible) {
         if (isLendingToken) {
