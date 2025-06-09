@@ -54,6 +54,7 @@ describe('DeFiPositionsControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       isEnabled: expect.any(Function),
+      trackEvent: expect.any(Function),
     });
   });
 });
