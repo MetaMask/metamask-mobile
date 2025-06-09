@@ -13,13 +13,15 @@ import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
+import KycProcessing from '../Views/KycProcessing';
 import ProviderWebview from '../Views/ProviderWebview';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 interface DepositParamList {
   [key: string]:
     | {
         animationEnabled?: boolean;
+        quote?: BuyQuote;
       }
     | undefined;
 }
@@ -73,13 +75,13 @@ const DepositRoutes = () => (
         options={getAnimationOptions}
       />
       <Stack.Screen
-        name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
-        component={ProviderWebview}
+        name={Routes.DEPOSIT.KYC_PROCESSING}
+        component={KycProcessing}
         options={getAnimationOptions}
       />
       <Stack.Screen
-        name={Routes.DEPOSIT.KYC_PENDING}
-        component={() => <Text>KYC Pending page</Text>}
+        name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
+        component={ProviderWebview}
         options={getAnimationOptions}
       />
     </Stack.Navigator>
