@@ -12,6 +12,18 @@ import {
 
 const EMAIL = 'test@email.com';
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useDepositSDK: jest.fn().mockReturnValue({
@@ -56,6 +68,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote },
     }),
   };
 });
@@ -153,7 +168,7 @@ describe('OtpCode Component', () => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        undefined,
+        { quote: mockQuote },
       );
     });
   });
