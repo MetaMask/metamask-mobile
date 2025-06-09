@@ -15,6 +15,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import ethLogo from '../../../assets/images/eth-logo.png';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -155,7 +156,7 @@ describe('PaymentRequest', () => {
 
     const { toJSON } = renderComponent({
       chainId: '0x1',
-      networkImageSource: 'test-network-image.png',
+      networkImageSource: ethLogo,
     });
     expect(toJSON()).toMatchSnapshot();
   });
@@ -238,7 +239,7 @@ describe('PaymentRequest', () => {
       const { getByTestId } = renderComponent({
         metrics: mockMetrics,
         chainId: '0x1',
-        networkImageSource: 'test-network-image.png',
+        networkImageSource: ethLogo,
       });
 
       const networkPicker = getByTestId(
@@ -261,7 +262,7 @@ describe('PaymentRequest', () => {
       // Feature flag is already set to false in beforeEach
       const { queryByTestId } = renderComponent({
         chainId: '0x1',
-        networkImageSource: 'test-network-image.png',
+        networkImageSource: ethLogo,
       });
 
       const networkPicker = queryByTestId(
