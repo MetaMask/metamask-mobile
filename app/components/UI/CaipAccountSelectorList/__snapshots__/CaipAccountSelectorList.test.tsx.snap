@@ -2484,6 +2484,8 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}

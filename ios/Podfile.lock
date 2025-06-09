@@ -1638,14 +1638,6 @@ PODS:
   - react-native-branch (5.6.2):
     - Branch (= 1.43.2)
     - React-Core
-  - react-native-camera (3.44.3):
-    - React-Core
-    - react-native-camera/RCT (= 3.44.3)
-    - react-native-camera/RN (= 3.44.3)
-  - react-native-camera/RCT (3.44.3):
-    - React-Core
-  - react-native-camera/RN (3.44.3):
-    - React-Core
   - react-native-compat (2.19.2):
     - DoubleConversion
     - glog
@@ -2665,6 +2657,12 @@ PODS:
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
     - React
+  - VisionCamera (4.6.4):
+    - VisionCamera/Core (= 4.6.4)
+    - VisionCamera/React (= 4.6.4)
+  - VisionCamera/Core (4.6.4)
+  - VisionCamera/React (4.6.4):
+    - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2735,7 +2733,6 @@ DEPENDENCIES:
   - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-branch (from `../node_modules/react-native-branch`)
-  - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
   - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
@@ -2811,6 +2808,7 @@ DEPENDENCIES:
   - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
   - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
   - TcpSockets (from `../node_modules/react-native-tcp`)
+  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2958,8 +2956,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-blob-util"
   react-native-branch:
     :path: "../node_modules/react-native-branch"
-  react-native-camera:
-    :path: "../node_modules/react-native-camera"
   react-native-compat:
     :path: "../node_modules/@walletconnect/react-native-compat"
   react-native-cookies:
@@ -3110,6 +3106,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/sovran-react-native"
   TcpSockets:
     :path: "../node_modules/react-native-tcp"
+  VisionCamera:
+    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -3193,7 +3191,6 @@ SPEC CHECKSUMS:
   react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: ea4e8102b40fa4ffee1d4aea57acecde30cca419
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
-  react-native-camera: 1e6fefa515d3af8b4aeaca3a8bffa2925252c4ea
   react-native-compat: ceb3245034e21997fca11361c84650f8cf5b1fa8
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
@@ -3271,6 +3268,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
+  VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
 PODFILE CHECKSUM: 07d9426b611be75156d2941a99fab798651b6bca
