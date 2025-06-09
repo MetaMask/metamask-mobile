@@ -30,14 +30,13 @@ import {
   selectSelectedInternalAccountAddress,
 } from '../../../../../selectors/accountsController';
 import {
-  selectCurrencyRates,
+  selectCurrencyRateForChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectSingleTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectSingleTokenPriceMarketData } from '../../../../../selectors/tokenRatesController';
 import { formatWithThreshold } from '../../../../../util/assets';
 import {
   getDefaultNetworkByChainId,
@@ -74,6 +73,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
+
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
@@ -124,17 +124,12 @@ export const TokenListItem = React.memo(
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
     const chainId = asset?.chainId as Hex;
+
     const primaryCurrency = useSelector(
       (state: RootState) => state.settings.primaryCurrency,
     );
     const currentCurrency = useSelector(selectCurrentCurrency);
-    const networkConfigurations = useSelector(selectNetworkConfigurations);
     const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-
-    // multi chain
-    const multiChainTokenBalance = useSelector(selectTokensBalances);
-    const multiChainMarketData = useSelector(selectTokenMarketData);
-    const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
     const { getEarnToken } = useEarnTokens();
 
@@ -148,18 +143,24 @@ export const TokenListItem = React.memo(
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
-    // Choose values based on multichain or legacy
-    const exchangeRates = multiChainMarketData?.[chainId as Hex];
-    const tokenBalances =
-      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-        chainId as Hex
-      ];
+    // Market data selectors
+    const exchangeRates = useSelector((state: RootState) =>
+      selectSingleTokenPriceMarketData(state, chainId, asset?.address as Hex),
+    );
 
-    const nativeCurrency =
-      networkConfigurations?.[chainId as Hex]?.nativeCurrency;
+    // Token balance selectors
+    const tokenBalances = useSelector((state: RootState) =>
+      selectSingleTokenBalance(
+        state,
+        selectedInternalAccountAddress as Hex,
+        chainId,
+        asset?.address as Hex,
+      ),
+    );
 
-    const conversionRate =
-      multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+    const conversionRate = useSelector((state: RootState) =>
+      selectCurrencyRateForChainId(state, chainId as Hex),
+    );
 
     const oneHundredths = 0.01;
     const oneHundredThousandths = 0.00001;

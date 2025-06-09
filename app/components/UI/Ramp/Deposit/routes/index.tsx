@@ -13,6 +13,8 @@ import OtpCode from '../Views/OtpCode';
 import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
+import ProviderWebview from '../Views/ProviderWebview';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 interface DepositParamList {
   [key: string]:
@@ -68,6 +70,16 @@ const DepositRoutes = () => (
       <Stack.Screen
         name={Routes.DEPOSIT.ENTER_ADDRESS}
         component={EnterAddress}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
+        component={ProviderWebview}
+        options={getAnimationOptions}
+      />
+      <Stack.Screen
+        name={Routes.DEPOSIT.KYC_PENDING}
+        component={() => <Text>KYC Pending page</Text>}
         options={getAnimationOptions}
       />
     </Stack.Navigator>
