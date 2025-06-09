@@ -38,6 +38,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
+  const original = jest.requireActual('../../UI/Bridge/hooks/useSwapBridgeNavigation');
+  return {
+    ...original,
+    useSwapBridgeNavigation: jest.fn().mockReturnValue({
+      goToSwaps: jest.fn(),
+      goToBridge: jest.fn(),
+      networkModal: null,
+    }),
+  };
+});
+
 const mockInitialState = {
   browser: {
     activeTab: 1,
