@@ -7,7 +7,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectTransactionState } from '../../../../../reducers/transaction';
-import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFlatConfirmation } from '../../hooks/ui/useFlatConfirmation';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
