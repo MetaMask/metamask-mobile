@@ -97,7 +97,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.ANDROID_SDK', () => {
-    it('should call bindAndroidSDK when action is ANDROID_SDK', () => {
+    it('calls bindAndroidSDK when action is ANDROID_SDK', () => {
       DevLogger.log = jest.fn();
 
       urlObj = {
@@ -171,7 +171,7 @@ describe('handleUniversalLinks', () => {
       params.redirect = '';
     });
 
-    it('should call handleDeeplink', () => {
+    it('calls handleDeeplink', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.CONNECT}/additional/path`,
@@ -209,7 +209,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC with wcURL', () => {
-    it('should call WC2Manager.connect if action is WC and wcURL is truthy', () => {
+    it('calls WC2Manager.connect if action is WC and wcURL is truthy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -259,7 +259,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('PREFIXES[action]', () => {
-    it('should call instance.parse if PREFIXES[action] is truthy', () => {
+    it('calls instance.parse if PREFIXES[action] is truthy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SEND}/additional/path`,
@@ -286,7 +286,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
-    it('should call instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', () => {
+    it('calls instance._handleBuyCrypto if action is ACTIONS.BUY_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.BUY_CRYPTO}/additional/path`,
@@ -310,7 +310,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.SELL_CRYPTO', () => {
-    it('should call instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleSellCrypto if action is ACTIONS.SELL_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.SELL_CRYPTO}/additional/path`,
@@ -334,7 +334,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('default condition', () => {
-    it('should call instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
+    it('calls instance._handleBrowserUrl if action is not ACTIONS.BUY_CRYPTO or ACTIONS.SELL_CRYPTO', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/other-action/additional/path`,
@@ -369,7 +369,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.HOME', () => {
-      it('should call _handleOpenHome when action is HOME', () => {
+      it('calls _handleOpenHome when action is HOME', () => {
         const homeUrlObj = {
           ...urlObj,
           pathname: `/${ACTIONS.HOME}/additional/path`,
@@ -392,7 +392,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.SWAP', () => {
-      it('should call _handleSwap with correct path when action is SWAP', () => {
+      it('calls _handleSwap with correct path when action is SWAP', () => {
         const swapUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
         const swapUrlObj = {
           ...urlObj,
@@ -419,7 +419,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.BUY and ACTIONS.BUY_CRYPTO', () => {
-      it('should call _handleBuyCrypto with correct path when action is BUY', () => {
+      it('calls _handleBuyCrypto with correct path when action is BUY', () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -444,7 +444,7 @@ describe('handleUniversalLinks', () => {
         );
       });
 
-      it('should call _handleBuyCrypto with correct path when action is BUY_CRYPTO', () => {
+      it('calls _handleBuyCrypto with correct path when action is BUY_CRYPTO', () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -471,7 +471,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('default case', () => {
-      it('should call _handleOpenHome when action is not recognized', () => {
+      it('calls _handleOpenHome when action is not recognized', () => {
         const unknownUrlObj = {
           ...urlObj,
           pathname: '/unknown-action/path',
