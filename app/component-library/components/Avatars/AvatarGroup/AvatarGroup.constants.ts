@@ -22,6 +22,7 @@ export const AVATARGROUP_AVATAR_CONTAINER_TESTID =
   'avatargroup-avatar-container';
 export const AVATARGROUP_AVATAR_TESTID = 'avatargroup-avatar';
 export const AVATARGROUP_OVERFLOWCOUNTER_TESTID = 'avatargroup-overflowcounter';
+export const AVATARGROUP_CONTAINER_TESTID = 'avatar-group-container';
 
 // Mappings
 export const TEXTVARIANT_BY_AVATARSIZE: TextVariantByAvatarSize = {

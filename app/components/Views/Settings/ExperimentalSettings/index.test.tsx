@@ -13,8 +13,6 @@ import {
   getBuildNumber,
 } from 'react-native-device-info';
 
-
-
 // Mock the required dependencies
 jest.mock('react-native-blob-util', () => {
   const fsMock = {
@@ -34,7 +32,7 @@ jest.mock('react-native-blob-util', () => {
       fs: fsMock,
     },
     fs: fsMock,
-  }
+  };
 });
 
 jest.mock('react-native-share', () => ({
