@@ -34,6 +34,7 @@ import {
 } from '../../../../UI/Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import AccountInfo from '../../AccountDetails/components/AccountInfo';
+import { MultichainDeleteAccountsSelectors } from '../../../../../../e2e/specs/multichainAccounts/delete-account';
 
 interface RootNavigationParamList extends ParamListBase {
   DeleteAccount: {
@@ -77,7 +78,7 @@ export const DeleteAccount = () => {
     label: strings('multichain_accounts.delete_account.cancel_button'),
     size: ButtonSize.Lg,
     onPress: handleOnBack,
-    testID: '',
+    testID: MultichainDeleteAccountsSelectors.deleteAccountCancelButton,
   };
 
   const removeButtonProps: ButtonProps = {
@@ -85,7 +86,7 @@ export const DeleteAccount = () => {
     label: strings('multichain_accounts.delete_account.remove_button'),
     size: ButtonSize.Lg,
     onPress: handleDeleteAccount,
-    testID: '',
+    testID: MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
   };
 
   return (
@@ -106,7 +107,7 @@ export const DeleteAccount = () => {
           description={strings(
             'multichain_accounts.delete_account.warning_description',
           )}
-          testID={''}
+          testID={MultichainDeleteAccountsSelectors.deleteAccountWarningTitle}
         />
         {error && <Text color={TextColor.Error}>{error}</Text>}
       </Box>
