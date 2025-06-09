@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -22,36 +22,106 @@ import MultichainTransactionListItem from '../../UI/MultichainTransactionListIte
 import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
 
-const MultichainTransactionsView = () => {
+interface MultichainTransactionsViewProps {
+  /**
+   * Override transactions instead of using selector
+   */
+  transactions?: Transaction[];
+  /**
+   * Optional header component
+   */
+  header?: React.ReactElement;
+  /**
+   * Override navigation instance
+   */
+  navigation?: any;
+  /**
+   * Override selected address
+   */
+  selectedAddress?: string;
+  /**
+   * Chain ID for block explorer links
+   */
+  chainId?: string;
+  /**
+   * Enable refresh functionality
+   */
+  enableRefresh?: boolean;
+  /**
+   * Custom empty message
+   */
+  emptyMessage?: string;
+  /**
+   * Show disclaimer footer
+   */
+  showDisclaimer?: boolean;
+  /**
+   * Scroll event handler
+   */
+  onScroll?: (event: any) => void;
+}
+
+const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
+  transactions: transactionsProp,
+  header,
+  navigation: navigationProp,
+  selectedAddress: selectedAddressProp,
+  chainId: chainIdProp,
+  enableRefresh = false,
+  emptyMessage,
+  showDisclaimer = false,
+  onScroll,
+}) => {
   const { colors } = useTheme();
   const style = styles(colors);
-  const navigation = useNavigation();
-  const selectedAddress = useSelector(
+  const defaultNavigation = useNavigation();
+  const navigation = navigationProp || defaultNavigation;
+
+  const defaultSelectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const selectedAddress = selectedAddressProp || defaultSelectedAddress;
 
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  const transactions = useMemo(
-    () => solanaAccountTransactions?.transactions,
-    [solanaAccountTransactions],
-  );
+  const transactions = useMemo(() => {
+    // Use provided transactions or fall back to selector
+    return transactionsProp || solanaAccountTransactions?.transactions;
+  }, [transactionsProp, solanaAccountTransactions]);
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    if (!enableRefresh) return;
+
+    setRefreshing(true);
+    try {
+      await updateIncomingTransactions();
+    } catch (error) {
+      console.warn('Error refreshing transactions:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [enableRefresh]);
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
       <Text style={[style.emptyText, { color: colors.text.default }]}>
-        {strings('wallet.no_transactions')}
+        {emptyMessage || strings('wallet.no_transactions')}
       </Text>
     </View>
   );
 
   const renderViewMore = () => {
-    const chainId = nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
+    const chainId =
+      chainIdProp ||
+      nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
     const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
 
     return (
@@ -74,7 +144,32 @@ const MultichainTransactionsView = () => {
     );
   };
 
-  const renderTransactionItem = ({ item, index }: { item: Transaction, index: number }) => {
+  const renderDisclaimer = () => {
+    if (!showDisclaimer) return null;
+
+    return (
+      <View style={[style.viewMoreWrapper, { paddingTop: 8 }]}>
+        <Text style={[style.emptyText, { fontSize: 12, textAlign: 'center' }]}>
+          {strings('asset_overview.disclaimer')}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderFooter = () => (
+    <View>
+      {transactions?.length > 0 ? renderViewMore() : null}
+      {renderDisclaimer()}
+    </View>
+  );
+
+  const renderTransactionItem = ({
+    item,
+    index,
+  }: {
+    item: Transaction;
+    index: number;
+  }) => {
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
@@ -95,10 +190,22 @@ const MultichainTransactionsView = () => {
         data={transactions}
         renderItem={renderTransactionItem}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={header}
         ListEmptyComponent={renderEmptyList}
+        ListFooterComponent={renderFooter}
         style={baseStyles.flexGrow}
-        ListFooterComponent={transactions?.length > 0 ? renderViewMore() : null}
         estimatedItemSize={200}
+        refreshControl={
+          enableRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+            />
+          ) : undefined
+        }
+        onScroll={onScroll}
       />
     </View>
   );
