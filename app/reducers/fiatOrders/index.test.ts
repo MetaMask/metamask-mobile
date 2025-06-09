@@ -395,8 +395,8 @@ describe('fiatOrderReducer', () => {
       stateWithStartedTrue,
       setFiatOrdersGetStartedDeposit(false),
     );
-    expect(stateWithStartedTrue.getStartedSell).toEqual(true);
-    expect(stateWithStartedFalse.getStartedSell).toEqual(false);
+    expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
+    expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
   });
 
   it('should set the selected region', () => {
