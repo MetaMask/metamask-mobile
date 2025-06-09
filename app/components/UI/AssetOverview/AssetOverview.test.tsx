@@ -739,6 +739,7 @@ describe('AssetOverview', () => {
         {
           account: mockSolanaAccount.id,
           scope: SolScope.Mainnet,
+          assetId: solanaAsset.address,
         },
       );
 
