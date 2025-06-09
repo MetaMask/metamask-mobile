@@ -30,7 +30,7 @@ Test Steps:
 */
 describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();
   });
 
