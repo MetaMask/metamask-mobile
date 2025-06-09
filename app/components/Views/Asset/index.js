@@ -31,7 +31,11 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import { areAddressesEqual } from '../../../util/address';
+import {
+  areAddressesEqual,
+  toLowerCaseEquals,
+  safeToChecksumAddress,
+} from '../../../util/address';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
