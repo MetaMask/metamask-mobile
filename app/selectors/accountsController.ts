@@ -21,6 +21,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { toFormattedAddress } from '../util/address';
 
 /**
  *
@@ -39,7 +40,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
-        account.toLowerCase(),
+        toFormattedAddress(account),
         index,
       ]),
     );
@@ -47,8 +48,8 @@ export const selectInternalAccounts = createDeepEqualSelector(
       accountControllerState.internalAccounts.accounts,
     ).sort(
       (a, b) =>
-        (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
-        (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
+        (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
+        (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
     return sortedAccounts;
   },

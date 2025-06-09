@@ -9,6 +9,7 @@ import {
   TransactionController,
   TransactionMeta,
   WalletDevice,
+  TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
@@ -230,6 +231,23 @@ describe('submitSmartTransactionHook', () => {
   it('does not submit a transaction that is not a smart transaction', async () => {
     withRequest(async ({ request }) => {
       request.shouldUseSmartTransaction = false;
+      const result = await submitSmartTransactionHook(request);
+      expect(result).toEqual({ transactionHash: undefined });
+    });
+  });
+
+  it('falls back to regular transaction submit if it is a legacy transaction', async () => {
+    withRequest(async ({ request }) => {
+      // Modify transaction to be a legacy transaction with explicit type
+      request.transactionMeta.txParams = {
+        ...request.transactionMeta.txParams,
+        type: TransactionEnvelopeType.legacy,
+        gasPrice: '0x77359400',
+      };
+      // Remove EIP-1559 specific fields if they exist
+      delete request.transactionMeta.txParams.maxFeePerGas;
+      delete request.transactionMeta.txParams.maxPriorityFeePerGas;
+
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash: undefined });
     });

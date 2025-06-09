@@ -8,35 +8,44 @@ import AccountPermissions from './AccountPermissions';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { fireEvent } from '@testing-library/react-native';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
-import { updatePermittedChains, addPermittedAccounts, removePermittedAccounts } from '../../../core/Permissions';
+import {
+  updatePermittedChains,
+  addPermittedAccounts,
+  removePermittedAccounts,
+} from '../../../core/Permissions';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
-const MOCK_ACCOUNTS = [      {
-  name: 'Account 1',
-  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-  assets: {
-    fiatBalance: '$3200.00\n1 ETH',
-    tokens: [],
+const MOCK_ACCOUNTS = [
+  {
+    name: 'Account 1',
+    address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+    assets: {
+      fiatBalance: '$3200.00\n1 ETH',
+      tokens: [],
+    },
+    type: 'HD Key Tree',
+    yOffset: 0,
+    isSelected: true,
+    balanceError: undefined,
   },
-  type: 'HD Key Tree',
-  yOffset: 0,
-  isSelected: true,
-  balanceError: undefined,
-},
-{
-  name: 'Account 2',
-  address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
-  assets: {
-    fiatBalance: '$6400.00\n2 ETH',
-    tokens: [],
+  {
+    name: 'Account 2',
+    address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+    assets: {
+      fiatBalance: '$6400.00\n2 ETH',
+      tokens: [],
+    },
+    type: 'HD Key Tree',
+    yOffset: 78,
+    isSelected: false,
+    balanceError: undefined,
   },
-  type: 'HD Key Tree',
-  yOffset: 78,
-  isSelected: false,
-  balanceError: undefined,
-}];
+];
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -53,16 +62,16 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       state: {
         keyrings: [],
-      }
+      },
     },
     AccountsController: {
       listAccounts: jest.fn(() => MOCK_ACCOUNTS),
       state: {
         internalAccounts: {
-          accounts: {}
-        }
-      }
-    }
+          accounts: {},
+        },
+      },
+    },
   },
 }));
 
@@ -125,28 +134,32 @@ const mockInitialState: DeepPartial<RootState> = {
       ...backgroundState,
       PermissionController: {
         subjects: {
-          'test': {
+          test: {
             permissions: {
               [Caip25EndowmentPermissionName]: {
-                caveats: [{
-                  type: Caip25CaveatType,
-                  value: {
-                    requiredScopes: {},
-                    optionalScopes: {
-                      'eip155:1': {
-                        accounts: ['eip155:1:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272']
-                      }
-                    }
-                  }
-                }]
-              }
-            }
-          }
-        }
-      }
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: [
+                            'eip155:1:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+                          ],
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
   },
 };
 
@@ -225,10 +238,11 @@ describe('AccountPermissions', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(mockUpdatePermittedChains).toHaveBeenCalledWith('test', [
-      '0x1',
-      '0xaa36a7'
-    ], true);
+    expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
+      'test',
+      ['0x1', '0xaa36a7'],
+      true,
+    );
   });
 
   it('handles the revoke permissions modal when no networks are selected', async () => {
@@ -285,10 +299,10 @@ describe('AccountPermissions', () => {
     fireEvent.press(updateButton);
 
     expect(mockAddPermittedAccounts).toHaveBeenCalledWith('test', [
-      '0xd018538C87232FF95acbCe4870629b75640a78E7'
+      '0xd018538C87232FF95acbCe4870629b75640a78E7',
     ]);
     expect(mockRemovePermittedAccounts).toHaveBeenCalledWith('test', [
-      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'
+      '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
     ]);
   });
 
