@@ -160,9 +160,7 @@ function handleUniversalLink({
       case ACTIONS.SWAP: {
         // TODO: perhaps update this when the new bridging UI is implemented
         // Expecting to only be a navigation change
-        const swapPath = urlObj.href
-          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '')
-          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '');
+        const swapPath = urlObj.href.replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '');
         instance._handleSwap(swapPath);
         return;
       }
