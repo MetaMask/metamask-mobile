@@ -92,6 +92,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -136,6 +137,10 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
 
@@ -525,7 +530,7 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-
+        fetchAccountsWithActivity();
         navigation.reset({
           index: 1,
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
