@@ -292,8 +292,8 @@ export const initialState = {
         },
       },
       AccountTreeController: {
-        accountTrees: {
-          roots: {},
+        accountTree: {
+          wallets: {},
         },
       },
       SmartTransactionsController: {

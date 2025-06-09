@@ -65,8 +65,8 @@ const mockInitialState = {
         },
       },
       AccountTreeController: {
-        accountTrees: {
-          roots: {},
+        accountTree: {
+          wallets: {},
         },
       },
       PreferencesController: {
