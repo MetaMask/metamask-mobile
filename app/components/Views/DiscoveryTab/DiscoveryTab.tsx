@@ -30,7 +30,6 @@ import UrlAutocomplete, {
 import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
 
 /**
  * Tab component for the in-app browser
@@ -117,23 +116,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
     autocompleteRef.current?.search(text);
   }, []);
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
-  /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () =>
-    isTabActive && !isUrlBarFocused ? (
-      <BrowserBottomBar
-        canGoBack={false}
-        canGoForward={false}
-        showTabs={showTabs}
-        showUrlModal={toggleUrlModal}
-      />
-    ) : null;
-
   /**
    * Main render
    */
@@ -159,6 +141,8 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
             onBlur={noop}
             activeUrl=""
             connectedAccounts={[]}
+            discoveryMode
+            showTabs={showTabs}
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>
@@ -170,7 +154,6 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
               onDismiss={onDismissAutocomplete}
             />
           </View>
-          {renderBottomBar()}
         </View>
       </KeyboardAvoidingView>
     </ErrorBoundary>
