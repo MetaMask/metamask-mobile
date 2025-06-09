@@ -1,8 +1,6 @@
-import { device } from 'detox';
 import TestHelpers from '../../helpers';
 import {
-  getLocalTestDappPort,
-  getSecondTestDappPort,
+  TEST_DAPP_LOCAL_URL,
 } from '../../fixtures/utils';
 
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
@@ -13,13 +11,9 @@ import enContent from '../../../locales/languages/en.json';
 import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
-export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
-export const SECOND_TEST_DAPP_LOCAL_URL = `http://${
-  device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
-}:${getSecondTestDappPort()}`;
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
+
 
 class TestDApp {
   get confirmButtonText() {

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
-import { getGanachePort, getSecondTestDappPort } from './utils';
+import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -471,7 +471,7 @@ class FixtureBuilder {
               id: 1692550481062,
             },
             {
-              url: `http://${device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'}:${getSecondTestDappPort()}`,
+              url: getSecondTestDappLocalUrl(),
               id: 1749234797566,
               isArchived: false,
             },

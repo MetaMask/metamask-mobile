@@ -1,5 +1,4 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL, SECOND_TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -11,6 +10,7 @@ import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmark
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
+import { TEST_DAPP_LOCAL_URL,getSecondTestDappLocalUrl } from '../../fixtures/utils';
 
 class Browser {
   get searchButton() {
@@ -222,7 +222,7 @@ class Browser {
   }
   async navigateToSecondTestDApp() {
     await this.tapUrlInputBox();
-    await this.navigateToURL(SECOND_TEST_DAPP_LOCAL_URL);
+    await this.navigateToURL(getSecondTestDappLocalUrl());
     await waitForTestDappToLoad();
   }
 
