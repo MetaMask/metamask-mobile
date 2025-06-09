@@ -1247,7 +1247,9 @@
       "key": "Key",
       "add": "Add",
       "update": "Update",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",

@@ -132,8 +132,6 @@ const EnterAddress = (): JSX.Element => {
       const combinedFormData = {
         ...basicInfoFormData,
         ...formData,
-        ssn: undefined,
-        mobileNumber: '5491161729622',
       };
       await postKycForm(combinedFormData);
 
