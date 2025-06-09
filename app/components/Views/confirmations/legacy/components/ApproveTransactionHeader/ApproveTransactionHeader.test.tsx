@@ -23,7 +23,9 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
   return {
     context: {
       TokensController: {
@@ -48,12 +50,14 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '200',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '200',
+        accountsByChainId: {
+          [CHAIN_IDS.SEPOLIA]: {
+            [MOCK_ADDRESS_1]: {
+              balance: '200',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '200',
+            },
           },
         },
       },
@@ -91,6 +95,7 @@ describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
       <ApproveTransactionHeader
+        chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
@@ -108,6 +113,7 @@ describe('ApproveTransactionHeader', () => {
   it('should render with domain title', () => {
     const { getByText } = renderWithProvider(
       <ApproveTransactionHeader
+        chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
@@ -125,6 +131,7 @@ describe('ApproveTransactionHeader', () => {
   it('should get origin when present', () => {
     const { getByText } = renderWithProvider(
       <ApproveTransactionHeader
+        chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
@@ -142,6 +149,7 @@ describe('ApproveTransactionHeader', () => {
   it('should return origin to be null when not present', () => {
     const container = renderWithProvider(
       <ApproveTransactionHeader
+        chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin={undefined}
         url="http://metamask.github.io"
@@ -159,6 +167,7 @@ describe('ApproveTransactionHeader', () => {
   it('should not show an origin pill if origin is deeplink', () => {
     const { queryByTestId } = renderWithProvider(
       <ApproveTransactionHeader
+        chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         origin="qr-code"
         url="http://metamask.github.io"
@@ -181,7 +190,11 @@ describe('ApproveTransactionHeader', () => {
     ['MMM', TransactionTypes.MMM],
   ])('does not render origin if %s', (_, origin) => {
     const { queryByTestId } = renderWithProvider(
-      <ApproveTransactionHeader {...defaultProps} origin={origin} />,
+      <ApproveTransactionHeader
+        {...defaultProps}
+        origin={origin}
+        chainId={CHAIN_IDS.SEPOLIA}
+      />,
       { state: mockInitialState },
     );
 

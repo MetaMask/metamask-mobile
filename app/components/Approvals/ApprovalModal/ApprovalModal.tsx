@@ -7,6 +7,7 @@ export interface ApprovalModalProps {
   isVisible: boolean;
   onCancel: () => void;
   children: React.ReactNode;
+  avoidKeyboard?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -21,6 +22,7 @@ const ApprovalModal = (props: ApprovalModalProps) => {
 
   return (
     <Modal
+      useNativeDriver
       isVisible={props.isVisible}
       animationIn="slideInUp"
       animationOut="slideOutDown"
@@ -33,6 +35,7 @@ const ApprovalModal = (props: ApprovalModalProps) => {
       onSwipeComplete={props.onCancel}
       swipeDirection={'down'}
       propagateSwipe
+      avoidKeyboard={props.avoidKeyboard}
     >
       {props.children}
     </Modal>

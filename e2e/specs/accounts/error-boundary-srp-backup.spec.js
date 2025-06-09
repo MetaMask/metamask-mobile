@@ -8,14 +8,15 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { SmokeAccounts } from '../../tags';
+import { SmokeNetworkExpansion } from '../../tags';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
+import { buildPermissions } from '../../fixtures/utils';
 const PASSWORD = '123123123';
 
-describe(SmokeAccounts('Error Boundary Screen'), () => {
+describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -27,7 +28,7 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

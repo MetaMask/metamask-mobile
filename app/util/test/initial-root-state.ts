@@ -1,5 +1,6 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
+import { initialState as initialConfirmationState } from '../../reducers/confirmation';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
@@ -9,10 +10,9 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
-///: END:ONLY_INCLUDE_IF
-
+import { initialOnboardingState } from '../../reducers/onboarding';
+import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
+import { isTest } from './utils';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -21,6 +21,7 @@ export const backgroundState: EngineState =
 const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
+  confirmation: initialConfirmationState,
   engine: { backgroundState },
   privacy: undefined,
   bookmarks: undefined,
@@ -31,7 +32,7 @@ const initialRootState: RootState = {
   transaction: undefined,
   user: userInitialState,
   wizard: undefined,
-  onboarding: undefined,
+  onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,
@@ -53,12 +54,13 @@ const initialRootState: RootState = {
   originThrottling,
   notifications: {},
   bridge: initialBridgeState,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: initialMultichainSettingsState,
-  ///: END:ONLY_INCLUDE_IF
   banners: {
     dismissedBanners: [],
   },
 };
+
+if (isTest) {
+  initialRootState.performance = initialPerformanceState;
+}
 
 export default initialRootState;

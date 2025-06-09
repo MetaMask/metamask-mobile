@@ -1,17 +1,29 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import BN4 from 'bnjs4';
+import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../../Stake/__mocks__/mockData';
+  MOCK_USDC_MAINNET_ASSET,
+} from '../../../Stake/__mocks__/stakeMockData';
+import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import BN4 from 'bnjs4';
+import { flushPromises } from '../../../../../util/test/utils';
+import { getStakingNavbar } from '../../../Navbar';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+
+jest.mock('../../../Navbar', () => ({
+  getStakingNavbar: jest.fn().mockReturnValue({}),
+}));
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -129,15 +141,24 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
-  selectConfirmationRedesignFlags: jest.fn(() => ({
-    staking_transactions: false,
-  })),
+jest.mock('../../../../../selectors/featureFlagController/confirmations');
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
 }));
 
-describe('UnstakeInputView', () => {
+describe('EarnWithdrawalInputView', () => {
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
+
   beforeEach(() => {
     jest.useFakeTimers();
+
+    selectConfirmationRedesignFlagsMock.mockReturnValue({
+      staking_confirmations: false,
+    } as unknown as ConfirmationRedesignRemoteFlags);
   });
 
   it('render matches snapshot', () => {
@@ -199,7 +220,7 @@ describe('UnstakeInputView', () => {
     });
   });
 
-  describe('when staking_transactions feature flag is enabled', () => {
+  describe('when staking_confirmations feature flag is enabled', () => {
     let originalMock: jest.Mock;
     let mockAttemptUnstakeTransaction: jest.Mock;
 
@@ -211,7 +232,7 @@ describe('UnstakeInputView', () => {
       jest.requireMock(
         '../../../../../selectors/featureFlagController',
       ).selectConfirmationRedesignFlags = jest.fn(() => ({
-        staking_transactions: true,
+        staking_confirmations: true,
       }));
 
       mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
@@ -219,6 +240,10 @@ describe('UnstakeInputView', () => {
         () => ({
           attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
         });
+
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
     });
 
     afterEach(() => {
@@ -234,9 +259,8 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('Review'));
 
-      jest.useRealTimers();
-      // Wait for the async operation to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      jest.useFakeTimers({ legacyFakeTimers: true });
+      await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
@@ -246,6 +270,55 @@ describe('UnstakeInputView', () => {
           amountFiat: expect.any(String),
         }),
       });
+    });
+  });
+
+  describe('title bar', () => {
+    it('renders "Unstake" for pooled-staking withdrawals', () => {
+      render(EarnWithdrawInputView);
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Unstake ETH',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('renders "Withdraw" for supported stablecoin lending assets', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const usdcRouteParams: EarnWithdrawInputViewProps['route']['params'] = {
+        token: MOCK_USDC_MAINNET_ASSET,
+      };
+
+      renderScreen(
+        EarnWithdrawInputView,
+        {
+          name: Routes.STAKING.UNSTAKE,
+        },
+        {
+          state: {
+            engine: {
+              backgroundState,
+            },
+          },
+        },
+        usdcRouteParams,
+      );
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Withdraw',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

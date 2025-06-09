@@ -193,7 +193,7 @@ exports[`SlippageSlider should render correctly 1`] = `
         {
           "bottom": 0,
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "left": 0,

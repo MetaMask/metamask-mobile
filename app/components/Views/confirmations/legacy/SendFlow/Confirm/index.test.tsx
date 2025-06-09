@@ -53,8 +53,10 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AccountTrackerController: {
-        accounts: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+        accountsByChainId: {
+          '0x1': {
+            '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+          },
         },
       },
       CurrencyRateController: {
@@ -69,7 +71,13 @@ const mockInitialState: DeepPartial<RootState> = {
         securityAlertsEnabled: true,
       },
       KeyringController: {
-        keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
+        keyrings: [
+          {
+            accounts: ['0x'],
+            type: 'HD Key Tree',
+            metadata: { id: '01JNG71B7GTWH0J1TSJY9891S0', name: '' },
+          },
+        ],
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
@@ -131,18 +139,22 @@ jest.mock('../../../../../../lib/ppom/ppom-util', () => ({
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
   return {
     rejectPendingApproval: jest.fn(),
     context: {
       TokensController: {
         addToken: jest.fn(),
+        ignoreTokens: jest.fn(),
       },
       KeyringController: {
         state: {
           keyrings: [
             {
               accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
+              metadata: { id: '01JNG71B7GTWH0J1TSJY9891S0', name: '' },
             },
           ],
         },
@@ -179,7 +191,9 @@ jest.mock('../../../../../../util/transactions', () => ({
 }));
 
 jest.mock('../../../../../../core/redux/slices/confirmationMetrics', () => ({
-  ...jest.requireActual('../../../../../../core/redux/slices/confirmationMetrics'),
+  ...jest.requireActual(
+    '../../../../../../core/redux/slices/confirmationMetrics',
+  ),
   updateConfirmationMetric: jest.fn(),
   selectConfirmationMetrics: jest.fn().mockReturnValue({}),
 }));
@@ -253,8 +267,10 @@ describe('Confirm', () => {
       engine: {
         backgroundState: {
           AccountTrackerController: {
-            accounts: {
-              '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { balance: '0' },
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { balance: '0' },
+              },
             },
           },
         },
@@ -297,5 +313,36 @@ describe('Confirm', () => {
         expect.any(Array),
       );
     });
+  });
+
+  it('should call addToken', async () => {
+    const testState = merge({}, mockInitialState, {
+      transaction: {
+        securityAlertResponses: {
+          1: {
+            result_type: 'Malicious',
+            reason: 'blur_farming',
+            providerRequestsCount: {},
+            chainId: '0x1',
+          },
+        },
+        selectedAsset: {
+          address: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          symbol: 'USDC',
+          decimals: 6,
+          image: 'https://example.com/usdc.png',
+          name: 'USD Coin',
+        },
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+        },
+      },
+    });
+    render(Confirm, testState);
+
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalled();
   });
 });

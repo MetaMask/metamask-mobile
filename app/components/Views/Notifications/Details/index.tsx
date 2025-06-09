@@ -23,6 +23,7 @@ import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
 import { toLocaleDate } from '../../../../util/date';
+import { NotificationDetailsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;
@@ -62,7 +63,10 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 
   const HeaderLeft = useCallback(
     () => (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        testID={NotificationDetailsViewSelectorsIDs.BACK_BUTTON}
+      >
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Md}

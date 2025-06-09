@@ -26,7 +26,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -41,7 +41,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 32,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -65,11 +65,11 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -80,6 +80,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       >
         <SvgMock
           color="#686e7d"
+          fill="currentColor"
           height={16}
           name="Info"
           style={
@@ -113,7 +114,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
-          "borderRadius": 20,
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -127,11 +128,11 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -160,7 +161,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -175,7 +176,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     style={
       {
         "color": "#1c7e33",
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 32,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -190,11 +191,11 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -213,7 +214,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 20,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
         "height": 40,
@@ -227,11 +228,11 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

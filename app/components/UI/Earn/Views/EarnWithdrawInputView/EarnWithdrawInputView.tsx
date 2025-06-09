@@ -19,7 +19,7 @@ import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import ScreenLayout from '../../../Ramp/components/ScreenLayout';
+import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
@@ -32,7 +32,6 @@ import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './EarnWithdrawInputView.styles';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { RootState } from '../../../../../reducers';
@@ -40,14 +39,21 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { isSupportedLendingTokenByChainId } from '../../utils';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const earnToken = getTokenWithBalanceAndApr(token);
-  const title = strings('stake.unstake_eth');
+  const title = isSupportedLendingTokenByChainId(
+    token.symbol,
+    token?.chainId as string,
+  )
+    ? strings('earn.withdraw')
+    : strings('stake.unstake_eth');
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -55,6 +61,10 @@ const EarnWithdrawInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
+  );
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
@@ -143,7 +153,6 @@ const EarnWithdrawInputView = () => {
     //   },
     // },
   };
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;
@@ -174,7 +183,7 @@ const EarnWithdrawInputView = () => {
 
   const handleUnstakePress = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_transactions;
+      confirmationRedesignFlags?.staking_confirmations;
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -240,7 +249,7 @@ const EarnWithdrawInputView = () => {
     trackEvent,
     attemptUnstakeTransaction,
     activeAccount?.address,
-    confirmationRedesignFlags?.staking_transactions,
+    confirmationRedesignFlags?.staking_confirmations,
   ]);
 
   return (

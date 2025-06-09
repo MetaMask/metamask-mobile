@@ -2,17 +2,21 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, userEvent } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
 import {
   MOCK_HD_ACCOUNTS,
   MOCK_HD_KEYRING_METADATA,
 } from '../../../selectors/keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -35,11 +39,19 @@ jest.mock('../../../core/ClipboardManager', () => ({
   getString: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const valid12WordMnemonic =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
 const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
+
+const invalidMnemonic =
+  'aaaaa youth dentist air relief leave neither liquid belt aspect bone frame';
 
 const mockPaste = jest
   .spyOn(ClipboardManager, 'getString')
@@ -49,8 +61,13 @@ const initialState = {
   engine: {
     backgroundState: {
       KeyringController: {
-        keyrings: [{ type: KeyringTypes.hd, accounts: MOCK_HD_ACCOUNTS }],
-        keyringsMetadata: [MOCK_HD_KEYRING_METADATA],
+        keyrings: [
+          {
+            type: KeyringTypes.hd,
+            accounts: MOCK_HD_ACCOUNTS,
+            metadata: MOCK_HD_KEYRING_METADATA,
+          },
+        ],
       },
     },
   },
@@ -69,7 +86,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
   const { getByTestId } = render;
 
   const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
-  await fireEvent.press(pasteButton);
+  await userEvent.press(pasteButton);
 
   return render;
 };
@@ -77,6 +94,11 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('imports valid manually entered 12-word SRP', async () => {
@@ -202,23 +224,25 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
+  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+      ).build(),
+    );
+  });
+
   describe('errors', () => {
-    it('displays error for invalid SRP', async () => {
-      const { getByText } = await renderSRPImportComponentAndPasteSRP(
-        'invalid mnemonic',
-      );
-
-      expect(
-        getByText(
-          messages.import_new_secret_recovery_phrase
-            .error_number_of_words_error_message,
-        ),
-      ).toBeTruthy();
-    });
-
     it('displays single incorrect word', async () => {
       const { getByText } = await renderSRPImportComponentAndPasteSRP(
-        valid24WordMnemonic.replace('verb', 'asdf'), // replace the first word
+        invalidMnemonic,
       );
 
       expect(
@@ -266,6 +290,55 @@ describe('ImportNewSecretRecoveryPhrase', () => {
             .error_srp_is_case_sensitive,
         ),
       ).toBeTruthy();
+    });
+
+    it('does not display error if SRP is empty', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
+
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
+
+      const clearButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await fireEvent.press(clearButton);
+
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(updatedError).toBeNull();
+    });
+
+    it('does not display error if SRP is cleared manually', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP(invalidMnemonic);
+
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
+
+      const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      fireEvent.changeText(firstWord, 'lazy');
+
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(updatedError).toBeNull();
+    });
+
+    it('displays errors only if all the words are entered', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('');
+
+      let error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeNull();
+
+      mockPaste.mockResolvedValue(invalidMnemonic);
+      const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await userEvent.press(pasteButton);
+
+      error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
     });
   });
 });

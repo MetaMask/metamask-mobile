@@ -26,7 +26,7 @@ import {
   weiToFiat,
   safeNumberToBN,
 } from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
+import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -63,7 +63,6 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
-import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
@@ -80,12 +79,16 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import AccountSelector from '../Ramp/components/AccountSelector';
+import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useChainRedirect } from './useChainRedirect';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -206,6 +209,11 @@ function SwapsAmountView({
 
   const previousSelectedAddress = useRef();
 
+  // Use the new hook for chain redirection
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useChainRedirect(selectedAddress);
+  ///: END:ONLY_INCLUDE_IF
+
   const explorer = useBlockExplorer(networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const initialDestination = route.params?.destinationToken;
@@ -217,7 +225,7 @@ function SwapsAmountView({
   const [isSourceSet, setIsSourceSet] = useState(() =>
     Boolean(
       swapsTokens?.find((token) =>
-        toLowerCaseEquals(token.address, initialSource),
+        areAddressesEqual(token.address, initialSource),
       ),
     ),
   );
@@ -225,14 +233,22 @@ function SwapsAmountView({
 
   const [sourceToken, setSourceToken] = useState(() =>
     swapsTokens?.find((token) =>
-      toLowerCaseEquals(token.address, initialSource),
+      areAddressesEqual(token.address, initialSource),
     ),
   );
   const [destinationToken, setDestinationToken] = useState(
     swapsTokens?.find((token) =>
-      toLowerCaseEquals(token.address, initialDestination),
+      areAddressesEqual(token.address, initialDestination),
     ),
   );
+
+  useStablecoinsDefaultSlippage({
+    sourceTokenAddress: sourceToken?.address,
+    destTokenAddress: destinationToken?.address,
+    chainId,
+    setSlippage,
+  });
+
   const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
   const [contractBalance, setContractBalance] = useState(null);
   const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(
@@ -272,7 +288,7 @@ function SwapsAmountView({
             const parameters = {
               source: route.params?.sourcePage,
               activeCurrency: swapsTokens?.find((token) =>
-                toLowerCaseEquals(token.address, initialSource),
+                areAddressesEqual(token.address, initialSource),
               )?.symbol,
               chain_id: getDecimalChainId(chainId),
             };
@@ -357,7 +373,7 @@ function SwapsAmountView({
       setIsSourceSet(true);
       setSourceToken(
         swapsTokens.find((token) =>
-          toLowerCaseEquals(token.address, initialSource),
+          areAddressesEqual(token.address, initialSource),
         ),
       );
     }
@@ -375,7 +391,7 @@ function SwapsAmountView({
       setIsDestinationSet(true);
       setDestinationToken(
         swapsTokens.find((token) =>
-          toLowerCaseEquals(token.address, initialDestination),
+          areAddressesEqual(token.address, initialDestination),
         ),
       );
     }
@@ -387,7 +403,7 @@ function SwapsAmountView({
 
   const isTokenInBalances =
     sourceToken && !isSwapsNativeAsset(sourceToken)
-      ? safeToChecksumAddress(sourceToken.address) in balances
+      ? toFormattedAddress(sourceToken.address) in balances
       : false;
 
   useEffect(() => {
@@ -424,7 +440,7 @@ function SwapsAmountView({
       setAmount('0');
       setSourceToken(
         swapsTokens?.find((token) =>
-          toLowerCaseEquals(token.address, initialSource),
+          areAddressesEqual(token.address, initialSource),
         ),
       );
       setDestinationToken(null);
@@ -503,7 +519,7 @@ function SwapsAmountView({
         currentCurrency,
       );
     } else {
-      const sourceAddress = safeToChecksumAddress(sourceToken.address);
+      const sourceAddress = toFormattedAddress(sourceToken.address);
       const exchangeRate =
         tokenExchangeRates && sourceAddress in tokenExchangeRates
           ? tokenExchangeRates[sourceAddress]?.price
@@ -544,7 +560,13 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken({ address, symbol, decimals, name });
+      await TokensController.addToken({
+        address,
+        symbol,
+        decimals,
+        name,
+        networkClientId: selectedNetworkClientId,
+      });
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -565,6 +587,7 @@ function SwapsAmountView({
     slippage,
     sourceToken,
     isBalanceZero,
+    selectedNetworkClientId,
   ]);
 
   /* Keypad Handlers */
@@ -587,9 +610,11 @@ function SwapsAmountView({
         destinationTokenAddress,
       );
       if (enableDirectWrapping && !isDirectWrapping) {
+        // ETH <> WETH, set slippage to 0
         setSlippage(0);
         setIsDirectWrapping(true);
       } else if (isDirectWrapping && !enableDirectWrapping) {
+        // Coming out of ETH <> WETH to a non (ETH <> WETH) pair, reset slippage
         setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
         setIsDirectWrapping(false);
       }
@@ -758,7 +783,7 @@ function SwapsAmountView({
         >
           <View style={styles.horizontalRule} />
           <TouchableOpacity onPress={handleFlipTokens}>
-            <IonicIcon style={styles.arrowDown} name="md-arrow-down" />
+            <IonicIcon style={styles.arrowDown} name="arrow-down" />
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
@@ -1030,7 +1055,10 @@ const mapStateToProps = (state) => ({
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

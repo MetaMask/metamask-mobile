@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import { TextInput, ViewStyle } from 'react-native';
+import { TextInput, ViewStyle, KeyboardTypeOptions } from 'react-native';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -17,6 +17,9 @@ export interface SnapUIInputProps {
   label?: string;
   error?: string;
   style?: ViewStyle;
+  disabled?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  testID?: string;
 }
 
 export const SnapUIInput = ({
@@ -25,6 +28,9 @@ export const SnapUIInput = ({
   label,
   error,
   style,
+  disabled,
+  keyboardType,
+  testID,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -52,13 +58,25 @@ export const SnapUIInput = ({
     }
   }, [inputRef, name, focusedInput]);
 
+  const getInputValue = (text: string) => {
+    if (keyboardType === 'numeric') {
+      // Mimic browser behaviour where commas are replaced.
+      return text.replace(/,/g, '.');
+    }
+
+    return text;
+  };
+
   const handleChange = (text: string) => {
-    setValue(text);
-    handleInputChange(name, text, form);
+    const textValue = getInputValue(text);
+
+    setValue(textValue);
+    handleInputChange(name, textValue, form);
   };
 
   const handleFocus = () => setCurrentFocusedInput(name);
   const handleBlur = () => setCurrentFocusedInput(null);
+
 
   return (
     <Box style={style}>
@@ -66,12 +84,20 @@ export const SnapUIInput = ({
       <TextField
         {...props}
         size={TextFieldSize.Lg}
+        isDisabled={disabled}
         ref={inputRef}
         onFocus={handleFocus}
         onBlur={handleBlur}
         id={name}
+        testID={testID ?? `${name}-snap-ui-input`}
         value={value}
         onChangeText={handleChange}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType={keyboardType}
+        // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ maxHeight: 58, flexGrow: 1 }}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles

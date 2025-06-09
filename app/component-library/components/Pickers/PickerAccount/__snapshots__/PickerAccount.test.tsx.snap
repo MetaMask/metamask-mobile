@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount should render correctly 1`] = `
-<View
+<TouchableOpacity
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
@@ -194,11 +195,11 @@ exports[`PickerAccount should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="account-label"
@@ -210,6 +211,7 @@ exports[`PickerAccount should render correctly 1`] = `
     </View>
     <SvgMock
       color="#121314"
+      fill="currentColor"
       height={12}
       name="ArrowDown"
       style={
@@ -227,16 +229,16 @@ exports[`PickerAccount should render correctly 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 12,
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,
-        "lineHeight": 20,
+        "lineHeight": 22,
         "textAlign": "center",
       }
     }
   >
-    0x2990...a21a
+    0x29900...da21a
   </Text>
-</View>
+</TouchableOpacity>
 `;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { ACCOUNT_LIST_ITEM_TEST_ID, AccountsList } from './AccountsList';
+import { AccountsList } from './AccountsList';
 // eslint-disable-next-line import/no-namespace
 import * as AccountListHooksModule from './AccountsList.hooks';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
@@ -8,9 +8,10 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 import * as useSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
 import {
   NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID,
-  NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
-  NOTIFICATION_OPTIONS_TOGGLE_TEST_ID,
+  NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID,
 } from './NotificationOptionToggle';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
+import { toFormattedAddress } from '../../../../util/address';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockVar = any;
@@ -22,29 +23,41 @@ jest.mock(
   }),
 );
 
-const ADDRESS_1 = '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29';
-const ADDRESS_2 = '0x700CcD8172BC3807D893883a730A1E0E6630F8EC';
+const ADDRESS_1 = '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29'.toLowerCase();
+const ADDRESS_2 = '0x700CcD8172BC3807D893883a730A1E0E6630F8EC'.toLowerCase();
+
+// The component uses toFormattedAddress for testIDs, so we need the checksummed versions
+const CHECKSUMMED_ADDRESS_1 = toFormattedAddress(ADDRESS_1);
+const CHECKSUMMED_ADDRESS_2 = toFormattedAddress(ADDRESS_2);
 
 const ACCOUNT_1_TEST_ID = {
-  item: NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+  item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_1,
+    ),
   ),
   itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_1,
+    ),
   ),
-  itemSwitch: NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+  itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+    CHECKSUMMED_ADDRESS_1,
   ),
 };
 const ACCOUNT_2_TEST_ID = {
-  item: NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+  item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_2,
+    ),
   ),
   itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_2,
+    ),
   ),
-  itemSwitch: NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(
-    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+  itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+    CHECKSUMMED_ADDRESS_2,
   ),
 };
 

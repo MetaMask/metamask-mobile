@@ -126,6 +126,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       >
         <SvgMock
           color="#9a6300"
+          fill="currentColor"
           height={32}
           name="Danger"
           style={
@@ -141,7 +142,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -170,7 +171,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               {
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -186,7 +187,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -225,7 +226,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 30,
                   "fontWeight": "400",
                   "marginVertical": 2,
@@ -268,7 +269,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 30,
                   "fontWeight": "400",
                   "marginVertical": 2,
@@ -332,7 +333,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
@@ -348,11 +349,11 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -371,7 +372,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -386,11 +387,11 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >

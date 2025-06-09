@@ -127,7 +127,7 @@ describe('TransactionsView', () => {
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('renders correctly and matches snapshot', async () => {

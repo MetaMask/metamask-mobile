@@ -18,14 +18,14 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import _ from 'lodash';
+import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -39,6 +39,10 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const { createEventBuilder, trackEvent } = useMetrics();
 
   const { colors } = theme;
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
 
@@ -61,12 +65,11 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
 
     navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
-      params: { token, action: EARN_INPUT_VIEW_ACTIONS.LEND },
+      params: { token },
     });
   };
 
-  if (!token || _.isEmpty(token) || !isStablecoinLendingFeatureEnabled())
-    return <></>;
+  if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
     <View style={styles.container}>

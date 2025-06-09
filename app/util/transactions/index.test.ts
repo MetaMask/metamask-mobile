@@ -38,10 +38,19 @@ import {
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
+  getTransactionById,
+  UPGRADE_SMART_ACCOUNT_ACTION_KEY,
+  DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
+  isLegacyTransaction,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
+import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
+import {
+  TransactionType,
+  TransactionEnvelopeType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
 
@@ -75,7 +84,11 @@ ENGINE_MOCK.context = {
   },
   TokenListController: {
     state: {
-      tokenList: {},
+      tokensChainsCache: {
+        '0x1': {
+          data: [],
+        },
+      },
     },
   },
 };
@@ -1106,6 +1119,49 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
 
+  it('returns correct value for upgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: '0x1' }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(UPGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
+  it('returns correct value for downgrade smart account transaction', async () => {
+    const transaction = {
+      txParams: {
+        authorizationList: [{ address: EIP_7702_REVOKE_ADDRESS }],
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+    expect(actionKey).toBe(DOWNGRADE_SMART_ACCOUNT_ACTION_KEY);
+  });
+
+  it('calls findNetworkClientIdByChainId when toSmartContract is undefined', async () => {
+    const spyOnFindNetworkClientIdByChainId = jest.spyOn(
+      Engine.context.NetworkController,
+      'findNetworkClientIdByChainId',
+    );
+
+    const transaction = {
+      txParams: {
+        to: '0x1',
+      },
+    };
+    const chainId = '1';
+
+    await getTransactionActionKey(transaction, chainId);
+    expect(spyOnFindNetworkClientIdByChainId).toHaveBeenCalledWith('1');
+  });
+
   it.each([
     TransactionType.stakingClaim,
     TransactionType.stakingDeposit,
@@ -1181,7 +1237,7 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 });
 
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
-  const transaction = { to: '0xContractAddress' };
+  const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
@@ -1199,5 +1255,108 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
+  });
+});
+
+describe('Transactions utils :: getTransactionById', () => {
+  it('returns the correct transaction when given a valid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('tx2', mockTransactionController);
+
+    expect(result).toEqual(mockTransactions[1]);
+  });
+
+  it('returns undefined when given an invalid transaction ID', () => {
+    const mockTransactions = [
+      { id: 'tx1', value: '0x1' },
+      { id: 'tx2', value: '0x2' },
+      { id: 'tx3', value: '0x3' },
+    ];
+
+    const mockTransactionController = {
+      state: {
+        transactions: mockTransactions,
+      },
+    };
+
+    const result = getTransactionById('nonexistent', mockTransactionController);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the transactions array is empty', () => {
+    const mockTransactionController = {
+      state: {
+        transactions: [],
+      },
+    };
+
+    const result = getTransactionById('tx1', mockTransactionController);
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: isLegacyTransaction', () => {
+  it('returns true for a transaction with legacy type', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.legacy,
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(true);
+  });
+
+  it('returns false for an EIP-1559 transaction', () => {
+    const transactionMeta = {
+      txParams: {
+        type: TransactionEnvelopeType.feeMarket,
+        from: '0x123',
+        to: '0x456',
+        maxFeePerGas: '0x77359400',
+        maxPriorityFeePerGas: '0x1',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for a transaction without type field', () => {
+    const transactionMeta = {
+      txParams: {
+        from: '0x123',
+        to: '0x456',
+        gasPrice: '0x77359400',
+      },
+    };
+
+    expect(isLegacyTransaction(transactionMeta)).toBe(false);
+  });
+
+  it('returns false for undefined transactionMeta', () => {
+    // @ts-expect-error Testing undefined input
+    expect(isLegacyTransaction(undefined)).toBe(false);
+  });
+
+  it('returns false for transactionMeta without txParams', () => {
+    const transactionMeta = {};
+    expect(
+      isLegacyTransaction(transactionMeta as Partial<TransactionMeta>),
+    ).toBe(false);
   });
 });

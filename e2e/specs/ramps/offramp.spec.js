@@ -12,33 +12,30 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import SelectRegionView from '../../pages/Ramps/SelectRegionView';
-import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 const fixtureServer = new FixtureServer();
 
-const Regions = {
-  USA: 'United States of America',
-  CALIFORNIA: 'California',
-  FRANCE: 'France',
-  UK: 'United Kingdom',
+const franceRegion = {
+  currencies: ['/currencies/fiat/eur'],
+  emoji: '🇫🇷',
+  id: '/regions/fr',
+  name: 'France',
+  support: { buy: true, sell: true, recurringBuy: true },
+  unsupported: false,
+  recommended: false,
+  detected: false,
 };
 
-const PaymentMethods = {
-  DEBIT_OR_CREDIT: 'Debit or Credit',
-  INSTANT_ACH_BANK_TRANSFER: 'Insant ACH Bank Transfer',
-  ACH_BANK_TRANSFER: 'ACH Bank Transfer',
-};
-
-describe(SmokeRamps('Off-Ramp'), () => {
+describe(SmokeTrade('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+      .withRampsSelectedRegion(franceRegion)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -57,19 +54,11 @@ describe(SmokeRamps('Off-Ramp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should display Build Sell Quote based on selected Region and Payment', async () => {
+  it('should get to the Amount to sell screen, after selecting Get Started', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
-    await BuildQuoteView.tapSelectRegionDropdown();
-    await SelectRegionView.tapRegionOption(Regions.USA);
-    await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
-    await SelectRegionView.tapContinueButton();
-    await SelectPaymentMethodView.tapPaymentMethodOption(
-      PaymentMethods.DEBIT_OR_CREDIT,
-    );
-    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton();

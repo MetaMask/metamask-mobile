@@ -10,8 +10,6 @@ import {
   Alert,
   BackHandler,
   ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -51,7 +49,12 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import {
+  getCaip25Caveat,
+  getPermittedCaipAccountIdsByHostname,
+  getPermittedEvmAddressesByHostname,
+  sortMultichainAccountsByLastSelected,
+} from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -75,8 +78,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -107,13 +108,25 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, {
+  AutocompleteSearchResult,
+  UrlAutocompleteRef,
+} from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import {
+  getPhishingTestResult,
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { toHex } from '@metamask/controller-utils';
+import { parseCaipAccountId } from '@metamask/utils';
 
 /**
  * Tab component for the in-app browser
  */
-export const BrowserTab: React.FC<BrowserTabProps> = ({
+export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
@@ -137,7 +150,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [allowedInitialUrl, setAllowedInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
   const [error, setError] = useState<boolean | WebViewError>(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -164,6 +176,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
+  const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
@@ -172,21 +186,36 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const backgroundBridgeRef = useRef<{
     url: string;
     hostname: string;
-    sendNotification: (payload: unknown) => void;
+    sendNotificationEip1193: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
   }>();
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
-  const permittedAccountsList = useSelector((state: RootState) => {
+
+  const permittedEvmAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
+    const permittedAcc = getPermittedEvmAddressesByHostname(
       permissionsControllerState,
       hostname,
     );
     return permittedAcc;
+  }, isEqual);
+  const permittedCaipAccountAddressesList = useSelector((state: RootState) => {
+    const permissionsControllerState = selectPermissionControllerState(state);
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const permittedAccountIds = getPermittedCaipAccountIdsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+    const sortedPermittedAccountIds = sortMultichainAccountsByLastSelected(permittedAccountIds);
+    const permittedAccountAddresses = sortedPermittedAccountIds.map((accountId) => {
+      const { address } = parseCaipAccountId(accountId);
+      return address;
+    });
+    return permittedAccountAddresses;
   }, isEqual);
 
   const favicon = useFavicon(resolvedUrlRef.current);
@@ -209,7 +238,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
+  const isHomepage = useCallback((checkUrl?: string | null) => {
     const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
@@ -218,8 +247,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload) => {
-    backgroundBridgeRef.current?.sendNotification(payload);
+  const notifyAllConnections = useCallback((payload: unknown) => {
+    backgroundBridgeRef.current?.sendNotificationEip1193(payload);
   }, []);
 
   /**
@@ -293,37 +322,61 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Check if an origin is allowed
    */
   const isAllowedOrigin = useCallback(
-    (urlOrigin: string) => {
-      const { PhishingController } = Engine.context;
+    async (urlOrigin: string): Promise<boolean> => {
+      if (whitelist?.includes(urlOrigin)) {
+        return true;
+      }
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.maybeUpdateState();
-
-      const phishingControllerTestResult = PhishingController.test(urlOrigin);
-
-      // Only assign the if the hostname is on the block list
-      if (
-        phishingControllerTestResult.result &&
-        phishingControllerTestResult.name
-      )
-        blockListType.current = phishingControllerTestResult.name;
-
-      return (
-        whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
-      );
+      const testResult = await getPhishingTestResultAsync(urlOrigin);
+      if (testResult?.result && testResult.name) {
+        blockListType.current = testResult.name;
+      }
+      return !testResult?.result;
     },
     [whitelist],
   );
 
   /**
+   * Determines if we should show the phishing modal for a detected phishing URL
+   * For real-time dapp scanning, we may want to skip showing the modal in certain cases:
+   * - The user has completely navigated and loaded web content for another website
+   * - The user has started navigating and loading web content for another website
+   *
+   * This is important because if we've navigated to something like metamask.io after being on
+   * a phishing website and the response from the dapp scanning API returns after we've already
+   * navigated away on the phishing website, then the user thinks the modal is for metamask.io.
+   */
+  const shouldShowPhishingModal = useCallback(
+    (phishingUrlOrigin: string): boolean => {
+      if (!isProductSafetyDappScanningEnabled()) {
+        return true;
+      }
+      const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+      const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
+      const shouldNotShow =
+        resolvedUrlOrigin !== phishingUrlOrigin &&
+        loadingUrlOrigin !== phishingUrlOrigin &&
+        loadingUrlOrigin !== 'null';
+
+      return !shouldNotShow;
+    },
+    [resolvedUrlRef, loadingUrlRef],
+  );
+
+  /**
    * Show a phishing modal when a url is not allowed
    */
-  const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    setBlockedUrl(urlOrigin);
-    setTimeout(() => setShowPhishingModal(true), 1000);
-  }, []);
+  const handleNotAllowedUrl = useCallback(
+    (urlOrigin: string) => {
+      if (!shouldShowPhishingModal(urlOrigin)) {
+        return;
+      }
+
+      setBlockedUrl(urlOrigin);
+      setTimeout(() => setShowPhishingModal(true), 1000);
+    },
+    [shouldShowPhishingModal, setBlockedUrl, setShowPhishingModal],
+  );
 
   /**
    * Get IPFS info from a ens url
@@ -331,8 +384,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleIpfsContent = useCallback(
     async (
-      fullUrl,
-      { hostname, pathname, query },
+      fullUrl: string,
+      {
+        hostname,
+        pathname,
+        query,
+      }: { hostname: string; pathname: string; query: string },
     ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
@@ -409,7 +466,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URLParse(urlToTrigger).hostname;
-    const connectedAccounts = getPermittedAccountsByHostname(
+    const connectedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -447,19 +504,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const handleFirstUrl = useCallback(async () => {
     setIsResolvedIpfsUrl(false);
-    const prefixedUrl = prefixUrlWithProtocol(initialUrl);
-    const { origin: urlOrigin } = new URLParse(prefixedUrl);
-
-    if (isAllowedOrigin(urlOrigin)) {
-      setAllowedInitialUrl(prefixedUrl);
-      setFirstUrlLoaded(true);
-      setProgress(0);
-      return;
-    }
-
-    handleNotAllowedUrl(prefixedUrl);
+    setFirstUrlLoaded(true);
+    setProgress(0);
     return;
-  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
+  }, []);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -589,8 +637,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           ),
         });
 
-      // Used to render tab title in tab selection
-      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -601,13 +647,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       setProgress,
       isUrlBarFocused,
       isTabActive,
-      tabId,
-      updateTabInfo,
       navigation,
     ],
   );
 
   const checkTabPermissions = useCallback(() => {
+    if (isPerDappSelectedNetworkEnabled()) {
+      return;
+    }
+
     if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
@@ -615,7 +663,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
+    const permittedAccounts = getPermittedCaipAccountIdsByHostname(
       permissionsControllerState,
       hostname,
     );
@@ -625,14 +673,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+        const caveat = getCaip25Caveat(hostname);
+        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
 
-        const currentChainId = activeChainId;
+        const currentChainId = toHex(activeChainId);
         const isCurrentChainIdAlreadyPermitted =
           permittedChains.includes(currentChainId);
 
@@ -691,19 +735,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        tabId,
-        {
-          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        },
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
         url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
       });
 
-      checkTabPermissions();
+      if (!isPerDappSelectedNetworkEnabled()) {
+        checkTabPermissions();
+      }
     },
     [
       isUrlBarFocused,
@@ -726,22 +769,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }: {
     url: string;
   }) => {
-    const { origin: urlOrigin } = new URLParse(urlToLoad);
-
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
       requested: true,
     };
 
-    // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(urlOrigin)) {
-      handleNotAllowedUrl(urlOrigin);
-      return false;
-    }
-
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
       return false;
+    }
+
+    // TODO: Make sure to replace with cache hits once EPD has been deprecated.
+    if (!isProductSafetyDappScanningEnabled()) {
+      const scanResult = getPhishingTestResult(urlToLoad);
+      let whitelistUrlInput = prefixUrlWithProtocol(urlToLoad);
+      whitelistUrlInput = whitelistUrlInput.replace(/\/$/, ''); // removes trailing slash
+      if (scanResult.result && !whitelist.includes(whitelistUrlInput)) {
+        handleNotAllowedUrl(urlToLoad);
+        return false;
+      }
     }
 
     // Continue request loading it the protocol is whitelisted
@@ -809,6 +855,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       // Handle navigation event
       const { url, title, canGoBack, canGoForward } = nativeEvent;
+      loadingUrlRef.current = '';
       // Do not update URL unless website has successfully completed loading.
       webStates.current[url] = { ...webStates.current[url], ended: true };
       const { started, ended } = webStates.current[url];
@@ -918,16 +965,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsList,
+      params: permittedEvmAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedEvmAccountsList]);
 
   /**
    * Website started to load
    */
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
+      loadingUrlRef.current = nativeEvent.url;
+
       // Use URL to produce real url. This should be the actual website that the user is viewing.
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
@@ -937,7 +986,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       };
 
       // Cancel loading the page if we detect its a phishing page
-      if (!isAllowedOrigin(urlOrigin)) {
+      const isAllowed = await isAllowedOrigin(urlOrigin);
+      if (!isAllowed) {
         handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
         return false;
       }
@@ -966,7 +1016,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   useEffect(() => {
     sendActiveAccount();
-  }, [sendActiveAccount, permittedAccountsList]);
+  }, [sendActiveAccount, permittedEvmAccountsList]);
 
   /**
    * Check when the ipfs gateway is enabled to hide the banner
@@ -1022,7 +1072,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   useEffect(() => {
-    checkTabPermissions();
+    if (!isPerDappSelectedNetworkEnabled()) {
+      checkTabPermissions();
+    }
   }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
 
   const handleEnsUrl = useCallback(
@@ -1136,7 +1188,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
+    async ({
+      nativeEvent: { downloadUrl },
+    }: {
+      nativeEvent: { downloadUrl: string };
+    }) => {
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();
@@ -1175,45 +1231,59 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = (url: string) => {
-    // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
-    onSubmitEditing(url);
-  };
+  const onSelect = useCallback(
+    (item: AutocompleteSearchResult) => {
+      // Unfocus the url bar and hide the autocomplete results
+      urlBarRef.current?.hide();
+      if (item.category === 'tokens') {
+        navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+          chainId: item.chainId,
+          address: item.address,
+        });
+      } else {
+        onSubmitEditing(item.url);
+      }
+    },
+    [onSubmitEditing, navigation],
+  );
 
   /**
    * Handle autocomplete dismissal
    */
-  const onDismissAutocomplete = () => {
+  const onDismissAutocomplete = useCallback(() => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, []);
 
   /**
    * Hide the autocomplete results
    */
-  const hideAutocomplete = () => autocompleteRef.current?.hide();
+  const hideAutocomplete = useCallback(
+    () => autocompleteRef.current?.hide(),
+    [],
+  );
 
-  const onCancelUrlBar = () => {
+  const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
     // Reset the url bar to the current url
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, [hideAutocomplete]);
 
-  const onFocusUrlBar = () => {
+  const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
-  };
+  }, []);
 
-  const onChangeUrlBar = (text: string) =>
+  const onChangeUrlBar = useCallback((text: string) => {
     // Search the autocomplete results
     autocompleteRef.current?.search(text);
+  }, []);
 
   const handleWebviewNavigationChange = useCallback(
     (eventName: WebViewNavigationEventName) =>
@@ -1306,8 +1376,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
@@ -1322,7 +1391,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedAccountsList}
+            connectedAccounts={permittedCaipAccountAddressesList}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}
@@ -1353,7 +1422,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       />
                     )}
                     source={{
-                      uri: allowedInitialUrl,
+                      uri: prefixUrlWithProtocol(initialUrl),
                       ...(isExternalLink ? { headers: { Cookie: '' } } : null),
                     }}
                     injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
@@ -1405,7 +1474,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               activeUrl={resolvedUrlRef.current}
               isHomepage={isHomepage}
               getMaskedUrl={getMaskedUrl}
-              onSubmitEditing={onSubmitEditing}
               title={titleRef}
               reload={reload}
               sessionENSNames={sessionENSNamesRef.current}
@@ -1417,16 +1485,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ErrorBoundary>
   );
-};
+});
 
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress:
-    selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
   activeChainId: selectEvmChainId(state),

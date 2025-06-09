@@ -59,11 +59,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -92,6 +92,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -136,11 +137,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
             style={
               {
                 "color": "#1c7e33",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -196,11 +197,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -248,11 +249,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -263,11 +264,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -323,11 +324,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -356,6 +357,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -400,11 +402,11 @@ exports[`RewardsCard render matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -477,11 +479,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -510,6 +512,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -554,11 +557,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#1c7e33",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -614,11 +617,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -666,11 +669,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -681,11 +684,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -741,11 +744,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -774,6 +777,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -818,11 +822,11 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -895,11 +899,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -928,6 +932,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -972,11 +977,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#1c7e33",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -1032,11 +1037,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -1084,11 +1089,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1099,11 +1104,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1159,11 +1164,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"
@@ -1192,6 +1197,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
           >
             <SvgMock
               color="#9ca1af"
+              fill="currentColor"
               height={16}
               name="Question"
               style={
@@ -1236,11 +1242,11 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
             testID="label"

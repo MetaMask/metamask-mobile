@@ -7,6 +7,7 @@ import {
   MM_ETHERSCAN_URL,
   MM_BLOCKLIST_ISSUE_URL,
 } from '../../../../../constants/urls';
+import { HOMEPAGE_URL } from '../../constants';
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
@@ -43,7 +44,6 @@ const PhishingModal = ({
   } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
 
-
   useEffect(() => {
     if (showPhishingModal && blockedUrl) {
       const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
@@ -51,7 +51,7 @@ const PhishingModal = ({
         createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
           .addProperties({
             url: hostname,
-            reason: 'eth-phishing-detect',
+            reason: 'blocklist',
           })
           .build(),
       );
@@ -71,10 +71,11 @@ const PhishingModal = ({
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
+    const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PROCEED_ANYWAY_CLICKED)
         .addProperties({
-          url: blockedUrl,
+          url: hostname,
         })
         .build(),
     );
@@ -112,9 +113,9 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl });
-
+    urlBarRef.current?.setNativeProps({ text: HOMEPAGE_URL });
     setTimeout(() => {
+      goToUrl(HOMEPAGE_URL);
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
     }, 500);
@@ -129,7 +130,7 @@ const PhishingModal = ({
       animationOut="slideOutDown"
       style={styles.fullScreenModal}
       backdropOpacity={1}
-      backdropColor={colors.error.default}
+      backdropColor={colors.background.alternative}
       animationInTiming={300}
       animationOutTiming={300}
       useNativeDriver

@@ -78,6 +78,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={20}
             name="Global"
             style={
@@ -95,11 +96,11 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "600",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginLeft": 5,
               "marginRight": 40,
               "marginTop": 0,
@@ -124,6 +125,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       >
         <SvgMock
           color="#121314"
+          fill="currentColor"
           height={20}
           name="Close"
           style={

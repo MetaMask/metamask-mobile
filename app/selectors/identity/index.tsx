@@ -17,19 +17,34 @@ const selectUserStorageControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.UserStorageController ??
   UserStorageController.defaultState;
 
-export const selectIsProfileSyncingEnabled = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState?.isProfileSyncingEnabled,
-);
-export const selectIsProfileSyncingUpdateLoading = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingUpdateLoading,
-);
-
+// Authentication
 export const selectIsSignedIn = createSelector(
   selectAuthenticationControllerState,
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.isSignedIn,
+);
+
+// User Storage
+export const selectIsBackupAndSyncEnabled = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState?.isBackupAndSyncEnabled,
+);
+
+export const selectIsBackupAndSyncUpdateLoading = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState.isBackupAndSyncUpdateLoading,
+);
+
+export const selectIsAccountSyncingEnabled = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState?.isAccountSyncingEnabled,
+);
+
+export const selectIsAccountSyncingReadyToBeDispatched = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState.isAccountSyncingReadyToBeDispatched,
 );

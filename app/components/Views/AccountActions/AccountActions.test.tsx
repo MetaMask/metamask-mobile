@@ -12,11 +12,25 @@ import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
 import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockInternalAccount,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../util/test/accountsControllerTestUtils';
+import { BITCOIN_WALLET_SNAP_ID } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { SOLANA_WALLET_SNAP_ID } from '../../../core/SnapKeyring/SolanaWalletSnap';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import/no-namespace
+import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
+
+jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({
+  useEIP7702Networks: jest
+    .fn()
+    .mockReturnValue({ networkSupporting7702Present: true }),
+}));
 
 // Mock the selectors
 jest.mock('../../../selectors/tokensController', () => ({
@@ -56,6 +70,10 @@ jest.mock('../../../selectors/networkController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(
     () => '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
   ),
+  selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
+  selectNetworkClientId: jest.fn(() => 'mainnet'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectRpcUrl: jest.fn(() => 'https://mainnet.infura.io/v3/123'),
 }));
 
 // Import the mocked selectors
@@ -73,6 +91,20 @@ const initialState = {
     },
   },
 };
+
+const generateInitialStateWithSelectedAccount = (account: InternalAccount) =>
+  ({
+    ...initialState,
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          internalAccounts: [account],
+          selectedAccountAddress: account.id,
+        },
+      },
+    },
+  } as unknown as RootState);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -112,7 +144,7 @@ const MOCK_ACCOUNT = {
     name: 'Account 2',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.hd,
     },
   },
   options: {},
@@ -135,10 +167,15 @@ const MOCK_BTC_ACCOUNT = {
     name: 'Bitcoin Account',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: BITCOIN_WALLET_SNAP_ID,
     },
   },
-  options: {},
+  options: {
+    entropySource: 'mock-id',
+  },
   methods: ['send_bitcoin'],
   type: 'p2wpkh',
   scopes: ['bip122:000000000019d6689c085ae165831e93'],
@@ -152,10 +189,15 @@ const MOCK_SOLANA_ACCOUNT = {
     name: 'Solana Account',
     importTime: 1684232000456,
     keyring: {
-      type: 'HD Key Tree',
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: SOLANA_WALLET_SNAP_ID,
     },
   },
-  options: {},
+  options: {
+    entropySource: 'mock-id',
+  },
   methods: ['send_and_confirm_transaction'],
   type: 'data_account',
   scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
@@ -177,6 +219,7 @@ jest.mock('@react-navigation/native', () => {
 // Import the mocked module to set implementation
 import { useRoute } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Set the implementation after the mock is defined
 const mockedUseRoute = jest.mocked(useRoute);
@@ -272,6 +315,10 @@ const customRpcState = {
   },
 } as unknown;
 
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(() => false),
+}));
+
 describe('AccountActions', () => {
   const mockKeyringController = mockEngine.context.KeyringController;
 
@@ -324,8 +371,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'etherscan.io',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
@@ -367,8 +414,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://custom-explorer.com/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        title: 'custom-explorer.com',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756#asset-multichain',
+        title: 'Etherscan (Multichain)',
       },
     });
   });
@@ -516,6 +563,126 @@ describe('AccountActions', () => {
       await waitFor(() => {
         expect(getByText(strings('common.please_wait'))).toBeDefined();
       });
+    });
+  });
+
+  describe('export srp', () => {
+    it.each([
+      { account: MOCK_ACCOUNT },
+      { account: MOCK_BTC_ACCOUNT },
+      { account: MOCK_SOLANA_ACCOUNT },
+    ])(
+      'reveal for $account.metadata.keyring.type and $account.metadata.snap?.id',
+      ({ account }) => {
+        mockedUseRoute.mockImplementation(() => ({
+          key: 'mock-key',
+          name: 'mock-route',
+          params: {
+            selectedAccount: account,
+          },
+        }));
+        const state = generateInitialStateWithSelectedAccount(
+          account as InternalAccount,
+        );
+
+        const { queryByTestId } = renderWithProvider(<AccountActions />, {
+          state,
+        });
+
+        const revealButton = queryByTestId(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+        );
+
+        expect(revealButton).toBeDefined();
+      },
+    );
+
+    it.each([
+      {
+        accountType: KeyringTypes.lattice,
+      },
+      {
+        accountType: KeyringTypes.ledger,
+      },
+      {
+        accountType: KeyringTypes.oneKey,
+      },
+      {
+        accountType: KeyringTypes.qr,
+      },
+      {
+        accountType: KeyringTypes.trezor,
+      },
+      // This is a non first party snap
+      {
+        accountType: KeyringTypes.snap,
+      },
+    ])('is not shown $accountType', ({ accountType }) => {
+      const mockAccount = createMockInternalAccount(
+        '0x123',
+        'Test Account',
+        accountType,
+      ) as InternalAccount;
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          selectedAccount: mockAccount,
+        },
+      }));
+      const state = generateInitialStateWithSelectedAccount(mockAccount);
+
+      const { queryByTestId } = renderWithProvider(<AccountActions />, {
+        state,
+      });
+
+      const revealButton = queryByTestId(
+        AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+      );
+
+      expect(revealButton).toBeNull();
+    });
+  });
+
+  describe('switch account type', () => {
+    it('displayed option to switch account type', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(getByText('Switch to Smart account')).toBeTruthy();
+    });
+
+    it('calls navigate function when option to switch account type is clicked', () => {
+      const { getByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByText('Switch to Smart account'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ConfirmationSwitchAccountType',
+        {
+          params: {
+            address: '0x123',
+          },
+          screen: 'ConfirmationSwitchAccountType',
+        },
+      );
+    });
+
+    it('option should not be displayed if there is no network supporting 7702 for selected address', () => {
+      jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+        pending: false,
+        network7702List: [],
+        networkSupporting7702Present: false,
+      });
+
+      const { queryByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(queryByText('Switch to Smart account')).toBeNull();
     });
   });
 });

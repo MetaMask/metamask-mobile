@@ -21,20 +21,22 @@ describe('TokensController Selectors', () => {
   const mockToken2 = { address: '0xToken2', symbol: 'TOKEN2' };
 
   const mockTokensControllerState = {
-    tokens: [mockToken],
-    ignoredTokens: ['0xToken2'],
-    detectedTokens: [mockToken],
     allTokens: {
       '0x1': {
         '0xAddress1': [mockToken],
       },
     },
     allDetectedTokens: {
-      '1': {
+      '0x1': {
         '0xAddress1': [mockToken],
       },
-      '2': {
+      '0x2': {
         '0xAddress2': [mockToken2],
+      },
+    },
+    allIgnoredTokens: {
+      '0x1': {
+        '0xAddress1': ['0xToken2'],
       },
     },
   };
@@ -187,7 +189,17 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
-              ignoredTokens: undefined,
+              allIgnoredTokens: undefined,
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -209,7 +221,17 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
-              detectedTokens: undefined,
+              allDetectedTokens: undefined,
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -249,7 +271,7 @@ describe('TokensController Selectors', () => {
           '0xAddress1',
         );
       expect(detectedTokens).toStrictEqual({
-        '1': [{ ...mockToken, chainId: '1' }],
+        '0x1': [{ ...mockToken, chainId: '0x1' }],
       });
     });
 

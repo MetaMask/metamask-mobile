@@ -74,7 +74,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "600",
           "marginBottom": 16,
@@ -120,7 +120,7 @@ exports[`HintModal should render correctly 1`] = `
           {
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "lineHeight": 20,

@@ -11,6 +11,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
 >
   <SvgMock
     color="#ca3542"
+    fill="currentColor"
     height={32}
     name="Warning"
     style={
@@ -45,7 +46,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -69,11 +70,11 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -101,7 +102,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
@@ -115,11 +116,11 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -139,7 +140,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
@@ -154,11 +155,11 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

@@ -7,7 +7,6 @@ import { UseAccountsParams } from '../../../components/hooks/useAccounts';
 export enum AccountSelectorScreens {
   AccountSelector = 'AccountSelector',
   AddAccountActions = 'AddAccountActions',
-  AddHdAccountSelector = 'AddHdAccountSelector',
 }
 
 export interface AccountSelectorParams {

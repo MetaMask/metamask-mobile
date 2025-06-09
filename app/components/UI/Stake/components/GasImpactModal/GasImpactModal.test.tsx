@@ -12,7 +12,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import {
   selectConfirmationRedesignFlags,
   type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController';
+} from '../../../../../selectors/featureFlagController/confirmations';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import GasImpactModal from './index';
@@ -39,9 +39,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
-  selectConfirmationRedesignFlags: jest.fn(),
-}));
+jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
@@ -100,7 +98,7 @@ describe('GasImpactModal', () => {
     );
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_transactions: false,
+      staking_confirmations: false,
     } as ConfirmationRedesignRemoteFlags);
 
     useNavigationMock.mockReturnValue({
@@ -149,7 +147,7 @@ describe('GasImpactModal', () => {
     it('redesigned stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_transactions: true,
+        staking_confirmations: true,
       } as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({

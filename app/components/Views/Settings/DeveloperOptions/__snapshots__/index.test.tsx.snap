@@ -138,6 +138,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -179,7 +180,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -214,7 +215,13 @@ exports[`DeveloperOptions should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -222,6 +229,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -382,7 +390,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontFamily": "CentraNo1-Bold",
                               "fontSize": 24,
                               "fontWeight": "700",
                               "letterSpacing": 0,
@@ -398,11 +406,11 @@ exports[`DeveloperOptions should render correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 14,
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 16,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 24,
                               "marginTop": 8,
                             }
                           }
@@ -422,7 +430,7 @@ exports[`DeveloperOptions should render correctly 1`] = `
                               "alignSelf": "stretch",
                               "backgroundColor": "transparent",
                               "borderColor": "#4459ff",
-                              "borderRadius": 24,
+                              "borderRadius": 12,
                               "borderWidth": 1,
                               "flexDirection": "row",
                               "height": 48,
@@ -437,11 +445,11 @@ exports[`DeveloperOptions should render correctly 1`] = `
                             style={
                               {
                                 "color": "#4459ff",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >

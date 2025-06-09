@@ -17,14 +17,12 @@ const Text: React.FC<TextProps> = ({
   color = DEFAULT_TEXT_COLOR,
   style,
   children,
-  isBrandEvolution = false,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     variant,
     style,
     color,
-    isBrandEvolution,
   });
 
   return (

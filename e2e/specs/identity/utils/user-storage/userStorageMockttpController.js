@@ -3,6 +3,8 @@ import {
   determineIfFeatureEntryFromURL,
   getDecodedProxiedURL,
 } from '../helpers';
+// eslint-disable-next-line import/no-nodejs-modules
+import { EventEmitter } from 'events';
 
 const baseUrl =
   'https://user-storage\\.api\\.cx\\.metamask\\.io\\/api\\/v1\\/userstorage';
@@ -22,13 +24,32 @@ export const pathRegexps = {
   ),
 };
 
+export const UserStorageMockttpControllerEvents = {
+  GET_NOT_FOUND: 'GET_NOT_FOUND',
+  GET_SINGLE: 'GET_SINGLE',
+  GET_ALL: 'GET_ALL',
+  PUT_SINGLE: 'PUT_SINGLE',
+  PUT_BATCH: 'PUT_BATCH',
+  DELETE_NOT_FOUND: 'DELETE_NOT_FOUND',
+  DELETE_SINGLE: 'DELETE_SINGLE',
+  DELETE_ALL: 'DELETE_ALL',
+  DELETE_BATCH_NOT_FOUND: 'DELETE_BATCH_NOT_FOUND',
+  DELETE_BATCH: 'DELETE_BATCH',
+};
+
 export class UserStorageMockttpController {
   paths = new Map();
+
+  eventEmitter = new EventEmitter();
 
   async onGet(path, request, statusCode = 200) {
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
+      this.eventEmitter.emit(UserStorageMockttpControllerEvents.GET_NOT_FOUND, {
+        path,
+        statusCode,
+      });
       return {
         statusCode,
         json: null,
@@ -45,6 +66,11 @@ export class UserStorageMockttpController {
             getDecodedProxiedURL(request.url).split('/').pop(),
         ) || null;
 
+      this.eventEmitter.emit(UserStorageMockttpControllerEvents.GET_SINGLE, {
+        path,
+        statusCode,
+      });
+
       return {
         statusCode,
         json,
@@ -54,6 +80,11 @@ export class UserStorageMockttpController {
     const json = internalPathData?.response.length
       ? internalPathData.response
       : null;
+
+    this.eventEmitter.emit(UserStorageMockttpControllerEvents.GET_ALL, {
+      path,
+      statusCode,
+    });
 
     return {
       statusCode,
@@ -73,6 +104,13 @@ export class UserStorageMockttpController {
       const internalPathData = this.paths.get(path);
 
       if (!internalPathData) {
+        this.eventEmitter.emit(
+          UserStorageMockttpControllerEvents.DELETE_BATCH_NOT_FOUND,
+          {
+            path,
+            statusCode,
+          },
+        );
         return {
           statusCode,
         };
@@ -83,6 +121,11 @@ export class UserStorageMockttpController {
         response: internalPathData.response.filter(
           (entry) => !keysToDelete.includes(entry.HashedKey),
         ),
+      });
+
+      this.eventEmitter.emit(UserStorageMockttpControllerEvents.DELETE_BATCH, {
+        path,
+        statusCode,
       });
     }
 
@@ -126,6 +169,21 @@ export class UserStorageMockttpController {
             response: [...(internalPathData?.response || []), entry],
           });
         }
+
+        if (newOrUpdatedSingleOrBatchEntries.length === 1) {
+          this.eventEmitter.emit(
+            UserStorageMockttpControllerEvents.PUT_SINGLE,
+            {
+              path,
+              statusCode,
+            },
+          );
+        } else {
+          this.eventEmitter.emit(UserStorageMockttpControllerEvents.PUT_BATCH, {
+            path,
+            statusCode,
+          });
+        }
       });
     }
 
@@ -138,6 +196,14 @@ export class UserStorageMockttpController {
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
+      this.eventEmitter.emit(
+        UserStorageMockttpControllerEvents.DELETE_NOT_FOUND,
+        {
+          path,
+          statusCode,
+        },
+      );
+
       return {
         statusCode,
       };
@@ -154,10 +220,20 @@ export class UserStorageMockttpController {
             getDecodedProxiedURL(request.url).split('/').pop(),
         ),
       });
+
+      this.eventEmitter.emit(UserStorageMockttpControllerEvents.DELETE_SINGLE, {
+        path,
+        statusCode,
+      });
     } else {
       this.paths.set(path, {
         ...internalPathData,
         response: [],
+      });
+
+      this.eventEmitter.emit(UserStorageMockttpControllerEvents.DELETE_ALL, {
+        path,
+        statusCode,
       });
     }
 
@@ -166,6 +242,14 @@ export class UserStorageMockttpController {
     };
   }
 
+  /**
+   * @param {string} path - path for feature
+   * @param {import('mockttp').Mockttp} server
+   * @param {{
+   *   getResponse?: import('@metamask/profile-sync-controller/sdk').GetUserStorageAllFeatureEntriesResponse
+   *   getStatusCode?: number
+   * }} overrides - initial state of this mock user storage
+   */
   async setupPath(path, server, overrides) {
     const previouslySetupPath = this.paths.get(path);
 

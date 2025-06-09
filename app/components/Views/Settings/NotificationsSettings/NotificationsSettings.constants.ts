@@ -10,11 +10,6 @@ export const NotificationsViewSelectorsIDs = {
     'ProductsAnnouncements',
 };
 
-export enum NotificationsToggleTypes {
-  ACCOUNT = 'account',
-  ACTIONS = 'actions',
-}
-
 export enum NotificationsKinds {
   SENT = 'sent',
   RECEIVED = 'received',

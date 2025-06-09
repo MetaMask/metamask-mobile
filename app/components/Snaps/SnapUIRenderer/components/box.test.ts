@@ -40,15 +40,24 @@ describe('box UIComponentFactory', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
-              element: 'RNText',
+              element: 'Text',
               children: 'Test content',
-              props: { color: 'inherit' },
+              props: {
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
+              },
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },

@@ -48,6 +48,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
   >
     <SvgMock
       color="#9a6300"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -71,8 +72,8 @@ exports[`BlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -86,11 +87,11 @@ exports[`BlockaidBanner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -114,11 +115,11 @@ exports[`BlockaidBanner should render correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         testID="accordionheader-title"
@@ -144,6 +145,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -201,6 +203,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -224,8 +227,8 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -239,11 +242,11 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -267,11 +270,11 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         testID="accordionheader-title"
@@ -297,6 +300,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -354,6 +358,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -377,8 +382,8 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -392,11 +397,11 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -420,11 +425,11 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         testID="accordionheader-title"
@@ -450,6 +455,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={
@@ -516,6 +522,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
     >
       <SvgMock
         color="#9a6300"
+        fill="currentColor"
         height={24}
         name="Danger"
         style={
@@ -539,8 +546,8 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -554,11 +561,11 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -609,6 +616,7 @@ exports[`BlockaidBanner should render something does not look right with contact
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -632,8 +640,8 @@ exports[`BlockaidBanner should render something does not look right with contact
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -647,11 +655,11 @@ exports[`BlockaidBanner should render something does not look right with contact
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -675,11 +683,11 @@ exports[`BlockaidBanner should render something does not look right with contact
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         testID="accordionheader-title"
@@ -705,6 +713,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={16}
           name="ArrowDown"
           style={

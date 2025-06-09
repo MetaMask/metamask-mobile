@@ -50,9 +50,9 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContentValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
-      fontSize: 14,
     },
   });
 };
 
+export type TooltipStylesType = ReturnType<typeof styleSheet>;
 export default styleSheet;

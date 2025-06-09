@@ -23,7 +23,6 @@ import {
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
-import usePooledStakes from '../../../../hooks/usePooledStakes';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -66,7 +65,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const { refreshPooledStakes } = usePooledStakes();
 
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
 
@@ -143,12 +141,11 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         'TransactionController:transactionConfirmed',
         () => {
           submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].CONFIRMED);
-          refreshPooledStakes();
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [action, navigate, refreshPooledStakes, submitTxMetaMetric],
+    [action, navigate, submitTxMetaMetric],
   );
 
   const handleConfirmation = async () => {

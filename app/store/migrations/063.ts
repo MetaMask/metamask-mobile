@@ -12,6 +12,10 @@ interface SmartTransactionsState {
   };
 }
 
+interface SmartTransactionsControllerState {
+  smartTransactionsState: SmartTransactionsState;
+}
+
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
@@ -29,12 +33,8 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!isObject(smartTransactionsControllerState)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: Invalid SmartTransactionsController state: '${smartTransactionsControllerState}'`,
-      ),
-    );
+  if (!isObject(smartTransactionsControllerState) && !smartTransactionsControllerState) {
+    // This is a fresh install, so we can skip this migration.
     return state;
   }
 
@@ -47,11 +47,12 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-  const smartTransactions = (smartTransactionsControllerState?.smartTransactionsState as SmartTransactionsState)?.smartTransactions;
+
+  const smartTransactions = (smartTransactionsControllerState as SmartTransactionsControllerState)?.smartTransactionsState?.smartTransactions;
   if (!isObject(smartTransactions)) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof smartTransactionsControllerState?.smartTransactionsState}'`,
+        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof (smartTransactionsControllerState as SmartTransactionsControllerState)?.smartTransactionsState}'`,
       ),
     );
     return state;

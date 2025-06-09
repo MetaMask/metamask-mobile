@@ -1,8 +1,7 @@
 import { updateTransactionToMaxValue } from './utils';
-import { BN } from 'ethereumjs-util';
-import { toWei } from '../../../../../../util/number';
+import { updateEditableParams } from '../../../../../../util/transaction-controller';
+import { hexToBN } from '@metamask/controller-utils';
 
-// Mock the Engine and its context
 jest.mock('../../../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn().mockResolvedValue({
     txParams: { value: '0x0' },
@@ -10,34 +9,100 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 }));
 
 describe('updateTransactionToMaxValue', () => {
-  it('should update the transaction value correctly', async () => {
+  let mockSetTransactionValue: jest.Mock;
+
+  beforeEach(() => {
+    mockSetTransactionValue = jest.fn();
+    (updateEditableParams as jest.Mock).mockClear();
+  });
+
+  it('updates EIP1559 transaction value', async () => {
     const transactionId = 'testTransactionId';
-    const isEIP1559Transaction = true;
-    const EIP1559GasTransaction = { gasFeeMaxNative: '0.01' };
-    const legacyGasTransaction = { gasFeeMaxNative: '0.02' };
     const accountBalance = '0x2386f26fc10000'; // 0.1 ether in wei
-    const setTransactionValue = jest.fn();
+    const gasFeeMaxHex = '0x2386f26fc1'; // Small gas fee
 
     await updateTransactionToMaxValue({
       transactionId,
-      isEIP1559Transaction,
-      EIP1559GasTransaction,
-      legacyGasTransaction,
+      isEIP1559Transaction: true,
+      EIP1559GasTransaction: { gasFeeMaxHex },
+      legacyGasTransaction: { gasFeeMaxHex: '0x0' },
       accountBalance,
-      setTransactionValue,
+      setTransactionValue: mockSetTransactionValue,
     });
 
-    // Calculate expected max transaction value
-    const accountBalanceBN = new BN('2386f26fc10000', 16); // 0.1 ether in wei
-    const transactionFeeMax = new BN(toWei('0.01', 'ether'), 10);
-    const expectedMaxTransactionValueBN =
-      accountBalanceBN.sub(transactionFeeMax);
-    const expectedMaxTransactionValueHex =
-      '0x' + expectedMaxTransactionValueBN.toString(16);
+    const expectedValue = hexToBN(accountBalance)
+      .sub(hexToBN(gasFeeMaxHex))
+      .toString(16);
+    const expectedHexValue = `0x${expectedValue}`;
 
-    // Check if setTransactionValue was called with the correct value
-    expect(setTransactionValue).toHaveBeenCalledWith(
-      expectedMaxTransactionValueHex,
-    );
+    expect(mockSetTransactionValue).toHaveBeenCalledWith(expectedHexValue);
+    expect(updateEditableParams).toHaveBeenCalledWith(transactionId, {
+      value: expectedHexValue,
+    });
+  });
+
+  it('updates legacy transaction value', async () => {
+    const transactionId = 'testTransactionId';
+    const accountBalance = '0x2386f26fc10000'; // 0.1 ether in wei
+    const gasFeeMaxHex = '0x2386f26fc1'; // Small gas fee
+
+    await updateTransactionToMaxValue({
+      transactionId,
+      isEIP1559Transaction: false,
+      EIP1559GasTransaction: { gasFeeMaxHex: '0x0' },
+      legacyGasTransaction: { gasFeeMaxHex },
+      accountBalance,
+      setTransactionValue: mockSetTransactionValue,
+    });
+
+    const expectedValue = hexToBN(accountBalance)
+      .sub(hexToBN(gasFeeMaxHex))
+      .toString(16);
+    const expectedHexValue = `0x${expectedValue}`;
+
+    expect(mockSetTransactionValue).toHaveBeenCalledWith(expectedHexValue);
+    expect(updateEditableParams).toHaveBeenCalledWith(transactionId, {
+      value: expectedHexValue,
+    });
+  });
+
+  it('does not update value if it makes account have negative balance', async () => {
+    const transactionId = 'testTransactionId';
+    const accountBalance = '0x2386f26fc1'; // Very small balance
+    const gasFeeMaxHex = '0x2386f26fc10000'; // Large gas fee
+
+    await updateTransactionToMaxValue({
+      transactionId,
+      isEIP1559Transaction: true,
+      EIP1559GasTransaction: { gasFeeMaxHex },
+      legacyGasTransaction: { gasFeeMaxHex: '0x0' },
+      accountBalance,
+      setTransactionValue: mockSetTransactionValue,
+    });
+
+    expect(mockSetTransactionValue).not.toHaveBeenCalled();
+    expect(updateEditableParams).not.toHaveBeenCalled();
+  });
+
+  it('does not update value when missing transactionId', async () => {
+    const accountBalance = '0x2386f26fc10000';
+    const gasFeeMaxHex = '0x2386f26fc1';
+
+    await updateTransactionToMaxValue({
+      transactionId: '',
+      isEIP1559Transaction: true,
+      EIP1559GasTransaction: { gasFeeMaxHex },
+      legacyGasTransaction: { gasFeeMaxHex: '0x0' },
+      accountBalance,
+      setTransactionValue: mockSetTransactionValue,
+    });
+
+    const expectedValue = hexToBN(accountBalance)
+      .sub(hexToBN(gasFeeMaxHex))
+      .toString(16);
+    const expectedHexValue = `0x${expectedValue}`;
+
+    expect(mockSetTransactionValue).toHaveBeenCalledWith(expectedHexValue);
+    expect(updateEditableParams).not.toHaveBeenCalled();
   });
 });

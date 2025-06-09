@@ -63,6 +63,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="Add"
           style={
@@ -80,8 +81,8 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -93,11 +94,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -108,11 +109,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -130,7 +131,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
   >
     <TouchableOpacity
       disabled={true}
-      onPress={[MockFunction]}
+      onPress={[Function]}
       style={
         [
           {
@@ -171,6 +172,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="SwapHorizontal"
           style={
@@ -188,8 +190,8 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -201,11 +203,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -216,11 +218,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -279,6 +281,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="Bridge"
           style={
@@ -296,8 +299,8 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -309,11 +312,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -324,11 +327,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -387,8 +390,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
-          name="Arrow2Upright"
+          name="Arrow2UpRight"
           style={
             {
               "height": 24,
@@ -404,8 +408,8 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -417,11 +421,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -432,11 +436,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -493,6 +497,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={24}
           name="QrCode"
           style={
@@ -510,8 +515,8 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 18,
               "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -523,11 +528,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         />
@@ -538,11 +543,11 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

@@ -9,7 +9,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
     style={
       [
         {
-          "borderRadius": 100,
+          "borderRadius": 12,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -35,7 +35,7 @@ exports[`StyledButton should render correctly on Android the button with type co
     style={
       [
         {
-          "borderRadius": 100,
+          "borderRadius": 12,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -60,7 +60,7 @@ exports[`StyledButton should render correctly on Android the button with type no
     style={
       [
         {
-          "borderRadius": 100,
+          "borderRadius": 12,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -86,7 +86,7 @@ exports[`StyledButton should render correctly on Android the button with type or
     style={
       [
         {
-          "borderRadius": 100,
+          "borderRadius": 12,
           "justifyContent": "center",
           "padding": 15,
         },
@@ -108,7 +108,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   containerStyle={
     [
       {
-        "borderRadius": 100,
+        "borderRadius": 12,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -124,7 +124,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -145,7 +145,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   containerStyle={
     [
       {
-        "borderRadius": 100,
+        "borderRadius": 12,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -160,7 +160,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -181,7 +181,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   containerStyle={
     [
       {
-        "borderRadius": 100,
+        "borderRadius": 12,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -197,7 +197,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -218,7 +218,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   containerStyle={
     [
       {
-        "borderRadius": 100,
+        "borderRadius": 12,
         "justifyContent": "center",
         "padding": 15,
       },
@@ -233,7 +233,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",

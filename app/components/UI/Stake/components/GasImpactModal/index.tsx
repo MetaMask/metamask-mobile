@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import BottomSheet, {
   BottomSheetRef,
@@ -37,7 +37,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const { navigate } = useNavigation();
