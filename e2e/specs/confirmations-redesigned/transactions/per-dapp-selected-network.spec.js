@@ -1,26 +1,26 @@
 'use strict';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import { buildPermissions } from '../../fixtures/utils';
-import TestHelpers from '../../helpers';
-import Browser from '../../pages/Browser/BrowserView';
-import ConfirmationFooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes';
-import TestDApp from '../../pages/Browser/TestDApp';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
-import { SmokeNetworkExpansion } from '../../tags';
-import Assertions from '../../utils/Assertions';
-import Matchers from '../../utils/Matchers';
-import { loginToApp } from '../../viewHelper';
+} from '../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../fixtures/utils';
+import TestHelpers from '../../../helpers';
+import Browser from '../../../pages/Browser/BrowserView';
+import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions';
+import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import WalletView from '../../../pages/wallet/WalletView';
+import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
+import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
+import Assertions from '../../../utils/Assertions';
+import Matchers from '../../../utils/Matchers';
+import { loginToApp } from '../../../viewHelper';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -43,7 +43,7 @@ async function changeNetworkFromNetworkListModal(networkName) {
   await device.enableSynchronization();
 }
 
-describe(SmokeNetworkExpansion('Per Dapp Selected Network'), () => {
+describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   const testSpecificMock = {
     GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
   };
@@ -53,7 +53,7 @@ describe(SmokeNetworkExpansion('Per Dapp Selected Network'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('can submit a transaction to a different network', async () => {
+  it('submits a transaction to a dApp selected network', async () => {
     await withFixtures(
       {
         dapp: true,
