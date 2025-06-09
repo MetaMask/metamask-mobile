@@ -495,7 +495,11 @@ exports[`AccountSelector should render correctly 1`] = `
                             onScrollEndDrag={[Function]}
                             renderItem={[Function]}
                             scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={[]}
+                            stickyHeaderIndices={
+                              [
+                                0,
+                              ]
+                            }
                             testID="account-list"
                           >
                             <View>
