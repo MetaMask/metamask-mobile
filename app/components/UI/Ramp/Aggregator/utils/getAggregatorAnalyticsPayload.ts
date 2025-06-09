@@ -4,10 +4,7 @@ import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { AnalyticsEvents } from '../types';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 
-/**
- * @param {FiatOrder} fiatOrder
- */
-export const getAggregatorAnalyticsPayload = (
+const getAggregatorAnalyticsPayload = (
   fiatOrder: FiatOrder,
 ): [
   (
@@ -107,3 +104,5 @@ export const getAggregatorAnalyticsPayload = (
     }
   }
 };
+
+export default getAggregatorAnalyticsPayload;

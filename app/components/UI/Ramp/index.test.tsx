@@ -7,7 +7,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { FiatOrder } from '../../../reducers/fiatOrders';
 import WebView from '@metamask/react-native-webview';
-import { getAggregatorAnalyticsPayload } from './Aggregator/utils/getAggregatorAnalyticsPayload';
+import getAggregatorAnalyticsPayload from './Aggregator/utils/getAggregatorAnalyticsPayload';
 
 const mockNavigate = jest.fn();
 

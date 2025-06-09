@@ -20,7 +20,7 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './Aggregator/orderProcessor';
+import processOrder from './orderProcessor';
 import processCustomOrderIdData from './Aggregator/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './Aggregator/orderProcessor/aggregator';
 import { trackEvent } from './Aggregator/hooks/useAnalytics';
@@ -29,7 +29,7 @@ import { callbackBaseUrl } from './Aggregator/sdk';
 import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
 import { getNotificationDetails, stateHasOrder } from './Aggregator/utils';
 import Routes from '../../../constants/navigation/Routes';
-import { getAggregatorAnalyticsPayload } from './Aggregator/utils/getAggregatorAnalyticsPayload';
+import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -48,7 +48,7 @@ export async function processFiatOrder(
     const state = getState();
     const existingOrder = getOrderById(state, updatedOrder.id);
     if (existingOrder?.state !== updatedOrder.state) {
-      const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
+      const [event, params] = getOrderAnalyticsPayload(updatedOrder);
       if (event && params) {
         trackEvent(event, params);
       }
