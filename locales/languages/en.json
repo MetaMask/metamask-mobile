@@ -490,6 +490,10 @@
       "success_heading": "Identity successfully verified!",
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
+    },
+    "kyc_webview": {
+      "title": "Verifying your identity",
+      "webview_received_error": "WebView received error status code: {{code}}"
     }
   },
   "receive": {

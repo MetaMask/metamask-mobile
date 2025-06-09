@@ -75,6 +75,9 @@ const OtpCode = () => {
       if (response) {
         try {
           await setAuthToken(response);
+
+          // TODO: We should check KYC status here and navigate accordingly
+
           navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
         } catch (e) {
           console.error('Failed to store auth token:', e);

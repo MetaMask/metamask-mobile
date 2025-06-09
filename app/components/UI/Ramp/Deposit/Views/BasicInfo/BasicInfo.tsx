@@ -24,6 +24,7 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createBasicInfoNavDetails =
@@ -43,7 +44,7 @@ const COUNTRY_CODE = '1';
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote } = useParams<BasicInfoParams>();
+  const { quote, kycUrl } = useParams<BasicInfoParams>();
 
   const initialFormData: BasicInfoFormData = {
     firstName: '',
@@ -111,7 +112,11 @@ const BasicInfo = (): JSX.Element => {
       };
 
       navigation.navigate(
-        ...createEnterAddressNavDetails({ formData: formattedFormData, quote }),
+        ...createEnterAddressNavDetails({
+          formData: formattedFormData,
+          quote,
+          kycUrl,
+        }),
       );
     }
   }, [navigation, validateFormData, formData, quote]);

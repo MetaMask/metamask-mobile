@@ -11,6 +11,7 @@ import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
+import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { View } from 'react-native';
 import DepositTextField from '../../components/DepositTextField';
@@ -40,6 +41,11 @@ const BuildQuote = () => {
     onMount: false,
   });
 
+  const [, fetchKycFormData] = useDepositSdkMethod({
+    method: 'getKycForm',
+    onMount: false,
+  });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
@@ -58,11 +64,44 @@ const BuildQuote = () => {
     if (quote) {
       const forms = await fetchKycForms(quote);
       const { forms: requiredForms } = forms || {};
+
       if (isAuthenticated) {
         if (requiredForms?.length === 0) {
           navigation.navigate(...createProviderWebviewNavDetails({ quote }));
         } else {
-          navigation.navigate(...createBasicInfoNavDetails({ quote }));
+          const personalDetailsKycForm = requiredForms?.find(
+            (form) => form.id === 'personalDetails',
+          );
+
+          const addressKycForm = requiredForms?.find(
+            (form) => form.id === 'address',
+          );
+
+          const idProofKycForm = requiredForms?.find(
+            (form) => form.id === 'idProof',
+          );
+
+          const idProofData = idProofKycForm
+            ? await fetchKycFormData(quote, idProofKycForm)
+            : null;
+
+          if (personalDetailsKycForm || addressKycForm) {
+            navigation.navigate(
+              ...createBasicInfoNavDetails({
+                quote,
+                kycUrl: idProofData?.data?.kycUrl,
+              }),
+            );
+          } else if (idProofData) {
+            navigation.navigate(
+              ...createKycWebviewNavDetails({
+                quote,
+                kycUrl: idProofData.data.kycUrl,
+              }),
+            );
+          } else {
+            // TODO: Handle error case where KYC forms are not found
+          }
         }
       } else {
         navigation.navigate(...createEnterEmailNavDetails({ quote }));
