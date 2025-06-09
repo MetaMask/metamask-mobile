@@ -1,10 +1,10 @@
- ### Running Tests
+### Running Tests
 
- ## Unit Tests
+## Unit Tests
 
- ```bash
- yarn test:unit
- ```
+```bash
+yarn test:unit
+```
 
 ## E2E Tests Overview
 
@@ -20,7 +20,7 @@ Detox serves as our primary mobile automation framework, with most of our tests 
 #### Setup and Execution
 
 - **Test Wallet**: Requires a wallet with access to testnet and mainnet. On Bitrise CI, this wallet is created using a secret recovery phrase from environment variables. For local testing, retrieve the phrase from the `.e2e.env` file.
-- **Environment Variable**: Set `IS_TEST='true'` to enable the test environment. Refer to the `.e2e.env` file in the mobile 1Password vault for the complete list of environment variables.
+- **Environment Variable**: Set `export IS_TEST='true'` to enable the test environment. Refer to the `.js.env` file in the mobile 1Password vault for the complete list of environment variables.
 - **Warning Logs**: Warning logs may sometimes cause test failures by interfering with automation interactions. To prevent this, disable warning logs during test execution.
 
 #### Default Devices
@@ -34,18 +34,19 @@ Ensure that these devices are set up. You can change the default devices at any 
 
 - **Start Metro Server**: Ensure the Metro server is running before executing tests:
 
-    ```bash
-    yarn watch:clean
-    ```
+  ```bash
+  yarn watch:clean
+  ```
 
 - **Build the Apps for Testing**:
-  - **iOS Debug**: 
+
+  - **iOS Debug**:
 
     ```bash
     yarn test:e2e:ios:debug:build
     ```
 
-  - **Android Debug**: 
+  - **Android Debug**:
 
     ```bash
     yarn test:e2e:android:debug:build
@@ -56,11 +57,13 @@ Ensure that these devices are set up. You can change the default devices at any 
     Instead of building apps localy, you can download prebuilt `.app`/`.apk` files from Runway buckets and run the tests against them.
 
     After downloading the prebuilt apps, paths to them should be set through the following environment variables:
+
     - `PREBULT_IOS_APP_PATH` for iOS
     - `PREBULT_ANDROID_APP_PATH` for Android
     - `PREBULT_ANDROID_TEST_APP_PATH` for Android test app
 
 - **Run All Tests Locally**:
+
   - **iOS Debug**:
 
     ```bash
@@ -76,6 +79,7 @@ Ensure that these devices are set up. You can change the default devices at any 
 _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
 
 - **Run Specific Tests**:
+
   - **iOS**:
 
     ```bash
@@ -101,6 +105,7 @@ _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLO
     ```
 
 - **Run Tests by Tag (e.g., Smoke)**:
+
   - **iOS**:
 
     ```bash
@@ -113,11 +118,26 @@ _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLO
     yarn test:e2e:android:debug:run --testNamePattern="Smoke"
     ```
 
+- **Run All Tests Locally**:
+
+  - **iOS Debug**:
+
+    ```bash
+    yarn test:e2e:ios:debug:run
+    ```
+
+  - **Android Debug**:
+
+    ```bash
+    yarn test:e2e:android:debug:run
+    ```
+
 ### Appium
+
 **Platform**: Android  
 **Test Location**: `wdio`
 
-We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework. 
+We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
 
 ## Configuration for Testing
 
@@ -147,7 +167,7 @@ const defaultCapabilities = [
     app: process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
-  }
+  },
 ];
 ```
 
@@ -169,13 +189,13 @@ const upgradeCapabilities = [
     'browserstack.debug': true,
     'browserstack.local': true,
     'browserstack.midSessionInstallApps': [process.env.BROWSERSTACK_APP_URL],
-  }
+  },
 ];
 ```
 
 This configuration requires two applications: the current production app and the app built from the branch.
 
-**Note**: You can, if you choose to, run the tests against any one of the devices and operating systems mentioned in the browserstack device [list](https://www.browserstack.com/list-of-browsers-and-platforms/app_automate). 
+**Note**: You can, if you choose to, run the tests against any one of the devices and operating systems mentioned in the browserstack device [list](https://www.browserstack.com/list-of-browsers-and-platforms/app_automate).
 
 ### Flag-Based Capability Selection
 
@@ -212,7 +232,7 @@ yarn setup
 
 ## Running Tests Locally Against QA Build
 
-You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it. 
+You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it.
 
 ### iOS
 
@@ -294,15 +314,15 @@ The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from
 
 1. **Build the App**:
 
-    ```bash
-    yarn test:e2e:ios:debug:build
-    ```
+   ```bash
+   yarn test:e2e:ios:debug:build
+   ```
 
 2. **Run API Spec Tests**:
 
-    ```bash
-    yarn test:api-specs
-    ```
+   ```bash
+   yarn test:api-specs
+   ```
 
 ### Bitrise Pipelines Overview
 
@@ -310,13 +330,13 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 
 #### **1. PR_Smoke_e2e_Pipeline**
 
-- **Triggers**: 
+- **Triggers**:
   - **When "Run Smoke E2E" label is applied to a Pull request**: Automatically runs smoke tests.
 - **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
 
 #### **2. PR_Regression_e2e_Pipeline**
 
-- **Triggers**: 
+- **Triggers**:
   - **Nightly**: Automatically runs all regression tests against main branch.
 - **Manual Trigger**: Select the main branch (or another branch of choice) in the Bitrise dashboard and choose `pr_regression_e2e_pipeline` from the pipeline dropdown menu.
 
@@ -331,13 +351,13 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 
 - **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
 - **Nightly**: Automatically runs on the main branch.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu. 
+- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
 
 #### **5. App Upgrade Pipeline**
 
 - **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
-- **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL. 
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu. 
+- **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL.
+- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
 
 ### Test Reports in Bitrise
 
@@ -347,29 +367,30 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 ### Debugging Failed Tests
 
 - **Example**:
-    ```
-    FAIL e2e/specs/swaps/swap-action-smoke.spec.js (232.814 s)
-      SmokeSwaps Swap from Actions
-        ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
-        ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)
-      ● SmokeSwaps Swap from Actions › should Swap 100 'USDT' to 'ETH'
-        Test Failed: Timed out while waiting for expectation: TOBEVISIBLE WITH MATCHER(id == “swap-quote-summary”) TIMEOUT(15s)
-        HINT: To print view hierarchy on failed actions/matches, use log-level verbose or higher.
-          163 |     return await waitFor(element(by.id(elementId)))
-          164 |       .toBeVisible()
-        > 165 |       .withTimeout(15000);
-            |        ^
-          166 |   }
-          167 |
-          168 |   static async checkIfNotVisible(elementId) {
-        at Function.withTimeout (e2e/helpers.js:165:8)
-        ...
-    ```
-    In this example, the test failed because the `swap-quote-summary` ID was not found. This issue could be due to a changed testID or the swap quotes not being visible. 
-    To confirm whether either case is true, we then look at the screenshots on failure. 
 
-    [Here](https://app.screencast.com/H2vVLK5jP4NHe) we can see that the swaps quotes in fact did not load hence why the tests failed. 
-    
+  ```
+  FAIL e2e/specs/swaps/swap-action-smoke.spec.js (232.814 s)
+    SmokeSwaps Swap from Actions
+      ✓ should Swap .05 'ETH' to 'USDT' (90488 ms)
+      ✕ should Swap 100 'USDT' to 'ETH' (50549 ms)
+    ● SmokeSwaps Swap from Actions › should Swap 100 'USDT' to 'ETH'
+      Test Failed: Timed out while waiting for expectation: TOBEVISIBLE WITH MATCHER(id == “swap-quote-summary”) TIMEOUT(15s)
+      HINT: To print view hierarchy on failed actions/matches, use log-level verbose or higher.
+        163 |     return await waitFor(element(by.id(elementId)))
+        164 |       .toBeVisible()
+      > 165 |       .withTimeout(15000);
+          |        ^
+        166 |   }
+        167 |
+        168 |   static async checkIfNotVisible(elementId) {
+      at Function.withTimeout (e2e/helpers.js:165:8)
+      ...
+  ```
+
+  In this example, the test failed because the `swap-quote-summary` ID was not found. This issue could be due to a changed testID or the swap quotes not being visible.
+  To confirm whether either case is true, we then look at the screenshots on failure.
+
+  [Here](https://app.screencast.com/H2vVLK5jP4NHe) we can see that the swaps quotes in fact did not load hence why the tests failed.
 
 ### Smoke Tests Breakdown
 

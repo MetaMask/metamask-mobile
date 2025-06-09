@@ -17,9 +17,21 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
+const mockSelectNetworkConfigurations = jest.fn();
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
+}));
+
 describe('generateUserProfileAnalyticsMetaData', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+
+    mockSelectNetworkConfigurations.mockReturnValue({
+      '0x1': {
+        chainId: '0x1',
+        name: 'Ethereum Mainnet',
+      },
+    });
   });
 
   afterEach(() => {
@@ -41,12 +53,10 @@ describe('generateUserProfileAnalyticsMetaData', () => {
             {
               type: ExtendedKeyringTypes.hd,
               accounts: ['0x1', '0x2'],
-            },
-          ],
-          keyringsMetadata: [
-            {
-              id: '01JPM6NFVGW8V8KKN34053JVFT',
-              name: '',
+              metadata: {
+                id: '01JPM6NFVGW8V8KKN34053JVFT',
+                name: '',
+              },
             },
           ],
         },
@@ -81,6 +91,10 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metadata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -99,10 +113,18 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metadata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x456'],
+                    metadata: {
+                      id: '01JPM8NFVHW8V9KKN34055JVFV',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -121,18 +143,34 @@ describe('generateUserProfileAnalyticsMetaData', () => {
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0x123'],
+                    metadata: {
+                      id: '01JPM7NFVHW8V9KKN34053JVFU',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.simple,
                     accounts: ['0x456'],
+                    metadata: {
+                      id: '01JPM8NFVHW8V9KKN34055JVFV',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.qr,
                     accounts: ['0x789'],
+                    metadata: {
+                      id: '01JPM9NFVHW8V9KKN34056JVFW',
+                      name: '',
+                    },
                   },
                   {
                     type: ExtendedKeyringTypes.hd,
                     accounts: ['0xabc'],
+                    metadata: {
+                      id: '01JPM10NFVHW8V9KKN34057JVFX',
+                      name: '',
+                    },
                   },
                 ],
               },
@@ -172,6 +210,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 1,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
@@ -197,7 +236,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
         backgroundState: {
           KeyringController: {
             keyrings: [],
-            keyringsMetadata: [],
           },
         },
       },
@@ -211,6 +249,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: '',
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 0,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 

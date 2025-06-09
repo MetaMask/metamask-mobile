@@ -3,7 +3,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
-///: BEGIN:ONLY_INCLUDE_IF(beta)
+import { InternalAccount } from '@metamask/keyring-internal-api';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
@@ -64,7 +65,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
@@ -94,8 +95,8 @@ export async function createNewSecretRecoveryPhrase() {
 export async function addNewHdAccount(
   keyringId?: string,
   name?: string,
-): Promise<void> {
-  const { KeyringController } = Engine.context;
+): Promise<InternalAccount> {
+  const { KeyringController, AccountsController } = Engine.context;
   const keyringSelector: KeyringSelector = keyringId
     ? {
         id: keyringId,
@@ -120,10 +121,20 @@ export async function addNewHdAccount(
     Engine.setAccountLabel(addedAccountAddress, name);
   }
 
+  const account = AccountsController.getAccountByAddress(addedAccountAddress);
+
+  // This should always be true. If it's not, we have a bug.
+  // We query the account that was newly created and return it.
+  if (!account) {
+    throw new Error('Account not found after creation');
+  }
+
   // We consider the account to be created once it got selected and renamed.
   store.dispatch(
     endPerformanceTrace({
       eventName: PerformanceEventNames.AddHdAccount,
     }),
   );
+
+  return account;
 }

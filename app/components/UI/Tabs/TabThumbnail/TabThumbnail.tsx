@@ -28,8 +28,9 @@ import { TabThumbnailProps } from './TabThumbnail.types';
 import { useSelector } from 'react-redux';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import { getPermittedEvmAddressesByHostname } from '../../../../core/Permissions';
-import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
+import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { areAddressesEqual } from '../../../../util/address';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -56,9 +57,9 @@ const TabThumbnail = ({
 
   // This only works for EVM currently
   const activeAddress = permittedAccountsByHostname[0];
-  const { evmAccounts: accounts } = useAccounts({});
-  const selectedAccount = accounts.find(
-    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const selectedAccount = internalAccounts.find((account) =>
+    areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
@@ -99,7 +100,7 @@ const TabThumbnail = ({
         <View style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
-        {selectedAccount && (
+        {!!selectedAccount && (
           <View testID="footer-container" style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
@@ -127,7 +128,8 @@ const TabThumbnail = ({
               ellipsizeMode="tail"
             >
               {`${
-                selectedAccount.name ?? strings('browser.undefined_account')
+                selectedAccount.metadata?.name ??
+                strings('browser.undefined_account')
               }${networkName ? ` - ${networkName}` : ''}`}
             </Text>
           </View>
