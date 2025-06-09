@@ -8,11 +8,13 @@ import {
 import PaymentRequest from './index';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import { SolScope } from '@metamask/keyring-api';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { SolScope } from '@metamask/keyring-api';
 import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -146,6 +148,18 @@ describe('PaymentRequest', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly with network picker when feature flag is enabled', () => {
+    jest
+      .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+      .mockReturnValue(true);
+
+    const { toJSON } = renderComponent({
+      chainId: '0x1',
+      networkImageSource: 'test-network-image.png',
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('displays the correct title for asset selection', () => {
     const { getByText } = renderComponent();
     expect(getByText('Choose an asset to request')).toBeTruthy();
@@ -207,7 +221,11 @@ describe('PaymentRequest', () => {
   });
 
   describe('handleNetworkPickerPress', () => {
-    it('should navigate to network selector modal', () => {
+    it('should navigate to network selector modal when feature flag is enabled', () => {
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
       const mockMetrics = {
         trackEvent: jest.fn(),
         createEventBuilder: jest.fn(() => ({
@@ -237,6 +255,20 @@ describe('PaymentRequest', () => {
           screen: Routes.SHEET.NETWORK_SELECTOR,
         },
       );
+    });
+
+    it('should not render network picker when feature flag is disabled', () => {
+      // Feature flag is already set to false in beforeEach
+      const { queryByTestId } = renderComponent({
+        chainId: '0x1',
+        networkImageSource: 'test-network-image.png',
+      });
+
+      const networkPicker = queryByTestId(
+        WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+      );
+
+      expect(networkPicker).toBeNull();
     });
   });
 });

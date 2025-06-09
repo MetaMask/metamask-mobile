@@ -61,7 +61,11 @@ import {
 } from '../../selectors/multichainNetworkController';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isCaipChainId, KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import {
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 
 /**
  * List of the supported networks
@@ -555,14 +559,14 @@ const getEvmNetworkImageSource = ({ networkType, chainId }) => {
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   let hexChainId = chainId;
   if (isCaipChainId(chainId)) {
-    const {namespace, reference} = parseCaipChainId(chainId);
+    const { namespace, reference } = parseCaipChainId(chainId);
     if (namespace !== KnownCaipNamespace.Eip155) {
       return getNonEvmNetworkImageSourceByChainId(chainId);
     }
     hexChainId = toHex(reference === '0' ? '1' : reference); // default to mainnet if chainId is 0
   }
 
-  return getEvmNetworkImageSource({ networkType, chainId: hexChainId});
+  return getEvmNetworkImageSource({ networkType, chainId: hexChainId });
 };
 
 /**
@@ -638,6 +642,9 @@ export const isPerDappSelectedNetworkEnabled = () =>
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
+
+export const isRemoveGlobalNetworkSelectorEnabled = () =>
+  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {

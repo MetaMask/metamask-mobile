@@ -45,7 +45,11 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import {
+  isTestNet,
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
@@ -909,13 +913,15 @@ class PaymentRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View style={styles.pickerNetworkContainer}>
-          <PickerNetwork
-            onPress={this.handleNetworkPickerPress}
-            label={networkName}
-            imageSource={networkImageSource}
-          />
-        </View>
+        {isRemoveGlobalNetworkSelectorEnabled() && (
+          <View style={styles.pickerNetworkContainer}>
+            <PickerNetwork
+              onPress={this.handleNetworkPickerPress}
+              label={networkName}
+              imageSource={networkImageSource}
+            />
+          </View>
+        )}
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
