@@ -31,10 +31,10 @@ describe(
 
     it('should be able to opt-in of the onboarding-wizard', async () => {
       await OnboardingCarouselView.tapOnGetStartedButton();
+      await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
       await Assertions.checkIfVisible(MetaMetricsOptIn.container);
       await MetaMetricsOptIn.tapAgreeButton();
-      await acceptTermOfUse();
       await Assertions.checkIfVisible(CreatePasswordView.container);
     });
 
