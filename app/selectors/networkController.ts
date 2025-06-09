@@ -1,5 +1,5 @@
 import { CaipChainId, Hex } from '@metamask/utils';
-import { createSelector } from 'reselect';
+import { createSelector, weakMapMemoize } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
@@ -224,13 +224,15 @@ export const getNetworkConfigurationsByCaipChainId = (
     };
   });
 
-  Object.entries(nonEvmNetworkConfigurationsByChainId).forEach(([_caipChainId, networkConfiguration]) => {
-    const caipChainId = _caipChainId as CaipChainId;
-    networkConfigurationsByCaipChainId[caipChainId] = {
-      ...networkConfiguration,
-      caipChainId
-    };
-  });
+  Object.entries(nonEvmNetworkConfigurationsByChainId || {}).forEach(
+    ([_caipChainId, networkConfiguration]) => {
+      const caipChainId = _caipChainId as CaipChainId;
+      networkConfigurationsByCaipChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId,
+      };
+    },
+  );
 
   return networkConfigurationsByCaipChainId;
 };
@@ -323,6 +325,10 @@ export const selectIsAllNetworks = createSelector(
 export const selectNetworkConfigurationByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId) => chainId],
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
+  {
+    argsMemoize: weakMapMemoize,
+    memoize: weakMapMemoize
+  }
 );
 
 export const selectNativeCurrencyByChainId = createSelector(
