@@ -205,4 +205,19 @@ describe('OtpCode Component', () => {
     fireEvent.press(submitButton);
     expect(mockSdkMethod).not.toHaveBeenCalled();
   });
+
+  it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
+    const mockResendFn = jest.fn().mockResolvedValue('success');
+
+    mockUseDepositSdkMethodValues = [
+      { ...mockUseDepositSdkMethodInitialState },
+      mockResendFn,
+    ];
+
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
+    expect(mockResendFn).toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 });
