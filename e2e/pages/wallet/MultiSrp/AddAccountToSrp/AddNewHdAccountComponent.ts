@@ -1,6 +1,7 @@
 import { AddNewAccountIds } from '../../../../selectors/MultiSRP/AddHdAccount.selectors';
 import Matchers from '../../../../utils/Matchers';
 import Gestures from '../../../../utils/Gestures';
+import { IndexableNativeElement } from 'detox/detox';
 
 class AddNewHdAccountComponent {
   get container() {
@@ -35,9 +36,14 @@ class AddNewHdAccountComponent {
     await Gestures.waitAndTap(this.confirmButton);
   }
 
-  async enterName(accountName) {
-    await Gestures.clearField(this.nameInput);
-    await Gestures.typeTextAndHideKeyboard(this.nameInput, accountName);
+  async enterName(accountName: string) {
+    await Gestures.clearField(
+      this.nameInput as Promise<IndexableNativeElement>,
+    );
+    await Gestures.typeTextAndHideKeyboard(
+      this.nameInput as Promise<IndexableNativeElement>,
+      accountName,
+    );
   }
 }
 
