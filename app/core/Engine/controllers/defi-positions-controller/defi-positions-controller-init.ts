@@ -36,13 +36,15 @@ export const defiPositionsControllerInit: ControllerInitFunction<
 
       return isBasicFunctionalityToggleEnabled && featureFlagForDeFi;
     },
-    trackEvent: ({ event, properties }) => {
+    trackEvent: (params: {
+      event: string;
+      properties?: Record<string, unknown>;
+    }) => {
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder({
-          category: event,
-        })
-          .addProperties(properties)
-          .build(),
+          category: params.event,
+          properties: params.properties,
+        }).build(),
       );
     },
   });
