@@ -130,6 +130,9 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
+    },
     PermissionController: {
       revokeAllPermissions: jest.fn(),
     },
@@ -251,6 +254,16 @@ const mockInitialState = (
       ...backgroundState,
       MultichainNetworkController: {
         multichainNetworkConfigurationsByChainId: {},
+        networksWithTransactionActivity: {
+          [MOCK_EVM_ACCOUNT_1.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '56'],
+          },
+          [MOCK_EVM_ACCOUNT_2.toLowerCase()]: {
+            namespace: 'eip155:0',
+            activeChains: ['1', '137'],
+          },
+        },
       },
       KeyringController: {
         isUnlocked: true,
@@ -429,7 +442,7 @@ describe('AccountPermissions', () => {
     });
 
     expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
+      Engine.context.SelectedNetworkController.setNetworkClientIdForDomain,
     ).toHaveBeenCalled();
     expect(mockUpdatePermittedChains).toHaveBeenCalledWith(
       'test',
@@ -532,10 +545,7 @@ describe('AccountPermissions', () => {
         }}
       />,
       {
-        state: mockInitialState([
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          '0xd018538C87232FF95acbCe4870629b75640a78E7',
-        ]),
+        state: mockInitialState([MOCK_EVM_ACCOUNT_1, MOCK_EVM_ACCOUNT_2]),
       },
     );
 
