@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../../tags';
+import { SmokeNetworkEnablement } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
 import FixtureBuilder from '../../../fixtures/fixture-builder';

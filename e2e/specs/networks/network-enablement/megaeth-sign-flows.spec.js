@@ -4,7 +4,7 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { buildPermissions } from '../../../fixtures/utils';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { Regression } from '../../../tags';
+import { SmokeNetworkEnablement } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../fixtures/fixture-helper';
