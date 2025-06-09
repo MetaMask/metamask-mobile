@@ -23,6 +23,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import { KnownCaipNamespace } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -234,6 +236,8 @@ const defaultAccountsMock = [
     isSelected: true,
     balanceError: undefined,
     caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
   {
     name: 'Account 2',
@@ -247,6 +251,8 @@ const defaultAccountsMock = [
     isSelected: false,
     balanceError: undefined,
     caipAccountId: `eip155:0:${PERSONAL_ACCOUNT}`,
+    isLoadingAccount: false,
+    scopes: [],
   },
 ];
 
@@ -1245,3 +1251,95 @@ describe('EvmAccountSelectorList', () => {
     expect(avatarGroups).toHaveLength(0);
   });
 });
+
+  // Helper to create state with multichain accounts enabled
+  const getMultichainState = (overrides = {}) => ({
+    ...initialState,
+    engine: {
+      ...initialState.engine,
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        AccountTreeController: {
+          accountTree: {
+            wallets: {
+              wallet1: {
+                metadata: {
+                  name: 'HD Accounts',
+                },
+                groups: {
+                  group1: {
+                    accounts: [
+                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[0],
+                      Object.keys(initialState.engine.backgroundState.AccountsController.internalAccounts.accounts)[1]
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            enableMultichainAccounts: {
+              enabled: true,
+              featureVersion: '1',
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+        ...overrides,
+      },
+    },
+  });
+
+  it('renders sections based on AccountTreeController when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText, getAllByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+
+    expect(getAllByText(/^Account/)).toHaveLength(2);
+    expect(getByText('Account 1')).toBeDefined();
+    expect(getByText('Account 2')).toBeDefined();
+  });
+
+  it('navigates to multichain account details when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getAllByTestId } = renderComponent(multichainState);
+
+    const accountActionsButton = getAllByTestId(
+      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-0`,
+    )[0];
+
+    fireEvent.press(accountActionsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+      {
+        account: expect.objectContaining({
+          address: BUSINESS_ACCOUNT,
+        }),
+      },
+    );
+  });
+
+  it('does not render tag labels when multichain accounts enabled', () => {
+    jest
+      .requireMock('../../../util/address')
+      .getLabelTextByAddress.mockReturnValue('Imported');
+    
+    const multichainState = getMultichainState();
+    const { queryByText } = renderComponent(multichainState);
+    
+    // Tag labels should not be rendered when multichain is enabled
+    // Even though getLabelTextByAddress might be called, its result shouldn't be displayed
+    expect(queryByText('Imported')).toBeNull();
+  });
+
+  it('renders section headers when multichain accounts enabled', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    expect(getByText('HD Accounts')).toBeDefined();
+    expect(getByText('Details')).toBeDefined();
+  });
