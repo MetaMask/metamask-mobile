@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './EnterAddress.styles';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -16,10 +19,16 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import Row from '../../../Aggregator/components/Row';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-export const createEnterAddressNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_ADDRESS,
-);
+export interface EnterAddressParams {
+  formData: BasicInfoFormData;
+  quote: BuyQuote;
+}
+
+export const createEnterAddressNavDetails =
+  createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
 interface AddressFormData {
   addressLine1: string;
@@ -33,12 +42,8 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const route =
-    useRoute<
-      RouteProp<Record<string, { formData: BasicInfoFormData }>, string>
-    >();
-  const { formData: basicInfoFormData } = route.params;
+  const { formData: basicInfoFormData, quote } =
+    useParams<EnterAddressParams>();
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -88,19 +93,22 @@ const EnterAddress = (): JSX.Element => {
     [handleChange],
   );
 
-  const combinedFormData = {
-    ...basicInfoFormData,
-    ...formData,
-  };
+  const [{ error: kycError, isFetching: kycIsFetching }, postKycForm] =
+    useDepositSdkMethod({
+      method: 'patchUser',
+      onMount: false,
+    });
 
-  const [{ data: response, error, isFetching }, postKycForm] =
-    useDepositSdkMethod(
-      {
-        method: 'patchUser',
-        onMount: false,
-      },
-      combinedFormData,
-    );
+  const [
+    { error: purposeError, isFetching: purposeIsFetching },
+    submitPurpose,
+  ] = useDepositSdkMethod(
+    {
+      method: 'submitPurposeOfUsageForm',
+      onMount: false,
+    },
+    ['Buying/selling crypto for investments'],
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -113,26 +121,41 @@ const EnterAddress = (): JSX.Element => {
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(async () => {
-    if (validateFormData()) {
-      await postKycForm({
+    if (!validateFormData()) return;
+
+    try {
+      const combinedFormData = {
         ...basicInfoFormData,
         ...formData,
-      });
+      };
+      await postKycForm(combinedFormData);
 
-      if (response && !error) {
-        navigation.navigate(Routes.DEPOSIT.KYC_PENDING);
-      } else {
-        console.error('Error submitting form:', error);
+      if (kycError) {
+        console.error('KYC form submission failed:', kycError);
+        return;
       }
+
+      await submitPurpose();
+
+      if (purposeError) {
+        console.error('Purpose submission failed:', purposeError);
+        return;
+      }
+
+      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+    } catch (error) {
+      console.error('Unexpected error during form submission:', error);
     }
   }, [
-    basicInfoFormData,
-    response,
-    error,
-    formData,
-    navigation,
-    postKycForm,
     validateFormData,
+    basicInfoFormData,
+    formData,
+    postKycForm,
+    kycError,
+    submitPurpose,
+    purposeError,
+    navigation,
+    quote,
   ]);
 
   return (
@@ -218,7 +241,7 @@ const EnterAddress = (): JSX.Element => {
                 type="confirm"
                 onPress={handleOnPressContinue}
                 testID="address-continue-button"
-                disabled={isFetching}
+                disabled={kycIsFetching || purposeIsFetching}
               >
                 {strings('deposit.enter_address.continue')}
               </StyledButton>
