@@ -5,9 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView, { WebViewNavigation } from '@metamask/react-native-webview';
-import AppConstants from '../../../../core/AppConstants';
-import NotificationManager from '../../../../core/NotificationManager';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import AppConstants from '../../../core/AppConstants';
+import NotificationManager from '../../../core/NotificationManager';
+import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import {
   FiatOrder,
   getPendingOrders,
@@ -19,19 +19,19 @@ import {
   getAuthenticationUrls,
   removeAuthenticationUrl,
   getOrderById,
-} from '../../../../reducers/fiatOrders';
-import useInterval from '../../../hooks/useInterval';
-import useThunkDispatch, { ThunkAction } from '../../../hooks/useThunkDispatch';
-import processOrder from './orderProcessor';
-import processCustomOrderIdData from './orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
-import { trackEvent } from './hooks/useAnalytics';
-import { AnalyticsEvents } from './types';
-import { CustomIdData } from '../../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './sdk';
-import useFetchRampNetworks from './hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './utils';
-import Routes from '../../../../constants/navigation/Routes';
+} from '../../../reducers/fiatOrders';
+import useInterval from '../../hooks/useInterval';
+import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
+import processOrder from './Aggregator/orderProcessor';
+import processCustomOrderIdData from './Aggregator/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './Aggregator/orderProcessor/aggregator';
+import { trackEvent } from './Aggregator/hooks/useAnalytics';
+import { AnalyticsEvents } from './Aggregator/types';
+import { CustomIdData } from '../../../reducers/fiatOrders/types';
+import { callbackBaseUrl } from './Aggregator/sdk';
+import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './Aggregator/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 

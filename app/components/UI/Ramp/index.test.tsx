@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import FiatOrders, { getAggregatorAnalyticsPayload } from '.';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { FiatOrder } from '../../../../reducers/fiatOrders';
+import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
+import { FiatOrder } from '../../../reducers/fiatOrders';
 import WebView from '@metamask/react-native-webview';
 
 const mockNavigate = jest.fn();

@@ -1,4 +1,4 @@
-import { ProcessorOptions } from '../index';
+import { ProcessorOptions } from '../../index';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
