@@ -1,4 +1,5 @@
 'use strict';
+import { device } from 'detox';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
@@ -16,6 +17,17 @@ import NetworkEducationModal from '../../../../pages/Network/NetworkEducationMod
 
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
+/*
+Test Steps:
+1. Opening wallet on ETH Mainnet
+2. Open Dapp 1 and Open Dapp 2
+3. Dapp 1: ETH => Linea Sepolia
+4. Close Dapp 1
+5. Dapp 2: ETH => Sepolia
+6. Wallet to Linea mainnet
+7. Check Dapp 1 is still on Linea Sepolia
+8. Check Dapp 2 is still on ETH Mainnet
+*/
 describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -28,7 +40,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         dapp: true,
         dappOptions: { numberOfDapps: 2 },
         fixture: new FixtureBuilder()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp({}, true)
           .withChainPermission()
           .build(),
         restartDevice: true,
@@ -41,7 +53,6 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
         await Browser.navigateToTestDApp();
-
         await Browser.waitForBrowserPageToLoad();
 
         // Navigate to 2nd test dapp to load page. This is a verification check. It should  be connected to global network selector: Eth mainnet
@@ -94,19 +105,14 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-        /* ** A POTENTIAL BUG: On second Dapp Eth Mainnet should be selected by default. 
-          The test is tapping to select ETH mainnet because it is deselected. 
-          Also LineaSepolia is selected by default which says that the network selector from Dapp 1 carries over to Dapp 2 
-          Feel free to remove lines 102 - 104 if/when this bug is fixed.
-        */
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
         await device.enableSynchronization(); // re-enabling synchronization
         await Assertions.checkIfElementHasLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
-          'Use your enabled networks Ethereum Main Network',
+          'Use your enabled networks Sepolia',
         );
 
         await PermissionSummaryBottomSheet.tapBackButton();
@@ -129,7 +135,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
 
         await Assertions.checkIfElementHasLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
-          'Use your enabled networks Ethereum Main Network',
+          'Use your enabled networks Sepolia',
         );
 
         // // checking that dapp doesn't show the global selected network which in this case is linea mainnet

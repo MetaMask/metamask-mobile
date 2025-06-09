@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-
+import { device } from 'detox';
 import { getGanachePort, getSecondTestDappPort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
@@ -471,7 +471,7 @@ class FixtureBuilder {
               id: 1692550481062,
             },
             {
-              url: `http://localhost:${getSecondTestDappPort()}`,
+              url: `http://${device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'}:${getSecondTestDappPort()}`,
               id: 1749234797566,
               isArchived: false,
             },
@@ -759,7 +759,7 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}) {
+  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -775,7 +775,7 @@ class FixtureBuilder {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
         parentCapability: Caip25EndowmentPermissionName,
-        invoker: DAPP_URL,
+        invoker: dappUrl,
         caveats: [
           {
             type: Caip25CaveatType,
@@ -788,8 +788,8 @@ class FixtureBuilder {
 
     return {
       subjects: {
-        [DAPP_URL]: {
-          origin: DAPP_URL,
+        [dappUrl]: {
+          origin: dappUrl,
           permissions: basePermissions,
         },
       },
@@ -801,9 +801,17 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
+    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+      );
+    }
     this.withPermissionController(
-      this.createPermissionControllerConfig(additionalPermissions),
+      merge(testDappPermissions, secondDappPermissions)
     );
 
     // Ensure Solana feature modal is suppressed
