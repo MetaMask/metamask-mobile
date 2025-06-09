@@ -13,27 +13,24 @@ export const useEarnMetadata = (earnToken: EarnTokenDetails) => {
 
   let annualRewardRate = '';
   let annualRewardRateDecimal = 0;
+  let annualRewardRateValue = 0;
+
   if (earnToken.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-    annualRewardRate = earnToken.experience.apr;
+    annualRewardRate = earnToken.experience.apr + '%';
     annualRewardRateDecimal = parseFloat(
-      BigNumber(earnToken.experience.apr).toFixed(1),
+      BigNumber(earnToken.experience.apr).div(100).toFixed(1),
     );
+    annualRewardRateValue = parseFloat(earnToken.experience.apr);
   } else if (earnToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING) {
     annualRewardRate = annualRewardRateFromVault;
     annualRewardRateDecimal = annualRewardRateDecimalFromVault;
+    annualRewardRateValue = annualRewardRateDecimalFromVault * 100;
   }
-
-  console.log('annualRewardRate', annualRewardRate);
-  console.log('annualRewardRateDecimal', annualRewardRateDecimal);
-  console.log(
-    'isLoadingVaultMetadataFromVault',
-    isLoadingVaultMetadataFromVault,
-  );
-  console.log('earnToken metadata', earnToken);
 
   return {
     annualRewardRate,
     annualRewardRateDecimal,
+    annualRewardRateValue,
     isLoadingEarnMetadata: isLoadingVaultMetadataFromVault,
   };
 };

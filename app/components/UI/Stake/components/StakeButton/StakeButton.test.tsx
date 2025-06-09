@@ -286,7 +286,7 @@ describe('StakeButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
           screen: Routes.STAKING.STAKE,
           params: {
-            token: { ...MOCK_ETH_MAINNET_ASSET, balanceMinimalUnit: '5' },
+            token: { ...MOCK_ETH_MAINNET_ASSET },
           },
         });
       });

@@ -113,6 +113,9 @@ const EarnWithdrawInputView = () => {
 
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
+    console.log('receiptToken', receiptToken);
+    console.log('activeAccount', activeAccount);
+
     if (
       receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !activeAccount?.address ||
@@ -121,6 +124,7 @@ const EarnWithdrawInputView = () => {
     )
       return;
 
+    console.log('receiptToken', receiptToken);
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
@@ -456,7 +460,12 @@ const EarnWithdrawInputView = () => {
     receiptToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
-
+  console.log(
+    'isWithdrawingMoreThanAvailableForLendingToken',
+    isWithdrawingMoreThanAvailableForLendingToken,
+  );
+  console.log('isNonZeroAmount', isNonZeroAmount);
+  console.log('isOverMaximum', isOverMaximum);
   return (
     <ScreenLayout style={styles.container}>
       <InputDisplay

@@ -1,14 +1,11 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
 import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
-import { convertTokenToFiat } from '../../../../util/confirm-tx';
-import { balanceToFiatNumber, renderFiat } from '../../../../util/number';
 import { getEstimatedAnnualRewards } from '../utils/token';
-import { BigNumber } from 'bignumber.js';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 
 const useEarnTokens = () => {
   const earnTokensData = useSelector(earnSelectors.selectEarnTokens);

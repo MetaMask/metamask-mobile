@@ -4,6 +4,7 @@ import InputDisplay, { InputDisplayProps } from '.';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -44,6 +45,10 @@ jest.mock('../../hooks/useEarnTokens', () => () => ({
     isETH: true,
     isNative: true,
   })),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockToken = {

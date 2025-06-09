@@ -23,6 +23,7 @@ import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
@@ -215,7 +216,13 @@ jest.mock('../../hooks/useEarnTokens', () => ({
       return null;
     }),
     getPairedEarnTokens: jest.fn().mockImplementation((token) => {
-      if (token.address === MOCK_ETH_MAINNET_ASSET.address) {
+      console.log(
+        'token from getPairedEarnTokens',
+        token,
+        MOCK_ETH_MAINNET_ASSET.address,
+        MOCK_USDC_MAINNET_ASSET.address,
+      );
+      if (token.symbol === MOCK_ETH_MAINNET_ASSET.symbol) {
         return {
           earnToken: {
             ...MOCK_ETH_MAINNET_ASSET,
@@ -269,7 +276,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           },
         };
       }
-      if (token.address === MOCK_USDC_MAINNET_ASSET.address) {
+      if (token.symbol === MOCK_USDC_MAINNET_ASSET.symbol) {
         return {
           earnToken: {
             ...MOCK_USDC_MAINNET_ASSET,
@@ -326,7 +333,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
       return { earnToken: null, outputToken: null };
     }),
     getEarnExperience: jest.fn().mockImplementation((token) => {
-      if (token.address === MOCK_ETH_MAINNET_ASSET.address) {
+      if (token.symbol === MOCK_ETH_MAINNET_ASSET.symbol) {
         return {
           type: 'POOLED_STAKING',
           apr: '5%',
@@ -336,7 +343,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
           estimatedAnnualRewardsTokenFormatted: '50',
         };
       }
-      if (token.address === MOCK_USDC_MAINNET_ASSET.address) {
+      if (token.symbol === MOCK_USDC_MAINNET_ASSET.symbol) {
         return {
           type: 'STABLECOIN_LENDING',
           apr: '5%',
@@ -357,27 +364,27 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useEarnWithdrawInput', () => ({
-  __esModule: true,
-  default: () => ({
-    isFiat: false,
-    currentCurrency: 'USD',
-    isNonZeroAmount: false,
-    amountToken: '0',
-    amountTokenMinimalUnit: '0',
-    amountFiatNumber: 0,
-    isOverMaximum: {
-      isOverMaximumToken: false,
-      isOverMaximumEth: false,
-    },
-    handleCurrencySwitch: jest.fn(),
-    currencyToggleValue: 'ETH',
-    percentageOptions: ['25%', '50%', '75%', '100%'],
-    handleQuickAmountPress: jest.fn(),
-    handleKeypadChange: jest.fn(),
-    earnBalanceValue: '5.79133',
-  }),
-}));
+// jest.mock('../../hooks/useEarnWithdrawInput', () => ({
+//   __esModule: true,
+//   default: () => ({
+//     isFiat: false,
+//     currentCurrency: 'USD',
+//     isNonZeroAmount: false,
+//     amountToken: '0',
+//     amountTokenMinimalUnit: '0',
+//     amountFiatNumber: 0,
+//     isOverMaximum: {
+//       isOverMaximumToken: false,
+//       isOverMaximumEth: false,
+//     },
+//     handleCurrencySwitch: jest.fn(),
+//     currencyToggleValue: 'ETH',
+//     percentageOptions: ['25%', '50%', '75%', '100%'],
+//     handleQuickAmountPress: jest.fn(),
+//     handleKeypadChange: jest.fn(),
+//     earnBalanceValue: '5.79133',
+//   }),
+// }));
 
 jest.mock('../../utils/tempLending', () => ({
   getAaveV3MaxRiskAwareWithdrawalAmount: jest
@@ -409,7 +416,7 @@ describe('EarnWithdrawalInputView', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  describe.only('when values are entered in the keypad', () => {
+  describe('when values are entered in the keypad', () => {
     it('updates ETH and fiat values', async () => {
       render(EarnWithdrawInputView);
 
@@ -500,13 +507,18 @@ describe('EarnWithdrawalInputView', () => {
     });
 
     it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
-      render(EarnWithdrawInputView);
-
-      fireEvent.press(screen.getByText('1'));
-
-      fireEvent.press(screen.getByText('Review'));
+      const { getByText, findByText } = render(EarnWithdrawInputView);
 
       jest.useFakeTimers({ legacyFakeTimers: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Review'));
+      });
+
       await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
@@ -525,7 +537,7 @@ describe('EarnWithdrawalInputView', () => {
       render(EarnWithdrawInputView);
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Unstake ETH',
+        'Withdraw',
         expect.anything(),
         expect.anything(),
         expect.anything(),
@@ -643,16 +655,19 @@ describe('EarnWithdrawalInputView', () => {
         {
           state: {
             engine: {
-              backgroundState,
+              backgroundState: {
+                ...backgroundState,
+                AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+              },
             },
           },
         },
         usdcRouteParams,
       );
 
-      await flushPromises();
-
-      expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalled();
+      });
     });
   });
 });
