@@ -14,16 +14,23 @@ import SheetActionView from '../../../components/UI/SheetActionView';
 
 // Internal dependencies
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { addTraitsToUser } = useMetrics();
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.onCloseBottomSheet(() =>
-      PreferencesController.setDisplayNftMedia(true),
-    );
+    sheetRef.current?.onCloseBottomSheet(() => {
+      PreferencesController.setDisplayNftMedia(true);
+      const traits = {
+        [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
+      };
+      addTraitsToUser(traits);
+    });
   };
 
   const onCancel = () => {

@@ -4,9 +4,7 @@ import { render } from '@testing-library/react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Text, { TextVariant } from '../Texts/Text';
-import { mockTheme } from '../../../util/theme';
-import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
+import Text, { TextVariant, getFontFamily } from '../Texts/Text';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
@@ -40,11 +38,7 @@ describe('HeaderBase', () => {
     const { getByRole } = render(
       <HeaderBase>Sample HeaderBase Title</HeaderBase>,
     );
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[DEFAULT_HEADERBASE_TITLE_TEXTVARIANT]
-        .fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(DEFAULT_HEADERBASE_TITLE_TEXTVARIANT);
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
@@ -58,10 +52,7 @@ describe('HeaderBase', () => {
       </HeaderBase>,
     );
 
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[testTextVariant].fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(testTextVariant);
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });

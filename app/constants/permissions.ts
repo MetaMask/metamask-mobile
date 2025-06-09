@@ -8,4 +8,5 @@ export enum USER_INTENT {
   Cancel,
   Import,
   ConnectHW,
+  ImportSrp,
 }

@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
 import { useTheme } from '../../../util/theme';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const createStyles = (colors) =>
   StyleSheet.create({

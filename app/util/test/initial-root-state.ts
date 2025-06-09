@@ -1,18 +1,18 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
+import { initialState as initialConfirmationState } from '../../reducers/confirmation';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
-import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
+import { initialState as confirmationMetrics } from '../../core/redux/slices/confirmationMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
+import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
-import { initialState as initialStakingState } from '../../core/redux/slices/staking';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
-///: END:ONLY_INCLUDE_IF
-
+import { initialOnboardingState } from '../../reducers/onboarding';
+import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
+import { isTest } from './utils';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -21,6 +21,7 @@ export const backgroundState: EngineState =
 const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
+  confirmation: initialConfirmationState,
   engine: { backgroundState },
   privacy: undefined,
   bookmarks: undefined,
@@ -31,7 +32,7 @@ const initialRootState: RootState = {
   transaction: undefined,
   user: userInitialState,
   wizard: undefined,
-  onboarding: undefined,
+  onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,
@@ -49,13 +50,17 @@ const initialRootState: RootState = {
   rpcEvents: undefined,
   accounts: undefined,
   inpageProvider: initialInpageProvider,
-  transactionMetrics,
+  confirmationMetrics,
   originThrottling,
   notifications: {},
-  staking: initialStakingState,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: initialMultichainSettingsState,
-  ///: END:ONLY_INCLUDE_IF
+  bridge: initialBridgeState,
+  banners: {
+    dismissedBanners: [],
+  },
 };
+
+if (isTest) {
+  initialRootState.performance = initialPerformanceState;
+}
 
 export default initialRootState;

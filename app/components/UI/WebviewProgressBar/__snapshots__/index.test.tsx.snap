@@ -25,7 +25,7 @@ exports[`WebviewProgressBar should render correctly 1`] = `
       [
         {
           "backgroundColor": undefined,
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 0,
           "borderWidth": 0,
           "overflow": "hidden",
@@ -40,7 +40,7 @@ exports[`WebviewProgressBar should render correctly 1`] = `
       collapsable={false}
       style={
         {
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "height": 3,
           "transform": [
             {

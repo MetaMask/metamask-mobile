@@ -5,7 +5,7 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-const generateOpt = (
+export const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
   description?: DESCRIPTION,
@@ -70,12 +70,17 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
+  // Phishing
+  PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
+  PROCEED_ANYWAY_CLICKED = 'Proceed Anyway Clicked',
+
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
   COLLECTIBLE_REMOVED = 'Collectible Removed',
+  TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -272,6 +277,11 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
+  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
+
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -356,6 +366,7 @@ enum EVENT_NAME {
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
+  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -373,6 +384,13 @@ enum EVENT_NAME {
 
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
+  ACCOUNT_REMOVE_FAILED = 'Account remove failed',
+  // Account added
+  ACCOUNT_ADDED = 'Account Added',
+  // Multi SRP
+  IMPORT_SECRET_RECOVERY_PHRASE_CLICKED = 'Import Secret Recovery Phrase Clicked',
+  IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
+  SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -389,9 +407,8 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Transactions
-  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
-  TRANSACTION_FINALIZED = 'Transaction Finalized',
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
@@ -404,9 +421,10 @@ enum EVENT_NAME {
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
   // network
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
 
@@ -416,6 +434,10 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
+  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -484,6 +506,11 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
+
+  // Phishing events
+  PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
+  PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
+
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -820,6 +847,7 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
+  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
@@ -849,9 +877,16 @@ const events = {
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+  ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+  ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // Dismiss smart account upgrade suggestion
+  DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
+    EVENT_NAME.DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED,
+  ),
 
   // Notifications
   ALL_NOTIFICATIONS: generateOpt(
@@ -885,8 +920,6 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
-  // Transactions
-  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
@@ -903,14 +936,22 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
-  // Profile Syncing
+  // Backup and sync
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
   ),
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+  ),
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
   CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
+
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED: generateOpt(
+    EVENT_NAME.EARN_EMPTY_STATE_CTA_CLICKED,
+  ),
 
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
@@ -995,6 +1036,26 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // Bridge
+  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
+  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
+
+  // Multi SRP
+  IMPORT_SECRET_RECOVERY_PHRASE_CLICKED: generateOpt(
+    EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+  ),
+  IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED: generateOpt(
+    EVENT_NAME.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+  ),
+  SECRET_RECOVERY_PHRASE_PICKER_CLICKED: generateOpt(
+    EVENT_NAME.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+  ),
 };
 
 /**
@@ -1018,7 +1079,6 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
-  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',
@@ -1041,6 +1101,7 @@ enum DESCRIPTION {
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
   SETTINGS_NOTIFICATIONS = 'Notifications',
+  SETTINGS_BACKUP_AND_SYNC = 'Backup & Sync',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -1139,11 +1200,6 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
-  ),
-  DAPP_GO_TO_FAVORITES: generateOpt(
-    EVENT_NAME.DAPP_VIEW,
-    ACTIONS.DAPP_VIEW,
-    DESCRIPTION.DAPP_GO_TO_FAVORITES,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
@@ -1244,6 +1300,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SETTINGS,
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_NOTIFICATIONS,
+  ),
+  SETTINGS_BACKUP_AND_SYNC: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_BACKUP_AND_SYNC,
   ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(

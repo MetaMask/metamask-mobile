@@ -4,8 +4,14 @@ import {
   getShouldUpdateApprovalRequest,
   getTransactionType,
   getSmartTransactionMetricsProperties,
+  getTradeTxTokenFee,
+  getGasIncludedTransactionFees,
+  type GasIncludedQuote,
+  getIsAllowedRpcUrlForSmartTransactions,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+// eslint-disable-next-line import/no-namespace
+import * as environment from '../environment';
 import type { BaseControllerMessenger } from '../../core/Engine';
 
 describe('Smart Transactions utils', () => {
@@ -283,27 +289,63 @@ describe('Smart Transactions utils', () => {
   });
   describe('getShouldStartFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        true,
+        false,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false, true);
+      const res = getShouldStartApprovalRequest(
+        false,
+        true,
+        false,
+        false,
+        true,
+      );
       expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false, false);
+      const res = getShouldStartApprovalRequest(
+        true,
+        false,
+        false,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false, true);
+      const res = getShouldStartApprovalRequest(
+        true,
+        false,
+        false,
+        false,
+        true,
+      );
       expect(res).toBe(false);
     });
     it('returns true for Swap approve transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, true, false, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        false,
+        true,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Swap transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, false, true, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        false,
+        false,
+        true,
+        false,
+      );
       expect(res).toBe(false);
     });
   });
@@ -467,6 +509,191 @@ describe('Smart Transactions utils', () => {
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
       });
+    });
+  });
+
+  describe('getTradeTxTokenFee', () => {
+    it('returns the token fee when the full path exists', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        approvalTxFees: null,
+      } as unknown as GasIncludedQuote;
+
+      const result = getTradeTxTokenFee(mockQuote);
+      expect(result).toBe('mockTokenFee');
+    });
+
+    it('returns undefined when tradeTxFees is missing', () => {
+      const mockQuote = {
+        tradeTxFees: null,
+        approvalTxFees: null,
+      } as GasIncludedQuote;
+
+      const result = getTradeTxTokenFee(mockQuote);
+      expect(result).toBeUndefined();
+    });
+    it('returns undefined when fees array is empty', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [],
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        approvalTxFees: null,
+      } as unknown as GasIncludedQuote;
+
+      const result = getTradeTxTokenFee(mockQuote);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when tokenFees array is empty', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [
+            {
+              tokenFees: [],
+            },
+          ],
+        },
+      } as unknown as GasIncludedQuote;
+
+      const result = getTradeTxTokenFee(mockQuote);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when tokenFees is undefined', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [{}],
+        },
+      } as unknown as GasIncludedQuote;
+
+      const result = getTradeTxTokenFee(mockQuote);
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getGasIncludedTransactionFees', () => {
+    it('returns transaction fees when gas is included and token fee exists', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        approvalTxFees: {
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        isGasIncludedTrade: true,
+      } as unknown as GasIncludedQuote;
+
+      const result = getGasIncludedTransactionFees(mockQuote);
+      expect(result).toEqual({
+        approvalTxFees: mockQuote.approvalTxFees,
+        tradeTxFees: mockQuote.tradeTxFees,
+      });
+    });
+
+    it('returns undefined when gas is not included', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        approvalTxFees: null,
+        isGasIncludedTrade: false,
+      } as unknown as GasIncludedQuote;
+
+      const result = getGasIncludedTransactionFees(mockQuote);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when token fee does not exist', () => {
+      const mockQuote = {
+        tradeTxFees: {
+          fees: [{}],
+          cancelFees: {},
+          feeEstimate: '0x0',
+          gasLimit: '0x0',
+          gasUsed: '0x0'
+        },
+        approvalTxFees: null,
+        isGasIncludedTrade: true,
+      } as unknown as GasIncludedQuote;
+
+      const result = getGasIncludedTransactionFees(mockQuote);
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getIsAllowedRpcUrlForSmartTransactions', () => {
+    let isProductionMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Mock isProduction function before each test
+      isProductionMock = jest.spyOn(environment, 'isProduction');
+    });
+
+    afterEach(() => {
+      isProductionMock.mockRestore();
+    });
+
+    it('returns true for Infura URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://mainnet.infura.io/v3/abc123');
+      expect(result).toBe(true);
+    });
+
+    it('returns true for Binance URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://bsc-dataseed.binance.org/');
+      expect(result).toBe(true);
+    });
+
+    it('returns false for other URLs in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://example.com/rpc');
+      expect(result).toBe(false);
+    });
+
+    it('returns false for undefined URL in production', () => {
+      isProductionMock.mockReturnValue(true);
+      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      expect(result).toBe(false);
+    });
+
+    it('returns true for any URL in non-production environments', () => {
+      isProductionMock.mockReturnValue(false);
+      const result = getIsAllowedRpcUrlForSmartTransactions('https://example.com/rpc');
+      expect(result).toBe(true);
+    });
+
+    it('returns true for undefined URL in non-production environments', () => {
+      isProductionMock.mockReturnValue(false);
+      const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
+      expect(result).toBe(true);
     });
   });
 });

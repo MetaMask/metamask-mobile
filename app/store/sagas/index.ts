@@ -6,6 +6,7 @@ import {
   AuthErrorAction,
   InterruptBiometricsAction,
   lockApp,
+  setAppServicesReady,
   UserActionType,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
@@ -134,10 +135,15 @@ export function* startAppServices() {
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
-  // Start services
-  EngineService.start();
+
+  // Start Engine service
+  yield call(EngineService.start);
+
+  // Start AppStateEventProcessor
   AppStateEventProcessor.start();
-  // TODO: Track a property in redux to gate keep the app until services are initialized
+
+  // Unblock the ControllersGate
+  yield put(setAppServicesReady());
 }
 
 // Main generator function that initializes other sagas in parallel.

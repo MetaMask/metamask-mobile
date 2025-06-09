@@ -8,7 +8,7 @@ import { selectPendingApprovals } from '../../../../selectors/approvalController
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ApprovalRequestType = ApprovalRequest<any>;
+export type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
@@ -39,14 +39,17 @@ const useApprovalRequest = () => {
     [approvalRequest],
   );
 
-  const onReject = useCallback(() => {
-    if (!approvalRequest) return;
+  const onReject = useCallback(
+    (error?: Error) => {
+      if (!approvalRequest) return;
 
-    Engine.rejectPendingApproval(
-      approvalRequest.id,
-      providerErrors.userRejectedRequest(),
-    );
-  }, [approvalRequest]);
+      Engine.rejectPendingApproval(
+        approvalRequest.id,
+        error ?? providerErrors.userRejectedRequest(),
+      );
+    },
+    [approvalRequest],
+  );
 
   const pageMeta = useMemo(
     () => approvalRequest?.requestData?.pageMeta ?? {},

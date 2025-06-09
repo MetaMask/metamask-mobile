@@ -13,12 +13,10 @@ const createStyles = (colors: {
   StyleSheet.create({
     descriptionContainer: {
       marginBottom: 10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
     },
     contentContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       marginBottom: 4,
     },
     numberStyle: {

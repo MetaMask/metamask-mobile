@@ -54,11 +54,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
+                "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
@@ -111,44 +110,22 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                 }
               }
             >
-              <View
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
-                    "justifyContent": "center",
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
               >
-                <Image
-                  resizeMethod="auto"
-                  source={1}
-                  style={
-                    {
-                      "height": 35,
-                      "tintColor": "#141618",
-                      "width": 70,
-                    }
-                  }
-                />
-              </View>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View />
+                OptinMetrics
+              </Text>
             </View>
           </View>
         </View>
@@ -173,7 +150,13 @@ exports[`OptinMetrics render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -181,6 +164,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -330,6 +314,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingTop": 24,
                         }
                       }
                       testID="meta-metrics-container"
@@ -343,6 +328,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingTop": 24,
                           }
                         }
                       >
@@ -350,18 +336,23 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           <View
                             style={
                               {
+                                "flex": 1,
+                                "flexDirection": "column",
                                 "marginHorizontal": 20,
-                                "marginTop": 10,
+                                "rowGap": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
-                                  "fontSize": 22,
-                                  "fontWeight": "600",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 32,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 40,
                                 }
                               }
                               testID="optin-metrics-title-id"
@@ -369,224 +360,226 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               Help us improve MetaMask
                             </Text>
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
                                   "fontWeight": "400",
-                                  "paddingVertical": 10,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                               testID="optin-metrics-privacy-policy-description"
                             >
                               We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
                             </Text>
-                            <Text
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              Learn how we protect your privacy while collecting usage data for your profile.
-                            </Text>
-                            <Text
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              When we gather metrics, it will always be...
-                            </Text>
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
+                                  "alignItems": "flex-start",
                                   "flex": 0,
                                   "flexDirection": "row",
-                                  "paddingVertical": 10,
+                                  "gap": 16,
                                 }
                               }
                             >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 20,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#1c8234",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                              <Text
+                              <SvgMock
+                                color="#1c7e33"
+                                fill="currentColor"
+                                height={24}
+                                name="CheckBold"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
                                   Private: 
                                 </Text>
-                                clicks and views on the app are stored, but other details (like your public address) are not.
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  clicks and views on the app are stored, but other details (like your public address) are not.
+                                </Text>
                               </Text>
                             </View>
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
+                                  "alignItems": "flex-start",
                                   "flex": 0,
                                   "flexDirection": "row",
-                                  "paddingVertical": 10,
+                                  "gap": 16,
                                 }
                               }
                             >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 20,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#1c8234",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                              <Text
+                              <SvgMock
+                                color="#1c7e33"
+                                fill="currentColor"
+                                height={24}
+                                name="CheckBold"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
                                   General: 
                                 </Text>
-                                we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
+                                </Text>
                               </Text>
                             </View>
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
+                                  "alignItems": "flex-start",
                                   "flex": 0,
                                   "flexDirection": "row",
-                                  "paddingVertical": 10,
+                                  "gap": 16,
                                 }
                               }
                             >
-                              <Text
-                                allowFontScaling={false}
-                                style={
-                                  [
-                                    {
-                                      "color": undefined,
-                                      "fontSize": 20,
-                                    },
-                                    [
-                                      {
-                                        "marginRight": 5,
-                                      },
-                                      {
-                                        "color": "#1c8234",
-                                      },
-                                    ],
-                                    {
-                                      "fontFamily": "Entypo",
-                                      "fontStyle": "normal",
-                                      "fontWeight": "normal",
-                                    },
-                                    {},
-                                  ]
-                                }
-                              >
-                                
-                              </Text>
-                              <Text
+                              <SvgMock
+                                color="#1c7e33"
+                                fill="currentColor"
+                                height={24}
+                                name="CheckBold"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontWeight": "600",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
                                   Optional: 
                                 </Text>
-                                you decide if you want to share or delete your usage data via settings any time.
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  you decide if you want to share or delete your usage data via settings any time.
+                                </Text>
                               </Text>
                             </View>
                             <TouchableOpacity
@@ -594,10 +587,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               onPress={[Function]}
                               style={
                                 {
-                                  "alignItems": "center",
+                                  "alignItems": "flex-start",
                                   "display": "flex",
                                   "flexDirection": "row",
-                                  "gap": 15,
+                                  "gap": 16,
                                   "marginRight": 25,
                                 }
                               }
@@ -622,7 +615,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#141618",
+                                      "borderColor": "#121314",
                                       "borderRadius": 4,
                                       "borderWidth": 2,
                                       "height": 20,
@@ -633,72 +626,61 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 />
                               </TouchableOpacity>
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "paddingVertical": 10,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
                                   }
                                 }
                               >
                                 We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                               </Text>
                             </TouchableOpacity>
+                            <View
+                              style={
+                                {
+                                  "backgroundColor": "#b7bbc866",
+                                  "height": 1,
+                                }
+                              }
+                            />
                             <View>
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9fa6ae",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
-                                    "marginTop": 10,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
                                   }
                                 }
                               >
-                                <Text>
-                                  We’ll let you know if we decide to use this data for other purposes. You can review our 
-                                </Text>
+                                We’ll let you know if we decide to use this data for other purposes. You can review our 
                                 <Text
-                                  accessibilityRole="link"
-                                  accessible={true}
+                                  accessibilityRole="text"
                                   onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
                                   style={
                                     {
-                                      "backgroundColor": "transparent",
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#4459ff",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
                                   }
-                                  suppressHighlighting={true}
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#0376c9",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Privacy Policy
-                                  </Text>
+                                  Privacy Policy
                                 </Text>
-                                <Text>
-                                   for more information. Remember, you can go to settings and opt out at any time.
-                                </Text>
+                                 for more information. Remember, you can go to settings and opt out at any time.
                               </Text>
                             </View>
                           </View>
@@ -721,7 +703,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -730,8 +711,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "transparent",
-                              "borderColor": "#0376c9",
-                              "borderRadius": 24,
+                              "borderColor": "#4459ff",
+                              "borderRadius": 12,
                               "borderWidth": 1,
                               "flex": 1,
                               "flexDirection": "row",
@@ -746,12 +727,12 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376c9",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
+                                "color": "#4459ff",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >
@@ -769,7 +750,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -777,8 +757,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#0376c9",
-                              "borderRadius": 24,
+                              "backgroundColor": "#4459ff",
+                              "borderRadius": 12,
                               "flex": 1,
                               "flexDirection": "row",
                               "height": 48,
@@ -793,11 +773,11 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >

@@ -13,7 +13,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTicker } from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import {
   getLabelTextByAddress,
@@ -29,9 +29,10 @@ import {
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
-import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
+import ApproveTransactionHeader from '../../Views/confirmations/legacy/components/ApproveTransactionHeader';
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectSignatureRequests } from '../../../selectors/signatureController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,6 +137,7 @@ class AccountInfoCard extends PureComponent {
     ticker: PropTypes.string,
     transaction: PropTypes.object,
     origin: PropTypes.string,
+    signatureRequests: PropTypes.object,
   };
 
   render() {
@@ -150,8 +152,10 @@ class AccountInfoCard extends PureComponent {
       fromAddress: rawFromAddress,
       transaction,
       origin,
+      signatureRequests,
     } = this.props;
 
+    const signatureRequest = Object.values(signatureRequests || {})?.[0];
     const fromAddress = safeToChecksumAddress(rawFromAddress);
     const accountLabelTag = getLabelTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
@@ -184,6 +188,7 @@ class AccountInfoCard extends PureComponent {
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
+        chainId={transaction?.chainId ?? signatureRequest?.chainId}
         origin={actualOriginUrl}
         url={actualOriginUrl}
         from={rawFromAddress}
@@ -247,9 +252,10 @@ const mapStateToProps = (state) => ({
   internalAccounts: selectInternalAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
+  signatureRequests: selectSignatureRequests(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

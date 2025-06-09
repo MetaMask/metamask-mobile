@@ -1,3 +1,5 @@
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import { KeyringControllerState } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -14,7 +16,29 @@ const selectKeyringControllerState = (state: RootState) =>
  */
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
-  (keyringControllerState) => keyringControllerState.keyrings,
+  (keyringControllerState: KeyringControllerState) =>
+    keyringControllerState.keyrings,
+);
+
+/**
+ * Selects all HD keyrings from the state
+ * @param state - The Redux state
+ * @returns Array of HD keyrings
+ */
+export const selectHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
+
+/**
+ * Checks if there are multiple HD keyrings in the state
+ * @param state - The Redux state
+ * @returns True if there is more than one HD keyring
+ */
+export const hasMultipleHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) =>
+    keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd).length > 1,
 );
 
 /**
@@ -22,10 +46,19 @@ export const selectKeyrings = createDeepEqualSelector(
  */
 export const selectFlattenedKeyringAccounts = createDeepEqualSelector(
   selectKeyrings,
-  (keyrings) => {
+  (keyrings: KeyringControllerState['keyrings']) => {
     const flattenedKeyringAccounts = keyrings.flatMap(
       (keyring) => keyring.accounts,
     );
     return flattenedKeyringAccounts;
   },
+);
+
+/**
+ * A memoized selector that returns if the KeyringController is unlocked.
+ */
+export const selectIsUnlocked = createDeepEqualSelector(
+  selectKeyringControllerState,
+  (keyringControllerState: KeyringControllerState) =>
+    keyringControllerState.isUnlocked,
 );

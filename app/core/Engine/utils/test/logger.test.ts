@@ -22,7 +22,11 @@ describe('logEngineCreation', () => {
   it('logs empty state initialization with keyring backup', () => {
     logEngineCreation(
       {},
-      { vault: 'test-vault', keyrings: [], isUnlocked: false },
+      {
+        vault: 'test-vault',
+        keyrings: [],
+        isUnlocked: false,
+      },
     );
 
     expect(Logger.log).toHaveBeenCalledWith(

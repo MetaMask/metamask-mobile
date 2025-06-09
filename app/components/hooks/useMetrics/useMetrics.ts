@@ -1,6 +1,7 @@
 import { IUseMetricsHook } from './useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../../core/Analytics';
+import { useMemo } from 'react';
 
 /**
  * Hook to use MetaMetrics
@@ -77,21 +78,23 @@ import { MetaMetrics } from '../../../core/Analytics';
  *   createEventBuilder,
  * } = useMetrics();
  */
-const useMetrics = (): IUseMetricsHook => ({
-  trackEvent: MetaMetrics.getInstance().trackEvent.bind(
-    MetaMetrics.getInstance(),
-  ),
-  enable: MetaMetrics.getInstance().enable,
-  addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
-  createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
-  checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
-  getDeleteRegulationCreationDate:
-    MetaMetrics.getInstance().getDeleteRegulationCreationDate,
-  getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
-  isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
-  isEnabled: MetaMetrics.getInstance().isEnabled,
-  getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-});
+const useMetrics = (): IUseMetricsHook =>
+  useMemo(
+    () => ({
+      trackEvent: MetaMetrics.getInstance().trackEvent,
+      enable: MetaMetrics.getInstance().enable,
+      addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
+      createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
+      checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
+      getDeleteRegulationCreationDate:
+        MetaMetrics.getInstance().getDeleteRegulationCreationDate,
+      getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
+      isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+      isEnabled: MetaMetrics.getInstance().isEnabled,
+      getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    }),
+    [],
+  );
 
 export default useMetrics;

@@ -49,7 +49,7 @@ import { isTestNet } from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -898,7 +898,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   primaryCurrency: state.settings.primaryCurrency,
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   chainId: selectChainId(state),
   tokenList: selectTokenListArray(state),
 });

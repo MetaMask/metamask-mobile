@@ -7,8 +7,11 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
+import Engine, { EngineContext } from '../core/Engine';
+import { getPersistentState } from './getPersistentState/getPersistentState';
 
 const TIMEOUT = 40000;
+const STORAGE_THROTTLE_DELAY = 200;
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -61,6 +64,7 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
   (inboundState: RootState['engine']) => {
+    // Do not transform data in Fresh Installs
     if (
       !inboundState ||
       Object.keys(inboundState.backgroundState).length === 0
@@ -68,27 +72,39 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const { SwapsController, ...controllers } =
-      inboundState.backgroundState || {};
+    const controllers = inboundState.backgroundState || {};
 
-    const {
-      aggregatorMetadata,
-      aggregatorMetadataLastFetched,
-      chainCache,
-      tokens,
-      tokensLastFetched,
-      topAssets,
-      topAssetsLastFetched,
-      ...persistedSwapsController
-    } = SwapsController;
+    try {
+      // Check if Engine is initialized by trying to access context
+      if (Engine.context) {
+        // This is just to trigger the error if engine does not exist
+      }
+    } catch (error) {
+      // Engine not initialized, skipping transform
+      return inboundState;
+    }
 
+    const persistableControllersState: Record<
+      string,
+      Record<string, unknown>
+    > = {};
+    for (const [key, value] of Object.entries(controllers)) {
+      if (!value || typeof value !== 'object') continue;
+
+      const persistedState = getPersistentState(
+        value,
+        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+        Engine.context[key as keyof EngineContext]?.metadata,
+      );
+      persistableControllersState[key] = persistedState;
+    }
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
-        ...controllers,
-        SwapsController: persistedSwapsController,
+        ...persistableControllersState,
       },
     };
+
     return newState;
   },
   null,
@@ -97,7 +113,8 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, appServicesReady, ...state } =
+      inboundState;
     // Reconstruct data to persist
     return state;
   },
@@ -105,15 +122,30 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
+const persistOnboardingTransform = createTransform(
+  (inboundState: RootState['onboarding']) => {
+    const { events, ...state } = inboundState;
+    // Reconstruct data to persist
+    return state;
+  },
+  null,
+  { whitelist: ['onboarding'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'multichainSettings'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
   storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
+  transforms: [
+    persistTransform,
+    persistUserTransform,
+    persistOnboardingTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { debug: false }),
   timeout: TIMEOUT,
+  throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };

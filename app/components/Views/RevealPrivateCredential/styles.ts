@@ -53,10 +53,10 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.error.default,
     },
     warningRowWrapper: {
-      flex: 1,
       flexDirection: 'row',
-      alignContent: 'center',
+      flexShrink: 1,
       alignItems: 'center',
+      width: '100%',
     },
     warningText: {
       marginTop: 10,
@@ -127,5 +127,8 @@ export const createStyles = (theme: Theme) =>
     },
     tabBar: {
       borderColor: theme.colors.border.muted,
+    },
+    stretch: {
+      flex: 1,
     },
   });

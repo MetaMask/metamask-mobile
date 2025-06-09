@@ -38,8 +38,8 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
           "fontWeight": "700",
           "letterSpacing": 0,

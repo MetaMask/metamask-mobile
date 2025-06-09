@@ -15,10 +15,6 @@ const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 
 class TestDApp {
-  get androidContainer() {
-    return BrowserViewSelectorsIDs.ANDROID_CONTAINER;
-  }
-
   get confirmButtonText() {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
@@ -102,6 +98,14 @@ class TestDApp {
       TestDappSelectorsWebIDs.PERMIT_SIGN,
     );
   }
+
+  get siweBadDomainButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN,
+    );
+  }
+
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -164,6 +168,20 @@ class TestDApp {
     );
   }
 
+  get erc721MintButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
+    );
+  }
+
+  get sendEIP1559Button() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -209,11 +227,19 @@ class TestDApp {
     await this.tapButton(this.permitSignButton);
   }
 
+  async tapSIWEBadDomainButton() {
+    await this.tapButton(this.siweBadDomainButton);
+  }
+
   async tapERC20TransferButton() {
     await this.tapButton(this.erc20TransferTokensButton);
   }
   async tapNFTTransferButton() {
     await this.tapButton(this.nftTransferFromTokensButton);
+  }
+
+  async tabERC721MintButton() {
+    await this.tapButton(this.erc721MintButton);
   }
 
   async tapNFTSetApprovalForAllButton() {
@@ -255,6 +281,10 @@ class TestDApp {
 
   async switchChainFromTestDapp() {
     await this.tapButton(this.switchChainFromTestDappButton);
+  }
+
+  async tapSendEIP1559Button() {
+    await this.tapButton(this.sendEIP1559Button);
   }
 }
 

@@ -5,7 +5,7 @@ exports[`Card - Snapshot should render correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,

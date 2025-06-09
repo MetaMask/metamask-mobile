@@ -50,7 +50,7 @@ exports[`CustomAlert should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
-        "backgroundColor": "#00000099",
+        "backgroundColor": "#00000066",
         "bottom": 0,
         "height": 1334,
         "left": 0,
@@ -132,7 +132,7 @@ exports[`CustomAlert should render correctly 1`] = `
         <Text
           style={
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "marginBottom": 15,
@@ -157,12 +157,12 @@ exports[`CustomAlert should render correctly 1`] = `
             [
               [
                 {
-                  "borderRadius": 100,
+                  "borderRadius": 12,
                   "justifyContent": "center",
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "minHeight": 50,
                 },
                 undefined,

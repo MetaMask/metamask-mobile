@@ -3,13 +3,13 @@ import { fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
-import Engine from '../../../../core/Engine';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurationsByCaipChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
+import { CaipChainId } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -19,21 +19,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      setActiveNetwork: jest.fn(),
-    },
-    PermissionController: {
-      getCaveat: jest.fn(),
-      hasCaveat: jest.fn(),
-      updateCaveat: jest.fn(),
-      grantPermissionsIncremental: jest.fn(),
-      revokeAllPermissions: jest.fn(),
-    },
-  },
-}));
-
 // Add mock for react-redux
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -41,7 +26,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockNetworkConfigurations = {
-  'network-1': {
+  'eip155:1': {
     chainId: '0x1',
     name: 'Ethereum Mainnet',
     rpcEndpoints: [
@@ -51,8 +36,9 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:1'
   },
-  'network-2': {
+  'eip155:137': {
     chainId: '0x89',
     name: 'Polygon',
     rpcEndpoints: [
@@ -62,18 +48,18 @@ const mockNetworkConfigurations = {
       },
     ],
     defaultRpcEndpointIndex: 0,
+    caipChainId: 'eip155:137'
   },
 };
 
 describe('NetworkConnectMultiSelector', () => {
   const defaultProps = {
     isLoading: false,
-    onUserAction: jest.fn(),
-    urlWithProtocol: 'https://example.com',
     hostname: 'example.com',
+    onSubmit: jest.fn(),
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,
-    initialChainId: '0x1',
+    defaultSelectedChainIds: ['eip155:1' as CaipChainId],
   };
 
   beforeEach(() => {
@@ -81,7 +67,7 @@ describe('NetworkConnectMultiSelector', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       // Use switch statement for better selector matching
       switch (selector) {
-        case selectEvmNetworkConfigurationsByChainId:
+        case selectNetworkConfigurationsByCaipChainId:
           return mockNetworkConfigurations;
         case selectEvmChainId:
           return '0x1';
@@ -98,23 +84,37 @@ describe('NetworkConnectMultiSelector', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('initializes with permitted chains from caveat', () => {
-    const permittedChains = ['0x1', '0x89'];
-    (
-      Engine.context.PermissionController.getCaveat as jest.Mock
-    ).mockReturnValue({
-      value: permittedChains,
-    });
-
-    const { getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
+  it('disables the select all button when loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} isLoading />,
     );
 
-    // Verify networks are selected
+    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
-    expect(updateButton.props.disabled).toBeTruthy();
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
+  });
+
+  it('handles the select all button when not loading', () => {
+    const { getByTestId, getAllByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['eip155:1', 'eip155:137']} />,
+    );
+
+    const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
+    fireEvent.press(selectAllbutton[0]);
+    fireEvent.press(selectAllbutton[0]);
+
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1', 'eip155:137']);
   });
 
   it('handles network selection correctly', () => {
@@ -122,99 +122,48 @@ describe('NetworkConnectMultiSelector', () => {
       <NetworkConnectMultiSelector {...defaultProps} />,
     );
 
-    const network = getByText('Ethereum Mainnet');
-    fireEvent.press(network);
+    const newNetwork = getByText('Polygon');
+    fireEvent.press(newNetwork);
 
-    const updateButton = getByTestId(
-      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
-    );
-    expect(updateButton.props.disabled).toBeFalsy();
-  });
+    // tests removal of an already selected network
+    const exstingNetwork = getByText('Ethereum Mainnet');
+    fireEvent.press(exstingNetwork);
 
-  it('handles update permissions when networks are selected', async () => {
-    (
-      Engine.context.PermissionController.hasCaveat as jest.Mock
-    ).mockReturnValue(true);
-
-    const { getByText, getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
-    );
-
-    // Select a network
-    const network = getByText('Ethereum Mainnet');
-    fireEvent.press(network);
-
-    // Press update button
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
     fireEvent.press(updateButton);
 
-    expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalled();
-    expect(defaultProps.onUserAction).toHaveBeenCalled();
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:137']);
+  });
+
+  it('shows update button when some networks are selected', () => {
+    const { getByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector
+        {...defaultProps}
+        defaultSelectedChainIds={['eip155:1']}
+      />,
+    );
+    const updateButton = getByTestId(
+      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+    );
+    expect(updateButton).toBeTruthy();
+    fireEvent.press(updateButton);
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
   });
 
   it('shows disconnect button when no networks are selected', () => {
-    const { getByTestId, getAllByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
+    const { getByTestId } = renderWithProvider(
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={[]} />,
     );
 
-    // First select all networks
-    const [selectAllCheckbox] = getAllByTestId(
-      ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
-    );
-    fireEvent.press(selectAllCheckbox);
-
-    // Then deselect all networks
-    fireEvent.press(selectAllCheckbox);
-
-    // Now check for disconnect button
     const disconnectButton = getByTestId(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
     expect(disconnectButton).toBeTruthy();
 
     fireEvent.press(disconnectButton);
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('handles onNetworksSelected callback when provided', () => {
-    const onNetworksSelected = jest.fn();
-    const { getByText, getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector
-        {...defaultProps}
-        onNetworksSelected={onNetworksSelected}
-      />,
-    );
-
-    // Select a network
-    const network = getByText('Ethereum Mainnet');
-    fireEvent.press(network);
-
-    // Press update button
-    const updateButton = getByTestId(
-      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
-    );
-    fireEvent.press(updateButton);
-
-    expect(onNetworksSelected).toHaveBeenCalled();
-  });
-
-  it('handles errors when getting permitted chains', () => {
-    (
-      Engine.context.PermissionController.getCaveat as jest.Mock
-    ).mockImplementation(() => {
-      throw new Error('Test error');
-    });
-
-    const { getByTestId } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
-    );
-
-    // Should still render without crashing
-    const updateButton = getByTestId(
-      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
-    );
-    expect(updateButton.props.disabled).toBeTruthy();
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);
   });
 });

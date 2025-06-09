@@ -11,11 +11,12 @@ import { loginToApp } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
-import { SmokeMultiChainPermissions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
+import AddNewAccountSheet from '../../../../pages/wallet/AddNewAccountSheet';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
+describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -37,16 +38,16 @@ describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         //TODO: should re add connecting to an external swap step after detox has been updated
-
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await TestHelpers.delay(2000);
 
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AccountListBottomSheet.tapAddEthereumAccountButton();
+        await AddNewAccountSheet.tapConfirmButton();
         if (device.getPlatform() === 'android') {
           await Assertions.checkIfTextIsDisplayed(AccountTwoText);
         }
@@ -54,14 +55,14 @@ describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
         await AccountListBottomSheet.tapConnectAccountsButton();
 
         // should revoke accounts
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
 
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         // await ConnectedAccountsModal.tapDisconnectButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();

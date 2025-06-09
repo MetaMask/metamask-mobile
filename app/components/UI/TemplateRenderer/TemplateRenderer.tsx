@@ -4,7 +4,7 @@ import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { TemplateRendererComponent, TemplateRendererInput } from './types';
 import Text from '../../../component-library/components/Texts/Text';
-import { isValidElementName } from '../../Views/confirmations/components/Approval/TemplateConfirmation/util';
+import { isValidElementName } from '../../Views/confirmations/legacy/components/Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
   sections?: TemplateRendererInput;
@@ -31,15 +31,12 @@ function renderElement(section: TemplateRendererComponent) {
     : {};
   return (
     <Element {...section.props} {...propsAsComponents}>
-      {Array.isArray(section.children)
-        ? section.children.map((child) => (
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            <TemplateRenderer
-              key={typeof child === 'string' ? `${random()}` : child.key}
-              sections={child}
-            />
-          ))
-        : section.children}
+      {typeof section.children === 'object' ? (
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        <TemplateRenderer sections={section.children} />
+      ) : (
+        section.children
+      )}
     </Element>
   );
 }

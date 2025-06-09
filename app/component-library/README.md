@@ -6,7 +6,13 @@ If you are a designer you can visit the [MetaMask Design System Guides (Design)]
 
 ## Storybook
 
-We document our components using Storybook. Please read the [Documentation Guidelines](../../storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.
+We document our components using Storybook. To run storybook run application as normal and [uncomment these lines in index.js](https://github.com/MetaMask/metamask-mobile/blob/main/index.js#L84-L86)
+
+```
+/* Uncomment and comment regular registration below */
+// import Storybook from './.storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
+```
 
 ## Support
 

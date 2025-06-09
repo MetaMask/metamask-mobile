@@ -13,7 +13,6 @@ import TabBarComponent from '../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   withFixtures,
-  defaultGanacheOptions,
 } from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
@@ -165,7 +164,6 @@ const main = async () => {
     {
       dapp: true,
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
-      ganacheOptions: defaultGanacheOptions,
       disableGanache: true,
       restartDevice: true,
       testSpecificMock,
@@ -181,7 +179,7 @@ const main = async () => {
 
       const methodsWithConfirmations = [
         'wallet_requestPermissions',
-        // 'eth_requestAccounts', // mobile is missing revokePermissions to reset this to prompt and cancel
+        'eth_requestAccounts',
         'wallet_watchAsset',
         'personal_sign', // requires permissions for eth_accounts
         'wallet_addEthereumChain',
@@ -211,7 +209,6 @@ const main = async () => {
         .map((m) => m.name);
 
       const skip = [
-        'wallet_revokePermissions', // mobile is missing revokePermissions
         'eth_coinbase',
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',

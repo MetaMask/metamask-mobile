@@ -87,13 +87,12 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get networkAvatarButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(BrowserViewSelectorsIDs.AVATAR_IMAGE)
-      : Matchers.getElementByDescendant(
-          AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
-          BrowserViewSelectorsIDs.AVATAR_IMAGE,
-        );
+  get DefaultAvatarImageForLocalHost() {
+    return Matchers.getElementByLabel('L');
+  }
+
+  get networkAvatarOrAccountButton() {
+    return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
   get addBookmarkButton() {
@@ -125,6 +124,10 @@ class Browser {
     await Gestures.waitAndTap(this.addressBar);
   }
 
+  async tapLocalHostDefaultAvatar() {
+    await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost);
+  }
+
   async tapBottomSearchBar() {
     await Gestures.waitAndTap(this.searchButton);
   }
@@ -145,9 +148,9 @@ class Browser {
     await Gestures.waitAndTap(this.multiTabButton);
   }
 
-  async tapNetworkAvatarButtonOnBrowser() {
+  async tapNetworkAvatarOrAccountButtonOnBrowser() {
     await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.networkAvatarButton);
+    await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 
   async tapAddToFavoritesButton() {
@@ -194,6 +197,16 @@ class Browser {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
     await waitForTestDappToLoad();
+  }
+
+  async navigateToTestDAppTransaction({ transactionParams }) {
+    // Intentionally open the test dapp first to avoid flakiness
+    await this.navigateToTestDApp();
+    await this.tapUrlInputBox();
+    const encodedParams = encodeURIComponent(transactionParams);
+    await this.navigateToURL(
+      `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
+    );
   }
 }
 

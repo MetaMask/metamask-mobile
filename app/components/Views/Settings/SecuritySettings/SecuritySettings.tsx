@@ -39,7 +39,6 @@ import {
   DeleteMetaMetricsData,
   DeleteWalletData,
   RememberMeOptionSection,
-  AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
@@ -72,12 +71,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -87,7 +83,6 @@ import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 
@@ -117,16 +112,9 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const {
-    enableProfileSyncing,
-    disableProfileSyncing,
-    loading: profileSyncLoading,
-    error: profileSyncError,
-  } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -204,16 +192,13 @@ const Settings: React.FC = () => {
     const triggerCascadeBasicFunctionalityDisable = async () => {
       if (!isBasicFunctionalityEnabled) {
         isNotificationEnabled && (await disableNotifications());
-        isProfileSyncingEnabled && (await disableProfileSyncing());
       }
     };
     triggerCascadeBasicFunctionalityDisable();
   }, [
     disableNotifications,
-    disableProfileSyncing,
     isBasicFunctionalityEnabled,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
   ]);
 
   const scrollToDetectNFTs = useCallback(() => {
@@ -343,6 +328,7 @@ const Settings: React.FC = () => {
     if (credentials && credentials.password !== '') {
       storeCredentials(credentials.password, enabled, passwordType);
     } else {
+      setLoading(false);
       navigation.navigate('EnterPasswordSimple', {
         onPasswordSet: (password: string) => {
           storeCredentials(password, enabled, passwordType);
@@ -516,27 +502,6 @@ const Settings: React.FC = () => {
     />
   );
 
-  const toggleProfileSyncing = async () => {
-    if (isProfileSyncingEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.PROFILE_SYNCING,
-      });
-    } else {
-      await enableProfileSyncing();
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
-          .addProperties({
-            settings_group: 'security_privacy',
-            settings_type: 'profile_syncing',
-            old_value: isProfileSyncingEnabled,
-            new_value: !isProfileSyncingEnabled,
-            was_notifications_on: isNotificationEnabled,
-          })
-          .build(),
-      );
-    }
-  };
-
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -551,12 +516,8 @@ const Settings: React.FC = () => {
     );
   }
 
-  const profileSyncModalMessage = !isProfileSyncingEnabled
-    ? strings('app_settings.enabling_profile_sync')
-    : strings('app_settings.disabling_profile_sync');
-
-  const modalLoading = profileSyncLoading || disableNotificationsLoading;
-  const modalError = profileSyncError || disableNotificationsError;
+  const modalLoading = disableNotificationsLoading;
+  const modalError = disableNotificationsError;
 
   return (
     <ScrollView
@@ -595,13 +556,6 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        {isNotificationsFeatureEnabled() && (
-          <ProfileSyncingComponent
-            handleSwitchToggle={toggleProfileSyncing}
-            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-            isProfileSyncingEnabled={isProfileSyncingEnabled}
-          />
-        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -652,16 +606,6 @@ const Settings: React.FC = () => {
           color={TextColor.Alternative}
           style={styles.subHeading}
         >
-          {strings('app_settings.security_check_subheading')}
-        </Text>
-        <View style={styles.halfSetting}>
-          <AutomaticSecurityChecks />
-        </View>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
           {strings('app_settings.analytics_subheading')}
         </Text>
         <MetaMetricsAndDataCollectionSection />
@@ -671,7 +615,7 @@ const Settings: React.FC = () => {
       </View>
       <SwitchLoadingModal
         loading={modalLoading}
-        loadingText={profileSyncModalMessage}
+        loadingText=""
         error={modalError}
       />
     </ScrollView>

@@ -8,7 +8,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
-import { selectTicker } from '../../selectors/networkController';
+import { selectEvmTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
 import { fromWei, isBN, toGwei } from '../../util/number';
@@ -73,7 +73,7 @@ export const useDataStore = () => {
       selectCurrentCurrency(state),
       selectAccounts(state),
       selectContractBalances(state),
-      selectTicker(state),
+      selectEvmTicker(state),
       state.transaction,
       state.transaction.selectedAsset,
       state.settings.showCustomNonce,

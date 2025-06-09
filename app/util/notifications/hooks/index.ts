@@ -1,13 +1,12 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import { useRegisterPushNotificationsEffect } from './useRegisterPushNotificationsEffect';
+import { useListNotificationsEffect } from './useNotifications';
 
 /**
- * Registers Push Notifications
- * TEMP - clean up props once we finalise integration
- * @param navigation - page navigation prop
+ * Registers Push Notifications and lists notifications on startup.
  */
-const useNotificationHandler = (_navigation: NavigationContainerRef) => {
+const useNotificationHandler = () => {
   useRegisterPushNotificationsEffect();
+  useListNotificationsEffect();
 };
 
 export default useNotificationHandler;

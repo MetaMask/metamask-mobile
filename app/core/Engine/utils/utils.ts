@@ -1,28 +1,47 @@
 import { createProjectLogger } from '@metamask/utils';
 import type {
+  BaseRestrictedControllerMessenger,
   ControllerByName,
+  ControllerMessengerCallback,
   ControllerName,
   ControllersToInitialize,
   InitModularizedControllersFunction,
+  ControllerInitRequest,
+  ControllerInitFunction,
 } from '../types';
 import { CONTROLLER_MESSENGERS } from '../messengers';
 
 const log = createProjectLogger('controller-init');
 
+type BaseControllerInitRequest = ControllerInitRequest<
+  BaseRestrictedControllerMessenger,
+  BaseRestrictedControllerMessenger | void
+>;
+
+type InitFunction<Name extends ControllersToInitialize> =
+  ControllerInitFunction<
+    ControllerByName[Name],
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
+  >;
+
 /**
  * Initializes the controllers in the engine in a modular way.
  *
  * @param options - Options bag.
- * @param options.controllerInitFunctions - Array of init functions.
- * @param options.initRequest - Base request used to initialize the controllers.
-
+ * @param options.baseControllerMessenger - Unrestricted base controller messenger.
+ * @param options.controllerInitFunctions - Map of init functions keyed by controller name.
+ * @param options.existingControllersByName - All required controllers that have already been initialized.
+ * @param options.getGlobalChainId - Get settled chain id in the engine.
+ * @param options.getState - Get the root state of the engine.
+ * @param options.persistedState - The full persisted state for all controllers.
  * @returns The initialized controllers and associated data.
  */
 export const initModularizedControllers: InitModularizedControllersFunction = ({
-  controllerInitFunctions,
-  persistedState,
-  existingControllersByName,
   baseControllerMessenger,
+  controllerInitFunctions,
+  existingControllersByName,
+  ...initRequest
 }) => {
   log('Initializing controllers', Object.keys(controllerInitFunctions).length);
 
@@ -40,18 +59,34 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
   )) {
     const controllerName = key as ControllersToInitialize;
 
+    const initFunction = controllerInitFunction as InitFunction<
+      typeof controllerName
+    >;
+
     // Get the messenger for the controller
     const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
-    const controllerMessenger = messengerCallbacks.getMessenger(
+
+    const controllerMessengerCallback =
+      messengerCallbacks.getMessenger as ControllerMessengerCallback;
+
+    const initMessengerCallback =
+      messengerCallbacks?.getInitMessenger as ControllerMessengerCallback;
+
+    const controllerMessenger = controllerMessengerCallback(
       baseControllerMessenger,
     );
 
-    // Initialize the controller
-    const { controller } = controllerInitFunction({
-      persistedState,
-      getController,
+    const initMessenger = initMessengerCallback?.(baseControllerMessenger);
+
+    const finalInitRequest: BaseControllerInitRequest = {
       controllerMessenger,
-    });
+      getController,
+      initMessenger,
+      ...initRequest,
+    };
+
+    // Initialize the controller
+    const { controller } = initFunction(finalInitRequest);
 
     // Add the controller to the existing controllers by name
     existingControllersByName = {

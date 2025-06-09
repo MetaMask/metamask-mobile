@@ -2,6 +2,7 @@
 
 exports[`AddChainApproval renders 1`] = `
 <ForwardRef
+  onClose={[Function]}
   shouldNavigateBack={false}
 >
   <View
@@ -12,7 +13,9 @@ exports[`AddChainApproval renders 1`] = `
       }
     }
   >
-    <NetworkVerificationInfo />
+    <NetworkVerificationInfo
+      customNetworkInformation={{}}
+    />
   </View>
 </ForwardRef>
 `;

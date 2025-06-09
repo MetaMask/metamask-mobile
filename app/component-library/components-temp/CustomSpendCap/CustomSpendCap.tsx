@@ -22,6 +22,7 @@ const CustomSpendCap = ({
   ticker,
   dappProposedValue,
   accountBalance,
+  unroundedAccountBalance,
   onInputChanged,
   isEditDisabled,
   editValue,
@@ -75,8 +76,8 @@ const CustomSpendCap = ({
   };
 
   useEffect(() => {
-    if (maxSelected) setValue(accountBalance);
-  }, [maxSelected, accountBalance]);
+    if (maxSelected) setValue(unroundedAccountBalance || accountBalance);
+  }, [maxSelected, accountBalance, unroundedAccountBalance]);
 
   useEffect(() => {
     if (Number(value) > Number(accountBalance))

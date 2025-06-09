@@ -1,8 +1,9 @@
 import {
-  selectIsProfileSyncingEnabled,
-  selectIsProfileSyncingUpdateLoading,
+  selectIsBackupAndSyncEnabled,
+  selectIsBackupAndSyncUpdateLoading,
+  selectIsAccountSyncingEnabled,
+  selectIsAccountSyncingReadyToBeDispatched,
   selectIsSignedIn,
-  selectSessionData,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -12,42 +13,48 @@ describe('Notification Selectors', () => {
       backgroundState: {
         AuthenticationController: {
           isSignedIn: true,
-          sessionData: {
-            userId: '12345',
-            token: 'abcdef',
-          },
         },
         UserStorageController: {
-          isProfileSyncingEnabled: true,
-          isProfileSyncingUpdateLoading: false,
+          isBackupAndSyncEnabled: true,
+          isAccountSyncingEnabled: true,
+          isBackupAndSyncUpdateLoading: false,
+          isAccountSyncingReadyToBeDispatched: false,
         },
       },
     },
   } as unknown as RootState;
 
-  it('selectIsProfileSyncingEnabled returns correct value', () => {
-    expect(selectIsProfileSyncingEnabled(mockState)).toEqual(
+  it('selectIsBackupAndSyncEnabled returns correct value', () => {
+    expect(selectIsBackupAndSyncEnabled(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
-        .isProfileSyncingEnabled,
+        .isBackupAndSyncEnabled,
     );
   });
 
-  it('selectIsProfileSyncingUpdateLoading returns correct value', () => {
-    expect(selectIsProfileSyncingUpdateLoading(mockState)).toEqual(
+  it('selectIsBackupAndSyncUpdateLoading returns correct value', () => {
+    expect(selectIsBackupAndSyncUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
-        .isProfileSyncingUpdateLoading,
+        .isBackupAndSyncUpdateLoading,
+    );
+  });
+
+  it('selectIsAccountSyncingEnabled returns correct value', () => {
+    expect(selectIsAccountSyncingEnabled(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isAccountSyncingEnabled,
+    );
+  });
+
+  it('selectIsAccountSyncingReadyToBeDispatched returns correct value', () => {
+    expect(selectIsAccountSyncingReadyToBeDispatched(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isAccountSyncingReadyToBeDispatched,
     );
   });
 
   it('selectIsSignedIn returns correct value', () => {
     expect(selectIsSignedIn(mockState)).toEqual(
       mockState.engine.backgroundState.AuthenticationController.isSignedIn,
-    );
-  });
-
-  it('selectSessionData returns correct value', () => {
-    expect(selectSessionData(mockState)).toEqual(
-      mockState.engine.backgroundState.AuthenticationController.sessionData,
     );
   });
 });

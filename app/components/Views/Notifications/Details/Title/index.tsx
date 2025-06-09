@@ -4,23 +4,16 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import NotificationsDetailViewSelectorsIDs from '../../constants';
 import useStyles from '../useStyles';
+import { NotificationDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const { styles } = useStyles();
 
   return (
-    <View
-      testID={
-        NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_CONTAINER_ID
-      }
-      style={styles.header}
-    >
+    <View style={styles.header}>
       <Text
-        testID={
-          NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_TITLE_ID
-        }
+        testID={NotificationDetailsViewSelectorsIDs.TITLE}
         variant={TextVariant.BodyLGMedium}
         color={TextColor.Default}
         style={styles.headerText}
@@ -28,9 +21,6 @@ const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
         {title}
       </Text>
       <Text
-        testID={
-          NotificationsDetailViewSelectorsIDs.NOTIFICATIONS_HEADER_SUBTITLE_ID
-        }
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
         style={styles.headerText}

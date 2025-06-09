@@ -34,6 +34,7 @@ const SWAP_TRANSACTIONS_MOCK = {
       token_from_amount: '0.001254',
       token_to: 'USDC',
       token_to_amount: '4.440771',
+      gas_included: false,
     },
     destinationAmount: '4440771',
     destinationToken: {

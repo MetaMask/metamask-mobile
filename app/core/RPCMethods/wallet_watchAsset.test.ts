@@ -1,6 +1,6 @@
 import { RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../Engine';
-import wallet_watchAsset from './wallet_watchAsset';
+import { wallet_watchAsset } from './wallet_watchAsset';
 // eslint-disable-next-line import/no-namespace
 import * as transactionsUtils from '../../util/transactions';
 import {
@@ -32,8 +32,10 @@ jest.mock('../Engine', () => {
       },
       TokenListController: {
         state: {
-          tokenList: {
-            '0x1': [],
+          tokensChainsCache: {
+            '0x1': {
+              data: [],
+            },
           },
         },
       },
@@ -177,7 +179,8 @@ describe('wallet_watchAsset', () => {
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
+      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      networkClientId: '0x1',
     });
   });
 
@@ -223,7 +226,8 @@ describe('wallet_watchAsset', () => {
     expect(spyOnWatchAsset).toHaveBeenCalledWith({
       asset: correctWBTC,
       type: ERC20,
-      interactingAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272', // Checksummed version of MOCK_ADDRESS
+      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      networkClientId: '0x1',
     });
   });
 });

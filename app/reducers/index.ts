@@ -1,5 +1,6 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
+import confirmationReducer, { ConfirmationState } from './confirmation';
 import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
@@ -9,7 +10,7 @@ import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
 import userReducer, { UserState } from './user';
 import wizardReducer from './wizard';
-import onboardingReducer from './onboarding';
+import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import signatureRequestReducer from './signatureRequest';
@@ -26,14 +27,15 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
+import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
-import stakingReducer from '../core/redux/slices/staking';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { MultichainSettingsState } from '../actions/multichain/state';
-import multichainReducer from './multichain';
-///: END:ONLY_INCLUDE_IF
+import bannersReducer, { BannersState } from './banners';
+import bridgeReducer from '../core/redux/slices/bridge';
+import performanceReducer, {
+  PerformanceState,
+} from '../core/redux/slices/performance';
+import { isTest } from '../util/test/utils';
 
 /**
  * Infer state from a reducer
@@ -66,6 +68,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookmarks: any;
+  confirmation: ConfirmationState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   browser: any;
@@ -85,9 +88,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wizard: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onboarding: any;
+  onboarding: OnboardingState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notification: any;
@@ -119,22 +120,18 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
-  transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
+  confirmationMetrics: StateFromReducer<typeof confirmationMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
-  staking: StateFromReducer<typeof stakingReducer>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: MultichainSettingsState;
-  ///: END:ONLY_INCLUDE_IF
+  bridge: StateFromReducer<typeof bridgeReducer>;
+  banners: BannersState;
+  performance?: PerformanceState;
 }
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer = combineReducers<RootState, any>({
+const baseReducers = {
   legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
+  confirmation: confirmationReducer,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,
@@ -161,13 +158,22 @@ const rootReducer = combineReducers<RootState, any>({
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
-  transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
-  staking: stakingReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: multichainReducer,
-  ///: END:ONLY_INCLUDE_IF
-});
+  bridge: bridgeReducer,
+  banners: bannersReducer,
+  confirmationMetrics: confirmationMetricsReducer,
+};
+
+if (isTest) {
+  // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
+  baseReducers.performance = performanceReducer;
+}
+
+// TODO: Fix the Action type. It's set to `any` now because some of the
+// TypeScript reducers have invalid actions
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rootReducer = combineReducers<RootState, any>(baseReducers);
 
 export default rootReducer;

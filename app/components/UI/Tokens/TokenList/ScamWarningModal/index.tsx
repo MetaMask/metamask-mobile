@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-native-modal';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from '../../styles';
-import Box from '../../../../UI/Ramp/components/Box';
+import Box from '../../../Ramp/Aggregator/components/Box';
 import { View } from 'react-native';
 import SheetHeader from '../../../../../../app/component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
@@ -12,7 +12,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import {
-  selectTicker,
+  selectEvmTicker,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
@@ -31,7 +31,7 @@ export const ScamWarningModal = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const { rpcUrl } = useSelector(selectProviderConfig);
 
   const styles = createStyles(colors);

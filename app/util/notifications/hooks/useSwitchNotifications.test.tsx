@@ -1,7 +1,6 @@
 import { act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
-import * as I18nModule from '../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
 // eslint-disable-next-line import/no-namespace
@@ -29,6 +28,8 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
       .spyOn(UseNotificationsModule, 'useEnableNotifications')
       .mockReturnValue({
         data: true,
+        isEnablingNotifications: false,
+        isEnablingPushNotifications: false,
         loading: false,
         error: null,
         enableNotifications: mockEnableNotifications,
@@ -178,7 +179,7 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
   };
 
   type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (
+  const arrangeActCallback = async (
     accounts: string[],
     mutateMocks?: (m: Mocks) => void,
   ) => {
@@ -197,9 +198,25 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
     return { mocks, hook };
   };
 
+  const arrangeActEffect = async (
+    accounts: string[],
+    mutateMocks?: (m: Mocks) => void,
+  ) => {
+    // Arrange
+    const mocks = arrangeMocks();
+    mutateMocks?.(mocks);
+
+    // Act - render hook (which will invoke effect)
+    const hook = renderHookWithProvider(() =>
+      useFetchAccountNotifications(accounts),
+    );
+
+    return { mocks, hook };
+  };
+
   it('fetches account notifications successfully', async () => {
     const accounts = ['0x123', '0x456'];
-    const { mocks, hook } = await arrangeAct(accounts);
+    const { mocks, hook } = await arrangeActCallback(accounts);
     await waitFor(() =>
       expect(mocks.mockFetchAccountNotificationSettings).toHaveBeenCalledWith(
         accounts,
@@ -212,7 +229,7 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
   it('returns error if fails to fetch', async () => {
     const accounts = ['0x123', '0x456'];
     const errorMessage = 'Failed to get account settings';
-    const { mocks, hook } = await arrangeAct(accounts, (m) => {
+    const { mocks, hook } = await arrangeActCallback(accounts, (m) => {
       m.mockFetchAccountNotificationSettings.mockRejectedValue(
         new Error(errorMessage),
       );
@@ -227,9 +244,35 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
 
   it('does not fetch if notifications are not enabled', async () => {
     const accounts = ['0x123', '0x456'];
-    const { mocks } = await arrangeAct(accounts, (m) => {
+    const { mocks } = await arrangeActCallback(accounts, (m) => {
       m.mockSelectIsEnabled.mockReturnValue(false);
     });
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('invokes effect fetch account notifications', async () => {
+    const accounts = ['0x123', '0x456'];
+    const { mocks } = await arrangeActEffect(accounts);
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).toHaveBeenCalled(),
+    );
+  });
+
+  it('does not invoke effect fetch if notifications are not enabled', async () => {
+    const accounts = ['0x123', '0x456'];
+    const { mocks } = await arrangeActEffect(accounts, (m) => {
+      m.mockSelectIsEnabled.mockReturnValue(false);
+    });
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('does not invoke effect fetch if there are no accounts', async () => {
+    const accounts: string[] = [];
+    const { mocks } = await arrangeActEffect(accounts);
     await waitFor(() =>
       expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
     );
@@ -353,19 +396,24 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
       .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
       .mockReturnValue(false);
 
+    const mockSelectIsMetaMaskPushNotificationsLoading = jest
+      .spyOn(Selectors, 'selectIsMetaMaskPushNotificationsLoading')
+      .mockReturnValue(false);
+
+    const mockSelectIsMetaMaskPushNotificationsEnabled = jest
+      .spyOn(Selectors, 'selectIsMetaMaskPushNotificationsEnabled')
+      .mockReturnValue(false);
+
     const mockSelectIsUpdatingMetamaskNotificationsAccount = jest
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([]);
 
-    const mockStrings = jest
-      .spyOn(I18nModule, 'strings')
-      .mockReturnValue('Some Translation');
-
     return {
       mockSelectIsUpdatingMetamaskNotifications,
       mockSelectIsMetamaskNotificationsEnabled,
+      mockSelectIsMetaMaskPushNotificationsLoading,
+      mockSelectIsMetaMaskPushNotificationsEnabled,
       mockSelectIsUpdatingMetamaskNotificationsAccount,
-      mockStrings,
     };
   };
 
@@ -383,42 +431,58 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
   };
 
   it('returns disabling notifications text when notifications are being disabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotifications.mockReturnValue(true);
       m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(true);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.disabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns enabling notifications text when notifications are being enabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotifications.mockReturnValue(true);
       m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(false);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.enabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
+    );
+  });
+
+  it('returns disabling notifications text when push notifications are being disabled', () => {
+    const { hook } = arrangeAct((m) => {
+      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(true);
+      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
+    });
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
+    );
+  });
+
+  it('returns enabling notifications text when push notifications are being enabled', () => {
+    const { hook } = arrangeAct((m) => {
+      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(false);
+      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
+    });
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns updating account settings text when accounts are being updated', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
         '0xAddr1',
       ]);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.updating_account_settings',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_account_settings'),
     );
   });
 
   it('returns undefined when no loading state is active', () => {
-    const { mocks, hook } = arrangeAct();
+    const { hook } = arrangeAct();
     expect(hook.result.current).toBeUndefined();
-    expect(mocks.mockStrings).not.toHaveBeenCalled();
   });
 });

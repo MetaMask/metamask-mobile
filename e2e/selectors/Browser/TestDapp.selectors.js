@@ -15,8 +15,11 @@ export const TestDappSelectorsWebIDs = {
   SIGN_TYPE_DATA_V3: 'signTypedDataV3',
   SIGN_TYPE_DATA_V4: 'signTypedDataV4',
   ETHEREUM_SIGN: 'siwe',
+  ETHEREUM_SIGN_BAD_DOMAIN: 'siweBadDomain',
   ADD_TOKENS_TO_WALLET_BUTTON: 'watchAssets',
   SEND_FAILING_TRANSACTION_BUTTON_ID: 'sendFailingButton',
   BATCH_TRANSFER_ERC1155_BUTTON_ID: 'batchTransferFromButton',
   SWITCH_ETHEREUM_CHAIN: 'switchEthereumChain',
+  ERC_721_MINT_BUTTON_ID: 'mintButton',
+  SEND_EIP_1559_BUTTON_ID: 'sendEIP1559Button',
 };

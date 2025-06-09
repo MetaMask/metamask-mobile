@@ -10,7 +10,8 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
   }
 >
   <SvgMock
-    color="#1c8234"
+    color="#1c7e33"
+    fill="currentColor"
     height={32}
     name="Confirmation"
     style={
@@ -44,8 +45,8 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -68,12 +69,12 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
@@ -100,8 +101,8 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
-          "borderRadius": 24,
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
@@ -114,11 +115,11 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -139,7 +140,8 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
   }
 >
   <SvgMock
-    color="#bf5208"
+    color="#9a6300"
+    fill="currentColor"
     height={32}
     name="Danger"
     style={
@@ -163,10 +165,10 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
           "flexWrap": "wrap",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -192,7 +194,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 99,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -236,13 +238,13 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "flexShrink": 1,
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -254,12 +256,12 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "textAlign": "center",
       }
     }
@@ -288,8 +290,8 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
-          "borderRadius": 24,
+          "borderColor": "#4459ff",
+          "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
@@ -303,12 +305,12 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -326,8 +328,8 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
-          "borderRadius": 24,
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
@@ -341,11 +343,11 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

@@ -60,6 +60,9 @@ const createStyles = (theme: Theme) => {
       ...(theme.typography.sBodyMDMedium as TextStyle),
       color: theme.colors.primary.default,
     },
+    header: {
+      backgroundColor: undefined,
+    },
   });
 };
 export default createStyles;

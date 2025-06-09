@@ -38,6 +38,42 @@ export const WalletViewSelectorsIDs = {
   TOKEN_NETWORK_FILTER: 'token-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
+  NAVBAR_TITLE_TEXT: 'navbar-title-text',
+  NETWORK_AVATAR_IMAGE: 'network-avatar-image',
+  NOTIFICATIONS_BUTTON: 'notifications-button',
+  NOTIFICATIONS_COUNT: 'notifications-count',
+  PROFILE_BUTTON: 'profile-button',
+  PROFILE_BUTTON_CONTAINER: 'profile-button-container',
+  PROFILE_BUTTON_AVATAR: 'profile-button-avatar',
+  PROFILE_BUTTON_AVATAR_CONTAINER: 'profile-button-avatar-container',
+  PROFILE_BUTTON_AVATAR_TITLE: 'profile-button-avatar-title',
+  PROFILE_BUTTON_AVATAR_SUBTITLE: 'profile-button-avatar-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK: 'profile-button-avatar-network',
+  PROFILE_BUTTON_AVATAR_NETWORK_TEXT: 'profile-button-avatar-network-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_IMAGE: 'profile-button-avatar-network-image',
+  PROFILE_BUTTON_AVATAR_NETWORK_CONTAINER:
+    'profile-button-avatar-network-container',
+  PROFILE_BUTTON_AVATAR_NETWORK_TITLE: 'profile-button-avatar-network-title',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE:
+    'profile-button-avatar-network-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_TEXT:
+    'profile-button-avatar-network-subtitle-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_ICON:
+    'profile-button-avatar-network-subtitle-icon',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
+    'profile-button-avatar-network-subtitle-container',
+  // Carousel selectors
+  CAROUSEL_CONTAINER: 'carousel-container',
+
+  CAROUSEL_PROGRESS_DOTS: 'progress-dots',
+  CAROUSEL_SLIDE: (id) => `carousel-slide-${id}`,
+  CAROUSEL_SLIDE_TITLE: (id) => `carousel-slide-${id}-title`,
+  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) => `carousel-slide-${id}-close-button`,
+
+  DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
+  DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
+  DEFI_POSITIONS_LIST: 'defi-positions-list',
+  DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
 };
 
 export const WalletViewSelectorsText = {
@@ -47,4 +83,11 @@ export const WalletViewSelectorsText = {
   HIDE_TOKENS: enContent.wallet.remove,
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
+  NAVBAR_TITLE_TEXT: 'Wallet',
+  PERMISSIONS_SUMMARY_TAB: 'Permissions',
+  ACCOUNTS_SUMMARY_TAB: 'Accounts',
+  DEFI_TAB: enContent.wallet.defi,
+  DEFI_NO_POSITIONS: enContent.defi_positions.no_positions,
+  DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
+  DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 };

@@ -12,7 +12,8 @@ module.exports = {
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
-  plugins: ['@typescript-eslint', '@metamask/design-tokens'],
+  // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
+  plugins: ['@typescript-eslint', '@metamask/design-tokens', 'react-compiler'],
   overrides: [
     {
       files: ['*.{ts,tsx}'],
@@ -78,10 +79,11 @@ module.exports = {
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
         'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/**/*.{js,ts,tsx}'
+        'app/components/Views/confirmations/**/*.{js,ts,tsx}',
       ],
       excludedFiles: [
-        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}'],
+        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
+      ],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -97,7 +99,7 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker',
+              'selectEvmTicker',
             ]
               .map((method) => `^${method}$`)
               .join('|')}/]`,
@@ -135,6 +137,8 @@ module.exports = {
   },
 
   rules: {
+    // Set to error once all warnings reported by React Compiler are resolved
+    'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
     quotes: [

@@ -4,8 +4,9 @@ import { StyleSheet } from 'react-native';
 
 export const createStyles = () =>
   StyleSheet.create({
-    webview: {
+    container: {
       height: 0,
+      width: 0,
     },
   });
 ///: END:ONLY_INCLUDE_IF

@@ -1,43 +1,32 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { ButtonLinkProps } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.types';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import AnimatedLottieView from 'lottie-react-native';
 
 export interface SnapUIButtonProps {
   name?: string;
+  disabled?: boolean;
   loading?: boolean;
   type?: ButtonType;
   form?: string;
-  variant: keyof typeof COLORS;
-  textVariant?: TextVariant;
+  children: React.ReactNode;
 }
 
-const COLORS = {
-  primary: TextColor.Info,
-  destructive: TextColor.Error,
-  disabled: TextColor.Muted,
-};
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});
 
-export const SnapUIButton: FunctionComponent<
-  SnapUIButtonProps & ButtonLinkProps
-> = ({
+export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   name,
   children,
   form,
   type = ButtonType.Button,
-  variant = 'primary',
   disabled = false,
   loading = false,
-  textVariant,
-  ...props
 }) => {
   const { handleEvent } = useSnapInterfaceContext();
 
@@ -56,31 +45,27 @@ export const SnapUIButton: FunctionComponent<
     }
   };
 
-  const overriddenVariant = disabled ? 'disabled' : variant;
-
-  const color = COLORS[overriddenVariant as keyof typeof COLORS];
-
-  // TODO: Support sizing the text
   return (
-    <ButtonLink
-      {...props}
+    <TouchableOpacity
       id={name}
       onPress={handlePress}
-      // @ts-expect-error This prop is not part of the type but it works.
-      color={color}
       disabled={disabled}
-      label={
-        loading ? (
-          <Icon
-            // TODO: Animate this icon.
-            name={IconName.Loading}
-          />
-        ) : (
-          <Text color={color} variant={textVariant}>
-            {children}
-          </Text>
-        )
-      }
-    />
+      style={styles.container}
+    >
+      {loading ? (
+        <AnimatedLottieView
+          source={{ uri: './loading.json' }}
+          autoPlay
+          loop
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{
+            width: 24,
+            height: 24,
+          }}
+        />
+      ) : (
+        children
+      )}
+    </TouchableOpacity>
   );
 };

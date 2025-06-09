@@ -1,13 +1,13 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component } from 'react';
-import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
+import { View, NativeSyntheticEvent } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
-import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
+import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/webview/index.html';
 import { EmptyObject } from '@metamask/snaps-sdk';
 
 const styles = createStyles();
@@ -108,25 +108,22 @@ export class SnapsExecutionWebView extends Component {
 
   render() {
     return (
-      <ScrollView>
-        <View style={styles.webview}>
-          {Object.entries(this.webViews).map(([key, { props }]) => (
-            <WebView
-              testID={key}
-              key={key}
-              ref={props.ref}
-              source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-              onMessage={props.onWebViewMessage}
-              onError={props.onWebViewError}
-              onLoadEnd={props.onWebViewLoad}
-              originWhitelist={['*']}
-              javaScriptEnabled
-            />
-          ))}
-        </View>
-      </ScrollView>
+      <View style={styles.container}>
+        {Object.entries(this.webViews).map(([key, { props }]) => (
+          <WebView
+            testID={key}
+            key={key}
+            ref={props.ref}
+            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+            onMessage={props.onWebViewMessage}
+            onError={props.onWebViewError}
+            onLoadEnd={props.onWebViewLoad}
+            originWhitelist={['*']}
+            javaScriptEnabled
+          />
+        ))}
+      </View>
     );
   }
 }
-
 ///: END:ONLY_INCLUDE_IF

@@ -4,6 +4,7 @@ import {
 } from '../../selectors/wallet/WalletView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
 
 class WalletView {
   get container() {
@@ -26,7 +27,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -35,6 +35,12 @@ class WalletView {
 
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  }
+
+  get notificationBellIcon() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+    );
   }
 
   get navbarNetworkText() {
@@ -123,6 +129,32 @@ class WalletView {
     return Matchers.getElementByText('Cancel');
   }
 
+  get carouselContainer() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+  }
+
+  get carouselProgressDots() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+    );
+  }
+
+  getCarouselSlide(id) {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
+  }
+
+  getCarouselSlideTitle(id) {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_TITLE(id),
+    );
+  }
+
+  getCarouselSlideCloseButton(id) {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
+    );
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -139,8 +171,12 @@ class WalletView {
     await Gestures.waitAndTap(this.accountIcon);
   }
 
+  async tapBellIcon() {
+    await Gestures.waitAndTap(this.notificationBellIcon);
+  }
+
   async tapNetworksButtonOnNavBar() {
-    await Gestures.waitAndTap(this.navbarNetworkButton);
+    await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   async tapNftTab() {
@@ -162,7 +198,7 @@ class WalletView {
   get testCollectible() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
 
   async tapOnNftName() {
@@ -244,6 +280,69 @@ class WalletView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  /**
+   * Swipes the carousel in the specified direction.
+   * @param {'left' | 'right'} direction - The direction to swipe ('left' or 'right').
+   */
+  async swipeCarousel(direction) {
+    await Gestures.swipe(this.carouselContainer, direction, 'slow', 0.7);
+  }
+
+  /**
+   * Closes the carousel slide with the specified ID by tapping its close button.
+   *
+   * @param {string|number} id - The identifier of the carousel slide to close.
+   * @returns {Promise<void>} A promise that resolves when the slide has been closed.
+   */
+  async closeCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlideCloseButton(id));
+  }
+
+  /**
+   * Taps on a carousel slide with the specified identifier.
+   *
+   * @param {string} id - The unique identifier of the carousel slide to tap.
+   * @returns {Promise<void>} Resolves when the tap action is complete.
+   */
+  async tapCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlide(id));
+  }
+
+  get defiTab() {
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
+  }
+
+  get defiNetworkFilter() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+    );
+  }
+
+  get defiTabContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+    );
+  }
+
+  get defiPositionDetailsContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+    );
+  }
+
+  async tapOnDeFiTab() {
+    await Gestures.waitAndTap(this.defiTab);
+  }
+
+  async tapOnDeFiNetworksFilter() {
+    await Gestures.waitAndTap(this.defiNetworkFilter);
+  }
+
+  async tapOnDeFiPosition(positionName) {
+    const elem = Matchers.getElementByText(positionName);
+    await Gestures.waitAndTap(elem);
   }
 }
 

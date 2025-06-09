@@ -5,7 +5,7 @@ exports[`Tag should render correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 10,
       "borderWidth": 1,
       "height": 24,
@@ -18,12 +18,12 @@ exports[`Tag should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

@@ -1,7 +1,7 @@
 import {
   type INotification,
-  type OnChainRawNotification,
   processNotification,
+  toRawOnChainNotification,
   type UnprocessedOnChainRawNotification,
 } from '@metamask/notification-services-controller/notification-services';
 import messaging, {
@@ -10,21 +10,6 @@ import messaging, {
 import Logger from '../../../util/Logger';
 
 type UnsubscribeFunc = () => void;
-
-/**
- * Converts an unprocessed raw notification to a processed raw notification
- * TEMP - this is exported in the updated notification-services-controller package
- * @param data - takes an unprocessed raw notification
- * @returns - adds additional properties to make it a processed raw notification
- */
-export function toRawOnChainNotification(
-  data: UnprocessedOnChainRawNotification,
-): OnChainRawNotification {
-  return {
-    ...data,
-    type: data?.data?.kind,
-  } as OnChainRawNotification;
-}
 
 /**
  * Utility to check if devices have enabled push notifications

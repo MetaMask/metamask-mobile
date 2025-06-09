@@ -1,0 +1,406 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SegmentedControl Multi-select mode renders correctly with default selections 1`] = `
+<View
+  onValueChange={[MockFunction]}
+  selectedValues={
+    [
+      "mode1",
+      "mode3",
+    ]
+  }
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 12,
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 1
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 2
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 4
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`SegmentedControl Single-select mode renders correctly with default selection 1`] = `
+<View
+  onValueChange={[MockFunction]}
+  selectedValue="mode1"
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "gap": 12,
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 1
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 2
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Mode 4
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

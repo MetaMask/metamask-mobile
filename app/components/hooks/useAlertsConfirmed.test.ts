@@ -25,13 +25,23 @@ describe('useAlertsConfirmed', () => {
     title: 'Alert 3',
   };
 
+  const blockerAlertMock: Alert = {
+    key: 'alert4',
+    severity: Severity.Danger,
+    message: 'Blocker alert',
+    title: 'Alert 4',
+    isBlocking: true,
+  };
+
+  const skipConfirmationAlertMock: Alert = {
+    key: 'alert5',
+    severity: Severity.Danger,
+    message: 'Skip confirmation alert',
+    title: 'Alert 5',
+    skipConfirmation: true,
+  };
+
   const alertsMock = [dangerAlertMock, warningAlertMock, infoAlertMock];
-
-
-  it('initializes with the correct alert key', () => {
-    const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
-    expect(result.current.alertKey).toBe(dangerAlertMock.key);
-  });
 
   it('sets and gets alert confirmation status', () => {
     const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
@@ -59,12 +69,13 @@ describe('useAlertsConfirmed', () => {
     expect(result.current.hasUnconfirmedFieldDangerAlerts).toBe(true);
   });
 
-  it('sets a new alert key', () => {
-    const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
+  it('returns hasBlockingAlerts true when there is a blocker alert', () => {
+    const { result } = renderHook(() => useAlertsConfirmed([blockerAlertMock]));
+    expect(result.current.hasBlockingAlerts).toBe(true);
+  });
 
-    act(() => {
-      result.current.setAlertKey(warningAlertMock.key);
-    });
-    expect(result.current.alertKey).toBe(warningAlertMock.key);
+  it('returns hasUnconfirmedDangerAlerts false when there is a skip confirmation alert', () => {
+    const { result } = renderHook(() => useAlertsConfirmed([skipConfirmationAlertMock]));
+    expect(result.current.hasUnconfirmedDangerAlerts).toBe(false);
   });
 });

@@ -6,12 +6,12 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';
 import {
   selectEvmChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { safeToChecksumAddress } from '../../../util/address';
+import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
@@ -19,9 +19,9 @@ import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../util/general';
 import { RootState } from '../../../reducers';
 import AddressFrom from './AddressFrom';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const { internalAccounts, chainId, ticker, transactionState, origin } = props;
@@ -33,7 +33,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     ensRecipient,
   } = transactionState;
 
-  const fromAddress = safeToChecksumAddress(rawFromAddress);
+  const fromAddress = toFormattedAddress(rawFromAddress);
 
   const [toAddress, setToAddress] = useState(transactionTo || to);
   const [fromAccountName, setFromAccountName] = useState<string>();
@@ -65,7 +65,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         }
       } else {
         const accountWithMatchingFromAddress = internalAccounts.find(
-          (account) => toLowerCaseEquals(account.address, fromAddress),
+          (account) => areAddressesEqual(account.address, fromAddress),
         );
 
         const newName = accountWithMatchingFromAddress
@@ -103,7 +103,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         }
       } else {
         const accountWithMatchingToAddress = internalAccounts.find((account) =>
-          toLowerCaseEquals(account.address, toAddress),
+          areAddressesEqual(account.address, toAddress),
         );
 
         const newName = accountWithMatchingToAddress
@@ -169,7 +169,16 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <View style={styles.container}>
       {fromAddress && (
-        <AddressFrom asset={selectedAsset} from={fromAddress} origin={origin} />
+        <AddressFrom
+          chainId={
+            isPerDappSelectedNetworkEnabled()
+              ? transactionState?.chainId
+              : undefined
+          }
+          asset={selectedAsset}
+          from={fromAddress}
+          origin={origin}
+        />
       )}
       {existingToAddress === undefined && confusableCollection.length ? (
         <TouchableOpacity onPress={() => setShowWarningModal(true)}>
@@ -195,7 +204,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
   chainId: selectEvmChainId(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
 });
 
 export default connect(mapStateToProps)(AccountFromToInfoCard);

@@ -3,6 +3,8 @@ import usePoolStakedDeposit from './index';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import {
   PooledStakingContract,
   StakingType,
@@ -10,7 +12,7 @@ import {
 } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
-
+import { EVENT_PROVIDERS } from '../../constants/events';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
 
@@ -102,7 +104,19 @@ jest.mock('../useStakeContext', () => ({
   useStakeContext: () => mockSdkContext,
 }));
 
+jest.mock('../../../../hooks/useMetrics/useMetrics');
+
 describe('usePoolStakedDeposit', () => {
+  const mockTrackEvent = jest.fn();
+  const useMetricsMock = jest.mocked(useMetrics);
+
+  beforeEach(() => {
+    useMetricsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -125,6 +139,24 @@ describe('usePoolStakedDeposit', () => {
       expect(mockEncodeDepositTransactionData).toHaveBeenCalledTimes(1);
       expect(mockEstimateDepositGas).toHaveBeenCalledTimes(1);
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+
+      await result.current.attemptDepositTransaction(
+        MOCK_DEPOSIT_VALUE_WEI,
+        MOCK_RECEIVER_ADDRESS,
+        undefined,
+        true,
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            is_redesigned: true,
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            transaction_amount_eth: '0.01',
+          }),
+        }),
+      );
     });
   });
 });

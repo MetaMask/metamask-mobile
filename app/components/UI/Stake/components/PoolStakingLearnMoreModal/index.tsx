@@ -81,13 +81,15 @@ const PoolStakingLearnMoreModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
+  const { vaultApys, isLoadingVaultApys } = useVaultApys();
 
-  const {
-    vaultApyAverages,
-    isLoadingVaultApyAverages,
-    refreshVaultApyAverages,
-  } = useVaultApyAverages();
+  // Order apys from oldest to newest
+  const reversedVaultApys = useMemo(
+    () => [...vaultApys].reverse(),
+    [vaultApys],
+  );
+
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
 
   // Converts VaultApyAverage for use with interactive graph timespan buttons.
   const parsedVaultTimespanApyAverages = useMemo(() => {
@@ -104,20 +106,6 @@ const PoolStakingLearnMoreModal = () => {
       setActiveTimespanApyAverage(parsedVaultTimespanApyAverages?.[7]);
     }
   }, [parsedVaultTimespanApyAverages]);
-
-  useEffect(() => {
-    async function refreshGraphData() {
-      await Promise.all([refreshVaultApyAverages(), refreshVaultApys()]).catch(
-        (err) =>
-          console.error(
-            'Failed to refresh Pool-Staking Learn More Modal Data: ',
-            err,
-          ),
-      );
-    }
-
-    refreshGraphData();
-  }, [refreshVaultApyAverages, refreshVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -173,9 +161,9 @@ const PoolStakingLearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </BottomSheetHeader>
-        {Boolean(vaultApys.length) && activeTimespanApyAverage && (
+        {Boolean(reversedVaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
-            dataPoints={vaultApys}
+            dataPoints={reversedVaultApys}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
             defaultTitle={`${formatPercent(
               activeTimespanApyAverage.apyAverage,

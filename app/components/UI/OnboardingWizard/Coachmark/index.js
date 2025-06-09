@@ -23,6 +23,10 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
 import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -159,7 +163,11 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignSelf: 'center',
     },
-    stepCounter: { ...typography.BodyMD, color: colors.info.inverse },
+    stepCounter: {
+      ...typography.BodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+      color: colors.info.inverse,
+    },
     titleContainer: {
       flexDirection: 'row',
       alignItems: 'center',

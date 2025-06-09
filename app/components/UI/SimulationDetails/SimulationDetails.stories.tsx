@@ -55,30 +55,42 @@ const preloadedEngineState = {
         allNftContracts: {},
       },
       TokenListController: {
-        tokenList: {
-          [ERC20_TOKEN_1_MOCK]: {
-            address: ERC20_TOKEN_1_MOCK,
-            symbol: 'WBTC',
-            name: 'Wrapped Bitcoin',
-            iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC20_TOKEN_1_MOCK}.png`,
-          },
-          [ERC20_TOKEN_2_MOCK]: {
-            address: ERC20_TOKEN_2_MOCK,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC20_TOKEN_2_MOCK}.png`,
-          },
-          [ERC721_TOKEN_MOCK]: {
-            address: ERC721_TOKEN_MOCK,
-            symbol: 'CK',
-            name: 'CryptoKitties',
-            iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC721_TOKEN_MOCK}.png`,
-          },
-          [ERC1155_TOKEN_MOCK]: {
-            address: ERC1155_TOKEN_MOCK,
-            symbol: 'MAYC',
-            name: 'Mutant Ape Yacht Club',
-            iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC1155_TOKEN_MOCK}.png `,
+        tokensChainsCache: {
+          [CHAIN_ID_MOCK]: {
+            data: [
+              {
+                [ERC20_TOKEN_1_MOCK]: {
+                  address: ERC20_TOKEN_1_MOCK,
+                  symbol: 'WBTC',
+                  name: 'Wrapped Bitcoin',
+                  iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC20_TOKEN_1_MOCK}.png`,
+                },
+              },
+              {
+                [ERC20_TOKEN_2_MOCK]: {
+                  address: ERC20_TOKEN_2_MOCK,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC20_TOKEN_2_MOCK}.png`,
+                },
+              },
+              {
+                [ERC721_TOKEN_MOCK]: {
+                  address: ERC721_TOKEN_MOCK,
+                  symbol: 'CK',
+                  name: 'CryptoKitties',
+                  iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC721_TOKEN_MOCK}.png`,
+                },
+              },
+              {
+                [ERC1155_TOKEN_MOCK]: {
+                  address: ERC1155_TOKEN_MOCK,
+                  symbol: 'MAYC',
+                  name: 'Mutant Ape Yacht Club',
+                  iconUrl: `https://static.metafi.codefi.network/api/v1/tokenIcons/1/${ERC1155_TOKEN_MOCK}.png `,
+                },
+              },
+            ],
           },
         },
       },

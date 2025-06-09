@@ -1,4 +1,8 @@
-import { selectKeyrings, selectFlattenedKeyringAccounts } from './index';
+import {
+  selectKeyrings,
+  selectFlattenedKeyringAccounts,
+  selectIsUnlocked,
+} from './index';
 import { RootState } from '../../reducers';
 import {
   MOCK_SIMPLE_ACCOUNTS,
@@ -38,6 +42,19 @@ describe('KeyringController Selectors', () => {
           },
         } as RootState),
       ).toEqual(expectedOrderedKeyringAccounts);
+    });
+  });
+  describe('selectIsUnlocked', () => {
+    it('returns isUnlocked', () => {
+      expect(
+        selectIsUnlocked({
+          engine: {
+            backgroundState: {
+              KeyringController: MOCK_KEYRING_CONTROLLER,
+            },
+          },
+        } as RootState),
+      ).toEqual(MOCK_KEYRING_CONTROLLER.isUnlocked);
     });
   });
 });

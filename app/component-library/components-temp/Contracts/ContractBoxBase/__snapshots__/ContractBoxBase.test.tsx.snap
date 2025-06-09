@@ -42,7 +42,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
           }
         }
         variant="sHeadingMD"
@@ -52,7 +52,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       <Text
         variant="sBodyMD"
       >
-        0x2990...a21a
+        0x29900...da21a
       </Text>
     </Component>
   </View>
@@ -75,7 +75,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       testID="copy-icon"
     >
       <Icon
-        color="#6a737d"
+        color="#686e7d"
         name="Copy"
         size="24"
       />

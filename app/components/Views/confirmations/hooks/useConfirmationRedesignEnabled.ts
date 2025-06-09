@@ -1,25 +1,24 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ApprovalType } from '@metamask/controller-utils';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
-import { isHardwareAccount } from '../../../../util/address';
 import {
-  type ConfirmationRedesignRemoteFlags,
+  ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+} from '../../../../selectors/featureFlagController/confirmations';
+import { isHardwareAccount } from '../../../../util/address';
+import { isStakingConfirmation } from '../utils/confirm';
+import {
+  REDESIGNED_SIGNATURE_TYPES,
+  REDESIGNED_TRANSACTION_TYPES,
+  REDESIGNED_TRANSFER_TYPES,
+} from '../constants/confirmations';
 import useApprovalRequest from './useApprovalRequest';
-
-const REDESIGNED_SIGNATURE_TYPES = [
-  ApprovalType.EthSignTypedData,
-  ApprovalType.PersonalSign,
-];
-
-const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -59,8 +58,27 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (transactionMetadata.type === TransactionType.stakingDeposit) {
-    return confirmationRedesignFlags?.staking_transactions;
+  if (isStakingConfirmation(transactionMetadata?.type as string)) {
+    return confirmationRedesignFlags?.staking_confirmations;
+  }
+
+  if (transactionMetadata?.type === TransactionType.contractInteraction) {
+    return confirmationRedesignFlags?.contract_interaction;
+  }
+
+  if (
+    transactionMetadata?.type === TransactionType.revokeDelegation ||
+    transactionMetadata?.type === TransactionType.batch
+  ) {
+    return true;
+  }
+
+  if (
+    REDESIGNED_TRANSFER_TYPES.includes(
+      transactionMetadata?.type as TransactionType,
+    )
+  ) {
+    return confirmationRedesignFlags?.transfer;
   }
 
   return false;

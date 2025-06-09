@@ -101,7 +101,7 @@ Install [Android Studio](https://developer.android.com/studio)
   - Select `SDK Tools` tab
   - Check `Show Package Details` option below the tools list to show available versions
   - Locate `NDK (Side-by-side)` option in the tools list
-  - Check NDK version `24.0.8215888`
+  - Check NDK version `26.1.10909125`
   - Locate `CMake` option in the tools list
   - Check CMake version `3.22.1`
   - Click "Apply" or "OK" to download

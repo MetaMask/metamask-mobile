@@ -194,4 +194,26 @@ describe('Migration #52', () => {
 
     expect(newState).toStrictEqual(validState);
   });
+
+  it('captures exception if Object.values(accounts)[0].id is undefined', () => {
+    const badState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [expectedUuid]: { ...internalAccount1, id: undefined },
+              },
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    };
+
+    migration(badState);
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 52: selectedAccount will be undefined because Object.values(accounts)[0].id is undefined.',
+    );
+  });
 });

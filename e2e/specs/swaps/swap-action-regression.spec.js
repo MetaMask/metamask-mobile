@@ -7,6 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -26,6 +27,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 import Tenderly from '../../tenderly';
 
@@ -60,6 +62,13 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
+  });
+
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
   });
 
   it('should be able to import account', async () => {
@@ -108,7 +117,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-
+        await TestHelpers.delay(2000);
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);
