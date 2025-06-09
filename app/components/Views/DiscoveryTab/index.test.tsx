@@ -79,7 +79,7 @@ describe('DiscoveryTab', () => {
       { state: mockInitialState }
     );
     await waitFor(() => {
-      expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
+      expect(screen.getByText('Popular Tokens')).toBeOnTheScreen();
     });
   });
 
