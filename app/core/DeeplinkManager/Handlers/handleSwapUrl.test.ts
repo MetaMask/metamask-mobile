@@ -11,7 +11,7 @@ describe('handleSwapUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('should handle valid CAIP-19 swap URLs correctly', async () => {
+  it('handles valid CAIP-19 swap URLs correctly', async () => {
     const validSwapPath =
       '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=0x38d7ea4c68000';
 
@@ -30,7 +30,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('should handle URLs without leading question mark', async () => {
+  it('handles URLs without leading question mark', async () => {
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7';
 
@@ -49,7 +49,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('should handle invalid CAIP format by navigating to SwapsAmountView without params', async () => {
+  it('handles invalid CAIP format by navigating to SwapsAmountView without params', async () => {
     const invalidSwapPath = '?from=invalid&to=invalid';
 
     handleSwapUrl({
@@ -62,7 +62,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('should handle missing tokens by navigating to SwapsAmountView without params', async () => {
+  it('handles missing tokens by navigating to SwapsAmountView without params', async () => {
     const missingTokensPath = '?value=0x38d7ea4c68000';
 
     handleSwapUrl({
@@ -75,7 +75,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('should handle invalid hex value by setting amount to 0', async () => {
+  it('handles invalid hex value by setting amount to 0', async () => {
     const invalidHexPath =
       '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=invalid';
 
@@ -94,7 +94,7 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('should handle errors by navigating to SwapsAmountView without params', async () => {
+  it('handles errors by navigating to SwapsAmountView without params', async () => {
     const malformedPath = null;
 
     handleSwapUrl({
