@@ -128,22 +128,11 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   };
 
-  const onClose = () => {
-    navigation.goBack();
-  };
-
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.headerEmpty} />
       <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
         {headerTitle}
       </Text>
-      <ButtonIcon
-        testID={TermsOfUseModalSelectorsIDs.CLOSE_BUTTON}
-        onPress={onClose}
-        iconName={IconName.Close}
-        hitSlop={12}
-      />
     </View>
   );
 
@@ -249,7 +238,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} shouldNavigateBack>
+    <BottomSheet ref={bottomSheetRef} shouldNavigateBack isInteractable={false}>
       <View style={styles.modal} testID={containerTestId}>
         {renderHeader()}
         <View
