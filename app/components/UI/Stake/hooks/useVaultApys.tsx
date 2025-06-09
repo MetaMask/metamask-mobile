@@ -10,6 +10,7 @@ const useVaultApys = (chainId: number) => {
   const vaultApys = useSelector(
     pooledStakingSelectors.selectVaultDailyApysForChain(chainId),
   );
+
   const fetchVaultApys = async () => {
     setIsLoading(true);
     setError(null);
@@ -24,7 +25,7 @@ const useVaultApys = (chainId: number) => {
   };
 
   return {
-    vaultApys,
+    vaultApys: vaultApys || [],
     refreshVaultApys: fetchVaultApys,
     isLoadingVaultApys: isLoading,
     error,

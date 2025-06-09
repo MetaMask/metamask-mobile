@@ -1,9 +1,10 @@
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import useEarnTokens from './useEarnTokens';
-import { getMockEarnControllerState } from '../__mocks__/earnMockData';
 import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
-import { selectEarnTokens } from '../../../../selectors/earnController/earn';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
+import useEarnTokens, { useHasSupportedStablecoin } from './useEarnTokens';
 import {
   MOCK_LENDING_MARKET_USDT,
   MOCK_LENDING_MARKET_USDC,
@@ -29,6 +30,23 @@ import {
   createMockToken,
   mockEarnControllerRootState,
 } from '../../Stake/testUtils';
+import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
+import {
+  MOCK_ABASUSDC_BASE_MAINNET_ASSET,
+  MOCK_USDC_BASE_MAINNET_ASSET,
+} from '../../Stake/__mocks__/stakeMockData';
+import {
+  MOCK_ADAI_MAINNET_ASSET,
+  MOCK_AUSDT_MAINNET_ASSET,
+} from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_AETHUSDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_DAI_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_USDT_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TestMockVar = any;
 
 const mockSelectPooledStakingEnabledFlag = jest.fn();
 const mockSelectStablecoinLendingEnabledFlag = jest.fn();
@@ -538,5 +556,178 @@ describe('useEarnTokens', () => {
       expect(pairedTokens.outputToken?.symbol).toBe('aUSDC');
       expect(pairedTokens.earnToken?.symbol).toBe('USDC');
     });
+  });
+});
+
+// this is currently not in use, commenting for now as hook implementattion has changed drastically
+describe.skip('useHasSupportedStablecoin', () => {
+  let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
+  beforeEach(() => {
+    selectAccountTokensAcrossChainsSpy = jest
+      .spyOn(
+        {
+          selectAccountTokensAcrossChains,
+        },
+        'selectAccountTokensAcrossChains',
+      )
+      .mockReturnValue({
+        '0x1': [
+          MOCK_ETH_MAINNET_ASSET,
+          MOCK_USDC_MAINNET_ASSET,
+          MOCK_USDT_MAINNET_ASSET,
+          MOCK_DAI_MAINNET_ASSET,
+          MOCK_AETHUSDC_MAINNET_ASSET,
+          MOCK_AUSDT_MAINNET_ASSET,
+          MOCK_ADAI_MAINNET_ASSET,
+        ],
+        '0x2105': [
+          MOCK_USDC_BASE_MAINNET_ASSET,
+          MOCK_ABASUSDC_BASE_MAINNET_ASSET,
+        ],
+      });
+  });
+
+  const mockChainId = '0x1' as const;
+  const mockTokenSymbol = 'USDC';
+  const mockTokens = [
+    {
+      chainId: '0x1',
+      symbol: 'USDC',
+      address: '0x123',
+      decimals: 6,
+    },
+    {
+      chainId: '0x1',
+      symbol: 'USDT',
+      address: '0x456',
+      decimals: 6,
+    },
+  ];
+
+  const arrange = () => {
+    return {
+      mockSelectAccountTokensAcrossChains: selectAccountTokensAcrossChainsSpy,
+    };
+  };
+
+  const validParamsTestMatrix = [
+    {
+      description: 'token exists, symbol matches, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: true,
+    },
+    {
+      description: 'token exists, symbol matches, isStaked false',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: false,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token exists, symbol matches, isStaked undefined',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: undefined,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token exists, symbol does not match, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: 'NONEXISTENT',
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token does not exist, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: [] },
+      expected: false,
+    },
+  ];
+
+  it.each(validParamsTestMatrix)(
+    'return $expected when $description',
+    (testcase) => {
+      const mocks = arrange();
+      mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
+        testcase.mockTokensData,
+      );
+
+      const hook = renderHookWithProvider(
+        () =>
+          useHasSupportedStablecoin(
+            testcase.params.tokenChainId,
+            testcase.params.tokenSymbol,
+            testcase.params.isStaked,
+          ),
+        {},
+      );
+
+      expect(hook.result.current).toBe(testcase.expected);
+    },
+  );
+
+  const edgeCaseMatrix = [
+    {
+      description: 'tokens selector returns empty object',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: {},
+      expected: false,
+    },
+    {
+      description: 'tokenSymbol is undefined',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: undefined,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+  ];
+
+  it.each(edgeCaseMatrix)('returns $expected when $description', (testcase) => {
+    const mocks = arrange();
+    mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
+      testcase.mockTokensData as TestMockVar,
+    );
+
+    const hook = renderHookWithProvider(
+      () =>
+        useHasSupportedStablecoin(
+          testcase.params.tokenChainId,
+          testcase.params.tokenSymbol,
+          testcase.params.isStaked,
+        ),
+      {
+        state: {
+          ...mockState,
+        },
+      },
+    );
+
+    expect(hook.result.current).toBe(testcase.expected);
   });
 });

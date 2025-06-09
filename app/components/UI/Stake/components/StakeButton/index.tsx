@@ -138,7 +138,15 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     }
   };
 
-  if (areEarnExperiencesDisabled || earnToken?.balanceMinimalUnit === '0')
+  console.log(
+    'areEarnExperiencesDisabled',
+    areEarnExperiencesDisabled,
+    earnToken?.balanceMinimalUnit,
+  );
+  if (
+    areEarnExperiencesDisabled ||
+    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0')
+  )
     return <></>;
 
   return (

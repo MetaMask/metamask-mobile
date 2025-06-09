@@ -22,6 +22,7 @@ import {
 } from '../core/Multichain/utils';
 import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { toFormattedAddress } from '../util/address';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -44,7 +45,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
-        account.toLowerCase(),
+        toFormattedAddress(account),
         index,
       ]),
     );
@@ -52,8 +53,8 @@ export const selectInternalAccounts = createDeepEqualSelector(
       accountControllerState.internalAccounts.accounts,
     ).sort(
       (a, b) =>
-        (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
-        (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
+        (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
+        (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
     return sortedAccounts;
   },
@@ -84,10 +85,12 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
   (
     accountsControllerState: AccountsControllerState,
   ): InternalAccount | undefined => {
+    console.log('accountsControllerState', accountsControllerState);
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
-
+    console.log('accountId', accountId);
+    console.log('account', account);
     if (!account) {
       const err = new Error(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,

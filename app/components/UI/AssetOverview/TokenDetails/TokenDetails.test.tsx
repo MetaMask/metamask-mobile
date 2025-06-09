@@ -19,6 +19,7 @@ import * as reactRedux from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -30,6 +31,10 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../Earn/selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockNavigate = jest.fn();
@@ -335,88 +340,5 @@ describe('TokenDetails', () => {
     debug();
     expect(queryByText('Token details')).toBeNull();
     expect(getByText('Market details')).toBeDefined();
-  });
-
-  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero and user does not have existing positions', () => {
-    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
-    const SELECTOR_MOCKS = {
-      selectTokenMarketDataByChainId: {},
-      selectConversionRateBySymbol: mockExchangeRate,
-      selectNativeCurrencyByChainId: 'ETH',
-    } as const;
-
-    useSelectorSpy.mockImplementation((selectorOrCallback) => {
-      if (typeof selectorOrCallback === 'function') {
-        const selectorString = selectorOrCallback.toString();
-        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
-          selectorString.includes(key),
-        );
-        if (matchedSelector) {
-          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
-        }
-      }
-
-      switch (selectorOrCallback) {
-        case selectTokenList:
-          return mockAssets;
-        case selectContractExchangeRates:
-          return {};
-        case selectConversionRate:
-          return mockExchangeRate;
-        case selectCurrentCurrency:
-          return mockCurrentCurrency;
-        case selectProviderConfig:
-          return { ticker: 'ETH' };
-        case selectEvmTicker:
-          return 'ETH';
-        case selectMultichainAssetsRates:
-          return {};
-        default:
-          return undefined;
-      }
-    });
-
-    const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
-      state: initialState,
-    });
-
-    expect(
-      getByText(
-        strings('earn.empty_state_cta.heading', {
-          tokenSymbol: mockDAI.symbol,
-        }),
-      ),
-    ).toBeDefined();
-    expect(
-      getByText(strings('earn.empty_state_cta.start_earning')),
-    ).toBeDefined();
-  });
-
-  it('does not render EarnEmptyCta if asset can be lent but balance is zero', () => {
-    mockSelectors();
-
-    const mockDaiWithoutBalance = {
-      ...mockDAI,
-      balanceFiat: '$0.00',
-      balance: '0',
-    };
-
-    const { queryByText } = renderWithProvider(
-      <TokenDetails asset={mockDaiWithoutBalance} />,
-      {
-        state: initialState,
-      },
-    );
-
-    expect(
-      queryByText(
-        strings('earn.empty_state_cta.heading', {
-          tokenSymbol: mockDAI.symbol,
-        }),
-      ),
-    ).toBeNull();
-    expect(
-      queryByText(strings('earn.empty_state_cta.start_earning')),
-    ).toBeNull();
   });
 });

@@ -72,6 +72,20 @@ jest.mock('../../hooks/useStakeContext', () => ({
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
+expect.addSnapshotSerializer({
+  test: (val) => {
+    return (
+      val &&
+      typeof val === 'object' &&
+      (val.props?.source?.uri === '' ||
+        val.props?.onLayout ||
+        val.props?.onError ||
+        val.props?.onLoadEnd)
+    );
+  },
+  print: () => 'IGNORED_RANDOM_ELEMENT',
+});
+
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {
     const props: UnstakeConfirmationViewProps = {

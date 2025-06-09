@@ -12,6 +12,7 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
+import { toFormattedAddress, areAddressesEqual } from '../util/address';
 
 /**
  * Restore the given serialized QR keyring.
@@ -270,7 +271,11 @@ export const recreateVaultWithNewPassword = async (
   const recreatedKeyrings = KeyringController.state.keyrings;
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
-    if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
+    if (
+      keyring.accounts.some((account) =>
+        areAddressesEqual(account, selectedAddress),
+      )
+    ) {
       Engine.setSelectedAddress(selectedAddress);
       return;
     }

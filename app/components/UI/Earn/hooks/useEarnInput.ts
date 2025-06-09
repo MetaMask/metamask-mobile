@@ -104,6 +104,7 @@ const useEarnInputHandlers = ({
   const { annualRewardRate, annualRewardRateDecimal, isLoadingEarnMetadata } =
     useEarnMetadata(earnToken);
   const handleMax = useCallback(async () => {
+    console.log('handleMax', balanceMinimalUnit.toString());
     if (!balanceMinimalUnit) return;
 
     let maxMinimalUnit;
@@ -116,7 +117,7 @@ const useEarnInputHandlers = ({
     } else {
       maxMinimalUnit = balanceMinimalUnit;
     }
-
+    console.log('maxMinimalUnit', maxMinimalUnit.toString());
     handleMaxInput(maxMinimalUnit);
   }, [
     balanceMinimalUnit,
@@ -134,8 +135,13 @@ const useEarnInputHandlers = ({
           fromTokenMinimalUnit(amountTokenMinimalUnit, earnToken.decimals),
         ) * annualRewardRateDecimal,
         5,
-      )} ETH`,
-    [amountTokenMinimalUnit, annualRewardRateDecimal, earnToken.decimals],
+      )} ${earnToken.ticker}`,
+    [
+      amountTokenMinimalUnit,
+      annualRewardRateDecimal,
+      earnToken.decimals,
+      earnToken.ticker,
+    ],
   );
 
   const annualRewardsFiat = useMemo(

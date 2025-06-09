@@ -61,35 +61,47 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastUpdated": 0,
         "lending": {
           "isEligible": false,
-          "markets": [],
-          "positions": [],
+          "markets": [
+            {
+              "address": "",
+              "chainId": 0,
+              "id": "",
+              "name": "",
+              "netSupplyRate": 0,
+              "outputToken": {
+                "address": "",
+                "chainId": 0,
+              },
+              "protocol": "",
+              "rewards": [
+                {
+                  "rate": 0,
+                  "token": {
+                    "address": "",
+                    "chainId": 0,
+                  },
+                },
+              ],
+              "totalSupplyRate": 0,
+              "tvlUnderlying": "0",
+              "underlying": {
+                "address": "",
+                "chainId": 0,
+              },
+            },
+          ],
+          "positions": [
+            {
+              "assets": "0",
+              "chainId": 0,
+              "id": "",
+              "marketAddress": "",
+              "marketId": "",
+              "protocol": "",
+            },
+          ],
         },
         "pooled_staking": {
-          "1": {
-            "pooledStakes": {
-              "account": "",
-              "assets": "0",
-              "exitRequests": [],
-              "lifetimeRewards": "0",
-            },
-            "vaultApyAverages": {
-              "oneDay": "0",
-              "oneMonth": "0",
-              "oneWeek": "0",
-              "oneYear": "0",
-              "sixMonths": "0",
-              "threeMonths": "0",
-            },
-            "vaultDailyApys": [],
-            "vaultMetadata": {
-              "apy": "0",
-              "capacity": "0",
-              "feePercent": 0,
-              "totalAssets": "0",
-              "vaultAddress": "0x0000000000000000000000000000000000000000",
-            },
-          },
-          "exchangeRate": "1",
           "isEligible": false,
         },
       },

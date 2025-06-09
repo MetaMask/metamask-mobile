@@ -92,6 +92,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -136,6 +137,10 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
 
@@ -158,6 +163,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleClear = useCallback(() => {
     setSeedPhrase([]);
+    setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
   }, []);
@@ -524,7 +530,7 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-
+        fetchAccountsWithActivity();
         navigation.reset({
           index: 1,
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
@@ -558,6 +564,14 @@ const ImportFromSecretRecoveryPhrase = ({
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
   };
+
+  const canShowSeedPhraseWord = useCallback(
+    (index) =>
+      showAllSeedPhrase ||
+      errorWordIndexes[index] ||
+      index === seedPhraseInputFocusedIndex,
+    [showAllSeedPhrase, errorWordIndexes, seedPhraseInputFocusedIndex],
+  );
 
   const learnMoreLink = () => {
     navigation.push('Webview', {
@@ -704,9 +718,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   value={item}
                                   secureTextEntry={
-                                    (!showAllSeedPhrase ||
-                                      !errorWordIndexes[index]) &&
-                                    seedPhraseInputFocusedIndex !== index
+                                    !canShowSeedPhraseWord(index)
                                   }
                                   onFocus={(e) => {
                                     if (
@@ -738,6 +750,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   isError={errorWordIndexes[index]}
                                   autoCapitalize="none"
                                   numberOfLines={1}
+                                  autoFocus={index === seedPhrase.length - 1}
                                   testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                 />
                               </View>
