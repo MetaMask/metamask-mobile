@@ -380,7 +380,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   },
                 ]
               }
-              testID=""
+              testID="add-collectible-button"
             >
               <Text
                 style={
