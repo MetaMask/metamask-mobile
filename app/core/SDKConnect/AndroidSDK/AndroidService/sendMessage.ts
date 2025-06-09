@@ -7,6 +7,10 @@ import handleBatchRpcResponse from '../../handlers/handleBatchRpcResponse';
 import DevLogger from '../../utils/DevLogger';
 import { wait } from '../../utils/wait.util';
 import AndroidService from '../AndroidService';
+import {
+  areAddressesEqual,
+  toFormattedAddress,
+} from '../../../../util/address';
 
 async function sendMessage(
   instance: AndroidService,
@@ -25,26 +29,27 @@ async function sendMessage(
       }
     ).AccountsController;
 
-    const selectedAddress = accountsController
-      .getSelectedAccount()
-      .address.toLowerCase();
-
-    const lowercaseAccounts = (message.data.result as string[]).map(
-      (a: string) => a.toLowerCase(),
+    const selectedFormattedAddress = toFormattedAddress(
+      accountsController.getSelectedAccount().address,
     );
 
-    const isPartOfConnectedAddresses =
-      lowercaseAccounts.includes(selectedAddress);
+    const formattedAccounts = (message.data.result as string[]).map(
+      (a: string) => toFormattedAddress(a),
+    );
+
+    const isPartOfConnectedAddresses = formattedAccounts.includes(
+      selectedFormattedAddress,
+    );
 
     if (isPartOfConnectedAddresses) {
-      // Remove the selectedAddress from the lowercaseAccounts if it exists
-      const remainingAccounts = lowercaseAccounts.filter(
-        (account) => account !== selectedAddress,
+      // Remove the selectedAddress from the formattedAccounts if it exists
+      const remainingAccounts = formattedAccounts.filter(
+        (account) => !areAddressesEqual(account, selectedFormattedAddress),
       );
 
       // Create the reorderedAccounts array with selectedAddress as the first element
       const reorderedAccounts: string[] = [
-        selectedAddress,
+        selectedFormattedAddress,
         ...remainingAccounts,
       ];
 

@@ -17,10 +17,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  findBlockExplorerForNonEvmAccount,
-  getBlockExplorerName,
-} from '../../../util/networks';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -50,7 +46,7 @@ import { useTheme } from '../../../util/theme';
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
-import { selectDismissSmartAccountSuggestionEnabled } from '../../../selectors/preferencesController';
+import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -67,9 +63,6 @@ const AccountActions = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
-  );
-  const dismissSmartAccountSuggestionEnabled = useSelector(
-    selectDismissSmartAccountSuggestionEnabled,
   );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
@@ -95,28 +88,10 @@ const AccountActions = () => {
         title: string;
         blockExplorerName: string;
       }
-    | undefined = useMemo(() => {
-    if (selectedAccount) {
-      if (isEvmAccountType(selectedAccount.type)) {
-        return {
-          url: `https://etherscan.io/address/${selectedAccount.address}#asset-multichain`,
-          title: 'Etherscan (Multichain)',
-          blockExplorerName: 'Etherscan (Multichain)',
-        };
-      }
-
-      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
-      if (explorer) {
-        return {
-          url: explorer,
-          title: new URL(explorer).hostname,
-          blockExplorerName:
-            getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
-        };
-      }
-      return undefined;
-    }
-  }, [selectedAccount]);
+    | undefined = useMemo(
+    () => getMultichainBlockExplorer(selectedAccount),
+    [selectedAccount],
+  );
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -454,14 +429,13 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {networkSupporting7702Present &&
-          !dismissSmartAccountSuggestionEnabled && (
-            <AccountAction
-              actionTitle={strings('account_actions.switch_to_smart_account')}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwitchAccountType}
-            />
-          )}
+        {networkSupporting7702Present && (
+          <AccountAction
+            actionTitle={strings('account_actions.switch_to_smart_account')}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwitchAccountType}
+          />
+        )}
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

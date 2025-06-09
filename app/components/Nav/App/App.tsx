@@ -80,6 +80,7 @@ import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
@@ -132,9 +133,12 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
-import AddNewAccount from '../../Views/AddNewAccount';
+import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
+import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
+import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -229,7 +233,11 @@ const OnboardingNav = () => (
       name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
       component={ImportFromSecretRecoveryPhrase}
     />
-    <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <Stack.Screen
+      name="OptinMetrics"
+      component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -327,10 +335,17 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ModalMandatory}
     />
     <Stack.Screen
+      name={Routes.SHEET.SUCCESS_ERROR_SHEET}
+      component={SuccessErrorSheet}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
-    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_ACCOUNT}
+      component={AddNewAccountBottomSheet}
+    />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
@@ -535,6 +550,35 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const MultichainAccountDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+        component={AccountDetails}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={MultichainEditAccountName}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
+        component={ShareAddress}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const FlatConfirmationRequest = () => (
   <Stack.Navigator>
     <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
@@ -645,6 +689,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.HW.CONNECT}
         component={ConnectHardwareWalletFlow}
+      />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
+        component={MultichainAccountDetails}
       />
       <Stack.Screen
         options={{
