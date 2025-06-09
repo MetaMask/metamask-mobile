@@ -4250,7 +4250,7 @@
     "export_credentials": {
       "export_private_key": "Private key",
       "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "private_key_warning_description": "Anyone with your private key can steal any assets held in your account.",
       "credential_as_text": "Text",
       "credential_as_qr": "QR code",
       "export_mnemonic": "Export mnemonic",
