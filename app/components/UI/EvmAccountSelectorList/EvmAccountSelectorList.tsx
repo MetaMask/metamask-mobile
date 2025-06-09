@@ -19,7 +19,7 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import Text, { TextColor } from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -125,7 +125,7 @@ const EvmAccountSelectorList = ({
   );
 
   const selectedAddressesLookup = useMemo(() => {
-    if (!selectedAddresses?.length) return null;
+    if (!selectedAddresses?.length) return undefined;
     const lookupSet = new Set<string>();
     selectedAddresses.forEach((addr) => {
       if (addr) lookupSet.add(toFormattedAddress(addr));
@@ -315,11 +315,9 @@ const EvmAccountSelectorList = ({
   }, [accounts, selectedAddresses, isAutoScrollEnabled, accountSections]);
 
   // Scroll to selected account when selection changes or on mount
-  useEffect(() => {
-    scrollToSelectedAccount();
-  }, [scrollToSelectedAccount]);
+  useEffect(() => { scrollToSelectedAccount(); }, [scrollToSelectedAccount]);
 
-  const renderAccountItem: SectionListRenderItem<Account, AccountSection> = useCallback(
+  const renderAccountItem = useCallback<SectionListRenderItem<Account, AccountSection>>(
     ({
       item: {
         name,
@@ -338,7 +336,7 @@ const EvmAccountSelectorList = ({
         scopes,
       };
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = multichainAccountsState1Enabled ? null : getLabelTextByAddress(address);
+      const tagLabel = multichainAccountsState1Enabled ? undefined : getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -450,6 +448,7 @@ const EvmAccountSelectorList = ({
       navigate,
       styles.titleText,
       multichainAccountsState1Enabled,
+      styles.titleText,
     ],
   );
 

@@ -271,7 +271,12 @@ import {
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
 import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
-import { AccountTreeController, AccountTreeControllerState } from '@metamask/account-tree-controller';
+import {
+  AccountTreeController,
+  AccountTreeControllerState,
+  AccountTreeControllerActions,
+  AccountTreeControllerEvents
+} from '@metamask/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
@@ -338,6 +343,7 @@ type GlobalActions =
   | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
+  | AccountTreeControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
   | TokenBalancesControllerActions
@@ -410,7 +416,9 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | AppMetadataControllerEvents
-  | DeFiPositionsControllerEvents;
+  | DeFiPositionsControllerEvents
+  | AccountTreeControllerEvents
+  | { type: 'AccountTreeController:stateChange'; payload: [AccountTreeControllerState] }; // TODO: this should be added to AccountTreeControllerEvents
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -501,7 +509,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
-  AccountTreeController: AccountTreeControllerState;
   AddressBookController: AddressBookControllerState;
   AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
@@ -537,6 +544,7 @@ export type EngineState = {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

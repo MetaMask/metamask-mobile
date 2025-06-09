@@ -17,16 +17,16 @@ export const selectAccountSections = createSelector(
   (accountTreeState) => {
     // TODO: Replace with actual AccountTreeController state structure
     // For now, return a simple hardcoded structure
-    if (!accountTreeState?.accountTrees?.roots) {
+    if (!accountTreeState?.accountTree?.wallets) {
       return [{
         title: 'Default Group',
         data: [],
       }];
     }
 
-    return Object.values(accountTreeState.accountTrees.roots).map((root) => ({
-      title: root.metadata.name,
-      data: Object.values(root.groups).map((group) => group.accounts).flat(),
+    return Object.values(accountTreeState.accountTree.wallets).map((wallet) => ({
+      title: wallet.metadata.name,
+      data: Object.values(wallet.groups).map((group) => group.accounts).flat(),
     }));
   }
 );

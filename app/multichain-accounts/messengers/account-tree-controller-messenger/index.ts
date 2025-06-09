@@ -1,4 +1,4 @@
-import { BaseControllerMessenger } from '../../core/Engine/types';
+import { BaseControllerMessenger } from '../../../core/Engine/types';
 
 /**
  * Get the AccountTreeControllerMessenger for the AccountTreeController.

@@ -18,8 +18,8 @@
     }
   },
   "AccountTreeController": {
-    "accountTrees": {
-      "roots": {}
+    "accountTree": {
+      "wallets": {}
     }
   },
   "AddressBookController": {
