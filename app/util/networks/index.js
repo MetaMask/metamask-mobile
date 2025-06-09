@@ -560,7 +560,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     if (namespace !== KnownCaipNamespace.Eip155) {
       return getNonEvmNetworkImageSourceByChainId(chainId);
     }
-    hexChainId = toHex(reference);
+    hexChainId = toHex(reference === '0' ? '1' : reference); // default to mainnet if chainId is 0
   }
 
   return getEvmNetworkImageSource({ networkType, chainId: hexChainId});

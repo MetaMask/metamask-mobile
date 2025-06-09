@@ -23,6 +23,7 @@ import {
 } from '../utils/mocks';
 import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { arrangeTestUtils } from '../utils/helpers';
 
 describe(
   SmokeWalletPlatform(
@@ -63,6 +64,7 @@ describe(
 
     let accountsToMockBalances = [...INITIAL_ACCOUNTS];
     let mockServer;
+    let userStorageMockttpController;
 
     /**
      * This test verifies the complete account syncing flow in three phases:
@@ -81,7 +83,9 @@ describe(
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      await userStorageMockttpControllerInstance.setupPath(
+      userStorageMockttpController = userStorageMockttpControllerInstance;
+
+      await userStorageMockttpController.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -128,9 +132,15 @@ describe(
       }
 
       // Create new account and prepare for additional accounts
+      const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+        userStorageMockttpController,
+      );
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
       await TestHelpers.delay(2000);
+
+      // Wait for the account to be synced
+      await waitUntilSyncedAccountsNumberEquals(5);
 
       // PHASE 2: Verify discovery of new accounts with balances
       // Complete setup again for new session

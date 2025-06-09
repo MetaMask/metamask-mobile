@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { createSelector } from 'reselect';
+import { createSelector, weakMapMemoize } from 'reselect';
 import { TokenRatesControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { selectEvmChainId } from './networkController';
@@ -42,6 +42,34 @@ export const selectTokenMarketData = createSelector(
   selectTokenRatesControllerState,
   (tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData,
+);
+
+export function selectPricePercentChange1d(
+  state: RootState,
+  chainId: Hex,
+  tokenAddress: Hex,
+) {
+  const marketData = selectTokenMarketData(state);
+  const pricePercentage1d: number | undefined =
+    marketData?.[chainId]?.[tokenAddress]?.pricePercentChange1d;
+  return pricePercentage1d;
+}
+
+export const selectSingleTokenPriceMarketData = createSelector(
+  [
+    (state: RootState, chainId: Hex, tokenAddress: Hex) => {
+      const marketData = selectTokenMarketData(state);
+      const price = marketData?.[chainId]?.[tokenAddress]?.price;
+      return price;
+    },
+    (_state: RootState, chainId: Hex) => chainId,
+    (_state: RootState, _chainId: Hex, tokenAddress: Hex) => tokenAddress,
+  ],
+  (price, _chainId, address) => (price ? { [address]: { price } } : {}),
+  {
+    memoize: weakMapMemoize,
+    argsMemoize: weakMapMemoize,
+  },
 );
 
 export const selectTokenMarketPriceData = createDeepEqualSelector(
