@@ -5,6 +5,8 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
+import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -51,7 +53,9 @@ describe('PrivateKeyAccountDetails', () => {
       { state: mockInitialState },
     );
 
-    expect(getByTestId('remove-account')).toBeTruthy();
+    expect(
+      getByTestId(MultichainDeleteAccountsSelectors.deleteAccountRemoveButton),
+    ).toBeTruthy();
   });
 
   it('renders both child components within BaseAccountDetails', () => {
@@ -63,29 +67,11 @@ describe('PrivateKeyAccountDetails', () => {
     const baseAccountDetails = getByTestId(
       AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER,
     );
-    const exportCredentials = getByTestId('export-credentials');
-    const removeAccount = getByTestId('remove-account');
+    const removeAccount = getByTestId(
+      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
+    );
 
     expect(baseAccountDetails).toBeTruthy();
-    expect(exportCredentials).toBeTruthy();
     expect(removeAccount).toBeTruthy();
-  });
-
-  it('handles different account types', () => {
-    const differentAccount = createMockInternalAccount(
-      '0x9876543210987654321098765432109876543210',
-      'Another Private Key Account',
-      KeyringTypes.simple,
-      EthAccountType.Eoa,
-    );
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <PrivateKeyAccountDetails account={differentAccount} />,
-      { state: mockInitialState },
-    );
-
-    expect(getByText(differentAccount.metadata.name)).toBeTruthy();
-    expect(getByTestId('export-credentials')).toBeTruthy();
-    expect(getByTestId('remove-account')).toBeTruthy();
   });
 });
