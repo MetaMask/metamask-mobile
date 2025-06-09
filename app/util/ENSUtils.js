@@ -1,6 +1,6 @@
 import Engine from '../core/Engine';
 import ENS from 'ethjs-ens';
-import { toLowerCaseEquals } from '../util/general';
+import { areAddressesEqual } from './address';
 import {
   ChainId,
   InfuraNetworkType,
@@ -85,7 +85,7 @@ export async function doENSReverseLookup(address, chainId) {
     try {
       const name = await this.ens.reverse(address);
       const resolvedAddress = await this.ens.lookup(name);
-      if (toLowerCaseEquals(address, resolvedAddress)) {
+      if (areAddressesEqual(address, resolvedAddress)) {
         ENSCache.cache[networkId + address] = { name, timestamp: Date.now() };
         return name;
       }
