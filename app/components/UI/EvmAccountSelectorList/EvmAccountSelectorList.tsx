@@ -101,23 +101,35 @@ const EvmAccountSelectorList = ({
   const internalAccounts = useSelector(selectInternalAccounts);
 
   const accountSections = useMemo((): AccountSection[] => {
-    const accountsById = new Map<string, Account>();
-    internalAccounts.forEach((account) => {
-      const formattedAddress = getFormattedAddressFromInternalAccount(account);
-      const accountObj = accounts.find((a) => a.address === formattedAddress);
-      if (accountObj) {
-        accountsById.set(account.id, accountObj);
-      }
-    });
+    if (multichainAccountsState1Enabled) {
+      const accountsById = new Map<string, Account>();
+      internalAccounts.forEach((account) => {
+        const formattedAddress =
+          getFormattedAddressFromInternalAccount(account);
+        const accountObj = accounts.find(
+          (a) => a.address === formattedAddress,
+        );
+        if (accountObj) {
+          accountsById.set(account.id, accountObj);
+        }
+      });
 
-    // Use AccountTreeController sections and match accounts to their IDs
-    return accountTreeSections.map((section) => ({
-      title: section.title,
-      data: section.data
-        .map((accountId: string) => accountsById.get(accountId))
-        .filter((account): account is Account => account !== undefined),
-    }));
-  }, [accounts, accountTreeSections, internalAccounts]);
+      // Use AccountTreeController sections and match accounts to their IDs
+      return accountTreeSections.map((section) => ({
+        title: section.title,
+        data: section.data
+          .map((accountId: string) => accountsById.get(accountId))
+          .filter((account): account is Account => account !== undefined),
+      }));
+    }
+    // Fallback for old behavior
+    return accounts.length > 0 ? [{ title: 'Accounts', data: accounts }] : [];
+  }, [
+    accounts,
+    accountTreeSections,
+    internalAccounts,
+    multichainAccountsState1Enabled,
+  ]);
 
   const getKeyExtractor = ({ address }: Account) => address;
   const useMultichainAccountDesign = useSelector(
