@@ -1,28 +1,22 @@
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
+
+const screenWidth = Dimensions.get('window').width;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    container: {
-      flexGrow: 1,
-      justifyContent: 'flex-start',
-    },
     title: {
-      fontSize: 24,
-      fontWeight: 'bold',
       textAlign: 'center',
-      marginVertical: 16,
     },
     getStartedImageWrapper: {
       alignItems: 'center',
     },
     getStartedImage: {
-      width: '100%',
-      aspectRatio: 4 / 3,
-      resizeMode: 'contain',
-      maxWidth: 300,
+      width: screenWidth,
+      height: screenWidth * 0.75,
+      alignSelf: 'center',
     },
     bulletPointContainer: {
       marginBottom: 16,
@@ -34,8 +28,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingLeft: 12,
     },
     bulletPointTitle: {
-      fontSize: 16,
-      marginBottom: 4,
+      fontWeight: 'bold',
     },
     bulletPointDescription: {
       fontSize: 14,

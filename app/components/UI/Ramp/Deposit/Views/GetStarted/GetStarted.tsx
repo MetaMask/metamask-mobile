@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, View, ScrollView } from 'react-native';
+import { Image, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import { strings } from '../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../sdk';
@@ -52,14 +54,14 @@ const GetStarted: React.FC = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView>
           <ScreenLayout.Content>
             <View style={styles.getStartedImageWrapper}>
               <Image source={getStartedIcon} style={styles.getStartedImage} />
             </View>
           </ScreenLayout.Content>
           <ScreenLayout.Content>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings('deposit.get_started.title')}
             </Text>
           </ScreenLayout.Content>
@@ -72,10 +74,13 @@ const GetStarted: React.FC = () => {
                   style={styles.checkIcon}
                 />
                 <View style={styles.bulletPointContent}>
-                  <Text style={styles.bulletPointTitle} bold>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    style={styles.bulletPointTitle}
+                  >
                     {bulletPoint.title}
                   </Text>
-                  <Text style={styles.bulletPointDescription}>
+                  <Text variant={TextVariant.BodySM}>
                     {bulletPoint.description}
                   </Text>
                 </View>
