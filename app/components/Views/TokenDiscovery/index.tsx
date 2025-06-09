@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, Text, ActivityIndicator, FlatList, ListRenderItem, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ListRenderItem, RefreshControl } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { styleSheet } from './styles';
 import { usePopularTokens } from '../../hooks/TokenSearchDiscovery/usePopularTokens/usePopularTokens';
@@ -21,7 +21,7 @@ export const TokenDiscovery: React.FC = () => {
         location: SwapBridgeNavigationLocation.TokenDetails,
         sourcePage: 'MainView',
       });
-    
+
       const goToSwaps = useCallback(async (result: MoralisTokenResponseItem) => {
         try {
           const token = {
@@ -37,15 +37,13 @@ export const TokenDiscovery: React.FC = () => {
         }
       }, [goToSwapsHook]);
 
-    const renderItem = useCallback<ListRenderItem<MoralisTokenResponseItem>>(({ item }) => {
-        return (
+    const renderItem = useCallback<ListRenderItem<MoralisTokenResponseItem>>(({ item }) => (
             <TokenResult
                 result={item}
                 onPress={() => {}}
                 onSwapPress={goToSwaps}
             />
-        );
-    }, [goToSwaps]);
+        ), [goToSwaps]);
 
     return (
         <View style={styles.container}>
