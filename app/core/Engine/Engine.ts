@@ -1,16 +1,9 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 
-import { AccountsController } from '@metamask/accounts-controller';
-import { AddressBookController } from '@metamask/address-book-controller';
-import {
-  AcceptOptions,
-  ApprovalController,
-} from '@metamask/approval-controller';
 import {
   AccountTrackerController,
   AssetsContractController,
-  CodefiTokenPricesServiceV2,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -18,16 +11,18 @@ import {
   TokenListController,
   TokenRatesController,
   TokensController,
+  CodefiTokenPricesServiceV2,
   TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
+import { AccountsController } from '@metamask/accounts-controller';
+import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
-import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
   KeyringController,
   KeyringControllerState,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   getDefaultNetworkControllerState,
@@ -35,61 +30,68 @@ import {
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
-import {
-  PermissionController,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  SubjectMetadataController,
-} from '@metamask/permission-controller';
 import { PhishingController } from '@metamask/phishing-controller';
-import { PPOMController } from '@metamask/ppom-validator';
 import { PreferencesController } from '@metamask/preferences-controller';
-import { SelectedNetworkController } from '@metamask/selected-network-controller';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   TransactionController,
   TransactionMeta,
   type TransactionParams,
 } from '@metamask/transaction-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
+import {
+  AcceptOptions,
+  ApprovalController,
+} from '@metamask/approval-controller';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import {
+  PermissionController,
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  SubjectMetadataController,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/permission-controller';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import { PPOMController } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import type { DialogType, EnumToUnion } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import { LoggingController } from '@metamask/logging-controller';
+import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { LoggingController } from '@metamask/logging-controller';
-import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
-import { store } from '../../store';
-import Logger from '../../util/Logger';
-import { isZero } from '../../util/lodash';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   getDecimalChainId,
-  isPerDappSelectedNetworkEnabled,
   isTestNet,
+  isPerDappSelectedNetworkEnabled,
 } from '../../util/networks';
 import {
-  deprecatedGetNetworkId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../../util/networks/engineNetworkUtils';
-import {
-  balanceToFiatNumber,
-  hexToBN,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  toHexadecimal,
-  weiToFiatNumber,
-} from '../../util/number';
-import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 import AppConstants from '../AppConstants';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
+import { store } from '../../store';
+import {
+  renderFromTokenMinimalUnit,
+  balanceToFiatNumber,
+  weiToFiatNumber,
+  toHexadecimal,
+  hexToBN,
+  renderFromWei,
+} from '../../util/number';
 import NotificationManager from '../NotificationManager';
+import Logger from '../../util/Logger';
+import { isZero } from '../../util/lodash';
+import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
@@ -97,132 +99,130 @@ import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key'
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 
-import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
-import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
+import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
 import { getUserStorageControllerMessenger } from './messengers/identity/user-storage-controller-messenger';
+import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 ///: END:ONLY_INCLUDE_IF
-import { providerErrors } from '@metamask/rpc-errors';
-import { Hex, Json } from '@metamask/utils';
-import { backupVault } from '../BackupVault';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
+import { backupVault } from '../BackupVault';
+import { Hex, Json } from '@metamask/utils';
+import { providerErrors } from '@metamask/rpc-errors';
 
+import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
+import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../../core/redux/slices/inpageProvider';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
+import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
+import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
   ChainId,
   handleFetch,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/controller-utils';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
+import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,
 } from '@metamask/smart-transactions-controller/dist/constants';
-import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import {
   getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
   getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
-import { zeroAddress } from 'ethereumjs-util';
-import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
-import {
-  networkIdUpdated,
-  networkIdWillUpdate,
-} from '../../core/redux/slices/inpageProvider';
-import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
-import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
-import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { removeAccountsFromPermissions } from '../Permissions';
 import { snapKeyringBuilder } from '../SnapKeyring';
+import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
+import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
+import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
-import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { RestrictedMethods } from '../Permissions/constants';
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 import {
   cronjobControllerInit,
   executionServiceInit,
+  snapControllerInit,
+  snapInterfaceControllerInit,
+  snapsRegistryInit,
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
-  SnapControllerHandleRequestAction,
-  snapControllerInit,
-  SnapControllerIsMinimumPlatformVersionAction,
   SnapControllerUpdateSnapStateAction,
-  snapInterfaceControllerInit,
-  snapsRegistryInit,
+  SnapControllerIsMinimumPlatformVersionAction,
+  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
+import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
-import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
-import { BridgeStatusController } from '@metamask/bridge-status-controller';
-import { EarnController } from '@metamask/earn-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Platform } from '@metamask/profile-sync-controller/sdk';
-import {
-  MultichainRouter,
-  MultichainRouterArgs,
-  MultichainRouterMessenger,
-} from '@metamask/snaps-controllers';
-import I18n from '../../../locales/i18n';
-import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
-import { INFURA_PROJECT_ID } from '../../constants/network';
-import { SECOND } from '../../constants/time';
-import { toFormattedAddress } from '../../util/address';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
-import {
-  getGlobalChainId,
-  getGlobalNetworkClientId,
-} from '../../util/networks/global-network';
-import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import {
+  BaseControllerMessenger,
+  EngineState,
+  EngineContext,
+  StatefulControllers,
+} from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
   swapsSupportedChainIds,
 } from './constants';
-import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
+import { getGlobalChainId } from '../../util/networks/global-network';
+import { logEngineCreation } from './utils/logger';
+import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
-import { appMetadataControllerInit } from './controllers/app-metadata-controller';
-import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
-import { GasFeeControllerInit } from './controllers/gas-fee-controller';
+import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
-import {
-  MultichainRouterGetSupportedAccountsEvent,
-  MultichainRouterIsSupportedScopeEvent,
-} from './controllers/multichain-router/constants';
+import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import { EarnController } from '@metamask/earn-controller';
+import { TransactionControllerInit } from './controllers/transaction-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
+import { SignatureControllerInit } from './controllers/signature-controller';
+import { GasFeeControllerInit } from './controllers/gas-fee-controller';
+import I18n from '../../../locales/i18n';
+import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
+import { appMetadataControllerInit } from './controllers/app-metadata-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { toFormattedAddress } from '../../util/address';
+import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
+import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './controllers/network-controller/messenger-action-handlers';
+import { INFURA_PROJECT_ID } from '../../constants/network';
+import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
-import { SignatureControllerInit } from './controllers/signature-controller';
-import { TransactionControllerInit } from './controllers/transaction-controller';
 import {
-  BaseControllerMessenger,
-  EngineContext,
-  EngineState,
-  StatefulControllers,
-} from './types';
-import { initModularizedControllers } from './utils';
-import { logEngineCreation } from './utils/logger';
+  MultichainRouter,
+  MultichainRouterMessenger,
+  MultichainRouterArgs,
+} from '@metamask/snaps-controllers';
+import {
+  MultichainRouterGetSupportedAccountsEvent,
+  MultichainRouterIsSupportedScopeEvent,
+} from './controllers/multichain-router/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1768,95 +1768,147 @@ export class Engine {
         AccountsController.state.internalAccounts.selectedAccount,
       );
 
-    if (selectedInternalAccount) {
-      const selectedInternalAccountFormattedAddress = toFormattedAddress(
-        selectedInternalAccount.address,
-      );
-      const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.getNetworkClientById(
-        getGlobalNetworkClientId(NetworkController),
-      ).configuration;
-      const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    if (!selectedInternalAccount) {
+      return {
+        ethFiat: 0,
+        tokenFiat: 0,
+        ethFiat1dAgo: 0,
+        tokenFiat1dAgo: 0,
+        totalNativeTokenBalance: '0',
+        ticker: '',
+      };
+    }
+
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
+      selectedInternalAccount.address,
+    );
+    const { currentCurrency } = CurrencyRateController.state;
+    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+
+    const { accountsByChainId } = AccountTrackerController.state;
+    const { marketData } = TokenRatesController.state;
+
+    let totalEthFiat = 0;
+    let totalEthFiat1dAgo = 0;
+    let totalTokenFiat = 0;
+    let totalTokenFiat1dAgo = 0;
+    let aggregatedNativeTokenBalance = '';
+    let primaryTicker = '';
+
+    const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+
+    const networkConfigurations = Object.values(
+      NetworkController.state.networkConfigurationsByChainId || {},
+    );
+
+    networkConfigurations.forEach((networkConfig) => {
+      const { chainId } = networkConfig;
+      const chainIdHex = toHexadecimal(chainId);
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return {
-          ethFiat: 0,
-          tokenFiat: 0,
-          ethFiat1dAgo: 0,
-          tokenFiat1dAgo: 0,
-          totalNativeTokenBalance: '0',
-          ticker: '',
-        };
+        return;
+      }
+
+      let ticker = '';
+      try {
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(chainId);
+        if (networkClientId) {
+          const networkClient =
+            NetworkController.getNetworkClientById(networkClientId);
+          ticker = networkClient.configuration.ticker;
+        }
+      } catch (error) {
+        return;
       }
 
       const conversionRate =
         CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
         0;
 
-      const { accountsByChainId } = AccountTrackerController.state;
-      const chainIdHex = toHexadecimal(chainId);
-      const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
-        ] || [];
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
+      if (conversionRate === 0) {
+        return;
+      }
 
-      let ethFiat = 0;
-      let ethFiat1dAgo = 0;
-      let tokenFiat = 0;
-      let tokenFiat1dAgo = 0;
-      let totalNativeTokenBalance = '0';
-      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      if (
-        accountsByChainId?.[toHexadecimal(chainId)]?.[
+      if (!primaryTicker) {
+        primaryTicker = ticker;
+      }
+
+      const accountData =
+        accountsByChainId?.[chainIdHex]?.[
           selectedInternalAccountFormattedAddress
-        ]
-      ) {
-        const balanceHex =
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].balance;
-
+        ];
+      if (accountData) {
+        const balanceHex = accountData.balance;
         const balanceBN = hexToBN(balanceHex);
-        totalNativeTokenBalance = renderFromWei(balanceHex);
 
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const stakedBalanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].stakedBalance || '0x00',
-        );
+        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
         const totalAccountBalance = balanceBN
           .add(stakedBalanceBN)
           .toString('hex');
-        ethFiat = weiToFiatNumber(
+
+        const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
+
+        // Avoid NaN and Infinity values
+        if (isFinite(chainEthFiat)) {
+          totalEthFiat += chainEthFiat;
+        }
+
+        const tokenExchangeRates = marketData?.[chainIdHex];
+        const ethPricePercentChange1d =
+          tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
+        let chainEthFiat1dAgo = chainEthFiat;
+        if (
+          ethPricePercentChange1d !== undefined &&
+          isFinite(ethPricePercentChange1d) &&
+          ethPricePercentChange1d !== -100
+        ) {
+          chainEthFiat1dAgo =
+            chainEthFiat / (1 + ethPricePercentChange1d / 100);
+        }
+
+        if (isFinite(chainEthFiat1dAgo)) {
+          totalEthFiat1dAgo += chainEthFiat1dAgo;
+        }
+
+        const chainNativeBalance = renderFromWei(balanceHex);
+        if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
+          const currentAggregated = parseFloat(
+            aggregatedNativeTokenBalance || '0',
+          );
+          aggregatedNativeTokenBalance = (
+            currentAggregated + parseFloat(chainNativeBalance)
+          ).toString();
+        }
       }
 
-      const ethPricePercentChange1d =
-        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
-
-      ethFiat1dAgo =
-        ethPricePercentChange1d !== undefined
-          ? ethFiat / (1 + ethPricePercentChange1d / 100)
-          : ethFiat;
+      const tokens =
+        TokensController.state.allTokens?.[chainIdHex]?.[
+          selectedInternalAccount.address
+        ] || [];
+      const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
         const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
-
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
           ] ?? {};
+
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
               tokenExchangeRates?.[item.address as Hex]?.price;
+
+            if (!exchangeRate || !isFinite(exchangeRate)) {
+              return;
+            }
 
             const tokenBalance =
               item.balance ||
@@ -1866,46 +1918,50 @@ export class Engine {
                     item.decimals,
                   )
                 : undefined);
+
+            if (!tokenBalance) {
+              return;
+            }
+
             const tokenBalanceFiat = balanceToFiatNumber(
-              // TODO: Fix this by handling or eliminating the undefined case
-              // @ts-expect-error This variable can be `undefined`, which would break here.
               tokenBalance,
               conversionRate,
               exchangeRate,
               decimalsToShow,
             );
 
+            if (isFinite(tokenBalanceFiat)) {
+              totalTokenFiat += tokenBalanceFiat;
+            }
+
             const tokenPricePercentChange1d =
               tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+            let tokenBalance1dAgo = tokenBalanceFiat;
 
-            const tokenBalance1dAgo =
-              tokenPricePercentChange1d !== undefined
-                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-                : tokenBalanceFiat;
+            if (
+              tokenPricePercentChange1d !== undefined &&
+              isFinite(tokenPricePercentChange1d) &&
+              tokenPricePercentChange1d !== -100
+            ) {
+              tokenBalance1dAgo =
+                tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
+            }
 
-            tokenFiat += tokenBalanceFiat;
-            tokenFiat1dAgo += tokenBalance1dAgo;
+            if (isFinite(tokenBalance1dAgo)) {
+              totalTokenFiat1dAgo += tokenBalance1dAgo;
+            }
           },
         );
       }
+    });
 
-      return {
-        ethFiat: ethFiat ?? 0,
-        ethFiat1dAgo: ethFiat1dAgo ?? 0,
-        tokenFiat: tokenFiat ?? 0,
-        tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
-        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
-        ticker,
-      };
-    }
-    // if selectedInternalAccount is undefined, return default 0 value.
     return {
-      ethFiat: 0,
-      tokenFiat: 0,
-      ethFiat1dAgo: 0,
-      tokenFiat1dAgo: 0,
-      totalNativeTokenBalance: '0',
-      ticker: '',
+      ethFiat: totalEthFiat ?? 0,
+      ethFiat1dAgo: totalEthFiat1dAgo ?? 0,
+      tokenFiat: totalTokenFiat ?? 0,
+      tokenFiat1dAgo: totalTokenFiat1dAgo ?? 0,
+      totalNativeTokenBalance: aggregatedNativeTokenBalance ?? '0',
+      ticker: primaryTicker,
     };
   };
 
