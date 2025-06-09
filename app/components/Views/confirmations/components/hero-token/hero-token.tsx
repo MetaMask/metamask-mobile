@@ -48,7 +48,6 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   });
 
   const { maxValueMode } = useSelector(selectTransactionState);
-  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   const { amountPrecise, amount, fiat } = useTokenAmount({ amountWei });
   const isRoundedAmount = amountPrecise !== amount;
@@ -62,7 +61,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
         componentAsset={<AvatarTokenWithNetworkBadge />}
         hasPaddingTop={isFlatConfirmation}
         title={<AssetAmount amount={amount} styles={styles} />}
-        subtitle={showFiatOnTestnets ? fiat : undefined}
+        subtitle={fiat}
         tooltipModalProps={{
           content: amountPrecise,
           isEnabled: isRoundedAmount,
