@@ -16,7 +16,7 @@ import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../util/ENSUtils';
-import { formatAddress } from '../../../../util/address';
+import { areAddressesEqual, formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../../component-library/hooks';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import { EnsByAccountAddress, Account } from '../../../hooks/useAccounts';
@@ -142,9 +142,8 @@ const AccountsConnectedList = ({
       const shortAddress = formatAddress(address, 'short');
       const accountMetadata =
         Engine.context.AccountsController.getAccountByAddress(address);
-      const account = accounts.find(
-        (accountData: Account) =>
-          accountData.address.toLowerCase() === address.toLowerCase(),
+      const account = accounts.find((accountData: Account) =>
+        areAddressesEqual(accountData.address, address),
       );
       const avatarProps = {
         variant: AvatarVariant.Account as const,

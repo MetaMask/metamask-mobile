@@ -31,8 +31,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -331,8 +330,8 @@ class Asset extends PureComponent {
     } = tx;
 
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -341,7 +340,7 @@ class Asset extends PureComponent {
       }
       if (isTransfer) {
         return this.props.tokens.find(({ address }) =>
-          toLowerCaseEquals(address, transferInformation.contractAddress),
+          areAddressesEqual(address, transferInformation.contractAddress),
         );
       }
 
@@ -360,8 +359,8 @@ class Asset extends PureComponent {
       transferInformation,
     } = tx;
     if (
-      (safeToChecksumAddress(from) === this.selectedAddress ||
-        safeToChecksumAddress(to) === this.selectedAddress) &&
+      (areAddressesEqual(from, this.selectedAddress) ||
+        areAddressesEqual(to, this.selectedAddress)) &&
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
@@ -399,13 +398,13 @@ class Asset extends PureComponent {
 
     const { chainId, transactions, route } = this.props;
 
-    const isSolanaAsset =
+    const isNonEvmAsset =
       route?.params?.chainId && isNonEvmChainId(route.params.chainId);
 
     if (transactions.length) {
-      if (isSolanaAsset) {
+      if (isNonEvmAsset) {
         const filteredTransactions = transactions.map((tx, index) => {
-          const mutableTx = JSON.parse(JSON.stringify(tx));
+          const mutableTx = { ...tx };
 
           if (
             index === transactions.length - 1 &&
