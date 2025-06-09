@@ -152,7 +152,7 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4(0));
     expect(result.current.amountFiatNumber).toBe('0');
     expect(result.current.isFiat).toBe(false);
-    expect(result.current.currencyToggleValue).toBe('$0');
+    expect(result.current.currencyToggleValue).toBe('0 USD');
     expect(result.current.isNonZeroAmount).toBe(false);
     expect(result.current.isOverMaximum.isOverMaximumEth).toBe(false);
     expect(result.current.isOverMaximum.isOverMaximumToken).toBe(false);

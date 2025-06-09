@@ -40,7 +40,7 @@ const AccountCard = ({
 
   return (
     <View>
-      <Card style={styles.cardGroupTop} disabled>
+      <Card testID="account-card" style={styles.cardGroupTop} disabled>
         {account && (
           <KeyValueRow
             field={{ label: { text: primaryLabel } }}

@@ -85,6 +85,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
   (
     accountsControllerState: AccountsControllerState,
   ): InternalAccount | undefined => {
+    console.log('accountsControllerState', accountsControllerState);
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
