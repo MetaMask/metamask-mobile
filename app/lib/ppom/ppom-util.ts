@@ -1,3 +1,4 @@
+import { createProjectLogger } from '@metamask/utils';
 import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
 import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
 import {
@@ -12,6 +13,8 @@ import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
 import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 import {
+  TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionMeta,
   TransactionParams,
   normalizeTransactionParams,
 } from '@metamask/transaction-controller';
@@ -22,21 +25,35 @@ import {
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
+import { Messenger } from '@metamask/base-controller';
+import { SignatureStateChange } from '@metamask/signature-controller';
+import cloneDeep from 'lodash/cloneDeep';
 
 export interface PPOMRequest {
   method: string;
   params: unknown[];
+
+  // Optional
+  id?: number | string;
+  jsonrpc?: string;
   origin?: string;
 }
 
-const TRANSACTION_METHOD = 'eth_sendTransaction';
-const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
+export type PPOMMessenger = Messenger<
+  never,
+  SignatureStateChange | TransactionControllerUnapprovedTransactionAddedEvent
+>;
+
+const log = createProjectLogger('ppom-util');
+
+const METHOD_SEND_TRANSACTION = 'eth_sendTransaction';
+const TRANSACTION_METHODS = [METHOD_SEND_TRANSACTION, 'eth_sendRawTransaction'];
 export const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
 export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
-  TRANSACTION_METHOD,
+  METHOD_SEND_TRANSACTION,
   'eth_signTypedData',
   'eth_signTypedData_v1',
   'eth_signTypedData_v3',
@@ -56,7 +73,16 @@ const SECURITY_ALERT_RESPONSE_IN_PROGRESS = {
   description: 'Validating the confirmation in progress.',
 };
 
-async function validateRequest(req: PPOMRequest, transactionId?: string) {
+async function validateRequest(
+  req: PPOMRequest,
+  {
+    transactionMeta = {} as TransactionMeta,
+    securityAlertId,
+  }: {
+    transactionMeta?: TransactionMeta;
+    securityAlertId?: string;
+  } = {},
+) {
   const {
     AccountsController,
     NetworkController,
@@ -70,35 +96,33 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
   );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
-  if (
-    !ppomController ||
-    !isBlockaidFeatEnabled ||
-    !isConfirmationMethod
-  ) {
+
+  if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
-  if (req.method === 'eth_sendTransaction') {
+  if (req.method === METHOD_SEND_TRANSACTION) {
     const internalAccounts = AccountsController.listAccounts();
-    const toAddress: string | undefined = (
-      req?.params?.[0] as Record<string, string>
-    ).to;
+    const { from: fromAddress, to: toAddress } = req
+      ?.params?.[0] as Partial<TransactionParams>;
 
     if (
       internalAccounts.some(
         ({ address }: { address: string }) =>
           address?.toLowerCase() === toAddress?.toLowerCase(),
-      )
+      ) &&
+      toAddress !== fromAddress
     ) {
       return;
     }
   }
 
   const isTransaction = isTransactionRequest(req);
+  const transactionId = transactionMeta?.id;
   let securityAlertResponse: SecurityAlertResponse | undefined;
 
   try {
-    if (isTransaction && !transactionId) {
+    if (isTransaction && !transactionId && !securityAlertId) {
       securityAlertResponse = SECURITY_ALERT_RESPONSE_FAILED;
       return;
     }
@@ -107,9 +131,12 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
       req,
       SECURITY_ALERT_RESPONSE_IN_PROGRESS,
       transactionId,
+      { securityAlertId },
     );
 
-    const normalizedRequest = normalizeRequest(req);
+    const normalizedRequest = normalizeRequest(req, transactionMeta);
+
+    log('Normalized request', normalizedRequest);
 
     securityAlertResponse = isSecurityAlertsAPIEnabled()
       ? await validateWithAPI(ppomController, chainId, normalizedRequest)
@@ -129,6 +156,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
     setSecurityAlertResponse(req, securityAlertResponse, transactionId, {
       updateControllerState: true,
+      securityAlertId,
     });
   }
 }
@@ -173,20 +201,79 @@ async function validateWithAPI(
   }
 }
 
+function getTransactionIdForSecurityAlertId(securityAlertId?: string) {
+  if (!securityAlertId) return;
+  const confirmation =
+    Engine.context.TransactionController.state.transactions.find(
+      (meta) =>
+        (
+          meta.securityAlertResponse as SecurityAlertResponse & {
+            securityAlertId: string;
+          }
+        )?.securityAlertId === securityAlertId,
+    );
+  return confirmation?.id;
+}
+
+function updateSecurityResultForTransaction(
+  transactionId: string | undefined,
+  response: SecurityAlertResponse,
+  updateControllerState: boolean = false,
+  securityAlertId?: string,
+) {
+  store.dispatch(setTransactionSecurityAlertResponse(transactionId, response));
+
+  if (updateControllerState) {
+    updateSecurityAlertResponse(
+      transactionId as string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { ...response, securityAlertId } as any,
+    );
+  }
+}
+
+function fetchTransactionIdAndUpdateSecurityResultForTransaction(
+  response: SecurityAlertResponse,
+  updateControllerState?: boolean,
+  securityAlertId?: string,
+) {
+  const intervalId = setInterval(() => {
+    const transactionId = getTransactionIdForSecurityAlertId(securityAlertId);
+    if (transactionId) {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+      clearInterval(intervalId);
+    }
+  }, 100);
+}
+
 function setSecurityAlertResponse(
   request: PPOMRequest,
   response: SecurityAlertResponse,
   transactionId?: string,
-  { updateControllerState }: { updateControllerState?: boolean } = {},
+  {
+    updateControllerState,
+    securityAlertId,
+  }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
-    store.dispatch(
-      setTransactionSecurityAlertResponse(transactionId, response),
-    );
-
-    if (updateControllerState) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateSecurityAlertResponse(transactionId as string, response as any);
+    if (securityAlertId && !transactionId) {
+      fetchTransactionIdAndUpdateSecurityResultForTransaction(
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
+    } else {
+      updateSecurityResultForTransaction(
+        transactionId,
+        response,
+        updateControllerState,
+        securityAlertId,
+      );
     }
   } else {
     store.dispatch(setSignatureRequestSecurityAlertResponse(response));
@@ -197,33 +284,68 @@ function isTransactionRequest(request: PPOMRequest) {
   return TRANSACTION_METHODS.includes(request.method);
 }
 
-function sanitizeRequest(request: PPOMRequest): PPOMRequest {
+function normalizeSignatureRequest(request: PPOMRequest): PPOMRequest {
   // This is a temporary fix to prevent a PPOM bypass
   if (
-    request.method === METHOD_SIGN_TYPED_DATA_V4 ||
-    request.method === METHOD_SIGN_TYPED_DATA_V3
+    request.method !== METHOD_SIGN_TYPED_DATA_V4 &&
+    request.method !== METHOD_SIGN_TYPED_DATA_V3
   ) {
-    if (Array.isArray(request.params)) {
-      return {
-        ...request,
-        params: request.params.slice(0, 2),
-      };
-    }
+    return request;
   }
-  return request;
+
+  if (!Array.isArray(request.params)) {
+    return request;
+  }
+
+  return {
+    ...request,
+    params: request.params.slice(0, 2),
+  };
 }
 
-function normalizeRequest(request: PPOMRequest): PPOMRequest {
-  if (request.method !== TRANSACTION_METHOD) {
-    return sanitizeRequest(request);
+function normalizeRequest(
+  request: PPOMRequest,
+  transactionMeta?: TransactionMeta
+): PPOMRequest {
+  let normalizedRequest = cloneDeep(request);
+
+  normalizedRequest = normalizeSignatureRequest(normalizedRequest);
+
+  normalizedRequest = normalizeTransactionRequest(
+    normalizedRequest,
+    transactionMeta,
+  );
+
+  return normalizedRequest;
+}
+
+function normalizeTransactionRequest(
+  request: PPOMRequest,
+  transactionMeta?: TransactionMeta,
+): PPOMRequest {
+  if (request.method !== METHOD_SEND_TRANSACTION) {
+    return request;
   }
 
   request.origin = request.origin
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
-  const transactionParams = (request.params?.[0] || {}) as TransactionParams;
-  const normalizedParams = normalizeTransactionParams(transactionParams);
+  const txParams = (Array.isArray(request.params) ? request.params[0] : {}) as TransactionParams;
+
+  // Provide the estimated gas to PPOM rather than relying on PPOM to estimate the gas values
+  txParams.gas = transactionMeta?.txParams?.gas;
+  txParams.gasPrice = transactionMeta?.txParams?.maxFeePerGas ?? transactionMeta?.txParams?.gasPrice;
+
+  // Remove unused request params for PPOM
+  delete txParams.gasLimit;
+  delete txParams.maxFeePerGas;
+  delete txParams.maxPriorityFeePerGas;
+  delete txParams.type;
+
+  const normalizedParams = normalizeTransactionParams(txParams);
+
+  log('Normalized transaction params', normalizedParams);
 
   return {
     ...request,
@@ -235,7 +357,12 @@ function clearSignatureSecurityAlertResponse() {
   store.dispatch(setSignatureRequestSecurityAlertResponse());
 }
 
+function createValidatorForSecurityAlertId(securityAlertId: string) {
+  return (req: PPOMRequest) => validateRequest(req, { securityAlertId });
+}
+
 export default {
   validateRequest,
+  createValidatorForSecurityAlertId,
   clearSignatureSecurityAlertResponse,
 };

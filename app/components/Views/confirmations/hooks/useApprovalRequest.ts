@@ -39,14 +39,17 @@ const useApprovalRequest = () => {
     [approvalRequest],
   );
 
-  const onReject = useCallback(() => {
-    if (!approvalRequest) return;
+  const onReject = useCallback(
+    (error?: Error) => {
+      if (!approvalRequest) return;
 
-    Engine.rejectPendingApproval(
-      approvalRequest.id,
-      providerErrors.userRejectedRequest(),
-    );
-  }, [approvalRequest]);
+      Engine.rejectPendingApproval(
+        approvalRequest.id,
+        error ?? providerErrors.userRejectedRequest(),
+      );
+    },
+    [approvalRequest],
+  );
 
   const pageMeta = useMemo(
     () => approvalRequest?.requestData?.pageMeta ?? {},

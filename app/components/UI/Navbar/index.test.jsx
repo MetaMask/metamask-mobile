@@ -4,9 +4,21 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { getNetworkNavbarOptions, getPaymentRequestOptionsTitle } from '.';
+import {
+  getDepositNavbarOptions,
+  getNetworkNavbarOptions,
+  getOnboardingCarouselNavbarOptions,
+  getTransparentOnboardingNavbarOptions,
+} from '.';
 import { mockTheme } from '../../../util/theme';
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import Device from '../../../util/device';
+
+jest.mock('../../../util/device', () => ({
+  isAndroid: jest.fn(),
+  isIphoneX: jest.fn(),
+  isIphone5S: jest.fn(),
+  isIos: jest.fn(),
+}));
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -27,6 +39,7 @@ describe('getNetworkNavbarOptions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Device.isAndroid.mockReset();
   });
 
   it('renders correctly with default options', () => {
@@ -54,80 +67,62 @@ describe('getNetworkNavbarOptions', () => {
   });
 });
 
-describe('getPaymentRequestOptionsTitle', () => {
-  const Stack = createStackNavigator();
-
+describe('getDepositNavbarOptions', () => {
   const mockNavigation = {
     pop: jest.fn(),
+    goBack: jest.fn(),
   };
-
-  const TestNavigator = ({ options }) => (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="TestScreen" 
-        component={() => null}
-        options={options}
-      />
-    </Stack.Navigator>
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-
-  it('should match snapshot with goBack function', () => {
-    const mockGoBack = jest.fn();
-    const options = getPaymentRequestOptionsTitle(
-      'Payment Request',
+  it('returns navbar options with the correct title', () => {
+    const options = getDepositNavbarOptions(
       mockNavigation,
-      { params: { dispatch: mockGoBack } },
-      mockTheme.colors
+      { title: 'Deposit' },
+      mockTheme,
     );
-
-    const rendered = renderWithProvider(
-      <TestNavigator options={options} />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-            },
-          },
-        },
-      },
-    );
-
-    expect(rendered).toMatchSnapshot();
+    expect(options).toBeDefined();
+    expect(options.title).toBe('Deposit');
   });
 
-  it('renders title and close button when no goBack provided', () => {
-    const options = getPaymentRequestOptionsTitle(
-      'Payment Request',
+  it('handles back button press', () => {
+    const options = getDepositNavbarOptions(
       mockNavigation,
-      { params: {} },
-      mockTheme.colors
+      { title: 'Deposit' },
+      mockTheme,
     );
+    const headerLeftComponent = options.headerLeft();
+    headerLeftComponent.props.onPress();
+    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
 
-    const { getByText, getByTestId } = renderWithProvider(
-      <TestNavigator options={options} />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-            },
-          },
-        },
-      },
+  it('returns navbar options with the correct title in android', () => {
+    Device.isAndroid.mockReturnValue(true);
+    const options = getDepositNavbarOptions(
+      mockNavigation,
+      { title: 'Deposit' },
+      mockTheme,
     );
+    expect(options).toBeDefined();
+    expect(options.title).toBe('Deposit');
+  });
 
-    // Check if title is rendered
-    expect(getByText('Payment Request')).toBeTruthy();
+  it('handles getOnboardingCarouselNavbarOptions', () => {
+    const options = getOnboardingCarouselNavbarOptions('red');
+    expect(options).toBeDefined();
+    expect(options.headerStyle.backgroundColor).toBe('red');
+  });
 
-    // Check if close button works
-    const closeButton = getByTestId(RequestPaymentViewSelectors.BACK_BUTTON_ID);
-    fireEvent.press(closeButton);
-    expect(mockNavigation.pop).toHaveBeenCalled();
+  it('handles getTransparentOnboardingNavbarOptions', () => {
+    const options = getTransparentOnboardingNavbarOptions(
+      mockTheme,
+      'red',
+      true,
+      'blue',
+    );
+    expect(options).toBeDefined();
+    expect(options.headerStyle.backgroundColor).toBe('red');
   });
 });

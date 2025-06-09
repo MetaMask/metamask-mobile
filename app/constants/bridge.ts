@@ -1,20 +1,24 @@
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BRIDGE_PROD_API_BASE_URL,
+} from '@metamask/bridge-controller';
 
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
-    CHAIN_IDS.MAINNET,
-    CHAIN_IDS.BSC,
-    CHAIN_IDS.POLYGON,
-    CHAIN_IDS.ZKSYNC_ERA,
-    CHAIN_IDS.AVALANCHE,
-    CHAIN_IDS.OPTIMISM,
-    CHAIN_IDS.ARBITRUM,
-    CHAIN_IDS.LINEA_MAINNET,
-    CHAIN_IDS.BASE,
-    SolScope.Mainnet as const
-  ];
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.BSC,
+  CHAIN_IDS.POLYGON,
+  CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.AVALANCHE,
+  CHAIN_IDS.OPTIMISM,
+  CHAIN_IDS.ARBITRUM,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.BASE,
+  SolScope.Mainnet as const,
+];
 
 export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
 
@@ -35,3 +39,8 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [CHAIN_IDS.BASE]: 'Base',
   [SolScope.Mainnet]: 'Solana',
 };
+
+export const BRIDGE_API_BASE_URL =
+  process.env.BRIDGE_USE_DEV_APIS === 'true'
+    ? BRIDGE_DEV_API_BASE_URL
+    : BRIDGE_PROD_API_BASE_URL;

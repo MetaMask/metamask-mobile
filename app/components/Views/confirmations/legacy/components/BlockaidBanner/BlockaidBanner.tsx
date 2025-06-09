@@ -124,14 +124,19 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
           severity={BannerAlertSeverity.Warning}
           title={title}
           description={description}
-          testID={ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER}
+          testID={
+            ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER
+          }
         />
       </View>
     );
   }
 
   if (!REASON_DESCRIPTION_I18N_KEY_MAP[reason]) {
-    captureException(`BlockaidBannerAlert: Unidentified reason '${reason}'`);
+    const unidentifiedReasonError = new Error(
+      `BlockaidBannerAlert: Unidentified reason '${reason}'`,
+    );
+    captureException(unidentifiedReasonError);
   }
 
   const renderDetails = () =>

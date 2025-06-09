@@ -16,7 +16,7 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       UserStorageController: {
-        isProfileSyncingEnabled: false,
+        isBackupAndSyncEnabled: false,
       },
       NotificationServicesController: {
         isNotificationServicesEnabled: false,

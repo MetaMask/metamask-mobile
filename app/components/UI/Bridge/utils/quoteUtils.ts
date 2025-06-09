@@ -1,11 +1,10 @@
 import {
-  BridgeFeatureFlags,
-  BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  FeatureFlagsPlatformConfig,
 } from '@metamask/bridge-controller';
 import type { BridgeToken } from '../types';
 
-const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
+const DEFAULT_REFRESH_RATE = 30 * 1000; // 30 seconds
 
 /**
  * Gets the refresh rate for quotes based on feature flags and source token
@@ -14,17 +13,19 @@ const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
  * @returns The refresh rate in milliseconds
  */
 export const getQuoteRefreshRate = (
-  bridgeFeatureFlags: BridgeFeatureFlags | undefined,
+  bridgeFeatureFlags: FeatureFlagsPlatformConfig | undefined,
   sourceToken?: BridgeToken,
 ) => {
-  const mobileConfig =
-    bridgeFeatureFlags?.[BridgeFeatureFlagsKey.MOBILE_CONFIG];
-  if (!sourceToken?.chainId || !mobileConfig) return DEFAULT_REFRESH_RATE;
+  if (!sourceToken?.chainId || !bridgeFeatureFlags) return DEFAULT_REFRESH_RATE;
 
   const chainConfig =
-    mobileConfig.chains[formatChainIdToCaip(sourceToken.chainId.toString())];
+    bridgeFeatureFlags.chains[
+      formatChainIdToCaip(sourceToken.chainId.toString())
+    ];
   return (
-    chainConfig?.refreshRate ?? mobileConfig.refreshRate ?? DEFAULT_REFRESH_RATE
+    chainConfig?.refreshRate ??
+    bridgeFeatureFlags.refreshRate ??
+    DEFAULT_REFRESH_RATE
   );
 };
 
@@ -33,15 +34,17 @@ export const getQuoteRefreshRate = (
  * @param insufficientBal - Whether user has insufficient balance for the transaction
  * @param quotesRefreshCount - How many times quotes have been refreshed
  * @param maxRefreshCount - Maximum allowed refresh attempts
+ * @param isSubmittingTx - Whether the transaction is currently being submitted
  * @returns boolean - Whether the quote should be refreshed
  */
 export const shouldRefreshQuote = (
   insufficientBal: boolean,
   quotesRefreshCount: number,
   maxRefreshCount: number,
+  isSubmittingTx: boolean = false,
 ): boolean => {
-  if (insufficientBal) {
-    return false; // Never refresh if insufficient balance
+  if (insufficientBal || isSubmittingTx) {
+    return false; // Never refresh if insufficient balance or submitting transaction
   }
   return quotesRefreshCount < maxRefreshCount; // Refresh if under max attempts
 };

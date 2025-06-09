@@ -19,7 +19,7 @@ import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import ScreenLayout from '../../../Ramp/components/ScreenLayout';
+import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
@@ -41,13 +41,19 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { isSupportedLendingTokenByChainId } from '../../utils';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
   const { token } = route.params;
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const earnToken = getTokenWithBalanceAndApr(token);
-  const title = strings('stake.unstake_eth');
+  const title = isSupportedLendingTokenByChainId(
+    token.symbol,
+    token?.chainId as string,
+  )
+    ? strings('earn.withdraw')
+    : strings('stake.unstake_eth');
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});

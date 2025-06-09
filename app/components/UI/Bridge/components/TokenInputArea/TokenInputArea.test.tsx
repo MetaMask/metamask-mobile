@@ -1,299 +1,109 @@
-import { getDisplayFiatValue } from '.';
-import { Hex } from '@metamask/utils';
+import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
+import { initialState } from '../../_mocks_/initialState';
 
-describe('getDisplayFiatValue', () => {
-  const mockChainId = '0x1' as Hex;
-  const mockTokenAddress = '0x0000000000000000000000000000000000000001' as Hex;
-  const mockSolanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
-  const mockSolanaTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as const;
-  const mockSplTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as const;
+const mockOnTokenPress = jest.fn();
+const mockOnFocus = jest.fn();
+const mockOnBlur = jest.fn();
+const mockOnInputPress = jest.fn();
 
-  const mockToken = {
-    address: mockTokenAddress,
-    chainId: mockChainId,
-    symbol: 'TOKEN1',
-    decimals: 18,
-    image: 'https://token1.com/logo.png',
-    name: 'Token One',
-    balance: '1',
-    balanceFiat: '$20000',
-    tokenFiatAmount: 20000,
-  };
+describe('TokenInputArea', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  const mockSolanaToken = {
-    address: mockSolanaTokenAddress,
-    chainId: mockSolanaChainId,
-    symbol: 'SOL',
-    decimals: 9,
-    image: 'https://solana.com/logo.png',
-    name: 'Solana',
-    balance: '1',
-  };
-
-  const mockSplToken = {
-    address: mockSplTokenAddress,
-    chainId: mockSolanaChainId,
-    symbol: 'USDC',
-    decimals: 6,
-    image: 'https://usdc.com/logo.png',
-    name: 'USD Coin',
-    balance: '1',
-  };
-
-  const mockNetworkConfigurations = {
-    [mockChainId]: {
-      chainId: mockChainId,
-      nativeCurrency: 'ETH',
-    },
-  };
-
-  const mockMultiChainMarketData = {
-    [mockChainId]: {
-      [mockTokenAddress]: {
-        tokenAddress: mockTokenAddress,
-        price: 10,
+  it('renders with initial state', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          onTokenPress={mockOnTokenPress}
+          onFocus={mockOnFocus}
+          onBlur={mockOnBlur}
+          onInputPress={mockOnInputPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
       },
-    },
-  };
+      { state: initialState },
+    );
 
-  const mockMultiChainCurrencyRates = {
-    ETH: {
-      conversionRate: 2000,
-    },
-  };
+    expect(getByTestId('token-input-input')).toBeTruthy();
+  });
 
-  const mockNonEvmMultichainAssetRates = {
-    [mockSolanaTokenAddress]: {
-      conversionTime: 1745436145391,
-      currency: 'swift:0/iso4217:USD',
-      expirationTime: 1745439745391,
-      marketData: {
-        allTimeHigh: '293.31',
-        allTimeLow: '0.500801',
-        circulatingSupply: '517313513.4593564',
-        marketCap: '78479310083',
-        pricePercentChange: {},
-        totalVolume: '6225869757',
+  it('handles input focus and blur correctly', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          onFocus={mockOnFocus}
+          onBlur={mockOnBlur}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
       },
-      rate: '151.7',
-    },
-    [mockSplTokenAddress]: {
-      conversionTime: 1745436145392,
-      currency: 'swift:0/iso4217:USD',
-      expirationTime: 1745439745392,
-      marketData: {
-        allTimeHigh: '1.17',
-        allTimeLow: '0.877647',
-        circulatingSupply: '61517136784.14079',
-        marketCap: '61511872061',
-        pricePercentChange: {},
-        totalVolume: '13352880710',
-      },
-      rate: '0.999915',
-    },
-  };
+      { state: initialState },
+    );
 
-  it('should return zero when token is undefined', () => {
-    const result = getDisplayFiatValue({
-      token: undefined,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
+    const input = getByTestId('token-input-input');
+    fireEvent(input, 'focus');
+    expect(mockOnFocus).toHaveBeenCalled();
 
-    expect(result).toBe('$0');
+    fireEvent(input, 'blur');
+    expect(mockOnBlur).toHaveBeenCalled();
+  });
+});
+
+describe('calculateFontSize', () => {
+  it('returns 40 for lengths up to 10', () => {
+    expect(calculateFontSize(5)).toBe(40);
+    expect(calculateFontSize(10)).toBe(40);
   });
 
-  it('should return zero when amount is undefined', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: undefined,
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
-
-    expect(result).toBe('$0');
+  it('returns 35 for lengths between 11 and 15', () => {
+    expect(calculateFontSize(11)).toBe(35);
+    expect(calculateFontSize(15)).toBe(35);
   });
 
-  it('should calculate correct fiat value for token amount', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
-
-    // 1 TOKEN1 = 10 ETH, 1 ETH = $2000, so 1 TOKEN1 = $20000
-    expect(result).toBe('$20000');
+  it('returns 30 for lengths between 16 and 20', () => {
+    expect(calculateFontSize(16)).toBe(30);
+    expect(calculateFontSize(20)).toBe(30);
   });
 
-  it('should return "< $0.01" for very small fiat values', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '0.0000001',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
-
-    expect(result).toBe('< $0.01');
+  it('returns 25 for lengths between 21 and 25', () => {
+    expect(calculateFontSize(21)).toBe(25);
+    expect(calculateFontSize(25)).toBe(25);
   });
 
-  it('should handle different currencies correctly', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'EUR',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
+  it('returns 20 for lengths greater than 25', () => {
+    expect(calculateFontSize(26)).toBe(20);
+    expect(calculateFontSize(100)).toBe(20);
+  });
+});
 
-    // Currency symbol should be included
-    expect(result).toBe('€20000');
+describe('getDisplayAmount', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getDisplayAmount(undefined)).toBeUndefined();
   });
 
-  it('should handle undefined market data correctly', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: undefined,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
-
-    expect(result).toBe('$0');
+  it('returns full amount for source type when under max length', () => {
+    const amount = '123456789012345678';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
   });
 
-  it('should handle zero price correctly', () => {
-    const noValueMarketData = {
-      [mockChainId]: {
-        [mockTokenAddress]: {
-          tokenAddress: mockTokenAddress,
-          price: 0,
-        },
-      },
-    };
-
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: noValueMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-      nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-    });
-
-    expect(result).toBe('$0');
+  it('returns full amount for source type when over max length', () => {
+    const amount = '1234567890123456789';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
   });
 
-  describe('Solana token tests', () => {
-    it('should calculate correct fiat value for SOL amount', () => {
-      const result = getDisplayFiatValue({
-        token: mockSolanaToken,
-        amount: '1',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'USD',
-        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-      });
-
-      // 1 SOL = $151.7
-      expect(result).toBe('$151.69999');
-    });
-
-    it('should calculate correct fiat value for SPL token amount', () => {
-      const result = getDisplayFiatValue({
-        token: mockSplToken,
-        amount: '1',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'USD',
-        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-      });
-
-      // 1 USDC = $0.999915
-      expect(result).toBe('$0.99991');
-    });
-
-    it('should handle different currencies for Solana tokens', () => {
-      const result = getDisplayFiatValue({
-        token: mockSolanaToken,
-        amount: '1',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'EUR',
-        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-      });
-
-      expect(result).toBe('€151.69999');
-    });
-
-    it('should handle very small amounts for Solana tokens', () => {
-      const result = getDisplayFiatValue({
-        token: mockSolanaToken,
-        amount: '0.0000001',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'USD',
-        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
-      });
-
-      expect(result).toBe('< $0.01');
-    });
-
-    it('should handle undefined rates for Solana tokens', () => {
-      const result = getDisplayFiatValue({
-        token: mockSolanaToken,
-        amount: '1',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'USD',
-        nonEvmMultichainAssetRates: {},
-      });
-
-      expect(result).toBe('$0');
-    });
-
-    it('should handle zero rate for Solana tokens', () => {
-      const zeroRateNonEvmMultichainAssetRates = {
-        [mockSolanaTokenAddress]: {
-          ...mockNonEvmMultichainAssetRates[mockSolanaTokenAddress],
-          rate: '0',
-        },
-      };
-
-      const result = getDisplayFiatValue({
-        token: mockSolanaToken,
-        amount: '1',
-        multiChainMarketData: mockMultiChainMarketData,
-        networkConfigurationsByChainId: mockNetworkConfigurations,
-        multiChainCurrencyRates: mockMultiChainCurrencyRates,
-        currentCurrency: 'USD',
-        nonEvmMultichainAssetRates: zeroRateNonEvmMultichainAssetRates,
-      });
-
-      expect(result).toBe('$0');
-    });
+  it('parses amount for destination type', () => {
+    const amount = '1234567890123456789.12345';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('1234567890123456789.12345');
   });
 });

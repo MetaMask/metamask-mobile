@@ -152,6 +152,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <SvgMock
               color="#ca3542"
+              fill="currentColor"
               height={24}
               name="Danger"
               style={
@@ -199,7 +200,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -277,7 +278,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
               "borderColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "borderWidth": 1,
               "flexDirection": "row",
               "height": 48,
@@ -437,7 +438,13 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        <View>
+        <View
+          style={
+            {
+              "width": "100%",
+            }
+          }
+        >
           <View
             style={
               {
@@ -568,7 +575,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "#4459ff",
-              "borderRadius": 24,
+              "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
@@ -816,94 +823,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </View>
       </View>
-      <View
-        style={
-          {
-            "marginVertical": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "paddingBottom": 8,
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
-                "fontSize": 16,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Profile Sync
-          </Text>
-          <RCTSwitch
-            accessibilityRole="switch"
-            disabled={false}
-            onChange={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
-            onTintColor="#4459ff"
-            style={
-              [
-                {
-                  "height": 31,
-                  "width": 51,
-                },
-                {
-                  "backgroundColor": "#b7bbc866",
-                  "borderRadius": 16,
-                },
-              ]
-            }
-            thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
-            value={false}
-          />
-        </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
-          <Text
-            accessibilityRole="text"
-            onPress={[Function]}
-            style={
-              {
-                "color": "#4459ff",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Learn how we protect your privacy
-          </Text>
-        </Text>
-      </View>
       <Text
         accessibilityRole="text"
         style={
@@ -979,7 +898,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1067,7 +986,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1155,7 +1074,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1242,7 +1161,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -1782,7 +1701,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
-                "name": "Solana Mainnet",
+                "name": "Solana",
                 "variant": "Network",
               }
             }
@@ -1796,7 +1715,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Solana Mainnet"
+            title="Solana"
           >
             <View
               style={
@@ -1856,7 +1775,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Solana Mainnet
+                  Solana
                 </Text>
               </View>
               <View
@@ -2345,108 +2264,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Security checks
-      </Text>
-      <View
-        style={
-          {
-            "marginTop": 16,
-          }
-        }
-      >
-        <View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "flex": 1,
-                  "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 18,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Automatic security checks
-            </Text>
-            <View
-              style={
-                {
-                  "marginLeft": 16,
-                }
-              }
-            >
-              <RCTSwitch
-                accessibilityRole="switch"
-                onChange={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onTintColor="#4459ff"
-                style={
-                  [
-                    {
-                      "height": 31,
-                      "width": 51,
-                    },
-                    [
-                      {
-                        "alignSelf": "flex-start",
-                      },
-                      {
-                        "backgroundColor": "#b7bbc866",
-                        "borderRadius": 16,
-                      },
-                    ],
-                  ]
-                }
-                thumbTintColor="#ffffff"
-                tintColor="#b7bbc866"
-                value={false}
-              />
-            </View>
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginTop": 8,
-              }
-            }
-          >
-            Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.
-          </Text>
-        </View>
-      </View>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
-            "fontWeight": "500",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginTop": 32,
-          }
-        }
-      >
         Analytics
       </Text>
       <View
@@ -2836,7 +2653,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
@@ -2924,7 +2741,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
                 "borderColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,

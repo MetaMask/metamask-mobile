@@ -444,7 +444,7 @@ exports[`NftDetails should render correctly 1`] = `
                                                   "alignItems": "center",
                                                   "backgroundColor": "#ffffff",
                                                   "borderColor": "#ffffff",
-                                                  "borderRadius": 8,
+                                                  "borderRadius": 4,
                                                   "borderWidth": 1,
                                                   "height": 16,
                                                   "justifyContent": "center",
@@ -533,6 +533,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 </Text>
                                 <SvgMock
                                   color="#121314"
+                                  fill="currentColor"
                                   height={20}
                                   name="SecurityTick"
                                   style={
@@ -730,6 +731,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={12}
                                         name="Export"
                                         style={
@@ -903,6 +905,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     >
                                       <SvgMock
                                         color="#4459ff"
+                                        fill="currentColor"
                                         height={12}
                                         name="Copy"
                                         style={
@@ -1235,6 +1238,7 @@ exports[`NftDetails should render correctly 1`] = `
                                   >
                                     <SvgMock
                                       color="#121314"
+                                      fill="currentColor"
                                       height={12}
                                       name="Export"
                                       style={
@@ -1379,7 +1383,7 @@ exports[`NftDetails should render correctly 1`] = `
                             [
                               [
                                 {
-                                  "borderRadius": 100,
+                                  "borderRadius": 12,
                                   "justifyContent": "center",
                                   "padding": 15,
                                 },

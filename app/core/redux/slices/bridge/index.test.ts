@@ -40,6 +40,7 @@ describe('bridge slice', () => {
         sourceToken: undefined,
         destToken: undefined,
         slippage: '0.5',
+        isSubmittingTx: false,
       });
     });
   });

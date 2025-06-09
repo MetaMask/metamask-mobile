@@ -10,14 +10,13 @@ import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
-} from '../../__mocks__/mockData';
+} from '../../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
@@ -180,7 +179,6 @@ describe('StakingBalance', () => {
       screen: Routes.STAKING.STAKE,
       params: {
         token: MOCK_ETH_MAINNET_ASSET,
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
   });

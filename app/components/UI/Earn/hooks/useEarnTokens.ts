@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
 import { TokenI } from '../../Tokens/types';
 import { getSupportedEarnTokens, filterEligibleTokens } from '../utils';
@@ -13,9 +14,17 @@ import {
 } from '../selectors/featureFlags';
 
 // Filters user's tokens to only return the supported and enabled earn tokens.
-const useEarnTokens = () => {
+const useEarnTokens = ({
+  includeStakingTokens = false,
+  includeLendingTokens = false,
+  includeReceiptTokens = false,
+}: Partial<{
+  includeStakingTokens: boolean;
+  includeLendingTokens: boolean;
+  includeReceiptTokens: boolean;
+}> = {}) => {
   const tokens = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+    selectAccountTokensAcrossChains(state),
   );
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
@@ -30,14 +39,18 @@ const useEarnTokens = () => {
     isLoadingEligibility: isLoadingStakingEligibility,
   } = useStakingEligibility();
 
-  const supportedStablecoins = useMemo(() => {
-    if (isLoadingStakingEligibility) return [];
+  const supportedEarnTokens = useMemo(() => {
+    if (isLoadingStakingEligibility || !isPortfolioViewEnabled()) return [];
 
     const allTokens = Object.values(tokens).flat() as TokenI[];
 
     if (!allTokens.length) return [];
 
-    const supportedTokens = getSupportedEarnTokens(allTokens);
+    const supportedTokens = getSupportedEarnTokens(allTokens, {
+      stakingTokens: includeStakingTokens,
+      lendingTokens: includeLendingTokens,
+      receiptTokens: includeReceiptTokens,
+    });
 
     const eligibleTokens = filterEligibleTokens(
       supportedTokens,
@@ -61,6 +74,9 @@ const useEarnTokens = () => {
     });
   }, [
     getTokenWithBalanceAndApr,
+    includeLendingTokens,
+    includeReceiptTokens,
+    includeStakingTokens,
     isEligibleToStake,
     isLoadingStakingEligibility,
     isPooledStakingEnabled,
@@ -68,7 +84,29 @@ const useEarnTokens = () => {
     tokens,
   ]);
 
-  return supportedStablecoins;
+  return supportedEarnTokens;
+};
+
+export const useHasSupportedStablecoin = (
+  tokenChainId: Hex,
+  tokenSymbol?: string,
+  isStaked?: boolean,
+) => {
+  const tokens = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChains(state),
+  );
+
+  const hasSupportedStablecoin = useMemo(() => {
+    const tokensByChainId = tokens?.[tokenChainId] as TokenI[] | undefined;
+    return (
+      isStaked &&
+      tokensByChainId?.some(
+        (t) => t?.chainId === tokenChainId && t?.symbol === tokenSymbol,
+      )
+    );
+  }, [isStaked, tokenChainId, tokenSymbol, tokens]);
+
+  return Boolean(hasSupportedStablecoin);
 };
 
 export default useEarnTokens;

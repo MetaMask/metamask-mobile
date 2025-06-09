@@ -8,6 +8,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectTransactionState } from '../../../../../reducers/transaction';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -18,8 +19,12 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
 jest.mock('../../../../../selectors/networkController');
+jest.mock('../../../../../reducers/transaction', () => ({
+  selectTransactionState: jest.fn(),
+}));
 
 describe('useInsufficientBalanceAlert', () => {
+  const mockSelectTransactionState = jest.mocked(selectTransactionState);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -64,10 +69,22 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
+    mockSelectTransactionState.mockReturnValue({
+      maxValueMode: false,
+    });
   });
 
   it('return empty array when no transaction metadata is available', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+    expect(result.current).toEqual([]);
+  });
+
+  it('return empty array when max value mode is enabled', () => {
+    mockSelectTransactionState.mockReturnValue({
+      maxValueMode: true,
+    });
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
     expect(result.current).toEqual([]);

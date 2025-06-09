@@ -533,6 +533,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       >
                                         <SvgMock
                                           color="#121314"
+                                          fill="currentColor"
                                           height={16}
                                           name="Close"
                                           style={
@@ -680,6 +681,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         >
                                           <SvgMock
                                             color="#ffffff"
+                                            fill="currentColor"
                                             height={20}
                                             name="CheckBold"
                                             onPress={[Function]}
@@ -865,6 +867,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         >
                                           <SvgMock
                                             color="#ffffff"
+                                            fill="currentColor"
                                             height={20}
                                             name="CheckBold"
                                             onPress={[Function]}
@@ -1025,7 +1028,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       "alignSelf": "stretch",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#4459ff",
-                                      "borderRadius": 20,
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,

@@ -16,7 +16,6 @@ import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useSelectedAccountMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -31,13 +30,29 @@ import {
 import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
+import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
+import {
+  fetchCarouselSlidesFromContentful,
+  isActive,
+} from './fetchCarouselSlidesFromContentful';
+import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 
-export const Carousel: FC<CarouselProps> = ({ style }) => {
+const MAX_CAROUSEL_SLIDES = 15;
+
+const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
+  const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
+  const [regularContentfulSlides, setRegularContentfulSlides] = useState<
+    CarouselSlide[]
+  >([]);
+  const isContentfulCarouselEnabled = useSelector(
+    selectContentfulCarouselEnabledFlag,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { selectedAccountMultichainBalance } =
-    useSelectedAccountMultichainBalances();
+  const hasBalance = useSelector(selectAddressHasTokenBalances);
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
@@ -49,52 +64,79 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     selectLastSelectedSolanaAccount,
   );
   ///: END:ONLY_INCLUDE_IF
-  const isZeroBalance =
-    selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
-  const slidesConfig = useMemo(
-    () =>
-      PREDEFINED_SLIDES.map((slide) => {
-        if (slide.id === 'fund' && isZeroBalance) {
-          return {
-            ...slide,
-            undismissable: true,
-          };
-        }
+  const isZeroBalance = !hasBalance;
+
+  // Fetch slides from Contentful
+  useEffect(() => {
+    const loadContentfulSlides = async () => {
+      if (!isContentfulCarouselEnabled) return;
+      try {
+        const { prioritySlides, regularSlides } =
+          await fetchCarouselSlidesFromContentful();
+        setPriorityContentfulSlides(
+          prioritySlides.filter((slides) => isActive(slides)),
+        );
+        setRegularContentfulSlides(
+          regularSlides.filter((slides) => isActive(slides)),
+        );
+      } catch (err) {
+        console.warn('Failed to fetch Contentful slides:', err);
+      }
+    };
+    loadContentfulSlides();
+  }, [isContentfulCarouselEnabled]);
+
+  // Merge all slides (predefined + contentful),
+  const slidesConfig = useMemo(() => {
+    const baseSlides = [
+      ...priorityContentfulSlides,
+      ...PREDEFINED_SLIDES,
+      ...regularContentfulSlides,
+    ];
+    return baseSlides.map((slide) => {
+      if (slide.id === 'fund' && isZeroBalance) {
         return {
           ...slide,
-          undismissable: false,
+          undismissable: true,
         };
-      }),
-    [isZeroBalance],
-  );
+      }
+      return {
+        ...slide,
+        undismissable: false,
+      };
+    });
+  }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
 
-  const visibleSlides = useMemo(
-    () =>
-      slidesConfig.filter((slide) => {
-        ///: BEGIN:ONLY_INCLUDE_IF(solana)
-        if (
-          slide.id === 'solana' &&
-          selectedAccount?.type === SolAccountType.DataAccount
-        ) {
-          return false;
-        }
-        ///: END:ONLY_INCLUDE_IF
+  const visibleSlides = useMemo(() => {
+    const filtered = slidesConfig.filter((slide: CarouselSlide) => {
+      const isCurrentlyActive = isActive(slide);
 
-        if (slide.id === 'fund' && isZeroBalance) {
-          return true;
-        }
-        return !dismissedBanners.includes(slide.id);
-      }),
-    [
-      slidesConfig,
-      isZeroBalance,
-      dismissedBanners,
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      selectedAccount,
+      if (
+        slide.id === 'solana' &&
+        selectedAccount?.type === SolAccountType.DataAccount
+      ) {
+        return false;
+      }
       ///: END:ONLY_INCLUDE_IF
-    ],
-  );
+
+      if (slide.id === 'fund' && isZeroBalance) {
+        return true;
+      }
+
+      return isCurrentlyActive && !dismissedBanners.includes(slide.id);
+    });
+    return filtered.slice(0, MAX_CAROUSEL_SLIDES);
+  }, [
+    slidesConfig,
+    isZeroBalance,
+    dismissedBanners,
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    selectedAccount,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
@@ -166,7 +208,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     ({ item: slide }: { item: CarouselSlide }) => (
       <Pressable
         key={slide.id}
-        testID={slide.testID}
+        testID={`carousel-slide-${slide.id}`}
         style={[
           styles.slideContainer,
           pressedSlideId === slide.id && styles.slideContainerPressed,
@@ -178,7 +220,11 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         <View style={styles.slideContent}>
           <View style={styles.imageContainer}>
             <Image
-              source={BANNER_IMAGES[slide.id]}
+              source={
+                slide.id.startsWith('contentful-')
+                  ? { uri: slide.image }
+                  : BANNER_IMAGES[slide.id]
+              }
               style={styles.bannerImage}
               resizeMode="contain"
             />
@@ -188,7 +234,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.title}
-                testID={slide.testIDTitle}
+                testID={`carousel-slide-${slide.id}-title`}
               >
                 {slide.title}
               </Text>
@@ -199,7 +245,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
           </View>
           {!slide.undismissable && (
             <TouchableOpacity
-              testID={slide.testIDCloseButton}
+              testID={`carousel-slide-${slide.id}-close-button`}
               style={styles.closeButton}
               onPress={() => handleClose(slide.id)}
             >
@@ -220,7 +266,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   // Track banner display events when visible slides change
   useEffect(() => {
-    visibleSlides.forEach((slide) => {
+    visibleSlides.forEach((slide: CarouselSlide) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Display',
@@ -238,7 +284,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
         testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
         style={styles.progressContainer}
       >
-        {visibleSlides.map((slide, index) => (
+        {visibleSlides.map((slide: CarouselSlide, index: number) => (
           <View
             key={slide.id}
             style={[
@@ -288,4 +334,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 };
 
+// Split memo component so we still see a Component name when profiling
+export const Carousel = React.memo(CarouselComponent);
 export default Carousel;

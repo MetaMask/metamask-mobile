@@ -40,7 +40,7 @@ import BottomModal from '../../../../../UI/bottom-modal';
 
 import styleSheet from './value-display.styles';
 import { strings } from '../../../../../../../../../../locales/i18n';
-import AnimatedPulse from '../animated-pulse/animated-pulse';
+import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
 
@@ -188,6 +188,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
           {showValueButtonPill && (
             <AnimatedPulse
               isPulsing={isPendingTokenDetails}
+              minCycles={0}
               testID="simulation-value-display-loader"
             >
               <ButtonPill

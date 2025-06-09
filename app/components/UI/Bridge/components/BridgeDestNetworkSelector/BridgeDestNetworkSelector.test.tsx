@@ -1,14 +1,11 @@
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
-import { initialState } from '../../_mocks_/initialState';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -100,9 +97,29 @@ describe('BridgeDestNetworkSelector', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          BridgeController: {
-            bridgeFeatureFlags: {
-              [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              bridgeConfig: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
+                chains: {
+                  [formatChainIdToCaip(mockChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: false,
+                  }, // Set Ethereum to inactive as dest
+                  [formatChainIdToCaip(optimismChainId)]: {
+                    isActiveSrc: true,
+                    isActiveDest: true,
+                  },
+                },
+              },
+              bridgeConfigV2: {
+                minimumVersion: '0.0.0',
+                maxRefreshCount: 5,
+                refreshRate: 30000,
+                support: true,
                 chains: {
                   [formatChainIdToCaip(mockChainId)]: {
                     isActiveSrc: true,

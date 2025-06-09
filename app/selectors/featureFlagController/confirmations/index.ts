@@ -52,14 +52,13 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
 
   const isContractInteractionEnabled = getFeatureFlagValue(
     process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
-    // TODO: This will be pick up values from the remote feature flag once the
-    // feature is ready to be rolled out
-    false,
+    confirmationRedesignFlags.contract_interaction,
   );
 
-  // TODO: This will be pick up values from the remote feature flag once the feature is ready
-  // Task is created but still in draft
-  const isTransferEnabled = process.env.FEATURE_FLAG_REDESIGNED_TRANSFER === 'true';
+  const isTransferEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_TRANSFER,
+    confirmationRedesignFlags.transfer,
+  );
 
   return {
     signatures: isSignaturesEnabled,

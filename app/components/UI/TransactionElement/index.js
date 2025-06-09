@@ -22,7 +22,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import { isMainNet, isTestNet } from '../../../util/networks';
+import { isTestNet, isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
@@ -30,9 +30,8 @@ import {
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  selectChainId,
+  selectTickerByChainId,
   selectEvmNetworkConfigurationsByChainId,
-  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
@@ -191,10 +190,12 @@ class TransactionElement extends PureComponent {
      * Chain Id
      */
     txChainId: PropTypes.string,
-    /**
+     /**
      * Network configurations by chain id
      */
-    networkConfigurationsByChainId: PropTypes.object,
+     // adding a disable rule since this prop is part of a prop spread <TransactionElement {...props} but ts lint cant see that
+     // eslint-disable-next-line react/no-unused-prop-types
+     networkConfigurationsByChainId: PropTypes.object,
     /**
      * Navigation object for routing
      */
@@ -227,7 +228,6 @@ class TransactionElement extends PureComponent {
       swapsTokens: this.props.swapsTokens,
       assetSymbol: this.props.assetSymbol,
       txChainId: this.props.txChainId,
-      networkConfigurationsByChainId: this.props.networkConfigurationsByChainId,
     });
     this.mounted = true;
 
@@ -697,13 +697,13 @@ class TransactionElement extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  networkConfigurationsByChainId:
-    selectEvmNetworkConfigurationsByChainId(state),
+const mapStateToProps = (state, ownProps) => ({
+  networkConfigurationsByChainId: isPerDappSelectedNetworkEnabled() ? undefined : selectEvmNetworkConfigurationsByChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
+  ticker: isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, ownProps.tx.chainId) : undefined,
 });
 
 TransactionElement.contextType = ThemeContext;

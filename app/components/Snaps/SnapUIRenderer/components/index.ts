@@ -22,6 +22,8 @@ import { address } from './address';
 import { avatar } from './avatar';
 import { tooltip } from './tooltip';
 import { addressInput } from './address-input';
+import { assetSelector } from './asset-selector';
+import { copyable } from './copyable';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -48,4 +50,6 @@ export const COMPONENT_MAPPING = {
   Avatar: avatar,
   Address: address,
   Tooltip: tooltip,
+  AssetSelector: assetSelector,
+  Copyable: copyable,
 };

@@ -13,8 +13,14 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
-    container: {
-      display: 'flex',
+    container:{
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingBottom: 4,
+    },
+    accountContainer: {
+      flex: 1,
       flexDirection: 'row',
     },
     badgeWrapper: {
@@ -22,7 +28,6 @@ const styleSheet = (params: {
       alignSelf: 'center',
     },
     accountInfo: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       width: '100%',

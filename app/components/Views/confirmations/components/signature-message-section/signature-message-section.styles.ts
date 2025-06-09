@@ -8,8 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      display: 'flex',
-      width: '100%',
+      position: 'relative',
+      paddingHorizontal: 8,
+    },
+    icon: {
+      position: 'absolute',
+      top: 4,
+      right: 8,
     },
     message: {
       marginTop: 8,

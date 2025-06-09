@@ -161,33 +161,36 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </View>
         <View
           style={
-            {
-              "backgroundColor": "#ca35421a",
-              "borderColor": "#ca3542",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "margin": 20,
-              "marginTop": 10,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "margin": 20,
+                "marginTop": 10,
+              },
+            ]
           }
         >
           <View
             style={
               [
                 {
-                  "padding": 20,
-                },
-                {
-                  "alignContent": "center",
                   "alignItems": "center",
-                  "flex": 1,
                   "flexDirection": "row",
+                  "flexShrink": 1,
+                  "width": "100%",
                 },
               ]
             }
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -298,7 +301,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -359,7 +362,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -588,33 +591,36 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </View>
         <View
           style={
-            {
-              "backgroundColor": "#ca35421a",
-              "borderColor": "#ca3542",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "margin": 20,
-              "marginTop": 10,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "margin": 20,
+                "marginTop": 10,
+              },
+            ]
           }
         >
           <View
             style={
               [
                 {
-                  "padding": 20,
-                },
-                {
-                  "alignContent": "center",
                   "alignItems": "center",
-                  "flex": 1,
                   "flexDirection": "row",
+                  "flexShrink": 1,
+                  "width": "100%",
                 },
               ]
             }
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -725,7 +731,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -786,7 +792,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -952,33 +958,36 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
         </View>
         <View
           style={
-            {
-              "backgroundColor": "#ca35421a",
-              "borderColor": "#ca3542",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "margin": 20,
-              "marginTop": 10,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "margin": 20,
+                "marginTop": 10,
+              },
+            ]
           }
         >
           <View
             style={
               [
                 {
-                  "padding": 20,
-                },
-                {
-                  "alignContent": "center",
                   "alignItems": "center",
-                  "flex": 1,
                   "flexDirection": "row",
+                  "flexShrink": 1,
+                  "width": "100%",
                 },
               ]
             }
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -1078,7 +1087,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -1139,7 +1148,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -1305,33 +1314,36 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
         </View>
         <View
           style={
-            {
-              "backgroundColor": "#ca35421a",
-              "borderColor": "#ca3542",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "margin": 20,
-              "marginTop": 10,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "margin": 20,
+                "marginTop": 10,
+              },
+            ]
           }
         >
           <View
             style={
               [
                 {
-                  "padding": 20,
-                },
-                {
-                  "alignContent": "center",
                   "alignItems": "center",
-                  "flex": 1,
                   "flexDirection": "row",
+                  "flexShrink": 1,
+                  "width": "100%",
                 },
               ]
             }
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={24}
               name="EyeSlash"
               style={
@@ -1431,7 +1443,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -1492,7 +1504,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },

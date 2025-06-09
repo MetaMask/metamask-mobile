@@ -650,12 +650,12 @@ describe('Smart Transactions utils', () => {
 
   describe('getIsAllowedRpcUrlForSmartTransactions', () => {
     let isProductionMock: jest.SpyInstance;
-    
+
     beforeEach(() => {
       // Mock isProduction function before each test
       isProductionMock = jest.spyOn(environment, 'isProduction');
     });
-    
+
     afterEach(() => {
       isProductionMock.mockRestore();
     });

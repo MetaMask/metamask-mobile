@@ -4,6 +4,8 @@ import Settings from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -136,5 +138,17 @@ describe('Settings', () => {
       SettingsViewSelectorsIDs.PERMISSIONS,
     );
     expect(permissionsSettings).toBeDefined();
+  });
+  it('should render backup and sync settings button, and navigate to the correct page on press', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const backupAndSyncSettings = getByTestId(
+      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
+    );
+    expect(backupAndSyncSettings).toBeDefined();
+
+    fireEvent.press(backupAndSyncSettings);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
   });
 });

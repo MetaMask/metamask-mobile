@@ -1,13 +1,11 @@
+import '../../_mocks_/initialState';
 import React from 'react';
 import BlockExplorersModal from './BlockExplorersModal';
 import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -99,8 +97,16 @@ describe('BlockExplorersModal', () => {
           },
         },
         BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+          quoteRequest: {
+            slippage: 0.5,
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfig: {
+              maxRefreshCount: 5,
+              refreshRate: 30000,
+              support: true,
               chains: {
                 [formatChainIdToCaip(mockChainId)]: {
                   isActiveSrc: true,
@@ -112,9 +118,6 @@ describe('BlockExplorersModal', () => {
                 },
               },
             },
-          },
-          quoteRequest: {
-            slippage: 0.5,
           },
         },
         TokenBalancesController: {

@@ -18,6 +18,7 @@ jest.mock('./accountsController', () => ({
     () => TEST_ADDRESS_ONE,
   ),
   selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
+  selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
 }));
 
 jest.mock('./tokensController', () => ({
@@ -27,6 +28,7 @@ jest.mock('./tokensController', () => ({
 }));
 
 jest.mock('../util/address', () => ({
+  ...jest.requireActual('../util/address'),
   isHardwareAccount: jest.fn(() => false),
 }));
 
@@ -158,7 +160,10 @@ describe('SmartTransactionsController Selectors', () => {
       const state = getDefaultState();
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
-      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, '0x1');
+      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+        state,
+        '0x1',
+      );
       expect(shouldUseSmartTransaction).toEqual(true);
     });
   });

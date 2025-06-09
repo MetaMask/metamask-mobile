@@ -91,7 +91,7 @@ import {
 
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import ExtendedKeyringTypes from '../../../../../../constants/keyringTypes';
@@ -109,7 +109,7 @@ import {
   selectGasFeeEstimates,
 } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import {
   getNetworkNonce,
   updateTransaction,
@@ -437,7 +437,10 @@ class Confirm extends PureComponent {
 
     const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
-      await TokensController.ignoreTokens([selectedAsset.address]);
+      await TokensController.ignoreTokens(
+        [selectedAsset.address],
+        this.props.networkClientId,
+      );
     }
   };
 
@@ -556,7 +559,9 @@ class Confirm extends PureComponent {
       ],
     };
 
-    ppomUtil.validateRequest(reqObject, id);
+    ppomUtil.validateRequest(reqObject, {
+      transactionMeta,
+    });
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -782,6 +787,7 @@ class Confirm extends PureComponent {
           decimals,
           image,
           name,
+          networkClientId: this.props.networkClientId,
         });
       }
 

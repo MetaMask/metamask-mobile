@@ -29,7 +29,8 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-  MEGAETH_TESTNET
+  MEGAETH_TESTNET,
+  MONAD_TESTNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -117,7 +118,12 @@ describe('network-utils', () => {
     const allNetworks = getAllNetworks();
     it('should get all networks', () => {
       expect(allNetworks).toStrictEqual([
-        MAINNET,LINEA_MAINNET, SEPOLIA, LINEA_SEPOLIA, MEGAETH_TESTNET
+        MAINNET,
+        LINEA_MAINNET,
+        SEPOLIA,
+        LINEA_SEPOLIA,
+        MEGAETH_TESTNET,
+        MONAD_TESTNET,
       ]);
     });
 
@@ -540,13 +546,13 @@ describe('network-utils', () => {
         multichainNetworkConfigurationsByChainId: {
           'bip122:000000000019d6689c085ae165831e93': {
             chainId: 'bip122:000000000019d6689c085ae165831e93',
-            name: 'Bitcoin Mainnet',
+            name: 'Bitcoin',
             nativeCurrency: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
             isEvm: false,
           },
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
             chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            name: 'Solana Mainnet',
+            name: 'Solana',
             nativeCurrency:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             isEvm: false,
@@ -763,6 +769,10 @@ describe('network-utils', () => {
         {
           chainId: ChainId['megaeth-testnet'],
           expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
+        },
+        {
+          chainId: ChainId['monad-testnet'],
+          expectedImage: networksWithImages?.['MONAD-TESTNET'],
         }
       ]
     )('returns corresponding image for the testnet - $.chainId', ({
@@ -793,6 +803,11 @@ describe('network-utils', () => {
       chainId: ChainId['megaeth-testnet'],
       name: 'MegaETH Testnet',
       nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
+    },
+    {
+      chainId: ChainId['monad-testnet'],
+      name: 'Monad Testnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['monad-testnet']],
     },
     ])('returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name', ({
       chainId, name, nickname

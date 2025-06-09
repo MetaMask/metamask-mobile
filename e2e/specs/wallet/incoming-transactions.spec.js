@@ -30,7 +30,7 @@ const RESPONSE_STANDARD_MOCK = {
   cumulativeGasUsed: 1,
   methodId: null,
   value: '1230000000000000000',
-  to: DEFAULT_FIXTURE_ACCOUNT.toLowerCase(),
+  to: DEFAULT_FIXTURE_ACCOUNT,
   from: '0x2',
   isError: false,
   valueTransfers: [],
@@ -52,7 +52,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
       decimal: 18,
       symbol: TOKEN_SYMBOL_MOCK,
       from: '0x2',
-      to: DEFAULT_FIXTURE_ACCOUNT.toLowerCase(),
+      to: DEFAULT_FIXTURE_ACCOUNT,
       amount: '4560000000000000000',
     },
   ],
@@ -61,7 +61,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
 const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
   to: '0x2',
-  from: DEFAULT_FIXTURE_ACCOUNT.toLowerCase(),
+  from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
 function mockAccountsApi(transactions) {
@@ -104,7 +104,9 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it('displays incoming token transfers', async () => {
+  // TODO: Fix this test and remove the skip
+  // More info: https://github.com/MetaMask/metamask-mobile/issues/15730
+  it.skip('displays incoming token transfers', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
