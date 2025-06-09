@@ -29,6 +29,16 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    disclaimerWrapper: {
+      padding: 16,
+      paddingTop: 8,
+    },
+    disclaimerText: {
+      fontSize: 12,
+      color: colors.text.muted,
+      textAlign: 'center',
+      ...fontStyles.normal,
+    },
   });
 
 export default createStyles;

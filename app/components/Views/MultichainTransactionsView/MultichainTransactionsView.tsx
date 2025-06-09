@@ -1,7 +1,12 @@
 import React, { useMemo } from 'react';
-import { View, RefreshControl } from 'react-native';
+import {
+  View,
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
@@ -36,7 +41,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override navigation instance
    */
-  navigation?: any;
+  navigation?: NavigationProp<Record<string, object | undefined>>;
   /**
    * Override selected address
    */
@@ -60,7 +65,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Scroll event handler
    */
-  onScroll?: (event: any) => void;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
@@ -88,10 +93,10 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
     selectSolanaAccountTransactions,
   );
 
-  const transactions = useMemo(() => {
-    // Use provided transactions or fall back to selector
-    return transactionsProp || solanaAccountTransactions?.transactions;
-  }, [transactionsProp, solanaAccountTransactions]);
+  const transactions = useMemo(
+    () => transactionsProp || solanaAccountTransactions?.transactions,
+    [transactionsProp, solanaAccountTransactions],
+  );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
@@ -148,8 +153,8 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
     if (!showDisclaimer) return null;
 
     return (
-      <View style={[style.viewMoreWrapper, { paddingTop: 8 }]}>
-        <Text style={[style.emptyText, { fontSize: 12, textAlign: 'center' }]}>
+      <View style={style.disclaimerWrapper}>
+        <Text style={style.disclaimerText}>
           {strings('asset_overview.disclaimer')}
         </Text>
       </View>
