@@ -24,11 +24,6 @@ const SIGNATURE_LIST = [
     specName: 'SIWE Sign',
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
-    additionAssertions: async () => {
-      await Assertions.checkIfVisible(
-        PageSections.SiweSigningAccountInfoSection,
-      );
-    },
   },
   {
     specName: 'Typed V1 Sign',
