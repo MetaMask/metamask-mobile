@@ -119,7 +119,7 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote]);
+  }, [navigation, validateFormData, formData, quote, kycUrl]);
 
   return (
     <ScreenLayout>

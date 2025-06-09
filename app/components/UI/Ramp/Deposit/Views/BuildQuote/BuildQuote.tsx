@@ -120,6 +120,7 @@ const BuildQuote = () => {
     navigation,
     network,
     paymentMethod,
+    fetchKycFormData,
   ]);
 
   const handleAmountChange = (text: string) => {

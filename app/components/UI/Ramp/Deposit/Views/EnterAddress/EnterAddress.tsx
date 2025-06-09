@@ -165,6 +165,7 @@ const EnterAddress = (): JSX.Element => {
     purposeError,
     navigation,
     quote,
+    kycUrl,
   ]);
 
   return (
