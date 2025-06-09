@@ -186,7 +186,7 @@
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^17.0.1",
-    "@metamask/eth-ledger-bridge-keyring": "^11.0.3",
+    "@metamask-previews/eth-ledger-bridge-keyring": "11.0.3-87ad186",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^8.0.0",
     "@metamask/eth-snap-keyring": "^13.0.0",
@@ -428,7 +428,7 @@
     "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
   },
-  
+
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
