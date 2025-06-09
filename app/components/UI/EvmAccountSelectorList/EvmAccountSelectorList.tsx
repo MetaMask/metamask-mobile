@@ -460,7 +460,6 @@ const EvmAccountSelectorList = ({
       navigate,
       styles.titleText,
       multichainAccountsState1Enabled,
-      styles.titleText,
     ],
   );
 
