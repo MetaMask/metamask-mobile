@@ -88,7 +88,6 @@ describe('StakingWithdrawal', () => {
       <StakingWithdrawal
         route={{
           params: {
-            chainId: '1',
             amountWei: '1000000000000000000',
             amountFiat: '1000000000000000000',
           },
@@ -125,7 +124,6 @@ describe('StakingWithdrawal', () => {
           params: {
             amountWei: '1000000000000000000',
             amountFiat: '1000000000000000000',
-            chainId: '1',
           },
           key: 'mockRouteKey',
           name: 'params',

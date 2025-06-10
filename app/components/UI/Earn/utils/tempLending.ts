@@ -4,9 +4,9 @@ import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import BigNumber from 'bignumber.js';
 import { ethers, BigNumber as EthersBigNumber } from 'ethers';
 import Engine from '../../../../core/Engine';
-import BigNumber from 'bignumber.js';
 
 // TODO: ADD SUPPORT FOR LINEA: Feasibility TBD
 // TODO: ADD SUPPORT FOR ARBITRUM: Feasibility TBD
@@ -344,7 +344,7 @@ const DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR = 2.0;
  * Get the max safe withdraw in the token's lowest denomination.
  * This should be treated as an estimate given variations in exchange rates.
  */
-const getAaveV3MaxSafeWithdrawal = async (
+export const getAaveV3MaxSafeWithdrawal = async (
   userData: AaveV3UserAccountData,
   receiptToken: EarnTokenDetails,
   minHealthFactor = DEFAULT_STABLECOIN_SAFE_HEALTH_FACTOR,
