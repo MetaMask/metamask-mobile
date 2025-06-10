@@ -36,14 +36,20 @@ async function parseDeeplink({
     const validatedUrl = new URL(url);
     let isPrivateLink = false;
     if (hasSignature(validatedUrl)) {
-      const signatureResult = await verifyDeeplinkWithLogging(validatedUrl, origin);
+      const signatureResult = await verifyDeeplinkWithLogging(validatedUrl);
       switch (signatureResult) {
         case VALID:
-          DevLogger.log('DeepLinkManager:parse Verified signature for deeplink', url);
+          DevLogger.log(
+            'DeepLinkManager:parse Verified signature for deeplink',
+            url,
+          );
           isPrivateLink = true;
         case INVALID:
         case MISSING:
-          DevLogger.log('DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink', url);
+          DevLogger.log(
+            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+            url,
+          );
           isPrivateLink = false;
         default:
           isPrivateLink = false;
