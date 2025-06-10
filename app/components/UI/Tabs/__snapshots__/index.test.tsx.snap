@@ -68,6 +68,7 @@ exports[`Tabs should render correctly 1`] = `
               false,
             ]
           }
+          testID="browser-tab-1"
         >
           <View
             style={
@@ -149,6 +150,7 @@ exports[`Tabs should render correctly 1`] = `
                 }
               }
               onPress={[Function]}
+              testID="tab-close-button-1"
             >
               <SvgMock
                 color="#121314"
