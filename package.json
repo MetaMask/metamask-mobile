@@ -167,6 +167,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
+    "@lavamoat/react-native-lockdown": "./lavamoat-react-native-lockdown-0.0.1-beta.0.tgz",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/accounts-controller": "^30.0.0",
     "@metamask/address-book-controller": "^6.0.3",
