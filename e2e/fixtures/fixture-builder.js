@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-
-import { getGanachePort } from './utils';
+import { device } from 'detox';
+import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -258,6 +258,20 @@ class FixtureBuilder {
                     },
                   ],
                 },
+                '0xe708': {
+                  blockExplorerUrls: [],
+                  chainId: '0xe708',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Linea Main Network',
+                  nativeCurrency: 'LineaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'linea-mainnet',
+                      type: 'infura',
+                      url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
               },
             },
             PhishingController: {
@@ -304,7 +318,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
-                    scopes: ['eip155:0']
+                    scopes: ['eip155:0'],
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -455,6 +469,11 @@ class FixtureBuilder {
             {
               url: 'https://google.com',
               id: 1692550481062,
+            },
+            {
+              url: getSecondTestDappLocalUrl(),
+              id: 1749234797566,
+              isArchived: false,
             },
           ],
           activeTab: 1692550481062,
@@ -740,7 +759,7 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}) {
+  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -756,7 +775,7 @@ class FixtureBuilder {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
         parentCapability: Caip25EndowmentPermissionName,
-        invoker: DAPP_URL,
+        invoker: dappUrl,
         caveats: [
           {
             type: Caip25CaveatType,
@@ -769,8 +788,8 @@ class FixtureBuilder {
 
     return {
       subjects: {
-        [DAPP_URL]: {
-          origin: DAPP_URL,
+        [dappUrl]: {
+          origin: dappUrl,
           permissions: basePermissions,
         },
       },
@@ -782,9 +801,17 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
+    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+      );
+    }
     this.withPermissionController(
-      this.createPermissionControllerConfig(additionalPermissions),
+      merge(testDappPermissions, secondDappPermissions)
     );
 
     // Ensure Solana feature modal is suppressed
