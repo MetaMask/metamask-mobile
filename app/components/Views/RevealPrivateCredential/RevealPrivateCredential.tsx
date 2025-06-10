@@ -4,7 +4,6 @@ import {
   Dimensions,
   Linking,
   Platform,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -53,7 +52,10 @@ import { Authentication } from '../../../core/';
 import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  getInternalAccountByAddress,
+  isHardwareAccount,
+} from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
@@ -61,6 +63,12 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { AccountInfo } from '../MultichainAccounts/accountDetails/components/accountInfo/accountInfo';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 export const PRIVATE_KEY = 'private_key';
 
@@ -85,6 +93,7 @@ interface IRevealPrivateCredentialProps {
   credentialName: string;
   cancel: () => void;
   route: RevealPrivateCredentialRouteProp;
+  showCancelButton?: boolean;
 }
 
 const RevealPrivateCredential = ({
@@ -92,6 +101,7 @@ const RevealPrivateCredential = ({
   credentialName,
   cancel,
   route,
+  showCancelButton,
 }: IRevealPrivateCredentialProps) => {
   const hasNavigation = !!navigation;
   // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
@@ -124,6 +134,10 @@ const RevealPrivateCredential = ({
   const credentialSlug = credentialName || route?.params.credentialName;
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
+
+  // Address will always be defined because the checkSummedAddress is the selectedAccount
+  const account = getInternalAccountByAddress(selectedAddress as string);
+
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
@@ -447,7 +461,7 @@ const RevealPrivateCredential = ({
 
   const renderPasswordEntry = () => (
     <>
-      <Text style={styles.enterPassword}>
+      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextInput
@@ -626,18 +640,30 @@ const RevealPrivateCredential = ({
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
         contentContainerStyle={styles.stretch}
+        showCancelButton={Boolean(showCancelButton || unlocked)}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey ? (
-              <Text style={styles.normalText}>
-                {strings(`reveal_credential.private_key_explanation`)}
-              </Text>
+            {isPrivateKey && account ? (
+              <>
+                <AccountInfo account={account} />
+                <BannerAlert
+                  severity={BannerAlertSeverity.Error}
+                  title={strings(
+                    'multichain_accounts.reveal_private_key.banner_title',
+                  )}
+                  description={strings(
+                    'multichain_accounts.reveal_private_key.banner_description',
+                  )}
+                />
+              </>
             ) : (
-              renderSRPExplanation()
+              <>
+                {renderWarning(credentialSlug)}
+                {renderSRPExplanation()}
+              </>
             )}
           </View>
-          {renderWarning(credentialSlug)}
 
           <View style={[styles.rowWrapper, styles.stretch]}>
             {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}

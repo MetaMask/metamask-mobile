@@ -68,6 +68,18 @@ const render = () => {
             selectedAccount: mockSelectedAccount.id,
           },
         },
+        KeyringController: {
+          keyrings: [
+            {
+              accounts: [mockSelectedAccount.address],
+              type: KeyringTypes.hd,
+              metadata: {
+                id: 'mock-id',
+                name: 'mock-name',
+              },
+            },
+          ],
+        },
       },
     },
   };

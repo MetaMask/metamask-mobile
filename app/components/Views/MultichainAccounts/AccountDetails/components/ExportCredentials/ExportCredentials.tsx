@@ -91,7 +91,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   return (
     <Box style={styles.container} data-testid={ExportCredentialsIds.CONTAINER}>
       {canExportMnemonic && srpName && (
-        <TouchableOpacity onPress={onExportMnemonic}>
+        <TouchableOpacity
+          onPress={onExportMnemonic}
+          testID={ExportCredentialsIds.EXPORT_SRP_BUTTON}
+        >
           <Box
             style={styles.exportMnemonic}
             flexDirection={FlexDirection.Row}
@@ -124,7 +127,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
         </TouchableOpacity>
       )}
       {canExportPrivateKey && (
-        <TouchableOpacity onPress={onExportPrivateKey} testID="hihi">
+        <TouchableOpacity
+          onPress={onExportPrivateKey}
+          testID={ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON}
+        >
           <Box
             style={styles.exportPrivateKey}
             flexDirection={FlexDirection.Row}
