@@ -49,6 +49,14 @@ import {
   getTokenValue,
   isNFTTokenStandard,
   calcTokenValue,
+  getTransactionToName,
+  addAccountTimeFlagFilter,
+  getNormalizedTxState,
+  getActiveTabUrl,
+  getTicker,
+  getEther,
+  validateTransactionActionBalance,
+  isSmartContractAddress,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -1719,5 +1727,334 @@ describe('Transactions utils :: Edge Cases and Error Handling', () => {
       const result = await getTransactionActionKey(transaction, '1');
       expect(result).toBe('deploy');
     });
+  });
+});
+
+describe('Transactions utils :: getTransactionToName', () => {
+  const { getTransactionToName } = require('./index');
+
+  it('returns ensRecipient when provided', () => {
+    const config = {
+      addressBook: {},
+      chainId: '1',
+      toAddress: '0x123',
+      internalAccounts: [],
+      ensRecipient: 'example.eth',
+    };
+
+    const result = getTransactionToName(config);
+    expect(result).toBe('example.eth');
+  });
+
+  it('returns address book name when found', () => {
+    const toAddress = '0x1234567890123456789012345678901234567890';
+    const config = {
+      addressBook: {
+        '1': {
+          [toAddress]: { name: 'My Contact' },
+        },
+      },
+      chainId: '1',
+      toAddress,
+      internalAccounts: [],
+      ensRecipient: null,
+    };
+
+    const result = getTransactionToName(config);
+    expect(result).toBe('My Contact');
+  });
+
+  it('returns internal account name when found', () => {
+    const toAddress = '0x1234567890123456789012345678901234567890';
+    const config = {
+      addressBook: {},
+      chainId: '1',
+      toAddress,
+      internalAccounts: [
+        {
+          address: toAddress,
+          metadata: { name: 'My Account' },
+        },
+      ],
+      ensRecipient: null,
+    };
+
+    const result = getTransactionToName(config);
+    expect(result).toBe('My Account');
+  });
+
+  it('returns undefined when no name is found', () => {
+    const config = {
+      addressBook: {},
+      chainId: '1',
+      toAddress: '0x1234567890123456789012345678901234567890',
+      internalAccounts: [],
+      ensRecipient: null,
+    };
+
+    const result = getTransactionToName(config);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: addAccountTimeFlagFilter', () => {
+  const { addAccountTimeFlagFilter } = require('./index');
+
+  it('returns true when transaction time is less than or equal to added time and flag is false', () => {
+    const transaction = { time: 1000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = false;
+
+    const result = addAccountTimeFlagFilter(
+      transaction,
+      addedAccountTime,
+      accountAddedTimeInsertPointFound,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when transaction time is greater than added time', () => {
+    const transaction = { time: 2000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = false;
+
+    const result = addAccountTimeFlagFilter(
+      transaction,
+      addedAccountTime,
+      accountAddedTimeInsertPointFound,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when flag is already true', () => {
+    const transaction = { time: 1000 };
+    const addedAccountTime = 1500;
+    const accountAddedTimeInsertPointFound = true;
+
+    const result = addAccountTimeFlagFilter(
+      transaction,
+      addedAccountTime,
+      accountAddedTimeInsertPointFound,
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getNormalizedTxState', () => {
+  const { getNormalizedTxState } = require('./index');
+
+  it('returns merged transaction state when transaction exists', () => {
+    const state = {
+      transaction: {
+        id: '1',
+        transaction: {
+          value: '0x1',
+          gasPrice: '0x2',
+        },
+      },
+    };
+
+    const result = getNormalizedTxState(state);
+    expect(result).toEqual({
+      id: '1',
+      value: '0x1',
+      gasPrice: '0x2',
+      transaction: {
+        value: '0x1',
+        gasPrice: '0x2',
+      },
+    });
+  });
+
+  it('returns undefined when no transaction exists', () => {
+    const state = {};
+    const result = getNormalizedTxState(state);
+    expect(result).toBeUndefined();
+  });
+
+  it('throws error when state is null', () => {
+    expect(() => getNormalizedTxState(null)).toThrow();
+  });
+});
+
+describe('Transactions utils :: getActiveTabUrl', () => {
+  const { getActiveTabUrl } = require('./index');
+
+  it('returns active tab URL when browser state is valid', () => {
+    const browserState = {
+      browser: {
+        activeTab: 'tab1',
+        tabs: [
+          { id: 'tab1', url: 'https://example.com' },
+          { id: 'tab2', url: 'https://other.com' },
+        ],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBe('https://example.com');
+  });
+
+  it('returns null when no active tab exists', () => {
+    const browserState = {
+      browser: {
+        activeTab: null,
+        tabs: [{ id: 'tab1', url: 'https://example.com' }],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBeNull();
+  });
+
+  it('returns undefined when no tabs exist', () => {
+    const browserState = {
+      browser: {
+        activeTab: 'tab1',
+        tabs: [],
+      },
+    };
+
+    const result = getActiveTabUrl(browserState);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when browser state is empty', () => {
+    const result = getActiveTabUrl({});
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Transactions utils :: getTicker', () => {
+  const { getTicker } = require('./index');
+
+  it('returns provided ticker when valid', () => {
+    const result = getTicker('BTC');
+    expect(result).toBe('BTC');
+  });
+
+  it('returns ETH when ticker is undefined', () => {
+    const result = getTicker(undefined);
+    expect(result).toBe(strings('unit.eth'));
+  });
+
+  it('returns ETH when ticker is null', () => {
+    const result = getTicker(null);
+    expect(result).toBe(strings('unit.eth'));
+  });
+
+  it('returns ETH when ticker is empty string', () => {
+    const result = getTicker('');
+    expect(result).toBe(strings('unit.eth'));
+  });
+});
+
+describe('Transactions utils :: getEther', () => {
+  const { getEther } = require('./index');
+
+  it('returns ETH object with provided ticker', () => {
+    const result = getEther('ETH');
+    expect(result).toEqual({
+      name: 'Ether',
+      address: '',
+      symbol: 'ETH',
+      logo: '../images/eth-logo-new.png',
+      isETH: true,
+    });
+  });
+
+  it('returns ETH object with default ticker when none provided', () => {
+    const result = getEther();
+    expect(result).toEqual({
+      name: 'Ether',
+      address: '',
+      symbol: strings('unit.eth'),
+      logo: '../images/eth-logo-new.png',
+      isETH: true,
+    });
+  });
+});
+
+describe('Transactions utils :: validateTransactionActionBalance', () => {
+  const { validateTransactionActionBalance } = require('./index');
+
+  it('returns false when balance is sufficient for legacy transaction', () => {
+    const transaction = {
+      transaction: {
+        from: '0x123',
+        gasPrice: '0x1',
+        gas: '0x5208',
+        value: '0x1',
+      },
+    };
+    const rate = 1.1;
+    const accounts = {
+      '0x123': { balance: '0x1000000000000000000' }, // Large balance
+    };
+
+    const result = validateTransactionActionBalance(
+      transaction,
+      rate,
+      accounts,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns true when balance is insufficient', () => {
+    const transaction = {
+      transaction: {
+        from: '0x123',
+        gasPrice: '0x77359400',
+        gas: '0x5208',
+        value: '0x1000000000000000000',
+      },
+    };
+    const rate = 1.1;
+    const accounts = {
+      '0x123': { balance: '0x1' }, // Very small balance
+    };
+
+    const result = validateTransactionActionBalance(
+      transaction,
+      rate,
+      accounts,
+    );
+    expect(result).toBe(true);
+  });
+
+  it('handles EIP-1559 transactions', () => {
+    const transaction = {
+      transaction: {
+        from: '0x123',
+        maxFeePerGas: '0x77359400',
+        gas: '0x5208',
+        value: '0x1',
+        type: '0x2',
+      },
+    };
+    const rate = 1.1;
+    const accounts = {
+      '0x123': { balance: '0x1000000000000000000' },
+    };
+
+    const result = validateTransactionActionBalance(
+      transaction,
+      rate,
+      accounts,
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validation throws an error', () => {
+    const transaction = null;
+    const rate = 1.1;
+    const accounts = {};
+
+    const result = validateTransactionActionBalance(
+      transaction,
+      rate,
+      accounts,
+    );
+    expect(result).toBe(false);
   });
 });
