@@ -88,7 +88,7 @@ describe('AccountBackupStep1B', () => {
     mockNavigation.mockRestore();
   });
 
-  it('on srp link press, the seed phrase modal is opened', () => {
+  it('opens the seed phrase modal on srp link press', () => {
     const { wrapper, mockNavigate, mockNavigation } = setupTest();
 
     const srpLink = wrapper.getByText(
