@@ -119,6 +119,4 @@ describe('RevealPrivateKey', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
-
-  it('navigates to RevealPrivateCredential with correct params', () => {});
 });
