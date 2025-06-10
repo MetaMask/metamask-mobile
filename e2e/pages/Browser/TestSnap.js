@@ -12,7 +12,6 @@ import Gestures from '../../utils/Gestures';
 import { SNAP_INSTALL_CANCEL, SNAP_INSTALL_CONNECT, SNAP_INSTALL_CONNECTION_REQUEST } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST, SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
-import { web, by } from 'detox';
 
 export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
@@ -734,7 +733,7 @@ class TestSnaps {
   }
 
   async typeSignMessage(message) {
-    await Gestures.replaceTextInField(this.getMessageBip44Input, message);
+    await Gestures.typeInWebElement(this.getMessageBip44Input, message);
   }
 
   // Methods
@@ -748,23 +747,23 @@ class TestSnaps {
   }
 
   async connectToSnap() {
-    await Gestures.waitAndTap(this.getConnectSnapButton);
+    await Gestures.waitAndTap(this.getConnectSnapButton, { skipVisibilityCheck: true });
   }
 
   async connectToSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton);
+    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, { skipVisibilityCheck: true });
   }
 
   async approveSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton);
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, { skipVisibilityCheck: true });
   }
 
   async cancelSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton);
+    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton, { skipVisibilityCheck: true });
   }
 
   async connectToSnapInstallOk() {
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, { skipVisibilityCheck: true });
   }
 
   async tapPublicKeyBip44Button() {
