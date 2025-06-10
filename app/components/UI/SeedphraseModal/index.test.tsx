@@ -65,13 +65,13 @@ describe('SeedphraseModal', () => {
   });
 
 
-  it('render matches snapshot', () => {
+  it('renders matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('render title and explanation text with correct content', () => {
-    const { wrapper, mockNavigation } = setupTest();
+  it('renders all title and explanation text', () => {
+    const { wrapper } = setupTest();
     const title = wrapper.getByText(
       strings('account_backup_step_1.what_is_seedphrase_title'),
     );
@@ -89,8 +89,8 @@ describe('SeedphraseModal', () => {
 
   });
 
-  it('render Got it button', () => {
-    const { wrapper, mockNavigation } = setupTest();
+  it('renders Got it button', () => {
+    const { wrapper } = setupTest();
 
     const confirmButton = wrapper.getByRole('button', {
       name: strings('account_backup_step_1.what_is_seedphrase_confirm'),
@@ -99,8 +99,8 @@ describe('SeedphraseModal', () => {
     expect(confirmButton).toBeTruthy();
   });
 
-  it('check if the modal is closed when the Got it button is pressed', () => {
-    const { wrapper, mockGoBack, mockNavigation } = setupTest();
+  it('closes modal when Got it button is pressed', () => {
+    const { wrapper, mockGoBack } = setupTest();
 
     const confirmButton = wrapper.getByRole('button', {
       name: strings('account_backup_step_1.what_is_seedphrase_confirm'),
