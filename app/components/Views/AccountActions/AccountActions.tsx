@@ -47,6 +47,7 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
+
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
 }
