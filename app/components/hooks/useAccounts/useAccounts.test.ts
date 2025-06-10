@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 
@@ -39,6 +40,7 @@ const MOCK_ACCOUNT_1: Account = {
   },
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
+  scopes: [EthScope.Eoa],
   isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
@@ -52,6 +54,7 @@ const MOCK_ACCOUNT_2: Account = {
   },
   balanceError: undefined,
   caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
+  scopes: [EthScope.Eoa],
   isLoadingAccount: false,
 };
 
@@ -144,5 +147,13 @@ describe('useAccounts', () => {
       await waitForNextUpdate();
     });
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
+  });
+
+  it('return scopes for evm accounts', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+    expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
   });
 });
