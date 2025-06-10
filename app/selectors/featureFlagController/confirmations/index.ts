@@ -23,7 +23,6 @@ export type ConfirmationRedesignRemoteFlags = {
  *
  * **During Development:**
  * Use a local environment variable with a default fallback:
- *
  * ```
  * const isNewConfirmationTypeEnabled = getFeatureFlagValue(
  *   process.env.FEATURE_FLAG_REDESIGNED_NEW_CONFIRMATION_TYPE,
@@ -33,12 +32,17 @@ export type ConfirmationRedesignRemoteFlags = {
  *
  * **After Development (Release):**
  * Replace the fallback with the remote kill switch:
- *
  * ```
  * const isNewConfirmationTypeEnabled = getFeatureFlagValue(
  *   process.env.FEATURE_FLAG_REDESIGNED_NEW_CONFIRMATION_TYPE,
  *   remoteValues?.new_confirmation_type !== false,
  * );
+ * ```
+ * 
+ * **After Validation In Production For Certain Time(When old code is decided to be removed):**
+ * Remove the both local environment variable and remote flag as kill switch is non-functional.
+ * ```
+ * const isNewConfirmationTypeEnabled = true;
  * ```
  *
  * @param remoteFeatureFlags - The remote feature flags object containing confirmation_redesign settings
