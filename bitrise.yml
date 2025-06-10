@@ -2402,13 +2402,13 @@ app:
       VERSION_NAME: 7.49.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1960
+      VERSION_NUMBER: 1961
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.49.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1960
+      FLASK_VERSION_NUMBER: 1961
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
