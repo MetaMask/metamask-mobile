@@ -471,7 +471,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('default case', () => {
-      it('calls _handleOpenHome when action is not recognized', () => {
+      it('navigates to home when action is not recognized', () => {
         const unknownUrlObj = {
           ...urlObj,
           pathname: '/unknown-action/path',
