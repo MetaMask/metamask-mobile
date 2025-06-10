@@ -59,10 +59,15 @@ describe('SeedphraseModal', () => {
     };
   };
 
-  it('render matches snapshot', () => {
-    const { wrapper, mockNavigation } = setupTest();
-    expect(wrapper).toMatchSnapshot();
+  afterEach(() => {
+    const { mockNavigation } = setupTest();
     mockNavigation.mockRestore();
+  });
+
+
+  it('render matches snapshot', () => {
+    const { wrapper } = setupTest();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('render title and explanation text with correct content', () => {
@@ -82,7 +87,6 @@ describe('SeedphraseModal', () => {
     const bullet = wrapper.getAllByText('•');
     expect(bullet.length).toBe(3);
 
-    mockNavigation.mockRestore();
   });
 
   it('render Got it button', () => {
@@ -93,7 +97,6 @@ describe('SeedphraseModal', () => {
     });
 
     expect(confirmButton).toBeTruthy();
-    mockNavigation.mockRestore();
   });
 
   it('check if the modal is closed when the Got it button is pressed', () => {
@@ -108,6 +111,5 @@ describe('SeedphraseModal', () => {
     fireEvent.press(confirmButton);
     expect(mockGoBack).toHaveBeenCalled();
 
-    mockNavigation.mockRestore();
   });
 });
