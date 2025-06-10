@@ -24,7 +24,7 @@ import Assertions from '../../utils/Assertions.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { getEventsPayloads } from '../analytics/helpers.js';
+import { getEventsPayloads } from '../analytics/helpers.ts';
 import {
   startMockServer,
   stopMockServer,

@@ -12,11 +12,21 @@ import {
 
 const EMAIL = 'test@email.com';
 
+interface MockQuote {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+const mockQuote: MockQuote = {
+  id: 'test-quote-id',
+  amount: 100,
+  currency: 'USD',
+};
+
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
   useDepositSDK: jest.fn().mockReturnValue({
-    email: EMAIL,
-    setEmail: jest.fn(),
     sdk: {},
     sdkError: null,
     providerApiKey: 'mock-api-key',
@@ -56,6 +66,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { email: EMAIL, quote: mockQuote },
     }),
   };
 });
@@ -108,17 +121,16 @@ describe('OtpCode Component', () => {
       ttl: 1000,
       userId: 'mock-user-id',
     } as NativeTransakAccessToken;
+
     const mockSubmitCode = jest.fn().mockResolvedValue(mockResponse);
     const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
 
     mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, data: mockResponse },
+      { ...mockUseDepositSdkMethodInitialState, data: null },
       mockSubmitCode,
     ];
 
     jest.mocked(useDepositSDK).mockReturnValue({
-      email: EMAIL,
-      setEmail: jest.fn(),
       sdk: {
         setAccessToken: jest.fn(),
         getAccessToken: jest.fn(),
@@ -133,12 +145,12 @@ describe('OtpCode Component', () => {
       setAuthToken: mockSetAuthToken,
       isAuthenticated: false,
       checkExistingToken: jest.fn(),
+      clearAuthToken: jest.fn(),
     });
 
     const { getByTestId } = render(OtpCode);
 
     const codeInput = getByTestId('otp-code-input');
-
     fireEvent.changeText(codeInput, '123456');
 
     fireEvent.press(
@@ -147,12 +159,20 @@ describe('OtpCode Component', () => {
       }),
     );
 
+    expect(mockSubmitCode).toHaveBeenCalled();
+
+    mockUseDepositSdkMethodValues[0] = {
+      ...mockUseDepositSdkMethodValues[0],
+      data: mockResponse,
+    };
+
+    render(OtpCode);
+
     await waitFor(() => {
-      expect(mockSubmitCode).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.DEPOSIT.VERIFY_IDENTITY,
-        undefined,
+        { quote: mockQuote },
       );
     });
   });
