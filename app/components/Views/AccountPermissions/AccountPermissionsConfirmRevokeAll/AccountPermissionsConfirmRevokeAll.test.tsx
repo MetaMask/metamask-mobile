@@ -5,8 +5,10 @@ import renderWithProvider, {
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import AccountPermissionsConfirmRevokeAll from './AccountPermissionsConfirmRevokeAll';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+import Engine from '../../../../core/Engine';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -34,6 +36,22 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    DisconnectAllPermissions: 'Disconnect All Accounts Permissions',
+  },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PermissionController: {
+      revokeAllPermissions: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -82,7 +100,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
     expect(mockedGoBack).toHaveBeenCalled();
   });
 
-  it('handles revoke button press', () => {
+  it('handles revoke button press with onRevokeAll function provided', async () => {
     const { getByTestId } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
         route={{
@@ -98,7 +116,54 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
     const revokeButton = getByTestId('confirm_disconnect_networks');
     fireEvent.press(revokeButton);
 
-    expect(mockedOnRevokeAll).toHaveBeenCalled();
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(mockedOnRevokeAll).toHaveBeenCalled();
+    });
+
+    // Should NOT call the Engine's permission controller when callback is provided
+    expect(
+      Engine.context.PermissionController.revokeAllPermissions,
+    ).not.toHaveBeenCalled();
+
+    // Both trace functions should be called regardless of callback presence
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.DisconnectAllPermissions,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.DisconnectAllPermissions,
+    });
+  });
+
+  it('handles revoke button press with no onRevokeAll function passed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountPermissionsConfirmRevokeAll
+        route={{
+          params: {
+            hostInfo: { metadata: { origin: 'test' } },
+            onRevokeAll: undefined,
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+    const revokeButton = getByTestId('confirm_disconnect_networks');
+
+    fireEvent.press(revokeButton);
+
+    // Wait for async operation to complete
+    await waitFor(() => {
+      expect(
+        Engine.context.PermissionController.revokeAllPermissions,
+      ).toHaveBeenCalledWith('test');
+    });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.DisconnectAllPermissions,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.DisconnectAllPermissions,
+    });
   });
 
   it('displays correct host information', () => {

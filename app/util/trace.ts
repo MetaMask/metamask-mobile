@@ -52,6 +52,8 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  DisconnectAllPermissions = 'Disconnect All Accounts Permissions',
+  CreateAccount = 'Create Account',
 }
 
 export enum TraceOperation {
