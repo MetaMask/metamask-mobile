@@ -84,28 +84,117 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             ]
           }
         >
+          <View
+            style={
+              [
+                {
+                  "padding": 20,
+                },
+                {
+                  "backgroundColor": "#ca35421a",
+                  "borderColor": "#ca3542",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "margin": 20,
+                  "marginTop": 10,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "flexShrink": 1,
+                    "width": "100%",
+                  },
+                ]
+              }
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={24}
+                name="EyeSlash"
+                style={
+                  {
+                    "color": "#ca3542",
+                    "height": 24,
+                    "margin": 10,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 10,
+                    "marginRight": 40,
+                  }
+                }
+              >
+                Make sure nobody is looking at your screen. 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  MetaMask Support will never request this.
+                </Text>
+              </Text>
+            </View>
+          </View>
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
               }
             }
           >
             The
              
             <Text
+              accessibilityRole="text"
               onPress={[Function]}
               style={
-                [
-                  {
+                {
+                  "0": {
                     "color": "#4459ff",
                   },
-                  {
+                  "1": {
                     "top": 2.5,
                   },
-                ]
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Secret Recovery Phrase (SRP)
@@ -114,11 +203,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             gives
              
             <Text
+              accessibilityRole="text"
               style={
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
                   "fontWeight": "600",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -129,16 +222,23 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             MetaMask is a
              
             <Text
+              accessibilityRole="text"
               onPress={[Function]}
               style={
-                [
-                  {
+                {
+                  "0": {
                     "color": "#4459ff",
                   },
-                  {
+                  "1": {
                     "top": 2.5,
                   },
-                ]
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               non-custodial wallet.
@@ -147,11 +247,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             That means,
              
             <Text
+              accessibilityRole="text"
               style={
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
                   "fontWeight": "600",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -166,86 +270,22 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "backgroundColor": "#ca35421a",
-                "borderColor": "#ca3542",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "margin": 20,
-                "marginTop": 10,
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "flexShrink": 1,
-                  "width": "100%",
-                },
-              ]
-            }
-          >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="EyeSlash"
-              style={
-                {
-                  "color": "#ca3542",
-                  "height": 24,
-                  "margin": 10,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-            <Text
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
-                  "marginLeft": 10,
-                  "marginRight": 40,
-                }
-              }
-            >
-              Make sure nobody is looking at your screen. 
-              <Text
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                MetaMask Support will never request this.
-              </Text>
-            </Text>
-          </View>
-        </View>
-        <View
-          style={
-            [
-              {
-                "padding": 20,
-              },
-              {
                 "flex": 1,
               },
             ]
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
-                "marginBottom": 15,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": 4,
               }
             }
           >
@@ -270,11 +310,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             testID="private-credential-password-text-input"
           />
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#ca3542",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginTop": 10,
               }
             }
@@ -294,75 +338,13 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
-            disabled={false}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
-            }
-            testID="reveal-private-credential-cancel-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
             activeOpacity={1}
             disabled={true}
             style={
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -514,28 +496,117 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             ]
           }
         >
+          <View
+            style={
+              [
+                {
+                  "padding": 20,
+                },
+                {
+                  "backgroundColor": "#ca35421a",
+                  "borderColor": "#ca3542",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "margin": 20,
+                  "marginTop": 10,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "flexShrink": 1,
+                    "width": "100%",
+                  },
+                ]
+              }
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={24}
+                name="EyeSlash"
+                style={
+                  {
+                    "color": "#ca3542",
+                    "height": 24,
+                    "margin": 10,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 10,
+                    "marginRight": 40,
+                  }
+                }
+              >
+                Make sure nobody is looking at your screen. 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  MetaMask Support will never request this.
+                </Text>
+              </Text>
+            </View>
+          </View>
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
               }
             }
           >
             The
              
             <Text
+              accessibilityRole="text"
               onPress={[Function]}
               style={
-                [
-                  {
+                {
+                  "0": {
                     "color": "#4459ff",
                   },
-                  {
+                  "1": {
                     "top": 2.5,
                   },
-                ]
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Secret Recovery Phrase (SRP)
@@ -544,11 +615,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             gives
              
             <Text
+              accessibilityRole="text"
               style={
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
                   "fontWeight": "600",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -559,16 +634,23 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             MetaMask is a
              
             <Text
+              accessibilityRole="text"
               onPress={[Function]}
               style={
-                [
-                  {
+                {
+                  "0": {
                     "color": "#4459ff",
                   },
-                  {
+                  "1": {
                     "top": 2.5,
                   },
-                ]
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               non-custodial wallet.
@@ -577,11 +659,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             That means,
              
             <Text
+              accessibilityRole="text"
               style={
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
                   "fontWeight": "600",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -596,86 +682,22 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "backgroundColor": "#ca35421a",
-                "borderColor": "#ca3542",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "margin": 20,
-                "marginTop": 10,
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "flexShrink": 1,
-                  "width": "100%",
-                },
-              ]
-            }
-          >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="EyeSlash"
-              style={
-                {
-                  "color": "#ca3542",
-                  "height": 24,
-                  "margin": 10,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-            <Text
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
-                  "marginLeft": 10,
-                  "marginRight": 40,
-                }
-              }
-            >
-              Make sure nobody is looking at your screen. 
-              <Text
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                MetaMask Support will never request this.
-              </Text>
-            </Text>
-          </View>
-        </View>
-        <View
-          style={
-            [
-              {
-                "padding": 20,
-              },
-              {
                 "flex": 1,
               },
             ]
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
-                "marginBottom": 15,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": 4,
               }
             }
           >
@@ -700,11 +722,15 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             testID="private-credential-password-text-input"
           />
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#ca3542",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginTop": 10,
               }
             }
@@ -724,75 +750,13 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
-            disabled={false}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
-            }
-            testID="reveal-private-credential-cancel-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
             activeOpacity={1}
             disabled={true}
             style={
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -944,75 +908,331 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             ]
           }
         >
-          <Text
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
-                "fontWeight": "400",
-              }
-            }
-          >
-            Save it somewhere safe and secret.
-          </Text>
-        </View>
-        <View
-          style={
-            [
-              {
-                "padding": 20,
-              },
-              {
-                "backgroundColor": "#ca35421a",
-                "borderColor": "#ca3542",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "margin": 20,
-                "marginTop": 10,
-              },
-            ]
-          }
-        >
           <View
+            alignItems="center"
+            flexDirection="column"
             style={
               [
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "flexShrink": 1,
-                  "width": "100%",
+                  "flexDirection": "column",
                 },
+                undefined,
               ]
             }
           >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="EyeSlash"
+            <View
               style={
                 {
-                  "color": "#ca3542",
-                  "height": 24,
-                  "margin": 10,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-            <Text
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
-                  "marginLeft": 10,
-                  "marginRight": 40,
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginBottom": 8,
+                  "overflow": "hidden",
+                  "width": 32,
                 }
               }
             >
-              Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+              <View
+                style={
+                  [
+                    {
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#C7144F",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              Account 1
             </Text>
+            <View
+              alignItems="center"
+              flexDirection="row"
+              justifyContent="center"
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#4459ff1a",
+                    "borderRadius": 999,
+                    "color": "#4459ff",
+                    "gap": 4,
+                    "marginBottom": 16,
+                    "padding": 8,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 18,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0xC4955...4D272
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <RNGestureHandlerButton
+                  collapsable={false}
+                  onGestureEvent={[Function]}
+                  onGestureHandlerEvent={[Function]}
+                  onGestureHandlerStateChange={[Function]}
+                  onHandlerStateChange={[Function]}
+                  rippleColor={0}
+                  testID="wallet-account-copy-button"
+                >
+                  <View
+                    accessible={true}
+                    collapsable={false}
+                    style={
+                      {
+                        "opacity": 1,
+                        "padding": 4,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#4459ff"
+                      fill="currentColor"
+                      height={24}
+                      name="Copy"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </View>
+                </RNGestureHandlerButton>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderLeftWidth": 4,
+                "borderRadius": 4,
+                "flexDirection": "row",
+                "padding": 12,
+                "paddingLeft": 8,
+              }
+            }
+            testID="banneralert"
+          >
+            <View
+              style={
+                {
+                  "marginRight": 8,
+                }
+              }
+            >
+              <SvgMock
+                color="#ca3542"
+                fill="currentColor"
+                height={24}
+                name="Danger"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 18,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Never disclose this key.
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Anyone with your private key can stead any assets held in your account.
+              </Text>
+            </View>
           </View>
         </View>
         <View
@@ -1028,10 +1248,16 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
-                "marginBottom": 15,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": 4,
               }
             }
           >
@@ -1056,11 +1282,15 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             testID="private-credential-password-text-input"
           />
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#ca3542",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginTop": 10,
               }
             }
@@ -1080,75 +1310,13 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
-            disabled={false}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
-            }
-            testID="reveal-private-credential-cancel-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
             activeOpacity={1}
             disabled={true}
             style={
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -1300,75 +1468,331 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             ]
           }
         >
-          <Text
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
-                "fontWeight": "400",
-              }
-            }
-          >
-            Save it somewhere safe and secret.
-          </Text>
-        </View>
-        <View
-          style={
-            [
-              {
-                "padding": 20,
-              },
-              {
-                "backgroundColor": "#ca35421a",
-                "borderColor": "#ca3542",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "margin": 20,
-                "marginTop": 10,
-              },
-            ]
-          }
-        >
           <View
+            alignItems="center"
+            flexDirection="column"
             style={
               [
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "flexShrink": 1,
-                  "width": "100%",
+                  "flexDirection": "column",
                 },
+                undefined,
               ]
             }
           >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={24}
-              name="EyeSlash"
+            <View
               style={
                 {
-                  "color": "#ca3542",
-                  "height": 24,
-                  "margin": 10,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-            <Text
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
-                  "marginLeft": 10,
-                  "marginRight": 40,
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "marginBottom": 8,
+                  "overflow": "hidden",
+                  "width": 32,
                 }
               }
             >
-              Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+              <View
+                style={
+                  [
+                    {
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#C7144F",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  >
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4294711651,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.46329603511986217,
+                          0.8862035792312145,
+                          -0.8862035792312145,
+                          0.46329603511986217,
+                          29.06767649409735,
+                          -8.290603334655817,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4280576225,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          -0.5778576243835052,
+                          0.8161375900801603,
+                          -0.8161375900801603,
+                          -0.5778576243835052,
+                          51.62016714634118,
+                          17.239003094412087,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={
+                        {
+                          "payload": 4278407261,
+                          "type": 0,
+                        }
+                      }
+                      height={32}
+                      matrix={
+                        [
+                          0.7046342099635947,
+                          -0.7095707365365209,
+                          0.7095707365365209,
+                          0.7046342099635947,
+                          -25.225718686778755,
+                          -4.611026307883787,
+                        ]
+                      }
+                      propList={
+                        [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 18,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              Account 1
             </Text>
+            <View
+              alignItems="center"
+              flexDirection="row"
+              justifyContent="center"
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#4459ff1a",
+                    "borderRadius": 999,
+                    "color": "#4459ff",
+                    "gap": 4,
+                    "marginBottom": 16,
+                    "padding": 8,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 18,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0xC4955...4D272
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <RNGestureHandlerButton
+                  collapsable={false}
+                  onGestureEvent={[Function]}
+                  onGestureHandlerEvent={[Function]}
+                  onGestureHandlerStateChange={[Function]}
+                  onHandlerStateChange={[Function]}
+                  rippleColor={0}
+                  testID="wallet-account-copy-button"
+                >
+                  <View
+                    accessible={true}
+                    collapsable={false}
+                    style={
+                      {
+                        "opacity": 1,
+                        "padding": 4,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#4459ff"
+                      fill="currentColor"
+                      height={24}
+                      name="Copy"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </View>
+                </RNGestureHandlerButton>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ca35421a",
+                "borderColor": "#ca3542",
+                "borderLeftWidth": 4,
+                "borderRadius": 4,
+                "flexDirection": "row",
+                "padding": 12,
+                "paddingLeft": 8,
+              }
+            }
+            testID="banneralert"
+          >
+            <View
+              style={
+                {
+                  "marginRight": 8,
+                }
+              }
+            >
+              <SvgMock
+                color="#ca3542"
+                fill="currentColor"
+                height={24}
+                name="Danger"
+                style={
+                  {
+                    "height": 24,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 18,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Never disclose this key.
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Anyone with your private key can stead any assets held in your account.
+              </Text>
+            </View>
           </View>
         </View>
         <View
@@ -1384,10 +1808,16 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           }
         >
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#121314",
-                "marginBottom": 15,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": 4,
               }
             }
           >
@@ -1412,11 +1842,15 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             testID="private-credential-password-text-input"
           />
           <Text
+            accessibilityRole="text"
             style={
               {
                 "color": "#ca3542",
                 "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginTop": 10,
               }
             }
@@ -1436,75 +1870,13 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
-            disabled={false}
-            onPress={[Function]}
-            style={
-              [
-                [
-                  {
-                    "borderRadius": 100,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#686e7d",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
-            }
-            testID="reveal-private-credential-cancel-button"
-          >
-            <Text
-              style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#686e7d",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
-              }
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
             activeOpacity={1}
             disabled={true}
             style={
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
