@@ -3,7 +3,6 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -19,6 +18,7 @@ const {
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
+  SEI_CHAIN_ID
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -31,8 +31,8 @@ const allowedChainIds = [
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
+  SEI_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
-  NETWORKS_CHAIN_ID.SEI,
 ];
 
 export const allowedTestnetChainIds = [
