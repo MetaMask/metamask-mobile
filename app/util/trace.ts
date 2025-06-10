@@ -52,6 +52,7 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  FetchHistoricalPrices = 'Fetch Historical Prices',
 }
 
 export enum TraceOperation {
