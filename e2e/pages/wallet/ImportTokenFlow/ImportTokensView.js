@@ -48,6 +48,10 @@ class ImportTokensView {
     await Gestures.waitAndTap(this.symbolInput);
   }
 
+  async typeSymbol(symbol) {
+    await Gestures.typeTextAndHideKeyboard(this.symbolInput, symbol);
+  }
+
   async tapTokenSymbolText() {
     await Gestures.waitAndTap(this.tokenSymbolText);
   }

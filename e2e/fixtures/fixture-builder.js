@@ -946,6 +946,11 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  withTokensController(data) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, data);
+    return this;
+  }
+
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
     const networkConfigurationsByChainId = {
