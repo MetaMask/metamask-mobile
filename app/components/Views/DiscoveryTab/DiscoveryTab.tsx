@@ -24,7 +24,7 @@ import BrowserUrlBar, {
   ConnectionType
 } from '../../UI/BrowserUrlBar';
 import UrlAutocomplete, {
-  AutocompleteSearchResult,
+  SearchDiscoveryResultItem,
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { TokenDiscovery } from '../TokenDiscovery';
@@ -78,7 +78,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
    * Handle autocomplete selection
    */
   const onSelect = useCallback(
-    (item: AutocompleteSearchResult) => {
+    (item: SearchDiscoveryResultItem) => {
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -146,7 +146,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
           />
           <View style={styles.wrapper}>
             <View style={styles.webview}>
-              <TokenDiscovery />
+              <TokenDiscovery onSelect={onSelect} />
             </View>
             <UrlAutocomplete
               ref={autocompleteRef}
