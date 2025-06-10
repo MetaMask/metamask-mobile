@@ -1,4 +1,7 @@
-import { EarnControllerState } from '@metamask/earn-controller';
+import {
+  EarnControllerState,
+  LendingMarketWithPosition,
+} from '@metamask/earn-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MOCK_EXCHANGE_RATE,
@@ -15,6 +18,9 @@ import {
   CreateMockTokenOptions,
   TOKENS_WITH_DEFAULT_OPTIONS,
 } from './testUtils.types';
+import { EarnTokenDetails } from '../../Earn/types/lending.types';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
+import { VaultData } from '@metamask/stake-sdk';
 
 export const HOLESKY_CHAIN_ID = '0x4268';
 
@@ -167,3 +173,66 @@ export const mockEarnControllerRootState = ({
     },
   },
 });
+
+type CreateMockEarnTokenOptions = CreateMockTokenOptions &
+  Partial<
+    Pick<
+      EarnTokenDetails,
+      | 'balanceFormatted'
+      | 'balanceMinimalUnit'
+      | 'balanceFiat'
+      | 'balanceFiatNumber'
+      | 'tokenUsdExchangeRate'
+      | 'experiences'
+      | 'experience'
+    >
+  >;
+
+/**
+ * Creates a mock EarnTokenDetails object for testing.
+ */
+export const createMockEarnToken = (
+  options: CreateMockEarnTokenOptions,
+): EarnTokenDetails => {
+  const {
+    balanceFormatted = '0.0',
+    balanceMinimalUnit = '0',
+    balanceFiat = '0',
+    balanceFiatNumber = 0,
+    tokenUsdExchangeRate = 1,
+    experiences,
+    experience,
+    ...tokenOptions
+  } = options;
+
+  const baseToken = createMockToken(tokenOptions);
+
+  // Provide a default experience if not supplied
+  const defaultExperience = {
+    type:
+      tokenOptions.name === 'Ethereum' ||
+      tokenOptions.name === 'Staked Ethereum'
+        ? EARN_EXPERIENCES.POOLED_STAKING
+        : EARN_EXPERIENCES.STABLECOIN_LENDING,
+    apr: '5.00',
+    estimatedAnnualRewardsFormatted: '0.00',
+    estimatedAnnualRewardsFiatNumber: 0,
+    estimatedAnnualRewardsTokenMinimalUnit: '0',
+    estimatedAnnualRewardsTokenFormatted: '0.00',
+    market: undefined as LendingMarketWithPosition | undefined,
+    vault: undefined as VaultData | undefined,
+  };
+
+  const experiencesArr = experiences ?? [defaultExperience];
+
+  return {
+    ...baseToken,
+    balanceFormatted,
+    balanceMinimalUnit,
+    balanceFiat,
+    balanceFiatNumber,
+    tokenUsdExchangeRate,
+    experiences: experiencesArr,
+    experience: experience ?? experiencesArr[0],
+  };
+};

@@ -43,6 +43,7 @@ import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
+import { sortByHighestApr, sortByHighestRewards } from '../../utils';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -207,6 +208,11 @@ const EarnTokenList = () => {
     [earnTokens],
   );
 
+  /**
+   * We want to sort the tokens by estimated fiat rewards in descending order.
+   * Tokens where a user has a non-zero balance will be listed first by highest fiat rewards.
+   * Tokens where a user doesn't have a balance will be listed by highest apy
+   */
   const tokensSortedByHighestYield = useMemo(() => {
     if (!tokens?.length) return [];
 
@@ -224,13 +230,8 @@ const EarnTokenList = () => {
       tokensWithoutBalance.push(token);
     });
 
-    const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
-      [...tokensToSort].sort(
-        (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
-      );
-
     return [
-      ...sortByHighestApr(tokensWithBalance),
+      ...sortByHighestRewards(tokensWithBalance),
       ...sortByHighestApr(tokensWithoutBalance),
     ];
   }, [tokens]);
