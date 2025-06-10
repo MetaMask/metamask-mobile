@@ -85,12 +85,12 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  it('should render correctly', () => {
+  it('renders matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should set hasFunds to true when Engine.hasFunds returns true', () => {
+  it('sets hasFunds to true when Engine.hasFunds returns true', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
     const { wrapper } = setupTest();
 
@@ -101,7 +101,7 @@ describe('AccountBackupStep1', () => {
     expect(reminderButton).toBeNull();
   });
 
-  it('should set hasFunds to false when Engine.hasFunds returns false', () => {
+  it('sets hasFunds to false when Engine.hasFunds returns false', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
     const { wrapper } = setupTest();
 
@@ -112,7 +112,7 @@ describe('AccountBackupStep1', () => {
     expect(reminderButton).toBeTruthy();
   });
 
-  it('should render title and explanation text', () => {
+  it('renders title and explanation text', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
     const { wrapper, mockNavigate } = setupTest();
     const title = wrapper.getByText(strings('account_backup_step_1.title'));
@@ -128,7 +128,7 @@ describe('AccountBackupStep1', () => {
     });
   });
 
-  it('should render cta actions', () => {
+  it('renders cta actions', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
     const { wrapper, mockNavigate } = setupTest();
     const reminderButton = wrapper.getByText(
@@ -154,7 +154,7 @@ describe('AccountBackupStep1', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
   });
 
-  it('should render AndroidBackHandler when on Android', () => {
+  it('renders AndroidBackHandler when on Android', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
 
@@ -178,7 +178,7 @@ describe('AccountBackupStep1', () => {
     });
   });
 
-  it('should render header left button and handle back navigation', () => {
+  it('renders header left button, calls goBack when pressed', () => {
     const { mockGoBack, mockSetOptions } = setupTest();
 
     // Verify that setOptions was called with the correct configuration
@@ -202,7 +202,7 @@ describe('AccountBackupStep1', () => {
   });
 
   describe('skip functionality', () => {
-    it('should handle skip when onboarding wizard exists', async () => {
+    it('calls onConfirm when onboarding wizard exists', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue({
         someData: 'exists',
@@ -235,7 +235,7 @@ describe('AccountBackupStep1', () => {
       });
     });
 
-    it('should handle skip when onboarding wizard does not exist', async () => {
+    it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
