@@ -52,7 +52,6 @@ const AccountSelector = () => {
       navigation.navigate(
         ...createAccountSelectorNavDetails({
           disablePrivacyMode: true,
-          isEvmOnly: true,
         }),
       ),
     [navigation],
