@@ -109,19 +109,19 @@ describe('AccountBackupStep1', () => {
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
-    expect(reminderButton).toBeTruthy();
+    expect(reminderButton).toBeOnTheScreen();
   });
 
   it('renders title and explanation text', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
     const { wrapper, mockNavigate } = setupTest();
     const title = wrapper.getByText(strings('account_backup_step_1.title'));
-    expect(title).toBeTruthy();
+    expect(title).toBeOnTheScreen();
 
     const explanationText = wrapper.getByTestId(
       ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
     );
-    expect(explanationText).toBeTruthy();
+    expect(explanationText).toBeOnTheScreen();
     fireEvent.press(explanationText);
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'SeedphraseModal',
@@ -134,7 +134,7 @@ describe('AccountBackupStep1', () => {
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
-    expect(reminderButton).toBeTruthy();
+    expect(reminderButton).toBeOnTheScreen();
 
     fireEvent.press(reminderButton);
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
@@ -148,7 +148,7 @@ describe('AccountBackupStep1', () => {
     const continueButton = wrapper.getByText(
       strings('account_backup_step_1.cta_text'),
     );
-    expect(continueButton).toBeTruthy();
+    expect(continueButton).toBeOnTheScreen();
 
     fireEvent.press(continueButton);
     expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
@@ -189,7 +189,7 @@ describe('AccountBackupStep1', () => {
     const headerLeftComponent = setOptionsCall.headerLeft();
 
     // Verify the headerLeft component renders correctly
-    expect(headerLeftComponent).toBeTruthy();
+    expect(headerLeftComponent).toBeOnTheScreen();
 
     // The headerLeft component should be a TouchableOpacity
     expect(headerLeftComponent.type).toBe('TouchableOpacity');
