@@ -1,4 +1,4 @@
-### Running Tests
+# Running Tests
 
 ## Unit Tests
 
@@ -11,6 +11,8 @@ yarn test:unit
 Our end-to-end (E2E) testing strategy leverages a combination of technologies to ensure robust test coverage for our mobile applications. We use Wix/Detox for the majority of our automation tests, Appium for specific non-functional testing like app upgrades and launch times, and Bitrise as our CI platform. All tests are written in JavaScript using Jest and Cucumber frameworks.
 
 ### Wix/Detox Tests
+
+> **Note**: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
 
 Detox serves as our primary mobile automation framework, with most of our tests written using it. Learn more about Wix/Detox [here](https://wix.github.io/Detox/).
 
@@ -30,116 +32,116 @@ Detox serves as our primary mobile automation framework, with most of our tests 
 
 Ensure that these devices are set up. You can change the default devices at any time by updating the `device.type` in the Detox config located at `e2e/.detoxrc.js`.
 
-#### Commands
+### Commands for building the app
 
-- **Start Metro Server**: Ensure the Metro server is running before executing tests:
+- **Option #1 - Using Expo prebuilds (recommended)**
+
+  **Install dependencies**
+
+  ```bash
+  yarn setup:expo
+  ```
+
+  **Start Metro Server**: Ensure the Metro server is running before executing tests:
 
   ```bash
   yarn watch:clean
   ```
 
-- **Build the Apps for Testing**:
+  Instead of building apps localy, you can download prebuilt `.app`/`.ipa`/`.apk` files from [Runway buckets](../../README.md#download-and-install-the-development-build) and run the tests against them.
 
-  - **Option #1 - Using Expo prebuilds (recommended)**
+  After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
 
-    Instead of building apps localy, you can download prebuilt `.app`/`.ipa`/`.apk` files from [Runway buckets](../../README.md#download-and-install-the-development-build) and run the tests against them.
+  - `PREBULT_IOS_APP_PATH` for iOS
+  - `PREBULT_ANDROID_APP_PATH` for Android APK
+  - `PREBULT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
 
-    After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
+- **Option #2 - Building locally**:
 
-    - `PREBULT_IOS_APP_PATH` for iOS
-    - `PREBULT_ANDROID_APP_PATH` for Android APK
-    - `PREBULT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
+  **Install dependencies**
 
-  - **Option #2 - Building locally**:
+  ```bash
+  yarn setup
+  ```
 
-    - **iOS Debug**:
+  **Start Metro Server**: Ensure the Metro server is running before executing tests:
 
+  ```bash
+  yarn watch:clean
+  ```
+
+  **iOS Debug**:
+
+  ```bash
+  yarn test:e2e:ios:debug:build
+  ```
+
+  **Android Debug**:
+
+  ```bash
+  yarn test:e2e:android:debug:build
+  ```
+
+### Running All E2E Tests
+
+- **iOS**:
+
+  ```bash
+  yarn test:e2e:ios:debug:run
+  ```
+
+- **Android**:
+
+  ```bash
+  yarn test:e2e:android:debug:run
+  ```
+
+### Running specific E2E tests
+
+- **iOS**:
+
+  ```bash
+  yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
+  ```
+
+- **Android**:
+
+  UPDATE: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
+
+  - install a build on the emulator
+    - either install the apk or keep an existing install on the emulator
+  - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
+  - if emulator fails to launch you can launch emulator in another terminal
     ```bash
-    yarn test:e2e:ios:debug:build
+    emulator -avd <emulator-name>
     ```
-
-    - **Android Debug**:
-
-    ```bash
-    yarn test:e2e:android:debug:build
-    ```
-
-- **Run All Tests Locally**:
-
-  - **iOS Debug**:
-
-    ```bash
-    yarn test:e2e:ios:debug:run
-    ```
-
-  - **Android Debug**:
-
-    ```bash
-    yarn test:e2e:android:debug:run
-    ```
-
-_NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
-
-- **Run Specific Tests**:
-
-  - **iOS**:
-
-    ```bash
-    yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
-    ```
-
-  - **Android**:
-
-    UPDATE: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
-
-    - install a build on the emulator
-      - either install the apk or keep an existing install on the emulator
     - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
-    - if emulator fails to launch you can launch emulator in another terminal
-      ```bash
-      emulator -avd <emulator-name>
-      ```
-      - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
-    - you don't need to repeat these steps unless emulator or metro server is restarted
+  - you don't need to repeat these steps unless emulator or metro server is restarted
 
-    ```bash
-    yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
-    ```
+  ```bash
+  yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
+  ```
 
-- **Run Tests by Tag (e.g., Smoke)**:
+### Run Tests by Tag (e.g., Smoke)
 
-  - **iOS**:
+- **iOS**:
 
-    ```bash
-    yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
-    ```
+  ```bash
+  yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
+  ```
 
-  - **Android**:
+- **Android**:
 
-    ```bash
-    yarn test:e2e:android:debug:run --testNamePattern="Smoke"
-    ```
+  ```bash
+  yarn test:e2e:android:debug:run --testNamePattern="Smoke"
+  ```
 
-- **Run All Tests Locally**:
-
-  - **iOS Debug**:
-
-    ```bash
-    yarn test:e2e:ios:debug:run
-    ```
-
-  - **Android Debug**:
-
-    ```bash
-    yarn test:e2e:android:debug:run
-    ```
-
-### Appium
-
-**Platform**: Android  
-**Test Location**: `wdio`
+## Appium
 
 We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.
+
+**Supported Platform**: Android  
+**Test Location**: `wdio`
 
 ## Configuration for Testing
 
@@ -224,17 +226,21 @@ const { selectedCapabilities, defaultTagExpression } = (() => {
 })();
 ```
 
-## Initial Setup
+## Running Tests Locally Against QA Build
 
-Before running tests, you need to perform an initial setup:
+You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it.
+
+Install dependencies:
 
 ```bash
 yarn setup
 ```
 
-## Running Tests Locally Against QA Build
+Ensure that the bundler compiles all files before running the tests to avoid build breaks. Use:
 
-You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it.
+```bash
+yarn watch:clean
+```
 
 ### iOS
 
@@ -250,12 +256,6 @@ To start an Android QA build:
 
 ```bash
 yarn start:android:qa
-```
-
-Ensure that the bundler compiles all files before running the tests to avoid build breaks. Use:
-
-```bash
-yarn watch:clean
 ```
 
 Then, run the tests on the simulator:
