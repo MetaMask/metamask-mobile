@@ -22,6 +22,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Routes from '../../../constants/navigation/Routes';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -73,8 +74,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
 
   const goToBackupFlow = () => {
     setIsVisible(false);
-    navigation.navigate('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
+    navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
       params: { backupFlow: true },
     });
 
