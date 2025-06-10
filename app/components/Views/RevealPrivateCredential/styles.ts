@@ -87,7 +87,7 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     enterPassword: {
-      marginBottom: 15,
+      marginBottom: 4,
       color: theme.colors.text.default,
     },
     boldText: {
