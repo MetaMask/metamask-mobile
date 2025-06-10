@@ -345,6 +345,7 @@ export enum IconName {
   Wifi = 'Wifi',
   Google = 'Google',
   Apple = 'Apple',
+  AppleWhite = 'AppleWhite',
   Account = 'Account',
   AccountType = 'AccountType',
   RichDanger = 'RichDanger',

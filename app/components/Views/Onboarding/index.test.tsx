@@ -20,6 +20,11 @@ jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
 }));
 
+// expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
+}));
+
 describe('Onboarding', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(

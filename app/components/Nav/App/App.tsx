@@ -132,6 +132,8 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import AccountStatus from '../../Views/AccountStatus';
+import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -153,6 +155,10 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
+
+const AccountAlreadyExists = () => <AccountStatus type="found" />;
+
+const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
@@ -178,6 +184,7 @@ const OnboardingSuccessFlow = () => (
     />
   </Stack.Navigator>
 );
+
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
@@ -212,6 +219,17 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="OptinMetrics"
       component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen name="AccountStatus" component={AccountStatus} />
+    <Stack.Screen
+      name="AccountAlreadyExists"
+      component={AccountAlreadyExists}
+    />
+    <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen
+      name="Rehydrate"
+      component={Login}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -309,6 +327,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ONBOARDING_SHEET}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
