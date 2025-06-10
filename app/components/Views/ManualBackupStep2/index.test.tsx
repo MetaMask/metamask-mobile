@@ -55,7 +55,6 @@ jest.mock('react-native', () => {
 // Mock Math.random to return deterministic values
 const mockMath = Object.create(global.Math);
 mockMath.random = () => 0.5;
-global.Math = mockMath;
 
 describe('ManualBackupStep2', () => {
   const mockWords = [
@@ -177,6 +176,11 @@ describe('ManualBackupStep2', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.Math = mockMath;
+  });
+
+  afterEach(() => {
+    global.Math = Math;
   });
 
   it('render and handle word selection in grid', () => {
