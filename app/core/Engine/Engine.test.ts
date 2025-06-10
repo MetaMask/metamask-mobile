@@ -159,6 +159,7 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
+
     // Get the current app version and migration version
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
