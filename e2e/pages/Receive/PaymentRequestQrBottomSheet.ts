@@ -1,8 +1,7 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
-
-type DetoxElement = Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>;
+import { DetoxElement } from '../../types/detox';
 
 class PaymentRequestQrBottomSheet {
   get container(): DetoxElement {

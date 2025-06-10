@@ -1,10 +1,7 @@
 import { RequestPaymentViewSelectors } from '../../selectors/Receive/RequestPaymentView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-
-type DetoxElement = Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>;
-type TappableElement = Promise<Detox.IndexableNativeElement | Detox.SystemElement>;
-type TypableElement = Promise<Detox.IndexableNativeElement>;
+import { DetoxElement, TappableElement, TypableElement } from '../../types/detox';
 
 class RequestPaymentView {
   get backButton(): TappableElement {

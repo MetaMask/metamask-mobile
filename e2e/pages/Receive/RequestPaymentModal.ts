@@ -1,8 +1,7 @@
 import { RequestPaymentModalSelectorsIDs } from '../../selectors/Receive/RequestPaymentModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-
-type DetoxElement = Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>;
+import { DetoxElement } from '../../types/detox';
 
 class RequestPaymentModal {
   get requestPaymentButton(): DetoxElement {
