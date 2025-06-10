@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
+import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
+import { isHardwareAccount } from '../../../../util/address';
 
 interface AccountDetailsProps {
   route: {
@@ -34,6 +37,12 @@ export const AccountDetails = (props: AccountDetailsProps) => {
 
     if (account.metadata.keyring.type === KeyringTypes.hd) {
       return <HDAccountDetails account={account} />;
+    }
+    if (account.metadata.keyring.type === KeyringTypes.simple) {
+      return <PrivateKeyAccountDetails account={account} />;
+    }
+    if (isHardwareAccount(account.type)) {
+      return <HardwareAccountDetails account={account} />;
     }
 
     return <BaseAccountDetails account={account} />;
