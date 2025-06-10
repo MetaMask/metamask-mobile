@@ -212,7 +212,10 @@ const AccountBackupStep1B = (props) => {
   }, [navigation, route, colors]);
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+    props.navigation.navigate('ManualBackupStep1', {
+      ...props.route.params,
+      settingsBackup: true,
+    });
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
