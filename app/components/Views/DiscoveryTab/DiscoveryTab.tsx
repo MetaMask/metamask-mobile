@@ -24,12 +24,12 @@ import BrowserUrlBar, {
   ConnectionType
 } from '../../UI/BrowserUrlBar';
 import UrlAutocomplete, {
-  SearchDiscoveryResultItem,
   UrlAutocompleteRef,
 } from '../../UI/UrlAutocomplete';
 import { TokenDiscovery } from '../TokenDiscovery';
 import { noop } from 'lodash';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { SearchDiscoveryResultItem } from '../../UI/SearchDiscoveryResult/types';
 
 /**
  * Tab component for the in-app browser
