@@ -151,8 +151,8 @@ function handleUniversalLink({
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
     }
   } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST || urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST) {
-    // TODO: private links
-    // TODO: modal for public links
+    // TODO: handle private links with signature verification https://github.com/MetaMask/metamask-mobile/issues/16040
+    // TODO: add interstitial modal for public links https://github.com/MetaMask/metamask-mobile/issues/15491
     switch (action) {
       case ACTIONS.HOME:
         instance._handleOpenHome();
@@ -160,15 +160,24 @@ function handleUniversalLink({
       case ACTIONS.SWAP: {
         // TODO: perhaps update this when the new bridging UI is implemented
         // Expecting to only be a navigation change
-        const swapPath = urlObj.href.replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`, '');
+        const swapPath = urlObj.href.replace(
+          `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SWAP}`,
+          '',
+        );
         instance._handleSwap(swapPath);
         return;
       }
       case ACTIONS.BUY:
       case ACTIONS.BUY_CRYPTO: {
         const rampPath = urlObj.href
-          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`, '')
-          .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
+          .replace(
+            `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
+            '',
+          )
+          .replace(
+            `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`,
+            '',
+          );
         instance._handleBuyCrypto(rampPath);
         return;
       }
