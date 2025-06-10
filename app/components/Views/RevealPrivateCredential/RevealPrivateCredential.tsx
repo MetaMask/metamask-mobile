@@ -65,7 +65,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { AccountInfo } from '../MultichainAccounts/accountDetails/components/accountInfo/accountInfo';
+import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/AccountInfo/AccountInfo';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
