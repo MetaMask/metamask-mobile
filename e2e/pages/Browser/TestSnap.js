@@ -14,9 +14,10 @@ import { SNAP_INSTALL_PERMISSIONS_REQUEST, SNAP_INSTALL_PERMISSIONS_REQUEST_APPR
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import { web, by } from 'detox';
 
-export const TEST_SNAP_URL = 'https://metamask.github.io/snaps/test-snaps/latest/';
+export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
-class TestSnap {
+
+class TestSnaps {
   // Connection button getters
   get getConnectBip32Button() {
     return Matchers.getElementByWebID(
@@ -742,6 +743,11 @@ class TestSnap {
     await Gestures.tapWebElement(elementId);
   }
 
+  async clearAndTypeMessage(element, message) {
+    // await Gestures.clearField(element);
+    await Gestures.typeInWebElement(element, message);
+  }
+
   async connectToSnap() {
     await Gestures.waitAndTap(this.getConnectSnapButton);
   }
@@ -871,4 +877,4 @@ class TestSnap {
   }
 }
 
-export default new TestSnap();
+export default new TestSnaps();

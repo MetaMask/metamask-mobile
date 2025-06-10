@@ -97,6 +97,16 @@ class Gestures {
   }
 
   /**
+   * Type text into a web element within a webview.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(element, text) {
+    await (await element).typeText(text);
+
+  }
+
+  /**
    * Double tap an element by text.
    *
    * @param {Promise<Detox.IndexableNativeElement>} element - The element to double tap
