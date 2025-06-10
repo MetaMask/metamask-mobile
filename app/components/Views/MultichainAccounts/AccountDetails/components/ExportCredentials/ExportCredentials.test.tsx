@@ -6,6 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
+import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -183,7 +184,9 @@ describe('ExportCredentials', () => {
 
     const { getByTestId } = render(<ExportCredentials account={mockAccount} />);
 
-    const privateKeyButton = getByTestId('hihi');
+    const privateKeyButton = getByTestId(
+      ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
+    );
     fireEvent.press(privateKeyButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(

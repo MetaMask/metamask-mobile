@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
 import { internalAccount1 as mockAccount } from '../../../../../util/test/accountsControllerTestUtils';
