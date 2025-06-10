@@ -1,7 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
-import { DetoxElement } from '../../types/detox';
 
 class PaymentRequestQrBottomSheet {
   get container(): DetoxElement {

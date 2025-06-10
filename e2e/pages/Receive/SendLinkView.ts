@@ -1,7 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
-import { DetoxElement, TappableElement } from '../../types/detox';
 
 class SendLinkView {
   get container(): DetoxElement {

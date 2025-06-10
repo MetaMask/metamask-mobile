@@ -1,7 +1,6 @@
 import { RequestPaymentViewSelectors } from '../../selectors/Receive/RequestPaymentView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { DetoxElement, TappableElement, TypableElement } from '../../types/detox';
 
 class RequestPaymentView {
   get backButton(): TappableElement {
