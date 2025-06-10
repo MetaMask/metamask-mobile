@@ -24,7 +24,6 @@ import Input from '../../../component-library/components/Form/TextField/foundati
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
 import { useSelector } from 'react-redux';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
