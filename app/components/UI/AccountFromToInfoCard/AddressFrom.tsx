@@ -19,7 +19,9 @@ import {
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 
 interface Asset {
   isETH?: boolean;
@@ -52,8 +54,8 @@ const AddressFrom = ({
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = safeToChecksumAddress(from);
+  const internalAccounts = useSelector(selectInternalEvmAccounts);
+  const activeAddress = toChecksumAddress(from);
 
   const networkName = useSelector(selectEvmNetworkName);
 

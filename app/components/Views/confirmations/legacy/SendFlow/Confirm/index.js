@@ -1155,6 +1155,7 @@ class Confirm extends PureComponent {
         isSelectOnly: true,
         onSelectAccount: this.onSelectAccount,
         checkBalanceError: this.getBalanceError,
+        isEvmOnly: true,
       },
     });
   };
