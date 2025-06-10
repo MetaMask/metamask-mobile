@@ -12,6 +12,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,6 +43,14 @@ jest.mock('../../../core/ClipboardManager', () => ({
 jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    AddAccount: 'Add Account',
+  },
 }));
 
 const valid12WordMnemonic =
@@ -94,7 +103,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
@@ -127,6 +136,13 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       valid12WordMnemonic,
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
   });
 
   it('imports valid manually entered 24-word SRP', async () => {
@@ -163,6 +179,13 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       valid24WordMnemonic,
     );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
   });
 
   it('imports valid pasted 12-word SRP', async () => {
@@ -186,6 +209,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
     );
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
   });
 
   it('imports valid pasted 24-word SRP', async () => {
@@ -209,6 +238,12 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       valid24WordMnemonic,
     );
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.CreateAccount,
+    });
   });
   it('imports valid SRP', async () => {
     const { getByTestId } = await renderSRPImportComponentAndPasteSRP(

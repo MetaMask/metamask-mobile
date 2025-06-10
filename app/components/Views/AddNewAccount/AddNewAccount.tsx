@@ -116,7 +116,7 @@ const AddNewAccount = ({
     setIsLoading(true);
     try {
       trace({
-        name: TraceName.CreateAccount,
+        name: TraceName.AddAccount,
       });
       let account: InternalAccount;
       if (clientType && scope) {
@@ -147,7 +147,7 @@ const AddNewAccount = ({
     } finally {
       setIsLoading(false);
       endTrace({
-        name: TraceName.CreateAccount,
+        name: TraceName.AddAccount,
       });
     }
   }, [clientType, scope, onActionComplete, accountName, keyringId, navigate]);

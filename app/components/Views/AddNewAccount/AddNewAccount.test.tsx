@@ -52,7 +52,7 @@ jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
   TraceName: {
-    CreateAccount: 'Create Account',
+    AddAccount: 'Add Account',
   },
 }));
 
@@ -240,10 +240,10 @@ describe('AddNewAccount', () => {
     });
 
     expect(trace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
     expect(endTrace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
   });
 
@@ -264,10 +264,10 @@ describe('AddNewAccount', () => {
     });
 
     expect(trace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
     expect(endTrace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
   });
 
@@ -308,10 +308,10 @@ describe('AddNewAccount', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
 
     expect(trace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
     expect(endTrace).toHaveBeenCalledWith({
-      name: TraceName.CreateAccount,
+      name: TraceName.AddAccount,
     });
   });
 

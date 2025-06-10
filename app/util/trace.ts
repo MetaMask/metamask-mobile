@@ -53,6 +53,7 @@ export enum TraceName {
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
   DisconnectAllPermissions = 'Disconnect All Accounts Permissions',
+  AddAccount = 'Add Account',
   CreateAccount = 'Create Account',
 }
 
