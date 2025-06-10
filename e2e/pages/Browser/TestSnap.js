@@ -733,19 +733,18 @@ class TestSnaps {
     );
   }
 
+  async typeSignMessage(message) {
+    await Gestures.replaceTextInField(this.getMessageBip44Input, message);
+  }
+
   // Methods
   async navigateToTestSnap() {
-    await Browser.navigateToURL(TEST_SNAP_URL);
+    await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
   async tapButton(elementId) {
     await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tapWebElement(elementId);
-  }
-
-  async clearAndTypeMessage(element, message) {
-    // await Gestures.clearField(element);
-    await Gestures.typeInWebElement(element, message);
   }
 
   async connectToSnap() {

@@ -77,7 +77,7 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
   });
 
   it('should sign a custom message', async () => {
-    await TestSnaps.typeBip44Message(customMessage);
+    await TestSnaps.typeSignMessage(customMessage);
     await TestSnaps.tapSignBip44MessageButton();
     await TestSnaps.approveSignRequest();
     await TestHelpers.delay(3000);

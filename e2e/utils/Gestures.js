@@ -158,7 +158,7 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    // await waitFor(await element).toBeVisible().withTimeout(timeout);
 
     await (await element).replaceText(text);
   }
