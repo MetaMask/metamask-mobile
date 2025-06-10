@@ -114,7 +114,7 @@ describe('AccountBackupStep1', () => {
 
   it('renders title and explanation text', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
     const title = wrapper.getByText(strings('account_backup_step_1.title'));
     expect(title).toBeOnTheScreen();
 
@@ -122,7 +122,16 @@ describe('AccountBackupStep1', () => {
       ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
     );
     expect(explanationText).toBeOnTheScreen();
-    fireEvent.press(explanationText);
+  });
+
+  it('shows seedphrase modal when srp link is pressed', () => {
+    (Engine.hasFunds as jest.Mock).mockReturnValue(true);
+    const { wrapper, mockNavigate } = setupTest();
+    const srpLink = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK,
+    );
+    expect(srpLink).toBeOnTheScreen();
+    fireEvent.press(srpLink);
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'SeedphraseModal',
     });
