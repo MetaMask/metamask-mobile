@@ -40,27 +40,29 @@ Ensure that these devices are set up. You can change the default devices at any 
 
 - **Build the Apps for Testing**:
 
-  - **iOS Debug**:
+  - **Option #1 - Using Expo prebuilds (recommended)**
+
+    Instead of building apps localy, you can download prebuilt `.app`/`.ipa`/`.apk` files from [Runway buckets](../../README.md#download-and-install-the-development-build) and run the tests against them.
+
+    After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
+
+    - `PREBULT_IOS_APP_PATH` for iOS
+    - `PREBULT_ANDROID_APP_PATH` for Android APK
+    - `PREBULT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
+
+  - **Option #2 - Building locally**:
+
+    - **iOS Debug**:
 
     ```bash
     yarn test:e2e:ios:debug:build
     ```
 
-  - **Android Debug**:
+    - **Android Debug**:
 
     ```bash
     yarn test:e2e:android:debug:build
     ```
-
-  - **Using prebuilds**
-
-    Instead of building apps localy, you can download prebuilt `.app`/`.apk` files from Runway buckets and run the tests against them.
-
-    After downloading the prebuilt apps, paths to them should be set through the following environment variables:
-
-    - `PREBULT_IOS_APP_PATH` for iOS
-    - `PREBULT_ANDROID_APP_PATH` for Android
-    - `PREBULT_ANDROID_TEST_APP_PATH` for Android test app
 
 - **Run All Tests Locally**:
 
