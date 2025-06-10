@@ -79,12 +79,12 @@ describe('AccountBackupStep1B', () => {
     const { wrapper, mockNavigation } = setupTest();
 
     const title = wrapper.getByText(strings('account_backup_step_1B.title'));
-    expect(title).toBeTruthy();
+    expect(title).toBeOnTheScreen();
 
     const srpLink = wrapper.getByText(
       strings('account_backup_step_1B.subtitle_2'),
     );
-    expect(srpLink).toBeTruthy();
+    expect(srpLink).toBeOnTheScreen();
     mockNavigation.mockRestore();
   });
 
@@ -94,7 +94,7 @@ describe('AccountBackupStep1B', () => {
     const srpLink = wrapper.getByText(
       strings('account_backup_step_1B.subtitle_2'),
     );
-    expect(srpLink).toBeTruthy();
+    expect(srpLink).toBeOnTheScreen();
 
     fireEvent.press(srpLink);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -108,7 +108,7 @@ describe('AccountBackupStep1B', () => {
     const ctaButton = wrapper.getByText(
       strings('account_backup_step_1B.cta_text'),
     );
-    expect(ctaButton).toBeTruthy();
+    expect(ctaButton).toBeOnTheScreen();
     fireEvent.press(ctaButton);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.ONBOARDING.MANUAL_BACKUP.STEP_1,
