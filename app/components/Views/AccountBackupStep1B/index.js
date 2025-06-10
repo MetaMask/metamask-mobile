@@ -214,7 +214,6 @@ const AccountBackupStep1B = (props) => {
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', {
       ...props.route.params,
-      settingsBackup: true,
     });
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(

@@ -106,7 +106,9 @@ const ManualBackupStep2 = ({
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OnboardingSuccess');
+          navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+            screen: Routes.ONBOARDING.SUCCESS,
+          });
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(

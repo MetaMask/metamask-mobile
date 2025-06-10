@@ -221,7 +221,7 @@ const Main = (props) => {
     toggleRemindLater();
     props.navigation.navigate('SetPasswordFlow', {
       screen: 'AccountBackupStep1B',
-      params: { ...props.route.params },
+      params: { ...props.route.params, backupFlow: true },
     });
   };
 

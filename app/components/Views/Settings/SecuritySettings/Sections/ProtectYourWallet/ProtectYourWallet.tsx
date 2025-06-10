@@ -55,7 +55,9 @@ const ProtectYourWallet = ({
   };
 
   const goToBackup = (): void => {
-    navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
+    navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B, {
+      settingsBackup: true,
+    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_STARTED)
