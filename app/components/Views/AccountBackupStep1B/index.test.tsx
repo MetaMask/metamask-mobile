@@ -126,7 +126,7 @@ describe('AccountBackupStep1B', () => {
 
     // Verify AndroidBackHandler is rendered
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeTruthy();
+    expect(androidBackHandler).toBeOnTheScreen();
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
@@ -149,7 +149,7 @@ describe('AccountBackupStep1B', () => {
     const headerLeftComponent = setOptionsCall.headerLeft();
 
     // Verify the headerLeft component renders correctly
-    expect(headerLeftComponent).toBeTruthy();
+    expect(headerLeftComponent).toBeOnTheScreen();
     mockNavigation.mockRestore();
   });
 });
