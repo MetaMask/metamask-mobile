@@ -3,9 +3,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 
-// Temporary: Will be replaced with supported vaults from API request
-const HOLESKY_CHAIN_ID_HEX = '0x4268';
-
 const SUPPORTED_STAKING_TOKENS = new Set(['Ethereum']);
 
 export const SUPPORTED_LENDING_TOKENS = new Set(['DAI', 'USDC', 'USDT']);
@@ -17,9 +14,6 @@ const SUPPORTED_EARN_TOKENS = new Set([
 const SUPPORTED_CHAIN_IDS = new Set<string>([
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BASE,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.SEPOLIA,
-  HOLESKY_CHAIN_ID_HEX,
 ]);
 
 export const getSupportedEarnTokens = (tokens: TokenI[]) =>

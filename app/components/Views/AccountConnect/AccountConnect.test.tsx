@@ -13,6 +13,17 @@ import {
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
+import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
+  mockAddress1,
+  mockAddress2,
+]);
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -33,6 +44,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -75,16 +94,19 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
-        scanUrl: jest.fn((domainName: string) => ({
-          domainName,
-          recommendedAction: 'NONE'
-        })),
+        scanUrl: jest.fn(async (url: string) => {
+          if (url === 'https://phishing.com') {
+            return { recommendedAction: 'BLOCK' };
+          }
+          return { recommendedAction: 'NONE' };
+        }),
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
       },
       AccountsController: {
         state: mockAccountsState,
+        getAccountByAddress: jest.fn(),
       },
       KeyringController: {
         state: {
@@ -124,14 +146,16 @@ jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
 // Mock useAccounts to return test accounts
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn(() => ({
-    evmAccounts: [
+    accounts: [
       {
         address: mockAddress1,
         name: 'Account 1',
+        caipAccountId: `eip155:0:${mockAddress1}`,
       },
       {
         address: mockAddress2,
         name: 'Account 2',
+        caipAccountId: `eip155:0:${mockAddress2}`,
       },
     ],
     ensByAccountAddress: {},
@@ -165,7 +189,7 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 describe('AccountConnect', () => {
-  it('renders correctly', () => {
+  it('renders correctly with base request', () => {
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{
@@ -176,9 +200,25 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -188,7 +228,90 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
-    // Create a new snapshot since the component UI has changed
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including chains and accounts', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [`eip155:1:${mockAddress1}`],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
+              },
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with request including only chains', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: {
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
+              },
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -204,9 +327,25 @@ describe('AccountConnect', () => {
                 origin: '',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -233,9 +372,25 @@ describe('AccountConnect', () => {
                 origin: 'https://example.com',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -267,9 +422,25 @@ describe('AccountConnect', () => {
                     origin: 'https://example.com',
                   },
                   permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
+                    // @ts-expect-error partial object
+                    [Caip25EndowmentPermissionName]: {
+                      parentCapability: Caip25EndowmentPermissionName,
+                      caveats: [
+                        {
+                          type: Caip25CaveatType,
+                          value: {
+                            requiredScopes: {},
+                            optionalScopes: {
+                              'wallet:eip155': {
+                                accounts: [],
+                              },
+                            },
+                            isMultichainOrigin: false,
+                            sessionProperties: {},
+                          },
+                        },
+                      ],
+                    } as PermissionConstraint,
                   },
                 },
                 permissionRequestId: 'test',
@@ -287,7 +458,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onSubmit([mockAddress2]);
+      multiSelector.props.onSubmit([`eip155:0:${mockAddress2}`]);
 
       // Verify that the screen changed back to PermissionsSummary
       expect(
@@ -307,9 +478,25 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
+                // @ts-expect-error partial object
+                [Caip25EndowmentPermissionName]: {
+                  parentCapability: Caip25EndowmentPermissionName,
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'wallet:eip155': {
+                            accounts: [],
+                          },
+                        },
+                        isMultichainOrigin: false,
+                        sessionProperties: {},
+                      },
+                    },
+                  ],
+                } as PermissionConstraint,
               },
             },
             permissionRequestId: 'test',
@@ -335,5 +522,146 @@ describe('AccountConnect', () => {
     });
     // Verify createEventBuilder was called
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('AccountConnect should not change origin if browser URL changes', () => {
+    // Setup a mock store with browser tabs
+    const originalURL = 'https://dapp-requesting-connection.com';
+    const parsedOriginalURL = new URL(originalURL);
+    const mockState = {
+      browser: {
+        activeTab: 1,
+        tabs: [{ id: 1, url: originalURL }],
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        },
+      },
+    };
+
+    // Create a function for rendering that we can use in our test
+    const renderComponent = () =>
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: originalURL,
+                },
+                permissions: {
+                  eth_accounts: { parentCapability: 'eth_accounts' },
+                },
+              },
+              permissionRequestId: 'test-id',
+            },
+          }}
+        />,
+        { state: mockState },
+      );
+
+    // Execute the render function (may succeed or fail)
+    let result = renderComponent();
+
+    // check that component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    const permissionsRequestOriginWrap = result.getByTestId(
+      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+    );
+    // check if this wrap component includes the original URL
+    expect(permissionsRequestOriginWrap).toBeDefined();
+    // get inner text of permissionsRequestOriginWrap and check for original URL
+    const permissionsRequestOriginText =
+      // @ts-expect-error - This is a valid way to access the children of the permissionsRequestOriginWrap component
+      permissionsRequestOriginWrap.children[0].children[0].props.children;
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+
+    // now change the mockState to have a different active tab URL
+    const newURL = 'https://different-site.com';
+    mockState.browser.tabs[0].url = newURL;
+    // re-render the component
+    result = renderComponent();
+    // check that the component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    expect(
+      result.getByTestId(
+        PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+      ),
+    ).toBeDefined();
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+    expect(permissionsRequestOriginText).not.toContain(
+      new URL(newURL).hostname,
+    );
+  });
+
+  describe('Phishing detection', () => {
+    describe('dapp scanning is enabled', () => {
+      it('should show phishing modal for phishing URLs', async () => {
+        const { findByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'phishing.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = await findByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+        );
+        expect(warningText).toBeTruthy();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://phishing.com',
+        );
+      });
+
+      it('should not show phishing modal for safe URLs', async () => {
+        const { queryByText } = renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    origin: 'safe-site.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
+                  },
+                },
+                permissionRequestId: 'test',
+              },
+            }}
+          />,
+          { state: mockInitialState },
+        );
+
+        const warningText = queryByText(
+          `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+        );
+        expect(warningText).toBeNull();
+        expect(Engine.context.PhishingController.scanUrl).toHaveBeenCalledWith(
+          'https://safe-site.com',
+        );
+      });
+    });
   });
 });

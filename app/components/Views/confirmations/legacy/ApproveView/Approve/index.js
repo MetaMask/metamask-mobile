@@ -341,6 +341,18 @@ class Approve extends PureComponent {
     }
   };
 
+  UNSAFE_componentWillMount = async () => {
+    const { chainId } = this.props;
+    // Force relevant token actions since user may not switched to network yet
+    await Engine.context.TokenDetectionController.detectTokens({
+      chainIds: [chainId],
+    });
+    await Engine.context.TokenListController.fetchTokenList(chainId);
+    await Engine.context.TokenBalancesController.updateBalancesByChainId({
+      chainId,
+    });
+  };
+
   componentWillUnmount = async () => {
     const { approved } = this.state;
     const { transaction } = this.props;
@@ -963,7 +975,7 @@ class Approve extends PureComponent {
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkId;
+  const networkClientId = transaction?.networkClientId;
 
   return {
     accounts: selectAccounts(state),

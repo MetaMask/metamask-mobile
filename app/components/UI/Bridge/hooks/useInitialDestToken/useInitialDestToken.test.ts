@@ -33,6 +33,16 @@ jest.mock('../../../../../selectors/networkController', () => {
   };
 });
 
+jest.mock('../useInitialSourceToken', () => ({
+  getNativeSourceToken: jest.fn().mockReturnValue({
+    address: '0x456',
+    symbol: 'NATIVE',
+    decimals: 18,
+    name: 'Native Token',
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  }),
+}));
+
 describe('useInitialDestToken', () => {
   const mockSourceToken: BridgeToken = {
     address: '0x123',
@@ -109,6 +119,12 @@ describe('useInitialDestToken', () => {
       state: initialState,
     });
 
-    expect(setDestToken).not.toHaveBeenCalled();
+    expect(setDestToken).toHaveBeenCalledWith({
+      address: '0x456',
+      symbol: 'NATIVE',
+      decimals: 18,
+      name: 'Native Token',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
   });
 });

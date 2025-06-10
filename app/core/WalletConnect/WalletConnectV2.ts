@@ -464,7 +464,7 @@ export class WC2Manager {
         const hexChainId = `0x${walletChainIdDecimal.toString(16)}` as `0x${string}`;
         DevLogger.log(`WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`);
 
-        updatePermittedChains(hostname, [hexChainId]);
+        updatePermittedChains(hostname, [`eip155:${walletChainIdDecimal}`]);
         DevLogger.log(`WC2::session_proposal chain permission added successfully`);
       } catch (err) {
         DevLogger.log(`WC2::session_proposal error adding chain permission`, err);

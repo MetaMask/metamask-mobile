@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { useSelector } from 'react-redux';
-///: END:ONLY_INCLUDE_IF
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -25,10 +23,7 @@ import Banner, {
   BannerAlertSeverity,
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
-
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
@@ -48,9 +43,7 @@ const ProtectYourWallet = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
-  ///: END:ONLY_INCLUDE_IF
 
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -58,13 +51,11 @@ const ProtectYourWallet = ({
     });
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const openSRPList = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SELECT_SRP,
     });
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
@@ -79,12 +70,10 @@ const ProtectYourWallet = ({
   };
 
   const onRevealPressed = () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     if (shouldShowSRPList) {
       openSRPList();
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
     openSRPQuiz();
   };
 

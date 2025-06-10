@@ -133,27 +133,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-  get carouselFirstSlide() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
-  }
-
-  get carouselFirstSlideTitle() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
-    );
-  }
-
-  get carouselSecondSlide() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
-    );
-  }
-
-  get carouselSecondSlideTitle() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
-    );
-  }
 
   get carouselProgressDots() {
     return Matchers.getElementByID(
@@ -161,20 +140,20 @@ class WalletView {
     );
   }
 
-  get carouselFirstSlideCloseButton() {
+  getCarouselSlide(id) {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
+  }
+
+  getCarouselSlideTitle(id) {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_TITLE(id),
     );
   }
 
-  get carouselSecondSlideCloseButton() {
+  getCarouselSlideCloseButton(id) {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
     );
-  }
-
-  get carouselSlide() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
   }
 
   async tapCurrentMainWalletAccountActions() {
@@ -220,7 +199,7 @@ class WalletView {
   get testCollectible() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE,1);
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
   }
 
   async tapOnNftName() {
@@ -304,12 +283,32 @@ class WalletView {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapCarouselCloseButton() {
-    await Gestures.tap(this.carouselCloseButton);
+  /**
+   * Swipes the carousel in the specified direction.
+   * @param {'left' | 'right'} direction - The direction to swipe ('left' or 'right').
+   */
+  async swipeCarousel(direction) {
+    await Gestures.swipe(this.carouselContainer, direction, 'slow', 0.7);
   }
 
-  async tapCarouselSlide() {
-    await Gestures.tap(this.carouselSlide);
+  /**
+   * Closes the carousel slide with the specified ID by tapping its close button.
+   *
+   * @param {string|number} id - The identifier of the carousel slide to close.
+   * @returns {Promise<void>} A promise that resolves when the slide has been closed.
+   */
+  async closeCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlideCloseButton(id));
+  }
+
+  /**
+   * Taps on a carousel slide with the specified identifier.
+   *
+   * @param {string} id - The unique identifier of the carousel slide to tap.
+   * @returns {Promise<void>} Resolves when the tap action is complete.
+   */
+  async tapCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlide(id));
   }
 }
 

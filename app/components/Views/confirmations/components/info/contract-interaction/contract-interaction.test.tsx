@@ -1,6 +1,14 @@
-import { TransactionMeta, TransactionStatus, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import React from 'react';
-import { generateContractInteractionState } from '../../../../../../util/test/confirm-data-helpers';
+import {
+  generateContractInteractionState,
+  getAppStateForConfirmation,
+  upgradeAccountConfirmation,
+} from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
@@ -9,6 +17,11 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 // eslint-disable-next-line import/no-namespace
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
+
+jest.mock('../../rows/account-network-info-row', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
@@ -88,30 +101,31 @@ describe('ContractInteraction', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
 
     const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
-    jest.spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest').mockReturnValue({
-      id: mockTxId,
-      type: TransactionType.contractInteraction,
-      txParams: {
-        data: '0x123456',
-        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-        to: '0x1234567890123456789012345678901234567890',
-        value: '0x0',
-      },
-      chainId: '0x1' as `0x${string}`,
-      networkClientId: 'mainnet',
-      status: TransactionStatus.unapproved,
-      time: Date.now(),
-      origin: 'https://metamask.github.io',
-    } as unknown as TransactionMeta);
-
-    jest.spyOn(EditNonceHook, 'useEditNonce')
+    jest
+      .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
       .mockReturnValue({
-        setShowNonceModal: jest.fn(),
-        setUserSelectedNonce: jest.fn(),
-        showNonceModal: false,
-        proposedNonce: 10,
-        userSelectedNonce: 10,
-      });
+        id: mockTxId,
+        type: TransactionType.contractInteraction,
+        txParams: {
+          data: '0x123456',
+          from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+          to: '0x1234567890123456789012345678901234567890',
+          value: '0x0',
+        },
+        chainId: '0x1' as `0x${string}`,
+        networkClientId: 'mainnet',
+        status: TransactionStatus.unapproved,
+        time: Date.now(),
+        origin: 'https://metamask.github.io',
+      } as unknown as TransactionMeta);
+
+    jest.spyOn(EditNonceHook, 'useEditNonce').mockReturnValue({
+      setShowNonceModal: jest.fn(),
+      setUserSelectedNonce: jest.fn(),
+      showNonceModal: false,
+      proposedNonce: 10,
+      userSelectedNonce: 10,
+    });
   });
 
   it('renders "estimate changes" and "network fee" sections', () => {
@@ -134,5 +148,19 @@ describe('ContractInteraction', () => {
     });
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders switch account section for batched upgrade', () => {
+    jest
+      .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+      .mockReturnValue(
+        upgradeAccountConfirmation as unknown as TransactionMeta,
+      );
+
+    const { getByText } = renderWithProvider(<ContractInteraction />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Now')).toBeDefined();
+    expect(getByText('Switching To')).toBeDefined();
   });
 });

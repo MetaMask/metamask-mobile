@@ -217,7 +217,7 @@ const AccountBackupStep1B = (props) => {
         colors,
       ),
     );
-  }, [navigation, route, colors, styles.headerLeft]);
+  }, [navigation, route, colors]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', {

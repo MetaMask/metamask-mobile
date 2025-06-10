@@ -35,8 +35,11 @@ const createStyles = (colors: any) =>
       minHeight: 264,
     },
     seedPhraseInnerContainer: {
-      paddingHorizontal: Platform.OS === 'ios' ? 16 : 14,
-      paddingBottom: 16,
+      paddingHorizontal: Platform.select({
+        ios: 16,
+        macos: 16,
+        default: 14,
+      }),
     },
     seedPhraseDefaultInputPlaceholder: {
       fontSize: 14,
@@ -133,7 +136,11 @@ const createStyles = (colors: any) =>
       color: colors.success.default,
     },
     input: {
-      paddingVertical: Platform.OS === 'ios' ? 4 : 0,
+      paddingVertical: Platform.select({
+        ios: 4,
+        macos: 4,
+        default: 0,
+      }),
       borderRadius: 8,
       backgroundColor: colors.background.default,
       flexDirection: 'row',

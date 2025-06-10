@@ -3,7 +3,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import { Contract } from 'ethers';
 import React from 'react';
@@ -12,6 +12,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+// eslint-disable-next-line import/no-namespace
+import * as tempLendingUtils from '../../utils/tempLending';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -32,7 +34,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
-} from '../../../Stake/__mocks__/mockData';
+} from '../../../Stake/__mocks__/stakeMockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 // eslint-disable-next-line import/no-namespace
@@ -441,123 +443,184 @@ describe('EarnInputView', () => {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
       });
     });
+  });
 
-    describe('navigates to ', () => {
-      it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
-        const mockUseStakingGasFee = jest.spyOn(useStakingGasFee, 'default');
-        const mockUseBalance = jest.spyOn(useBalance, 'default');
-        const useBalanceMockData = {
-          balanceFiatNumber: weiToFiatNumber(
-            mockBalanceBN,
-            mockConversionRate,
-            2,
-          ),
-          balanceETH: '1.5',
-          balanceWei: mockBalanceBN,
-        } as ReturnType<(typeof useBalance)['default']>;
-        mockUseBalance.mockImplementation(() => useBalanceMockData);
-        mockUseStakingGasFee.mockImplementation(() => ({
-          estimatedGasFeeWei: toWei('0.25'),
-          isLoadingStakingGasFee: false,
-          isStakingGasFeeError: false,
-          refreshGasValues: jest.fn(),
-        }));
+  describe('navigates to ', () => {
+    it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
+      const mockUseStakingGasFee = jest.spyOn(useStakingGasFee, 'default');
+      const mockUseBalance = jest.spyOn(useBalance, 'default');
+      const useBalanceMockData = {
+        balanceFiatNumber: weiToFiatNumber(
+          mockBalanceBN,
+          mockConversionRate,
+          2,
+        ),
+        balanceETH: '1.5',
+        balanceWei: mockBalanceBN,
+      } as ReturnType<(typeof useBalance)['default']>;
+      mockUseBalance.mockImplementation(() => useBalanceMockData);
+      mockUseStakingGasFee.mockImplementation(() => ({
+        estimatedGasFeeWei: toWei('0.25'),
+        isLoadingStakingGasFee: false,
+        isStakingGasFeeError: false,
+        refreshGasValues: jest.fn(),
+      }));
 
-        const { getByText } = renderComponent();
+      const { getByText } = renderComponent();
 
-        fireEvent.press(getByText('25%'));
+      fireEvent.press(getByText('25%'));
 
-        fireEvent.press(getByText(strings('stake.review')));
+      fireEvent.press(getByText(strings('stake.review')));
 
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
 
-        expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
-          screen: Routes.STAKING.MODALS.GAS_IMPACT,
-          params: {
-            amountFiat: '750',
-            amountWei: '375000000000000000',
-            annualRewardRate: '2.5%',
-            annualRewardsToken: '0.00946 ETH',
-            annualRewardsFiat: '18.92 USD',
-            estimatedGasFee: '0.25',
-            estimatedGasFeePercentage: '66%',
-          },
-        });
+      expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountFiat: '750',
+          amountWei: '375000000000000000',
+          annualRewardRate: '2.5%',
+          annualRewardsToken: '0.00946 ETH',
+          annualRewardsFiat: '18.92 USD',
+          estimatedGasFee: '0.25',
+          estimatedGasFeePercentage: '66%',
+        },
+      });
+    });
+
+    it('redesigned stake deposit confirmation view', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+      // Override the mock value for this specific test
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as unknown as ConfirmationRedesignRemoteFlags);
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
       });
 
-      it('redesigned stake deposit confirmation view', async () => {
-        const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
-        // Override the mock value for this specific test
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
+      const { getByText } = renderComponent();
 
-        usePoolStakedDepositMock.mockReturnValue({
-          attemptDepositTransaction: attemptDepositTransactionMock,
-        });
+      fireEvent.press(getByText('25%'));
 
-        const { getByText } = renderComponent();
+      fireEvent.press(getByText(strings('stake.review')));
 
-        fireEvent.press(getByText('25%'));
+      jest.useFakeTimers({ legacyFakeTimers: true });
+      // Wait for approval to be processed
+      await flushPromises();
 
-        fireEvent.press(getByText(strings('stake.review')));
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
 
-        jest.useFakeTimers({ legacyFakeTimers: true });
-        // Wait for approval to be processed
-        await flushPromises();
+      expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
+      expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
+        '375000000000000000',
+        MOCK_ADDRESS_2,
+        undefined,
+        true,
+      );
 
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-        });
-
-        expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
-        expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
-          '375000000000000000',
-          MOCK_ADDRESS_2,
-          undefined,
-          true,
-        );
-
-        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: expect.objectContaining({
-              is_redesigned: true,
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              tokens_to_stake_native_value: '0.375',
-              tokens_to_stake_usd_value: '750',
-            }),
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            is_redesigned: true,
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            tokens_to_stake_native_value: '0.375',
+            tokens_to_stake_usd_value: '750',
           }),
-        );
+        }),
+      );
+    });
+
+    it('stake confirmation view', async () => {
+      const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
       });
 
-      it('stake confirmation view', async () => {
-        const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+      const { getByText } = renderComponent();
 
-        usePoolStakedDepositMock.mockReturnValue({
-          attemptDepositTransaction: attemptDepositTransactionMock,
-        });
+      fireEvent.press(getByText('25%'));
 
-        const { getByText } = renderComponent();
+      fireEvent.press(getByText(strings('stake.review')));
 
+      jest.useRealTimers();
+
+      await new Promise(process.nextTick);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE_CONFIRMATION,
+        params: {
+          amountFiat: '750',
+          amountWei: '375000000000000000',
+          annualRewardRate: '2.5%',
+          annualRewardsToken: '0.00946 ETH',
+          annualRewardsFiat: '18.92 USD',
+        },
+      });
+    });
+
+    it('earn lending deposit view', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      const getErc20SpendingLimitSpy = jest
+        .spyOn(tempLendingUtils, 'getErc20SpendingLimit')
+        .mockResolvedValue('0');
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      await act(async () => {
         fireEvent.press(getByText('25%'));
+      });
 
+      await act(async () => {
         fireEvent.press(getByText(strings('stake.review')));
+      });
 
-        jest.useRealTimers();
+      expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
 
-        await new Promise(process.nextTick);
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-          screen: Routes.STAKING.STAKE_CONFIRMATION,
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
           params: {
-            amountFiat: '750',
-            amountWei: '375000000000000000',
+            action: 'ALLOWANCE_INCREASE',
+            amountFiat: '0.25',
+            amountTokenMinimalUnit: '250000',
             annualRewardRate: '2.5%',
-            annualRewardsToken: '0.00946 ETH',
-            annualRewardsFiat: '18.92 USD',
+            annualRewardsFiat: '0.01 USD',
+            annualRewardsToken: '0.00631 ETH',
+            lendingContractAddress:
+              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+            lendingProtocol: 'AAVE v3',
+            token: {
+              address: '0x123232',
+              aggregators: expect.any(Array),
+              balance: '',
+              balanceFiat: '$33.23',
+              chainId: '0x1',
+              decimals: 6,
+              image: '',
+              isETH: false,
+              isNative: false,
+              isStaked: false,
+              logo: '',
+              name: 'USDC',
+              symbol: 'USDC',
+              ticker: 'USDC',
+            },
           },
         });
       });

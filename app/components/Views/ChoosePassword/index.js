@@ -214,7 +214,7 @@ class ChoosePassword extends PureComponent {
     confirmPassword: '',
     secureTextEntry: true,
     biometryType: null,
-    biometryChoice: true,
+    biometryChoice: false,
     rememberMe: false,
     loading: false,
     error: null,
@@ -586,7 +586,7 @@ class ChoosePassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
-  isError = () => {
+  checkError = () => {
     const { password, confirmPassword } = this.state;
     return (
       password !== '' && confirmPassword !== '' && password !== confirmPassword
@@ -657,7 +657,10 @@ class ChoosePassword extends PureComponent {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  Step 1 of 3
+                  {strings('choose_password.steps', {
+                    currentStep: 1,
+                    totalSteps: 3,
+                  })}
                 </Text>
 
                 <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
@@ -677,12 +680,13 @@ class ChoosePassword extends PureComponent {
                       placeholder={strings(
                         'import_from_seed.enter_strong_password',
                       )}
+                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
                       value={password}
                       onChangeText={this.onPasswordChange}
-                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
                       placeholderTextColor={colors.text.muted}
                       testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                       onSubmitEditing={this.jumpToConfirmPassword}
+                      autoComplete="new-password"
                       returnKeyType="next"
                       autoCapitalize="none"
                       keyboardAppearance={themeAppearance}
@@ -747,6 +751,7 @@ class ChoosePassword extends PureComponent {
                       accessibilityLabel={
                         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                       }
+                      autoComplete="new-password"
                       onSubmitEditing={this.onPressCreate}
                       returnKeyType={'done'}
                       autoCapitalize="none"
@@ -766,7 +771,7 @@ class ChoosePassword extends PureComponent {
                       }
                       isDisabled={password === ''}
                     />
-                    {this.isError() && (
+                    {this.checkError() && (
                       <Text
                         variant={TextVariant.BodySM}
                         color={TextColor.Error}
@@ -839,9 +844,7 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-const mapStateToProps = (state) => ({
-  oauth2LoginSuccess: state.user.oauth2LoginSuccess,
-});
+const mapStateToProps = (state) => ({});
 
 export default connect(
   mapStateToProps,

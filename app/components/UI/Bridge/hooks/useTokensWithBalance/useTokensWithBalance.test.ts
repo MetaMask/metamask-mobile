@@ -45,7 +45,7 @@ describe('useTokensWithBalance', () => {
         name: 'Ethereum',
         decimals: 18,
         chainId: mockChainId,
-        balance: '3',
+        balance: '3.0',
         balanceFiat: '$6000',
         tokenFiatAmount: 6000,
       });
@@ -69,13 +69,13 @@ describe('useTokensWithBalance', () => {
       );
 
       expect(token1).toMatchObject({
-        balance: '1',
+        balance: '1.0',
         balanceFiat: '$20000',
         tokenFiatAmount: 20000,
       });
 
       expect(token2).toMatchObject({
-        balance: '2',
+        balance: '2.0',
         balanceFiat: '$200000',
         tokenFiatAmount: 200000,
       });
@@ -86,7 +86,7 @@ describe('useTokensWithBalance', () => {
         address: constants.AddressZero,
         symbol: 'ETH',
         chainId: optimismChainId,
-        balance: '20',
+        balance: '20.0',
         balanceFiat: '$40000',
         tokenFiatAmount: 40000,
       });
@@ -97,7 +97,7 @@ describe('useTokensWithBalance', () => {
         symbol: 'FOO',
         name: 'Foo Token',
         chainId: optimismChainId,
-        balance: '5',
+        balance: '5.0',
         balanceFiat: '$80000',
         tokenFiatAmount: 80000,
       });

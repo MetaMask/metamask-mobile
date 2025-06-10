@@ -7,7 +7,6 @@ import {
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
@@ -24,8 +23,6 @@ const useAccountTrackerPolling = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
-
-  const accountsByChainId = useSelector(selectAccountsByChainId);
   const networkClientIdsConfig = Object.values(
     networkConfigurationsPopularNetworks,
   ).map((network) => ({
@@ -60,10 +57,6 @@ const useAccountTrackerPolling = ({
       ),
     input,
   });
-
-  return {
-    accountsByChainId,
-  };
 };
 
 export default useAccountTrackerPolling;

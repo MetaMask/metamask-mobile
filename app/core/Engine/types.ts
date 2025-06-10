@@ -33,6 +33,10 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  DeFiPositionsController,
+  DeFiPositionsControllerState,
+  DeFiPositionsControllerEvents,
+  DeFiPositionsControllerActions,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -146,8 +150,6 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
@@ -208,9 +210,7 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import {
-  getPermissionSpecifications,
-} from '../Permissions/specifications.js';
+import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -279,7 +279,7 @@ import {
 } from '@metamask/app-metadata-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { EncryptionKey } from '../Encryptor/types';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Controllers that area always instantiated
@@ -308,14 +308,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
-  | SnapsAllowedEvents;
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -365,7 +363,8 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
-  | AppMetadataControllerActions;
+  | AppMetadataControllerActions
+  | DeFiPositionsControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -416,10 +415,11 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | AppMetadataControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | SeedlessOnboardingControllerEvents
   ///: END:ONLY_INCLUDE_IF
-  | AppMetadataControllerEvents;
+  | DeFiPositionsControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -465,6 +465,7 @@ export type Controllers = {
   TokenRatesController: TokenRatesController;
   TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
+  DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
@@ -529,6 +530,7 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
@@ -617,7 +619,7 @@ export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
   ///: END:ONLY_INCLUDE_IF
-  | 'AppMetadataController';
+  | 'DeFiPositionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

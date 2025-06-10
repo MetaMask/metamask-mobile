@@ -91,12 +91,13 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
-import Routes from '../../../constants/navigation/Routes';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 const Stack = createStackNavigator();
 
@@ -239,39 +240,23 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
+  const skipAccountModalSecureNow = () => {
+    props.navigation.navigate('SetPasswordFlow', {
+      screen: 'ManualBackupStep1',
+      params: { backupFlow: true },
+    });
+  };
+
+  const navigation = useNavigation();
 
   const toggleRemindLater = () => {
-    setShowRemindLaterModal(!showRemindLaterModal);
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
-        onConfirm: () => {
-          props.navigation.navigate('SetPasswordFlow', {
-            screen: 'AccountBackupStep1B',
-            params: { ...props.route.params },
-          });
-        },
-        onCancel: () => {
-          toggleRemindLater();
-        },
+        onConfirm: navigation.goBack,
+        onCancel: skipAccountModalSecureNow,
       },
     });
-  };
-
-  const toggleSkipCheckbox = () => {
-    setSkipCheckbox(!skipCheckbox);
-  };
-
-  const skipAccountModalSecureNow = () => {
-    toggleRemindLater();
-    props.navigation.navigate('SetPasswordFlow', {
-      screen: 'AccountBackupStep1B',
-      params: { ...props.route.params },
-    });
-  };
-
-  const skipAccountModalSkip = () => {
-    if (skipCheckbox) toggleRemindLater();
   };
 
   /**
@@ -533,10 +518,6 @@ Main.propTypes = {
    * Remove not visible notifications from state
    */
   removeNotVisibleNotifications: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
   /**
    * Current chain id
    */

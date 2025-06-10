@@ -71,6 +71,7 @@ exports[`Login should render correctly 1`] = `
             {
               "height": 40,
               "marginTop": 10,
+              "tintColor": "#121314",
               "width": 80,
             }
           }

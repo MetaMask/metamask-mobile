@@ -129,10 +129,8 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/components/confirm';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
@@ -164,26 +162,29 @@ const Stack = createStackNavigator();
 
 const OnboardingSuccessComponent = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params ?? {
+    backedUpSRP: false,
+    noSRP: false,
+  };
+
+  const { backedUpSRP, noSRP } = params as {
+    backedUpSRP: boolean;
+    noSRP: boolean;
+  };
+
   return (
     <OnboardingSuccess
+      backedUpSRP={backedUpSRP}
+      noSRP={noSRP}
       onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
     />
   );
 };
 
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
+const AccountAlreadyExists = () => <AccountStatus type="found" />;
+
+const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
@@ -232,7 +233,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccessComponent} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -330,18 +331,12 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 interface RootModalFlowProps {
   route: {
     params: Record<string, unknown>;
   };
 }
-///: END:ONLY_INCLUDE_IF(multi-srp)
-const RootModalFlow = (
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  props: RootModalFlowProps,
-  ///: END:ONLY_INCLUDE_IF
-) => (
+const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -471,19 +466,15 @@ const RootModalFlow = (
       component={EnableAutomaticSecurityChecksModal}
     />
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
         component={SelectSRPBottomSheet}
       />
-      ///: END:ONLY_INCLUDE_IF
     }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
-      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       initialParams={{ ...props.route.params }}
-      ///: END:ONLY_INCLUDE_IF
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
@@ -542,7 +533,6 @@ const ImportPrivateKeyView = () => (
   </Stack.Navigator>
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
@@ -555,7 +545,6 @@ const ImportSRPView = () => (
     />
   </Stack.Navigator>
 );
-///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -682,13 +671,11 @@ const AppFlow = () => {
         options={{ animationEnabled: true }}
       />
       {
-        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
         <Stack.Screen
           name="ImportSRPView"
           component={ImportSRPView}
           options={{ animationEnabled: true }}
         />
-        ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen
         name="ConnectQRHardwareFlow"
@@ -1021,6 +1008,7 @@ const App: React.FC = () => {
               rpcEndpoints: [
                 {
                   url: network.rpcUrl,
+                  failoverUrls: network.failoverRpcUrls,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
                 },

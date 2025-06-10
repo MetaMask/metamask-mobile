@@ -24,6 +24,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
+  delete fullState.engine.backgroundState.DeFiPositionsController;
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;

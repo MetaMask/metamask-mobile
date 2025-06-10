@@ -79,9 +79,7 @@ interface RootStackParamList extends ParamListBase {
     credentialName: string;
     shouldUpdateNav?: boolean;
     selectedAccount?: InternalAccount;
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     keyringId?: string;
-    ///: END:ONLY_INCLUDE_IF
   };
 }
 
@@ -116,9 +114,7 @@ const RevealPrivateCredential = ({
     useState<string>('');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const keyringId = route?.params?.keyringId;
-  ///: END:ONLY_INCLUDE_IF
 
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -167,9 +163,7 @@ const RevealPrivateCredential = ({
         if (!isPrivateKeyReveal) {
           const uint8ArraySeed = await KeyringController.exportSeedPhrase(
             pswd,
-            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
             keyringId,
-            ///: END:ONLY_INCLUDE_IF
           );
           privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
         } else {
@@ -202,9 +196,7 @@ const RevealPrivateCredential = ({
     },
     [
       selectedAddress,
-      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       keyringId,
-      ///: END:ONLY_INCLUDE_IF
     ],
   );
 

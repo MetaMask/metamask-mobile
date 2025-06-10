@@ -533,7 +533,6 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                   <View
                                     style={
                                       {
-                                        "paddingBottom": 16,
                                         "paddingHorizontal": 16,
                                       }
                                     }

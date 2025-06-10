@@ -167,7 +167,7 @@ const AccountBackupStep1 = (props) => {
     props.navigation.navigate('OptinMetrics', {
       onContinue: () => {
         props.navigation.navigate('OnboardingSuccess', {
-          showPasswordHint: false,
+          noSRP: true,
         });
       },
     });
@@ -201,9 +201,11 @@ const AccountBackupStep1 = (props) => {
       >
         <View style={styles.wrapper}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            Step 2 of 3
+            {strings('manual_backup_step_1.steps', {
+              currentStep: 2,
+              totalSteps: 3,
+            })}
           </Text>
-          {/* <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} /> */}
           <View style={styles.content}>
             <Text
               variant={TextVariant.DisplayMD}

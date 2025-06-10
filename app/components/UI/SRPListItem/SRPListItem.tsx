@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';
@@ -29,6 +30,7 @@ const SRPListItem = ({
   name,
   keyring,
   onActionComplete,
+  testID,
   showArrowName = '',
 }: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -49,7 +51,10 @@ const SRPListItem = ({
   return (
     <TouchableWithoutFeedback
       onPress={() => onActionComplete(keyring.metadata.id)}
-      testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`}
+      testID={
+        testID ??
+        `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
+      }
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>

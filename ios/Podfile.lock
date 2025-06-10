@@ -1649,27 +1649,6 @@ PODS:
     - React-Core
   - react-native-blob-util (0.19.9):
     - React-Core
-  - react-native-blur (4.4.1):
-    - DoubleConversion
-    - glog
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-branch (5.6.2):
     - Branch (= 1.43.2)
     - React-Core
@@ -2446,7 +2425,6 @@ DEPENDENCIES:
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
@@ -2682,8 +2660,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-blob-jsi-helper"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
-  react-native-blur:
-    :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
@@ -2848,7 +2824,7 @@ SPEC CHECKSUMS:
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
+  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXApplication: 4c72f6017a14a65e338c5e74fca418f35141e819
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
@@ -2877,7 +2853,7 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
   FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
-  glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   GoogleAcm: b6140c6bbab70222b1c14fbdadaebc378747379d
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
@@ -2927,7 +2903,6 @@ SPEC CHECKSUMS:
   react-native-ble-plx: df4151092df39a5512486cf99da0b5725f964c8b
   react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
-  react-native-blur: c6212b0b7fdfeb0a5023b75ab0697ad3892f906e
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-camera: 1e6fefa515d3af8b4aeaca3a8bffa2925252c4ea
   react-native-compat: b17f12ba0892fe4f9d19d35ca9ae59e20fa3d10e
