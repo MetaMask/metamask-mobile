@@ -125,7 +125,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.CONNECT', () => {
-    it('should displays RETURN_TO_DAPP_MODAL', () => {
+    it('displays RETURN_TO_DAPP_MODAL', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -234,7 +234,7 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.WC without wcURL', () => {
-    it('should not call WC2Manager.connect if action is WC and wcURL is falsy', () => {
+    it('does not call WC2Manager.connect if action is WC and wcURL is falsy', () => {
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         pathname: `/${ACTIONS.WC}/additional/path`,
@@ -392,7 +392,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.SWAP', () => {
-      it('calls _handleSwap with correct path when action is SWAP', () => {
+      it('calls _handleSwap with correct path of "swap" when action is SWAP', () => {
         const swapUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
         const swapUrlObj = {
           ...urlObj,
@@ -419,7 +419,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('ACTIONS.BUY and ACTIONS.BUY_CRYPTO', () => {
-      it('calls _handleBuyCrypto with correct path when action is BUY', () => {
+      it('calls _handleBuyCrypto with correct path of "buy" when action is BUY', () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -444,7 +444,7 @@ describe('handleUniversalLinks', () => {
         );
       });
 
-      it('calls _handleBuyCrypto with correct path when action is BUY_CRYPTO', () => {
+      it('calls _handleBuyCrypto with correct path of "buy-crypto" when action is BUY_CRYPTO', () => {
         const buyUrl = `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`;
         const buyUrlObj = {
           ...urlObj,
@@ -471,7 +471,7 @@ describe('handleUniversalLinks', () => {
     });
 
     describe('default case', () => {
-      it('calls _handleOpenHome when action is not recognized', () => {
+      it('navigates to home when action is not recognized', () => {
         const unknownUrlObj = {
           ...urlObj,
           pathname: '/unknown-action/path',
