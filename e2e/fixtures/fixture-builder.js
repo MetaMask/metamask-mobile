@@ -329,16 +329,6 @@ class FixtureBuilder {
                 wallets: {},
               },
             },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: false,
-                  featureVersion: null,
-                  minimumVersion: null,
-                },
-                assetsDefiPositionsEnabled: true,
-              },
-            },
             PreferencesController: {
               featureFlags: {},
               identities: {
