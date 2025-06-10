@@ -46,6 +46,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -363,6 +364,7 @@ class OptinMetrics extends PureComponent {
     await metrics.addTraitsToUser({
       ...generateDeviceAnalyticsMetaData(),
       ...generateUserSettingsAnalyticsMetaData(),
+      [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
     });
 
     // track onboarding events that were stored before user opted in
