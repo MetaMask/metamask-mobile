@@ -2222,8 +2222,8 @@ workflows:
       - METAMASK_ENVIRONMENT: 'qa'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask"
-      - INFO_PLIST_NAME: "Info.plist"
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
     after_run:
       - _ios_build_template
   build_ios_flask_simbuild:
