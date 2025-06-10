@@ -5,6 +5,11 @@ import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
+
+const mockQuote = {
+  quoteId: 'test-quote-id',
+} as BuyQuote;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -20,6 +25,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+    }),
+    useRoute: () => ({
+      params: { quote: mockQuote as unknown as BuyQuote },
     }),
   };
 });
@@ -87,6 +95,7 @@ describe('BasicInfo Component', () => {
           mobileNumber: '+11234567890',
           ssn: '123456789',
         },
+        quote: mockQuote,
       }),
     );
   });
