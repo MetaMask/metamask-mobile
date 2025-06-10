@@ -35,7 +35,7 @@ jest.mock('../../sdk', () => {
 });
 
 jest.mock(
-  '../GetStarted/GetStarted',
+  './GetStarted/GetStarted',
   () =>
     function MockGetStarted() {
       return null;

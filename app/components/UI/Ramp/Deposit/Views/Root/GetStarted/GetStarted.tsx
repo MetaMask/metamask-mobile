@@ -3,15 +3,15 @@ import { Image, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
-import { strings } from '../../../../../../../locales/i18n';
-import { useDepositSDK } from '../../sdk';
+} from '../../../../../../../component-library/components/Texts/Text';
+import StyledButton from '../../../../../StyledButton';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useDepositSDK } from '../../../sdk';
 import styleSheet from './GetStarted.styles';
-import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../../Navbar';
-import { useStyles } from '../../../../../../component-library/hooks';
-import getStartedIcon from '../../assets/deposit-get-started-illustration.png';
+import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
+import { getDepositNavbarOptions } from '../../../../../Navbar';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import getStartedIcon from '../../../assets/deposit-get-started-illustration.png';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const bulletPoints = [

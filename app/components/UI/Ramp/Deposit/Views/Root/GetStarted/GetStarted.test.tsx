@@ -1,15 +1,15 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import GetStarted from './GetStarted';
-import { useDepositSDK } from '../../sdk';
-import { getDepositNavbarOptions } from '../../../../Navbar';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { useDepositSDK } from '../../../sdk';
+import { getDepositNavbarOptions } from '../../../../../Navbar';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
-jest.mock('../../sdk', () => ({
+jest.mock('../../../sdk', () => ({
   useDepositSDK: jest.fn(),
 }));
 
-jest.mock('../../../../Navbar', () => ({
+jest.mock('../../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({}),
 }));
 

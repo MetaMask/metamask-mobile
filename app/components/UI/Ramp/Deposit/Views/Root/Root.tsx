@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
-import GetStarted from '../GetStarted/GetStarted';
+import GetStarted from './GetStarted/GetStarted';
 
 const Root = () => {
   const navigation = useNavigation();
