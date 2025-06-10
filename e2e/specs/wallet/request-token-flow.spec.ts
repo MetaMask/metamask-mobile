@@ -27,6 +27,8 @@ describe(SmokeWalletPlatform('Request Token Flow with Unprotected Wallet'), (): 
   beforeAll(async (): Promise<void> => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
+    // TypeScript workaround: FixtureBuilder doesn't expose state.user types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (fixture as any).state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
