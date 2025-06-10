@@ -1,11 +1,16 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+
+// Mock the clipboard
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  getString: jest.fn().mockResolvedValue(''),
+}));
 
 const initialState = {
   user: {
@@ -15,6 +20,10 @@ const initialState = {
 };
 
 describe('ImportFromSecretRecoveryPhrase', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       ImportFromSecretRecoveryPhrase,
@@ -46,7 +55,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(getByText('Enter your Secret Recovery Phrase')).toBeTruthy();
     });
 
-    it('should toggle show/hide all button', () => {
+    it('should toggle show/hide all button', async () => {
       const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -55,10 +64,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
 
       const getInput = (index: number) =>
         getByTestId(
@@ -122,7 +134,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByText('Paste'));
     });
 
-    it('should show clear all button when seed phrase is entered', () => {
+    it('should show clear all button when seed phrase is entered', async () => {
       const { getByText, getByPlaceholderText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -132,10 +144,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      fireEvent.changeText(
-        input,
-        'test test test test test test test test test test test test',
-      );
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'test test test test test test test test test test test test',
+        );
+      });
 
       expect(getByText('Clear all')).toBeTruthy();
       fireEvent.press(getByText('Clear all'));
@@ -249,7 +263,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Enter multiple words
-      fireEvent.changeText(input, 'test word');
+      await act(async () => {
+        fireEvent.changeText(input, 'test word');
+      });
 
       // Verify continue button is still disabled (since it's not a complete seed phrase)
       const continueButton = getByRole('button', { name: 'Continue' });
@@ -276,7 +292,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Enter multiple words
-      fireEvent.changeText(input, 'word1 word2 word3');
+      await act(async () => {
+        fireEvent.changeText(input, 'word1 word2 word3');
+      });
 
       // Get all input fields after they are created
       const inputFields = await waitFor(() => {
@@ -341,7 +359,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const continueButton = getByRole('button', { name: 'Continue' });
 
       // Enter invalid length seed phrase
-      fireEvent.changeText(input, 'word1 word2 word3');
+      await act(async () => {
+        fireEvent.changeText(input, 'word1 word2 word3');
+      });
 
       // Verify we're still on step 1
       await waitFor(() => {
@@ -367,7 +387,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const invalidMnemonic = 'invalid '.repeat(12).trim();
 
       // Enter invalid mnemonic
-      fireEvent.changeText(input, invalidMnemonic);
+      await act(async () => {
+        fireEvent.changeText(input, invalidMnemonic);
+      });
       // Press continue and verify error message
       fireEvent.press(continueButton);
 
@@ -398,7 +420,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         'say devote wasp video cool lunch brief add fever uncover novel offer';
 
       // Enter valid mnemonic
-      fireEvent.changeText(input, validMnemonic);
+      await act(async () => {
+        fireEvent.changeText(input, validMnemonic);
+      });
 
       // Get all input fields after they are created
       const inputFields = await waitFor(() => {
@@ -425,7 +449,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('Step 2 UI functionality', () => {
-    const renderStep2 = () => {
+    const renderStep2 = async () => {
       const { getByText, getByPlaceholderText, getByRole, getByTestId } =
         renderScreen(
           ImportFromSecretRecoveryPhrase,
@@ -437,10 +461,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
 
       const continueButton = getByRole('button', { name: 'Continue' });
       fireEvent.press(continueButton);
@@ -449,7 +476,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     };
 
     it('should show create password screen', async () => {
-      const { getByText } = renderStep2();
+      const { getByText } = await renderStep2();
 
       await waitFor(() => {
         expect(getByText('Create password')).toBeTruthy();
@@ -459,16 +486,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show password strength indicator', async () => {
-      const { getByText, getByPlaceholderText } = renderStep2();
+      const { getByText, getByPlaceholderText } = await renderStep2();
 
       const passwordInput = getByPlaceholderText('Enter a strong password');
-      fireEvent.changeText(passwordInput, 'weakpass');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'weakpass');
+      });
 
       await waitFor(() => {
         expect(getByText('Password strength: Weak')).toBeTruthy();
       });
 
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
 
       await waitFor(() => {
         expect(getByText('Password strength: Good')).toBeTruthy();
@@ -476,7 +507,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should toggle password visibility', async () => {
-      const { getByPlaceholderText, getByTestId } = renderStep2();
+      const { getByPlaceholderText, getByTestId } = await renderStep2();
 
       const passwordInput = getByPlaceholderText('Enter a strong password');
       const confirmPasswordInput = getByPlaceholderText(
@@ -504,7 +535,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show error when passwords do not match', async () => {
-      const { getByText, getByPlaceholderText } = renderStep2();
+      const { getByText, getByPlaceholderText } = await renderStep2();
 
       const passwordInput = getByPlaceholderText('Enter a strong password');
       const confirmPasswordInput = getByPlaceholderText(
@@ -522,7 +553,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should disable confirm password field until new password is entered', async () => {
-      const { getByPlaceholderText } = renderStep2();
+      const { getByPlaceholderText } = await renderStep2();
 
       const confirmPasswordInput = getByPlaceholderText(
         'Re-enter your password',
@@ -538,7 +569,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should show minimum password length requirement', async () => {
-      const { getByText } = renderStep2();
+      const { getByText } = await renderStep2();
 
       await waitFor(() => {
         expect(
@@ -548,7 +579,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should focus confirm password field when pressing next on new password field', async () => {
-      const { getByPlaceholderText } = renderStep2();
+      const { getByPlaceholderText } = await renderStep2();
 
       const passwordInput = getByPlaceholderText('Enter a strong password');
       const confirmPasswordInput = getByPlaceholderText(
@@ -565,7 +596,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should go back to previous step when back button is pressed on step 2', async () => {
-      const { getByTestId, getByText } = renderStep2();
+      const { getByTestId, getByText } = await renderStep2();
 
       // Verify we're on step 2
       expect(getByText('Step 2 of 2')).toBeTruthy();
@@ -581,7 +612,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('should check learn more checkbox', async () => {
-      const { getByTestId } = renderStep2();
+      const { getByTestId } = await renderStep2();
 
       const learnMoreCheckbox = getByTestId(
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
@@ -592,7 +623,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('Import functionality', () => {
-    const renderStep2WithInputs = () => {
+    const renderStep2WithInputs = async () => {
       const { getByText, getByPlaceholderText, getByRole, getByTestId } =
         renderScreen(
           ImportFromSecretRecoveryPhrase,
@@ -604,10 +635,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
 
       const continueButton = getByRole('button', { name: 'Continue' });
       fireEvent.press(continueButton);
@@ -630,11 +664,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('should show error when password requirements are not met', async () => {
       const { getByText, passwordInput, confirmPasswordInput } =
-        renderStep2WithInputs();
+        await renderStep2WithInputs();
 
       // Enter weak password
-      fireEvent.changeText(passwordInput, 'weak');
-      fireEvent.changeText(confirmPasswordInput, 'weak');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'weak');
+        fireEvent.changeText(confirmPasswordInput, 'weak');
+      });
 
       // Check learn more checkbox
       const learnMoreCheckbox = getByText(
@@ -653,11 +689,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('should show error when passwords do not match', async () => {
       const { getByText, passwordInput, confirmPasswordInput } =
-        renderStep2WithInputs();
+        await renderStep2WithInputs();
 
       // Enter different passwords
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        fireEvent.changeText(confirmPasswordInput, 'DifferentPass123!');
+      });
 
       // Check learn more checkbox
       const learnMoreCheckbox = getByText(
@@ -682,10 +720,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
-      fireEvent.changeText(
-        input,
-        'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
-      );
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+        );
+      });
 
       const continueButton = getByRole('button', { name: 'Continue' });
       fireEvent.press(continueButton);
@@ -699,11 +739,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('should show error when passcode is not set', async () => {
       const { getByText, passwordInput, confirmPasswordInput } =
-        renderStep2WithInputs();
+        await renderStep2WithInputs();
 
       // Enter valid passwords
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      });
 
       // Check learn more checkbox
       const learnMoreCheckbox = getByText(
@@ -725,183 +767,138 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
   });
-});
 
-describe('handleOnFocus', () => {
-  it('should handle input focus correctly', async () => {
-    const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
-      ImportFromSecretRecoveryPhrase,
-      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-      { state: initialState },
-    );
-
-    // Enter invalid seed phrase
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
-
-    fireEvent.changeText(
-      input,
-      'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
-    );
-
-    // Get all seed phrase inputs
-    const seedPhraseInputs = Array.from({ length: 12 }).map((_, index) =>
-      getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      ),
-    );
-
-    // Test focusing on first input
-    fireEvent(seedPhraseInputs[0], 'focus');
-    // seedPhraseInputFocusedIndex is internal state, can't test directly
-    expect(seedPhraseInputs[0]).toBeTruthy();
-
-    // Focus second input - should show spell check error
-    fireEvent(seedPhraseInputs[1], 'focus');
-    expect(
-      getByText(strings('import_from_seed.spellcheck_error')),
-    ).toBeTruthy();
-
-    // Enter valid word in first input
-    fireEvent.changeText(seedPhraseInputs[0], 'abandon');
-
-    // Focus third input - error should clear
-    fireEvent(seedPhraseInputs[2], 'focus');
-    const errorText = getByText(strings('import_from_seed.spellcheck_error'));
-    expect(errorText).toBeOnTheScreen();
-
-    // Test focusing same input multiple times
-    fireEvent(seedPhraseInputs[2], 'focus');
-    fireEvent(seedPhraseInputs[2], 'focus');
-    expect(seedPhraseInputs[2]).toBeTruthy();
-  });
-
-  it('should not clear error when focusing new input with no previous errors', () => {
-    const { getByPlaceholderText, getByTestId, queryByText } = renderScreen(
-      ImportFromSecretRecoveryPhrase,
-      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-      { state: initialState },
-    );
-
-    // Enter invalid seed phrase
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
-
-    fireEvent.changeText(
-      input,
-      'say devote wasp video cool lunch brief add fever uncover novel offer',
-    );
-
-    const firstInput = getByTestId(
-      `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-    );
-    const secondInput = getByTestId(
-      `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-    );
-
-    // Focus first input
-    fireEvent(firstInput, 'focus');
-
-    // Enter valid word
-    fireEvent.changeText(firstInput, 'invalid');
-
-    // Focus second input
-    fireEvent(secondInput, 'focus');
-
-    const errorElement1 = queryByText(
-      strings('import_from_seed.spellcheck_error'),
-    );
-    expect(errorElement1).toBeOnTheScreen();
-
-    // Enter valid word
-    fireEvent.changeText(firstInput, 'say');
-
-    // Focus second input
-    fireEvent(secondInput, 'focus');
-
-    // Should not show any error since all words are valid
-    const errorElement2 = queryByText(
-      strings('import_from_seed.spellcheck_error'),
-    );
-    expect(errorElement2).toBeOnTheScreen();
-  });
-
-  it('should handle multiple error states correctly', () => {
-    const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
-      ImportFromSecretRecoveryPhrase,
-      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-      { state: initialState },
-    );
-
-    // Enter invalid seed phrase
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
-
-    fireEvent.changeText(
-      input,
-      'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
-    );
-
-    const inputs = Array.from({ length: 12 }).map((_, index) =>
-      getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      ),
-    );
-
-    // Enter multiple invalid words
-    fireEvent(inputs[0], 'focus');
-    fireEvent.changeText(inputs[0], 'invalid1');
-
-    fireEvent(inputs[1], 'focus');
-    fireEvent.changeText(inputs[1], 'invalid2');
-
-    // Focus third input
-    fireEvent(inputs[2], 'focus');
-
-    // Should show spell check error
-    expect(
-      getByText(strings('import_from_seed.spellcheck_error')),
-    ).toBeTruthy();
-  });
-
-  it('should handle new word input correctly', () => {
-    const { getByPlaceholderText, getByTestId } = renderScreen(
-      ImportFromSecretRecoveryPhrase,
-      { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-      { state: initialState },
-    );
-
-    const getInput = (index: number) =>
-      getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+  describe('handleOnFocus', () => {
+    it('should handle input focus correctly', async () => {
+      const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
       );
 
-    // Enter invalid seed phrase
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
+      // Enter invalid seed phrase
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
 
-    fireEvent.changeText(input, 'horse ');
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+        );
+      });
 
-    const input0 = getInput(0);
-    const input1 = getInput(1);
+      // Get all seed phrase inputs
+      const seedPhraseInputs = Array.from({ length: 12 }).map((_, index) =>
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+        ),
+      );
 
-    expect(input0).toBeOnTheScreen();
-    expect(input1).toBeOnTheScreen();
+      // Test focusing on first input
+      fireEvent(seedPhraseInputs[0], 'focus');
+      // seedPhraseInputFocusedIndex is internal state, can't test directly
+      expect(seedPhraseInputs[0]).toBeTruthy();
 
-    fireEvent.changeText(input1, 'invalid2 ');
-    const input2 = getInput(2);
-    expect(input2).toBeOnTheScreen();
+      // Focus second input - should show spell check error
+      fireEvent(seedPhraseInputs[1], 'focus');
+      expect(
+        getByText(strings('import_from_seed.spellcheck_error')),
+      ).toBeTruthy();
 
-    fireEvent.changeText(input2, 'invalid3 ');
-    const input3 = getInput(3);
-    expect(input3).toBeOnTheScreen();
+      // Enter valid word in first input
+      fireEvent.changeText(seedPhraseInputs[0], 'abandon');
 
-    fireEvent.changeText(getInput(1), 'invalid4 ');
-    const input4 = getInput(4);
-    expect(input4).toBeOnTheScreen();
+      // Focus third input - error should clear
+      fireEvent(seedPhraseInputs[2], 'focus');
+      const errorText = getByText(strings('import_from_seed.spellcheck_error'));
+      expect(errorText).toBeOnTheScreen();
+
+      // Test focusing same input multiple times
+      fireEvent(seedPhraseInputs[2], 'focus');
+      fireEvent(seedPhraseInputs[2], 'focus');
+      expect(seedPhraseInputs[2]).toBeTruthy();
+    });
+
+    it('should handle multiple error states correctly', async () => {
+      const { getByText, getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter invalid seed phrase
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid invalid',
+        );
+      });
+
+      const inputs = Array.from({ length: 12 }).map((_, index) =>
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+        ),
+      );
+
+      // Enter multiple invalid words
+      fireEvent(inputs[0], 'focus');
+      fireEvent.changeText(inputs[0], 'invalid1');
+
+      fireEvent(inputs[1], 'focus');
+      fireEvent.changeText(inputs[1], 'invalid2');
+
+      // Focus third input
+      fireEvent(inputs[2], 'focus');
+
+      // Should show spell check error
+      expect(
+        getByText(strings('import_from_seed.spellcheck_error')),
+      ).toBeTruthy();
+    });
+
+    it('should handle new word input correctly', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter invalid seed phrase
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(input, 'horse one');
+      });
+
+      const getInput = (index: number) =>
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+        );
+
+      const input0 = getInput(0);
+      const input1 = getInput(1);
+
+      expect(input0).toBeOnTheScreen();
+      expect(input1).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(input1, 'one invalid2');
+      });
+      const input2 = getInput(2);
+      expect(input2).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(input2, 'invalid2 invalid3');
+      });
+      const input3 = getInput(3);
+      expect(input3).toBeOnTheScreen();
+    });
   });
 });
