@@ -26,7 +26,7 @@ jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
 
 describe('TokenDiscovery', () => {
   it('should render', () => {
-    renderWithProvider(<TokenDiscovery />);
+    renderWithProvider(<TokenDiscovery onSelect={jest.fn()} />);
     expect(screen.getByText('Popular Tokens')).toBeOnTheScreen();
   });
 });
