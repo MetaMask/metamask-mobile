@@ -89,6 +89,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await TestHelpers.delay(5000);
+    await WalletView.scrollDownOnTokensTab('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');

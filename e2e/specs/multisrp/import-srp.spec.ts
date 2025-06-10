@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAccounts } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -23,7 +23,7 @@ const valid12WordMnemonic =
 const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
-describe(SmokeAccounts('Import new srp to wallet'), () => {
+describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -48,7 +48,7 @@ describe(SmokeAccounts('Import new srp to wallet'), () => {
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
+      WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
   });
@@ -60,7 +60,7 @@ describe(SmokeAccounts('Import new srp to wallet'), () => {
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
+      WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
   });
