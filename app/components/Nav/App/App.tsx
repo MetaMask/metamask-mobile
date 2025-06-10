@@ -186,10 +186,6 @@ const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
 const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
-
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen

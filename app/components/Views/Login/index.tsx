@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -37,7 +37,6 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
-  SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -91,7 +90,10 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import { useSelector } from 'react-redux';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * View where returning users can authenticate
@@ -113,8 +115,6 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [hintText, setHintText] = useState('');
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<
@@ -163,17 +163,6 @@ const Login: React.FC = () => {
     return false;
   };
 
-  const getHint = async () => {
-    const hint = await StorageWrapper.getItem(SEED_PHRASE_HINTS);
-    const parsedHints = await JSON.parse(hint);
-    setHintText(parsedHints?.manualBackup || '');
-  };
-
-  const toggleHint = () => {
-    setShowHint(!showHint);
-    getHint();
-  };
-
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED).build(),
@@ -216,8 +205,6 @@ const Login: React.FC = () => {
     };
 
     getUserAuthPreferences();
-
-    getHint();
 
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
