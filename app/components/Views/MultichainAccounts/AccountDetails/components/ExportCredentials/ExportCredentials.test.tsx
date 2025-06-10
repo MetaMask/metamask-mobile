@@ -32,6 +32,7 @@ const mockIsHDOrFirstPartySnapAccount = jest.fn();
 const mockIsPrivateKeyAccount = jest.fn();
 
 jest.mock('../../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../../util/address'),
   isHDOrFirstPartySnapAccount: () => mockIsHDOrFirstPartySnapAccount(),
   isPrivateKeyAccount: () => mockIsPrivateKeyAccount(),
 }));
