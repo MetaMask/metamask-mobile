@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import Row from '../../../Aggregator/components/Row';
@@ -12,8 +15,13 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { View } from 'react-native';
-import DepositTextField from '../../components/DepositTextField';
+import { View, Image } from 'react-native';
+import Keypad from '../../../../../Base/Keypad';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
+import { USDC_TOKEN, DEBIT_CREDIT_PAYMENT_METHOD } from '../../constants';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -83,51 +91,100 @@ const BuildQuote = () => {
     paymentMethod,
   ]);
 
-  const handleAmountChange = (text: string) => {
-    // Only allow numbers and decimal point
-    if (/^\d*\.?\d*$/.test(text)) {
-      setAmount(text);
-    }
+  const handleKeypadChange = useCallback(
+    ({
+      value,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      pressedKey: string;
+    }) => {
+      setAmount(value || '0');
+    },
+    [],
+  );
+
+  // Calculate USDC equivalent (mock calculation - replace with actual conversion logic)
+  const usdcAmount = parseFloat(amount || '0').toFixed(2);
+
+  const formatCurrency = (value: string) => {
+    const numValue = parseFloat(value || '0');
+    return `$${numValue.toFixed(2)}`;
   };
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>
-            Build Quote Page Placeholder
-          </Text>
-
-          <View style={styles.inputContainer}>
-            <DepositTextField
-              label="Enter amount"
-              value={amount}
-              onChangeText={handleAmountChange}
-            />
+        <ScreenLayout.Content style={styles.content}>
+          {/* Amount Display */}
+          <View style={styles.amountContainer}>
+            <Text variant={TextVariant.DisplayMD} style={styles.mainAmount}>
+              {formatCurrency(amount)}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.convertedAmount}
+            >
+              {usdcAmount} USDC
+            </Text>
           </View>
-          <View style={styles.detailsContainer}>
-            <Text style={styles.sectionTitle}>Quote Details</Text>
 
-            <View style={styles.detailRow}>
-              <Text>Payment Method:</Text>
-              <Text>{paymentMethod.replace('_', ' ').toUpperCase()}</Text>
+          {/* Token & Payment Method Combined Box */}
+          <View style={styles.combinedInfoBox}>
+            {/* Token Section */}
+            <View style={styles.infoSection}>
+              <Image
+                source={{ uri: USDC_TOKEN.logo }}
+                style={styles.tokenLogo}
+              />
+              <View style={styles.infoTextContainer}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  Fund on Ethereum
+                </Text>
+                <Text variant={TextVariant.BodyMD}>{USDC_TOKEN.symbol}</Text>
+              </View>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text>Crypto Currency:</Text>
-              <Text>{cryptoCurrency}</Text>
-            </View>
+            {/* Divider */}
+            <View style={styles.divider} />
 
-            <View style={styles.detailRow}>
-              <Text>Fiat Currency:</Text>
-              <Text>{fiatCurrency}</Text>
+            {/* Payment Method Section */}
+            <View style={styles.infoSection}>
+              <Icon
+                name={IconName.Card}
+                size={IconSize.Xl}
+                color={theme.colors.icon.default}
+              />
+              <View style={styles.infoTextContainer}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  Pay with
+                </Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {DEBIT_CREDIT_PAYMENT_METHOD.name}
+                </Text>
+              </View>
             </View>
+          </View>
 
-            <View style={styles.detailRow}>
-              <Text>Network:</Text>
-              <Text>{network.charAt(0).toUpperCase() + network.slice(1)}</Text>
-            </View>
+          {/* Keypad */}
+          <View style={styles.keypadContainer}>
+            <Keypad
+              style={styles.keypad}
+              value={amount}
+              onChange={handleKeypadChange}
+              currency={fiatCurrency}
+              decimals={2}
+              deleteIcon={
+                <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
+              }
+            />
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Body>

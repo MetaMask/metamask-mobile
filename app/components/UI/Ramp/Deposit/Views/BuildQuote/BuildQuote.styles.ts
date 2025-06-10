@@ -5,44 +5,57 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    header: {
+    content: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    amountContainer: {
+      alignItems: 'center',
+      paddingVertical: 32,
+      paddingTop: 48,
+    },
+    mainAmount: {
       textAlign: 'center',
-      marginTop: 20,
-      marginBottom: 20,
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    inputContainer: {
-      marginVertical: 16,
-    },
-    label: {
       marginBottom: 8,
     },
-    detailsContainer: {
-      marginTop: 24,
+    convertedAmount: {
+      textAlign: 'center',
     },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 16,
-    },
-    detailRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.default,
-    },
-    quoteSummary: {
-      marginTop: 16,
+    combinedInfoBox: {
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 12,
       padding: 16,
-      borderRadius: 8,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
     },
-    summaryTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      marginBottom: 8,
+    infoSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 4,
+    },
+    infoTextContainer: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
+      marginVertical: 16,
+      marginHorizontal: -16,
+    },
+    tokenLogo: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+    },
+    keypadContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      paddingBottom: 16,
+    },
+    keypad: {
+      paddingHorizontal: 8,
     },
   });
 };
