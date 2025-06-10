@@ -105,7 +105,7 @@ describe('TokenSortBottomSheet', () => {
       expect(
         Engine.context.PreferencesController.setTokenSortConfig,
       ).toHaveBeenCalledWith({
-        key: 'symbol',
+        key: 'name',
         sortCallback: 'alphaNumeric',
         order: 'asc',
       });
