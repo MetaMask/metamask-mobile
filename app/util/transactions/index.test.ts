@@ -69,6 +69,80 @@ import {
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
 
+interface AddressBookEntry {
+  name: string;
+}
+
+interface AddressBook {
+  [chainId: string]: {
+    [address: string]: AddressBookEntry;
+  };
+}
+
+interface InternalAccountMetadata {
+  name: string;
+}
+
+interface InternalAccount {
+  address: string;
+  metadata: InternalAccountMetadata;
+}
+
+interface TransactionToNameConfig {
+  addressBook: AddressBook;
+  chainId: string;
+  toAddress: string;
+  internalAccounts: InternalAccount[];
+  ensRecipient?: string;
+}
+
+interface TransactionWithTime {
+  time: number;
+}
+
+interface TransactionStateData {
+  transaction?: {
+    id: string;
+    transaction: {
+      value: string;
+      gasPrice: string;
+    };
+  };
+}
+
+interface BrowserTab {
+  id: string;
+  url: string;
+}
+
+interface BrowserState {
+  browser?: {
+    activeTab: string | null;
+    tabs: BrowserTab[];
+  };
+}
+
+interface TransactionData {
+  from: string;
+  gasPrice?: string;
+  maxFeePerGas?: string;
+  gas: string;
+  value: string;
+  type?: string;
+}
+
+interface TransactionForBalance {
+  transaction: TransactionData;
+}
+
+interface AccountBalance {
+  balance: string;
+}
+
+interface AccountsMap {
+  [address: string]: AccountBalance;
+}
+
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   query: jest.fn(),
@@ -854,13 +928,14 @@ const dappTxMeta = {
   origin: 'pancakeswap.finance',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
-    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-    gas: '0x2e7b1',
-    nonce: '0xeb',
-    to: '0x9a489505a00ce272eaa5e07dba6491314cae3796',
-    value: '0x38d7ea4c68000',
-    maxFeePerGas: '0x59682f0a',
-    maxPriorityFeePerGas: '0x59682f00',
+    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
+    gas: '0x3dad5',
+    nonce: '0x3e',
+    to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+    value: '0x0',
+    maxFeePerGas: '0x1bbbdf536e',
+    maxPriorityFeePerGas: '0x120a5d1',
+    estimatedBaseFee: '0x104fbb752f',
   },
 };
 const sendEthTxMeta = {
@@ -914,14 +989,14 @@ const swapFlowSwapERC20TxMeta = {
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
-    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b5dc1003926a168c11a816e10c13977f75f488bfffe88e4ab4991fe00000000000000000000000000000000000000000000000000bd',
-    gas: '0x3dad5',
-    nonce: '0x3e',
+    data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e3cb0338a1e400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000020d440d83ed000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000e5cdc5e9b7a80000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dcab4991fe000000000000000000000000000000000000000000000000001e',
+    gas: '0x333c5',
+    nonce: '0x3c',
     to: '0x881d40237659c251811cec9c364ef91dc08d300c',
-    value: '0x0',
-    maxFeePerGas: '0x1bbbdf536e',
-    maxPriorityFeePerGas: '0x120a5d1',
-    estimatedBaseFee: '0x104fbb752f',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x1b6bf7e1c3',
+    maxPriorityFeePerGas: '0x200a3b7',
+    estimatedBaseFee: '0x1020371570',
   },
 };
 const swapFlowSwapEthTxMeta = {
@@ -1731,10 +1806,8 @@ describe('Transactions utils :: Edge Cases and Error Handling', () => {
 });
 
 describe('Transactions utils :: getTransactionToName', () => {
-  const { getTransactionToName } = require('./index');
-
   it('returns ensRecipient when provided', () => {
-    const config = {
+    const config: TransactionToNameConfig = {
       addressBook: {},
       chainId: '1',
       toAddress: '0x123',
@@ -1742,13 +1815,15 @@ describe('Transactions utils :: getTransactionToName', () => {
       ensRecipient: 'example.eth',
     };
 
-    const result = getTransactionToName(config);
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
     expect(result).toBe('example.eth');
   });
 
   it('returns address book name when found', () => {
     const toAddress = '0x1234567890123456789012345678901234567890';
-    const config = {
+    const config: TransactionToNameConfig = {
       addressBook: {
         '1': {
           [toAddress]: { name: 'My Contact' },
@@ -1757,16 +1832,17 @@ describe('Transactions utils :: getTransactionToName', () => {
       chainId: '1',
       toAddress,
       internalAccounts: [],
-      ensRecipient: null,
     };
 
-    const result = getTransactionToName(config);
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
     expect(result).toBe('My Contact');
   });
 
   it('returns internal account name when found', () => {
     const toAddress = '0x1234567890123456789012345678901234567890';
-    const config = {
+    const config: TransactionToNameConfig = {
       addressBook: {},
       chainId: '1',
       toAddress,
@@ -1776,75 +1852,74 @@ describe('Transactions utils :: getTransactionToName', () => {
           metadata: { name: 'My Account' },
         },
       ],
-      ensRecipient: null,
     };
 
-    const result = getTransactionToName(config);
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
     expect(result).toBe('My Account');
   });
 
   it('returns undefined when no name is found', () => {
-    const config = {
+    const config: TransactionToNameConfig = {
       addressBook: {},
       chainId: '1',
       toAddress: '0x1234567890123456789012345678901234567890',
       internalAccounts: [],
-      ensRecipient: null,
     };
 
-    const result = getTransactionToName(config);
+    const result = getTransactionToName(
+      config as unknown as Parameters<typeof getTransactionToName>[0],
+    );
     expect(result).toBeUndefined();
   });
 });
 
 describe('Transactions utils :: addAccountTimeFlagFilter', () => {
-  const { addAccountTimeFlagFilter } = require('./index');
-
   it('returns true when transaction time is less than or equal to added time and flag is false', () => {
-    const transaction = { time: 1000 };
+    const transaction: TransactionWithTime = { time: 1000 };
     const addedAccountTime = 1500;
     const accountAddedTimeInsertPointFound = false;
 
+    // Use unknown then cast to avoid TypeScript strictness on JS function parameters
     const result = addAccountTimeFlagFilter(
-      transaction,
-      addedAccountTime,
-      accountAddedTimeInsertPointFound,
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
     );
     expect(result).toBe(true);
   });
 
   it('returns false when transaction time is greater than added time', () => {
-    const transaction = { time: 2000 };
+    const transaction: TransactionWithTime = { time: 2000 };
     const addedAccountTime = 1500;
     const accountAddedTimeInsertPointFound = false;
 
     const result = addAccountTimeFlagFilter(
-      transaction,
-      addedAccountTime,
-      accountAddedTimeInsertPointFound,
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
     );
     expect(result).toBe(false);
   });
 
   it('returns false when flag is already true', () => {
-    const transaction = { time: 1000 };
+    const transaction: TransactionWithTime = { time: 1000 };
     const addedAccountTime = 1500;
     const accountAddedTimeInsertPointFound = true;
 
     const result = addAccountTimeFlagFilter(
-      transaction,
-      addedAccountTime,
-      accountAddedTimeInsertPointFound,
+      transaction as unknown as object,
+      addedAccountTime as unknown as object,
+      accountAddedTimeInsertPointFound as unknown as object,
     );
     expect(result).toBe(false);
   });
 });
 
 describe('Transactions utils :: getNormalizedTxState', () => {
-  const { getNormalizedTxState } = require('./index');
-
   it('returns merged transaction state when transaction exists', () => {
-    const state = {
+    const state: TransactionStateData = {
       transaction: {
         id: '1',
         transaction: {
@@ -1867,7 +1942,7 @@ describe('Transactions utils :: getNormalizedTxState', () => {
   });
 
   it('returns undefined when no transaction exists', () => {
-    const state = {};
+    const state: TransactionStateData = {};
     const result = getNormalizedTxState(state);
     expect(result).toBeUndefined();
   });
@@ -1878,10 +1953,8 @@ describe('Transactions utils :: getNormalizedTxState', () => {
 });
 
 describe('Transactions utils :: getActiveTabUrl', () => {
-  const { getActiveTabUrl } = require('./index');
-
   it('returns active tab URL when browser state is valid', () => {
-    const browserState = {
+    const browserState: BrowserState = {
       browser: {
         activeTab: 'tab1',
         tabs: [
@@ -1896,7 +1969,7 @@ describe('Transactions utils :: getActiveTabUrl', () => {
   });
 
   it('returns null when no active tab exists', () => {
-    const browserState = {
+    const browserState: BrowserState = {
       browser: {
         activeTab: null,
         tabs: [{ id: 'tab1', url: 'https://example.com' }],
@@ -1908,7 +1981,7 @@ describe('Transactions utils :: getActiveTabUrl', () => {
   });
 
   it('returns undefined when no tabs exist', () => {
-    const browserState = {
+    const browserState: BrowserState = {
       browser: {
         activeTab: 'tab1',
         tabs: [],
@@ -1920,26 +1993,25 @@ describe('Transactions utils :: getActiveTabUrl', () => {
   });
 
   it('returns undefined when browser state is empty', () => {
-    const result = getActiveTabUrl({});
+    const emptyState = {};
+    const result = getActiveTabUrl(emptyState);
     expect(result).toBeUndefined();
   });
 });
 
 describe('Transactions utils :: getTicker', () => {
-  const { getTicker } = require('./index');
-
   it('returns provided ticker when valid', () => {
     const result = getTicker('BTC');
     expect(result).toBe('BTC');
   });
 
   it('returns ETH when ticker is undefined', () => {
-    const result = getTicker(undefined);
+    const result = getTicker(undefined as unknown as string);
     expect(result).toBe(strings('unit.eth'));
   });
 
   it('returns ETH when ticker is null', () => {
-    const result = getTicker(null);
+    const result = getTicker(null as unknown as string);
     expect(result).toBe(strings('unit.eth'));
   });
 
@@ -1950,8 +2022,6 @@ describe('Transactions utils :: getTicker', () => {
 });
 
 describe('Transactions utils :: getEther', () => {
-  const { getEther } = require('./index');
-
   it('returns ETH object with provided ticker', () => {
     const result = getEther('ETH');
     expect(result).toEqual({
@@ -1964,7 +2034,7 @@ describe('Transactions utils :: getEther', () => {
   });
 
   it('returns ETH object with default ticker when none provided', () => {
-    const result = getEther();
+    const result = getEther(undefined as unknown as string);
     expect(result).toEqual({
       name: 'Ether',
       address: '',
@@ -1976,10 +2046,8 @@ describe('Transactions utils :: getEther', () => {
 });
 
 describe('Transactions utils :: validateTransactionActionBalance', () => {
-  const { validateTransactionActionBalance } = require('./index');
-
   it('returns false when balance is sufficient for legacy transaction', () => {
-    const transaction = {
+    const transaction: TransactionForBalance = {
       transaction: {
         from: '0x123',
         gasPrice: '0x1',
@@ -1988,20 +2056,21 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
       },
     };
     const rate = 1.1;
-    const accounts = {
+    const accounts: AccountsMap = {
       '0x123': { balance: '0x1000000000000000000' }, // Large balance
     };
 
+    // Use unknown cast to work with JS function parameter expectations
     const result = validateTransactionActionBalance(
-      transaction,
-      rate,
-      accounts,
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
     );
     expect(result).toBe(false);
   });
 
   it('returns true when balance is insufficient', () => {
-    const transaction = {
+    const transaction: TransactionForBalance = {
       transaction: {
         from: '0x123',
         gasPrice: '0x77359400',
@@ -2010,20 +2079,20 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
       },
     };
     const rate = 1.1;
-    const accounts = {
+    const accounts: AccountsMap = {
       '0x123': { balance: '0x1' }, // Very small balance
     };
 
     const result = validateTransactionActionBalance(
-      transaction,
-      rate,
-      accounts,
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
     );
     expect(result).toBe(true);
   });
 
   it('handles EIP-1559 transactions', () => {
-    const transaction = {
+    const transaction: TransactionForBalance = {
       transaction: {
         from: '0x123',
         maxFeePerGas: '0x77359400',
@@ -2033,14 +2102,14 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
       },
     };
     const rate = 1.1;
-    const accounts = {
+    const accounts: AccountsMap = {
       '0x123': { balance: '0x1000000000000000000' },
     };
 
     const result = validateTransactionActionBalance(
-      transaction,
-      rate,
-      accounts,
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
     );
     expect(result).toBe(false);
   });
@@ -2048,13 +2117,96 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
   it('returns false when validation throws an error', () => {
     const transaction = null;
     const rate = 1.1;
-    const accounts = {};
+    const accounts: AccountsMap = {};
 
     const result = validateTransactionActionBalance(
-      transaction,
-      rate,
-      accounts,
+      transaction as unknown as object,
+      rate as unknown as string,
+      accounts as unknown as string,
     );
     expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: isSmartContractAddress', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when address is undefined', async () => {
+    const result = await isSmartContractAddress(
+      undefined as unknown as string,
+      '1',
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when address is empty', async () => {
+    const result = await isSmartContractAddress('', '1');
+    expect(result).toBe(false);
+  });
+
+  it('returns true when address is in token cache for mainnet', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Mock the Engine context for mainnet with cached token
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x1': {
+        data: {
+          [address]: { symbol: 'TEST' },
+        },
+      },
+    };
+
+    const result = await isSmartContractAddress(address, '0x1');
+    expect(result).toBe(true);
+  });
+
+  it('returns true when contract code is found', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Clear token cache
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    // Mock contract code
+    spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
+
+    const result = await isSmartContractAddress(address, '0x5');
+    expect(result).toBe(true);
+  });
+
+  it('returns false when no contract code is found', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+
+    // Clear token cache
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    // Mock empty contract code
+    spyOnQueryMethod('0x');
+
+    const result = await isSmartContractAddress(address, '0x5');
+    expect(result).toBe(false);
+  });
+
+  it('uses provided networkClientId when specified', async () => {
+    const address = '0x1234567890123456789012345678901234567890';
+    const customNetworkClientId = 'custom-network';
+
+    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
+      '0x5': { data: {} },
+    };
+
+    spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
+
+    const result = await isSmartContractAddress(
+      address,
+      '0x5',
+      customNetworkClientId,
+    );
+    expect(result).toBe(true);
   });
 });
