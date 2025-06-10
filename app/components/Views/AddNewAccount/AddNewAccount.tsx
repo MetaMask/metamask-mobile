@@ -25,7 +25,6 @@ import Input from '../../../component-library/components/Form/TextField/foundati
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
 import { useSelector } from 'react-redux';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -46,6 +45,7 @@ import {
 } from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
+import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -57,8 +57,8 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const hdKeyrings = useSelector(selectHDKeyrings);
-  const [primaryKeyringId] = hdKeyrings;
+  const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
+  const [primaryKeyringId] = hdKeyringsWithSnapAccounts;
   const initialKeyringIdToUse = useMemo(
     () =>
       // For HD accounts (since v29.0.1), use the entropySource if available.
@@ -69,18 +69,19 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     [selectedInternalAccount, primaryKeyringId],
   );
   const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
-  const hasMultipleSRPs = hdKeyrings.length > 1;
+  const hasMultipleSRPs = hdKeyringsWithSnapAccounts.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
 
   const { keyringToDisplay, keyringIndex } = useMemo(() => {
     const keyring =
-      hdKeyrings.find((kr) => kr.metadata.id === keyringId) ?? hdKeyrings[0];
+      hdKeyringsWithSnapAccounts.find((kr) => kr.metadata.id === keyringId) ??
+      hdKeyringsWithSnapAccounts[0];
     return {
       keyringToDisplay: keyring,
-      keyringIndex: hdKeyrings.indexOf(keyring) + 1,
+      keyringIndex: hdKeyringsWithSnapAccounts.indexOf(keyring) + 1,
     };
-  }, [hdKeyrings, keyringId]);
+  }, [hdKeyringsWithSnapAccounts, keyringId]);
 
   const onBack = () => {
     navigate(Routes.SHEET.ACCOUNT_SELECTOR);
