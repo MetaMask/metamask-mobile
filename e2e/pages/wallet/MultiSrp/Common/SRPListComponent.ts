@@ -2,7 +2,7 @@ import { SRPListSelectorsIDs } from '../../../../selectors/MultiSRP/SRPList.sele
 import Matchers from '../../../../utils/Matchers';
 
 class SRPListComponent {
-  get SRP_LIST() {
+  get srpList() {
     return Matchers.getElementByID(SRPListSelectorsIDs.SRP_LIST);
   }
 }
