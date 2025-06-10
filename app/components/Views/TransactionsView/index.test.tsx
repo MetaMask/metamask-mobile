@@ -1,13 +1,16 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { EthMethod, EthScope, SolAccountType } from '@metamask/keyring-api';
+import {
+  EthMethod,
+  SolAccountType,
+  isEvmAccountType,
+} from '@metamask/keyring-api';
 
-// Mock the initial root state to avoid import issues
 jest.mock('../../../util/test/initial-root-state', () => ({
   __esModule: true,
   default: {
@@ -33,7 +36,6 @@ jest.mock('../../../util/test/initial-root-state', () => ({
   },
 }));
 
-// Mock modules with proper exports
 jest.mock('@metamask/transaction-controller', () => ({
   CHAIN_IDS: {
     MAINNET: '0x1',
@@ -60,7 +62,6 @@ jest.mock('../../../constants/network', () => ({
   SEPOLIA: 'sepolia',
 }));
 
-// Direct mock implementations
 jest.mock('../../../util/activity', () => ({
   sortTransactions: jest.fn((txs) => txs || []),
   filterByAddressAndNetwork: jest.fn(() => true),
@@ -132,11 +133,7 @@ jest.mock('../../../util/networks/customNetworks', () => ({
   ],
 }));
 
-jest.mock('../../UI/Transactions', () => {
-  return function MockTransactions() {
-    return null;
-  };
-});
+jest.mock('../../UI/Transactions', () => () => null);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -155,10 +152,8 @@ jest.mock('../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
 }));
 
-// Import components after mocks
 import TransactionsView from './index';
 import initialRootState from '../../../util/test/initial-root-state';
-import { Store } from 'redux';
 import { TX_SUBMITTED, TX_CONFIRMED } from '../../../constants/transaction';
 import {
   sortTransactions,
@@ -169,18 +164,16 @@ import { areAddressesEqual } from '../../../util/address';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
-import { isEvmAccountType } from '@metamask/keyring-api';
 
 const TRANSACTION_ID_MOCK = '123';
 const Stack = createStackNavigator();
 const mockStore = configureMockStore();
 
-// Define types for our mock objects
 interface MockTransaction {
   id: string;
   status: string;
   chainId: string;
-  uuid: string; // Required uuid for SmartTransaction compatibility
+  uuid: string;
   txParams: {
     id: string;
     time: number;
@@ -208,14 +201,14 @@ interface MockAccount {
     | 'bip122:p2tr'
     | 'solana:data-account';
   address: string;
-  options: {};
+  options: Record<string, never>;
   metadata: {
     name: string;
     keyring: { type: string };
     importTime: number;
   };
   methods: string[];
-  scopes: string[];
+  scopes: `${string}:${string}`[];
 }
 
 describe('TransactionsView', () => {
@@ -247,14 +240,14 @@ describe('TransactionsView', () => {
       EthMethod.SignTransaction,
       EthMethod.SignTypedDataV4,
     ],
-    scopes: ['eip155:eoa'],
+    scopes: [type === 'solana:data-account' ? 'solana:mainnet' : 'eip155:1'],
   });
 
   const createMockTransaction = (overrides = {}): MockTransaction => ({
     id: 'tx-1',
     status: TX_CONFIRMED,
     chainId: '0x1',
-    uuid: 'uuid-tx-1', // Add required uuid field
+    uuid: 'uuid-tx-1',
     txParams: {
       id: 'tx-1',
       time: 1000000,
@@ -327,9 +320,8 @@ describe('TransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
+    jest.useRealTimers();
 
-    // Reset mocks to default behavior using the imported mock functions
     (
       sortTransactions as jest.MockedFunction<typeof sortTransactions>
     ).mockImplementation((txs) => txs || []);
@@ -350,7 +342,9 @@ describe('TransactionsView', () => {
       selectSortedTransactions as jest.MockedFunction<
         typeof selectSortedTransactions
       >
-    ).mockReturnValue([createMockTransaction()] as any);
+    )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockReturnValue([createMockTransaction()] as any);
     (
       selectSolanaAccountTransactions as jest.MockedFunction<
         typeof selectSolanaAccountTransactions
@@ -364,20 +358,24 @@ describe('TransactionsView', () => {
       selectSelectedInternalAccount as jest.MockedFunction<
         typeof selectSelectedInternalAccount
       >
-    ).mockReturnValue(createMockAccount() as any);
+    )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockReturnValue(createMockAccount() as any);
     (
       isEvmAccountType as jest.MockedFunction<typeof isEvmAccountType>
     ).mockReturnValue(true);
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+
+    jest.clearAllMocks();
   });
 
   describe('Basic Rendering', () => {
     it('renders correctly and matches snapshot', async () => {
-      // Ensure account is available for the selector
       (
         selectSelectedInternalAccount as jest.MockedFunction<
           typeof selectSelectedInternalAccount
@@ -393,11 +391,7 @@ describe('TransactionsView', () => {
       expect(component.toJSON()).toMatchSnapshot();
     });
 
-    it('renders with loading state initially', async () => {
-      // Use real timers for this test to avoid timeout issues
-      jest.useRealTimers();
-
-      // Ensure account is available for the selector
+    it('renders with loading state initially', () => {
       (
         selectSelectedInternalAccount as jest.MockedFunction<
           typeof selectSelectedInternalAccount
@@ -406,14 +400,9 @@ describe('TransactionsView', () => {
 
       const component = renderTransactionsView();
 
-      // Wait for component to stabilize
-      await waitFor(() => {
-        expect(component).toBeDefined();
-      });
-
-      // Restore fake timers for other tests
-      jest.useFakeTimers();
-    }, 100000); // 10 second timeout
+      expect(component).toBeDefined();
+      expect(component.toJSON()).toBeTruthy();
+    });
   });
 
   describe('Transaction Filtering Logic', () => {
@@ -473,7 +462,7 @@ describe('TransactionsView', () => {
       const mockTransactions = [
         createMockTransaction({ id: 'tx-1', chainId: '0x1' }), // Mainnet
         createMockTransaction({ id: 'tx-2', chainId: '0xe708' }), // Linea
-        createMockTransaction({ id: 'tx-3', chainId: '0x89' }), // Polygon (popular)
+        createMockTransaction({ id: 'tx-3', chainId: '0x89' }), // Polygon
         createMockTransaction({ id: 'tx-4', chainId: '0x999' }), // Unknown chain
       ];
 
@@ -581,10 +570,36 @@ describe('TransactionsView', () => {
       ).mockReturnValue({
         transactions: [
           {
+            type: 'send',
             id: 'sol-tx-1',
+            from: [
+              {
+                address: mockSolanaAddress,
+                asset: {
+                  unit: 'SOL',
+                  type: 'solana:mainnet/slip44:501',
+                  amount: '1000000',
+                  fungible: true,
+                },
+              },
+            ],
+            to: [
+              {
+                address: '9A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+                asset: {
+                  unit: 'SOL',
+                  type: 'solana:mainnet/slip44:501',
+                  amount: '1000000',
+                  fungible: true,
+                },
+              },
+            ],
+            events: [],
+            chain: 'solana:mainnet',
             status: 'confirmed',
-            time: 1000000,
-            chainId: 'solana:mainnet',
+            fees: [],
+            account: mockSolanaAddress,
+            timestamp: 1000000,
           },
         ],
         next: null,
@@ -609,10 +624,36 @@ describe('TransactionsView', () => {
       const evmTransactions = [createMockTransaction({ time: 2000000 })];
       const solanaTransactions = [
         {
+          type: 'send' as const,
           id: 'sol-tx-1',
-          status: 'confirmed',
-          time: 1000000,
-          chainId: 'solana:mainnet',
+          from: [
+            {
+              address: mockSolanaAddress,
+              asset: {
+                unit: 'SOL',
+                type: 'solana:mainnet/slip44:501' as const,
+                amount: '1000000',
+                fungible: true as const,
+              },
+            },
+          ],
+          to: [
+            {
+              address: '9A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+              asset: {
+                unit: 'SOL',
+                type: 'solana:mainnet/slip44:501' as const,
+                amount: '1000000',
+                fungible: true as const,
+              },
+            },
+          ],
+          events: [],
+          chain: 'solana:mainnet' as const,
+          status: 'confirmed' as const,
+          fees: [],
+          account: mockSolanaAddress,
+          timestamp: 1000000,
         },
       ];
 
@@ -677,7 +718,7 @@ describe('TransactionsView', () => {
         selectSelectedInternalAccount as jest.MockedFunction<
           typeof selectSelectedInternalAccount
         >
-      ).mockReturnValue(null);
+      ).mockReturnValue(undefined);
 
       const component = renderTransactionsView();
 
