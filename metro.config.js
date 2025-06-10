@@ -8,6 +8,13 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+
+// console.log('process.env', process.env);
+// const { parseArgs } = require('node:util');
+// console.log('parseArgs', parseArgs(process.argv));
+console.log('process.argv', process.argv);
+
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
@@ -65,6 +72,33 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      serializer: lockdownSerializer(
+        { hermesRuntime: true },
+        {
+          getPolyfills: () => [
+            // eslint-disable-next-line import/no-extraneous-dependencies
+            ...require('@react-native/js-polyfills')(),
+            require.resolve('reflect-metadata'),
+          ],
+        },
+      ),
+      // serializer: {
+      //   getPolyfills: () => [
+      //     require.resolve('ses/hermes'),
+      //     require.resolve('./repair.js'),
+      //     // eslint-disable-next-line import/no-extraneous-dependencies
+      //     ...require('@react-native/js-polyfills')(),
+      //     require.resolve('reflect-metadata'),
+      //   ],
+      //   getRunModuleStatement: (moduleId) => {
+      //     const defaultModuleStatement = `__r(${moduleId});`;
+      //     const isEntryFile = moduleId === 0;
+      //     if (isEntryFile) {
+      //       return `hardenIntrinsics();${defaultModuleStatement}`;
+      //     }
+      //     return defaultModuleStatement;
+      //   },
+      // },
       resetCache: true,
     }),
   );

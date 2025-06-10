@@ -1707,7 +1707,7 @@
   resolved "https://registry.yarnpkg.com/@emotion/use-insertion-effect-with-fallbacks/-/use-insertion-effect-with-fallbacks-1.0.1.tgz#08de79f54eb3406f9daaf77c76e35313da963963"
   integrity sha512-jT/qyKZ9rzLErtrjGgdkMBn2OP8wl0G3sQlBb3YPryvKHsjvINUhVaPFfP+fpBcOkmrVOVEEHQFJ7nbj2TH2gw==
 
-"@endo/env-options@^1.1.9":
+"@endo/env-options@^1.1.8", "@endo/env-options@^1.1.9":
   version "1.1.9"
   resolved "https://registry.yarnpkg.com/@endo/env-options/-/env-options-1.1.9.tgz#da15cfed16d840ca38827f9680abb85b0b1f66be"
   integrity sha512-5blyp9OliL13R3Oy934p3hUkv/GnznNZCB/y/LjmrCK0DDbL9taBBKNLWKeRnfDEGAYD1dfbc6QBCev9Q1jWiQ==
@@ -4467,6 +4467,12 @@
     hosted-git-info "8.0.2"
     js-yaml "4.1.0"
     lockfile-lint-api "5.9.1"
+
+"@lavamoat/react-native-lockdown@./lavamoat-react-native-lockdown-0.0.1-beta.0.tgz":
+  version "0.0.1-beta.0"
+  resolved "./lavamoat-react-native-lockdown-0.0.1-beta.0.tgz#183d6dff1aed57b1ccd3623dada4bbc12c292dad"
+  dependencies:
+    ses "1.13.0"
 
 "@ledgerhq/cryptoassets-evm-signatures@^13.5.2":
   version "13.5.2"
@@ -26545,13 +26551,20 @@ serve-static@1.16.2, serve-static@^1.13.1, serve-static@^1.16.2:
     parseurl "~1.3.3"
     send "0.19.0"
 
-ses@^1.12.0, ses@^1.13.0:
+ses@1.13.0, ses@^1.13.0:
   version "1.13.0"
   resolved "https://registry.yarnpkg.com/ses/-/ses-1.13.0.tgz#8348c065d6ffd7c10b0c582473abd68fc5ced9b3"
   integrity sha512-xzpejhViz6KpMNGNEn06VqnBcaIeEp15L1wBxseN6e57v8N0HXay1+uMB1KBmeIkECpl8i83+l9UUIaYQw6YEw==
   dependencies:
     "@endo/env-options" "^1.1.9"
     "@endo/immutable-arraybuffer" "^1.1.0"
+
+ses@^1.12.0:
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/ses/-/ses-1.12.0.tgz#f3cf22f67126cbd373aea0c501753952653699b1"
+  integrity sha512-jvmwXE2lFxIIY1j76hFjewIIhYMR9Slo3ynWZGtGl5M7VUCw3EA0wetS+JCIbl2UcSQjAT0yGAHkyxPJreuC9w==
+  dependencies:
+    "@endo/env-options" "^1.1.8"
 
 set-blocking@2.0.0, set-blocking@^2.0.0:
   version "2.0.0"
