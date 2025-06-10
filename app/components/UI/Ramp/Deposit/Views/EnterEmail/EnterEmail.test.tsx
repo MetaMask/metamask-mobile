@@ -105,6 +105,7 @@ describe('EnterEmail Component', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
+        email: 'test@example.com',
         quote: mockQuote,
       });
     });

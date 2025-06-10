@@ -28,8 +28,6 @@ export interface DepositSDK {
   sdkError?: Error;
   providerApiKey: string | null;
   providerFrontendAuth: string | null;
-  email: string;
-  setEmail: (email: string) => void;
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
@@ -60,7 +58,6 @@ export const DepositSDKProvider = ({
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
-  const [email, setEmail] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
 
@@ -141,8 +138,6 @@ export const DepositSDKProvider = ({
       sdkError,
       providerApiKey,
       providerFrontendAuth,
-      email,
-      setEmail,
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
@@ -154,7 +149,6 @@ export const DepositSDKProvider = ({
       sdkError,
       providerApiKey,
       providerFrontendAuth,
-      email,
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
