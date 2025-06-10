@@ -946,8 +946,8 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
-  withTokensController(data) {
-    merge(this.fixture.state.engine.backgroundState.TokensController, data);
+  withTokenListController(data) {
+    merge(this.fixture.state.engine.backgroundState.TokenListController, data);
     return this;
   }
 

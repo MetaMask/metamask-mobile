@@ -14,21 +14,20 @@ import { Regression } from '../../tags';
 
 describe(Regression('Import Custom token'), () => {
 
-  it.skip('allows importing using contract address and not current network', async () => {
+  it('allows importing using contract address and not current network', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
         .withNetworkController(PopularNetworksList.Polygon)
-        .withTokensController({
-          tokenList: [],
+        .withTokenListController({
           tokensChainsCache: {
             '0x89': {
               data: [
                 {
-                '0xc2132D05D31c914a87C6611C10748AEb04B58e8F': {
+                  "0xc2132D05D31c914a87C6611C10748AEb04B58e8F": {
                   name: 'USDT',
                   aggregators: ['Lifi', 'Coinmarketcap', 'Rango'],
-                  address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+                  address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
                   decimals: 6,
                   iconUrl:
                     'https://static.cx.metamask.io/api/v1/tokenIcons/137/0xc2132D05D31c914a87C6611C10748AEb04B58e8F.png',
@@ -49,7 +48,7 @@ describe(Regression('Import Custom token'), () => {
         await ImportTokensView.tapOnNetworkInput();
 
         await ImportTokensView.tapNetworkOption('Polygon Mainnet');
-        await ImportTokensView.typeTokenAddress('0xc2132D05D31c914a87C6611C10748AEb04B58e8F');
+        await ImportTokensView.typeTokenAddress('0xc2132d05d31c914a87c6611c10748aeb04b58e8f');
         await ImportTokensView.tapSymbolInput();
         await ImportTokensView.typeSymbol('USDT');
         //await ImportTokensView.tapTokenSymbolText();
