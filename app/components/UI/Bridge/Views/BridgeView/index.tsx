@@ -73,6 +73,7 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useCustomTokenImport } from '../../hooks/useCustomTokenImport';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -124,6 +125,7 @@ const BridgeView = () => {
   const { handleSwitchTokens } = useSwitchTokens();
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const isHardwareAddress = selectedAddress ? !!isHardwareAccount(selectedAddress) : false;
+  const { importCustomToken } = useCustomTokenImport();
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -284,6 +286,15 @@ const BridgeView = () => {
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
+        
+        // Import custom tokens if needed (especially for Solana swaps)
+        if (sourceToken) {
+          await importCustomToken(sourceToken, selectedNetworkClientId);
+        }
+        if (destToken) {
+          await importCustomToken(destToken, selectedNetworkClientId);
+        }
+        
         // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
         // Necessary because snaps prevents navigation after tx is submitted
         if (isSolanaSwap || isSolanaToEvm) {

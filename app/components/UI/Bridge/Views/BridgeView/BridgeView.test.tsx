@@ -20,6 +20,11 @@ import { isHardwareAccount } from '../../../../../util/address';
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
 
+const mockTokensController = {
+  getTokens: jest.fn(),
+  addToken: jest.fn(),
+};
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     SwapsController: {
@@ -52,6 +57,7 @@ jest.mock('../../../../../core/Engine', () => ({
       setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
       updateBridgeQuoteRequestParams: jest.fn(),
     },
+    TokensController: mockTokensController,
   },
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
     balance: '1000000000000000000', // 1 ETH
@@ -777,6 +783,85 @@ describe('BridgeView', () => {
         // Keypad should be visible - check for the delete button which is part of the keypad
         expect(queryByTestId('keypad-delete-button')).toBeTruthy();
       });
+    });
+
+    it('should import custom tokens before submitting Solana swap transaction', async () => {
+      // Setup Solana swap state with custom token
+      const customSolanaToken = {
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        chainId: SolScope.Mainnet,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: mockQuotes as unknown as QuoteResponse[],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '0.5',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'SOL',
+            decimals: 9,
+            chainId: SolScope.Mainnet,
+          },
+          destToken: customSolanaToken,
+        },
+      });
+
+      // Mock no existing tokens
+      mockTokensController.getTokens.mockResolvedValue([]);
+      mockTokensController.addToken.mockResolvedValue(undefined);
+
+      // Setup mock for submitTx
+      const mockEngine = require('../../../../../core/Engine');
+      mockEngine.context.BridgeStatusController.submitTx.mockResolvedValue({
+        hash: 'sol_tx_123',
+        id: 'sol_tx_123',
+        status: 'submitted',
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Press the Confirm button
+      const confirmButton = getByText('Confirm Swap');
+      await waitFor(() => expect(confirmButton).toBeTruthy());
+      
+      fireEvent.press(confirmButton);
+
+      // Wait for the transaction submission
+      await waitFor(() => {
+        // Verify custom tokens were imported before transaction
+        expect(mockTokensController.addToken).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: customSolanaToken.address,
+            symbol: customSolanaToken.symbol,
+            decimals: customSolanaToken.decimals,
+            name: customSolanaToken.name,
+          })
+        );
+
+        // Verify transaction was submitted
+        expect(mockEngine.context.BridgeStatusController.submitTx).toHaveBeenCalled();
+      });
+
+      // Verify tokens were imported BEFORE transaction submission
+      const tokenImportCallOrder = mockTokensController.addToken.mock.invocationCallOrder[0];
+      const txSubmitCallOrder = mockEngine.context.BridgeStatusController.submitTx.mock.invocationCallOrder[0];
+      expect(tokenImportCallOrder).toBeLessThan(txSubmitCallOrder);
     });
   });
 });
