@@ -445,61 +445,46 @@ exports[`ChoosePassword should render correctly 1`] = `
                   }
                 }
               />
-              <View
+            </TouchableOpacity>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "marginLeft": 12,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
                   }
                 }
               >
-                <View
+                MetaMask can’t reset this password if you forget it
+                <Text
+                  accessibilityRole="text"
+                  onPress={[Function]}
                   style={
                     {
-                      "alignItems": "flex-start",
-                      "flexDirection": "row",
-                      "flexWrap": "wrap",
-                      "gap": 1,
-                      "justifyContent": "flex-start",
-                      "width": "100%",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={2}
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    MetaMask can’t reset this password if you forget it
-                     
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    onPress={[Function]}
-                    style={
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                     Learn more.
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+                   Learn more.
+                </Text>
+              </Text>
+            </View>
           </View>
         </View>
         <View
