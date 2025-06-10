@@ -85,15 +85,6 @@ const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
-  // Ref necessary to avoid race condition between Redux state and component state
-  // Without it, the component would reset the bridge state when it shouldn't
-  const isSubmittingTxRef = useRef(isSubmittingTx);
-
-  // Update ref when Redux state changes
-  useEffect(() => {
-    isSubmittingTxRef.current = isSubmittingTx;
-  }, [isSubmittingTx]);
-
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -210,13 +201,10 @@ const BridgeView = () => {
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
-      // Only reset state if we're not in the middle of a transaction
-      if (!isSubmittingTxRef.current) {
-        dispatch(resetBridgeState());
-        // Clear bridge controller state if available
-        if (Engine.context.BridgeController?.resetState) {
-          Engine.context.BridgeController.resetState();
-        }
+      dispatch(resetBridgeState());
+      // Clear bridge controller state if available
+      if (Engine.context.BridgeController?.resetState) {
+        Engine.context.BridgeController.resetState();
       }
     },
     [dispatch],
