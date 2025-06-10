@@ -1,10 +1,10 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
-import Logger from '../../../../../util/Logger';
-import { processAggregatorOrder } from './aggregator';
-import { FiatOrder } from '../../../../../reducers/fiatOrders/types';
-import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import Logger from '../../../../util/Logger';
+import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
+import { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 
 const mockOrder1 = {
   id: 'test-id-1',
@@ -50,12 +50,12 @@ const mockOrder1 = {
   } as Order,
 };
 
-jest.mock('./aggregator', () => ({
-  ...jest.requireActual('./aggregator'),
+jest.mock('../Aggregator/orderProcessor/aggregator', () => ({
+  ...jest.requireActual('../Aggregator/orderProcessor/aggregator'),
   processAggregatorOrder: jest.fn((order) => order),
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
