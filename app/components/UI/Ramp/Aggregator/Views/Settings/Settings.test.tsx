@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
-import { RampSDK, withRampSDK } from '../../sdk';
+import { RampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
 import {
   renderScreen,
@@ -10,6 +10,7 @@ import {
 } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -42,6 +43,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../utils/withRampAndDepositSDK', () =>
+  jest.fn((Component) => (props: Record<string, unknown>) => (
+    <Component {...props} />
+  )),
+);
 
 const mockedActivationKeys: ActivationKey[] = [
   {
@@ -93,7 +100,22 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
 
 jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
-  withRampSDK: jest.fn().mockImplementation((Component) => Component),
+}));
+
+const mockClearAuthToken = jest.fn();
+const mockCheckExistingToken = jest.fn();
+
+const mockUseDepositSDKInitialValues = {
+  isInternalBuild: false,
+  clearAuthToken: mockClearAuthToken,
+  isAuthenticated: false,
+  checkExistingToken: mockCheckExistingToken,
+};
+
+let mockUseDepositSDKValues = { ...mockUseDepositSDKInitialValues };
+
+jest.mock('../../../Deposit/sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDKValues,
 }));
 
 describe('Settings', () => {
@@ -108,12 +130,15 @@ describe('Settings', () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
+    mockUseDepositSDKValues = {
+      ...mockUseDepositSDKInitialValues,
+    };
   });
 
   it('renders correctly', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(withRampSDK).toHaveBeenCalled();
+    expect(withRampAndDepositSDK).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {
@@ -253,6 +278,52 @@ describe('Settings', () => {
       });
       fireEvent.press(removeActivationKeyButton);
       expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');
+    });
+  });
+  describe('Provider Authentication', () => {
+    it('does not show logout button when not authenticated', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: false,
+      };
+      render(Settings);
+      const logoutButton = screen.queryByRole('button', {
+        name: 'Log out of Transak',
+      });
+      expect(logoutButton).toBeNull();
+    });
+
+    it('shows logout button when authenticated', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: true,
+      };
+      render(Settings);
+      const logoutButton = screen.getByRole('button', {
+        name: 'Log out of Transak',
+      });
+      expect(logoutButton).toBeTruthy();
+    });
+
+    it('calls clearAuthToken when pressing logout button', () => {
+      mockUseDepositSDKValues = {
+        ...mockUseDepositSDKInitialValues,
+        isInternalBuild: true,
+        isAuthenticated: true,
+      };
+      render(Settings);
+      const logoutButton = screen.getByRole('button', {
+        name: 'Log out of Transak',
+      });
+      fireEvent.press(logoutButton);
+      expect(mockClearAuthToken).toHaveBeenCalled();
+    });
+
+    it('calls checkExistingToken on component mount', () => {
+      render(Settings);
+      expect(mockCheckExistingToken).toHaveBeenCalled();
     });
   });
 });
