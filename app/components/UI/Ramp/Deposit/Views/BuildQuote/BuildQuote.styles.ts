@@ -9,10 +9,33 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       paddingHorizontal: 16,
     },
+    selectionRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      marginBottom: 32,
+      gap: 12,
+    },
+    selectionBox: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 8,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+      minHeight: 44,
+    },
+    centerGroup: {
+      alignItems: 'center',
+      marginBottom: 32,
+    },
     amountContainer: {
       alignItems: 'center',
-      paddingVertical: 32,
-      paddingTop: 48,
+      paddingVertical: 16,
+      marginBottom: 16,
     },
     mainAmount: {
       textAlign: 'center',
@@ -21,29 +44,33 @@ const styleSheet = (params: { theme: Theme }) => {
     convertedAmount: {
       textAlign: 'center',
     },
-    combinedInfoBox: {
+    cryptoPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: theme.colors.background.muted,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
+      borderRadius: 20,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
     },
-    infoSection: {
+    cryptoText: {
+      marginLeft: 8,
+    },
+    paymentMethodBox: {
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 24,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
+    },
+    paymentMethodContent: {
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 4,
     },
-    infoTextContainer: {
-      marginLeft: 12,
-      flex: 1,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
-      marginVertical: 16,
-      marginHorizontal: -16,
-    },
+
     tokenLogo: {
       width: 24,
       height: 24,

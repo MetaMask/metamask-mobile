@@ -15,7 +15,7 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { View, Image } from 'react-native';
+import { View, Image, TouchableOpacity } from 'react-native';
 import Keypad from '../../../../../Base/Keypad';
 import Icon, {
   IconName,
@@ -104,6 +104,21 @@ const BuildQuote = () => {
     [],
   );
 
+  const handleAccountPress = useCallback(() => {
+    // TODO: Implement account selection logic
+    console.log('Account selection pressed');
+  }, []);
+
+  const handleFiatPress = useCallback(() => {
+    // TODO: Implement fiat selection logic
+    console.log('Fiat selection pressed');
+  }, []);
+
+  const handlePaymentMethodPress = useCallback(() => {
+    // TODO: Implement payment method selection logic
+    console.log('Payment method selection pressed');
+  }, []);
+
   // Calculate USDC equivalent (mock calculation - replace with actual conversion logic)
   const usdcAmount = parseFloat(amount || '0').toFixed(2);
 
@@ -116,50 +131,67 @@ const BuildQuote = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
-          {/* Amount Display */}
-          <View style={styles.amountContainer}>
-            <Text variant={TextVariant.DisplayMD} style={styles.mainAmount}>
-              {formatCurrency(amount)}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.convertedAmount}
+          {/* Account and Fiat Selection Row */}
+          <View style={styles.selectionRow}>
+            <TouchableOpacity
+              style={styles.selectionBox}
+              onPress={handleAccountPress}
             >
-              {usdcAmount} USDC
-            </Text>
+              <Text variant={TextVariant.BodyMD}>Account 1</Text>
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={theme.colors.icon.alternative}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.selectionBox}
+              onPress={handleFiatPress}
+            >
+              <Text variant={TextVariant.BodyMD}>USD</Text>
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={theme.colors.icon.alternative}
+              />
+            </TouchableOpacity>
           </View>
 
-          {/* Token & Payment Method Combined Box */}
-          <View style={styles.combinedInfoBox}>
-            {/* Token Section */}
-            <View style={styles.infoSection}>
+          {/* Centered Amount Group */}
+          <View style={styles.centerGroup}>
+            {/* Amount Display */}
+            <View style={styles.amountContainer}>
+              <Text variant={TextVariant.HeadingLG} style={styles.mainAmount}>
+                {formatCurrency(amount)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.convertedAmount}
+              >
+                {usdcAmount} USDC
+              </Text>
+            </View>
+
+            {/* Crypto Pill */}
+            <View style={styles.cryptoPill}>
               <Image
                 source={{ uri: USDC_TOKEN.logo }}
                 style={styles.tokenLogo}
               />
-              <View style={styles.infoTextContainer}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  Fund on Ethereum
-                </Text>
-                <Text variant={TextVariant.BodyMD}>{USDC_TOKEN.symbol}</Text>
-              </View>
+              <Text variant={TextVariant.BodyMD} style={styles.cryptoText}>
+                {USDC_TOKEN.symbol}
+              </Text>
             </View>
+          </View>
 
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* Payment Method Section */}
-            <View style={styles.infoSection}>
-              <Icon
-                name={IconName.Card}
-                size={IconSize.Xl}
-                color={theme.colors.icon.default}
-              />
-              <View style={styles.infoTextContainer}>
+          {/* Payment Method Box */}
+          <TouchableOpacity
+            style={styles.paymentMethodBox}
+            onPress={handlePaymentMethodPress}
+          >
+            <View style={styles.paymentMethodContent}>
+              <View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -170,8 +202,13 @@ const BuildQuote = () => {
                   {DEBIT_CREDIT_PAYMENT_METHOD.name}
                 </Text>
               </View>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Md}
+                color={theme.colors.icon.alternative}
+              />
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Keypad */}
           <View style={styles.keypadContainer}>
