@@ -12,6 +12,7 @@ import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearn
 import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
 import { MOCK_DAI_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
 import { createMockToken } from '../../Stake/testUtils';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -148,7 +149,13 @@ jest.mock('../../Earn/hooks/useEarnTokens', () => ({
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      MultichainNetworkController: {
+        ...backgroundState.MultichainNetworkController,
+        isEvmSelected: true,
+      },
+    },
   },
 };
 
@@ -180,6 +187,8 @@ describe('Balance', () => {
           return {};
         case selectChainId:
           return '1';
+        case selectIsEvmNetworkSelected:
+          return true;
         default:
           return undefined;
       }
