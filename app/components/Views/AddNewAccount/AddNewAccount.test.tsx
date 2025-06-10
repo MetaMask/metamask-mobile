@@ -445,7 +445,7 @@ describe('AddNewAccount', () => {
                   [mockAccount2.id]: mockAccount2,
                   [solanaAccount.id]: solanaAccount,
                 },
-                selectedAccount: mockAccount2.id,
+                selectedAccount: mockAccount1.id,
               },
             },
             KeyringController: {
