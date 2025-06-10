@@ -38,7 +38,7 @@ jest.mock('../../store', () => ({
   },
 }));
 
-
+jest.mock('pump');
 jest.mock('@metamask/eth-json-rpc-filters');
 jest.mock('@metamask/eth-json-rpc-filters/subscriptionManager', () => () => ({
   events: {

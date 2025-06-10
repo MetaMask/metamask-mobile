@@ -12,11 +12,11 @@ import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
-import FromTo from '../../rows/transactions/from-to';
-import GasFeesDetails from '../../rows/transactions/gas-fee-details';
-import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
-import TokenHero from '../../rows/transactions/token-hero';
-import NetworkRow from '../../rows/transactions/network-row';
+import { HeroRow } from '../../rows/transactions/hero-row';
+import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-row';
+import FromToRow from '../../rows/transactions/from-to-row';
+import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
+import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
 
 const Transfer = () => {
   // Set navbar as first to prevent Android navigation flickering
@@ -42,9 +42,9 @@ const Transfer = () => {
 
   return (
     <View>
-      <TokenHero />
-      <FromTo />
-      <NetworkRow />
+      <HeroRow />
+      <FromToRow />
+      <NetworkAndOriginRow />
       {isDappTransfer && (
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}
@@ -52,7 +52,7 @@ const Transfer = () => {
           isTransactionsRedesign
         />
       )}
-      <GasFeesDetails />
+      <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>
   );

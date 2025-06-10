@@ -2,13 +2,11 @@ import { useSelector } from 'react-redux';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import {
   selectChainId,
-  selectIsPopularNetwork,
   selectProviderConfig,
   selectEvmTicker,
   selectEvmChainId,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
@@ -46,16 +44,12 @@ const useMultichainBalancesForAllAccounts =
     const evmChainId = useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
     const allChainIDs = useSelector(getChainIdsToPoll);
-    const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-      selectIsTokenNetworkFilterEqualCurrentNetwork,
-    );
-    const isPopularNetwork = useSelector(selectIsPopularNetwork);
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       accountsList,
-      !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
+      true,
       allChainIDs,
     );
 
@@ -112,6 +106,9 @@ const useMultichainBalancesForAllAccounts =
           ),
           isPortfolioVieEnabled: isPortfolioEnabled,
           aggregatedBalance: getAggregatedBalance(account),
+          // if the totalNativeTokenBalance is undefined, it means that the account is loading
+          isLoadingAccount:
+            accountBalanceData.totalNativeTokenBalance === undefined,
         };
       }
 
