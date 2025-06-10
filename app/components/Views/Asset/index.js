@@ -612,8 +612,8 @@ class Asset extends PureComponent {
             navigation={navigation}
             selectedAddress={this.selectedAddress}
             chainId={asset.chainId}
-            enableRefresh={true}
-            showDisclaimer={true}
+            enableRefresh
+            showDisclaimer
             onScroll={this.onScrollThroughContent}
           />
         ) : (
