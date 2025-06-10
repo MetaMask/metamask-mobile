@@ -30,7 +30,7 @@ export type ConfirmationRedesignRemoteFlags = {
  * );
  * ```
  *
- * **After Development (Release):**
+ * **After Development (On Release):**
  * Replace the fallback with the remote kill switch:
  * ```
  * const isNewConfirmationTypeEnabled = getFeatureFlagValue(
