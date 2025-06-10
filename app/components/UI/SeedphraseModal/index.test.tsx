@@ -29,12 +29,16 @@ jest.mock(
 );
 
 describe('SeedphraseModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
     const mockSetOptions = jest.fn();
 
-    (useNavigation as jest.Mock).mockReturnValue({
+    const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetOptions,
@@ -51,16 +55,18 @@ describe('SeedphraseModal', () => {
       mockNavigate,
       mockGoBack,
       mockSetOptions,
+      mockNavigation,
     };
   };
 
-  it('should render correctly', () => {
-    const { wrapper } = setupTest();
+  it('render matches snapshot', () => {
+    const { wrapper, mockNavigation } = setupTest();
     expect(wrapper).toMatchSnapshot();
+    mockNavigation.mockRestore();
   });
 
-  it('should render title and explanation text', () => {
-    const { wrapper } = setupTest();
+  it('render title and explanation text with correct content', () => {
+    const { wrapper, mockNavigation } = setupTest();
     const title = wrapper.getByText(
       strings('account_backup_step_1.what_is_seedphrase_title'),
     );
@@ -75,10 +81,23 @@ describe('SeedphraseModal', () => {
     expect(listItem).toBeTruthy();
     const bullet = wrapper.getAllByText('•');
     expect(bullet.length).toBe(3);
+
+    mockNavigation.mockRestore();
   });
 
-  it('should render cta actions', () => {
-    const { wrapper, mockGoBack } = setupTest();
+  it('render Got it button', () => {
+    const { wrapper, mockNavigation } = setupTest();
+
+    const confirmButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.what_is_seedphrase_confirm'),
+    });
+
+    expect(confirmButton).toBeTruthy();
+    mockNavigation.mockRestore();
+  });
+
+  it('check if the modal is closed when the Got it button is pressed', () => {
+    const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
     const confirmButton = wrapper.getByRole('button', {
       name: strings('account_backup_step_1.what_is_seedphrase_confirm'),
@@ -88,5 +107,7 @@ describe('SeedphraseModal', () => {
     expect(confirmButton).toBeEnabled();
     fireEvent.press(confirmButton);
     expect(mockGoBack).toHaveBeenCalled();
+
+    mockNavigation.mockRestore();
   });
 });
