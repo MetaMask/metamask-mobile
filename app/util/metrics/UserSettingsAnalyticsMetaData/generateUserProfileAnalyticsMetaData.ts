@@ -47,7 +47,6 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
-    [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: 0, // Default value should be updated after login
     [UserProfileProperty.CHAIN_IDS]: chainIds,
   };
 };
