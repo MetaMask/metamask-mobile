@@ -1,17 +1,16 @@
-import React from 'react';
-import DepositInfoSection, { DepositInfoSectionProps } from '.';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
-import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../utils/tempLending';
-import { TokenI } from '../../../../../Tokens/types';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { strings } from '../../../../../../../../locales/i18n';
 import {
   CHAIN_ID_TO_AAVE_POOL_CONTRACT,
   LendingProtocol,
 } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import React from 'react';
+import DepositInfoSection, { DepositInfoSectionProps } from '.';
+import { strings } from '../../../../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../../../../util/networks';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { MOCK_USDC_MAINNET_ASSET } from '../../../../../Stake/__mocks__/stakeMockData';
+import { TokenI } from '../../../../../Tokens/types';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

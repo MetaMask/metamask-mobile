@@ -131,15 +131,6 @@ const EarnLendingDepositConfirmationView = () => {
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionDropped',
-        () => {
-          setIsConfirmButtonDisabled(false);
-          setIsApprovalLoading(false);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
     },
     [],
   );
@@ -215,7 +206,8 @@ const EarnLendingDepositConfirmationView = () => {
         !activeAccount?.address ||
         !earnToken?.chainId ||
         !isSupportedLendingAction ||
-        !earnToken?.experience?.market?.protocol
+        !earnToken?.experience?.market?.protocol ||
+        !earnToken?.experience?.market?.underlying?.address
       ) {
         setIsConfirmButtonDisabled(false);
         return;

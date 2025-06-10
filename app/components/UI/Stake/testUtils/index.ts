@@ -1,32 +1,20 @@
+import { EarnControllerState } from '@metamask/earn-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
-  CreateMockTokenOptions,
-  TOKENS_WITH_DEFAULT_OPTIONS,
-} from './testUtils.types';
-import {
-  EarnControllerState,
-  LendingMarketWithPosition,
-  LendingPositionWithMarketReference,
-  PooledStakingState,
-} from '@metamask/earn-controller';
-import {
-  VaultData,
-  VaultApyAverages,
-  VaultDailyApy,
-  LendingMarket,
-  LendingPosition,
-} from '@metamask/stake-sdk';
-import {
+  MOCK_EXCHANGE_RATE,
+  MOCK_LENDING_MARKETS,
+  MOCK_LENDING_POSITIONS,
   MOCK_POOLED_STAKES_DATA,
   MOCK_VAULT_DATA,
-  MOCK_EXCHANGE_RATE,
-  MOCK_LENDING_POSITIONS,
-  MOCK_LENDING_MARKETS,
 } from '../__mocks__/earnControllerMockData';
 import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_DAILY_APYS,
 } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import {
+  CreateMockTokenOptions,
+  TOKENS_WITH_DEFAULT_OPTIONS,
+} from './testUtils.types';
 
 export const HOLESKY_CHAIN_ID = '0x4268';
 

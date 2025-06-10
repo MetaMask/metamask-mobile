@@ -1,43 +1,33 @@
 /* eslint-disable import/no-namespace */
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import * as ReactNative from 'react-native';
+import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import EarnTokenList from '.';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
-import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { strings } from '../../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ETH_MAINNET_ASSET,
-  MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
   MOCK_USDC_BASE_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
-import Engine from '../../../../../core/Engine';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
-import * as portfolioNetworkUtils from '../../../../../util/networks';
-import { act, fireEvent } from '@testing-library/react-native';
+import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import * as useEarnTokensHook from '../../hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import * as ReactNative from 'react-native';
-import * as useEarnTokensHook from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
-import {
-  getMockEarnControllerState,
-  getMockUseEarnTokens,
-} from '../../__mocks__/earnMockData';
 
 jest.mock('../../selectors/featureFlags', () => ({
-  selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => {
-    console.log('selectPooledStakingEnabledFlag');
-    return true;
-  }),
-  selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => {
-    console.log('selectStablecoinLendingEnabledFlag');
-    return true;
-  }),
+  selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => true),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => true),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -103,7 +93,6 @@ const initialMetrics: Metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-let useStakingEligibilitySpy: jest.SpyInstance;
 let useEarnTokensSpy: jest.SpyInstance;
 
 const mockEarnTokens: EarnTokenDetails[] = [
@@ -120,16 +109,14 @@ describe('EarnTokenList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    useStakingEligibilitySpy = jest
-      .spyOn(useStakingEligibilityHook, 'default')
-      .mockReturnValue({
+    jest.spyOn(useStakingEligibilityHook, 'default').mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
         isEligible: true,
-        isLoadingEligibility: false,
-        refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
-          isEligible: true,
-        }),
-        error: '',
-      });
+      }),
+      error: '',
+    });
 
     useEarnTokensSpy = jest
       .spyOn(useEarnTokensHook, 'default')

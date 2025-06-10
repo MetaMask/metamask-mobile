@@ -176,6 +176,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       let transactionId: string | undefined;
 
       if (isStaking) {
+        if (!attemptDepositTransaction) return;
         const txRes = await attemptDepositTransaction(
           valueWei,
           activeAccount.address,

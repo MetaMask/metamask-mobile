@@ -31,7 +31,6 @@ export const prioritizeFlagsByEnv = (
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    console.log('remoteFeatureFlags', remoteFeatureFlags);
     const localFlag = process.env.MM_POOLED_STAKING_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as EarnLaunchDarklyFlag;

@@ -1,8 +1,10 @@
+import { Hex } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -14,47 +16,42 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectConversionRate } from '../../../../../selectors/currencyRateController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
+import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
-import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
 } from '../../../Stake/constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
-import styleSheet from './EarnWithdrawInputView.styles';
-import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import { RootState } from '../../../../../reducers';
-import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { Hex } from '@metamask/utils';
-import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
-import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
+import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import {
+  calculateAaveV3HealthFactorAfterWithdrawal,
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
   getAaveV3MaxRiskAwareWithdrawalAmount,
-  calculateAaveV3HealthFactorAfterWithdrawal,
-  getLendingPoolLiquidity,
 } from '../../utils/tempLending';
-// import BigNumber from 'bignumber.js';
+import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
+import styleSheet from './EarnWithdrawInputView.styles';
+import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { TokenI } from '../../../Tokens/types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { TokenI } from '../../../Tokens/types';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
-import BigNumber from 'bignumber.js';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -64,8 +61,7 @@ const EarnWithdrawInputView = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const { getPairedEarnTokens } = useEarnTokens();
-  const { outputToken: receiptToken, earnToken: lendingToken } =
-    getPairedEarnTokens(token);
+  const { outputToken: receiptToken } = getPairedEarnTokens(token);
 
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
@@ -113,9 +109,6 @@ const EarnWithdrawInputView = () => {
 
   // For lending withdrawals, fetch AAVE pool metadata once on render.
   useEffect(() => {
-    console.log('receiptToken', receiptToken);
-    console.log('activeAccount', activeAccount);
-
     if (
       receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
       !activeAccount?.address ||
@@ -124,7 +117,6 @@ const EarnWithdrawInputView = () => {
     )
       return;
 
-    console.log('receiptToken', receiptToken);
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
@@ -460,12 +452,7 @@ const EarnWithdrawInputView = () => {
     receiptToken?.experience?.type,
     maxRiskAwareWithdrawalAmount,
   ]);
-  console.log(
-    'isWithdrawingMoreThanAvailableForLendingToken',
-    isWithdrawingMoreThanAvailableForLendingToken,
-  );
-  console.log('isNonZeroAmount', isNonZeroAmount);
-  console.log('isOverMaximum', isOverMaximum);
+
   return (
     <ScreenLayout style={styles.container}>
       <InputDisplay

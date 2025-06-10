@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   fromTokenMinimalUnit,
   limitToMaximumDecimalPlaces,
@@ -104,7 +104,6 @@ const useEarnInputHandlers = ({
   const { annualRewardRate, annualRewardRateDecimal, isLoadingEarnMetadata } =
     useEarnMetadata(earnToken);
   const handleMax = useCallback(async () => {
-    console.log('handleMax', balanceMinimalUnit.toString());
     if (!balanceMinimalUnit) return;
 
     let maxMinimalUnit;
@@ -117,7 +116,6 @@ const useEarnInputHandlers = ({
     } else {
       maxMinimalUnit = balanceMinimalUnit;
     }
-    console.log('maxMinimalUnit', maxMinimalUnit.toString());
     handleMaxInput(maxMinimalUnit);
   }, [
     balanceMinimalUnit,

@@ -57,6 +57,7 @@ const props: GasImpactModalProps = {
       annualRewardsFiat: '$5000',
       estimatedGasFee: '0.009171428571428572',
       estimatedGasFeePercentage: '35%',
+      chainId: '1',
     },
     name: 'params',
   },
@@ -140,6 +141,7 @@ describe('GasImpactModal', () => {
           annualRewardsETH: props.route.params.annualRewardsETH,
           annualRewardsFiat: props.route.params.annualRewardsFiat,
           annualRewardRate: props.route.params.annualRewardRate,
+          chainId: props.route.params.chainId,
         },
       });
     });

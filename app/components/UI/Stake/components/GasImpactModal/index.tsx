@@ -95,6 +95,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     const amountWeiString = amountWei.toString();
 
     if (isStakingDepositRedesignedEnabled) {
+      if (!attemptDepositTransaction) return;
       await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,

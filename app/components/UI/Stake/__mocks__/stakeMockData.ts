@@ -3,10 +3,10 @@ import {
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
-import { TokenI } from '../../Tokens/types';
-import { Contract } from 'ethers';
-import { Stake } from '../sdk/stakeSdkProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Contract } from 'ethers';
+import { TokenI } from '../../Tokens/types';
+import { Stake } from '../sdk/stakeSdkProvider';
 import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 

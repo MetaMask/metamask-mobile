@@ -1,5 +1,4 @@
 import BigNumber from 'bignumber.js';
-import currencySymbols from '../../../../../util/currency-symbols.json';
 import {
   addCurrencySymbol,
   renderFromTokenMinimalUnit,

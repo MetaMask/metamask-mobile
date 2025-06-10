@@ -99,7 +99,6 @@ const useInputHandler = ({
 
   const handleKeypadChange = useCallback(
     ({ value, pressedKey }: { value: string; pressedKey: string }) => {
-      console.log('handleKeypadChange', value, pressedKey);
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;

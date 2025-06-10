@@ -29,15 +29,13 @@ export const deriveBalanceFromAssetMarketDetails = (
         tokenExchangeRates[itemAddress as Hex] || TOKEN_RATE_UNDEFINED;
     }
   }
-  console.log('itemAddress', itemAddress);
-  console.log('tokenBalances to check', tokenBalances);
+
   const balance =
     asset.balance ||
     (itemAddress in tokenBalances
       ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
       : '');
 
-  console.log('balance', balance);
   if (!balance && !asset.isETH) {
     return {
       balanceFiat: TOKEN_BALANCE_LOADING,

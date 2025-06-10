@@ -1,16 +1,15 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'react-native';
-import Balance from '.';
-import { render, fireEvent } from '@testing-library/react-native';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import Balance from '.';
+import { selectChainId } from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { NetworkBadgeSource } from './Balance';
 import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { TokenI } from '../../Tokens/types';
-import useBalance from '../../Stake/hooks/useBalance';
+import { NetworkBadgeSource } from './Balance';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

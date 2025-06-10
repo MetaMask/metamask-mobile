@@ -1,25 +1,23 @@
-import React from 'react';
-import { Hex } from '@metamask/utils';
 import { MarketDataDetails } from '@metamask/assets-controllers';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import TokenDetails from './';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { Hex } from '@metamask/utils';
+import React from 'react';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import {
-  selectProviderConfig,
   selectEvmTicker,
+  selectProviderConfig,
 } from '../../../../selectors/networkController';
+import { selectTokenList } from '../../../../selectors/tokenListController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import TokenDetails from './';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),

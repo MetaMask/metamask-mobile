@@ -26,8 +26,10 @@ const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
 
 const mockInitialEarnControllerState: DeepPartial<EarnControllerState> = {
   pooled_staking: {
-    pooledStakes: mockPooledStakeData,
-    exchangeRate: mockExchangeRate,
+    '1': {
+      pooledStakes: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+    },
   },
 };
 
@@ -51,8 +53,8 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const renderHook = (state?: {
-  pooledStakes?: PooledStakingState['pooledStakes'];
-  exchangeRate?: PooledStakingState['exchangeRate'];
+  pooledStakes?: PooledStakingState[0]['pooledStakes'];
+  exchangeRate?: PooledStakingState[0]['exchangeRate'];
 }) => {
   const mockState: DeepPartial<RootState> = {
     engine: {
@@ -63,7 +65,7 @@ const renderHook = (state?: {
           pooled_staking: {
             isEligible: true,
             [ChainId.ETHEREUM]: {
-              ...mockInitialEarnControllerState.pooled_staking,
+              ...mockInitialEarnControllerState.pooled_staking?.['1'],
               pooledStakes: state?.pooledStakes,
               exchangeRate: state?.exchangeRate,
             },
