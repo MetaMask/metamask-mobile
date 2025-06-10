@@ -137,13 +137,21 @@ describe('AccountBackupStep1', () => {
     });
   });
 
-  it('renders cta actions', () => {
+  it('renders remind me later button', () => {
+    (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+    const { wrapper } = setupTest();
+    const reminderButton = wrapper.getByText(
+      strings('account_backup_step_1.remind_me_later'),
+    );
+    expect(reminderButton).toBeOnTheScreen();
+  });
+
+  it('navigates to skip account security modal when remind me later button is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
     const { wrapper, mockNavigate } = setupTest();
     const reminderButton = wrapper.getByText(
       strings('account_backup_step_1.remind_me_later'),
     );
-    expect(reminderButton).toBeOnTheScreen();
 
     fireEvent.press(reminderButton);
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
@@ -153,11 +161,35 @@ describe('AccountBackupStep1', () => {
         onCancel: expect.any(Function),
       },
     });
+  });
+
+  it('renders continue button on SkipAccountSecurityModal when remind me later button is pressed', () => {
+    (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+    const { wrapper } = setupTest();
+    const reminderButton = wrapper.getByText(
+      strings('account_backup_step_1.remind_me_later'),
+    );
+
+    fireEvent.press(reminderButton);
 
     const continueButton = wrapper.getByText(
       strings('account_backup_step_1.cta_text'),
     );
     expect(continueButton).toBeOnTheScreen();
+  });
+
+  it('navigates to ManualBackupStep1 when continue button is pressed', () => {
+    (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+    const { wrapper, mockNavigate } = setupTest();
+    const reminderButton = wrapper.getByText(
+      strings('account_backup_step_1.remind_me_later'),
+    );
+
+    fireEvent.press(reminderButton);
+
+    const continueButton = wrapper.getByText(
+      strings('account_backup_step_1.cta_text'),
+    );
 
     fireEvent.press(continueButton);
     expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
