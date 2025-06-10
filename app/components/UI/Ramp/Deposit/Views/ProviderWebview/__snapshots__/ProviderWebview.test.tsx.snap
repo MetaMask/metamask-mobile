@@ -472,7 +472,7 @@ exports[`ProviderWebview Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Loading KYC status...
+                              No KYC data available
                             </Text>
                             <Text
                               accessibilityRole="text"
@@ -489,7 +489,7 @@ exports[`ProviderWebview Component render matches snapshot 1`] = `
                                 }
                               }
                             >
-                              Quote:
+                              Quote: 
                             </Text>
                           </View>
                         </View>
