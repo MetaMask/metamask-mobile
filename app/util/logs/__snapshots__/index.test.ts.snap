@@ -30,6 +30,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
+        "minimumBalanceForRentExemptionInLamports": "0",
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
