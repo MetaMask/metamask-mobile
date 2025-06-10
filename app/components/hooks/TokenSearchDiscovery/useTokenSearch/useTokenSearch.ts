@@ -10,7 +10,7 @@ const SEARCH_DEBOUNCE_DELAY = 250;
 const MINIMUM_QUERY_LENGTH = 2;
 export const MAX_RESULTS = '20';
 
-export const useTokenSearchDiscovery = () => {
+export const useTokenSearch = () => {
   const recentSearches = useSelector(selectRecentTokenSearches);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -72,4 +72,4 @@ export const useTokenSearchDiscovery = () => {
   };
 };
 
-export default useTokenSearchDiscovery;
+export default useTokenSearch;

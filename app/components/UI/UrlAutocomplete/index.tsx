@@ -36,7 +36,7 @@ import { debounce } from 'lodash';
 import { strings } from '../../../../locales/i18n';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
-import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
+import useTokenSearch from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
 import Engine from '../../../core/Engine';
 import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
 import { mapMoralisTokenToResult } from '../../../util/search-discovery/map-moralis-token-to-result';
@@ -67,7 +67,7 @@ const UrlAutocomplete = forwardRef<
     ...bookmarks,
   ], [browserHistory, bookmarks]);
   const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>(initialFuseResults);
-  const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
+  const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearch();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchDiscoveryResult[] = useMemo(
     () => (
