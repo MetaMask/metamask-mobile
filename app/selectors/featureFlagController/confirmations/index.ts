@@ -19,7 +19,7 @@ export type ConfirmationRedesignRemoteFlags = {
  * is set, the remote flag value takes precedence. If a remote flag is explicitly
  * set to `false`, it can disable the feature remotely.
  *
- * ## Adding New Confirmation Types
+ * ## Adding New Confirmation Flag
  *
  * **During Development:**
  * Use a local environment variable with a default fallback:
