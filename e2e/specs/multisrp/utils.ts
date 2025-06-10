@@ -22,7 +22,7 @@ export const goToImportSrp = async () => {
   await Assertions.checkIfVisible(ImportSrpView.container);
 };
 
-export const inputSrp = async (mnemonic) => {
+export const inputSrp = async (mnemonic: string) => {
   const mnemonicArray = mnemonic.split(' ');
   const numberOfWords = mnemonicArray.length;
 
@@ -35,7 +35,7 @@ export const inputSrp = async (mnemonic) => {
   }
 };
 
-export const completeSrpQuiz = async (expectedSrp) => {
+export const completeSrpQuiz = async (expectedSrp: string) => {
   await SrpQuizModal.tapGetStartedButton();
   await SrpQuizModal.tapQuestionRightAnswerButton(1);
   await SrpQuizModal.tapQuestionContinueButton(1);
@@ -53,14 +53,14 @@ export const completeSrpQuiz = async (expectedSrp) => {
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };
 
-export const goToAccountActions = async (accountIndex) => {
+export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
   await AccountActionsBottomSheet.tapShowSRP();
 };
 
-export const startExportForKeyring = async (keyringId) => {
+export const startExportForKeyring = async (keyringId: string) => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapSecurityAndPrivacy();
   await SecurityAndPrivacyView.tapRevealSecretRecoveryPhraseButton();
