@@ -55,6 +55,7 @@ export enum TraceName {
   DisconnectAllPermissions = 'Disconnect All Accounts Permissions',
   AddAccount = 'Add Account',
   CreateAccount = 'Create Account',
+  FetchHistoricalPrices = 'Fetch Historical Prices',
 }
 
 export enum TraceOperation {

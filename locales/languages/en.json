@@ -440,6 +440,16 @@
   },
   "deposit": {
     "title": "Deposit",
+    "get_started": {
+      "title": "Top up your wallet with USDC",
+      "bullet_1_title": "Value-backed by the US dollar",
+      "bullet_1_description": "1:1 ratio backing with US dollars.",
+      "bullet_2_title": "Low volatility",
+      "bullet_2_description": "Maintains stable value for reliable transactions.",
+      "bullet_3_title": "Faster than banks",
+      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
+      "button": "Get started"
+    },
     "enter_email": {
       "title": "Enter your email",
       "description": "We'll send a six-digit code to your email to check it's you.",
@@ -478,6 +488,18 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
+    },
+    "kyc_processing": {
+      "title": "Verifying your identity",
+      "heading": "Hang tight!\nWe’re verifying your identity now.",
+      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
+      "button": "Browse tokens",
+      "error_heading": "We were unable to verify your identity.",
+      "error_description": "Try uploading your documents again and resubmit for verification.",
+      "error_button": "Retry verification",
+      "success_heading": "Identity successfully verified!",
+      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_button": "Complete your order"
     }
   },
   "receive": {
@@ -1231,7 +1253,9 @@
       "key": "Key",
       "add": "Add",
       "update": "Update",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
+      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
     },
     "request_feature": "Request a feature",
     "contact_support": "Contact support",

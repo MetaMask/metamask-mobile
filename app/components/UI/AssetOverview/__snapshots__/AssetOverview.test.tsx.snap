@@ -1076,25 +1076,51 @@ exports[`AssetOverview should render correctly 1`] = `
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "alignSelf": "center",
-              "color": "#121314",
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
+              "flexDirection": "column",
+              "paddingLeft": 16,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
+                "fontWeight": "500",
+                "justifyContent": "flex-start",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </View>
         <View
           style={
             {
@@ -2274,25 +2300,51 @@ exports[`AssetOverview should render native balances even if there are no accoun
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "alignSelf": "center",
-              "color": "#121314",
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
+              "flexDirection": "column",
+              "paddingLeft": 16,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
+                "fontWeight": "500",
+                "justifyContent": "flex-start",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </View>
         <View
           style={
             {
@@ -3333,25 +3385,51 @@ exports[`AssetOverview should render native balances when non evm network is sel
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
+        <View
           style={
             {
-              "alignSelf": "center",
-              "color": "#121314",
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 18,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
+              "flexDirection": "column",
+              "paddingLeft": 16,
             }
           }
         >
-          Ethereum
-        </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
+                "fontWeight": "500",
+                "justifyContent": "flex-start",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </View>
         <View
           style={
             {
