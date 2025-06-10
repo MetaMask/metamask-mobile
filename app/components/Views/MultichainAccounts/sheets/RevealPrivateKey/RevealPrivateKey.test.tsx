@@ -1,8 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
-import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-import { EthAccountType } from '@metamask/keyring-api';
+import { internalAccount1 as mockAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,14 +22,8 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 const mockGoBack = jest.fn();
-
 const mockNavigate = jest.fn();
-const mockSelectedAccount = createMockInternalAccount(
-  '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
-  'Test Account',
-  KeyringTypes.hd,
-  EthAccountType.Eoa,
-);
+const mockGetInternalAccountByAddress = jest.fn().mockReturnValue(mockAccount);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -41,9 +34,14 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn((callback) => callback()),
   useRoute: () => ({
     params: {
-      account: mockSelectedAccount,
+      account: mockAccount,
     },
   }),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  getInternalAccountByAddress: () => mockGetInternalAccountByAddress(),
 }));
 
 const mockExportAccount = jest.fn();
@@ -63,15 +61,15 @@ const render = () => {
         AccountsController: {
           internalAccounts: {
             accounts: {
-              [mockSelectedAccount.id]: mockSelectedAccount,
+              [mockAccount.id]: mockAccount,
             },
-            selectedAccount: mockSelectedAccount.id,
+            selectedAccount: mockAccount.id,
           },
         },
         KeyringController: {
           keyrings: [
             {
-              accounts: [mockSelectedAccount.address],
+              accounts: [mockAccount.address],
               type: KeyringTypes.hd,
               metadata: {
                 id: 'mock-id',
@@ -120,7 +118,7 @@ describe('RevealPrivateKey', () => {
   it('displays account name correctly', () => {
     const { getByText } = render();
 
-    expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
+    expect(getByText(mockAccount.metadata.name)).toBeTruthy();
   });
 
   it('navigates back when back button is pressed', () => {
