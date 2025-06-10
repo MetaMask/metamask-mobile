@@ -400,7 +400,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
-          const response = await fetch(gatewayUrl);
+          const response = await fetch(gatewayUrl, {
+            headers: {
+              'User-Agent': 'MetaMask Mobile Browser',
+            }
+          });
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);

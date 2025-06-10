@@ -51,6 +51,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
+    isEvmOnly,
   } = routeParams || {};
 
   const reloadAccounts = useSelector(
@@ -67,7 +68,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }),
     [checkBalanceError, reloadAccounts],
   );
-  const { accounts, ensByAccountAddress } = useAccounts(accountsParams);
+
+  const {
+    accounts: allAccounts,
+    ensByAccountAddress,
+    evmAccounts,
+  } = useAccounts(accountsParams);
+
+  const accounts = isEvmOnly ? evmAccounts : allAccounts;
+
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );

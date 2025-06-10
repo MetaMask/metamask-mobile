@@ -19,7 +19,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { processFiatOrder } from '../../index';
+import { processFiatOrder } from '../../../index';
 import {
   createNavigationDetails,
   useParams,

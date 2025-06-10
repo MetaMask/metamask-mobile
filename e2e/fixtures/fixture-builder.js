@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-
-import { getGanachePort } from './utils';
+import { device } from 'detox';
+import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -258,6 +258,20 @@ class FixtureBuilder {
                     },
                   ],
                 },
+                '0xe708': {
+                  blockExplorerUrls: [],
+                  chainId: '0xe708',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Linea Main Network',
+                  nativeCurrency: 'LineaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'linea-mainnet',
+                      type: 'infura',
+                      url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
               },
             },
             PhishingController: {
@@ -304,7 +318,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
-                    scopes: ['eip155:0']
+                    scopes: ['eip155:0'],
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -455,6 +469,11 @@ class FixtureBuilder {
             {
               url: 'https://google.com',
               id: 1692550481062,
+            },
+            {
+              url: getSecondTestDappLocalUrl(),
+              id: 1749234797566,
+              isArchived: false,
             },
           ],
           activeTab: 1692550481062,
@@ -740,7 +759,7 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}) {
+  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -756,7 +775,7 @@ class FixtureBuilder {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
         parentCapability: Caip25EndowmentPermissionName,
-        invoker: DAPP_URL,
+        invoker: dappUrl,
         caveats: [
           {
             type: Caip25CaveatType,
@@ -769,8 +788,8 @@ class FixtureBuilder {
 
     return {
       subjects: {
-        [DAPP_URL]: {
-          origin: DAPP_URL,
+        [dappUrl]: {
+          origin: dappUrl,
           permissions: basePermissions,
         },
       },
@@ -782,9 +801,17 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
+    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+      );
+    }
     this.withPermissionController(
-      this.createPermissionControllerConfig(additionalPermissions),
+      merge(testDappPermissions, secondDappPermissions)
     );
 
     // Ensure Solana feature modal is suppressed
@@ -1040,33 +1067,6 @@ class FixtureBuilder {
     return this;
   }
 
-  withImportedHdKeyringController() {
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings: [
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_FIXTURE_ACCOUNT],
-          metadata: {
-            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
-            name: '',
-          },
-        },
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
-          metadata: {
-            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
-            name: '',
-          },
-        },
-      ],
-      // TODO: update this
-      vault:
-        '{"cipher":"IpV+3goe8Vey0mmfHz6DT0NiLwcTbjeglBI+WckZ/HeW0JcyE6kK9rBaqiZ+I0adwWAysIf/OanwvpE5YkYw9xYEkVXDUBQ/0lmscFGatXl24hadMdD01MRkKH6qyjUUw6ZqqmFnIRFbSwwYtD1X8UaRDhX+k/vnzAD9ETFW2cUpji7n5VU5hJQYOaCDO6hUxzE55scp2k68bDm/26EJ5SVgcsDXP/BW/MKnsqGGLAIPtQbVYUVChQ9D150WJif3HLJS1p0SSdGluL85JBLEQqShbBRZ3SiAHtJilf3oQBJB/YcAM6j6Uo7Sf+gAhc7cOvMYQ+YrTc+0Solzfa2OkLemskd4IOIVj6vWY+w0TPLo1IYSR1mFE2JVXE064zhUO0PKXME1qENQTiQCAAIfeEBwfdbQfrv92Zo/nU4VFyzdC3Rf+WPmWjLMXkZYqb1PdwhcgY85EpdFcjZAtcye6VF2iBTO0nMmZIyUabI/3RFizUgKtTlNH/H4NOLTm2HwUHOwAe4pxBbtEIFyuqo050n7UAJftN14Lp+/0kmraguFvsf0sg+AWXK5Tk9Bmkqm74bCuvmDCw2l28/+VEXOiYvytr9105NstlOnG/MmIJoYx8NkIJr5jMSCRtX8byBGRT+lhNq70CjWZIub5USmHkRdx1AuBAipQCdTjisaS2QRPwcA7M4PFbE2ltil1TavcRGRo+xa5nKji04jsx9AotAKkCqUPTOFr/h+WazGtx5+LWTAGXPUe9YtUraBCABXdnNhq7t7dXR7ivaZLkl6oXhQN6u2wmGRRvg3D36gddFVgDcqNafk/y82e0uWAu3F9VrGynYd0t7txkmzup1J19kpBlv7YVWy17J2MT3/PkatNrqdo21qFlhnYAcYKBC52MMInaY8qwQWXLMPud+cDdSR7QDLefl2AQEvH+hyzh2DI6d3Wri17LjujvSRdcwjAitylxnz9k4H2IAgJLlXIh5W69C+JdsNzoHanuJd+Hk=","iv":"68e751a7883bd7119118ebd2b3d30a6f","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"pOiYCrlywkH4UDFq/IHIKg=="}',
-    });
-    return this;
-  }
-
   withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1074,7 +1074,7 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
           metadata: {
-            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
+            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
             name: '',
           },
         },
@@ -1082,14 +1082,13 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
           metadata: {
-            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
+            id: '01JX9NZWRAVQKES02TWSN8GD91',
             name: '',
           },
         },
       ],
-      // TODO: update this
       vault:
-        '{"cipher":"wWIegxm+og31XAr34sZAkaf+wsuIycthFqmLa2mA0zxD0HSJKp1uITa4dJ94uGN10RgaDHHRmqpLzMqx7l7W+LiG6KMkdaPiZUqDLq3zdQVecY+rwWt+G4DZbIrZC6jUMopKTdvSv0Lrzb3fRnsQ1sDJ4R99OY8Dvhloc4V+rgi43rLc4eT7DB7zLlK0GuUtxfZwStJVeq5lBlYsVNrsZF2kfBCZQxqZGxLlSk6qaIP8HNY/ptttB/ZdOBjYYPqZkr5J5oUhmiIQDqN+MqsjUrOEmfz9fP3HIi8IxCFGA94G1tvDClMHMqpzwYsBQpcA0k7NJiSc+UdB8dcilXQLXF33PvQKSbgVeXuNkgKgnWPGtsGxPTJ0gIxCBxsW0MmyYvyBsHO8BoocflrOaqkXvSwmXUja9aQwHdZAmayvxWXnIE4MRAD1nLnvXdMO+qY+nW3yCvw5R6DoNBtnQIk9cKCuj2UL0/fxhNDdfbK8rhTyPZMRqRH2dhhuji71V+OeQBPV1/R0srvSUggOfSmcxVNe+ok5SJdzJpCavXE4/JVwTPe1Jrr/uz4AC4R2ih7lDBPFZnNXy7uSRn0lZWbKZFoM6jkLO7oTn9UN1C+YcteyNqkDiYGNJ0zxjuMzU/r6aJGAlvKGCkvBph3ON9vfD2ARAwpSSIFckh4a6t37vmKzmpsW7tQE95uqJHe7h+KMraWxtqlCCWB6BsJkpbm0BqjBdg8zUH8pP0GA0un3KCJjUEfTOWw+Yn69IkJQzX1Jyr5Hepzt500Va7K7kDDlFG4KFUt5RO80GnT7jtRGPGjPx29pKK2Zp61dmP5BZu+0xnXMlSGozJv+dgRCsZuzqvzUu5/44jYpggHrApNk5hhw0crBeovV+EgHE2VVnGNdLwwSngJ00b/cUnCUsPW0FjR7IscaI96eslFAPkdZXr70zXPVzA/NiE05ADciMoZxD8Qv8dGGU+yQMnDo2wABv+YEroO3VOtJiKBPqIB0GC0=","iv":"1ccda0516bc876f905e08e76bad201b9","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"E9val7NN4h2AfX/pwUkd9aa2iNyn+LwIurZXIdxlG/o="}',
+        '{"cipher":"0ItM5QzNA6pT0De09iJtURXuNiwwoeZnf7vt/Mx7P05EDzh+5m9agA4w2JrPM0favpgKpL6AlZ81CebDkVSdE5OSBon37N1Xs5F0DEbJxdw0NjmeDZaZlAHNcr7XJiXDsRW+Udz67y6DO8S1MdC2Ju/qthj04nEdaofDHR6qEtM5OYLYG9LHsf/UzqtAwe/5LHbaJtQCvM2JLLfk0BQTg9s5Fce5Nk6YkPHQ1JlUc9WXNRv90Iyclwh08lIr93A6RHNlzSYHRyfpGE5lZv5Soe2m5ZlOKBCDUQFLWjh5vCqFHMaMpMkfrqhdNBaZvHERCpppp2FARn0ufmWsn4/KJdCrxL438BRufDaXdbG8KfrEHmx9r10YjBAv3GFDUYahene8GyuwP/OTvL9i4PfN6CUGaS5sLY4kWBFFDIASlCahtMatp23+G+4I1z0x2O2XOIMiegqqkXZU/uXuDoAeSQ7jTuKzoE4rCXm67DXepECoBCrX1/gWwRQ9hLeyz4KpYfmL05tN0fzWEiMeCi50gpy0Da6QYzPoWyYYURFbE5iPU7XIqww/RtIpzw3UBCtAGuohsxf/hkK27SNcN4k1eW+Bym6G1H7BjhQSFAft2/mi4fuOHsUX+seu3Wqy3uhE0/fu0fazqX4NloiHZbDXq90CCnIUn+owW8ORsSSRO4NywjXARdeU3VtW8j25E7Q37vJ9OIoLqVE9GVyDCN7Gdn88eaBUk14qe5YzYrx3K9KSbz3MVcPmYKaZFR1+qeLWPDVzYFsZHcrGQuSgY33qF9KuI2PAZUuzwA1xroHZxZlGIH5JJSvglHKxNLkK57PK5Y6tb0EGjrVFYUhc/xvCQoMHq20aRGHqqhKL2Ij3ASnSdkTvE1Q1pb3/NpO4NVHxowocYjWGQbp7RHGm1h6BwenzGdli/4XX8iocnjkz4dkzlkXyTwmvh9enyt1bAo6ZpiLNTIMYV2Uvc4E8xP+KRoBXHhTuwHqWbu/jTg6byZjh3bJ4CcXk/CB26ymLzH5GaY4wTTpZnkhUYXa/jW1TexvwnVkD5rzin1S7wYv4Qq3cnLP+J1MwOcjl+94eHYvxVk5xBd3hBt1QDINDEfClzHvq4aV3GSuQXMRlKWcnOmtUzpcrHAmiR4hk4w5E3mCgcJeP3MJo3819Do1vWMLXEUpZfT5Z65Q/HAGpaxh9YZ9yuZkJ+rQe1AX6+hMjG0r+IDtY+MtJ0/AjBwic2H5O7w/7Ztkoy9mLTidR4U0eAWxRMo+/Xx8/gEiJk4pxB/jQbyLFCr8+XySmyx0BnVLyE1sYMb9xXrd7ivm2k0iBtUDtM51frR12m60zT90ecxCxwniwuRGZgf1R/ZI2nBru1begmchDGguDbtmv9wO88USFYXLBP24LiJLJw+1TxooFCAz7r78FPW4wuvBonzCEQnJPSZm9wK7Z/ymmz3RMoBhPobrkp0afX8YY2EpExrMF5yUwrQdg8qld6B9kQWz69C8+wn5YOjTgDp1q2oNF4adC21Mz3klldzpk7JAO+KWe4tAJJj8HicP+IBe2PW9SheBM3Xb77SF0q/SKe1suriYh4d5lVcM2lWY1ryky5upw","iv":"0df9d14eb4d5c6729eacff6ba9cda8dd","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
     });
     return this;
   }
