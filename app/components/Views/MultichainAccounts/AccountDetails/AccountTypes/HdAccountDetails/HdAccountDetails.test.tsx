@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { HDAccountDetails } from './HdAccountDetails';
+import { HdAccountDetails } from './HdAccountDetails';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -69,7 +69,7 @@ describe('HDAccountDetails', () => {
     mockIsEvmAccountType.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
-      <HDAccountDetails account={mockEvmAccount} />,
+      <HdAccountDetails account={mockEvmAccount} />,
       { state: mockInitialState },
     );
 
@@ -82,7 +82,7 @@ describe('HDAccountDetails', () => {
     mockIsEvmAccountType.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
-      <HDAccountDetails account={mockEvmAccount} />,
+      <HdAccountDetails account={mockEvmAccount} />,
       { state: mockInitialState },
     );
 

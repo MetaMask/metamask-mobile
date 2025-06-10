@@ -5,6 +5,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import {
   isHDOrFirstPartySnapAccount,
   isPrivateKeyAccount,
+  areAddressesEqual,
 } from '../../../../../../util/address';
 import styleSheet from './ExportCredentials.styles';
 import Text, {
@@ -51,8 +52,8 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const srpName = useMemo(() => {
     const keyringIndex = hdKeyringsWithSnapAccounts.findIndex((keyring) =>
-      keyring.accounts.find(
-        (address) => address.toLowerCase() === account.address.toLowerCase(),
+      keyring.accounts.find((address) =>
+        areAddressesEqual(address, account.address),
       ),
     );
 
@@ -67,7 +68,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   const showSeedphraseBackedUp = useMemo(() => {
     const [primaryKeyring] = hdKeyringsWithSnapAccounts;
     const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
-      (address) => address.toLowerCase() === account.address.toLowerCase(),
+      (address) => areAddressesEqual(address, account.address),
     );
 
     return !seedphraseBackedUp && accountAssociatedWithPrimaryKeyring;

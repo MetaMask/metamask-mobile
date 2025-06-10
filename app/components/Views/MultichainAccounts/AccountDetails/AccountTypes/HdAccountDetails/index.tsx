@@ -1,1 +1,1 @@
-export { HDAccountDetails as default } from './HdAccountDetails';
+export { HdAccountDetails as default } from './HdAccountDetails';

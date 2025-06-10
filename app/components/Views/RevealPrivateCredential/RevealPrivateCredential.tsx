@@ -135,7 +135,7 @@ const RevealPrivateCredential = ({
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
 
-  // Address will always be defined because the checkSummedAddress is the selectedAccount
+  // Address will always be defined because checkSummedAddress is the selectedAccount's address
   const account = getInternalAccountByAddress(selectedAddress as string);
 
   const isPrivateKey = credentialSlug === PRIVATE_KEY;

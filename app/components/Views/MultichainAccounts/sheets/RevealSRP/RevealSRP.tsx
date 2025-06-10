@@ -32,12 +32,12 @@ import { ButtonSize } from '../../../../../component-library/components/Buttons/
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 
 interface RootNavigationParamList extends ParamListBase {
-  RevealPrivateSRP: {
+  RevealSRP: {
     account: InternalAccount;
   };
 }
 
-type RevealSRPProp = RouteProp<RootNavigationParamList, 'RevealPrivateSRP'>;
+type RevealSRPProp = RouteProp<RootNavigationParamList, 'RevealSRP'>;
 
 export const RevealSRP = () => {
   const route = useRoute<RevealSRPProp>();
