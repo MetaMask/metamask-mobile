@@ -11,6 +11,7 @@ import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmark
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
+import { web, by } from 'detox';
 
 class Browser {
   get searchButton() {
@@ -124,6 +125,7 @@ class Browser {
       url,
     );
   }
+  
 
   async tapUrlInputBox() {
     await Gestures.waitAndTap(this.addressBar);
@@ -196,6 +198,12 @@ class Browser {
 
   async waitForBrowserPageToLoad() {
     await TestHelpers.delay(5000);
+  }
+
+  async getWebElementText(elementId) {
+    const browserWebView = web(by.id('browser-webview'));
+    const webElement = browserWebView.element(by.web.id(elementId));
+    return await webElement.getText();
   }
 
   async navigateToTestDApp() {
