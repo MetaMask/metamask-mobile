@@ -199,7 +199,7 @@ describe('AccountBackupStep1', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Engine.hasFunds as jest.Mock).mockReturnValue(false);
 
-    const { wrapper, mockNavigate } = setupTest();
+    const { wrapper } = setupTest();
 
     // Verify AndroidBackHandler is rendered
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
@@ -207,6 +207,16 @@ describe('AccountBackupStep1', () => {
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
+
+  });
+
+  it('navigates to SkipAccountSecurityModal when customBackPress is called', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (Engine.hasFunds as jest.Mock).mockReturnValue(false);
+
+    const { wrapper, mockNavigate } = setupTest();
+
+    const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
 
     // Test that pressing back triggers the correct navigation
     androidBackHandler.props.customBackPress();
