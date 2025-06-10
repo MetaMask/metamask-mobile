@@ -69,7 +69,6 @@ import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectSwapsAggregatorMetadata,
   selectSwapsApprovalTransaction,
@@ -92,6 +91,7 @@ import { useTheme } from '../../../util/theme';
 import {
   getAddressAccountType,
   isHardwareAccount,
+  areAddressesEqual,
 } from '../../../util/address';
 import {
   selectEvmChainId,
@@ -107,7 +107,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
@@ -363,7 +363,7 @@ async function addTokenToAssetsController(newToken, chainId, networkClientId) {
   if (
     !isSwapsNativeAsset(newToken) &&
     !allTokens.includes((token) =>
-      toLowerCaseEquals(token.address, newToken.address),
+      areAddressesEqual(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
@@ -425,10 +425,10 @@ function SwapsQuotesView({
 
   /* Get tokens from the tokens list */
   const sourceToken = [...swapsTokens, ...tokens].find((token) =>
-    toLowerCaseEquals(token.address, sourceTokenAddress),
+    areAddressesEqual(token.address, sourceTokenAddress),
   );
   const destinationToken = [...swapsTokens, ...tokens].find((token) =>
-    toLowerCaseEquals(token.address, destinationTokenAddress),
+    areAddressesEqual(token.address, destinationTokenAddress),
   );
 
   /* State */

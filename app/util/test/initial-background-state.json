@@ -445,6 +445,7 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": {
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
@@ -510,6 +511,7 @@
     }
   },
   "DeFiPositionsController": {
-    "allDeFiPositions": {}
+    "allDeFiPositions": {},
+    "allDeFiPositionsCount": {}
   }
 }

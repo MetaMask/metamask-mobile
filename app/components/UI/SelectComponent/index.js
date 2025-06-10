@@ -74,7 +74,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      height: Device.isIos() ? ROW_HEIGHT : undefined,
+      height: ROW_HEIGHT,
     },
     optionLabel: {
       flex: 1,
@@ -120,7 +120,7 @@ export default class SelectComponent extends PureComponent {
     pickerVisible: false,
   };
 
-  scrollView = Device.isIos() ? React.createRef() : null;
+  scrollView = React.createRef();
 
   onValueChange = (val) => {
     this.props.onValueChange(val);
@@ -136,11 +136,10 @@ export default class SelectComponent extends PureComponent {
   showPicker = () => {
     dismissKeyboard();
     this.setState({ pickerVisible: true });
-    Device.isIos() &&
-      // If there are more options than 13 (number of items
-      // that should fit in a normal screen)
-      // then let's scroll to the selected item
-      this.props.options.length > 13 &&
+    // If there are more options than 13 (number of items
+    // that should fit in a normal screen)
+    // then let's scroll to the selected item
+    this.props.options.length > 13 &&
       this.props.options.forEach((item, i) => {
         if (item.value === this.props.selectedValue) {
           setTimeout(() => {

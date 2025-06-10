@@ -10,8 +10,6 @@ import {
   Alert,
   BackHandler,
   ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -404,7 +402,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         });
         if (type === 'ipfs-ns') {
           gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
-          const response = await fetch(gatewayUrl);
+          const response = await fetch(gatewayUrl, {
+            headers: {
+              'User-Agent': 'MetaMask Mobile Browser',
+            }
+          });
           const statusCode = response.status;
           if (statusCode >= 400) {
             Logger.log('Status code ', statusCode, gatewayUrl);
@@ -702,13 +704,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [
-    activeChainId,
-    navigation,
-    isFocused,
-    isInTabsView,
-    isTabActive,
-  ]);
+  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
 
   /**
    * Handles state changes for when the url changes
@@ -1083,12 +1079,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     if (!isPerDappSelectedNetworkEnabled()) {
       checkTabPermissions();
     }
-  }, [
-    checkTabPermissions,
-    isFocused,
-    isInTabsView,
-    isTabActive,
-  ]);
+  }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
 
   const handleEnsUrl = useCallback(
     async (ens: string) => {
@@ -1248,7 +1239,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
-
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,
@@ -1390,8 +1380,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
@@ -1500,7 +1489,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           {renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ErrorBoundary>
   );
 });
@@ -1508,8 +1497,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
-  selectedAddress:
-    selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
   activeChainId: selectEvmChainId(state),
