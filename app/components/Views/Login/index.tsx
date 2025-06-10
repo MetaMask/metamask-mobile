@@ -54,7 +54,14 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  bufferedTrace,
+  bufferedEndTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+} from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -91,6 +98,12 @@ import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 
+interface LoginRouteParams {
+  locked: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: unknown;
+}
+
 /**
  * View where returning users can authenticate
  */
@@ -112,13 +125,7 @@ const Login: React.FC = () => {
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route =
-    useRoute<
-      RouteProp<
-        { params: { locked: boolean; oauthLoginSuccess?: boolean } },
-        'params'
-      >
-    >();
+  const route = useRoute<RouteProp< { params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -135,6 +142,7 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -148,6 +156,21 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
+    trace({
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+      parentContext: parentSpanRef.current,
+    });
+
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      passwordLoginAttemptTraceCtxRef.current = bufferedTrace({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED).build(),
     );
@@ -336,6 +359,13 @@ const Login: React.FC = () => {
         if (onboardingWizard) {
           setOnboardingWizardStep(1);
         }
+        if (passwordLoginAttemptTraceCtxRef.current) {
+          bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+          passwordLoginAttemptTraceCtxRef.current = null;
+        }
+        bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+
         if (isMetricsEnabled()) {
           navigation.reset({
             index: 0,
@@ -425,6 +455,18 @@ const Login: React.FC = () => {
         setError(loginErrorMessage);
       }
       Logger.error(loginError, 'Failed to unlock');
+
+      // Check if we are in the onboarding flow
+      const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtxFromRoute) {
+        bufferedTrace({
+          name: TraceName.OnboardingPasswordLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage: loginErrorMessage },
+          parentContext: onboardingTraceCtxFromRoute,
+        });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginError });
+      }
     }
   };
 
