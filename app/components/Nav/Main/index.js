@@ -211,8 +211,8 @@ const Main = (props) => {
     </View>
   );
   const skipAccountModalSecureNow = () => {
-    props.navigation.navigate('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
+    props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
       params: { backupFlow: true },
     });
   };

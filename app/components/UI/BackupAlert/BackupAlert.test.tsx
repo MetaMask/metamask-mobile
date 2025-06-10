@@ -3,6 +3,7 @@ import React from 'react';
 import BackupAlert from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
   user: {
@@ -46,11 +47,14 @@ describe('BackupAlert', () => {
     );
     const rightButton = getByTestId('protect-your-wallet-button');
     fireEvent.press(rightButton);
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('SetPasswordFlow', {
-      screen: 'ManualBackupStep1',
-      params: {
-        backupFlow: true,
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      Routes.SET_PASSWORD_FLOW.ROOT,
+      {
+        screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
+        params: {
+          backupFlow: true,
+        },
       },
-    });
+    );
   });
 });
