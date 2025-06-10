@@ -1622,7 +1622,7 @@ PODS:
     - React-Core
   - react-native-background-timer (2.1.1):
     - React
-  - react-native-ble-plx (3.1.2):
+  - react-native-ble-plx (3.4.0):
     - DoubleConversion
     - glog
     - MultiplatformBleAdapter (= 0.2.0)
@@ -2900,7 +2900,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 9ae4714c1a76935a53fed603a4b44ac6f650a3f1
   react-native-aes: e8b2e113d532b0efb6449754492aee9c218dd502
   react-native-background-timer: 007ff829f79644caf2ed013e22f0563560336f86
-  react-native-ble-plx: df4151092df39a5512486cf99da0b5725f964c8b
+  react-native-ble-plx: b1a8203898d3d108fd13a38759f11833a94b8fcb
   react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0

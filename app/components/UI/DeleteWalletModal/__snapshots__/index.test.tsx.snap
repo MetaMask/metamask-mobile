@@ -429,309 +429,213 @@ exports[`DeleteWalletModal should render correctly 1`] = `
                                 "alignItems": "flex-start",
                                 "flexDirection": "column",
                                 "justifyContent": "flex-start",
-                                "paddingHorizontal": 16,
-                                "rowGap": 24,
+                                "padding": 16,
+                                "rowGap": 16,
                                 "width": "100%",
                               }
                             }
                           >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 18,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "marginLeft": "auto",
+                                  "marginRight": "auto",
+                                  "textAlign": "center",
+                                  "width": "80%",
+                                }
+                              }
+                            >
+                              Forgot your password?
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 16,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              MetaMask can’t recover your password for you.
+                            </Text>
                             <View
                               style={
                                 {
-                                  "alignSelf": "center",
+                                  "alignItems": "flex-start",
                                   "flexDirection": "column",
-                                  "justifyContent": "center",
-                                  "paddingVertical": 24,
+                                  "justifyContent": "flex-start",
+                                  "marginVertical": 8,
                                   "rowGap": 16,
                                   "width": "100%",
                                 }
                               }
-                              testID="delete-wallet-modal-container"
                             >
-                              <SvgMock
-                                color="#ca3542"
-                                fill="currentColor"
-                                height={32}
-                                name="Danger"
+                              <View
                                 style={
                                   {
-                                    "alignSelf": "center",
-                                    "height": 32,
-                                    "width": 32,
+                                    "alignItems": "flex-start",
+                                    "columnGap": 16,
+                                    "flexDirection": "row",
+                                    "justifyContent": "flex-start",
+                                    "width": "100%",
                                   }
                                 }
-                                width={32}
-                              />
+                              >
+                                <SvgMock
+                                  color="#9ca1af"
+                                  fill="currentColor"
+                                  height={20}
+                                  name="FaceId"
+                                  style={
+                                    {
+                                      "height": 20,
+                                      "width": 20,
+                                    }
+                                  }
+                                  width={20}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "width": "90%",
+                                    }
+                                  }
+                                >
+                                  If you’re logged into MetaMask on a device with
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": "700",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    biometrics turned on
+                                  </Text>
+                                   
+                                  (like Face ID), you can reset your password there.
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "columnGap": 16,
+                                    "flexDirection": "row",
+                                    "justifyContent": "flex-start",
+                                    "width": "100%",
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#9ca1af"
+                                  fill="currentColor"
+                                  height={20}
+                                  name="SecurityKey"
+                                  style={
+                                    {
+                                      "height": 20,
+                                      "width": 20,
+                                    }
+                                  }
+                                  width={20}
+                                />
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "width": "90%",
+                                    }
+                                  }
+                                >
+                                  If you have your
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontSize": 16,
+                                        "fontWeight": "700",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Secret Recovery Phrase,
+                                     
+                                  </Text>
+                                  you can reset your current wallet and reimport using Secret Recovery Phrase.
+                                </Text>
+                              </View>
+                            </View>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#ca3542",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                            >
                               <Text
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontSize": 18,
-                                    "fontWeight": "700",
+                                    "color": "#ffffff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "textAlign": "center",
-                                    "width": "80%",
                                   }
                                 }
                               >
-                                Are you sure you want to erase your wallet?
+                                Reset wallet
                               </Text>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "flex-start",
-                                    "flexDirection": "column",
-                                    "justifyContent": "flex-start",
-                                    "rowGap": 24,
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "left",
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  Your wallet, accounts, and assets will be
-                                   
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                        "textAlign": "left",
-                                        "width": "100%",
-                                      }
-                                    }
-                                  >
-                                     permanently removed from this app
-                                  </Text>
-                                   
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    This action cannot be undone.
-                                  </Text>
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "left",
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "flex-start",
-                                    "flexDirection": "column",
-                                    "justifyContent": "flex-start",
-                                    "rowGap": 2,
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Type ‘erase’ to confirm
-                                </Text>
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc8",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "opacity": 1,
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="textfield"
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                      }
-                                    }
-                                  >
-                                    <TextInput
-                                      autoCapitalize="none"
-                                      autoFocus={false}
-                                      editable={true}
-                                      keyboardAppearance="light"
-                                      onBlur={[Function]}
-                                      onChangeText={[Function]}
-                                      onFocus={[Function]}
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "transparent",
-                                          "borderWidth": 1,
-                                          "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
-                                          "fontSize": 16,
-                                          "fontWeight": "400",
-                                          "height": 24,
-                                          "letterSpacing": 0,
-                                          "opacity": 1,
-                                          "paddingVertical": 0,
-                                        }
-                                      }
-                                      testID="input"
-                                      value=""
-                                    />
-                                  </View>
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "flex-start",
-                                    "flexDirection": "column",
-                                    "justifyContent": "flex-start",
-                                    "marginTop": 24,
-                                    "rowGap": 16,
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={true}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#ca3542",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "opacity": 0.5,
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="delete-my-wallet-button-on-permanetly-delete-modal"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Yes, erase wallet
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "transparent",
-                                      "borderColor": "#4459ff",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
-                                  testID="delete-modal-cancel-button"
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#4459ff",
-                                        "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Cancel
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>

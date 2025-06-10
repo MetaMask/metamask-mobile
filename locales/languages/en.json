@@ -37,6 +37,18 @@
       "title": "Insufficient funds",
       "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
       "buy_action": "Buy %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "A previous transaction is still being signed or submitted."
+    },
+    "pending_transaction": {
+      "title": "Pending transaction",
+      "message": "This transaction won't go through until the previous transaction is complete.",
+      "learn_more": "Learn how to cancel or speed up a transaction."
+    },
+    "batched_unused_approvals": {
+      "title": "Unnecessary permission",
+      "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     }
   },
   "blockaid_banner": {
@@ -133,18 +145,18 @@
     "scan_step_3": "Click on “Sync with Mobile”",
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
-    "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Erasing current wallet",
     "continue_with_google": "Continue with Google",
     "continue_with_apple": "Continue with Apple",
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
     "continue_with_srp": "Continue with Secret Recovery Phrase",
-    "have_existing_wallet": "I have an existing wallet",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
-    "sign_in_with_apple": "Sign in with Apple"
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "Your wallet was successfully reset",
+    "delete_current": "Reset current wallet",
+    "have_existing_wallet": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -280,13 +292,13 @@
     "password_placeholder": "Enter password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
-    "reset_wallet": "Erase wallet",
+    "forgot_password": "Forgot password?",
     "cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
     "invalid_password": "Password is incorrect, try again.",
     "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, erase wallet",
+    "erase_my": "Yes, reset wallet",
     "cancel": "Cancel",
-    "are_you_sure": "Are you sure you want to erase your wallet?",
+    "are_you_sure": "Are you sure?",
     "your_current_wallet": "Your wallet, accounts, and assets will be",
     "removed_from": " permanently removed from this app",
     "this_action": "This action cannot be undone.",
@@ -305,7 +317,23 @@
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}} seconds.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
-    "other_methods": "Use another method"
+    "other_methods": "Use another method",
+    
+    "forgot_password_desc": "Forgot your password?",
+    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
+    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
+    "forgot_password_point_1_bold": "biometrics turned on",
+    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_2": "If you have your",
+    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
+    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
+    "reset_wallet": "Reset wallet",
+    "reset_wallet_desc": "Your wallet data will be",
+    "reset_wallet_desc_bold": "permanently erased",
+    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
+    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+   
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
@@ -463,21 +491,44 @@
   },
   "deposit": {
     "title": "Deposit",
-    "email_auth": {
+    "enter_email": {
       "title": "Enter your email",
-      "email": {
-        "description": "We'll send a six-digit code to your email to check it's you.",
-        "input_label": "Email",
-        "input_placeholder": "name@domain.com",
-        "submit_button": "Send email",
-        "loading": "Sending email..."
-      },
-      "code": {
-        "description": "Enter the code we sent to your email",
-        "submit_button": "Submit",
-        "loading": "Verifying code...",
-        "invalid_code_error": "Invalid code"
-      }
+      "description": "We'll send a six-digit code to your email to check it's you.",
+      "input_label": "Email",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Send email",
+      "loading": "Sending email...",
+      "validation_error": "Please enter a valid email address"
+    },
+    "otp_code": {
+      "title": "Enter six-digit code",
+      "description": "Enter the 6-digit code we sent to {{email}}. If you don't see it in your inbox, check your spam folder.",
+      "submit_button": "Submit",
+      "loading": "Verifying code...",
+      "invalid_code_error": "Invalid code",
+      "validation_error": "Please enter a valid code"
+    },
+    "verify_identity": {
+      "title": "Verify your identity",
+      "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
+      "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
+      "button": "Get started"
+    },
+    "basic_info": {
+      "title": "Enter your basic info",
+      "continue": "Continue",
+      "subtitle": "To begin verifying your identity, we need some basic information."
+    },
+    "enter_address": {
+      "title": "Enter your address",
+      "subtitle": "Please enter your most recent permanent address.",
+      "continue": "Continue",
+      "address_line_1": "Address line 1",
+      "address_line_2": "Address line 2 (optional)",
+      "state": "State/Region",
+      "city": "City",
+      "postal_code": "Postal/Zip Code",
+      "country": "Country"
     }
   },
   "receive": {
@@ -805,7 +856,8 @@
     "circulating_supply": "Circulating supply",
     "all_time_high": "All time high",
     "all_time_low": "All time low",
-    "fully_diluted": "Fully diluted"
+    "fully_diluted": "Fully diluted",
+    "unknown": "Unknown"
   },
   "collectible": {
     "collectible_address": "Address",
@@ -842,6 +894,7 @@
     "srp_index": "SRP #{{index}}",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
+    "new_account": "New account",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
@@ -911,7 +964,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
-    }
+    },
+    "account_connect_create_initial_account": {
+      "description": "A Solana account is required to connect to this site.",
+      "button": "Create Solana account"}
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -1322,6 +1378,8 @@
     "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
+    "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
+    "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
@@ -1844,13 +1902,7 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp connection coming soon",
-        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
-      }
-    }
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1956,7 +2008,38 @@
     "network_fee_tooltip": "Amount paid to process the transaction on network.",
     "smart_account_upgrade": "Upgrade to smart account",
     "smart_account_downgrade": "Switch to standard account",
-    "batched_transactions": "Batched transactions"
+    "batched_transactions": "Batched transactions",
+    "gas_modal": {
+      "edit_network_fee": "Edit network fee",
+      "advanced_gas_fee": "Advanced network fee",
+      "site_suggested": "Site suggested",
+      "advanced": "Advanced",
+      "low": "Low",
+      "medium": "Market",
+      "high": "Aggressive",
+      "network_suggested": "Network suggested",
+      "gas_limit": "Gas Limit",
+      "save": "Save",
+      "max_base_fee": "Max Base Fee",
+      "priority_fee": "Priority Fee",
+      "current_priority_fee": "Current: {{min}} - {{max}} GWEI",
+      "historical_priority_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "estimated_base_fee": "Current: {{value}} GWEI",
+      "historical_base_fee": "12 hr: {{min}} - {{max}} GWEI",
+      "gas_price": "Gas price",
+      "field_required": "{{field}} is required",
+      "max_base_fee_required": "Max base fee is required",
+      "gas_price_required": "Gas price is required",
+      "priority_fee_required": "Priority fee is required",
+      "gas_limit_required": "Gas limit is required",
+      "only_numbers_allowed": "Only numbers are allowed",
+      "negative_values_not_allowed": "Negative values are not allowed",
+      "max_base_fee_must_be_greater_than_priority_fee": "Max base fee must be greater than priority fee",
+      "gas_limit_too_low": "Gas limit must be greater than 21000",
+      "priority_fee_too_high": "Priority fee must be less than max base fee",
+      "no_zero_value": "{{field}} must be greater than 0",
+      "speed": "Speed"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -2371,7 +2454,8 @@
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
-    "learn_more": "Learn More"
+    "learn_more": "Learn More",
+    "password": "Password"
   },
   "manual_backup_step_2": {
     "steps": "Step {{currentStep}} of {{totalSteps}}",
@@ -3747,7 +3831,9 @@
       "reward_frequency": "Frequency at which your rewards are accounted for.",
       "withdrawal_time": "The time it takes to withdraw your token from the protocol and get it back in your wallet",
       "receive": "This token is used to track your assets and rewards. Do not transfer or trade them, or you won’t be able to withdraw your assets."
-    }
+    },
+    "withdraw": "Withdraw",
+    "deposit_more": "Deposit more"
   },
   "stake": {
     "stake": "Stake",
@@ -3914,7 +4000,7 @@
     "failed": "There was an error loading your estimation.",
     "fiat_not_available": "Not Available",
     "incoming_heading": "You receive",
-    "no_balance_changes": "No changes predicted for your wallet",
+    "no_balance_changes": "No changes",
     "outgoing_heading": "You send",
     "reverted": "This transaction is likely to fail",
     "title": "Estimated changes",
@@ -4021,8 +4107,12 @@
       "resources": "Resources"
     },
     "simulation": {
+      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
+      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
+      "edit_approval_limit_title": "Edit approval limit",
+      "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
@@ -4033,7 +4123,9 @@
       "label_change_type_receive": "You receive",
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
+      "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
@@ -4056,14 +4148,17 @@
         "upgradeBannerDescription": "Same address. Smarter features.",
         "upgradeBannerTitle": "Switch to smart account"
       },
-    "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions"
     },
     "unlimited": "Unlimited",
+    "all": "All",
     "none": "None",
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
+    "data": "Data",
     "review": "Review",
-    "transferRequest": "Transfer request"
+    "transferRequest": "Transfer request",
+    "nested_transaction_heading": "Transaction {{index}}"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -4084,6 +4179,8 @@
   },
   "bridge": {
     "continue": "Continue",
+    "confirm_bridge": "Confirm Bridge",
+    "confirm_swap": "Confirm Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
@@ -4113,7 +4210,8 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
-    "fee_disclaimer": "Includes 0.875% MM fee"
+    "fee_disclaimer": "Includes 0.875% MM fee",
+    "hardware_wallet_not_supported": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -4192,7 +4290,7 @@
     "enable": {
       "title": "Turn on backup and sync",
       "confirmation": "When you turn on backup and sync, you’re also turning on basic functionality. Do you want to continue?",
-      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask.",
+      "description": "Backup and sync lets us store encrypted data for your custom settings and features. This keeps your MetaMask experience the same across devices and restores settings and features if you ever need to reinstall MetaMask. This doesn’t back up your Secret Recovery Phrase.",
       "updatePreferences": "You can update your preferences at any time in",
       "settingsPath": "Settings > Backup and sync."
     },
@@ -4220,5 +4318,63 @@
     },
     "show_more": "more",
     "show_less": "less"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Account Details",
+      "account_name": "Account Name",
+      "account_address": "Account Address",
+      "wallet": "Wallet",
+      "private_key": "Private key"
+    },
+    "smart_account": {
+      "title": "Enable Smart Account",
+      "description": "You can enable smart account features on supported networks. {{learnMore}}",
+      "learn_more": "Learn more"
+    },
+    "edit_account_name": {
+      "title": "Edit Account Name",
+      "name": "Name",
+      "save_button": "Save",
+      "error_duplicate_name": "This account name already exists"
+    },
+    "delete_account": {
+      "title": "Remove Account",
+      "warning_title": "This account will be removed from MetaMask.",
+      "warning_description": "Make sure you have the Secret Recovery Phrase or private key for this account before removing.",
+      "remove_button": "Remove",
+      "cancel_button": "Cancel",
+      "error": "Failed to delete account"
+    },
+    "share_address": {
+      "title": "Share Address",
+      "copy_address": "Copy address",
+      "view_on_explorer_button": "View on {{explorer}}",
+      "view_on_block_explorer": "View on Block Explorer"
+    },
+    "export_credentials": {
+      "export_private_key": "Private key",
+      "private_key_warning_title": "Never disclose this key.",
+      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "credential_as_text": "Text",
+      "credential_as_qr": "QR code",
+      "export_mnemonic": "Export mnemonic",
+      "backup": "Backup"
+    },
+    "reveal_private_key": {
+      "title": "Show private key",
+      "banner_title": "Never disclose this key.",
+      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "next": "Next",
+      "copy": "Copy"
+    },
+    "reveal_srp": {
+      "header": "Security quiz",
+      "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    }
   }
 }

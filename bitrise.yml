@@ -153,6 +153,16 @@ stages:
   create_android_release:
     workflows:
       - build_android_release: {}
+  create_android_release_new:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_beta: {}
+      - build_android_main_rc: {}
+  create_ios_release_new:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -204,8 +214,7 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # TODO: Re-enable in a future commit
-      #- run_ios_api_specs: {}
+      - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
@@ -1119,8 +1128,6 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - install_applesimutils
       - code_setup
@@ -1202,8 +1209,6 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - setup
       - install_applesimutils
@@ -1349,7 +1354,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
@@ -1376,7 +1383,12 @@ workflows:
                 fi
 
                 # Generate new names based on build type and version
-                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename APK
                 if [ "$IS_DEV_BUILD" = "true" ]; then
@@ -1433,6 +1445,48 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:android:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:android:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1851,8 +1905,6 @@ workflows:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   # iOS Builds
   _ios_build_template:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1873,7 +1925,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
@@ -1910,7 +1964,12 @@ workflows:
                 fi
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename binary
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
@@ -1955,6 +2014,33 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: "main"
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2050,8 +2136,6 @@ workflows:
     after_run:
       - _ios_build_template
   build_ios_qa:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -2182,8 +2266,6 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa_flask:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -2266,7 +2348,7 @@ app:
       PORTFOLIO_VIEW: true
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: true
+      MM_PER_DAPP_SELECTED_NETWORK: false
     - opts:
         is_expand: false
       MM_CHAIN_PERMISSIONS: true
@@ -2275,10 +2357,16 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
+      EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3'
+    - opts:
+        is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       BRIDGE_USE_DEV_APIS: false
+    - opts:
+        is_expand: false
+      MM_BRIDGE_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -2311,16 +2399,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.46.1
+      VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1862
+      VERSION_NUMBER: 1891
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.46.1
+      FLASK_VERSION_NAME: 7.46.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1810
+      FLASK_VERSION_NUMBER: 1891
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

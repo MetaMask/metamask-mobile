@@ -91,13 +91,21 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      gap: Platform.OS === 'ios' ? 4 : 3,
+      gap: Platform.select({
+        ios: 4,
+        macos: 4,
+        default: 3,
+      }),
       height: 40,
       fontSize: 14,
       color: colors.text.default,
       ...fontStyles.normal,
       opacity: 0.5,
-      margin: Platform.OS === 'ios' ? 4 : 3,
+      margin: Platform.select({
+        ios: 4,
+        macos: 4,
+        default: 3,
+      }),
     },
     gridContainer: {
       flex: 1,
