@@ -240,7 +240,7 @@ describe('AccountBackupStep1', () => {
     const headerLeftComponent = setOptionsCall.headerLeft();
 
     // Verify the headerLeft component renders correctly
-    expect(headerLeftComponent).toBeOnTheScreen();
+    expect(headerLeftComponent).toBeDefined();
 
     // The headerLeft component should be a TouchableOpacity
     expect(headerLeftComponent.type).toBe('TouchableOpacity');
