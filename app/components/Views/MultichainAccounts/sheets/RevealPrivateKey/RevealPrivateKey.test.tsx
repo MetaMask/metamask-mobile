@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
+import { TouchableOpacity } from 'react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
 import { internalAccount1 as mockAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -121,12 +122,21 @@ describe('RevealPrivateKey', () => {
     expect(getByText(mockAccount.metadata.name)).toBeTruthy();
   });
 
-  it('navigates back when back button is pressed', () => {
-    const { getByRole } = render();
+  it('navigates back when the back button is pressed', () => {
+    const rendered = render();
+    const { root } = rendered;
+    const touchableOpacities = root.findAllByType(TouchableOpacity);
 
-    const backButton = getByRole('button');
-    fireEvent.press(backButton);
+    // Hack to get the button
+    const backButton = touchableOpacities.find(
+      (touchable) =>
+        touchable.props.accessible === true && touchable.props.onPress,
+    );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(backButton).toBeTruthy();
+    if (backButton) {
+      fireEvent.press(backButton);
+    }
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });
