@@ -2,14 +2,13 @@ import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/C
 import Matchers from '../../utils/Matchers';
 
 class ConfirmationView {
-  get securityAlertBanner() {
+  get securityAlertBanner(): Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement> {
     return Matchers.getElementByID(ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER);
   }
 
-  get securityAlertResponseFailedBanner() {
+  get securityAlertResponseFailedBanner(): Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement> {
     return Matchers.getElementByID(ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER);
   }
-
 }
 
-export default new ConfirmationView();
+export default new ConfirmationView(); 
