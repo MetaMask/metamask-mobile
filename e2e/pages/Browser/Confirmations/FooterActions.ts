@@ -5,7 +5,7 @@ import Gestures from '../../../utils/Gestures';
 class FooterActions {
   get confirmButton() {
     return device.getPlatform() === 'android'
-    ? Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON)
+    ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON)
     : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
