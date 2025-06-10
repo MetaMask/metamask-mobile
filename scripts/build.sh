@@ -595,7 +595,8 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache --parallel && cd ..
+	# Specify specific task name :app:TASKNAME to prevent processing other variants
+	cd android && ./gradlew :app:assembleProdDebug :app:assembleProdDebugAndroidTest -PminSdkVersion=26 -DtestBuildType=debug --build-cache && cd ..
 }
 
 buildIos() {
