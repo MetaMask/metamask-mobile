@@ -17,7 +17,7 @@ const Root = () => {
       hasCheckedToken.current = true;
     };
     initializeFlow();
-  }, [checkExistingToken, getStarted]);
+  }, [checkExistingToken]);
 
   useEffect(() => {
     if (initialRoute === null || !getStarted) return;
@@ -25,7 +25,7 @@ const Root = () => {
       index: 0,
       routes: [{ name: initialRoute, params: { animationEnabled: false } }],
     });
-  });
+  }, [getStarted, initialRoute, navigation]);
 
   return <GetStarted />;
 };
