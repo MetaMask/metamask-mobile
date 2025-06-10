@@ -108,10 +108,8 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, {
-  AutocompleteSearchResult,
-  UrlAutocompleteRef,
-} from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import { SearchDiscoveryResultItem } from '../../UI/SearchDiscoveryResult/types';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
@@ -1232,7 +1230,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
    * Handle autocomplete selection
    */
   const onSelect = useCallback(
-    (item: AutocompleteSearchResult) => {
+    (item: SearchDiscoveryResultItem) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
       if (item.category === 'tokens') {

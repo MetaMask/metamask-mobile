@@ -2,7 +2,8 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DiscoveryTab from './DiscoveryTab';
-import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteCategory } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete from '../../UI/UrlAutocomplete';
+import { SearchDiscoveryResultItem, SearchDiscoveryCategory } from '../../UI/SearchDiscoveryResult/types';
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -96,7 +97,7 @@ describe('DiscoveryTab', () => {
   });
 
   it('should navigate to the asset loader when selecting a token from the autocomplete', () => {
-    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    let onSelectProp: (item: SearchDiscoveryResultItem) => void = jest.fn();
     jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
       onSelectProp = onSelect;
       return 'UrlAutocomplete';
@@ -112,7 +113,7 @@ describe('DiscoveryTab', () => {
       { state: mockInitialState }
     );
     onSelectProp?.({
-      category: UrlAutocompleteCategory.Tokens,
+      category: SearchDiscoveryCategory.Tokens,
       address: '0x123',
       chainId: '0x1',
       name: 'Test Token',
@@ -129,7 +130,7 @@ describe('DiscoveryTab', () => {
   });
 
   it('should navigate to a site when selecting a URL from the autocomplete', () => {
-    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    let onSelectProp: (item: SearchDiscoveryResultItem) => void = jest.fn();
     jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
       onSelectProp = onSelect;
       return 'UrlAutocomplete';
@@ -147,7 +148,7 @@ describe('DiscoveryTab', () => {
       { state: mockInitialState }
     );
     onSelectProp?.({
-      category: UrlAutocompleteCategory.Sites,
+      category: SearchDiscoveryCategory.Sites,
       name: 'Test Token',
       url: 'https://metamask.io',
     });

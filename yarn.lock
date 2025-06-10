@@ -5913,10 +5913,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.2.0.tgz#ee3a5a6466530dc266b5bdb1bd226393148329eb"
   integrity sha512-aMyctMgT8HdHCx7/9SqPfxW4PVKdEh2TtbjiE+fL6nfGv2U0ZnlZdT0OcaC3mEY/qzktip1UnBPmN9/Y5onThA==
 
-"@metamask/token-search-discovery-controller@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-3.2.0.tgz#cb64d96dc8f829250d6a1709a5bc156c50bc33a9"
-  integrity sha512-/Ni7s+y9Ibfa/9JkcaRnm2N/75oSuoMbArMJDRzN3KBUiVxKS0AfjnC3biVPnycc4cFouvxBY2XisU8j1lDMIA==
+"@metamask/token-search-discovery-controller@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-3.3.0.tgz#c14b025d18f0a22b0a48df1f82d1a6cff022d81b"
+  integrity sha512-n1QQpiwaieZN2Mew6hg9Z3P7sjdjETFTinMOBXRkJ9nrtLP5FVjvJgXCdt2pBlN9Ji2I6ceCYPgaln3d+r0WQA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/utils" "^11.2.0"
