@@ -29,14 +29,7 @@ exports[`GetStarted render matches snapshot 1`] = `
         ]
       }
     >
-      <RCTScrollView
-        contentContainerStyle={
-          {
-            "flexGrow": 1,
-            "justifyContent": "flex-start",
-          }
-        }
-      >
+      <RCTScrollView>
         <View>
           <View
             style={
@@ -60,10 +53,9 @@ exports[`GetStarted render matches snapshot 1`] = `
                 source={1}
                 style={
                   {
-                    "aspectRatio": 1.3333333333333333,
-                    "maxWidth": 300,
-                    "resizeMode": "contain",
-                    "width": "100%",
+                    "alignSelf": "center",
+                    "height": 562.5,
+                    "width": 750,
                   }
                 }
               />
@@ -81,45 +73,17 @@ exports[`GetStarted render matches snapshot 1`] = `
             }
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "fontSize": 24,
-                    "fontWeight": "bold",
-                    "marginVertical": 16,
-                    "textAlign": "center",
-                  },
-                ]
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 24,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 32,
+                  "textAlign": "center",
+                }
               }
             >
               Top up your wallet with USDC
@@ -177,89 +141,31 @@ exports[`GetStarted render matches snapshot 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontWeight": "600",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 16,
-                        "marginBottom": 4,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "bold",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   Value-backed by the US dollar
                 </Text>
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 14,
-                        "lineHeight": 20,
-                        "opacity": 0.8,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
                   1:1 ratio backing with US dollars.
@@ -307,89 +213,31 @@ exports[`GetStarted render matches snapshot 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontWeight": "600",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 16,
-                        "marginBottom": 4,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "bold",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   Low volatility
                 </Text>
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 14,
-                        "lineHeight": 20,
-                        "opacity": 0.8,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
                   Maintains stable value for reliable transactions.
@@ -437,89 +285,31 @@ exports[`GetStarted render matches snapshot 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontWeight": "600",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 16,
-                        "marginBottom": 4,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "bold",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   Faster than banks
                 </Text>
                 <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 30,
-                        "fontWeight": "400",
-                        "marginVertical": 2,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "fontSize": 14,
-                        "lineHeight": 20,
-                        "opacity": 0.8,
-                      },
-                    ]
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
                   Quick blockchain transfers beat traditional banking.
