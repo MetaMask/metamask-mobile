@@ -7,20 +7,29 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+
+// Mock Linking module
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();
+const mockAccount = createMockInternalAccount(
+  '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
+  'Test Account',
+  KeyringTypes.simple,
+  EthAccountType.Eoa,
+);
 const mockRoute = {
   params: {
-    account: createMockInternalAccount(
-      '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
-      'Test Account',
-      KeyringTypes.simple,
-      EthAccountType.Eoa,
-    ),
+    account: mockAccount,
   },
 };
 
@@ -32,8 +41,8 @@ jest.mock('react-native-safe-area-context', () => {
     SafeAreaConsumer: jest
       .fn()
       .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
   };
 });
 
@@ -41,7 +50,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: () => mockGoBack(),
-    navigate: () => mockNavigate(),
+    navigate: (view: string) => mockNavigate(view),
   }),
   useRoute: () => mockUseRoute(),
 }));
@@ -50,7 +59,7 @@ const mockRemoveAccount = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
-      removeAccount: mockRemoveAccount,
+      removeAccount: (address: string) => mockRemoveAccount(address),
     },
   },
 }));
@@ -63,17 +72,13 @@ const render = () => {
       },
     },
   };
-  return renderWithProvider(
-    <SafeAreaProvider>
-      <DeleteAccount />
-    </SafeAreaProvider>,
-    { state: initialState },
-  );
+  return renderWithProvider(<DeleteAccount />, { state: initialState });
 };
 
 describe('DeleteAccount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockUseRoute.mockReturnValue(mockRoute);
   });
 
   it('renders correctly with account information', () => {
@@ -83,7 +88,7 @@ describe('DeleteAccount', () => {
       getByText(strings('multichain_accounts.delete_account.title')),
     ).toBeTruthy();
     expect(
-      getByText(strings('multichain_accounts.delete_account.banner_title')),
+      getByText(strings('multichain_accounts.delete_account.warning_title')),
     ).toBeTruthy();
     expect(
       getByText(
@@ -101,13 +106,14 @@ describe('DeleteAccount', () => {
   it('displays account name correctly', () => {
     const { getByText } = render();
 
-    expect(getByText('Test Account')).toBeTruthy();
+    expect(getByText(mockAccount.metadata.name)).toBeTruthy();
   });
 
   it('navigates back when back button is pressed', () => {
-    const { getByRole } = render();
+    const { getAllByRole } = render();
 
-    const backButton = getByRole('button');
+    // This is the back button
+    const backButton = getAllByRole('button')[0];
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -180,7 +186,6 @@ describe('DeleteAccount', () => {
     );
     fireEvent.press(removeButton);
 
-    // HD accounts should not be removable
     expect(mockRemoveAccount).not.toHaveBeenCalled();
   });
 
@@ -233,9 +238,8 @@ describe('DeleteAccount', () => {
   it('renders error banner with correct severity', () => {
     const { getByText } = render();
 
-    // Banner should be displayed with error severity
     expect(
-      getByText(strings('multichain_accounts.delete_account.banner_title')),
+      getByText(strings('multichain_accounts.delete_account.warning_title')),
     ).toBeTruthy();
     expect(
       getByText(
@@ -247,7 +251,6 @@ describe('DeleteAccount', () => {
   it('displays account address correctly through AccountInfo component', () => {
     const { getByText } = render();
 
-    // AccountInfo component should display the account name
     expect(getByText(mockRoute.params.account.metadata.name)).toBeTruthy();
   });
 
@@ -289,8 +292,5 @@ describe('DeleteAccount', () => {
         getByText(strings('multichain_accounts.delete_account.error')),
       ).toBeTruthy();
     });
-
-    // In real implementation, error might be cleared on subsequent actions
-    // This test documents the expected behavior
   });
 });

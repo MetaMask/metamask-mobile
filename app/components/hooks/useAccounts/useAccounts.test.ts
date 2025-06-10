@@ -1,12 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { EthScope } from '@metamask/keyring-api';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
-import { EthScope } from '@metamask/keyring-api';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 
