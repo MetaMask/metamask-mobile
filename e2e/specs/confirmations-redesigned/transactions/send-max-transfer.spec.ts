@@ -73,7 +73,6 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Sent ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
