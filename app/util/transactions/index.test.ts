@@ -3,6 +3,7 @@ import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
+import { ERC721, ERC1155 } from '@metamask/controller-utils';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -42,6 +43,12 @@ import {
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
   isLegacyTransaction,
+  getTokenAddressParam,
+  getTokenValueParamAsHex,
+  getTokenValueParam,
+  getTokenValue,
+  isNFTTokenStandard,
+  calcTokenValue,
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
@@ -1358,5 +1365,359 @@ describe('Transactions utils :: isLegacyTransaction', () => {
     expect(
       isLegacyTransaction(transactionMeta as Partial<TransactionMeta>),
     ).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getTokenAddressParam', () => {
+  it('returns the _to parameter when present', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890',
+        _value: 100,
+      },
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0x1234567890123456789012345678901234567890');
+  });
+
+  it('returns the first parameter when _to is not present', () => {
+    const tokenData = {
+      args: ['0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', 100],
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd');
+  });
+
+  it('returns undefined when no parameters are present', () => {
+    const tokenData = {
+      args: {},
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenAddressParam();
+    expect(result).toBeUndefined();
+  });
+
+  it('converts the address to lowercase', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890'.toUpperCase(),
+      },
+    };
+
+    const result = getTokenAddressParam(tokenData);
+    expect(result).toBe('0x1234567890123456789012345678901234567890');
+  });
+});
+
+describe('Transactions utils :: getTokenValueParamAsHex', () => {
+  it('returns the _value._hex parameter when present', () => {
+    const tokenData = {
+      args: {
+        _value: {
+          _hex: '0x64',
+        },
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0x64');
+  });
+
+  it('returns the second parameter._hex when _value is not present', () => {
+    const tokenData = {
+      args: ['0x1234567890123456789012345678901234567890', { _hex: '0xABCD' }],
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0xabcd');
+  });
+
+  it('returns undefined when no hex parameters are present', () => {
+    const tokenData = {
+      args: {
+        _value: 100, // No _hex property
+        0: 'address',
+        1: 200, // No _hex property on second parameter either
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenValueParamAsHex();
+    expect(result).toBeUndefined();
+  });
+
+  it('converts the hex value to lowercase', () => {
+    const tokenData = {
+      args: {
+        _value: {
+          _hex: '0xABCDEF',
+        },
+      },
+    };
+
+    const result = getTokenValueParamAsHex(tokenData);
+    expect(result).toBe('0xabcdef');
+  });
+});
+
+describe('Transactions utils :: getTokenValueParam', () => {
+  it('returns the _value parameter as string when present', () => {
+    const tokenData = {
+      args: {
+        _value: 100,
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBe('100');
+  });
+
+  it('returns undefined when _value is not present', () => {
+    const tokenData = {
+      args: {
+        _to: '0x1234567890123456789012345678901234567890',
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenData is empty', () => {
+    const result = getTokenValueParam();
+    expect(result).toBeUndefined();
+  });
+
+  it('handles BigNumber values correctly', () => {
+    const tokenData = {
+      args: {
+        _value: new BigNumber('1000000000000000000'),
+      },
+    };
+
+    const result = getTokenValueParam(tokenData);
+    expect(result).toBe('1000000000000000000');
+  });
+});
+
+describe('Transactions utils :: getTokenValue', () => {
+  it('returns the value for parameter with name "_value"', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_value', value: '1000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBe('1000000000000000000');
+  });
+
+  it('returns undefined when no "_value" parameter exists', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_amount', value: '1000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenParams is empty', () => {
+    const result = getTokenValue([]);
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when tokenParams is not provided', () => {
+    const result = getTokenValue();
+    expect(result).toBeUndefined();
+  });
+
+  it('returns the first "_value" parameter when multiple exist', () => {
+    const tokenParams = [
+      { name: '_to', value: '0x1234567890123456789012345678901234567890' },
+      { name: '_value', value: '1000000000000000000' },
+      { name: '_value', value: '2000000000000000000' },
+    ];
+
+    const result = getTokenValue(tokenParams);
+    expect(result).toBe('1000000000000000000');
+  });
+});
+
+describe('Transactions utils :: isNFTTokenStandard', () => {
+  it('returns true for ERC721 token standard', () => {
+    const result = isNFTTokenStandard(ERC721);
+    expect(result).toBe(true);
+  });
+
+  it('returns true for ERC1155 token standard', () => {
+    const result = isNFTTokenStandard(ERC1155);
+    expect(result).toBe(true);
+  });
+
+  it('returns false for ERC20 token standard', () => {
+    const result = isNFTTokenStandard('ERC20');
+    expect(result).toBe(false);
+  });
+
+  it('returns false for unknown token standard', () => {
+    const result = isNFTTokenStandard('UNKNOWN');
+    expect(result).toBe(false);
+  });
+
+  it('returns false for undefined token standard', () => {
+    // @ts-expect-error Testing undefined input
+    const result = isNFTTokenStandard(undefined);
+    expect(result).toBe(false);
+  });
+
+  it('returns false for empty string token standard', () => {
+    const result = isNFTTokenStandard('');
+    expect(result).toBe(false);
+  });
+
+  it('is case sensitive', () => {
+    const result1 = isNFTTokenStandard('erc721');
+    const result2 = isNFTTokenStandard('erc1155');
+    expect(result1).toBe(false);
+    expect(result2).toBe(false);
+  });
+});
+
+describe('Transactions utils :: calcTokenValue', () => {
+  it('calculates token value correctly with decimals', () => {
+    const result = calcTokenValue('1.5', 18);
+    expect(result.toString()).toBe('1500000000000000000');
+  });
+
+  it('calculates token value correctly with zero decimals', () => {
+    const result = calcTokenValue('100', 0);
+    expect(result.toString()).toBe('100');
+  });
+
+  it('handles string input correctly', () => {
+    const result = calcTokenValue('123.456', 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles numeric input correctly', () => {
+    const result = calcTokenValue(123.456, 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles BigNumber input correctly', () => {
+    const input = new BigNumber('123.456');
+    const result = calcTokenValue(input, 6);
+    expect(result.toString()).toBe('123456000');
+  });
+
+  it('handles undefined decimals', () => {
+    const result = calcTokenValue('100', undefined);
+    expect(result.toString()).toBe('100');
+  });
+});
+
+describe('Transactions utils :: Edge Cases and Error Handling', () => {
+  describe('getMethodData edge cases', () => {
+    it('handles very short data strings', async () => {
+      const result = await getMethodData('0x123', MOCK_NETWORK_CLIENT_ID);
+      expect(result).toEqual({});
+    });
+
+    it('handles empty data string', async () => {
+      const result = await getMethodData('', MOCK_NETWORK_CLIENT_ID);
+      expect(result).toEqual({});
+    });
+
+    it('handles handleMethodData returning null', async () => {
+      (handleMethodData as jest.Mock).mockResolvedValue(null);
+      const result = await getMethodData(
+        '0x12345678aa',
+        MOCK_NETWORK_CLIENT_ID,
+      );
+      expect(result).toEqual({});
+    });
+
+    it('handles handleMethodData throwing an error', async () => {
+      (handleMethodData as jest.Mock).mockRejectedValue(
+        new Error('Network error'),
+      );
+      const result = await getMethodData(
+        '0x12345678bb',
+        MOCK_NETWORK_CLIENT_ID,
+      );
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('generateApprovalData edge cases', () => {
+    it('handles very large value inputs', () => {
+      const largeValue =
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+      const data = generateApprovalData({
+        spender: MOCK_ADDRESS3,
+        value: largeValue,
+      });
+      expect(data).toBeTruthy();
+      expect(data.length).toBeGreaterThan(10);
+    });
+
+    it('handles zero value approvals', () => {
+      const data = generateApprovalData({
+        spender: MOCK_ADDRESS3,
+        value: '0x0',
+      });
+      expect(data).toBeTruthy();
+      expect(data).toContain(
+        '0000000000000000000000000000000000000000000000000000000000000000',
+      );
+    });
+  });
+
+  describe('getTransactionActionKey edge cases', () => {
+    it('handles transaction with empty authorizationList', async () => {
+      const transaction = {
+        txParams: {
+          authorizationList: [],
+          to: '0x1',
+        },
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(typeof result).toBe('string');
+    });
+
+    it('handles transaction with malformed txParams', async () => {
+      const transaction = {
+        txParams: null,
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(result).toBe('deploy');
+    });
+
+    it('handles empty transaction object', async () => {
+      const result = await getTransactionActionKey({}, '1');
+      expect(result).toBe('deploy');
+    });
+
+    it('handles transaction with no "to" field (contract deployment)', async () => {
+      const transaction = {
+        txParams: {
+          from: '0x123',
+          data: '0x608060405234801561001057600080fd5b50',
+        },
+      };
+      const result = await getTransactionActionKey(transaction, '1');
+      expect(result).toBe('deploy');
+    });
   });
 });
