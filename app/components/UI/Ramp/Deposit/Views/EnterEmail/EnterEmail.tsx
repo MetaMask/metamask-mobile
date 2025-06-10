@@ -23,7 +23,6 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
-import { useDepositSDK } from '../../sdk';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
@@ -36,7 +35,7 @@ export const createEnterEmailNavDetails =
 
 const EnterEmail = () => {
   const navigation = useNavigation();
-  const { email, setEmail } = useDepositSDK();
+  const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState(false);
   const { quote } = useParams<EnterEmailParams>();
 
@@ -66,7 +65,7 @@ const EnterEmail = () => {
         await submitEmail();
 
         if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails({ quote }));
+          navigation.navigate(...createOtpCodeNavDetails({ quote, email }));
         }
       } else {
         setValidationError(true);
