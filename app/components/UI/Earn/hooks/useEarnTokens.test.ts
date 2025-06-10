@@ -4,7 +4,7 @@ import {
   DeepPartial,
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
-import useEarnTokens from './useEarnTokens';
+import useEarnTokens, { useHasSupportedStablecoin } from './useEarnTokens';
 import {
   MOCK_USDC_BASE_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
@@ -22,6 +22,10 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../selectors/featureFlags';
+import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TestMockVar = any;
 
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
@@ -431,5 +435,150 @@ describe('useEarnTokens', () => {
 
       expect(hasExpectedTokens).toBe(true);
     });
+  });
+});
+
+describe('useHasSupportedStablecoin', () => {
+  const mockChainId = '0x1' as const;
+  const mockTokenSymbol = 'USDC';
+  const mockTokens = [
+    {
+      chainId: '0x1',
+      symbol: 'USDC',
+      address: '0x123',
+      decimals: 6,
+    },
+    {
+      chainId: '0x1',
+      symbol: 'USDT',
+      address: '0x456',
+      decimals: 6,
+    },
+  ];
+
+  const arrange = () => {
+    const mockSelectAccountTokensAcrossChains = jest.mocked(
+      selectAccountTokensAcrossChains,
+    );
+    return {
+      mockSelectAccountTokensAcrossChains,
+    };
+  };
+
+  const validParamsTestMatrix = [
+    {
+      description: 'token exists, symbol matches, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: true,
+    },
+    {
+      description: 'token exists, symbol matches, isStaked false',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: false,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token exists, symbol matches, isStaked undefined',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: undefined,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token exists, symbol does not match, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: 'NONEXISTENT',
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+    {
+      description: 'token does not exist, isStaked true',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: [] },
+      expected: false,
+    },
+  ];
+
+  it.each(validParamsTestMatrix)(
+    'return $expected when $description',
+    (testcase) => {
+      const mocks = arrange();
+      mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
+        testcase.mockTokensData,
+      );
+
+      const hook = renderHookWithProvider(
+        () =>
+          useHasSupportedStablecoin(
+            testcase.params.tokenChainId,
+            testcase.params.tokenSymbol,
+            testcase.params.isStaked,
+          ),
+        {},
+      );
+
+      expect(hook.result.current).toBe(testcase.expected);
+    },
+  );
+
+  const edgeCaseMatrix = [
+    {
+      description: 'tokens selector returns empty object',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: mockTokenSymbol,
+        isStaked: true,
+      },
+      mockTokensData: {},
+      expected: false,
+    },
+    {
+      description: 'tokenSymbol is undefined',
+      params: {
+        tokenChainId: mockChainId,
+        tokenSymbol: undefined,
+        isStaked: true,
+      },
+      mockTokensData: { [mockChainId]: mockTokens },
+      expected: false,
+    },
+  ];
+
+  it.each(edgeCaseMatrix)('returns $expected when $description', (testcase) => {
+    const mocks = arrange();
+    mocks.mockSelectAccountTokensAcrossChains.mockReturnValue(
+      testcase.mockTokensData as TestMockVar,
+    );
+
+    const hook = renderHookWithProvider(
+      () =>
+        useHasSupportedStablecoin(
+          testcase.params.tokenChainId,
+          testcase.params.tokenSymbol,
+          testcase.params.isStaked,
+        ),
+      {},
+    );
+
+    expect(hook.result.current).toBe(testcase.expected);
   });
 });

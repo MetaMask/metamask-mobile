@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import {
   AvatarSize,
   AvatarVariant,
@@ -17,6 +18,7 @@ export enum AccountConnectScreens {
   SingleConnectSelector = 'SingleConnectSelector',
   MultiConnectSelector = 'MultiConnectSelector',
   MultiConnectNetworkSelector = 'MultiConnectNetworkSelector',
+  AddNewAccount = 'AddNewAccount',
 }
 
 export interface AccountConnectParams {
@@ -54,4 +56,5 @@ export interface NetworkAvatarProps {
   name: string;
   imageSource: ImageSourcePropType;
   variant: AvatarVariant;
+  caipChainId: CaipChainId;
 }

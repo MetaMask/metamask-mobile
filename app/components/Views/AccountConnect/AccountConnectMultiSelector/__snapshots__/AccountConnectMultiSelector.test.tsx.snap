@@ -89,6 +89,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
     <View
       style={
         {
+          "marginTop": 16,
           "paddingHorizontal": 16,
         }
       }
@@ -110,76 +111,128 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
       >
         Select the account(s) to use on this site:
       </Text>
-      <View>
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
+      <View
+        flexDirection="row"
+        justifyContent="space-between"
+        style={
+          [
             {
-              "alignItems": "center",
               "flexDirection": "row",
-              "height": 24,
-              "marginLeft": 0,
-              "marginVertical": 12,
-              "opacity": 1,
-            }
-          }
-          testID="select-all-button"
-        >
-          <View
-            accessibilityRole="checkbox"
+              "justifyContent": "space-between",
+            },
+            undefined,
+          ]
+        }
+      >
+        <View>
+          <TouchableOpacity
+            disabled={false}
+            onPress={[Function]}
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#4459ff",
-                "borderColor": "#4459ff",
-                "borderRadius": 4,
-                "borderWidth": 2,
-                "height": 20,
-                "justifyContent": "center",
-                "width": 20,
+                "flexDirection": "row",
+                "height": 24,
+                "marginLeft": 0,
+                "marginVertical": 12,
+                "opacity": 1,
               }
             }
+            testID="select-all-button"
           >
-            <SvgMock
-              color="#ffffff"
-              fill="currentColor"
-              height={20}
-              name="MinusBold"
-              onPress={[Function]}
+            <View
+              accessibilityRole="checkbox"
               style={
                 {
+                  "alignItems": "center",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 4,
+                  "borderWidth": 2,
                   "height": 20,
+                  "justifyContent": "center",
                   "width": 20,
                 }
               }
-              testID="select-all-button"
-              width={20}
-            />
-          </View>
-          <View
-            style={
-              {
-                "marginLeft": 12,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
+            >
+              <SvgMock
+                color="#ffffff"
+                fill="currentColor"
+                height={20}
+                name="MinusBold"
+                onPress={[Function]}
+                style={
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
+                }
+                testID="select-all-button"
+                width={20}
+              />
+            </View>
+            <View
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "marginLeft": 12,
                 }
               }
             >
-              Select all
-            </Text>
-          </View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Select all
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "transparent",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+              "paddingRight": 0,
+            }
+          }
+          testID="account-list-add-account-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            New account
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -191,8 +244,12 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "address": "0x1234",
             "balance": "0x1",
             "caipAccountId": "eip155:0:0x1234",
+            "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 1",
+            "scopes": [
+              "eip155:0",
+            ],
             "type": "Simple Key Pair",
             "yOffset": 0,
           },
@@ -200,8 +257,12 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "address": "0x5678",
             "balance": "0x2",
             "caipAccountId": "eip155:0:0x5678",
+            "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 2",
+            "scopes": [
+              "eip155:0",
+            ],
             "type": "Simple Key Pair",
             "yOffset": 0,
           },
@@ -587,52 +648,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
     <View
       style={
         {
-          "marginBottom": 16,
-          "marginHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="account-list-add-account-button"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Add account or hardware wallet
-        </Text>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        {
+          "marginTop": 16,
           "paddingHorizontal": 16,
         }
       }
