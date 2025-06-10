@@ -100,6 +100,10 @@ pipelines:
   expo_flask_pipeline:
     stages:
       - create_build_flask_expo: {}
+  #QA expo pipeline
+  expo_qa_pipeline:
+    stages:
+      - create_build_qa_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -187,6 +191,11 @@ stages:
       - build_android_flask_devbuild: {}
       - build_ios_flask_devbuild: {}
       - build_ios_flask_simbuild: {}
+  create_build_qa_expo:
+    workflows:
+      - build_android_qa_devbuild: {}
+      - build_ios_qa_devbuild: {}
+      - build_ios_qa_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -1320,7 +1329,9 @@ workflows:
                 if [ -n "$YARN_COMMAND" ]; then
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    if [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                    if [ "$METAMASK_ENVIRONMENT" = "qa" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild:qa
+                    elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                     elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild:flask
@@ -1349,6 +1360,7 @@ workflows:
                 # Set base paths for release builds
                            if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
+                    TEST_APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/androidTest/$APP_NAME/debug"
                 else
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                     BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
@@ -1366,6 +1378,7 @@ workflows:
                 if [ "$IS_DEV_BUILD" = "true" ]; then
                     OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
+                    OLD_TEST_APK="$TEST_APK_DIR/app-$APP_NAME-debug-androidTest.apk"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
@@ -1373,6 +1386,14 @@ workflows:
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
+
+                # Rename test APK if it exists (for dev builds only)
+                if [ "$IS_DEV_BUILD" = "true" ] && [ -f "$OLD_TEST_APK" ]; then
+                    NEW_TEST_APK="$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
+                    mv "$OLD_TEST_APK" "$NEW_TEST_APK"
+                    envman add --key TEST_APK_DEPLOY_PATH --value "$NEW_TEST_APK"
+                    envman add --key RENAMED_TEST_APK_FILE --value "$NEW_BASE_NAME-androidTest.apk"
+                fi
 
                 # Rename AAB
                 if [ -n "$BUNDLE_DIR" ]; then
@@ -1390,6 +1411,13 @@ workflows:
           inputs:
             - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{ne (getenv "TEST_APK_DEPLOY_PATH") ""}}'
+          inputs:
+            - deploy_path: $TEST_APK_DEPLOY_PATH
+          title: Bitrise Deploy Test APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1629,6 +1657,20 @@ workflows:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'qa'
     after_run:
       - _android_build_template
     meta:
@@ -1976,7 +2018,9 @@ workflows:
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
-                      if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                      if [ "$METAMASK_ENVIRONMENT" = "qa" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:qa
+                      elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
                       else
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
@@ -2171,6 +2215,17 @@ workflows:
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
     after_run:
       - _ios_build_template
+  build_ios_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
@@ -2181,6 +2236,18 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'qa'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
     after_run:
       - _ios_build_template
   build_ios_qa:
