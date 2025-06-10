@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
@@ -35,7 +35,7 @@ const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
 };
 
-describe(SmokeCore('Analytics during import wallet flow'), () => {
+describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

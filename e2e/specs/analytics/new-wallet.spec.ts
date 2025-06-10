@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
@@ -44,7 +44,7 @@ const eventNames = [
   onboardingEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
   onboardingEvents.WALLET_SECURITY_REMINDER_DISMISSED,
 ];
-describe(SmokeCore('Analytics during import wallet flow'), () => {
+describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
