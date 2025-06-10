@@ -169,7 +169,20 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const handleSeedPhraseChange = useCallback(
-    (text, index) => {
+    async (seedPhraseText, index) => {
+      const clipboardText = await Clipboard.getString();
+
+      let seedPhraseValue = seedPhraseText;
+
+      if (clipboardText.trim() !== '') {
+        seedPhraseValue = clipboardText;
+      }
+
+      const text = seedPhraseValue
+        .split('\n')
+        .map((item) => item.trim())
+        .join(' ');
+
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
         // handle use pasting multiple words / whole seed phrase separated by spaces
@@ -679,11 +692,13 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoFocus
                           onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
-                          blurOnSubmit={false}
+                          submitBehavior={'submit'}
                           autoCapitalize="none"
                           testID={
                             ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
                           }
+                          editable
+                          keyboardType="default"
                         />
                       ) : (
                         <View
