@@ -53,6 +53,8 @@ describe('useKycPolling', () => {
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       clearAuthToken: jest.fn(),
+      getStarted: true,
+      setGetStarted: jest.fn(),
     });
   });
 

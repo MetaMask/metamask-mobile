@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Browser should render correctly 1`] = `
+exports[`Root Component render matches snapshot 1`] = `
 <View
   style={
     {
@@ -124,7 +124,7 @@ exports[`Browser should render correctly 1`] = `
                   }
                 }
               >
-                BrowserView
+                DepositRoot
               </Text>
             </View>
           </View>
@@ -308,19 +308,7 @@ exports[`Browser should render correctly 1`] = `
                         "flex": 1,
                       }
                     }
-                  >
-                    <View
-                      style={
-                        {
-                          "flex": 1,
-                          "paddingTop": 0,
-                        }
-                      }
-                      testID="browser-screen"
-                    >
-                      BrowserTab
-                    </View>
-                  </View>
+                  />
                 </View>
               </View>
             </View>
