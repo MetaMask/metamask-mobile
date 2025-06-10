@@ -28,6 +28,9 @@ import { getBlockExplorerName } from '../../../util/networks';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -190,29 +193,36 @@ const MultichainTransactionsView: React.FC<MultichainTransactionsViewProps> = ({
   };
 
   return (
-    <View style={style.wrapper}>
-      <FlashList
-        data={transactions}
-        renderItem={renderTransactionItem}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={header}
-        ListEmptyComponent={renderEmptyList}
-        ListFooterComponent={renderFooter}
-        style={baseStyles.flexGrow}
-        estimatedItemSize={200}
-        refreshControl={
-          enableRefresh ? (
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
+    <PriceChartProvider>
+      <View style={style.wrapper}>
+        <PriceChartContext.Consumer>
+          {({ isChartBeingTouched }) => (
+            <FlashList
+              data={transactions}
+              renderItem={renderTransactionItem}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={header}
+              ListEmptyComponent={renderEmptyList}
+              ListFooterComponent={renderFooter}
+              style={baseStyles.flexGrow}
+              estimatedItemSize={200}
+              refreshControl={
+                enableRefresh ? (
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                  />
+                ) : undefined
+              }
+              onScroll={onScroll}
+              scrollEnabled={!isChartBeingTouched}
             />
-          ) : undefined
-        }
-        onScroll={onScroll}
-      />
-    </View>
+          )}
+        </PriceChartContext.Consumer>
+      </View>
+    </PriceChartProvider>
   );
 };
 
