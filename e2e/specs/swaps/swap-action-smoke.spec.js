@@ -100,6 +100,7 @@ describe(SmokeTrade('Swap from Actions'), () => {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
+    await TestHelpers.delay(2000);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
