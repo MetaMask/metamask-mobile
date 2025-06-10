@@ -235,7 +235,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           ) : (
             <AccountRightButton
               selectedAddress={selectedAddress}
-              isNetworkVisible
               onPress={handleAccountRightButtonPress}
             />
           )}

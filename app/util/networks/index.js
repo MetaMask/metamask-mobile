@@ -559,7 +559,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     if (namespace !== KnownCaipNamespace.Eip155) {
       return getNonEvmNetworkImageSourceByChainId(chainId);
     }
-    hexChainId = toHex(reference);
+    hexChainId = toHex(reference === '0' ? '1' : reference); // default to mainnet if chainId is 0
   }
 
   return getEvmNetworkImageSource({ networkType, chainId: hexChainId});
@@ -633,8 +633,7 @@ export const isChainPermissionsFeatureEnabled = true;
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPerDappSelectedNetworkEnabled = () =>
-  process.env.MM_PER_DAPP_SELECTED_NETWORK === 'true';
+export const isPerDappSelectedNetworkEnabled = () => true;
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';

@@ -63,42 +63,18 @@ export const defaultGanacheOptions = {
 function normalizeLocalNodeOptions(localNodeOptions) {
   if (typeof localNodeOptions === 'string') {
     // Case 1: Passing a string
-    return [
-      {
-        type: localNodeOptions,
-        options:
-          localNodeOptions === 'ganache'
-            ? defaultGanacheOptions
-            : localNodeOptions === 'anvil'
-            ? defaultOptions
-            : {},
-      },
-    ];
+    return [{ type: localNodeOptions, options: {} }];
   } else if (Array.isArray(localNodeOptions)) {
     return localNodeOptions.map((node) => {
       if (typeof node === 'string') {
         // Case 2: Array of strings
-        return {
-          type: node,
-          options:
-            node === 'ganache'
-              ? defaultGanacheOptions
-              : node === 'anvil'
-              ? defaultOptions
-              : {},
-        };
+        return { type: node, options: {} };
       }
       if (typeof node === 'object' && node !== null) {
         // Case 3: Array of objects
-        const type = node.type || 'ganache';
         return {
-          type,
-          options:
-            type === 'ganache'
-              ? { ...defaultGanacheOptions, ...(node.options || {}) }
-              : type === 'anvil'
-              ? { ...defaultOptions, ...(node.options || {}) }
-              : node.options || {},
+          type: node.type || 'anvil',
+          options: node.options || {},
         };
       }
       throw new Error(`Invalid localNodeOptions entry: ${node}`);
@@ -108,8 +84,8 @@ function normalizeLocalNodeOptions(localNodeOptions) {
     // Case 4: Passing an options object without type
     return [
       {
-        type: 'ganache',
-        options: { ...defaultGanacheOptions, ...localNodeOptions },
+        type: 'anvil',
+        options: localNodeOptions,
       },
     ];
   }
@@ -170,10 +146,18 @@ export const stopFixtureServer = async (fixtureServer) => {
  *
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
- * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
- * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.dapp] - The dapp to load.
+ * @param {Object} [options.ganacheOptions] - The test specific mock to load for test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
+ * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
+ * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
+ * @param {Object} [options.smartContract] - The smart contract to load for test.
+ * @param {Object} [options.testSpecificMock] - The test specific mock to load for test.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
+ * @param {Object} testSuite.params - The parameters passed to the test suite function.
+ * @param {Object} [testSuite.params.contractRegistry] - Registry of deployed smart contracts.
+ * @param {Object} [testSuite.params.mockServer] - Mock server instance for API mocking.
+ * @param {Array} testSuite.params.localNodes - Array of local blockchain nodes (Anvil/Ganache instances).
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
@@ -185,7 +169,7 @@ export async function withFixtures(options, testSuite) {
     smartContract,
     disableGanache,
     dapp,
-    localNodeOptions = 'ganache',
+    localNodeOptions = 'anvil',
     dappOptions,
     dappPath = undefined,
     dappPaths,
@@ -219,8 +203,6 @@ export async function withFixtures(options, testSuite) {
             localNode = new AnvilManager();
             await localNode.start(nodeOptions);
             localNodes.push(localNode);
-            await localNode.setAccountBalance('1200');
-
             break;
 
           case 'ganache':

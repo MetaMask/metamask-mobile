@@ -1,5 +1,4 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -12,6 +11,7 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import { web, by } from 'detox';
+import { TEST_DAPP_LOCAL_URL,getSecondTestDappLocalUrl } from '../../fixtures/utils';
 
 class Browser {
   get searchButton() {
@@ -92,13 +92,8 @@ class Browser {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(BrowserViewSelectorsIDs.AVATAR_IMAGE)
-      : Matchers.getElementByDescendant(
-          AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
-          BrowserViewSelectorsIDs.AVATAR_IMAGE,
-        );
+  get networkAvatarOrAccountButton() {
+    return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
   get addBookmarkButton() {
@@ -144,20 +139,42 @@ class Browser {
   }
 
   async tapOpenAllTabsButton() {
-    await Gestures.waitAndTap(this.tabsButton);
+    await Gestures.waitAndTap(this.tabsButton, { delayBeforeTap: 4000 });
+  }
+
+  async tapSecondTabButton() {
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+
+    const secondTab = Matchers.getElementByID('browser-tab-1749234797566');
+    await Gestures.waitAndTap(secondTab);
+  }
+
+  async tapFirstTabButton() {
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+    const secondTab = Matchers.getElementByID('browser-tab-1692550481062');
+    await Gestures.waitAndTap(secondTab);
   }
 
   async tapCloseTabsButton() {
     await Gestures.waitAndTap(this.closeAllTabsButton);
   }
 
+  async tapCloseSecondTabButton() {
+    // the interger value is the tabID.
+    // This value comes from the `browser` object in fixture builder
+    const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
+    await Gestures.waitAndTap(secondTab);
+  }
+
   async tapOpenNewTabButton() {
     await Gestures.waitAndTap(this.multiTabButton);
   }
 
-  async tapNetworkAvatarButtonOnBrowser() {
+  async tapNetworkAvatarOrAccountButtonOnBrowser() {
     await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.networkAvatarButton);
+    await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 
   async tapAddToFavoritesButton() {
@@ -209,6 +226,11 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await waitForTestDappToLoad();
+  }
+  async navigateToSecondTestDApp() {
+    await this.tapUrlInputBox();
+    await this.navigateToURL(getSecondTestDappLocalUrl());
     await waitForTestDappToLoad();
   }
 
