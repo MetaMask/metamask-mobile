@@ -520,8 +520,6 @@ export class BackgroundBridge extends EventEmitter {
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
-    const { KeyringController, PermissionController } = Engine.context;
-
     // If the origin is not in the selectedNetworkController's `domains` state
     // when the provider engine is created, the selectedNetworkController will
     // fetch the globally selected networkClient from the networkController and wrap
