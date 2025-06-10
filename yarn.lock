@@ -5879,10 +5879,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.1.0.tgz#53a9b700cf3131a3c2577beed5f8fcf36176c1a0"
-  integrity sha512-LThNShqW2SP9F9kMjHCrZfF+kLUzd7h4fFCQ5mgeHYEyqHyHr8BH4G8cfF+cFTYp1qZs7lNIdRjJYbZv2F8v/w==
+"@metamask/swaps-controller@^13.2.0":
+  version "13.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.2.0.tgz#085b62d131a7c643374eb29b097f156abce0e772"
+  integrity sha512-4DgU1ZiR16ynbkyOpSHAhSUMt4MThtOStDS/Q9+2QVwqajruTV0P/EEFxc8r9kf17NXw9C5xt/fXa7CZLHrZKA==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
