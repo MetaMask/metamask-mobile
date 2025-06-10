@@ -11,8 +11,15 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import {
+  verifyDeeplinkWithLogging,
+  hasSignature,
+  VALID,
+  INVALID,
+  MISSING,
+} from './utils/verifySignature';
 
-function parseDeeplink({
+async function parseDeeplink({
   deeplinkManager: instance,
   url,
   origin,
@@ -28,6 +35,34 @@ function parseDeeplink({
   try {
     const validatedUrl = new URL(url);
     DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
+    // Check and verify signature if present
+    if (hasSignature(validatedUrl)) {
+      // TODO: handle the UI flow for signature verification states
+      const signatureResult = await verifyDeeplinkWithLogging(
+        validatedUrl,
+        origin,
+      );
+
+      if (signatureResult === INVALID) {
+        DevLogger.log(
+          'DeepLinkManager:parse Invalid signature, ignoring deeplink',
+          url,
+        );
+        return false;
+      }
+
+      if (signatureResult === VALID) {
+        DevLogger.log(
+          'DeepLinkManager:parse Valid signature verified for deeplink',
+          url,
+        );
+      } else if (signatureResult === MISSING) {
+        DevLogger.log(
+          'DeepLinkManager:parse No signature found in deeplink',
+          url,
+        );
+      }
+    }
 
     const { urlObj, params } = extractURLParams(url);
 
@@ -95,9 +130,7 @@ function parseDeeplink({
   } catch (error) {
     const isPrivateKey = url.length === 64;
     if (error && !isPrivateKey) {
-      Logger.log(
-        'DeepLinkManager:parse error parsing deeplink',
-      );
+      Logger.log('DeepLinkManager:parse error parsing deeplink');
       if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
         Alert.alert(
           strings('qr_scanner.unrecognized_address_qr_code_title'),
