@@ -188,7 +188,7 @@ describe('SkipAccountSecurityModal', () => {
       mockNavigation.mockRestore();
     });
 
-    it('should handle onCancel when route params are not provided', () => {
+    it('on secure now button press, the bottom sheet is closed and the onCancel function is not called', () => {
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
       const cancelButton = wrapper.getByRole('button', {
@@ -201,7 +201,7 @@ describe('SkipAccountSecurityModal', () => {
       mockNavigation.mockRestore();
     });
 
-    it('should handle onConfirm when route params are not provided', () => {
+    it('on skip button press, the bottom sheet is closed and the onConfirm function is not called', () => {
       const { wrapper, mockGoBack, mockNavigation } = setupTest();
 
       const confirmButton = wrapper.getByRole('button', {

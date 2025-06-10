@@ -75,8 +75,9 @@ describe('AccountBackupStep1B', () => {
     mockNavigation.mockRestore();
   });
 
-  it('should render title and explanation text', () => {
-    const { wrapper, mockNavigate, mockNavigation } = setupTest();
+  it('render title and srp link', () => {
+    const { wrapper, mockNavigation } = setupTest();
+
     const title = wrapper.getByText(strings('account_backup_step_1B.title'));
     expect(title).toBeTruthy();
 
@@ -84,6 +85,17 @@ describe('AccountBackupStep1B', () => {
       strings('account_backup_step_1B.subtitle_2'),
     );
     expect(srpLink).toBeTruthy();
+    mockNavigation.mockRestore();
+  });
+
+  it('on srp link press, the seed phrase modal is opened', () => {
+    const { wrapper, mockNavigate, mockNavigation } = setupTest();
+
+    const srpLink = wrapper.getByText(
+      strings('account_backup_step_1B.subtitle_2'),
+    );
+    expect(srpLink).toBeTruthy();
+
     fireEvent.press(srpLink);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SEEDPHRASE_MODAL,
@@ -91,7 +103,7 @@ describe('AccountBackupStep1B', () => {
     mockNavigation.mockRestore();
   });
 
-  it('should render cta actions', () => {
+  it('render start button and on press it should navigate to ManualBackupStep1', () => {
     const { wrapper, mockNavigate, mockNavigation } = setupTest();
     const ctaButton = wrapper.getByText(
       strings('account_backup_step_1B.cta_text'),
@@ -107,7 +119,7 @@ describe('AccountBackupStep1B', () => {
     mockNavigation.mockRestore();
   });
 
-  it('should render AndroidBackHandler when on Android', () => {
+  it('render AndroidBackHandler when on Android and on back press function is called with null', () => {
     const mockIsAndroid = (Device.isAndroid as jest.Mock).mockReturnValue(true);
 
     const { wrapper, mockNavigation } = setupTest();
@@ -126,7 +138,7 @@ describe('AccountBackupStep1B', () => {
     mockNavigation.mockRestore();
   });
 
-  it('should render header left button and on back press, the navigation is called', () => {
+  it('render header left button', () => {
     const { mockSetOptions, mockNavigation } = setupTest();
 
     // Verify that setOptions was called with the correct configuration
