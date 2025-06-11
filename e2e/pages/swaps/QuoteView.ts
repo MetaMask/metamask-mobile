@@ -26,8 +26,8 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DEST_TOKEN);
   }
 
-  get searchToken(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN);
+  get searchToken(): TypableElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN) as TypableElement;
   }
 
   get maxSlippage(): DetoxElement {
@@ -58,7 +58,7 @@ class QuoteView {
   }
 
   async typeSearchToken(symbol: string) {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken as TypableElement, symbol);
+    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {

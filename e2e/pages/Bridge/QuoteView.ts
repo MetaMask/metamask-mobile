@@ -14,8 +14,8 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.BRIDGE_TO);
   }
 
-  get searchToken(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
+  get searchToken(): Promise<Detox.IndexableNativeElement> {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT) as Promise<Detox.IndexableNativeElement>;
   }
 
   get networkFeeLabel(): DetoxElement {
@@ -47,7 +47,7 @@ class QuoteView {
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken as Promise<Detox.IndexableNativeElement>, symbol);
+    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
   async selectToken(symbol: string): Promise<void> {
