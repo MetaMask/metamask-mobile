@@ -93,6 +93,7 @@ import {
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { formatSeedPhraseToSingleLine } from '../../../util/string';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -171,10 +172,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleSeedPhraseChange = useCallback(
     async (seedPhraseText, index) => {
       try {
-        const text = seedPhraseText
-          .split('\n')
-          .map((item) => item)
-          .join(' ');
+        const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
         if (text.includes(SPACE_CHAR)) {
           const isEndWithSpace = text.at(-1) === SPACE_CHAR;
@@ -403,7 +401,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const handleKeyPress = (e, index, enterPressed = false) => {
+  const handleKeyPress = (e, index) => {
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (seedPhrase[index] === '') {
@@ -750,7 +748,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }
                                   placeholderTextColor={colors.text.muted}
                                   onSubmitEditing={(e) => {
-                                    handleKeyPress(e, index, true);
+                                    handleKeyPress(e, index);
                                   }}
                                   onKeyPress={(e) => handleKeyPress(e, index)}
                                   size={TextFieldSize.Md}
