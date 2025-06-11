@@ -140,6 +140,9 @@ describe('ProtectYourWallet', () => {
     fireEvent.press(getByText(strings('app_settings.back_up_now')));
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.ACCOUNT_BACKUP.STEP_1_B,
+      {
+        settingsBackup: true,
+      },
     );
     expect(mockTrackEvent).toHaveBeenCalled();
   });
