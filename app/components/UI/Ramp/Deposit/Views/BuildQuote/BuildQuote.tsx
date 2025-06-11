@@ -5,7 +5,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import Row from '../../../Aggregator/components/Row';
 import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -15,31 +14,50 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import Keypad from '../../../../../Base/Keypad';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { USDC_TOKEN, DEBIT_CREDIT_PAYMENT_METHOD } from '../../constants';
+import {
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  USDC_TOKEN,
+  DepositCryptoCurrency,
+  DepositPaymentMethod,
+  USD_CURRENCY,
+  DepositFiatCurrency,
+} from '../../constants';
+import AccountSelector from '../../components/AccountSelector';
+import { strings } from '../../../../../../../locales/i18n';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
+
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const [paymentMethod] = useState<string>('credit_debit_card');
-  const [cryptoCurrency] = useState<string>('USDC');
-  const [fiatCurrency] = useState<string>('USD');
+  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
+    DEBIT_CREDIT_PAYMENT_METHOD,
+  );
+
+  const [cryptoCurrency, setCryptoCurrency] =
+    useState<DepositCryptoCurrency>(USDC_TOKEN);
+
+  const [fiatCurrency, setFiatCurrency] =
+    useState<DepositFiatCurrency>(USD_CURRENCY);
+
   const [network] = useState<string>('ethereum');
-  const [amount, setAmount] = useState<string>('100');
+
+  const [amount, setAmount] = useState<string>('0');
+
   const { isAuthenticated } = useDepositSDK();
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false },
-    fiatCurrency,
-    cryptoCurrency,
-    network,
-    paymentMethod,
+    fiatCurrency.id,
+    cryptoCurrency.id,
+    cryptoCurrency.chainId,
+    paymentMethod.id,
     amount,
   );
 
@@ -56,10 +74,10 @@ const BuildQuote = () => {
 
   const handleOnPressContinue = useCallback(async () => {
     const quote = await getQuote(
-      fiatCurrency,
-      cryptoCurrency,
-      network,
-      paymentMethod,
+      fiatCurrency.id,
+      cryptoCurrency.id,
+      cryptoCurrency.chainId,
+      paymentMethod.id,
       amount,
     );
 
@@ -104,9 +122,9 @@ const BuildQuote = () => {
     [],
   );
 
-  const handleAccountPress = useCallback(() => {
-    // TODO: Implement account selection logic
-    console.log('Account selection pressed');
+  const handlePaymentMethodPress = useCallback(() => {
+    // TODO: Implement payment method selection logic
+    console.log('Payment method selection pressed');
   }, []);
 
   const handleFiatPress = useCallback(() => {
@@ -114,12 +132,11 @@ const BuildQuote = () => {
     console.log('Fiat selection pressed');
   }, []);
 
-  const handlePaymentMethodPress = useCallback(() => {
-    // TODO: Implement payment method selection logic
-    console.log('Payment method selection pressed');
+  const handleCryptoPress = useCallback(() => {
+    // TODO: Implement crypto selection logic
+    console.log('Crypto selection pressed');
   }, []);
 
-  // Calculate USDC equivalent (mock calculation - replace with actual conversion logic)
   const usdcAmount = parseFloat(amount || '0').toFixed(2);
 
   const formatCurrency = (value: string) => {
@@ -131,74 +148,58 @@ const BuildQuote = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
-          {/* Account and Fiat Selection Row */}
           <View style={styles.selectionRow}>
+            <AccountSelector />
             <TouchableOpacity
-              style={styles.selectionBox}
-              onPress={handleAccountPress}
-            >
-              <Text variant={TextVariant.BodyMD}>Account 1</Text>
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Sm}
-                color={theme.colors.icon.alternative}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.selectionBox}
+              style={styles.fiatSelector}
               onPress={handleFiatPress}
             >
-              <Text variant={TextVariant.BodyMD}>USD</Text>
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Sm}
-                color={theme.colors.icon.alternative}
-              />
+              <View>
+                <Text variant={TextVariant.BodyMD}>{fiatCurrency.id}</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
-          {/* Centered Amount Group */}
           <View style={styles.centerGroup}>
-            {/* Amount Display */}
-            <View style={styles.amountContainer}>
-              <Text variant={TextVariant.HeadingLG} style={styles.mainAmount}>
-                {formatCurrency(amount)}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.convertedAmount}
-              >
-                {usdcAmount} USDC
-              </Text>
-            </View>
+            <Text variant={TextVariant.HeadingLG} style={styles.mainAmount}>
+              {formatCurrency(amount)}
+            </Text>
 
-            {/* Crypto Pill */}
-            <View style={styles.cryptoPill}>
-              <Image
-                source={{ uri: USDC_TOKEN.logo }}
-                style={styles.tokenLogo}
-              />
-              <Text variant={TextVariant.BodyMD} style={styles.cryptoText}>
-                {USDC_TOKEN.symbol}
-              </Text>
-            </View>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.convertedAmount}
+            >
+              {usdcAmount} {cryptoCurrency.symbol}
+            </Text>
+
+            <TouchableOpacity onPress={handleCryptoPress}>
+              <View style={styles.cryptoPill}>
+                <Image
+                  source={{ uri: USDC_TOKEN.logo }}
+                  style={styles.tokenLogo}
+                />
+                <Text variant={TextVariant.HeadingLG} style={styles.cryptoText}>
+                  {USDC_TOKEN.symbol}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Payment Method Box */}
           <TouchableOpacity
             style={styles.paymentMethodBox}
             onPress={handlePaymentMethodPress}
           >
             <View style={styles.paymentMethodContent}>
               <View>
+                <Text variant={TextVariant.BodyMD}>
+                  {strings('deposit.buildQuote.payWith')}
+                </Text>
+
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  Pay with
-                </Text>
-                <Text variant={TextVariant.BodyMD}>
                   {DEBIT_CREDIT_PAYMENT_METHOD.name}
                 </Text>
               </View>
@@ -210,33 +211,26 @@ const BuildQuote = () => {
             </View>
           </TouchableOpacity>
 
-          {/* Keypad */}
-          <View style={styles.keypadContainer}>
-            <Keypad
-              style={styles.keypad}
-              value={amount}
-              onChange={handleKeypadChange}
-              currency={fiatCurrency}
-              decimals={2}
-              deleteIcon={
-                <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
-              }
-            />
-          </View>
+          <Keypad
+            style={styles.keypad}
+            value={amount}
+            onChange={handleKeypadChange}
+            currency={fiatCurrency.symbol}
+            decimals={2}
+            deleteIcon={<Icon name={IconName.Arrow2Left} size={IconSize.Lg} />}
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <Row>
-            <StyledButton
-              type="confirm"
-              onPress={handleOnPressContinue}
-              accessibilityRole="button"
-              accessible
-            >
-              Continue
-            </StyledButton>
-          </Row>
+          <StyledButton
+            type="confirm"
+            onPress={handleOnPressContinue}
+            accessibilityRole="button"
+            accessible
+          >
+            Continue
+          </StyledButton>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
