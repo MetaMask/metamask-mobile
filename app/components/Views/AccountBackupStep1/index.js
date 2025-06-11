@@ -253,6 +253,7 @@ const AccountBackupStep1 = (props) => {
                   label={strings('account_backup_step_1.remind_me_later')}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
+                  testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
                 />
               </View>
             )}
