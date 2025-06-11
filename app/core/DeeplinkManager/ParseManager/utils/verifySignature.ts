@@ -41,7 +41,7 @@ type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 let tools: {
   algorithm: SubtleAlgorithm;
   encoder: TextEncoder;
-  key: AnyAlgorithm;
+  key: CryptoKey;
 };
 
 async function lazyGetTools() {
@@ -69,7 +69,7 @@ async function lazyGetTools() {
   tools = {
     algorithm,
     encoder: new TextEncoder(),
-    key,
+    key: key as CryptoKey,
   };
   return tools;
 }
