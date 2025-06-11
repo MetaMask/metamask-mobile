@@ -4,10 +4,10 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import { selectEvmChainId } from '../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
@@ -26,6 +26,9 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
 } from './wc-utils';
+import Engine from '../Engine/Engine';
+import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
+import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -52,7 +55,7 @@ class WalletConnect2Session {
   private requestByRequestId: {
     [requestId: string]: WalletKitTypes.SessionRequest;
   } = {};
-  private lastChainId: string;
+  private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
 
@@ -114,7 +117,7 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: getHostname(url),
+          hostname: this.hostname,
           getProviderState,
           channelId,
           analytics: {},
@@ -140,23 +143,58 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
-
-    this.lastChainId = selectEvmChainId(store.getState());
-
+    this.lastChainId = this.getCurrentChainId()
     // Subscribe to store changes to detect chain switches
-    store.subscribe(() => {
-      const newChainId = selectEvmChainId(store.getState());
-      if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-        this.lastChainId = newChainId;
-        const decimalChainId = parseInt(newChainId, 16);
-        this.handleChainChange(decimalChainId).catch((error) => {
-          console.warn(
-            'WC2::store.subscribe Error handling chain change:',
-            error,
-          );
-        });
-      }
-    });
+    store.subscribe(this.onStoreChange.bind(this));
+  }
+
+  private get origin() {
+    return this.session.peer.metadata.url;
+  }
+
+  private get hostname() {
+    return getHostname(this.origin);
+  }
+
+  private onStoreChange() {
+    const newChainId = this.getCurrentChainId();
+    if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
+      this.lastChainId = newChainId;
+      const decimalChainId = Number.parseInt(newChainId, 16);
+      this.handleChainChange(decimalChainId).catch((error) => {
+        console.warn(
+          'WC2::store.subscribe Error handling chain change:',
+          error,
+        );
+      });
+    }
+  }
+
+  private getCurrentChainId() {
+    const providerConfigChainId = selectEvmChainId(store.getState());
+    if (isPerDappSelectedNetworkEnabled()) {
+      const perOriginChainId = selectPerOriginChainId(
+        store.getState(),
+        this.hostname,
+      );
+      return perOriginChainId;
+    }
+    return providerConfigChainId;
+  }
+
+  private getChainIdForCaipChainId(caipChainId: CaipChainId) {
+    const caipNetworkConfiguration = selectNetworkConfigurationsByCaipChainId(store.getState());
+    const { chainId } = caipNetworkConfiguration[caipChainId];
+    //TODO: Remove this cast when caipNetworkConfiguration is fixed, duplicate types for chainId
+    return chainId as Hex;
+  }
+
+  private getNetworkClientIdForCaipChainId(caipChainId: CaipChainId) {
+    const networkConfigurationsByChainId = selectEvmNetworkConfigurationsByChainId(store.getState());
+    const chainId = this.getChainIdForCaipChainId(caipChainId);
+    //Casting is required, because caipnetwork config has duplicate types and we assume the correct one is Hex
+    const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[chainId as Hex];
+    return networkClientId;
   }
 
   /** Check for pending unresolved requests */
@@ -374,13 +412,7 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
-  updateSession = async ({
-    chainId,
-    accounts,
-  }: {
-    chainId: number;
-    accounts?: string[];
-  }) => {
+  updateSession = async ({ chainId, accounts }: { chainId: number; accounts?: string[]; }) => {
     try {
       if (!accounts) {
         DevLogger.log(
@@ -389,16 +421,12 @@ class WalletConnect2Session {
         return;
       }
 
-      // const origin = normalizeOrigin(this.session.peer.metadata.url);
-      const origin = this.session.peer.metadata.url;
-      const hostname = getHostname(origin);
-
       DevLogger.log(
-        `WC2::updateSession origin=${origin} hostname=${hostname} - chainId=${chainId} - accounts=${accounts}`,
+        `WC2::updateSession origin=${this.origin} hostname=${this.hostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
-        const approvedAccounts = getPermittedAccounts(hostname);
+        const approvedAccounts = getPermittedAccounts(this.hostname);
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -407,7 +435,7 @@ class WalletConnect2Session {
           accounts = approvedAccounts;
         } else {
           console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${origin}`,
+            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${this.origin}`,
           );
           return;
         }
@@ -423,7 +451,7 @@ class WalletConnect2Session {
         );
       }
 
-      const namespaces = await getScopedPermissions({ origin });
+      const namespaces = await getScopedPermissions({ origin: this.origin });
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
         namespaces,
@@ -463,7 +491,7 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
 
     const verified = requestEvent.verifyContext?.verified;
-    const origin = verified?.origin ?? this.session.peer.metadata.url;
+    const origin = verified?.origin ?? this.origin;
     const method = requestEvent.params.request.method;
     const isSwitchingChain = method === 'wallet_switchEthereumChain';
     const caip2ChainId = (isSwitchingChain ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId) as CaipChainId;
@@ -508,19 +536,33 @@ class WalletConnect2Session {
       return;
     }
 
+
+    if (isPerDappSelectedNetworkEnabled()) {
+      const chainId = this.getChainIdForCaipChainId(caip2ChainId);
+      const currentChainId = this.getCurrentChainId();
+      if (currentChainId !== chainId) {
+        const networkClientId = this.getNetworkClientIdForCaipChainId(caip2ChainId)
+        Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+          this.hostname,
+          networkClientId
+        )
+      }
+    }
+
     if (METHODS_TO_REDIRECT[method]) {
       this.requestsToRedirect[requestEvent.id] = true;
     }
 
     if (method === 'wallet_switchEthereumChain') {
-      this.handleChainChange(parseInt(caip2ChainId.split(':')[1], 10));
+      const chainId = this.getChainIdForCaipChainId(caip2ChainId);
+      this.handleChainChange(Number.parseInt(chainId, 16));
       // respond to the request as successful
       await this.approveRequest({ id: requestEvent.id + '', result: true });
       return;
     }
 
     if (method === 'eth_sendTransaction') {
-      await this.handleSendTransaction(requestEvent, methodParams, origin);
+      await this.handleSendTransaction(caip2ChainId, requestEvent, methodParams, origin);
       return;
     }
 
@@ -555,13 +597,17 @@ class WalletConnect2Session {
   };
 
   private async handleSendTransaction(
+    caip2ChainId: CaipChainId,
     requestEvent: WalletKitTypes.SessionRequest,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     methodParams: any,
-    origin: string,
+    origin: string
   ) {
     try {
-      const networkClientId = getGlobalNetworkClientId();
+
+      const networkClientId = isPerDappSelectedNetworkEnabled() ?
+        this.getNetworkClientIdForCaipChainId(caip2ChainId) :
+        getGlobalNetworkClientId();
 
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -570,7 +616,6 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
-      const id = trx.transactionMeta.id;
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
@@ -586,7 +631,9 @@ class WalletConnect2Session {
         ],
       };
 
-      ppomUtil.validateRequest(reqObject, id);
+      ppomUtil.validateRequest(reqObject, {
+        transactionMeta: trx.transactionMeta,
+      });
       const hash = await trx.result;
 
       await this.approveRequest({ id: requestEvent.id + '', result: hash });

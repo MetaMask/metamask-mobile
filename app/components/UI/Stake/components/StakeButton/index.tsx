@@ -27,7 +27,6 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -74,7 +73,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: asset,
-          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     } else {

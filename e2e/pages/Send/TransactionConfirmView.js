@@ -8,7 +8,7 @@ import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
 } from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import TestHelpers from '../../helpers';
 
 class TransactionConfirmationView {
@@ -100,7 +100,7 @@ class TransactionConfirmationView {
   async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
     await TestHelpers.delay(1000);
-    await Gestures.TapAtIndex(this.estimatedGasLink, index);
+    await Gestures.tapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

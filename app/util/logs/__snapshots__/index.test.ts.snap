@@ -20,12 +20,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
-      "AppMetadataController": {
-        "currentAppVersion": "",
-        "currentMigrationVersion": 0,
-        "previousAppVersion": "",
-        "previousMigrationVersion": 0,
-      },
       "ApprovalController": {
         "approvalFlows": [],
         "pendingApprovalCount": 0,
@@ -36,6 +30,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeController": {
         "assetExchangeRates": {},
+        "minimumBalanceForRentExemptionInLamports": "0",
         "quoteFetchError": null,
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
@@ -174,6 +169,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501",
           },
         },
+        "networksWithTransactionActivity": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
       "MultichainTransactionsController": {
@@ -311,6 +307,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "subjects": {},
       },
       "PreferencesController": {
+        "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": {},
@@ -506,6 +503,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastFetchedBlockNumbers": {},
         "methodData": {},
         "submitHistory": [],
+        "transactionBatches": [],
         "transactions": [],
       },
       "UserStorageController": {

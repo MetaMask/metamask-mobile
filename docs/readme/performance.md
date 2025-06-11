@@ -6,6 +6,7 @@ This guide aims to help you navigate this complex landscape by providing best pr
 
 - [Re-renders and component optimization](#re-renders-and-component-optimization)
 - [Tool(s) for identifying re-renders](#tools-for-identifying-re-renders)
+- [Automatically optimizing React](#automatically-optimizing-react)
 
 By understanding these areas and applying the recommended practices, you can create a more efficient and responsive application that provides a better user experience.
 
@@ -162,3 +163,41 @@ To illustrate how the tool can be used, we'll be referencing [Callstack](https:/
 ![Callstack Profile Re-render P.16](../assets/performance-render/callstack-p16.jpg)
 ![Callstack Profile Re-render P.17](../assets/performance-render/callstack-p17.jpg)
 ![Callstack Profile Re-render P.18](../assets/performance-render/callstack-p18.jpg)
+
+## Automatically optimizing React
+
+In 2024, the React team announced a build time tool called [React Compiler](https://react.dev/learn/react-compiler) that we can leverage to automatically optimize React code. Under the hood, the compiler references the [Rules of React](https://react.dev/reference/rules) to memoize code whenever possible. More specifically, the tool uses React APIs such as `useMemo`, `useCallback`, and `React.memo` for memoization. React Compiler has already been integrated into MetaMask's build process, so you can start using it today. We've also added an ESLint plugin for React Compiler that will catch issues during linting based on the rules of React.
+
+### Optimizing new code
+
+Since the plan is to incrementally adopt React Compiler, only code files and paths that are specified by the team will be automatically optimized. To ensure that new code is automatically optimized by React Compiler, add the file path or directory to the `pathsToInclude` in `babel.config.js`. Once added, the new code will be automatically optimized during build time.
+
+```javascript
+// babel.config.js
+
+module.exports = {
+  /* ... */
+  plugins: [
+    [
+      'react-compiler',
+      {
+        /* .. */
+        sources: (filename) => {
+          // Match file paths or directories to include in the React Compiler.
+          const pathsToInclude = [
+            // Example file path
+            'app/components/ExampleDir/index',
+            // Example directory
+            'app/components/ExampleDir2',
+          ];
+          return pathsToInclude.some((path) => filename.includes(path));
+        },
+      },
+    ],
+  ];
+};
+```
+
+### Troubleshooting React Compiler
+
+By default, Metro may cache parts of the compiled code especially when using the `yarn watch` command. To perform a clean build, run `yarn watch:clean` instead. You can also verify that the file is picked up by React Compiler by adding a log in the `sources` function to confirm the match.
