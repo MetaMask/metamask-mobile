@@ -56,6 +56,7 @@ export enum TraceName {
   AddAccount = 'Add Account',
   CreateAccount = 'Create Account',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  TransactionConfirmed = 'Transaction Confirmed',
 }
 
 export enum TraceOperation {
