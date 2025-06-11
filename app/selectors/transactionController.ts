@@ -6,12 +6,12 @@ import { selectPendingSmartTransactionsBySender } from './smartTransactionsContr
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
 
-export const selectTransactionsStrict = createSelector(
+const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) => transactionControllerState.transactions,
 );
 
-export const selectTransactionBatchesStrict = createSelector(
+const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) => transactionControllerState.transactionBatches,
 );

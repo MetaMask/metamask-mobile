@@ -27,7 +27,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import { useTransactionBatchesMetadataRequest } from '../../../../hooks/transactions/useTransactionBatchesMetadataRequest';
+import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
@@ -41,7 +41,7 @@ const AccountNetworkInfoCollapsed = () => {
 
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
 
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;

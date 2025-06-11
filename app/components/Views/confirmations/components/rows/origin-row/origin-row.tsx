@@ -4,7 +4,7 @@ import React from 'react';
 import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../hooks/signatures/useSignatureRequest';
-import { useTransactionBatchesMetadataRequest } from '../../../hooks/transactions/useTransactionBatchesMetadataRequest';
+import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { getSIWEDetails } from '../../../utils/signature';
@@ -22,7 +22,7 @@ const InfoRowOrigin = ({
 }) => {
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const { approvalRequest } = useApprovalRequest();
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;

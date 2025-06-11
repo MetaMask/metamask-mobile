@@ -3,9 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionBatchesMetadataRequest } from '../transactions/useTransactionBatchesMetadataRequest';
-import { MMM_ORIGIN } from '../../constants/confirmations';
+import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import useNavbar from './useNavbar';
 
 // Mock dependencies
@@ -21,12 +19,8 @@ jest.mock('../useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('../transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: jest.fn(),
-}));
-
-jest.mock('../transactions/useTransactionBatchesMetadataRequest', () => ({
-  useTransactionBatchesMetadataRequest: jest.fn(),
+jest.mock('./useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(),
 }));
 
 describe('useNavbar', () => {
@@ -50,26 +44,22 @@ describe('useNavbar', () => {
       headerLeft: () => null,
     });
 
-    // Default to wallet-initiated confirmation for existing tests
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      origin: MMM_ORIGIN,
+    // Default to full screen confirmation for existing tests
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
     });
-    
-    // Mock useTransactionBatchesMetadataRequest to return null by default
-    (useTransactionBatchesMetadataRequest as jest.Mock).mockReturnValue(null);
   });
 
-  it('should call setOptions with the correct navbar configuration for wallet-initiated confirmations', () => {
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      origin: MMM_ORIGIN,
+  it('calls setOptions with the correct navbar configuration for full screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
     });
 
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
     expect(useConfirmActions).toHaveBeenCalled();
-    expect(useTransactionMetadataRequest).toHaveBeenCalled();
-    expect(useTransactionBatchesMetadataRequest).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: mockTitle,
       onReject: mockOnReject,
@@ -86,37 +76,37 @@ describe('useNavbar', () => {
     );
   });
 
-  it('should not call setOptions for non-wallet-initiated confirmations', () => {
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      origin: 'external-origin',
+  it('does not call setOptions for non-full-screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: false,
     });
 
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
     expect(useConfirmActions).toHaveBeenCalled();
-    expect(useTransactionMetadataRequest).toHaveBeenCalled();
-    expect(useTransactionBatchesMetadataRequest).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
   });
 
-  it('should not call setOptions when transactionMetadata is null or undefined', () => {
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue(null);
+  it('does not call setOptions when isFullScreenConfirmation is false', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: false,
+    });
 
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
     expect(useConfirmActions).toHaveBeenCalled();
-    expect(useTransactionMetadataRequest).toHaveBeenCalled(); 
-    expect(useTransactionBatchesMetadataRequest).toHaveBeenCalled();
+    expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
   });
 
-  it('should update navigation options when title changes for wallet-initiated confirmations', () => {
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      origin: MMM_ORIGIN,
+  it('updates navigation options when title changes for full screen confirmations', () => {
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
     });
 
     const { rerender } = renderHook(({ title }) => useNavbar(title), {
@@ -136,13 +126,13 @@ describe('useNavbar', () => {
     });
   });
 
-  it('should update navigation options when onReject changes for wallet-initiated confirmations', () => {
+  it('updates navigation options when onReject changes for full screen confirmations', () => {
     const newOnReject = jest.fn();
     (useConfirmActions as jest.Mock).mockReturnValue({
       onReject: newOnReject,
     });
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      origin: MMM_ORIGIN,
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
     });
 
     renderHook(() => useNavbar(mockTitle));

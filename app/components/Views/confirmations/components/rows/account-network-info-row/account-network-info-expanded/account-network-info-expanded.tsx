@@ -11,12 +11,12 @@ import { Hex } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../../../util/address';
 import { useSelectedAccountMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
-import { useTransactionBatchesMetadataRequest } from '../../../../hooks/transactions/useTransactionBatchesMetadataRequest';
+import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 
 const AccountNetworkInfoExpanded = () => {
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;
   if (signatureRequest) {
@@ -30,6 +30,7 @@ const AccountNetworkInfoExpanded = () => {
     chainId = transactionBatchesMetadata?.chainId as Hex;
     fromAddress = transactionBatchesMetadata?.from as string;
   }
+
   const { accountAddress } = useAccountInfo(fromAddress, chainId as Hex);
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();

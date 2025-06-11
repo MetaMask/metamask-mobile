@@ -46,19 +46,7 @@ const StakeScreenStack = () => (
         component={StakeEarningsHistoryView}
       />
       <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT}
-        component={Confirm}
-      />
-      <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL}
-        component={Confirm}
-      />
-      <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATIONS.STAKE_CLAIM}
-        component={Confirm}
-      />
-      <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT}
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
       />
     </Stack.Navigator>

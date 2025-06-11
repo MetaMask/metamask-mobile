@@ -1,6 +1,6 @@
 import { hexToBN } from '@metamask/controller-utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { type TransactionMeta } from '@metamask/transaction-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import { useCallback, useMemo } from 'react';
@@ -10,7 +10,6 @@ import { formatAmount } from '../../../../../components/UI/SimulationDetails/for
 import { RootState } from '../../../../../reducers';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import {
   addHexes,
   decGWEIToHexWEI,
@@ -18,11 +17,12 @@ import {
   getValueFromWeiHex,
   multiplyHexes,
 } from '../../../../../util/conversions';
-import { isTestNet } from '../../../../../util/networks';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
+import { isTestNet } from '../../../../../util/networks';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
+import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 
 const HEX_ZERO = '0x0';
 

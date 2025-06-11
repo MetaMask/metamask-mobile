@@ -1,32 +1,45 @@
+import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
 import {
-  FULL_SCREEN_CONFIRMATIONS,
-  MMM_ORIGIN
+  FULL_SCREEN_CONFIRMATIONS
 } from '../../constants/confirmations';
-import { useTransactionBatchesMetadataRequest } from '../transactions/useTransactionBatchesMetadataRequest';
+import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
+
+const getIsFullScreenConfirmation = (
+  approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
+  transactionMetadata: TransactionMeta | undefined,
+  isWalletInitiated: boolean
+): boolean => {
+  if (!isWalletInitiated) {
+    return false;
+  }
+
+  if (approvalRequest?.type === ApprovalType.Transaction) {
+    return FULL_SCREEN_CONFIRMATIONS.includes(
+      transactionMetadata?.type as TransactionType
+    );
+  }
+
+  if (approvalRequest?.type === 'transaction_batch') {
+    return true;
+  }
+
+  return false;
+};
 
 export const useFullScreenConfirmation = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadataRequest();
+  const isInternalConfirmation = useIsInternalConfirmation();
 
-  const isWalletInitiated = transactionMetadata?.origin === MMM_ORIGIN ||
-    transactionBatchesMetadata?.origin === MMM_ORIGIN;
-  let isFullScreenConfirmation = false;
-  if (approvalRequest?.type === ApprovalType.Transaction) {
-    if (
-      FULL_SCREEN_CONFIRMATIONS.includes(
-        transactionMetadata?.type as TransactionType,
-      )
-    ) {
-      isFullScreenConfirmation = isWalletInitiated;
-    }
-  } else if (approvalRequest?.type === 'transaction_batch') {
-    isFullScreenConfirmation = isWalletInitiated;
-  }
+  const isFullScreenConfirmation = getIsFullScreenConfirmation(
+    approvalRequest,
+    transactionMetadata,
+    isInternalConfirmation
+  );
 
   return { isFullScreenConfirmation };
 };

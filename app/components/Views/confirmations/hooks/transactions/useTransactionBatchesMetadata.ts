@@ -5,7 +5,7 @@ import { selectTransactionBatchMetadataById } from '../../../../../selectors/tra
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from '../useApprovalRequest';
 
-export function useTransactionBatchesMetadataRequest() {
+export function useTransactionBatchesMetadata() {
   const { approvalRequest } = useApprovalRequest();
 
   const transactionBatchMetadata = useSelector((state: RootState) =>

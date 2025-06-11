@@ -1,10 +1,10 @@
 import React from 'react';
-import { generateStablecoinLendingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { getNavbar } from '../../UI/navbar/navbar';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import BatchTransaction from './batch-transaction';
+import { generateStablecoinLendingDepositConfirmationState } from '../../../mock-data/transaction-batch-mock';
+import { getNavbar } from '../../UI/navbar/navbar';
+import TransactionBatch from './transaction-batch';
 
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -90,7 +90,7 @@ describe('BatchTransaction', () => {
       onReject: mockOnReject,
     }));
 
-    renderWithProvider(<BatchTransaction />, {
+    renderWithProvider(<TransactionBatch />, {
       state: generateStablecoinLendingDepositConfirmationState,
     });
 
@@ -104,7 +104,7 @@ describe('BatchTransaction', () => {
   });
 
   it('tracks metrics events', () => {
-    renderWithProvider(<BatchTransaction />, {
+    renderWithProvider(<TransactionBatch />, {
       state: generateStablecoinLendingDepositConfirmationState,
     });
 
