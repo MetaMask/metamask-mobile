@@ -321,7 +321,7 @@ const BridgeView = () => {
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (isSubmittingTx && selectedAddress && isHardwareAccount(selectedAddress))
+    if (isSubmittingTx && selectedAddress && isHardwareAddress)
       return strings('bridge.submitting_transaction_hardware_wallet');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
