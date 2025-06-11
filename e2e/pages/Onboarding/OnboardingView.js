@@ -8,11 +8,15 @@ class OnboardingView {
   }
 
   get importSeedButton() {
-    return Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.IMPORT_SEED_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
   }
 
   get newWalletButton() {
-    return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.NEW_WALLET_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
   async tapCreateWallet() {

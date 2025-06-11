@@ -69,7 +69,6 @@ import Button, {
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 

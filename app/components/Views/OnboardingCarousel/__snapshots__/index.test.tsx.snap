@@ -1,2027 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should call getStarted button and show terms of use 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should change the carousel when the user swipes 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should use android padding for large screens 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should use android padding for small screens 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 40,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  />
-</View>
-`;
-
 exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
 <View
   style={
@@ -2033,352 +11,10 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
 >
   <View
     style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
-    }
-  >
-    <RCTScrollView
-      contentContainerStyle={
-        {
-          "flexGrow": 1,
-        }
-      }
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View>
-        <View
-          style={
-            {
-              "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
-            }
-          }
-          testID="welcome-screen-carousel-container-id"
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
-                }
-              }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "marginHorizontal": 30,
-                        }
-                      }
-                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-                    >
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                            "textAlign": "center",
-                          }
-                        }
-                        testID="app-start-time-id"
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
-                      }
-                    >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
-                        style={
-                          [
-                            {},
-                            {
-                              "height": 750,
-                              "width": 600,
-                            },
-                          ]
-                        }
-                        testID="carousel-one-image"
-                      />
-                    </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-              </View>
-            </RCTScrollView>
-          </View>
-          <View
-            style={
-              {
-                "alignSelf": "center",
-                "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {
-                    "opacity": 1,
-                  },
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
-                    "opacity": 0.4,
-                    "width": 10,
-                  },
-                  {},
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </RCTScrollView>
-    <View
-      style={
-        {
-          "flexDirection": "column",
-          "paddingBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="welcome-screen-get-started-button-id"
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Get started
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    collapsable={false}
-    style={
       {
         "backgroundColor": "#ffffff",
-        "bottom": 0,
-        "left": 0,
-        "opacity": 1,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
+        "flex": 1,
       }
-    }
-  />
-</View>
-`;
-
-exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="onboarding-carousel-screen"
->
-  <View
-    style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
     }
   >
     <RCTScrollView
@@ -2398,8 +34,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "paddingVertical": 30,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2473,20 +108,47 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
                     >
                       <Text
-                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
                         style={
                           {
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
                             "textAlign": "center",
                           }
                         }
-                        testID="app-start-time-id"
-                      />
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
                     </View>
                     <View
                       style={
@@ -2506,6 +168,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "marginTop": 30,
                               "width": 600,
                             },
                           ]
@@ -2513,42 +176,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
                   </View>
                 </View>
                 <View
@@ -2577,8 +204,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
+                "marginVertical": 36,
               }
             }
           >
@@ -2586,11 +212,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {
                     "opacity": 1,
@@ -2602,11 +229,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -2616,11 +244,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -2635,48 +264,72 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
         {
           "flexDirection": "column",
           "paddingBottom": 20,
-          "paddingHorizontal": 16,
+          "paddingHorizontal": 40,
         }
       }
+      testID="welcome-screen-get-started-button-id"
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+      <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
+            "justifyContent": "flex-end",
           }
         }
-        testID="welcome-screen-get-started-button-id"
       >
-        <Text
-          accessibilityRole="text"
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
           }
         >
-          Get started
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -2707,15 +360,10 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
 >
   <View
     style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
     }
   >
     <RCTScrollView
@@ -2735,8 +383,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "paddingVertical": 30,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2810,20 +457,47 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
                     >
                       <Text
-                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
                         style={
                           {
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
                             "textAlign": "center",
                           }
                         }
-                        testID="app-start-time-id"
-                      />
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
                     </View>
                     <View
                       style={
@@ -2843,6 +517,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "marginTop": 30,
                               "width": 600,
                             },
                           ]
@@ -2850,42 +525,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
                   </View>
                 </View>
                 <View
@@ -2914,8 +553,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
+                "marginVertical": 36,
               }
             }
           >
@@ -2923,11 +561,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {
                     "opacity": 1,
@@ -2939,11 +578,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -2953,11 +593,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -2972,48 +613,72 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
         {
           "flexDirection": "column",
           "paddingBottom": 40,
-          "paddingHorizontal": 16,
+          "paddingHorizontal": 40,
         }
       }
+      testID="welcome-screen-get-started-button-id"
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+      <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
+            "justifyContent": "flex-end",
           }
         }
-        testID="welcome-screen-get-started-button-id"
       >
-        <Text
-          accessibilityRole="text"
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
           }
         >
-          Get started
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -3044,15 +709,10 @@ exports[`OnboardingCarousel should render correctly 1`] = `
 >
   <View
     style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
     }
   >
     <RCTScrollView
@@ -3072,8 +732,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "paddingVertical": 30,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3147,20 +806,47 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
                     >
                       <Text
-                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
                         style={
                           {
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
                             "textAlign": "center",
                           }
                         }
-                        testID="app-start-time-id"
-                      />
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
                     </View>
                     <View
                       style={
@@ -3180,6 +866,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             {},
                             {
                               "height": 750,
+                              "marginTop": 30,
                               "width": 600,
                             },
                           ]
@@ -3187,42 +874,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
                   </View>
                 </View>
                 <View
@@ -3251,8 +902,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
+                "marginVertical": 36,
               }
             }
           >
@@ -3260,11 +910,12 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {
                     "opacity": 1,
@@ -3276,11 +927,12 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -3290,11 +942,12 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -3309,48 +962,72 @@ exports[`OnboardingCarousel should render correctly 1`] = `
         {
           "flexDirection": "column",
           "paddingBottom": 20,
-          "paddingHorizontal": 16,
+          "paddingHorizontal": 40,
         }
       }
+      testID="welcome-screen-get-started-button-id"
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+      <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
+            "justifyContent": "flex-end",
           }
         }
-        testID="welcome-screen-get-started-button-id"
       >
-        <Text
-          accessibilityRole="text"
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
           }
         >
-          Get started
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View
@@ -3381,15 +1058,10 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
 >
   <View
     style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "flex": 1,
-        },
-        {
-          "backgroundColor": "#E5FFC3",
-        },
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
     }
   >
     <RCTScrollView
@@ -3409,8 +1081,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           style={
             {
               "flex": 1,
-              "paddingBottom": 24,
-              "paddingTop": 30,
+              "paddingVertical": 30,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3484,20 +1155,47 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
                     >
                       <Text
-                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
                         style={
                           {
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
                             "textAlign": "center",
                           }
                         }
-                        testID="app-start-time-id"
-                      />
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
                     </View>
                     <View
                       style={
@@ -3517,6 +1215,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             {},
                             {
                               "height": 750,
+                              "marginTop": 30,
                               "width": 600,
                             },
                           ]
@@ -3524,42 +1223,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         testID="carousel-one-image"
                       />
                     </View>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "MMSans-Regular",
-                          "fontSize": 40,
-                          "fontWeight": "400",
-                          "justifyContent": "center",
-                          "letterSpacing": 0,
-                          "lineHeight": 40,
-                          "marginBottom": 28,
-                          "paddingHorizontal": 60,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Welcome to MetaMask
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#190066",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                          "paddingHorizontal": 16,
-                          "textAlign": "center",
-                        }
-                      }
-                    >
-                      Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
-                    </Text>
                   </View>
                 </View>
                 <View
@@ -3588,8 +1251,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
-                "marginTop": 47,
-                "padding": 10,
+                "marginVertical": 36,
               }
             }
           >
@@ -3597,11 +1259,12 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {
                     "opacity": 1,
@@ -3613,11 +1276,12 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -3627,11 +1291,12 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
-                    "height": 2,
-                    "marginHorizontal": 2,
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
                     "opacity": 0.4,
-                    "width": 10,
+                    "width": 8,
                   },
                   {},
                 ]
@@ -3646,48 +1311,72 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
         {
           "flexDirection": "column",
           "paddingBottom": 20,
-          "paddingHorizontal": 16,
+          "paddingHorizontal": 40,
         }
       }
+      testID="welcome-screen-get-started-button-id"
     >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
+      <View
         style={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
-            "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "paddingHorizontal": 16,
+            "justifyContent": "flex-end",
           }
         }
-        testID="welcome-screen-get-started-button-id"
       >
-        <Text
-          accessibilityRole="text"
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
           }
         >
-          Get started
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
   <View

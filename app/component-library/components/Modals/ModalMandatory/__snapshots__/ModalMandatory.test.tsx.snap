@@ -1,3 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ModalMandatory renders correctly with all props 1`] = `[Function]`;
+exports[`Mandatory Modal should render correctly component mandatory modal 1`] = `[Function]`;
+
+exports[`Mandatory Modal should render correctly webview mandatory modal 1`] = `[Function]`;
