@@ -34,7 +34,7 @@ export const INVALID = 'INVALID' as const;
 
 type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 
-let tools: { algorithm: unknown; encoder: TextEncoder; key: unknown };
+let tools: { algorithm: EcdsaParams; encoder: TextEncoder; key: CryptoKey };
 
 async function lazyGetTools() {
   if (tools) {
