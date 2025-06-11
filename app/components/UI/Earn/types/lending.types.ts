@@ -8,7 +8,7 @@ export enum EARN_LENDING_ACTIONS {
   ALLOWANCE_INCREASE = 'ALLOWANCE_INCREASE',
 }
 
-export interface EarnTokenDetails extends TokenI {
+export type EarnTokenDetails = TokenI & {
   balanceFormatted: string;
   balanceMinimalUnit: string;
   balanceFiat?: string;
@@ -25,4 +25,6 @@ export interface EarnTokenDetails extends TokenI {
     market?: LendingMarketWithPosition;
     vault?: VaultData;
   }[];
-}
+  // Token name (e.g. Aave Linea)
+  token?: string;
+};

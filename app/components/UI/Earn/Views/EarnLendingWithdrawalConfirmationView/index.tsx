@@ -353,6 +353,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
               />
             </View>
           </InfoSection>
+          {/* TODO: STAKE-1043: https://consensyssoftware.atlassian.net/browse/STAKE-1043 */}
           <InfoSectionAccordion header={strings('stake.advanced_details')}>
             <View style={styles.advancedDetailsContainer}>
               <KeyValueRow
