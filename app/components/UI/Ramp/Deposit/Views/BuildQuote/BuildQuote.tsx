@@ -117,6 +117,11 @@ const BuildQuote = () => {
       valueAsNumber: number;
       pressedKey: string;
     }) => {
+      // limit chars to avoid overflow
+      if (parseFloat(value || '0') > 1000000) {
+        return;
+      }
+
       setAmount(value || '0');
     },
     [],

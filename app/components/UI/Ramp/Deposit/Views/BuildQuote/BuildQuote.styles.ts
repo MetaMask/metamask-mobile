@@ -50,7 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       paddingVertical: 8,
       paddingHorizontal: 16,
-      marginBottom: 8,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
     },
