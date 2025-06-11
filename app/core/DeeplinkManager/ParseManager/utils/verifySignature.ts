@@ -107,10 +107,3 @@ export const verifyDeeplinkSignature = async (
 export const hasSignature = (url: URL): boolean => {
   return url.searchParams.has('sig');
 };
-
-export const verifyDeeplinkWithLogging = async (
-  url: URL,
-): Promise<VerificationResult> => {
-  const result = await verifyDeeplinkSignature(url);
-  return result;
-};
