@@ -61,13 +61,13 @@ async function parseDeeplink({
     if (isPrivateLink) {
       // TODO: handle valid signature on interstitial
       console.log('DeepLinkManager:parse valid signature on interstitial');
-      return true;
+      // return true;
     } else if (!isPrivateLink) {
       console.log(
         'DeepLinkManager:parse invalid/missing signature on interstitial',
       );
       // TODO: handle invalid/missing signature on interstitial
-      return false;
+      // return false;
     }
 
     const { urlObj, params } = extractURLParams(url);
