@@ -387,13 +387,11 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && (
+          {isSolanaSourced && isHardwareAddress && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={
-                isSolanaSourced
-                  ? strings('bridge.hardware_wallet_not_supported_solana')
-                  : strings('bridge.hardware_wallet_not_supported')
+                strings('bridge.hardware_wallet_not_supported_solana')
               }
             />
           )}
@@ -404,8 +402,7 @@ const BridgeView = () => {
             style={styles.button}
             isDisabled={
               hasInsufficientBalance ||
-              isSubmittingTx ||
-              isHardwareAddress
+              isSubmittingTx
             }
           />
           <Button
