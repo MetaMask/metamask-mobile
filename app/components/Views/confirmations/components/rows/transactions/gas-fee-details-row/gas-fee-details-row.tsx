@@ -1,24 +1,27 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
+
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
-  IconName,
   IconSize,
+  IconName,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../../component-library/hooks';
+import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
-import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
-import { GasSpeed } from '../../../gas/gas-speed';
+import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { GasFeeModal } from '../../../modals/gas-fee-modal';
+import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
-import InfoSection from '../../../UI/info-row/info-section';
+import { GasSpeed } from '../../../gas/gas-speed';
 import styleSheet from './gas-fee-details-row.styles';
+
 
 const EstimationInfo = ({
   hideFiatForTestnet,

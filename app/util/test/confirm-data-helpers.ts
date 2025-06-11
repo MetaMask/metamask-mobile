@@ -874,9 +874,9 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
-const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+export const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
 
-const mockApprovalRequest = {
+export const mockApprovalRequest = {
   id: mockTxId,
   origin: 'metamask.github.io',
   type: 'transaction',
@@ -906,7 +906,7 @@ export const mockTransaction = {
   origin: 'https://metamask.github.io',
 } as unknown as TransactionMeta;
 
-const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+export const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
   engine: {
     backgroundState: {
       TransactionController: { transactions: [mockTransaction] },
@@ -926,26 +926,6 @@ export const generateContractInteractionState = {
         pendingApprovals: { [mockTxId]: mockApprovalRequest },
         pendingApprovalCount: 1,
         approvalFlows: [],
-      },
-    },
-  },
-};
-
-export const generateStablecoinLendingDepositConfirmationState = {
-  ...contractInteractionBaseState,
-  engine: {
-    ...contractInteractionBaseState.engine,
-    backgroundState: {
-      ...contractInteractionBaseState.engine.backgroundState,
-      // Set a completely new ApprovalController to reject the approval in
-      // stakingConfirmationBaseState
-      ApprovalController: {
-        pendingApprovals: { [mockTxId]: { ...mockApprovalRequest, type: 'transaction_batch', origin: 'metamask' } },
-        pendingApprovalCount: 1,
-        approvalFlows: [],
-      },
-      TransactionController: {
-        transactions: [{ ...mockTransaction, origin: 'metamask' }],
       },
     },
   },

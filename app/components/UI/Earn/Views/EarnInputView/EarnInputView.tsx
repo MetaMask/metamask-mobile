@@ -62,6 +62,7 @@ import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -174,18 +175,17 @@ const EarnInputView = () => {
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
       '';
 
-    const isRedesignedStablecoinLendingScreenEnabled = process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED;
-    if (isRedesignedStablecoinLendingScreenEnabled) {
+    const createRedesignedLendingDepositConfirmation = (_earnToken: EarnTokenDetails, _activeAccount: InternalAccount) => {
       const approveTxParams =
         generateLendingAllowanceIncreaseTransaction(
           amountTokenMinimalUnit.toString(),
-          activeAccount.address,
-          tokenContractAddress,
-          earnToken.chainId,
+          _activeAccount.address,
+          _earnToken?.address,
+          _earnToken.chainId as string,
         );
-
+  
       if (!approveTxParams) return;
-
+  
       const approveTx = {
         params: {
           to: approveTxParams.txParams.to ? toHex(approveTxParams.txParams.to) : undefined,
@@ -195,16 +195,16 @@ const EarnInputView = () => {
         },
         type: TransactionType.tokenMethodApprove,
       };
-
+  
       const lendingDepositTxParams = generateLendingDepositTransaction(
         amountTokenMinimalUnit.toString(),
-        activeAccount.address,
-        tokenContractAddress,
-        earnToken.chainId,
+        _activeAccount.address,
+        _earnToken?.address,
+        _earnToken.chainId as string,
       );
-
+  
       if (!lendingDepositTxParams) return;
-
+  
       const lendingDepositTx = {
         params: {
           to: lendingDepositTxParams.txParams.to ? toHex(lendingDepositTxParams.txParams.to) : undefined,
@@ -216,7 +216,7 @@ const EarnInputView = () => {
         // it's added
         type: 'lendingDeposit' as TransactionType,
       };
-
+  
       addTransactionBatch({
         from: activeAccount?.address as Hex || '0x',
         networkClientId,
@@ -227,11 +227,13 @@ const EarnInputView = () => {
         disableSequential: false,
         requireApproval: true,
       });
-
+  
       navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STABLECOIN_LENDING_DEPOSIT
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
       });
-    } else {
+    };
+
+    const createLegacyLendingDepositConfirmation = (_lendingPoolContractAddress: string, _needsAllowanceIncrease: boolean) => {
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
         params: {
@@ -250,17 +252,22 @@ const EarnInputView = () => {
             : EARN_LENDING_ACTIONS.DEPOSIT,
         },
       });
+    };
+
+    const isRedesignedStablecoinLendingScreenEnabled = process.env.MM_STABLECOIN_LENDING_UI_ENABLED_REDESIGNED;
+    if (isRedesignedStablecoinLendingScreenEnabled) {
+      createRedesignedLendingDepositConfirmation(earnToken, activeAccount);
+    } else {
+      createLegacyLendingDepositConfirmation(lendingPoolContractAddress, needsAllowanceIncrease);
     }
   }, [
-    activeAccount?.address,
+    activeAccount,
     amountFiatNumber,
     amountTokenMinimalUnit,
     annualRewardRate,
     annualRewardsFiat,
     annualRewardsToken,
-    earnToken?.address,
-    earnToken?.chainId,
-    earnToken?.experience,
+    earnToken,
     navigation,
     networkClientId,
     token,
@@ -325,7 +332,7 @@ const EarnInputView = () => {
       );
 
       navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
 
       const withRedesignedPropEventProperties = {

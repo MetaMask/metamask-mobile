@@ -4,24 +4,18 @@ import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
 import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import { getNavbar } from '../../components/UI/navbar/navbar';
-import { MMM_ORIGIN } from '../../constants/confirmations';
-import { useTransactionBatchesMetadataRequest } from '../transactions/useTransactionBatchesMetadataRequest';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useConfirmActions } from '../useConfirmActions';
+import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
 const useNavbar = (title: string, addBackButton = true) => {
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadataRequest();
-
-  const isWalletInitiatedConfirmation = transactionMetadata?.origin === MMM_ORIGIN ||
-    transactionBatchesMetadata?.origin === MMM_ORIGIN;
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   useEffect(() => {
-    if (isWalletInitiatedConfirmation) {
+    if (isFullScreenConfirmation) {
       navigation.setOptions(
         getNavbar({
           title,
@@ -31,7 +25,7 @@ const useNavbar = (title: string, addBackButton = true) => {
         }),
       );
     }
-  }, [addBackButton, isWalletInitiatedConfirmation, navigation, onReject, theme, title]);
+  }, [addBackButton, isFullScreenConfirmation, navigation, onReject, theme, title]);
 };
 
 export default useNavbar;

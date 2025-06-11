@@ -11,8 +11,8 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
-import BatchTransaction from '../info/batch-transaction';
 import SwitchAccountType from '../info/switch-account-type';
+import TransactionBatch from '../info/transaction-batch';
 import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
@@ -58,7 +58,7 @@ const ConfirmationInfoComponentMap = {
         return null;
     }
   },
-  'transaction_batch': () => BatchTransaction,
+  'transaction_batch': () => TransactionBatch,
 };
 
 interface InfoProps {

@@ -85,6 +85,10 @@ function isRedesignedTransaction({
   return false;
 }
 
+function isBatchTransaction(approvalRequestType: ApprovalType | 'transaction_batch') {
+  return approvalRequestType === 'transaction_batch';
+}
+
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -107,8 +111,9 @@ export const useConfirmationRedesignEnabled = () => {
         confirmationRedesignFlags,
         fromAddress,
         transactionMetadata,
-      }) || approvalRequest?.type === 'transaction_batch',
-    [approvalRequest?.type, approvalRequestType, confirmationRedesignFlags, fromAddress, transactionMetadata],
+      }) ||
+      isBatchTransaction(approvalRequestType),
+    [approvalRequestType, confirmationRedesignFlags, fromAddress, transactionMetadata],
   );
 
   return { isRedesignedEnabled };

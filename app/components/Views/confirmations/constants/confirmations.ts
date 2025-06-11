@@ -35,10 +35,10 @@ export const REDESIGNED_TRANSFER_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.simpleSend,
+  TransactionType.stakingClaim,
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
-  TransactionType.simpleSend,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
 ]
