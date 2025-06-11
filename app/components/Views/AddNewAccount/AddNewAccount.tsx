@@ -44,6 +44,7 @@ import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMul
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 
 const AddNewAccount = ({
@@ -115,6 +116,9 @@ const AddNewAccount = ({
 
     setIsLoading(true);
     try {
+      trace({
+        name: TraceName.AddAccount,
+      });
       let account: InternalAccount;
       if (clientType && scope) {
         const multichainWalletSnapClient =
@@ -143,6 +147,9 @@ const AddNewAccount = ({
       Logger.error(e as Error, errorMessage);
     } finally {
       setIsLoading(false);
+      endTrace({
+        name: TraceName.AddAccount,
+      });
     }
   }, [clientType, scope, onActionComplete, accountName, keyringId, navigate]);
 

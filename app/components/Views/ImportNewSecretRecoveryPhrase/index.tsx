@@ -56,6 +56,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const defaultNumberOfWords = 12;
 
@@ -227,6 +228,9 @@ const ImportNewSecretRecoveryPhrase = () => {
   const onSubmit = async () => {
     setLoading(true);
     try {
+      trace({
+        name: TraceName.CreateAccount,
+      });
       await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
@@ -263,6 +267,10 @@ const ImportNewSecretRecoveryPhrase = () => {
         );
       }
       setLoading(false);
+    } finally {
+      endTrace({
+        name: TraceName.CreateAccount,
+      });
     }
   };
 

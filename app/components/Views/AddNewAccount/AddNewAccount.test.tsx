@@ -19,6 +19,7 @@ import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import Logger from '../../../util/Logger';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 import { SolAccountType } from '@metamask/keyring-api';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
@@ -47,6 +48,14 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../actions/multiSrp', () => ({
   addNewHdAccount: (keyringId?: string, name?: string) =>
     mockAddNewHdAccount(keyringId, name),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    AddAccount: 'Add Account',
+  },
 }));
 
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
@@ -225,10 +234,19 @@ describe('AddNewAccount', () => {
     const addButton = getByText(strings('accounts.add'));
     fireEvent.press(addButton);
 
-    expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyring2.metadata.id,
-      mockNextAccountName,
-    );
+    await waitFor(() => {
+      expect(mockAddNewHdAccount).toHaveBeenCalledWith(
+        mockKeyring2.metadata.id,
+        mockNextAccountName,
+      );
+    });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
   });
 
   it('handles account creation with custom name', async () => {
@@ -240,10 +258,19 @@ describe('AddNewAccount', () => {
     const addButton = getByText(strings('accounts.add'));
     fireEvent.press(addButton);
 
-    expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyring2.metadata.id,
-      'My Custom Account',
-    );
+    await waitFor(() => {
+      expect(mockAddNewHdAccount).toHaveBeenCalledWith(
+        mockKeyring2.metadata.id,
+        'My Custom Account',
+      );
+    });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
   });
 
   it('handles cancellation', () => {
@@ -281,6 +308,13 @@ describe('AddNewAccount', () => {
     await fireEvent.press(addButton);
 
     expect(mockNavigate).not.toHaveBeenCalled();
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.AddAccount,
+    });
   });
 
   describe('multichain', () => {

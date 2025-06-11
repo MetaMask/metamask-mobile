@@ -20,6 +20,7 @@ import Logger from '../../../../util/Logger';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -51,6 +52,9 @@ const AccountPermissionsConfirmRevokeAll = (
 
   const revokeAllAccounts = useCallback(async () => {
     try {
+      trace({
+        name: TraceName.DisconnectAllPermissions,
+      });
       if (onRevokeAll) {
         onRevokeAll();
       } else {
@@ -61,6 +65,10 @@ const AccountPermissionsConfirmRevokeAll = (
       }
     } catch (e) {
       Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
+    } finally {
+      endTrace({
+        name: TraceName.DisconnectAllPermissions,
+      });
     }
   }, [hostname, Engine.context.PermissionController, onRevokeAll]);
 
