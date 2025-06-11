@@ -37,7 +37,6 @@ export const acceptTermOfUse = async () => {
   await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
-  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
@@ -117,6 +116,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
+
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   if (optInToMetrics) {
@@ -131,10 +131,8 @@ export const importWalletWithRecoveryPhrase = async ({
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
-
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-
   await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
