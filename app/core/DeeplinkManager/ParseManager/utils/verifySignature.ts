@@ -1,4 +1,8 @@
 import QuickCrypto from 'react-native-quick-crypto';
+import {
+  AnyAlgorithm,
+  SubtleAlgorithm,
+} from 'react-native-quick-crypto/lib/typescript/src/keys';
 
 function base64StringToBytes(unpaddedBase64: string) {
   let standardB64 = unpaddedBase64.replace(/-/gu, '+').replace(/_/gu, '/');
@@ -34,7 +38,11 @@ export const INVALID = 'INVALID' as const;
 
 type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 
-let tools: { algorithm: EcdsaParams; encoder: TextEncoder; key: CryptoKey };
+let tools: {
+  algorithm: SubtleAlgorithm;
+  encoder: TextEncoder;
+  key: AnyAlgorithm;
+};
 
 async function lazyGetTools() {
   if (tools) {
