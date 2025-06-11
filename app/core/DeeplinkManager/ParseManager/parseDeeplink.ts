@@ -17,7 +17,7 @@ import {
   VALID,
   INVALID,
   MISSING,
-} from './utils/verifyDeeplinkSignature';
+} from './utils/verifySignature';
 
 async function parseDeeplink({
   deeplinkManager: instance,
