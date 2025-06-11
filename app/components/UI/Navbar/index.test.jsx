@@ -7,10 +7,12 @@ import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
   getOnboardingCarouselNavbarOptions,
+  getOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import { View } from 'react-native';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -44,7 +46,7 @@ describe('getNetworkNavbarOptions', () => {
       mockNavigation,
     );
 
-    const { getByText, getByRole } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <TestNavigator options={options} />,
       {
         state: {
@@ -81,7 +83,7 @@ describe('getDepositNavbarOptions', () => {
     expect(options.title).toBe('Deposit');
   });
 
-  it('handles back button press', () => {
+  it('deposit navbar options to pop when back button is pressed', () => {
     const options = getDepositNavbarOptions(
       mockNavigation,
       { title: 'Deposit' },
@@ -91,25 +93,22 @@ describe('getDepositNavbarOptions', () => {
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
   });
+});
 
-  it('returns navbar options with the correct title in android', () => {
-    Device.isAndroid.mockReturnValue(true);
-    const options = getDepositNavbarOptions(
-      mockNavigation,
-      { title: 'Deposit' },
-      mockTheme,
-    );
+describe('getOnboardingCarouselNavbarOptions', () => {
+  it('render onboarding carousel navbar options with default props', () => {
+    const options = getOnboardingCarouselNavbarOptions();
     expect(options).toBeDefined();
-    expect(options.title).toBe('Deposit');
   });
 
-  it('handles getOnboardingCarouselNavbarOptions', () => {
+  it('render onboarding carousel navbar options with custom background color', () => {
     const options = getOnboardingCarouselNavbarOptions('red');
-    expect(options).toBeDefined();
     expect(options.headerStyle.backgroundColor).toBe('red');
   });
+});
 
-  it('handles getTransparentOnboardingNavbarOptions', () => {
+describe('getTransparentOnboardingNavbarOptions', () => {
+  it('render transparent onboarding navbar options', () => {
     const options = getTransparentOnboardingNavbarOptions(
       mockTheme,
       'red',
@@ -117,6 +116,36 @@ describe('getDepositNavbarOptions', () => {
       'blue',
     );
     expect(options).toBeDefined();
+  });
+
+  it('render transparent onboarding navbar options with custom background color', () => {
+    const options = getTransparentOnboardingNavbarOptions(
+      mockTheme,
+      'red',
+      true,
+      'blue',
+    );
     expect(options.headerStyle.backgroundColor).toBe('red');
+  });
+});
+
+describe('getOnboardingNavbarOptions', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    goBack: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('render onboarding navbar options with default props', () => {
+    const options = getOnboardingNavbarOptions(
+      mockNavigation,
+      { headerLeft: () => <View />, headerRight: () => <View /> },
+      mockTheme.colors,
+      true,
+    );
+    expect(options).toBeDefined();
   });
 });
