@@ -1,4 +1,5 @@
-import { waitFor } from 'detox';
+/* eslint-disable no-console */
+import { waitFor, expect } from 'detox';
 
 /**
  * Class for handling user actions (Gestures)
@@ -51,16 +52,84 @@ class Gestures {
    * @param {number} [options.timeout=15000] - Timeout for waiting in milliseconds
    * @param {number} [options.delayBeforeTap=0] - Additional delay in milliseconds before tapping after element is visible
    * @param {boolean} [options.skipVisibilityCheck=false] - When true, skips the initial visibility check before tapping. Useful for elements that may be technically present but not passing Detox's visibility threshold.
+   * @param {boolean} [options.experimentalWaitForStability=false] - EXPERIMENTAL: When true, waits for element stability before tapping.
    */
   static async waitAndTap(element, options = {}) {
-    const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    const {
+      timeout = 15000,
+      delayBeforeTap = 0,
+      skipVisibilityCheck = false
+    } = options;
     if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
+      await waitFor(await element)
+        .toBeVisible()
+        .withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
     await (await element).tap();
+  }
+
+  /**
+   * Waits for an element to become stable (not moving) by checking its position multiple times.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check for stability
+   * @param {Object} [options={}] - Configuration options
+   * @param {number} [options.timeout=5000] - Maximum time to wait for stability (ms)
+   * @param {number} [options.interval=200] - Time between position checks (ms)
+   * @param {number} [options.stableCount=3] - Number of consecutive stable checks required
+   */
+  static async waitForElementToStopMoving(element, options = {}) {
+    const { timeout = 5000, interval = 200, stableCount = 3 } = options;
+    let lastPosition = null;
+    let stableChecks = 0;
+    const fallBackTimeout = 2000;
+    const start = Date.now();
+
+    const getPosition = async (element) => {
+      try {
+        const attributes = await element.getAttributes();
+        if (
+          attributes.frame &&
+          typeof attributes.frame.x === 'number' &&
+          typeof attributes.frame.y === 'number'
+        ) {
+          return { x: attributes.frame.x, y: attributes.frame.y };
+        } else {
+          return null;
+        }
+      } catch {
+        return null;
+      }
+    };
+
+    while (Date.now() - start < timeout) {
+      const el = await element;
+
+      const position = await getPosition(el);
+
+      if (!position) {
+        await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
+        return; // Return early if position is not available
+      }
+
+      if (
+        lastPosition &&
+        position.x === lastPosition.x &&
+        position.y === lastPosition.y
+      ) {
+        stableChecks += 1;
+        if (stableChecks >= stableCount) return;
+      } else {
+        lastPosition = position;
+        stableChecks = 1;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    throw new Error('Element did not become stable in time');
   }
 
   /**
@@ -113,7 +182,9 @@ class Gestures {
 
   */
   static async clearField(element, timeout = 2500) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText('');
   }
@@ -129,7 +200,6 @@ class Gestures {
 
     await (await element).typeText(text + '\n');
   }
-
 
   /**
    * Type text into an element without hiding the keyboard.
@@ -148,7 +218,9 @@ class Gestures {
    * @param {string} text - Text to replace the existing text in the element
    */
   static async replaceTextInField(element, text, timeout = 10000) {
-    await waitFor(await element).toBeVisible().withTimeout(timeout);
+    await waitFor(await element)
+      .toBeVisible()
+      .withTimeout(timeout);
 
     await (await element).replaceText(text);
   }

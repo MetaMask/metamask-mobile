@@ -35,8 +35,6 @@ class Assertions {
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfNotVisible(element, timeout = TIMEOUT) {
-    // rename this. We are checking if element is not visible.
-
     return await waitFor(await element)
       .not.toBeVisible()
       .withTimeout(timeout);
