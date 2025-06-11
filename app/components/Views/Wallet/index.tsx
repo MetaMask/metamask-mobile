@@ -102,6 +102,7 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -318,6 +319,7 @@ const Wallet = ({
   const currentToast = toastRef?.current;
 
   const accountName = useAccountName();
+  useAccountsWithNetworkActivitySync();
 
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
