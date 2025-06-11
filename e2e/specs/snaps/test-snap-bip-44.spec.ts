@@ -37,6 +37,7 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
     // Navigate to test snaps URL once for all tests
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
+    await TestHelpers.delay(3000); // Wait for page to load
     await Assertions.checkIfVisible(BrowserView.browserScreenID);
   });
 
@@ -51,8 +52,9 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
   it('should connect to BIP-44 snap', async ()=> {
     // Connect to BIP-44 snap
     await TestSnaps.connectToBip44Snap();
-    await TestHelpers.delay(1000);
-    await TestSnaps.connectToSnap();
+    await TestHelpers.delay(5000);
+    // await TestSnaps.connectToSnap();
+    await element(by.id('snap-install-connect')).tap();
     await Assertions.checkIfTextIsDisplayed(BIP_44_SNAP_NAME);
     await TestSnaps.connectToSnapPermissionsRequest();
     await TestSnaps.approveSnapPermissionsRequest();
