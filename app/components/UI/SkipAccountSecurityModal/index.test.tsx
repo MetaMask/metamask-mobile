@@ -85,7 +85,7 @@ describe('SkipAccountSecurityModal', () => {
       };
     };
 
-    it('render matches snapshot', () => {
+    it('renders matches snapshot', () => {
       const { wrapper, mockNavigation } = setupTest();
       expect(wrapper).toMatchSnapshot();
       mockNavigation.mockRestore();
@@ -182,7 +182,7 @@ describe('SkipAccountSecurityModal', () => {
       };
     };
 
-    it('render matches snapshot', () => {
+    it('renders matches snapshot', () => {
       const { wrapper, mockNavigation } = setupTest();
       expect(wrapper).toMatchSnapshot();
       mockNavigation.mockRestore();
