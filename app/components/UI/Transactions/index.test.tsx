@@ -1,17 +1,9 @@
 import React from 'react';
-import TransactionsComponent, {
-  default as Transactions,
-  UnconnectedTransactions,
-} from '.';
+import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow, mount } from 'enzyme';
+import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import {
-  render,
-  fireEvent,
-  waitFor,
-  cleanup,
-} from '@testing-library/react-native';
+import { render, cleanup } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -83,60 +75,50 @@ jest.mock('../../../util/Logger', () => ({
 }));
 
 // Mock TransactionElement to avoid Redux connection issues
-jest.mock('../TransactionElement', () => {
-  const React = require('react');
-  return function MockTransactionElement(props: any) {
-    return React.createElement('View', { testID: 'transaction-element' }, null);
-  };
-});
+jest.mock('../TransactionElement', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 // Mock other connected components
-jest.mock('../../Views/confirmations/legacy/components/UpdateEIP1559Tx', () => {
-  const React = require('react');
-  return function MockUpdateEIP1559Tx(props: any) {
-    return React.createElement('View', { testID: 'update-eip1559-tx' }, null);
-  };
-});
+jest.mock(
+  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
 
-jest.mock('../TransactionActionModal', () => {
-  const React = require('react');
-  return function MockTransactionActionModal(props: any) {
-    return React.createElement(
-      'View',
-      { testID: 'transaction-action-modal' },
-      null,
-    );
-  };
-});
+jest.mock('../TransactionActionModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
-jest.mock('./RetryModal', () => {
-  const React = require('react');
-  return function MockRetryModal(props: any) {
-    return React.createElement('View', { testID: 'retry-modal' }, null);
-  };
-});
+jest.mock('./RetryModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 // Mock PriceChartProvider and Context
 jest.mock('../AssetOverview/PriceChart/PriceChart.context', () => ({
-  PriceChartProvider: ({ children }: any) => children,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  PriceChartProvider: ({ children }: { children: any }) => children,
   __esModule: true,
   default: {
-    Consumer: ({ children }: any) => children({ isChartBeingTouched: false }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Consumer: ({
+      children,
+    }: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      children: (props: { isChartBeingTouched: boolean }) => any;
+    }) => children({ isChartBeingTouched: false }),
   },
 }));
 
 // Mock Button component and its variants
 jest.mock('../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
-  default: function MockButton({ label, onPress, ...props }: any) {
-    const React = require('react');
-    const { Text, TouchableOpacity } = require('react-native');
-    return React.createElement(
-      TouchableOpacity,
-      { onPress, testID: 'button', ...props },
-      React.createElement(Text, null, label),
-    );
-  },
+  default: () => null,
   ButtonVariants: { Link: 'link', Primary: 'primary' },
   ButtonSize: { Lg: 'lg', Md: 'md' },
 }));
@@ -149,16 +131,18 @@ jest.mock('../../../util/accounts', () => ({
 
 // Mock React Native components and StyleSheet
 jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
+  const RN = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
   return {
     ...RN,
     StyleSheet: {
       ...RN.StyleSheet,
-      create: jest.fn((styles) => styles),
+      create: jest.fn((styles: Record<string, unknown>) => styles),
       hairlineWidth: 1,
     },
     InteractionManager: {
-      runAfterInteractions: jest.fn((callback) => callback()),
+      runAfterInteractions: jest.fn((callback: () => void) => callback()),
     },
   };
 });
@@ -907,7 +891,7 @@ describe('Transactions', () => {
       expect(result.maxPriorityFeePerGas).toBe('0x77359400');
     });
 
-    it('should test block explorer URL generation', () => {
+    it('should test block explorer URL generation for mainnet addresses', () => {
       mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
@@ -956,9 +940,9 @@ describe('Transactions', () => {
     });
 
     it('should test block explorer state management', () => {
-      const initialState = { rpcBlockExplorer: undefined };
+      const blockExplorerState = { rpcBlockExplorer: undefined };
       const updatedState = {
-        ...initialState,
+        ...blockExplorerState,
         rpcBlockExplorer: 'https://custom-explorer.com',
       };
 
@@ -1236,7 +1220,7 @@ describe('Transactions', () => {
       expect(eip1559Tx.maxFeePerGas).toBeDefined();
     });
 
-    it('should test block explorer URL generation', () => {
+    it('should test block explorer URL generation with mock validation', () => {
       mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
@@ -1583,6 +1567,7 @@ describe('Transactions', () => {
       }
 
       expect(blockExplorer).toBe('https://custom-explorer.com');
+      expect(chainId).toBe('0x89'); // Use the chainId variable
     });
 
     it('should test updateBlockExplorer logic for non-EVM chains', () => {
@@ -1874,12 +1859,11 @@ describe('Transactions', () => {
       ];
 
       // Simulate renderList logic
-      const transactions =
-        submittedTransactions && submittedTransactions.length
-          ? submittedTransactions
-              .sort((a, b) => b.time - a.time)
-              .concat(confirmedTransactions)
-          : confirmedTransactions;
+      const transactions = submittedTransactions?.length
+        ? submittedTransactions
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
+        : confirmedTransactions;
 
       expect(transactions[0].id).toBe('tx-2'); // Latest submitted
       expect(transactions[1].id).toBe('tx-1'); // Earlier submitted
@@ -1998,12 +1982,11 @@ describe('Transactions', () => {
       const confirmedTransactions = [confirmedTx];
 
       // Test transaction sorting logic from renderList
-      const transactions =
-        submittedTransactions && submittedTransactions.length
-          ? submittedTransactions
-              .sort((a, b) => b.time - a.time)
-              .concat(confirmedTransactions)
-          : confirmedTransactions;
+      const transactions = submittedTransactions?.length
+        ? submittedTransactions
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
+        : confirmedTransactions;
 
       expect(transactions[0]).toBe(submittedTx);
       expect(transactions[1]).toBe(confirmedTx);
@@ -2026,7 +2009,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
 
   it('should render loading state when loading prop is true', () => {
     const renderResult = render(
-      <UnconnectedTransactions {...defaultTestProps} loading={true} />,
+      <UnconnectedTransactions {...defaultTestProps} loading />,
     );
 
     // Component should render when loading is true
@@ -2103,7 +2086,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
 });
 
 describe('UnconnectedTransactions Component Direct Method Testing', () => {
-  let component: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let instance: any;
 
   beforeEach(() => {
@@ -2114,8 +2097,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockUpdateIncomingTransactions.mockResolvedValue(undefined);
 
     // Create a component instance for direct method testing
-    component = new UnconnectedTransactions(defaultTestProps);
-    instance = component;
+    instance = new UnconnectedTransactions(defaultTestProps);
   });
 
   it('should test direct component methods for actual coverage', () => {
@@ -2392,12 +2374,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const confirmedTx = { id: 'tx-2', time: 1000000, status: 'confirmed' };
     const submittedTransactions = [submittedTx];
     const confirmedTransactions2 = [confirmedTx];
-    const transactions =
-      submittedTransactions && submittedTransactions.length
-        ? submittedTransactions
-            .sort((a, b) => b.time - a.time)
-            .concat(confirmedTransactions2)
-        : confirmedTransactions2;
+    const transactions = submittedTransactions?.length
+      ? submittedTransactions
+          .sort((a, b) => b.time - a.time)
+          .concat(confirmedTransactions2)
+      : confirmedTransactions2;
     expect(transactions[0]).toBe(submittedTx);
     expect(transactions[1]).toBe(confirmedTx);
   });
