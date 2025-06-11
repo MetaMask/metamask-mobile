@@ -11,6 +11,7 @@ import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Routes from '../../../constants/navigation/Routes';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -208,7 +209,6 @@ describe('AccountBackupStep1', () => {
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
-
   });
 
   it('navigates to SkipAccountSecurityModal when customBackPress is called', () => {
@@ -275,17 +275,18 @@ describe('AccountBackupStep1', () => {
           call[1].screen === 'SkipAccountSecurityModal',
       )[1].params;
 
+      mockNavigate.mockClear();
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate.mock.calls).toEqual([
-        // first call is to SkipAccountSecurityModal
-        ['RootModalFlow', { screen: 'SkipAccountSecurityModal', params: { onConfirm: expect.any(Function), onCancel: expect.any(Function) } }],
-        // second call is to OnboardingSuccess
-        ['OnboardingSuccessFlow', { params: { successFlow: 'noBackedUpSRP' }, screen: 'OnboardingSuccess' }]
-      ]);
-
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: { successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP },
+        },
+      );
     });
 
     it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
@@ -307,16 +308,20 @@ describe('AccountBackupStep1', () => {
           call[1].screen === 'SkipAccountSecurityModal',
       )[1].params;
 
+      mockNavigate.mockClear();
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate.mock.calls).toEqual([
-        // first call is to SkipAccountSecurityModal
-        ['RootModalFlow', { screen: 'SkipAccountSecurityModal', params: { onConfirm: expect.any(Function), onCancel: expect.any(Function) } }],
-        // second call is to OnboardingSuccess
-        ['OnboardingSuccessFlow', { params: { successFlow: 'noBackedUpSRP' }, screen: 'OnboardingSuccess' }]
-      ]);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: {
+            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+          },
+        },
+      );
     });
   });
 });
