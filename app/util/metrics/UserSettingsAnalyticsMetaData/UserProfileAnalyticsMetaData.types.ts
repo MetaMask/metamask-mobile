@@ -28,6 +28,6 @@ export interface UserProfileMetaData {
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: string;
-  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
+  [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]?: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
 }
