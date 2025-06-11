@@ -13,6 +13,7 @@ import { SNAP_INSTALL_CANCEL, SNAP_INSTALL_CONNECT, SNAP_INSTALL_CONNECTION_REQU
 import { SNAP_INSTALL_PERMISSIONS_REQUEST, SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
+import { element, by } from 'detox';
 
 export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
@@ -660,8 +661,8 @@ class TestSnaps {
   }
 
   get getConnectSnapButton() {
-    return Matchers.getElementByID(
-      SNAP_INSTALL_CONNECT
+    return element(
+      by.text('Connect').withAncestor(by.id('bottomsheetfooter')),
     );
   }
 
