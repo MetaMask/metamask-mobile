@@ -153,6 +153,16 @@ stages:
   create_android_release:
     workflows:
       - build_android_release: {}
+  create_android_release_new:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_beta: {}
+      - build_android_main_rc: {}
+  create_ios_release_new:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -216,8 +226,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -242,8 +250,6 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_multichain_permissions_ios: {}
-      # - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -893,78 +899,16 @@ workflows:
       - android_e2e_test
 
   android_e2e_build:
-    before_run:
-      - code_setup
-      - set_commit_hash
+    envs:
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - BUILD_COMMAND: 'yarn test:e2e:android:build:qa-release'
     after_run:
-      - notify_failure
-    steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - script@1:
-          title: Run detox build
-          timeout: 1200
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
-      - save-gradle-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
-      - deploy-to-bitrise-io@2.2.3:
-          inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
+      - _android_e2e_build_template
     meta:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
+
   android_e2e_test:
     before_run:
       - setup
@@ -994,6 +938,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -1009,9 +959,11 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-
                 export METAMASK_ENVIRONMENT='local'
+                 node -v
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                echo "ANVIL VERSION"
+                node_modules/.bin/anvil --version
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
@@ -1082,6 +1034,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1230,6 +1188,12 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1258,7 +1222,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                node -v
+                # node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
@@ -1344,7 +1308,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
@@ -1371,7 +1337,12 @@ workflows:
                 fi
 
                 # Generate new names based on build type and version
-                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename APK
                 if [ "$IS_DEV_BUILD" = "true" ]; then
@@ -1423,11 +1394,125 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+
+  # Template for E2E Android builds
+  _android_e2e_build_template:
+    before_run:
+      - code_setup
+      - set_commit_hash
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - file-downloader@1:
+          inputs:
+            - source: $KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                sudo apt update
+                sudo apt install ccache -y
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: Run detox build
+          timeout: 1200
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/setup-ccache.sh
+                node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                IGNORE_BOXLOGS_DEVELOPMENT="true" $BUILD_COMMAND
+      - save-gradle-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
   # Actual workflows that inherit from templates
   build_android_release:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:android:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:android:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1509,8 +1594,9 @@ workflows:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
+      - BUILD_COMMAND: 'yarn test:e2e:android:debug:build'
     after_run:
-      - _android_build_template
+      - _android_e2e_build_template
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1866,7 +1952,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
@@ -1903,7 +1991,12 @@ workflows:
                 fi
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                if [ -n "$YARN_COMMAND" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                else
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                fi
 
                 # Rename binary
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
@@ -1948,6 +2041,33 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: "main"
       - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_prod:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:prod'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_beta:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:beta'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_rc:
+    envs:
+      - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2262,9 +2382,6 @@ app:
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
-    - opts:
-        is_expand: false
-      EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3'
     - opts:
         is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
