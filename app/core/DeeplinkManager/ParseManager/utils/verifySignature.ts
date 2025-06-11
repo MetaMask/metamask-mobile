@@ -34,8 +34,7 @@ export const INVALID = 'INVALID' as const;
 
 type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let tools: { algorithm: any; encoder: TextEncoder; key: any };
+let tools: { algorithm: unknown; encoder: TextEncoder; key: unknown };
 
 async function lazyGetTools() {
   if (tools) {
