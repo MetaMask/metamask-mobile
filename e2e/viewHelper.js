@@ -1,6 +1,5 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/Onboarding/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -9,7 +8,6 @@ import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from './pages/Onboarding/OnboardingWizardModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -39,7 +37,6 @@ export const acceptTermOfUse = async () => {
   await Assertions.checkIfVisible(TermsOfUseModal.container);
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
-  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await Assertions.checkIfNotVisible(TermsOfUseModal.container);
 };
@@ -60,37 +57,22 @@ have to have all these workarounds in the tests
   */
   await TestHelpers.delay(1000);
 
-  // Handle Onboarding wizard
-  try {
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapNoThanksButton();
-    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The onboarding modal is not visible');
-  }
-
   try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
   } catch {
-    /* eslint-disable no-undef */
-
+    // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
   }
 
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
-    console.log("Solana feature sheet: 'Not Now' tapped.");
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
-    console.log("Solana feature sheet: 'Create Account' tapped.");
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
-    console.log("Solana feature sheet: 'View Account' tapped.");
   }
 };
 
@@ -135,7 +117,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
-  await TestHelpers.delay(3500);
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   if (optInToMetrics) {
@@ -157,7 +138,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
-  await TestHelpers.delay(3500);
   await CreatePasswordView.tapCreatePasswordButton();
 
   //'Should dismiss Enable device Notifications checks alert'
@@ -165,30 +145,52 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await skipNotificationsDeviceSettings();
-  // Should dismiss Automatic Security checks screen
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
+  
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(solanaSheetAction);
 };
 
-export const CreateNewWallet = async () => {
+/**
+ * Automates the process of creating a new wallet during onboarding.
+ *
+ * Steps performed:
+ * 1. Taps the "Get Started" button on the onboarding carousel.
+ * 2. Accepts the terms of use.
+ * 3. Selects the "Create Wallet" option.
+ * 4. Handles MetaMetrics opt-in based on the provided option.
+ * 5. Enters and confirms a password for the new wallet.
+ * 6. Acknowledges understanding of password requirements.
+ * 7. Proceeds through the "Secure your wallet" screen, opting to be reminded later.
+ * 8. Skips account security setup.
+ * 9. Completes onboarding success flow.
+ * 10. Dismisses device notification and automatic security check prompts.
+ * 11. Handles "Protect your wallet" modal and skips security setup again.
+ * 12. Closes any remaining onboarding modals.
+ *
+ * @async
+ * @param {Object} [options={}] - Configuration options for wallet creation.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
+ * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
+ */
+export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
 
   // tap on import seed phrase button
   await OnboardingCarouselView.tapOnGetStartedButton();
+  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  await MetaMetricsOptIn.tapAgreeButton();
-  await acceptTermOfUse();
+  optInToMetrics
+    ? await MetaMetricsOptIn.tapAgreeButton()
+    : await MetaMetricsOptIn.tapNoThanksButton();
 
   await Assertions.checkIfVisible(CreatePasswordView.container);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
-  // await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
   await Assertions.checkIfVisible(ProtectYourWalletView.container);
@@ -201,19 +203,16 @@ export const CreateNewWallet = async () => {
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
-  //'Should dismiss Automatic Security checks screen'
-  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
-
-  // 'should dismiss the onboarding wizard'
-  // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals('dismiss');
 
   // Dismissing to protect your wallet modal
   await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+
+  // 'should dismiss the onboarding wizard'
+  // dealing with flakiness on bitrise.
+  await this.closeOnboardingModals('dismiss');
 };
 
 export const addLocalhostNetwork = async () => {

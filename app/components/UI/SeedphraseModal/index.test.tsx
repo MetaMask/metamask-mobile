@@ -29,12 +29,16 @@ jest.mock(
 );
 
 describe('SeedphraseModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const setupTest = () => {
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();
     const mockSetOptions = jest.fn();
 
-    (useNavigation as jest.Mock).mockReturnValue({
+    const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
       setOptions: mockSetOptions,
@@ -51,15 +55,22 @@ describe('SeedphraseModal', () => {
       mockNavigate,
       mockGoBack,
       mockSetOptions,
+      mockNavigation,
     };
   };
 
-  it('should render correctly', () => {
+  afterEach(() => {
+    const { mockNavigation } = setupTest();
+    mockNavigation.mockRestore();
+  });
+
+
+  it('renders matches snapshot', () => {
     const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render title and explanation text', () => {
+  it('renders all title and explanation text', () => {
     const { wrapper } = setupTest();
     const title = wrapper.getByText(
       strings('account_backup_step_1.what_is_seedphrase_title'),
@@ -75,9 +86,20 @@ describe('SeedphraseModal', () => {
     expect(listItem).toBeTruthy();
     const bullet = wrapper.getAllByText('•');
     expect(bullet.length).toBe(3);
+
   });
 
-  it('should render cta actions', () => {
+  it('renders Got it button', () => {
+    const { wrapper } = setupTest();
+
+    const confirmButton = wrapper.getByRole('button', {
+      name: strings('account_backup_step_1.what_is_seedphrase_confirm'),
+    });
+
+    expect(confirmButton).toBeTruthy();
+  });
+
+  it('closes modal when Got it button is pressed', () => {
     const { wrapper, mockGoBack } = setupTest();
 
     const confirmButton = wrapper.getByRole('button', {
@@ -88,5 +110,6 @@ describe('SeedphraseModal', () => {
     expect(confirmButton).toBeEnabled();
     fireEvent.press(confirmButton);
     expect(mockGoBack).toHaveBeenCalled();
+
   });
 });

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SeedphraseModal should render correctly 1`] = `
+exports[`SeedphraseModal renders matches snapshot 1`] = `
 <div
   data-testid="mock-bottom-sheet"
 >

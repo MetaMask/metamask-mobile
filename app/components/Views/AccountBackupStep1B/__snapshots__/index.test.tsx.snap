@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountBackupStep1B should render correctly 1`] = `
+exports[`AccountBackupStep1B render matches snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {

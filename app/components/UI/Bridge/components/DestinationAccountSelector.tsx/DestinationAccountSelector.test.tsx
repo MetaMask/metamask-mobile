@@ -18,10 +18,12 @@ jest.mock('../../../../../core/Engine', () => {
             accounts: {
               '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
                 address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                caipAccountId: 'eip155:1:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
                 name: 'Account 1',
               },
               '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
                 address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                caipAccountId: 'eip155:1:0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
                 name: 'Account 2',
               },
             },
@@ -62,10 +64,12 @@ jest.mock('../../../../hooks/useAccounts', () => ({
     accounts: [
       {
         address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId: 'eip155:1:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 1',
       },
       {
         address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId: 'eip155:1:0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 2',
       },
     ],

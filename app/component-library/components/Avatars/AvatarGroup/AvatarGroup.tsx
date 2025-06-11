@@ -19,6 +19,7 @@ import {
   AVATARGROUP_OVERFLOWCOUNTER_TESTID,
   SPACEBETWEENAVATARS_BY_AVATARSIZE,
   TEXTVARIANT_BY_AVATARSIZE,
+  AVATARGROUP_CONTAINER_TESTID,
 } from './AvatarGroup.constants';
 
 const AvatarGroup = ({
@@ -69,7 +70,7 @@ const AvatarGroup = ({
   );
 
   return (
-    <View style={styles.base}>
+    <View testID={AVATARGROUP_CONTAINER_TESTID} style={styles.base}>
       {renderAvatarList()}
       {shouldRenderOverflowCounter && (
         <Text
