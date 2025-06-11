@@ -129,6 +129,7 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.colors.border.muted,
     },
     stretch: {
-      flex: 1,
+      flexGrow: 1,
+      flexShrink: 0,
     },
   });

@@ -447,6 +447,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
       >
         <View
           style={styles.qrCodeWrapper}
