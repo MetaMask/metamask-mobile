@@ -12,6 +12,7 @@ import Gestures from '../../utils/Gestures';
 import { SNAP_INSTALL_CANCEL, SNAP_INSTALL_CONNECT, SNAP_INSTALL_CONNECTION_REQUEST } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST, SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
+import TestHelpers from '../../helpers';
 
 export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.1/';
 
