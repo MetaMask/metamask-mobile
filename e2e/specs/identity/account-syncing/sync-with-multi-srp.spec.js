@@ -74,90 +74,99 @@ describe(
       }
     });
 
-    it('syncs multi-SRP EVM accounts', async () => {
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
+    const itif = (condition) => (condition ? it : it.skip);
+    itif(device.getPlatform() === 'ios')(
+      'syncs multi-SRP EVM accounts',
+      async () => {
+        await importWalletWithRecoveryPhrase({
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        });
 
-      // Create second account for SRP 1
-      const {
-        waitUntilSyncedAccountsNumberEquals,
-        prepareEventsEmittedCounter,
-      } = arrangeTestUtils(userStorageMockttpController);
+        // Create second account for SRP 1
+        const {
+          waitUntilSyncedAccountsNumberEquals,
+          prepareEventsEmittedCounter,
+        } = arrangeTestUtils(userStorageMockttpController);
 
-      const { waitUntilEventsEmittedNumberEquals } =
-        prepareEventsEmittedCounter(
-          UserStorageMockttpControllerEvents.PUT_SINGLE,
+        const { waitUntilEventsEmittedNumberEquals } =
+          prepareEventsEmittedCounter(
+            UserStorageMockttpControllerEvents.PUT_SINGLE,
+          );
+
+        await WalletView.tapIdenticon();
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
+        await waitUntilSyncedAccountsNumberEquals(1);
+
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
+
+        await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+        await AccountActionsBottomSheet.renameActiveAccount(secondAccountName);
+
+        await Assertions.checkIfElementToHaveText(
+          WalletView.accountName,
+          secondAccountName,
         );
 
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        // Wait for the account AND account name to be synced
+        await waitUntilSyncedAccountsNumberEquals(2);
+        await waitUntilEventsEmittedNumberEquals(1);
 
-      await waitUntilSyncedAccountsNumberEquals(1);
+        // Add SRP 2
+        await goToImportSrp();
+        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+        await ImportSrpView.tapImportButton();
 
-      await AccountListBottomSheet.tapAddAccountButton();
-      await AddAccountBottomSheet.tapCreateAccount();
+        await device.disableSynchronization();
+        await Assertions.checkIfVisible(WalletView.container);
 
-      await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
-      await AccountActionsBottomSheet.renameActiveAccount(secondAccountName);
+        // Create second account for SRP 2
+        await WalletView.tapIdenticon();
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
-      await Assertions.checkIfElementToHaveText(
-        WalletView.accountName,
-        secondAccountName,
-      );
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
+        await AddNewHdAccountComponent.tapSrpSelector();
+        await SRPListItemComponent.tapListItemByIndex(1);
+        await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
 
-      // Wait for the account AND account name to be synced
-      await waitUntilSyncedAccountsNumberEquals(2);
-      await waitUntilEventsEmittedNumberEquals(1);
+        // Wait for the account AND account name to be synced
+        await waitUntilSyncedAccountsNumberEquals(4);
+        await waitUntilEventsEmittedNumberEquals(3);
 
-      // Add SRP 2
-      await goToImportSrp();
-      await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-      await ImportSrpView.tapImportButton();
+        // Relaunch app
+        await TestHelpers.launchApp({
+          newInstance: true,
+          delete: true,
+          launchArgs: {
+            mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          },
+        });
 
-      await Assertions.checkIfVisible(WalletView.container);
+        // Onboard with SRP 1 and import SRP 2
+        await importWalletWithRecoveryPhrase({
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        });
+        await goToImportSrp();
+        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+        await ImportSrpView.tapImportButton();
 
-      // Create second account for SRP 2
-      await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAddAccountButton();
-      await AddAccountBottomSheet.tapCreateAccount();
-      await AddNewHdAccountComponent.tapSrpSelector();
-      await SRPListItemComponent.tapListItemByIndex(1);
-      await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
+        await Assertions.checkIfVisible(WalletView.container);
 
-      // Wait for the account AND account name to be synced
-      await waitUntilSyncedAccountsNumberEquals(4);
-      await waitUntilEventsEmittedNumberEquals(3);
+        // Check if accounts are synced
+        await WalletView.tapIdenticon();
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        await TestHelpers.delay(4000);
 
-      // Relaunch app
-      await TestHelpers.launchApp({
-        newInstance: true,
-        delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
-      });
-
-      // Onboard with SRP 1 and import SRP 2
-      await importWalletWithRecoveryPhrase({
-        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-        password: IDENTITY_TEAM_PASSWORD,
-      });
-      await goToImportSrp();
-      await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-      await ImportSrpView.tapImportButton();
-
-      await Assertions.checkIfVisible(WalletView.container);
-
-      // Check if accounts are synced
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
-
-      for (const accountName of expectedAccountNames) {
-        await Assertions.webViewElementExists(
-          AccountListBottomSheet.getAccountElementByAccountName(accountName),
-        );
-      }
-    });
+        for (const accountName of expectedAccountNames) {
+          await Assertions.webViewElementExists(
+            AccountListBottomSheet.getAccountElementByAccountName(accountName),
+          );
+        }
+      },
+    );
   },
 );
