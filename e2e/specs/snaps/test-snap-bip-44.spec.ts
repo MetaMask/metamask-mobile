@@ -17,7 +17,7 @@ import TestSnaps from '../../pages/Browser/TestSnap';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
- 
+
   const BIP_44_SNAP_NAME = 'BIP-44 Example Snap';
   const EXPECTED_PUBLIC_KEY = '"0x90043dd7faa56b3ed9fe959d25ae17132dc7e0f604663e68a84cf21e0f64390fbdd4781e4baa99c236f3bbf95182bdee"';
   const EXPECTED_SIGNATURE = '"0xa0cb4e931890059764c8ef1c4a7380c1d0bd11209eb899d49f5d2856224cb2a8a82f5136b7bc579c539332609336f3a6159fc1df6116acfe55dbbe5ccdffecc4984904c603dda0b3c91757dc6a590069a6c41837e1ab88e9dc21769d742f9a67"';

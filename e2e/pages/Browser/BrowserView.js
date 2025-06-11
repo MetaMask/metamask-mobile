@@ -120,7 +120,6 @@ class Browser {
       url,
     );
   }
-  
 
   async tapUrlInputBox() {
     await Gestures.waitAndTap(this.addressBar);
