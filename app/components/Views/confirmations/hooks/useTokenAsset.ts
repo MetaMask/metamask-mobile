@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../locales/i18n';

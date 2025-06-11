@@ -9,7 +9,6 @@ describe('getNativeTokenAddress', () => {
   });
 
   it('returns default native token address for non-Polygon chains', () => {
-    // Test with Ethereum mainnet
     const resultMainnet = getNativeTokenAddress(CHAIN_IDS.MAINNET);
     expect(resultMainnet).toBe(NATIVE_TOKEN_ADDRESS);
     expect(resultMainnet).toBe('0x0000000000000000000000000000000000000000');
@@ -21,7 +20,7 @@ describe('getNativeTokenAddress', () => {
   });
 
   it('returns default native token address for unknown chain IDs', () => {
-    const unknownChainId = '0x999' as any;
+    const unknownChainId = '0x999';
     const result = getNativeTokenAddress(unknownChainId);
     expect(result).toBe(NATIVE_TOKEN_ADDRESS);
     expect(result).toBe('0x0000000000000000000000000000000000000000');
