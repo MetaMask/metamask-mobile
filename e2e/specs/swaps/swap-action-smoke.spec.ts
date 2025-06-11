@@ -30,12 +30,12 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { getEventsPayloads } from '../analytics/helpers.ts';
+import { getEventsPayloads } from '../analytics/helpers';
 import {
   startMockServer,
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
-import SoftAssert from '../../utils/SoftAssert.ts';
+import SoftAssert from '../../utils/SoftAssert';
 
 interface EventPayload {
   event: string;
@@ -273,13 +273,14 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
     for (let i = 0; i < swapsOpenedEvents.length; i++) {
       await softAssert.checkAndCollect(
-        () =>
+        async () => {
           Assertions.checkIfObjectContains(swapsOpenedEvents[i].properties, {
             action: 'Swap',
             name: 'Swaps',
             source: 'MainView',
             chain_id: '1',
-          }),
+          });
+        },
         `Swaps Opened [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
       );
     }
@@ -300,7 +301,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
     for (let i = 0; i < quotesReceivedEvents.length; i++) {
       await softAssert.checkAndCollect(
-        () =>
+        async () => {
           Assertions.checkIfObjectContains(quotesReceivedEvents[i].properties, {
             action: 'Quote',
             name: 'Swaps',
@@ -314,7 +315,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             chain_id: '1',
             token_from_amount: testCases[i].quantity,
             token_to_amount: testCases[i].quantity,
-          }),
+          });
+        },
         `Quotes Received [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
       );
 
@@ -354,7 +356,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
     for (let i = 0; i < swapStartedEvents.length; i++) {
       await softAssert.checkAndCollect(
-        () =>
+        async () => {
           Assertions.checkIfObjectContains(swapStartedEvents[i].properties, {
             action: 'Swap',
             name: 'Swaps',
@@ -371,7 +373,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             gas_included: false,
             token_from_amount: testCases[i].quantity,
             token_to_amount: testCases[i].quantity,
-          }),
+          });
+        },
         `Swap Started [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
       );
 
@@ -405,7 +408,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
     for (let i = 0; i < swapCompletedEvents.length; i++) {
       await softAssert.checkAndCollect(
-        () =>
+        async () => {
           Assertions.checkIfObjectContains(swapCompletedEvents[i].properties, {
             action: 'Swap',
             name: 'Swaps',
@@ -421,7 +424,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             token_from_amount: testCases[i].quantity,
             token_to_amount: testCases[i].quantity,
             token_to_amount_received: 'NaN',
-          }),
+          });
+        },
         `Swap Completed [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
       );
 
