@@ -660,8 +660,8 @@ const RevealPrivateCredential = ({
               </>
             ) : (
               <>
-                {renderWarning(credentialSlug)}
                 {renderSRPExplanation()}
+                {renderWarning(credentialSlug)}
               </>
             )}
           </View>
