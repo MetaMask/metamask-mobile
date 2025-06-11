@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     content: {
       flex: 1,
-      flexDirection: 'column',
     },
     selectionRow: {
       flexDirection: 'row',
@@ -28,10 +27,10 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'flex-start',
     },
     centerGroup: {
-      flexDirection: 'column',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 8,
-      flexGrow: 1,
+      flex: 1,
     },
     amountContainer: {
       alignItems: 'center',
