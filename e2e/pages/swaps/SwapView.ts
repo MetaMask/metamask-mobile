@@ -32,8 +32,8 @@ class SwapView {
 
   async isPriceWarningDisplayed(): Promise<boolean> {
     try {
-      const label = await this.iUnderstandLabel;
-      await waitFor(label as Detox.NativeElement).toBeVisible().withTimeout(5000);
+      const label = await this.iUnderstandLabel as Detox.NativeElement;
+      await waitFor(label).toBeVisible().withTimeout(5000);
       return true;
     } catch (e) {
       return false;
