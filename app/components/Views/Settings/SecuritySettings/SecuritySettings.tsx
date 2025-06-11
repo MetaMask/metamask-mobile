@@ -19,11 +19,10 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
-import { passwordSet } from '../../../../actions/user';
+import { passwordSet, setExistingUser } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
-  EXISTING_USER,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -86,8 +85,6 @@ import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSet
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../../../../util/device';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -266,7 +263,8 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await FilesystemStorage.setItem(EXISTING_USER, TRUE, Device.isIos());
+      // Mark user as existing when they set up authentication
+      dispatch(setExistingUser(true));
 
       if (!enabled) {
         setLoading(false);

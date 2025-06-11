@@ -1,38 +1,55 @@
-import { EXISTING_USER, TRUE } from '../../constants/storage';
-import { ensureValidState } from './util';
+import { EXISTING_USER } from '../../constants/storage';
+import { ensureValidState, ValidState } from './util';
 import { captureException } from '@sentry/react-native';
 import StorageWrapper from '../storage-wrapper';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../../util/device';
+import { cloneDeep } from 'lodash';
+import { isObject } from '@metamask/utils';
+
+// Extend ValidState to include the user state
+interface ValidStateWithUser extends ValidState {
+  user?: {
+    existingUser?: boolean;
+    [key: string]: unknown;
+  };
+}
 
 /**
- * Migration 80: Move EXISTING_USER flag from MMKV to FilesystemStorage
- * This ensures the user state is not backed up to iCloud
+ * Migration 80: Move EXISTING_USER flag from MMKV to Redux state
+ * This unifies user state management and fixes iCloud backup inconsistencies
  */
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, 79)) {
     return state;
   }
 
+  const newState = cloneDeep(state) as ValidStateWithUser;
+
   try {
     // Get existing user value from MMKV
     const existingUser = await StorageWrapper.getItem(EXISTING_USER);
 
-    // If value exists, store it in FilesystemStorage
+    // Ensure user state exists
+    if (!isObject(newState.user)) {
+      newState.user = {};
+    }
+    
+    // Set in Redux state based on the value found
+    newState.user.existingUser = existingUser === 'true';
+
+    // Clear from MMKV
     if (existingUser !== null) {
-      await FilesystemStorage.setItem(
-        EXISTING_USER,
-        existingUser,
-        Device.isIos(),
-      );
-      // Clear from MMKV
       await StorageWrapper.removeItem(EXISTING_USER);
     }
   } catch (error) {
     captureException(error as Error);
+    // If we can't migrate the data, default to false for safety
+    if (!isObject(newState.user)) {
+      newState.user = {};
+    }
+    newState.user.existingUser = false;
   }
 
-  return state;
+  return newState;
 };
 
 export default migration;
