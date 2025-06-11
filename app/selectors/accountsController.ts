@@ -55,6 +55,11 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
+export const selectInternalEvmAccounts = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
+);
+
 /**
  * A memoized selector that returns the selected internal account from the AccountsController
  */
