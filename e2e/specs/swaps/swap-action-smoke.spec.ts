@@ -1,5 +1,7 @@
 'use strict';
 import { ethers } from 'ethers';
+import { MockttpServer } from 'mockttp';
+import type { IndexableNativeElement } from 'detox/detox';
 import { loginToApp } from '../../viewHelper.js';
 import QuoteView from '../../pages/swaps/QuoteView.js';
 import SwapView from '../../pages/swaps/SwapView.js';
@@ -32,22 +34,10 @@ import {
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
 
-interface EventPayload {
-  event: string;
-  properties: Record<string, any>;
-}
-
-interface TestCase {
-  type: string;
-  sourceTokenSymbol: string;
-  destTokenSymbol: string;
-  quantity: string;
-}
-
 const fixtureServer: FixtureServer = new FixtureServer();
 const firstElement: number = 0;
 
-let mockServer: any;
+let mockServer: MockttpServer;
 
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -105,7 +95,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       if (network.providerConfig.nickname !== currentNetwork) {
         await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as any);
+        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
         await NetworkListModal.changeNetworkTo(
           network.providerConfig.nickname,
           false,
@@ -197,7 +187,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
 
-    const testCases: TestCase[] = [
+    const testCases = [
       {
         type: 'wrap',
         sourceTokenSymbol: 'ETH',
@@ -231,8 +221,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     );
 
     // Assert Swaps Opened events
-    const swapsOpenedEvents: EventPayload[] = events.filter(
-      (e: EventPayload) => e.event === EVENT_NAMES.SWAPS_OPENED,
+    const swapsOpenedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.SWAPS_OPENED,
     );
 
     await softAssert.checkAndCollect(
@@ -256,8 +246,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     }
 
     // Assert Quotes Received events
-    const quotesReceivedEvents: EventPayload[] = events.filter(
-      (e: EventPayload) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
+    const quotesReceivedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
     );
 
     await softAssert.checkAndCollect(
@@ -316,7 +306,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     }
 
     // Assert Swap Started event
-    const swapStartedEvents: EventPayload[] = events.filter((e: EventPayload) => e.event === EVENT_NAMES.SWAP_STARTED);
+    const swapStartedEvents = events.filter((e) => e.event === EVENT_NAMES.SWAP_STARTED);
 
     await softAssert.checkAndCollect(
       () =>
@@ -366,8 +356,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     }
 
     // Assert Swap Completed events
-    const swapCompletedEvents: EventPayload[] = events.filter(
-      (e: EventPayload) => e.event === EVENT_NAMES.SWAP_COMPLETED,
+    const swapCompletedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.SWAP_COMPLETED,
     );
 
     await softAssert.checkAndCollect(

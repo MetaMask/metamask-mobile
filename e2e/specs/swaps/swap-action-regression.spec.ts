@@ -1,5 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
+import type { IndexableNativeElement } from 'detox/detox';
 import { loginToApp } from '../../viewHelper';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
@@ -96,7 +97,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
       if (network.providerConfig.nickname !== currentNetwork) {
         await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as any);
+        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
         await NetworkListModal.changeNetworkTo(
           network.providerConfig.nickname,
           false,
