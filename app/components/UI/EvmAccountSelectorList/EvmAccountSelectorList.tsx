@@ -100,7 +100,6 @@ const EvmAccountSelectorList = ({
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
 
       return (
         <View
