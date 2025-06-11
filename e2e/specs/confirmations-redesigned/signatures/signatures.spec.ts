@@ -15,8 +15,11 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents.js';
+import { CustomNetworks } from '../../../resources/networks.e2e';
 
+const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
+const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
@@ -28,9 +31,7 @@ const SIGNATURE_LIST = [
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
-      await Assertions.checkIfVisible(
-        RowComponents.SiweSigningAccountInfo,
-      );
+      await Assertions.checkIfVisible(RowComponents.SiweSigningAccountInfo);
     },
   },
   {
@@ -46,6 +47,11 @@ const SIGNATURE_LIST = [
   {
     specName: 'Typed V4 Sign',
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
+    requestType: RequestTypes.TypedSignRequest,
+  },
+  {
+    specName: 'Sign Permit',
+    testDappBtn: TestDApp.tapPermitSignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
   },
 ];
@@ -101,6 +107,68 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           }
 
           // confirm request
+          await FooterActions.tapConfirmButton();
+          await Assertions.checkIfNotVisible(requestType);
+        },
+      );
+    });
+  }
+
+  for (let index = 0; index < SIGNATURE_LIST.length; index++) {
+    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+    it(`should sign ${specName} using ${MONAD_TESTNET.nickname}`, async () => {
+      await withFixtures(
+        {
+          dapp: true,
+          fixture: new FixtureBuilder()
+            .withMonadTestnetNetwork()
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions([`${MONAD_TESTNET.chainId}`]),
+            )
+            .build(),
+          restartDevice: true,
+          testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+
+          await TabBarComponent.tapBrowser();
+          await Browser.navigateToTestDApp();
+
+          //Signing Flow
+          await testDappBtn();
+          await Assertions.checkIfVisible(requestType);
+          await FooterActions.tapConfirmButton();
+          await Assertions.checkIfNotVisible(requestType);
+        },
+      );
+    });
+  }
+
+  for (let index = 0; index < SIGNATURE_LIST.length; index++) {
+    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+    it(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
+      await withFixtures(
+        {
+          dapp: true,
+          fixture: new FixtureBuilder()
+            .withMegaTestnetNetwork()
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+            )
+            .build(),
+          restartDevice: true,
+          testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+
+          await TabBarComponent.tapBrowser();
+          await Browser.navigateToTestDApp();
+
+          //Signing Flow
+          await testDappBtn();
+          await Assertions.checkIfVisible(requestType);
           await FooterActions.tapConfirmButton();
           await Assertions.checkIfNotVisible(requestType);
         },

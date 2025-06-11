@@ -14,13 +14,16 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import {
-  SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/simulations';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
+import { CustomNetworks } from '../../../resources/networks.e2e';
+
+const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
+const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 
 describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+  const HST_CONTRACT = SMART_CONTRACTS.HST;
 
   const testSpecificMock = {
     POST: [],
@@ -76,6 +79,169 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         await Assertions.checkIfVisible(RowComponents.OriginInfo);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMonadTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions([`${MONAD_TESTNET.chainId}`]),
+          )
+          .build(),
+        restartDevice: true,
+        smartContract: HST_CONTRACT,
+        testSpecificMock,
+      },
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry.getContractAddress(
+          HST_CONTRACT,
+        );
+
+        await loginToApp();
+
+        // Navigate to the browser screen
+        await TabBarComponent.tapBrowser();
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: hstAddress,
+        });
+        await TestHelpers.delay(3000);
+
+        // Transfer ERC20 tokens
+        await TestDApp.tapERC20TransferButton();
+        await TestHelpers.delay(3000);
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMegaTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+          )
+          .build(),
+        restartDevice: true,
+        smartContract: NFT_CONTRACT,
+        testSpecificMock,
+      },
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
+
+        await loginToApp();
+
+        // Navigate to the browser screen
+        await TabBarComponent.tapBrowser();
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: nftsAddress,
+        });
+
+        // Transfer NFT
+        await TestDApp.tapNFTTransferButton();
+        await TestHelpers.delay(3000);
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMonadTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions([`${MONAD_TESTNET.chainId}`]),
+          )
+          .build(),
+        restartDevice: true,
+        smartContract: HST_CONTRACT,
+        testSpecificMock,
+      },
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry.getContractAddress(
+          HST_CONTRACT,
+        );
+        await loginToApp();
+
+        // Navigate to the browser screen
+        await TabBarComponent.tapBrowser();
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: hstAddress,
+        });
+        await TestHelpers.delay(3000);
+
+        // Transfer ERC20 tokens
+        await TestDApp.tapERC20TransferButton();
+        await TestHelpers.delay(3000);
+
+        // Accept confirmation
+        await FooterActions.tapConfirmButton();
+
+        // Check activity tab
+        await TabBarComponent.tapActivity();
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
+      },
+    );
+  });
+
+  it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withMonadTestnetNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions([`${MONAD_TESTNET.chainId}`]),
+          )
+          .build(),
+        restartDevice: true,
+        smartContract: NFT_CONTRACT,
+        testSpecificMock,
+      },
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
+        await loginToApp();
+
+        // Navigate to the browser screen
+        await TabBarComponent.tapBrowser();
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: nftsAddress,
+        });
+        // Transfer NFT
+        await TestDApp.tapNFTTransferButton();
+        await TestHelpers.delay(3000);
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
