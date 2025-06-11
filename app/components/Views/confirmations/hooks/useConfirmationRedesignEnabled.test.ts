@@ -279,7 +279,7 @@ describe('useConfirmationRedesignEnabled', () => {
     });
   });
 
-  it('checks hardware account if confirmation is a transaction, validates `txParams.from` is hardware account', () => {
+  it('if confirmation is a transaction, validates `txParams.from` is hardware account', () => {
     isHardwareAccountMock.mockReturnValue(true);
     confirmationRedesignFlagsMock.mockReturnValue({
       ...disabledFeatureFlags,
