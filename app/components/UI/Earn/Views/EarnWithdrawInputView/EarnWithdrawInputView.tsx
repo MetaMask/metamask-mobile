@@ -376,7 +376,6 @@ const EarnWithdrawInputView = () => {
       params: {
         amountWei: amountTokenMinimalUnit.toString(),
         amountFiat: amountFiatNumber,
-        chainId: token?.chainId,
       },
     });
 
@@ -394,7 +393,6 @@ const EarnWithdrawInputView = () => {
     confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
     navigation,
-    token?.chainId,
     trackEvent,
   ]);
 
@@ -511,6 +509,7 @@ const EarnWithdrawInputView = () => {
       />
       <View style={styles.reviewButtonContainer}>
         <Button
+          testID="review-button"
           label={buttonLabel}
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}

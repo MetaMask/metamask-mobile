@@ -675,6 +675,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="cancel-button"
       >
         <Text
           accessibilityRole="text"
@@ -716,6 +717,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="continue-button"
       >
         <Text
           accessibilityRole="text"

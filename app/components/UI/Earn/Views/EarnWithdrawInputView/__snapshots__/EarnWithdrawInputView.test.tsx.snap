@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnWithdrawalInputView render matches snapshot 1`] = `
+exports[`EarnWithdrawInputView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -1533,6 +1533,7 @@ exports[`EarnWithdrawalInputView render matches snapshot 1`] = `
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="review-button"
                           >
                             <Text
                               accessibilityRole="text"

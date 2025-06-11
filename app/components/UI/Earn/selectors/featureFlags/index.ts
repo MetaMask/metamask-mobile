@@ -53,8 +53,6 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
 export const selectStablecoinLendingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    // return true;
-    // console.log('remoteFeatureFlags', remoteFeatureFlags);
     const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as EarnLaunchDarklyFlag;
