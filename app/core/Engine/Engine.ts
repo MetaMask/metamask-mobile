@@ -340,7 +340,7 @@ export class Engine {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const errorReportingService = new ErrorReportingService({
       messenger: errorReportingServiceMessenger,
-      captureException: (error) => captureException(error as Error),
+      captureException,
     });
 
     const networkControllerMessenger = this.controllerMessenger.getRestricted({
