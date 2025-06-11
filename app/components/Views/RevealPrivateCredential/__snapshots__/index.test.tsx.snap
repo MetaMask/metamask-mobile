@@ -84,84 +84,6 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             ]
           }
         >
-          <View
-            style={
-              [
-                {
-                  "padding": 20,
-                },
-                {
-                  "backgroundColor": "#ca35421a",
-                  "borderColor": "#ca3542",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "margin": 20,
-                  "marginTop": 10,
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "flexShrink": 1,
-                    "width": "100%",
-                  },
-                ]
-              }
-            >
-              <SvgMock
-                color="#121314"
-                fill="currentColor"
-                height={24}
-                name="EyeSlash"
-                style={
-                  {
-                    "color": "#ca3542",
-                    "height": 24,
-                    "margin": 10,
-                    "width": 24,
-                  }
-                }
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginLeft": 10,
-                    "marginRight": 40,
-                  }
-                }
-              >
-                Make sure nobody is looking at your screen. 
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
-                      "fontWeight": "600",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  MetaMask Support will never request this.
-                </Text>
-              </Text>
-            </View>
-          </View>
           <Text
             accessibilityRole="text"
             style={
@@ -262,6 +184,84 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               you are the owner of your SRP.
             </Text>
           </Text>
+          <View
+            style={
+              [
+                {
+                  "padding": 20,
+                },
+                {
+                  "backgroundColor": "#ca35421a",
+                  "borderColor": "#ca3542",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "margin": 20,
+                  "marginTop": 10,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "flexShrink": 1,
+                    "width": "100%",
+                  },
+                ]
+              }
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={24}
+                name="EyeSlash"
+                style={
+                  {
+                    "color": "#ca3542",
+                    "height": 24,
+                    "margin": 10,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 10,
+                    "marginRight": 40,
+                  }
+                }
+              >
+                Make sure nobody is looking at your screen. 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  MetaMask Support will never request this.
+                </Text>
+              </Text>
+            </View>
+          </View>
         </View>
         <View
           style={
@@ -496,84 +496,6 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             ]
           }
         >
-          <View
-            style={
-              [
-                {
-                  "padding": 20,
-                },
-                {
-                  "backgroundColor": "#ca35421a",
-                  "borderColor": "#ca3542",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "margin": 20,
-                  "marginTop": 10,
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "flexShrink": 1,
-                    "width": "100%",
-                  },
-                ]
-              }
-            >
-              <SvgMock
-                color="#121314"
-                fill="currentColor"
-                height={24}
-                name="EyeSlash"
-                style={
-                  {
-                    "color": "#ca3542",
-                    "height": 24,
-                    "margin": 10,
-                    "width": 24,
-                  }
-                }
-                width={24}
-              />
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginLeft": 10,
-                    "marginRight": 40,
-                  }
-                }
-              >
-                Make sure nobody is looking at your screen. 
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
-                      "fontWeight": "600",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  MetaMask Support will never request this.
-                </Text>
-              </Text>
-            </View>
-          </View>
           <Text
             accessibilityRole="text"
             style={
@@ -674,6 +596,84 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               you are the owner of your SRP.
             </Text>
           </Text>
+          <View
+            style={
+              [
+                {
+                  "padding": 20,
+                },
+                {
+                  "backgroundColor": "#ca35421a",
+                  "borderColor": "#ca3542",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "margin": 20,
+                  "marginTop": 10,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "flexShrink": 1,
+                    "width": "100%",
+                  },
+                ]
+              }
+            >
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={24}
+                name="EyeSlash"
+                style={
+                  {
+                    "color": "#ca3542",
+                    "height": 24,
+                    "margin": 10,
+                    "width": 24,
+                  }
+                }
+                width={24}
+              />
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "marginLeft": 10,
+                    "marginRight": 40,
+                  }
+                }
+              >
+                Make sure nobody is looking at your screen. 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "600",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  MetaMask Support will never request this.
+                </Text>
+              </Text>
+            </View>
+          </View>
         </View>
         <View
           style={
