@@ -470,7 +470,10 @@ class Transactions extends PureComponent {
     } = this.props;
     const blockExplorerText = () => {
       if (isNonEvmChainId(chainId)) {
-        if (NO_RPC_BLOCK_EXPLORER != this.state.rpcBlockExplorer) {
+        if (
+          this.state.rpcBlockExplorer &&
+          this.state.rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+        ) {
           return `${strings(
             'transactions.view_full_history_on',
           )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
@@ -482,7 +485,10 @@ class Transactions extends PureComponent {
         return strings('transactions.view_full_history_on_etherscan');
       }
 
-      if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+      if (
+        this.state.rpcBlockExplorer &&
+        this.state.rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+      ) {
         return `${strings(
           'transactions.view_full_history_on',
         )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
