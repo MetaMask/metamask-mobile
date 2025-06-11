@@ -5,33 +5,33 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../..//helpers';
+import TestHelpers from '../../helpers';
 import { waitFor } from 'detox';
 
 class SwapView {
-  get quoteSummary() {
+  get quoteSummary(): Promise<Detox.NativeElement> {
     return Matchers.getElementByID(SwapsViewSelectors.QUOTE_SUMMARY);
   }
 
-  get gasFee() {
+  get gasFee(): Promise<Detox.NativeElement> {
     return Matchers.getElementByID(SwapsViewSelectors.GAS_FEE);
   }
 
-  get fetchingQuotes() {
+  get fetchingQuotes(): Promise<Detox.NativeElement> {
     return Matchers.getElementByText(SwapViewSelectorsTexts.FETCHING_QUOTES);
   }
 
-  get swapButton() {
+  get swapButton(): Promise<Detox.NativeElement> {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
       : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
   }
 
-  get iUnderstandLabel() {
+  get iUnderstandLabel(): Promise<Detox.NativeElement> {
     return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
   }
 
-  async isPriceWarningDisplayed() {
+  async isPriceWarningDisplayed(): Promise<boolean> {
     try {
       const element = await this.iUnderstandLabel;
       await waitFor(element).toBeVisible().withTimeout(5000);
@@ -41,7 +41,7 @@ class SwapView {
     }
   }
 
-  generateSwapCompleteLabel(sourceToken, destinationToken) {
+  generateSwapCompleteLabel(sourceToken: string, destinationToken: string): string {
     let title = SwapViewSelectorsTexts.SWAP_CONFIRMED;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
@@ -49,16 +49,16 @@ class SwapView {
   }
 
   // Function to check if the button is enabled
-  async isButtonEnabled(element) {
+  async isButtonEnabled(element: Detox.NativeElement): Promise<boolean> {
     const attributes = await element.getAttributes();
     return attributes.enabled === true; // Check if enabled is true
   }
 
-  async tapSwapButton() {
+  async tapSwapButton(): Promise<void> {
     await Gestures.waitAndTap(this.swapButton);
   }
 
-  async tapIUnderstandPriceWarning() {
+  async tapIUnderstandPriceWarning(): Promise<void> {
     const isDisplayed = await this.isPriceWarningDisplayed();
     if (isDisplayed) {
       await Gestures.waitAndTap(this.iUnderstandLabel);
