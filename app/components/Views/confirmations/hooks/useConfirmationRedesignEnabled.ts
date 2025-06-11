@@ -91,7 +91,7 @@ export const useConfirmationRedesignEnabled = () => {
     selectConfirmationRedesignFlags,
   );
   const fromAddress =
-    approvalRequest?.requestData?.from || transactionMetadata?.txParams?.from;
+    transactionMetadata?.txParams?.from ?? approvalRequest?.requestData?.from;
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
 
