@@ -79,7 +79,6 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { isEqual } from 'lodash';
 import {
   getFontFamily,
   TextVariant,
@@ -471,7 +470,7 @@ class Transactions extends PureComponent {
     } = this.props;
     const blockExplorerText = () => {
       if (isNonEvmChainId(chainId)) {
-        if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+        if (NO_RPC_BLOCK_EXPLORER != this.state.rpcBlockExplorer) {
           return `${strings(
             'transactions.view_full_history_on',
           )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
