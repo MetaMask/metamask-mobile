@@ -55,6 +55,10 @@ export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_SELL,
   payload: getStartedFlag,
 });
+export const setFiatOrdersGetStartedDeposit = (getStartedFlag: boolean) => ({
+  type: ACTIONS.FIAT_SET_GETSTARTED_DEPOSIT,
+  payload: getStartedFlag,
+});
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA,
   payload: customIdData,
@@ -167,6 +171,10 @@ export const fiatOrdersGetStartedSell: (
   state: RootState,
 ) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
   state.fiatOrders.getStartedSell;
+export const fiatOrdersGetStartedDeposit: (
+  state: RootState,
+) => FiatOrdersState['getStartedDeposit'] = (state: RootState) =>
+  state.fiatOrders.getStartedDeposit;
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -271,6 +279,7 @@ export const initialState: FiatOrdersState = {
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
   getStartedSell: false,
+  getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
 };
@@ -349,6 +358,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedSell: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_GETSTARTED_DEPOSIT: {
+      return {
+        ...state,
+        getStartedDeposit: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {

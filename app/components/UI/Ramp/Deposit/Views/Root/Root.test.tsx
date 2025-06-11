@@ -7,6 +7,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
+let mockGetStarted = true;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -28,16 +29,39 @@ jest.mock('../../sdk', () => {
     ...actual,
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
+      getStarted: mockGetStarted,
     }),
   };
 });
 
+jest.mock(
+  './GetStarted/GetStarted',
+  () =>
+    function MockGetStarted() {
+      return null;
+    },
+);
+
 describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetStarted = true;
   });
 
-  it('redirects to BUILD_QUOTE', async () => {
+  it('render matches snapshot', () => {
+    const screen = renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls checkExistingToken on load', async () => {
+    mockCheckExistingToken.mockResolvedValue(false);
+    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    await waitFor(() => {
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+    });
+  });
+
+  it('redirects to BUILD_QUOTE when getStarted is true', async () => {
     mockCheckExistingToken.mockResolvedValue(false);
     renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
     await waitFor(() => {
@@ -50,6 +74,15 @@ describe('Root Component', () => {
           },
         ],
       });
+    });
+  });
+
+  it('does not redirect when getStarted is false', async () => {
+    mockGetStarted = false;
+    mockCheckExistingToken.mockResolvedValue(false);
+    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    await waitFor(() => {
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 });
