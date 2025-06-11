@@ -8,12 +8,6 @@ class ImportWalletView {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
-  get title() {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
-    );
-  }
-
   get newPasswordInput() {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -32,12 +26,6 @@ class ImportWalletView {
     );
   }
 
-  get continueButton() {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
-    );
-  }
-
   async enterPassword(password) {
     await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
   }
@@ -47,21 +35,13 @@ class ImportWalletView {
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
-    await Gestures.replaceTextInField(
+    await Gestures.typeTextAndHideKeyboard(
       this.seedPhraseInput,
       secretRecoveryPhrase,
     );
   }
   async clearSecretRecoveryPhraseInputBox() {
     await Gestures.clearField(this.seedPhraseInput);
-  }
-
-  async tapContinueButton() {
-    await Gestures.tap(this.continueButton);
-  }
-
-  async tapTitle() {
-    await Gestures.tap(this.title);
   }
 }
 

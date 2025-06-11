@@ -1,7 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import enContent from '../../../locales/languages/en.json';
 
 class CreatePasswordView {
   get container() {
@@ -21,26 +20,19 @@ class CreatePasswordView {
   }
 
   get iUnderstandCheckbox() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+        )
+      : Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
+        );
   }
 
   get submitButton() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-  }
-
-  get passwordError() {
-    return Matchers.getElementByText(
-      enContent.import_from_seed.password_error,
-    );
-  }
-
-  async resetPasswordInputs() {
-    await Gestures.clearField(this.newPasswordInput);
-    await Gestures.clearField(this.confirmPasswordInput);
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)
+      : Matchers.getElementByLabel(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   async enterPassword(password) {
