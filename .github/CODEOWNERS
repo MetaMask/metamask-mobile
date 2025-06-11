@@ -74,8 +74,10 @@ app/core/Encryptor/                                         @MetaMask/accounts-e
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
-app/components/Views/AccountSelector                        @MetaMask/accounts-engineers
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers
+
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
@@ -179,8 +181,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
-app/components/Views/AccountSelector @MetaMask/wallet-ux
-app/components/UI/EvmAccountSelectorList @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
