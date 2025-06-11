@@ -63,6 +63,16 @@ jest.mock('../Engine', () => ({
     AccountsController: {
       updateAccounts: jest.fn(),
     },
+    RemoteFeatureFlagController: {
+      state: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            version: '1',
+            enabled: true,
+          },
+        },
+      },
+    },
   },
 }));
 
