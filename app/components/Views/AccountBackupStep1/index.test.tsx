@@ -287,6 +287,18 @@ describe('AccountBackupStep1', () => {
           params: { successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP },
         },
       );
+
+      // Verify onboarding wizard step was not set
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: {
+            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+            step: 1,
+          },
+        },
+      );
     });
 
     it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
