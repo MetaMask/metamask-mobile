@@ -133,12 +133,15 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import SeedphraseModal from '../../UI/SeedphraseModal';
+import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
+import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -333,6 +336,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SEEDPHRASE_MODAL}
+      component={SeedphraseModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
+      component={SkipAccountSecurityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SUCCESS_ERROR_SHEET}
@@ -573,6 +584,11 @@ const MultichainAccountDetails = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
+        component={DeleteAccount}
         initialParams={route?.params}
       />
     </Stack.Navigator>

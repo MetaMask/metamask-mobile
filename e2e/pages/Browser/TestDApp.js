@@ -1,5 +1,7 @@
 import TestHelpers from '../../helpers';
-import { getLocalTestDappPort } from '../../fixtures/utils';
+import {
+  TEST_DAPP_LOCAL_URL,
+} from '../../fixtures/utils';
 
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
@@ -9,10 +11,9 @@ import enContent from '../../../locales/languages/en.json';
 import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
-export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
+
 
 class TestDApp {
   get confirmButtonText() {

@@ -414,7 +414,7 @@ export class BackgroundBridge extends EventEmitter {
         memState.selectedAddress != null &&
         !areAddressesEqual(this.addressSent, memState.selectedAddress)
       ) {
-        areAddressesEqual(this.addressSent, memState.selectedAddress);
+        this.addressSent = memState.selectedAddress;
         this.notifySelectedAddressChanged(memState.selectedAddress);
       }
     }
