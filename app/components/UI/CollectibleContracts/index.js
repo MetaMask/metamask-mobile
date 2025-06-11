@@ -417,6 +417,7 @@ const CollectibleContracts = ({
       const previousNfts = cloneDeep(
         NftController.state.allNfts[selectedAddress.toLowerCase()],
       );
+      trace({ name: TraceName.DetectNfts });
 
       setRefreshing(true);
 
@@ -431,6 +432,7 @@ const CollectibleContracts = ({
 
       await Promise.allSettled(actions);
       setRefreshing(false);
+      endTrace({ name: TraceName.DetectNfts });
 
       // Get updated state after refresh
       const newNfts = cloneDeep(

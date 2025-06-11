@@ -55,6 +55,7 @@ export enum TraceName {
   FetchHistoricalPrices = 'Fetch Historical Prices',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
+  DetectNfts = 'Detect Nfts',
 }
 
 export enum TraceOperation {
