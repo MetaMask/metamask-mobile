@@ -722,9 +722,9 @@ exports[`AccountSelector should render correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "500",
+                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1045,9 +1045,9 @@ exports[`AccountSelector should render correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Medium",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 16,
-                                                  "fontWeight": "500",
+                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
