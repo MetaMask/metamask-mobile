@@ -54,6 +54,7 @@ export enum TraceName {
   LoadRampExperience = 'Load Ramp Experience',
   FetchHistoricalPrices = 'Fetch Historical Prices',
   TransactionConfirmed = 'Transaction Confirmed',
+  LoadCollectibles = 'Load Collectibles',
 }
 
 export enum TraceOperation {

@@ -56,6 +56,7 @@ import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSh
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,13 +198,14 @@ const CollectibleContracts = ({
     [collectibleContracts, chainId, isAllNetworks],
   );
 
-  const filteredCollectibles = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(allCollectibles).flat()
-        : allCollectibles[chainId] || [],
-    [allCollectibles, chainId, isAllNetworks],
-  );
+  const filteredCollectibles = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles });
+    const collectibles = isAllNetworks
+      ? Object.values(allCollectibles).flat()
+      : allCollectibles[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles });
+    return collectibles;
+  }, [allCollectibles, chainId, isAllNetworks]);
 
   const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
