@@ -1,17 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 
-interface CryptoAlgorithm {
-  name: 'ECDSA';
-  hash: 'SHA-256';
-}
-
-interface CryptoTools {
-  algorithm: CryptoAlgorithm;
-  encoder: TextEncoder;
-  key: Awaited<ReturnType<typeof QuickCrypto.webcrypto.subtle.importKey>>;
-}
-
-function base64StringToBytes(unpaddedBase64: string): Uint8Array {
+function base64StringToBytes(unpaddedBase64: string) {
   let standardB64 = unpaddedBase64.replace(/-/gu, '+').replace(/_/gu, '/');
   const pad = standardB64.length % 4;
   if (pad === 2) {
@@ -45,19 +34,20 @@ export const INVALID = 'INVALID' as const;
 
 type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 
-let tools: CryptoTools | undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let tools: { algorithm: any; encoder: TextEncoder; key: any };
 
-async function lazyGetTools(): Promise<CryptoTools> {
+async function lazyGetTools() {
   if (tools) {
     return tools;
   }
-
-  const algorithm: CryptoAlgorithm = { name: 'ECDSA', hash: 'SHA-256' };
+  const curve = 'P-256';
+  const algorithm = { name: 'ECDSA', hash: 'SHA-256' } as const;
 
   const key = await QuickCrypto.webcrypto.subtle.importKey(
     'jwk',
     {
-      crv: 'P-256',
+      crv: curve,
       ext: true,
       key_ops: ['verify'],
       kty: 'EC',
@@ -74,7 +64,6 @@ async function lazyGetTools(): Promise<CryptoTools> {
     encoder: new TextEncoder(),
     key,
   };
-
   return tools;
 }
 
@@ -110,7 +99,7 @@ export const verifyDeeplinkSignature = async (
       signature,
       data,
     );
-    console.log('🔑 Signature verification result:', ok ? VALID : INVALID);
+
     return ok ? VALID : INVALID;
   } catch (error) {
     console.error('💥 Error during signature verification:', error);
@@ -118,6 +107,4 @@ export const verifyDeeplinkSignature = async (
   }
 };
 
-export const hasSignature = (url: URL): boolean => {
-  return url.searchParams.has('sig');
-};
+export const hasSignature = (url: URL): boolean => url.searchParams.has('sig');
