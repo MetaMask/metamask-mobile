@@ -14,6 +14,10 @@ import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { goToImportSrp, inputSrp } from './utils';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { mockIdentityServices } from '../identity/utils/mocks';
+import { arrangeTestUtils } from '../identity/utils/helpers';
+import { UserStorageMockttpController } from '../identity/utils/user-storage/userStorageMockttpController';
 
 const fixtureServer = new FixtureServer();
 
@@ -24,7 +28,16 @@ const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
 describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
+  let userStorageMockttpController: UserStorageMockttpController;
+
   beforeAll(async () => {
+    const mockServer = await startMockServer({});
+
+    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
+      mockServer,
+    );
+
+    userStorageMockttpController = userStorageMockttpControllerInstance;
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withImportedAccountKeyringController()
@@ -46,6 +59,11 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await inputSrp(valid12WordMnemonic);
     await ImportSrpView.tapImportButton();
 
+    const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+    await waitUntilSyncedAccountsNumberEquals(2);
+
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName as Promise<Detox.IndexableNativeElement>,
@@ -57,6 +75,11 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await goToImportSrp();
     await inputSrp(valid24WordMnemonic);
     await ImportSrpView.tapImportButton();
+
+    const { waitUntilSyncedAccountsNumberEquals } = arrangeTestUtils(
+      userStorageMockttpController,
+    );
+    await waitUntilSyncedAccountsNumberEquals(3);
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
