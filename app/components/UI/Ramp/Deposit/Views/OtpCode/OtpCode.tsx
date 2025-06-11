@@ -27,6 +27,7 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
+  email: string;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -38,8 +39,8 @@ const CELL_COUNT = 6;
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { email, setAuthToken } = useDepositSDK();
-  const { quote } = useParams<OtpCodeParams>();
+  const { setAuthToken } = useDepositSDK();
+  const { quote, email } = useParams<OtpCodeParams>();
 
   useEffect(() => {
     navigation.setOptions(

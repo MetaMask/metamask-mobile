@@ -28,7 +28,7 @@ class CreatePasswordView {
 
   get iUnderstandCheckboxNewWallet() {
     return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CREATE_WALLET_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
      );
   }
 
@@ -58,13 +58,7 @@ class CreatePasswordView {
   }
 
   async tapIUnderstandCheckBox() {
-    try {
-      // Try the generic checkbox first (used in import flow)
-      await Gestures.tap(this.iUnderstandCheckbox);
-    } catch (error) {
-      // Fall back to platform-specific checkbox (used in onboarding flow)
-      await Gestures.tap(this.iUnderstandCheckboxNewWallet);
-    }
+    await Gestures.tap(this.iUnderstandCheckbox);
   }
 
   async tapCreatePasswordButton() {
