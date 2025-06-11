@@ -2247,7 +2247,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCCheckbox (0.5.17):
+  - RNCCheckbox (0.5.20):
     - BEMCheckBox (~> 1.4)
     - React-Core
   - RNCClipboard (1.16.1):
@@ -3239,7 +3239,7 @@ SPEC CHECKSUMS:
   ReactCommon: 9cd9f89d1600b392c3a94552afc34def5fe54d02
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
   RNCAsyncStorage: 1cfe8404ff97c19efefeb683cf5fca88424365a4
-  RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
+  RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
   RNCClipboard: 8596d5006addc4cbc61bee51cd90afdc591fe7e1
   RNCMaskedView: 051a9e7748be98cfc1b127631ca6c6e28028924f
   RNDateTimePicker: 37b54409e2f17fbac4d53e8665d22eaf7a36dd5c
