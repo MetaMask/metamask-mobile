@@ -31,7 +31,7 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
   let userStorageMockttpController: UserStorageMockttpController;
 
   beforeAll(async () => {
-    const mockServer = await startMockServer({});
+    const mockServer = await startMockServer({}, 8099);
 
     const { userStorageMockttpControllerInstance } = await mockIdentityServices(
       mockServer,
