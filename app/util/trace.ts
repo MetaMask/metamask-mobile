@@ -54,6 +54,7 @@ export enum TraceName {
   LoadRampExperience = 'Load Ramp Experience',
   FetchHistoricalPrices = 'Fetch Historical Prices',
   ReceiveModal = 'Receive Modal',
+  TransactionConfirmed = 'Transaction Confirmed',
 }
 
 export enum TraceOperation {
