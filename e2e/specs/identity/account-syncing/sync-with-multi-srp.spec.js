@@ -119,7 +119,8 @@ describe(
       await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
       await ImportSrpView.tapImportButton();
 
-      await device.disableSynchronization();
+      await waitUntilSyncedAccountsNumberEquals(3);
+
       await Assertions.checkIfVisible(WalletView.container);
 
       // Create second account for SRP 2
