@@ -29,7 +29,37 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
-
+  
+  // Exclude MMKV directories from iCloud and iTunes backup
+  NSString *libraryPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library"];
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSError *error = nil;
+  
+  NSLog(@"MetaMask: Library path: %@", libraryPath);
+  
+  // Get all files in the Library directory
+  NSArray *files = [fileManager contentsOfDirectoryAtPath:libraryPath error:&error];
+  if (error) {
+    NSLog(@"MetaMask: Failed to read Library directory: %@", error);
+  } else {
+    NSLog(@"MetaMask: Found %lu files in Library directory", (unsigned long)files.count);
+    // Filter for MMKV files and exclude them from backup
+    for (NSString *file in files) {
+      if ([file hasPrefix:@"mmkv."] || [file hasPrefix:@"com.tencent.mmkv."]) {
+        NSString *filePath = [libraryPath stringByAppendingPathComponent:file];
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        NSError *excludeError = nil;
+        NSLog(@"MetaMask: Found MMKV file: %@", filePath);
+        [fileURL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:&excludeError];
+        if (excludeError) {
+          NSLog(@"MetaMask: Failed to exclude MMKV file %@ from backup: %@", file, excludeError);
+        } else {
+          NSLog(@"MetaMask: Successfully excluded MMKV file from backup: %@", file);
+        }
+      }
+    }
+  }
+  
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

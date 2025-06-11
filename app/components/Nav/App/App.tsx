@@ -31,7 +31,6 @@ import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
-  EXISTING_USER,
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
@@ -127,7 +126,10 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { selectUserLoggedIn } from '../../../reducers/user/selectors';
+import {
+  selectUserLoggedIn,
+  selectExistingUser,
+} from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
@@ -739,9 +741,10 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  const existingUser = useSelector(selectExistingUser);
+
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
@@ -777,6 +780,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
+    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(
@@ -908,7 +912,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       if (!existingUser) {
         // List of chainIds to add (as hex strings)
         const chainIdsToAdd: `0x${string}`[] = [
@@ -978,7 +981,7 @@ const App: React.FC = () => {
     startApp().catch((error) => {
       Logger.error(error, 'Error starting app');
     });
-  }, []);
+  }, [existingUser]);
 
   return (
     <>

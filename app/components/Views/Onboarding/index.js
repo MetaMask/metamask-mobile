@@ -14,7 +14,6 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -32,7 +31,7 @@ import {
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset } from '../../../actions/user';
+import { loadingSet, loadingUnset, setExistingUser } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -46,9 +45,11 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -149,6 +150,10 @@ class Onboarding extends PureComponent {
      */
     passwordSet: PropTypes.bool,
     /**
+     * redux flag that indicates if the user is existing
+     */
+    existingUser: PropTypes.bool,
+    /**
      * loading status
      */
     loading: PropTypes.bool,
@@ -160,6 +165,10 @@ class Onboarding extends PureComponent {
      * unset loading status
      */
     unsetLoading: PropTypes.func,
+    /**
+     * set existing user flag
+     */
+    setExistingUser: PropTypes.func,
     /**
      * loadings msg
      */
@@ -191,7 +200,6 @@ class Onboarding extends PureComponent {
   state = {
     warningModalVisible: false,
     loading: false,
-    existingUser: false,
   };
 
   seedwords = null;
@@ -257,13 +265,6 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
   };
 
-  async checkIfExistingUser() {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-    if (existingUser !== null) {
-      this.setState({ existingUser: true });
-    }
-  }
-
   onLogin = async () => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
@@ -276,7 +277,7 @@ class Onboarding extends PureComponent {
   };
 
   handleExistingUser = (action) => {
-    if (this.state.existingUser) {
+    if (this.props.existingUser) {
       this.alertExistingUser(action);
     } else {
       action();
@@ -438,8 +439,7 @@ class Onboarding extends PureComponent {
   };
 
   render() {
-    const { loading } = this.props;
-    const { existingUser } = this.state;
+    const { loading, existingUser } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -486,6 +486,32 @@ class Onboarding extends PureComponent {
       </View>
     );
   }
+
+  /**
+   * Fallback check for existing user flag
+   * Checks MMKV storage if Redux state indicates no existing user
+   * This handles edge cases where migration might have failed
+   */
+  async checkIfExistingUser() {
+    // If Redux already shows existing user, no need to check storage
+    if (this.props.existingUser) {
+      return;
+    }
+    
+    try {
+      // Fallback: check MMKV storage for existing user flag
+      const existingUserInStorage = await StorageWrapper.getItem(EXISTING_USER);
+      if (existingUserInStorage === 'true') {
+        // Update Redux state to match storage
+        this.props.setExistingUser(true);
+        // Clean up storage since Redux is now the source of truth
+        await StorageWrapper.removeItem(EXISTING_USER);
+      }
+    } catch (error) {
+      // If storage check fails, continue with Redux state as truth
+      console.warn('Failed to check existing user from storage:', error);
+    }
+  }
 }
 
 Onboarding.contextType = ThemeContext;
@@ -493,6 +519,7 @@ Onboarding.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
+  existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
 });
@@ -502,6 +529,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  setExistingUser: (existingUser) => dispatch(setExistingUser(existingUser)),
 });
 
 export default connect(

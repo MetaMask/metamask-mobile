@@ -21,6 +21,7 @@ import {
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
+  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
@@ -40,7 +41,6 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -63,6 +63,8 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -231,6 +233,10 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
+     * Redux dispatch function
+     */
+    dispatch: PropTypes.func,
+    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
@@ -380,7 +386,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      this.props.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
