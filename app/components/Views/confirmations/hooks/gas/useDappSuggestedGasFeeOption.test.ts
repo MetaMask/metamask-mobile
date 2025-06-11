@@ -2,7 +2,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { renderHook } from '@testing-library/react-hooks';
 
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { simpleSendTransaction } from '../../mock-data/transaction-controller-mock';
+import { simpleSendTransaction } from '../../mock-data/controllers/transaction-controller-mock';
 import { useFeeCalculations } from './useFeeCalculations';
 import { MMM_ORIGIN } from '../../constants/confirmations';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';

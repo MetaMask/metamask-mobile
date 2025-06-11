@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
 import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
-import { simpleSendTransaction } from '../../../mock-data/transaction-controller-mock';
+import { simpleSendTransaction } from '../../../mock-data/controllers/transaction-controller-mock';
 import { GasModalType } from '../../../constants/gas';
 import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 
@@ -11,7 +11,7 @@ jest.mock(
   '../../../hooks/transactions/useTransactionMetadataRequest',
   () => {
     const { simpleSendTransaction: actualSimpleSendTransaction } = jest.requireActual(
-      '../../../mock-data/transaction-controller-mock',
+      '../../../mock-data/controllers/transaction-controller-mock',
     );
     return {
       useTransactionMetadataRequest: jest.fn(() => actualSimpleSendTransaction),
