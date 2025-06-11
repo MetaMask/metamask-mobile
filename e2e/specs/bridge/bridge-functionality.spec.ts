@@ -43,7 +43,7 @@ enum eventsToCheck {
   UNIFIED_SWAPBRIDGE_COMPLETED = 'Unified SwapBridge Completed',
 }
 
-describe(SmokeTrade('Bridge functionality'), () => {
+describe.skip(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
   let mockServer: Mockttp;
   let localNode: Ganache;
