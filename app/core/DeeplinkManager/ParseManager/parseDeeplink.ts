@@ -12,12 +12,12 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import {
-  verifyDeeplinkWithLogging,
+  verifyDeeplinkSignature,
   hasSignature,
   VALID,
   INVALID,
   MISSING,
-} from './utils/verifySignature';
+} from './utils/verifyDeeplinkSignature';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -36,7 +36,7 @@ async function parseDeeplink({
     const validatedUrl = new URL(url);
     let isPrivateLink = false;
     if (hasSignature(validatedUrl)) {
-      const signatureResult = await verifyDeeplinkWithLogging(validatedUrl);
+      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
         case VALID:
           DevLogger.log(
@@ -44,6 +44,7 @@ async function parseDeeplink({
             url,
           );
           isPrivateLink = true;
+          break;
         case INVALID:
         case MISSING:
           DevLogger.log(
@@ -51,9 +52,22 @@ async function parseDeeplink({
             url,
           );
           isPrivateLink = false;
+          break;
         default:
           isPrivateLink = false;
+          break;
       }
+    }
+    if (isPrivateLink) {
+      // TODO: handle valid signature on interstitial
+      console.log('DeepLinkManager:parse valid signature on interstitial');
+      return true;
+    } else if (!isPrivateLink) {
+      console.log(
+        'DeepLinkManager:parse invalid/missing signature on interstitial',
+      );
+      // TODO: handle invalid/missing signature on interstitial
+      return false;
     }
 
     const { urlObj, params } = extractURLParams(url);
