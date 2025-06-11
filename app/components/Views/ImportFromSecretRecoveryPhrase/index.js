@@ -171,14 +171,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleSeedPhraseChange = useCallback(
     async (seedPhraseText, index) => {
       try {
-        const clipboardText = await Clipboard.getString();
-
-        const seedPhraseValue =
-          clipboardText?.trim() !== '' ? clipboardText : seedPhraseText;
-
-        const text = seedPhraseValue
+        const text = seedPhraseText
           .split('\n')
-          .map((item) => item.trim())
+          .map((item) => item)
           .join(' ');
 
         if (text.includes(SPACE_CHAR)) {
