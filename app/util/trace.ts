@@ -54,6 +54,7 @@ export enum TraceName {
   LoadRampExperience = 'Load Ramp Experience',
   FetchHistoricalPrices = 'Fetch Historical Prices',
   TransactionConfirmed = 'Transaction Confirmed',
+  NetworkSelector = 'Network Selector',
 }
 
 export enum TraceOperation {
@@ -73,6 +74,7 @@ export enum TraceOperation {
   Login = 'login',
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
+  RenderBottomSheetContent = 'render.bottom.sheet.content',
 }
 
 const ID_DEFAULT = 'default';

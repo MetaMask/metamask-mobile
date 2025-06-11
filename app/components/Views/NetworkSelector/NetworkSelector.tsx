@@ -81,7 +81,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-import { TraceName, TraceOperation, trace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -857,27 +862,37 @@ const NetworkSelector = () => {
     onPress: () => confirmRemoveRpc(),
   };
 
-  const renderBottomSheetContent = () => (
-    <>
-      {isNetworkUiRedesignEnabled() &&
-        searchString.length === 0 &&
-        renderEnabledNetworksTitle()}
-      {renderMainnet()}
-      {renderLineaMainnet()}
-      {renderRpcNetworks()}
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        renderNonEvmNetworks()
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {isNetworkUiRedesignEnabled() &&
-        searchString.length === 0 &&
-        renderPopularNetworksTitle()}
-      {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
-      {searchString.length === 0 && renderTestNetworksSwitch()}
-      {showTestNetworks && renderOtherNetworks()}
-    </>
-  );
+  const renderBottomSheetContent = () => {
+    trace({
+      name: TraceName.NetworkSelector,
+      op: TraceOperation.RenderBottomSheetContent,
+    });
+    const content = (
+      <>
+        {isNetworkUiRedesignEnabled() &&
+          searchString.length === 0 &&
+          renderEnabledNetworksTitle()}
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          renderNonEvmNetworks()
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {isNetworkUiRedesignEnabled() &&
+          searchString.length === 0 &&
+          renderPopularNetworksTitle()}
+        {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
+        {searchString.length === 0 && renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
+      </>
+    );
+    endTrace({
+      name: TraceName.NetworkSelector,
+    });
+    return content;
+  };
 
   return (
     <ReusableModal ref={sheetRef} style={styles.screen}>
