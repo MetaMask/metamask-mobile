@@ -92,6 +92,7 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -527,7 +528,14 @@ const ImportFromSecretRecoveryPhrase = ({
 
         navigation.reset({
           index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+              },
+            },
+          ],
         });
       } catch (error) {
         // Should we force people to enable passcode / biometrics?

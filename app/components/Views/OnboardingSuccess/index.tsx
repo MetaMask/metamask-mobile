@@ -10,7 +10,11 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -30,17 +34,21 @@ import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+
+export const ResetNavigationToHome = CommonActions.reset({
+  index: 0,
+  routes: [{ name: 'HomeNav' }],
+});
 
 interface OnboardingSuccessProps {
   onDone: () => void;
-  backedUpSRP?: boolean;
-  noSRP?: boolean;
+  successFlow: ONBOARDING_SUCCESS_FLOW;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  backedUpSRP,
-  noSRP,
+  successFlow,
 }) => {
   const navigation = useNavigation();
 
@@ -68,104 +76,109 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
       await importAdditionalAccounts();
-      await dispatch(setCompletedOnboarding(true));
+      dispatch(setCompletedOnboarding(true));
     };
     onOnboardingSuccess();
     onDone();
   }, [onDone, dispatch]);
 
   const renderContent = () => {
-    if (backedUpSRP) {
-      return (
-        <>
-          <Text variant={TextVariant.DisplayMD}>
-            {strings('onboarding_success.title')}
-          </Text>
-          <LottieView
-            style={styles.walletReadyImage}
-            autoPlay
-            loop
-            source={SearchingFox}
-            resizeMode="contain"
-          />
-          <View style={styles.descriptionWrapper}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('onboarding_success.description')}
-              {'\n'}
-              {'\n'}
+    switch (successFlow) {
+      case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
+        return (
+          <>
+            <Text variant={TextVariant.DisplayMD}>
+              {strings('onboarding_success.title')}
+            </Text>
+            <LottieView
+              style={styles.walletReadyImage}
+              autoPlay
+              loop
+              source={SearchingFox}
+              resizeMode="contain"
+            />
+            <View style={styles.descriptionWrapper}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.description')}
+                {'\n'}
+                {'\n'}
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Info}
+                    onPress={handleLink}
+                  >
+                    {strings('onboarding_success.learn_more')}
+                  </Text>
+                  {' ' + strings('onboarding_success.description_continued')}
+                </Text>
+              </Text>
+            </View>
+          </>
+        );
+      case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
+        return (
+          <>
+            <Text variant={TextVariant.DisplayMD}>
+              {strings('onboarding_success.remind_later')}
+            </Text>
+            <LottieView
+              style={styles.walletReadyImage}
+              autoPlay
+              loop
+              source={SearchingFox}
+              resizeMode="contain"
+            />
+            <View style={styles.descriptionWrapper}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.remind_later_description')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.remind_later_description2')}
+                <Text variant={TextVariant.BodyMDMedium}>
+                  {' ' + strings('onboarding_success.setting_security_privacy')}
+                </Text>
+              </Text>
+            </View>
+          </>
+        );
+      default:
+        return (
+          <>
+            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
+              {strings('onboarding_success.import_title')}
+            </Text>
+
+            <LottieView
+              style={styles.walletReadyImage}
+              autoPlay
+              loop
+              source={CelebratingFox}
+              resizeMode="contain"
+            />
+
+            <View style={styles.descriptionWrapper}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('onboarding_success.import_description')}
+              </Text>
+
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Info}
+                  color={TextColor.Primary}
                   onPress={handleLink}
+                  testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
                 >
-                  {strings('onboarding_success.learn_more')}
+                  {strings('onboarding_success.learn_how')}{' '}
                 </Text>
-                {' ' + strings('onboarding_success.description_continued')}
+                {strings('onboarding_success.import_description2')}
               </Text>
-            </Text>
-          </View>
-        </>
-      );
-    } else if (noSRP) {
-      return (
-        <>
-          <Text variant={TextVariant.DisplayMD}>
-            {strings('onboarding_success.remind_later')}
-          </Text>
-          <LottieView
-            style={styles.walletReadyImage}
-            autoPlay
-            loop
-            source={SearchingFox}
-            resizeMode="contain"
-          />
-          <View style={styles.descriptionWrapper}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('onboarding_success.remind_later_description')}
-            </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('onboarding_success.remind_later_description2')}
-              <Text variant={TextVariant.BodyMDMedium} onPress={handleLink}>
-                {' ' + strings('onboarding_success.setting_security_privacy')}
-              </Text>
-            </Text>
-          </View>
-        </>
-      );
+            </View>
+          </>
+        );
     }
-    return (
-      <>
-        <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
-          {strings('onboarding_success.import_title')}
-        </Text>
-
-        <LottieView
-          style={styles.walletReadyImage}
-          autoPlay
-          loop
-          source={CelebratingFox}
-          resizeMode="contain"
-        />
-
-        <View style={styles.descriptionWrapper}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('onboarding_success.import_description')}
-          </Text>
-
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            <Text
-              color={TextColor.Primary}
-              onPress={handleLink}
-              testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
-            >
-              {strings('onboarding_success.learn_how')}{' '}
-            </Text>
-            {strings('onboarding_success.import_description2')}
-          </Text>
-        </View>
-      </>
-    );
   };
 
   const renderFooter = () => (
@@ -224,21 +237,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const params = route.params ?? {
-    backedUpSRP: false,
-    noSRP: false,
-  };
+  const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
 
-  const { backedUpSRP, noSRP } = params as {
-    backedUpSRP: boolean;
-    noSRP: boolean;
-  };
+  const successFlow = params?.successFlow;
 
   return (
     <OnboardingSuccessComponent
-      backedUpSRP={backedUpSRP}
-      noSRP={noSRP}
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
+      successFlow={successFlow}
+      onDone={() => navigation.dispatch(ResetNavigationToHome)}
     />
   );
 };
