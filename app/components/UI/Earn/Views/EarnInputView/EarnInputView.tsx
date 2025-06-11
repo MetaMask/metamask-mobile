@@ -44,10 +44,6 @@ import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-// import {
-//   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
-//   getErc20SpendingLimit,
-// } from '../../utils/tempLending';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import BigNumber from 'bignumber.js';
 import Engine from '../../../../../core/Engine';
@@ -384,7 +380,7 @@ const EarnInputView = () => {
     hasCancelButton: false,
     hasBackButton: true,
     hasIconButton: true,
-    // TODO: STAKE-967
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-967
     // handleIconPress: navigateToLearnMoreModal,
   };
   const earnNavBarEventOptions = {
@@ -395,7 +391,7 @@ const EarnInputView = () => {
         location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
       },
     },
-    // TODO: STAKE-967
+    // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-967
     // iconButtonEvent: {
     //   event: MetaMetricsEvents.TOOLTIP_OPENED,
     //   properties: {

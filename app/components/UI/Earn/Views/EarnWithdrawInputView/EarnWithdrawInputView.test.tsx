@@ -359,28 +359,6 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   }),
 }));
 
-// jest.mock('../../hooks/useEarnWithdrawInput', () => ({
-//   __esModule: true,
-//   default: () => ({
-//     isFiat: false,
-//     currentCurrency: 'USD',
-//     isNonZeroAmount: false,
-//     amountToken: '0',
-//     amountTokenMinimalUnit: '0',
-//     amountFiatNumber: 0,
-//     isOverMaximum: {
-//       isOverMaximumToken: false,
-//       isOverMaximumEth: false,
-//     },
-//     handleCurrencySwitch: jest.fn(),
-//     currencyToggleValue: 'ETH',
-//     percentageOptions: ['25%', '50%', '75%', '100%'],
-//     handleQuickAmountPress: jest.fn(),
-//     handleKeypadChange: jest.fn(),
-//     earnBalanceValue: '5.79133',
-//   }),
-// }));
-
 jest.mock('../../utils/tempLending', () => ({
   getAaveV3MaxRiskAwareWithdrawalAmount: jest
     .fn()
@@ -710,7 +688,34 @@ describe('EarnWithdrawInputView', () => {
         usdcRouteParams,
       );
 
-      expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalled();
+      expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalledWith(
+        '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          balanceFormatted: '1000',
+          balanceMinimalUnit: '1000000000',
+          balanceFiatNumber: 1000,
+          tokenUsdExchangeRate: 1,
+          experiences: [
+            {
+              type: 'STABLECOIN_LENDING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          ],
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        },
+      );
     });
   });
 

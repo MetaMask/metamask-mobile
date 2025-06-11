@@ -287,9 +287,7 @@ const EarnLendingDepositConfirmationView = () => {
             amount: amountTokenMinimalUnit,
             underlyingTokenAddress:
               earnToken?.experience?.market?.underlying?.address,
-            gasOptions: {
-              // gasLimit: 21596,
-            },
+            gasOptions: {},
             txOptions: {
               deviceConfirmedOn: WalletDevice.MM_MOBILE,
               networkClientId,
@@ -348,6 +346,9 @@ const EarnLendingDepositConfirmationView = () => {
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
       console.error('error', error);
+      // allow user to try again
+      setIsDepositLoading(false);
+      setIsConfirmButtonDisabled(false);
     }
   };
 

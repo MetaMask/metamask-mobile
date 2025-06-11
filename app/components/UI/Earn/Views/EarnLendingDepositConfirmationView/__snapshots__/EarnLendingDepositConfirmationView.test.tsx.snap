@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnLendingDepositConfirmationView renders correctly 1`] = `
+exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
 <View
   style={
     {

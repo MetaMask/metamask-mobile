@@ -210,7 +210,7 @@ const InputDisplay = ({
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
             >
-              {`${maxWithdrawalAmount} ${ticker} ${strings(
+              {`${maxWithdrawalAmount || 0} ${ticker} ${strings(
                 'earn.available_to_withdraw',
               )}`}
             </Text>
@@ -225,7 +225,13 @@ const InputDisplay = ({
 
         <Text
           variant={TextVariant.BodySM}
-          color={balanceInfo ? TextColor.Error : undefined}
+          color={
+            isOverMaximum.isOverMaximumToken ||
+            isOverMaximum.isOverMaximumEth ||
+            error
+              ? TextColor.Error
+              : undefined
+          }
         >
           {balanceInfo}
         </Text>

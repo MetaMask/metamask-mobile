@@ -1,17 +1,17 @@
+import { LendingMarketWithPosition } from '@metamask/earn-controller';
+import { LendingProtocol } from '@metamask/stake-sdk';
+import { useRoute } from '@react-navigation/native';
 import React from 'react';
 import EarnLendingWithdrawalConfirmationView, {
   EarnWithdrawalConfirmationViewProps,
 } from '.';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { LendingProtocol } from '@metamask/stake-sdk';
-import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { LendingMarketWithPosition } from '@metamask/earn-controller';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { useRoute } from '@react-navigation/native';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,6 +23,13 @@ import { act, fireEvent } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { Linking } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
+
+expect.addSnapshotSerializer({
+  // any is the expected type for the val parameter
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  test: (val: any) => val && val?.type === 'Image',
+  print: () => `<Image />`,
+});
 
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
@@ -163,7 +170,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     );
   });
 
-  it('renders correctly', () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
@@ -204,7 +211,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('executed lending withdrawal transaction when confirm button is pressed', async () => {
+  it('executes lending withdrawal transaction when confirm button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
@@ -286,7 +293,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     );
   });
 
-  it('Redirect to risk disclosure when footer risk disclosure is pressed', async () => {
+  it('Redirects to risk disclosure when footer risk disclosure is pressed', async () => {
     const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
