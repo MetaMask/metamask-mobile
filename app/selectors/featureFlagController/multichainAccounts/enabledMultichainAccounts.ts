@@ -2,6 +2,7 @@ import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
 import packageJson from '../../../../package.json';
 import { selectRemoteFeatureFlags } from '..';
+import { Json } from '@metamask/utils';
 
 /**
  * Multichain accounts feature flag
@@ -88,3 +89,14 @@ export const selectMultichainAccountsState1Enabled = createMultichainAccountsSta
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const selectMultichainAccountsState2Enabled = createMultichainAccountsStateSelector([FEATURE_VERSION_2]);
+
+/**
+ * Checks if multichain accounts are enabled for state 1.
+ * @param remoteFeatureFlags - The remote feature flags object containing the multichain accounts feature flag.
+ * @returns True if the multichain accounts feature is enabled for state 1, false otherwise.
+ */
+export const isMultichainAccountsEnabledForState1 = (remoteFeatureFlags: Json & MultichainAccountsFeatureFlag) => (
+  [FEATURE_VERSION_1, FEATURE_VERSION_2].some((featureVersion) =>
+    isMultichainAccountsFeatureEnabled(remoteFeatureFlags, featureVersion)
+  )
+);

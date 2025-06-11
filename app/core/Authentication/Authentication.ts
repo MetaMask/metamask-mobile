@@ -39,6 +39,8 @@ import {
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
+import { isMultichainAccountsEnabledForState1, MultichainAccountsFeatureFlag } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { Json } from '@metamask/utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -430,7 +432,7 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      const { AccountTreeController, AccountsController } = Engine.context;
+      const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
       trace({
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
@@ -448,8 +450,14 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
-      await AccountsController.updateAccounts();
-      AccountTreeController.init();
+      const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(
+        RemoteFeatureFlagController.state.remoteFeatureFlags.enableMultichainAccounts as Json & MultichainAccountsFeatureFlag
+      );
+
+      if (isMultichainAccountsEnabled) {
+        AccountTreeController.init();
+        await AccountsController.updateAccounts();
+      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -476,7 +484,7 @@ class AuthenticationService {
     const bioStateMachineId = options?.bioStateMachineId;
     const disableAutoLogout = options?.disableAutoLogout;
     try {
-      const { AccountTreeController, AccountsController } = Engine.context;
+      const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -505,8 +513,14 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
-      await AccountsController.updateAccounts();
-      AccountTreeController.init();
+      const isMultichainAccountsEnabled = isMultichainAccountsEnabledForState1(
+        RemoteFeatureFlagController.state.remoteFeatureFlags.enableMultichainAccounts as Json & MultichainAccountsFeatureFlag
+      );
+
+      if (isMultichainAccountsEnabled) {
+        AccountTreeController.init();
+        await AccountsController.updateAccounts();
+      }
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
