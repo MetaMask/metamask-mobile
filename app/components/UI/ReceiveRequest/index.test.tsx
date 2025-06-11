@@ -5,6 +5,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
+import { endTrace, TraceName } from '../../../util/trace';
 
 const initialState = {
   engine: {
@@ -46,6 +47,13 @@ jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 
+jest.mock('../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    ReceiveModal: 'Receive Modal',
+  },
+}));
+
 describe('ReceiveRequest', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
@@ -80,5 +88,16 @@ describe('ReceiveRequest', () => {
       { state },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should call endTrace on componentDidMount', () => {
+    renderScreen(
+      ReceiveRequest,
+      { name: 'ReceiveRequest' },
+      { state: initialState },
+    );
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ReceiveModal,
+    });
   });
 });

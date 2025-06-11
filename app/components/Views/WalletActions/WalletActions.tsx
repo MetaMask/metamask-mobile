@@ -93,6 +93,9 @@ const WalletActions = () => {
   );
 
   const onReceive = useCallback(() => {
+    trace({
+      name: TraceName.ReceiveModal,
+    });
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.QR_TAB_SWITCHER, {
         initialScreen: QRTabSwitcherScreens.Receive,

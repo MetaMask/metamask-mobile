@@ -267,6 +267,7 @@ jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     LoadRampExperience: 'LoadRampExperience',
+    ReceiveModal: 'ReceiveModal',
   },
 }));
 
@@ -428,6 +429,20 @@ describe('WalletActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('should call trace when the Receive button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON),
+    );
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.ReceiveModal,
+    });
   });
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {
