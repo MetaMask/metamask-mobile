@@ -10,6 +10,8 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Routes from '../../../constants/navigation/Routes';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -207,7 +209,6 @@ describe('AccountBackupStep1', () => {
 
     // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
-
   });
 
   it('navigates to SkipAccountSecurityModal when customBackPress is called', () => {
@@ -274,16 +275,30 @@ describe('AccountBackupStep1', () => {
           call[1].screen === 'SkipAccountSecurityModal',
       )[1].params;
 
+      mockNavigate.mockClear();
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: { successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP },
+        },
+      );
 
       // Verify onboarding wizard step was not set
-      expect(mockNavigate).not.toHaveBeenCalledWith('OnboardingSuccess', {
-        step: 1,
-      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: {
+            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+            step: 1,
+          },
+        },
+      );
     });
 
     it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
@@ -305,11 +320,20 @@ describe('AccountBackupStep1', () => {
           call[1].screen === 'SkipAccountSecurityModal',
       )[1].params;
 
+      mockNavigate.mockClear();
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.SUCCESS_FLOW,
+        {
+          screen: Routes.ONBOARDING.SUCCESS,
+          params: {
+            successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+          },
+        },
+      );
     });
   });
 });
