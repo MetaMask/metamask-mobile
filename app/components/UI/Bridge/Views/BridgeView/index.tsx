@@ -272,6 +272,9 @@ const BridgeView = () => {
   const handleContinue = async () => {
     try {
       if (activeQuote) {
+        // Don't need to keep polling once the user has started tx submission
+        Engine.context.BridgeController.stopAllPolling();
+
         dispatch(setIsSubmittingTx(true));
         // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
         // Necessary because snaps prevents navigation after tx is submitted
@@ -335,14 +338,14 @@ const BridgeView = () => {
   };
 
   useEffect(() => {
-    if (isExpired && !willRefresh) {
+    if (isExpired && !willRefresh && !isSubmittingTx) {
       setIsInputFocused(false);
       // open the quote tooltip modal
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, navigation]);
+  }, [isExpired, willRefresh, navigation, isSubmittingTx]);
 
   const renderBottomContent = () => {
     if (shouldDisplayKeypad && !isLoading) {
