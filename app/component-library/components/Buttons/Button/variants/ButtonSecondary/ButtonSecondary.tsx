@@ -72,9 +72,12 @@ const ButtonSecondary = ({
       label
     );
 
-    const renderLoading = () => (
-      <ActivityIndicator size="small" color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT} />
-    );
+  const renderLoading = () => (
+    <ActivityIndicator
+      size="small"
+      color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
+    />
+  );
 
   return (
     <Button
