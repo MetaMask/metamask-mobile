@@ -5,9 +5,10 @@ import { getFeatureFlagValue } from '../env';
 // A type predicate's type must be assignable to its parameter's type
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ConfirmationRedesignRemoteFlags = {
+  approve: boolean;
+  contract_interaction: boolean;
   signatures: boolean;
   staking_confirmations: boolean;
-  contract_interaction: boolean;
   transfer: boolean;
 };
 
@@ -74,10 +75,16 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
     remoteValues?.transfer !== false,
   );
 
+  const isApproveEnabled = getFeatureFlagValue(
+    process.env.FEATURE_FLAG_REDESIGNED_APPROVE,
+    remoteValues?.approve !== false,
+  );
+
   return {
+    approve: isApproveEnabled,
+    contract_interaction: isContractInteractionEnabled,
     signatures: isSignaturesEnabled,
     staking_confirmations: isStakingConfirmationsEnabled,
-    contract_interaction: isContractInteractionEnabled,
     transfer: isTransferEnabled,
   };
 };
