@@ -29,6 +29,7 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { RootState } from '../../../../../../reducers';
 
 interface ExportCredentialsProps {
   account: InternalAccount;
@@ -43,11 +44,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   const bothOptionsEnabled = canExportPrivateKey && canExportMnemonic;
   const { styles } = useStyles(styleSheet, { bothOptionsEnabled });
 
-  const { seedphraseBackedUp } = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user,
-  );
+  const { seedphraseBackedUp } = useSelector((state: RootState) => state.user);
 
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const srpName = useMemo(() => {
@@ -65,7 +62,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     return name;
   }, [hdKeyringsWithSnapAccounts, account]);
 
-  const showSeedphraseBackedUp = useMemo(() => {
+  const showSeedphraseBackReminder = useMemo(() => {
     const [primaryKeyring] = hdKeyringsWithSnapAccounts;
     const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
       (address) => areAddressesEqual(address, account.address),
@@ -80,14 +77,14 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     });
   }, [navigate, account]);
 
-  const onExportPrivateKey = () => {
+  const onExportPrivateKey = useCallback(() => {
     navigate(
       Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
       {
         account,
       },
     );
-  };
+  }, [navigate, account]);
 
   return (
     <Box style={styles.container} data-testid={ExportCredentialsIds.CONTAINER}>
@@ -114,7 +111,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
               justifyContent={JustifyContent.flexEnd}
               gap={8}
             >
-              {showSeedphraseBackedUp && (
+              {showSeedphraseBackReminder && (
                 <Text
                   variant={TextVariant.BodyMDMedium}
                   color={TextColor.Error}

@@ -103,7 +103,7 @@ describe('useKeyringId', () => {
     const { result } = renderHookWithProvider(() => useKeyringId(account), {
       state: mockInitialState,
     });
-    expect(result?.current).toBe(account.options?.entropySource ?? expected);
+    expect(result?.current).toBe(expected);
   });
 
   it('throws error when keyring not found', () => {

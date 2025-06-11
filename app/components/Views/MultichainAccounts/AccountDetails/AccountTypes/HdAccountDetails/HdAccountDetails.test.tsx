@@ -60,7 +60,7 @@ const mockInitialState = {
   },
 };
 
-describe('HDAccountDetails', () => {
+describe('HdAccountDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
