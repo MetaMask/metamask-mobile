@@ -40,9 +40,12 @@ export function handleMetaMaskDeeplink({
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-      SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      });
+      SDKConnect.getInstance().state.navigation?.navigate(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        },
+      );
     } else if (params.channelId) {
       // differentiate between  deeplink callback and socket connection
       if (params.comm === 'deeplinking') {
@@ -152,6 +155,11 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SWAP}`)) {
+    const swapPath = url
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SWAP}`, '')
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SWAP}`, '');
+    instance._handleSwap(swapPath);
   }
 }
 
