@@ -4,7 +4,6 @@ import {
   Dimensions,
   Linking,
   Platform,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -19,7 +18,7 @@ import ScrollableTabView, {
 } from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomTabView = ScrollView as any;
+const CustomTabView = View as any;
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -411,7 +410,6 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -447,7 +445,6 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
       >
         <View
           style={styles.qrCodeWrapper}
