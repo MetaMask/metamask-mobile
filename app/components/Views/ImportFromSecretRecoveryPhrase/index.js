@@ -203,8 +203,8 @@ const ImportFromSecretRecoveryPhrase = ({
             endSlices.unshift('');
           }
 
-          return [...prev.slice(0, index), ...splitArray, ...endSlices];
           // input the array into the correct index
+          return [...prev.slice(0, index), ...splitArray, ...endSlices];
         });
 
         setErrorWordIndexes(currentErrorWordIndexes);
