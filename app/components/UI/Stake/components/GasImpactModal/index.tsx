@@ -96,13 +96,18 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
 
     if (isStakingDepositRedesignedEnabled) {
       if (!attemptDepositTransaction) return;
-      await attemptDepositTransaction(
-        amountWeiString,
-        activeAccount?.address as string,
-      );
-      navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
+
+      try {
+        await attemptDepositTransaction(
+          amountWeiString,
+          activeAccount?.address as string,
+        );
+        navigate('StakeScreens', {
+          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+        });
+      } catch (error) {
+        console.error(error);
+      }
     } else {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE_CONFIRMATION,

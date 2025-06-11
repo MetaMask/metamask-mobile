@@ -163,10 +163,11 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     <View
       style={
         {
-          "alignSelf": "center",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "justifyContent": "center",
-          "marginLeft": 20,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
@@ -174,10 +175,13 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
+            "alignSelf": "flex-start",
             "color": "#121314",
+            "flex": 1,
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
+            "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -198,9 +202,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
               "lineHeight": 22,
             }
           }
-        >
-          +0.00%
-        </Text>
+        />
       </View>
     </View>
     <View
@@ -413,10 +415,11 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     <View
       style={
         {
-          "alignSelf": "center",
+          "alignContent": "flex-start",
+          "alignItems": "flex-start",
           "flex": 1,
-          "justifyContent": "center",
-          "marginLeft": 20,
+          "flexDirection": "column",
+          "paddingLeft": 16,
         }
       }
     >
@@ -424,10 +427,13 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
+            "alignSelf": "flex-start",
             "color": "#121314",
+            "flex": 1,
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
+            "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -448,9 +454,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
               "lineHeight": 22,
             }
           }
-        >
-          +0.00%
-        </Text>
+        />
       </View>
     </View>
     <View

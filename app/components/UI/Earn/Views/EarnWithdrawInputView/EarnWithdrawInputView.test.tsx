@@ -1,4 +1,5 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { LendingProtocol } from '@metamask/stake-sdk';
+import { fireEvent, screen } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React, { act } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -6,8 +7,11 @@ import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { flushPromises } from '../../../../../util/test/utils';
+import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
@@ -15,15 +19,12 @@ import {
   MOCK_STAKED_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
-import { flushPromises } from '../../../../../util/test/utils';
-import { getStakingNavbar } from '../../../Navbar';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
@@ -358,28 +359,6 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   }),
 }));
 
-// jest.mock('../../hooks/useEarnWithdrawInput', () => ({
-//   __esModule: true,
-//   default: () => ({
-//     isFiat: false,
-//     currentCurrency: 'USD',
-//     isNonZeroAmount: false,
-//     amountToken: '0',
-//     amountTokenMinimalUnit: '0',
-//     amountFiatNumber: 0,
-//     isOverMaximum: {
-//       isOverMaximumToken: false,
-//       isOverMaximumEth: false,
-//     },
-//     handleCurrencySwitch: jest.fn(),
-//     currencyToggleValue: 'ETH',
-//     percentageOptions: ['25%', '50%', '75%', '100%'],
-//     handleQuickAmountPress: jest.fn(),
-//     handleKeypadChange: jest.fn(),
-//     earnBalanceValue: '5.79133',
-//   }),
-// }));
-
 jest.mock('../../utils/tempLending', () => ({
   getAaveV3MaxRiskAwareWithdrawalAmount: jest
     .fn()
@@ -390,7 +369,7 @@ jest.mock('../../utils/tempLending', () => ({
   getLendingPoolLiquidity: jest.fn().mockResolvedValue('1000000000000000000'),
 }));
 
-describe('EarnWithdrawalInputView', () => {
+describe('EarnWithdrawInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
@@ -418,9 +397,7 @@ describe('EarnWithdrawalInputView', () => {
         fireEvent.press(screen.getByText('2'));
       });
 
-      await waitFor(() => {
-        expect(screen.getByText('4000 USD')).toBeTruthy();
-      });
+      expect(screen.getByText('4000 USD')).toBeTruthy();
     });
   });
 
@@ -601,16 +578,14 @@ describe('EarnWithdrawalInputView', () => {
     });
   });
 
-  describe('lending withdrawal flow', () => {
-    beforeEach(() => {
+  describe('max risk-aware withdrawal amount', () => {
+    it('displays max risk-aware withdrawal amount for lending tokens', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
         >
       ).mockReturnValue(true);
-    });
 
-    it('fetches max risk-aware withdrawal amount for lending tokens', async () => {
       const mockLendingToken: EarnTokenDetails = {
         ...MOCK_USDC_MAINNET_ASSET,
         balanceFormatted: '1000',
@@ -625,6 +600,33 @@ describe('EarnWithdrawalInputView', () => {
             estimatedAnnualRewardsFiatNumber: 50,
             estimatedAnnualRewardsTokenMinimalUnit: '50000000',
             estimatedAnnualRewardsTokenFormatted: '50',
+            market: {
+              id: '0x123',
+              chainId: 1,
+              protocol: LendingProtocol.AAVE,
+              name: 'USDC Market',
+              address: '0x123',
+              netSupplyRate: 5.0,
+              totalSupplyRate: 5.0,
+              rewards: [],
+              tvlUnderlying: '1000000',
+              underlying: {
+                address: '0x123',
+                chainId: 1,
+              },
+              outputToken: {
+                address: '0x456',
+                chainId: 1,
+              },
+              position: {
+                id: '0x123-0x456-COLLATERAL-0',
+                chainId: 1,
+                assets: '1000000',
+                marketId: '0x123',
+                marketAddress: '0x123',
+                protocol: LendingProtocol.AAVE,
+              },
+            },
           },
         ],
         experience: {
@@ -634,6 +636,33 @@ describe('EarnWithdrawalInputView', () => {
           estimatedAnnualRewardsFiatNumber: 50,
           estimatedAnnualRewardsTokenMinimalUnit: '50000000',
           estimatedAnnualRewardsTokenFormatted: '50',
+          market: {
+            id: '0x123',
+            chainId: 1,
+            protocol: LendingProtocol.AAVE,
+            name: 'USDC Market',
+            address: '0x123',
+            netSupplyRate: 5.0,
+            totalSupplyRate: 5.0,
+            rewards: [],
+            tvlUnderlying: '1000000',
+            underlying: {
+              address: '0x123',
+              chainId: 1,
+            },
+            outputToken: {
+              address: '0x456',
+              chainId: 1,
+            },
+            position: {
+              id: '0x123-0x456-COLLATERAL-0',
+              chainId: 1,
+              assets: '1000000',
+              marketId: '0x123',
+              marketAddress: '0x123',
+              protocol: LendingProtocol.AAVE,
+            },
+          },
         },
       };
 
@@ -659,8 +688,55 @@ describe('EarnWithdrawalInputView', () => {
         usdcRouteParams,
       );
 
-      await waitFor(() => {
-        expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalled();
+      expect(getAaveV3MaxRiskAwareWithdrawalAmount).toHaveBeenCalledWith(
+        '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        {
+          ...MOCK_USDC_MAINNET_ASSET,
+          balanceFormatted: '1000',
+          balanceMinimalUnit: '1000000000',
+          balanceFiatNumber: 1000,
+          tokenUsdExchangeRate: 1,
+          experiences: [
+            {
+              type: 'STABLECOIN_LENDING',
+              apr: '5%',
+              estimatedAnnualRewardsFormatted: '50',
+              estimatedAnnualRewardsFiatNumber: 50,
+              estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+              estimatedAnnualRewardsTokenFormatted: '50',
+            },
+          ],
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        },
+      );
+    });
+  });
+
+  describe('navigation events', () => {
+    it('tracks unstake button click event', async () => {
+      render(EarnWithdrawInputView);
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('Review'));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+        params: {
+          amountWei: '1000000000000000000',
+          amountFiat: '2000',
+        },
       });
     });
   });

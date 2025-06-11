@@ -20,7 +20,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import OnboardingSuccess from '../OnboardingSuccess';
+import { OnboardingSuccessComponent } from '../OnboardingSuccess';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
@@ -222,7 +222,7 @@ class ManualBackupStep3 extends PureComponent {
             />
           </View>
         ) : null}
-        <OnboardingSuccess onDone={this.done} backedUpSRP />
+        <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}

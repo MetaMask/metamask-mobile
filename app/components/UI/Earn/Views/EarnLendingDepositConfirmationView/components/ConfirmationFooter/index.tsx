@@ -29,14 +29,19 @@ export interface ConfirmationFooterProps {
   progressBar?: { activeStep: number; steps: ProgressStep[] };
 }
 
-export const CONFIRMATION_FOOTER_TEST_IDS = 'confirmationFooter';
+export const CONFIRMATION_FOOTER_TEST_ID = 'earn-lending-confirmation-footer';
 
 export const CONFIRMATION_FOOTER_BUTTON_TEST_IDS = {
-  CANCEL_BUTTON: 'earn-lending-confirmation-footer-cancel-button',
-  CONFIRM_BUTTON: 'earn-lending-confirmation-footer-confirm-button',
+  CANCEL_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-cancel-button`,
+  CONFIRM_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-confirm-button`,
 };
 
-const ConfirmationFooter = ({
+export const CONFIRMATION_FOOTER_LINK_TEST_IDS = {
+  TERMS_OF_USE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-terms-of-use-button`,
+  RISK_DISCLOSURE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-risk-disclosure-button`,
+};
+
+export const ConfirmationFooter = ({
   onConfirm,
   onCancel,
   buttonPrimary,
@@ -67,7 +72,7 @@ const ConfirmationFooter = ({
   ];
 
   return (
-    <View style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_IDS}>
+    <View style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_ID}>
       {progressBar && (
         <View>
           <ProgressStepper
@@ -92,6 +97,7 @@ const ConfirmationFooter = ({
             variant={TextVariant.BodySM}
             style={styles.linkText}
             onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+            testID={CONFIRMATION_FOOTER_LINK_TEST_IDS.TERMS_OF_USE_BUTTON}
           >
             {strings('confirm.staking_footer.terms_of_use')}
           </Text>
@@ -107,6 +113,7 @@ const ConfirmationFooter = ({
             onPress={() =>
               Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
             }
+            testID={CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON}
           >
             {strings('confirm.staking_footer.risk_disclosure')}
           </Text>

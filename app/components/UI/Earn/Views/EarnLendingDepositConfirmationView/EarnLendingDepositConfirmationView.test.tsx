@@ -19,7 +19,7 @@ import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
-  CONFIRMATION_FOOTER_TEST_IDS,
+  CONFIRMATION_FOOTER_TEST_ID,
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
@@ -235,7 +235,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     } as InternalAccount);
   });
 
-  it('renders correctly', () => {
+  it('matches snapshot', () => {
     const { toJSON, getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
@@ -250,7 +250,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     // Deposit Receive Section
     expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
     // Footer
-    expect(getByTestId(CONFIRMATION_FOOTER_TEST_IDS)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeDefined();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
     ).toBeDefined();
@@ -382,5 +382,120 @@ describe('EarnLendingDepositConfirmationView', () => {
         type: 'lendingDeposit',
       },
     });
+  });
+
+  it('enables retries after transaction error during approval flow', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    mockAddTransaction.mockRejectedValue(new Error('Transaction failed'));
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    expect(
+      Engine.context.EarnController.executeLendingTokenApprove,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {},
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'mainnet',
+        origin: 'metamask',
+        type: 'increaseAllowance',
+      },
+    });
+
+    expect(approveButton.props.disabled).toBe(false);
+  });
+
+  it('enables retries after transaction error during deposit flow', async () => {
+    mockAddTransaction.mockRejectedValue(new Error('Transaction failed'));
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const depositButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(depositButton);
+    });
+
+    expect(
+      Engine.context.EarnController.executeLendingDeposit,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {},
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'mainnet',
+        origin: 'metamask',
+        type: 'lendingDeposit',
+      },
+    });
+
+    expect(depositButton.props.disabled).toBe(false);
+  });
+
+  it('displays token information', () => {
+    const { getByText } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('45 USDC')).toBeDefined();
+    expect(getByText('5 aUSDC')).toBeDefined();
+    expect(getByText('4.5%')).toBeDefined();
+  });
+
+  it('displays amount information', () => {
+    const { getByText, getAllByText } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    expect(getAllByText('$4.99')).toBeDefined();
+    expect(getByText('5 aUSDC')).toBeDefined();
+    expect(getByText('5 USDC')).toBeDefined();
+  });
+
+  it('displays nothing when missing route params', () => {
+    (useRoute as jest.Mock).mockReturnValue({
+      key: 'EarnLendingDepositConfirmation-abc123',
+      name: 'params',
+      params: {},
+    });
+
+    const { toJSON } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toBeNull();
   });
 });

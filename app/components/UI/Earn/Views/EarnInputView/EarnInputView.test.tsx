@@ -198,7 +198,7 @@ jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
     const stakeContext: Stake = {
       stakingContract: mockPooledStakingContractService,
       lendingContracts: mockLendingContracts,
-      networkClientId: 'hoodi',
+      networkClientId: 'test network client id',
     };
     return stakeContext;
   }),

@@ -4,6 +4,7 @@ import { Image } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import Balance from '.';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -139,7 +140,13 @@ jest.mock('../../Earn/hooks/useEarnTokens', () => ({
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      MultichainNetworkController: {
+        ...backgroundState.MultichainNetworkController,
+        isEvmSelected: true,
+      },
+    },
   },
 };
 
@@ -171,6 +178,8 @@ describe('Balance', () => {
           return {};
         case selectChainId:
           return '1';
+        case selectIsEvmNetworkSelected:
+          return true;
         default:
           return undefined;
       }

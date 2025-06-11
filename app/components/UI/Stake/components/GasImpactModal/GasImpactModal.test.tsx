@@ -46,6 +46,27 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    }),
+  }),
+  MetaMetricsEvents: {
+    STAKE_TRANSACTION_APPROVED: 'STAKE_TRANSACTION_APPROVED',
+    STAKE_TRANSACTION_REJECTED: 'STAKE_TRANSACTION_REJECTED',
+    STAKE_TRANSACTION_CONFIRMED: 'STAKE_TRANSACTION_CONFIRMED',
+    STAKE_TRANSACTION_FAILED: 'STAKE_TRANSACTION_FAILED',
+    STAKE_TRANSACTION_SUBMITTED: 'STAKE_TRANSACTION_SUBMITTED',
+    STAKE_GAS_COST_IMPACT_CANCEL_CLICKED:
+      'STAKE_GAS_COST_IMPACT_CANCEL_CLICKED',
+    STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED:
+      'STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED',
+  },
+}));
+
 const props: GasImpactModalProps = {
   route: {
     key: '1',
@@ -175,6 +196,68 @@ describe('GasImpactModal', () => {
         props.route.params.amountWei,
         MOCK_SELECTED_INTERNAL_ACCOUNT.address,
       );
+    });
+  });
+
+  describe('metrics tracking', () => {
+    it('tracks cancel event when closing modal', () => {
+      const { getByText } = renderGasImpactModal();
+      const cancelButton = getByText(strings('stake.cancel'));
+      fireEvent.press(cancelButton);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks proceed event when proceeding with stake', () => {
+      const { getByText } = renderGasImpactModal();
+      const proceedButton = getByText(strings('stake.proceed_anyway'));
+      fireEvent.press(proceedButton);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('redesigned stake deposit flow', () => {
+    it('handles case when attemptDepositTransaction is undefined', async () => {
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as ConfirmationRedesignRemoteFlags);
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: undefined,
+      });
+
+      const { getByText } = renderGasImpactModal();
+      const proceedButton = getByText(strings('stake.proceed_anyway'));
+      fireEvent.press(proceedButton);
+      await flushPromises();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles deposit transaction error', async () => {
+      const attemptDepositTransactionMock = jest
+        .fn()
+        .mockRejectedValue(new Error('Transaction failed'));
+      selectConfirmationRedesignFlagsMock.mockReturnValue({
+        staking_confirmations: true,
+      } as ConfirmationRedesignRemoteFlags);
+
+      usePoolStakedDepositMock.mockReturnValue({
+        attemptDepositTransaction: attemptDepositTransactionMock,
+      });
+
+      const { getByText } = renderGasImpactModal();
+      const proceedButton = getByText(strings('stake.proceed_anyway'));
+      fireEvent.press(proceedButton);
+      await flushPromises();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('bottom sheet functionality', () => {
+    it('closes bottom sheet when cancel is pressed', () => {
+      const { getByText } = renderGasImpactModal();
+      const cancelButton = getByText(strings('stake.cancel'));
+      fireEvent.press(cancelButton);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 });

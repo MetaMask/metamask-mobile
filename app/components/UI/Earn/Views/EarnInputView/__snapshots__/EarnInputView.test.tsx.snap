@@ -381,7 +381,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  undefined ETH available to withdraw
+                                  0 ETH available to withdraw
                                 </Text>
                                 <TouchableOpacity
                                   accessible={true}
@@ -421,7 +421,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#ca3542",
+                                  "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -2063,7 +2063,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     }
                                   }
                                 >
-                                  undefined ETH available to withdraw
+                                  0 ETH available to withdraw
                                 </Text>
                                 <TouchableOpacity
                                   accessible={true}
@@ -2103,7 +2103,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#ca3542",
+                                  "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",

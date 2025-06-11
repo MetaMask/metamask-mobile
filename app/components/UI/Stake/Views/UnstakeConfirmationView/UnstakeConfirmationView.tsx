@@ -14,12 +14,14 @@ import { FooterButtonGroupActions } from '../../components/StakingConfirmation/C
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { useSelector } from 'react-redux';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
-
+  const chainId = useSelector(selectEvmChainId);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -59,7 +61,7 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
             contractName={MOCK_STAKING_CONTRACT_NAME}
             primaryLabel={strings('stake.unstaking_to')}
             secondaryLabel={strings('stake.interacting_with')}
-            chainId={getDecimalChainId(route?.params?.chainId)}
+            chainId={getDecimalChainId(chainId)}
           />
         </View>
       </View>

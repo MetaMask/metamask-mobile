@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnLendingDepositConfirmationView renders correctly 1`] = `
+exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
 <View
   style={
     {
@@ -1154,7 +1154,7 @@ exports[`EarnLendingDepositConfirmationView renders correctly 1`] = `
         "paddingTop": 32,
       }
     }
-    testID="confirmationFooter"
+    testID="earn-lending-confirmation-footer"
   >
     <View>
       <View>
@@ -1500,6 +1500,7 @@ exports[`EarnLendingDepositConfirmationView renders correctly 1`] = `
               "textDecorationLine": "underline",
             }
           }
+          testID="earn-lending-confirmation-footer-terms-of-use-button"
         >
           Terms of Use
         </Text>
@@ -1543,6 +1544,7 @@ exports[`EarnLendingDepositConfirmationView renders correctly 1`] = `
               "textDecorationLine": "underline",
             }
           }
+          testID="earn-lending-confirmation-footer-risk-disclosure-button"
         >
           Risk Disclosure
         </Text>
