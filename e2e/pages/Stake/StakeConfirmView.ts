@@ -3,11 +3,11 @@ import Matchers from '../../utils/Matchers';
 import { StakeConfirmViewSelectors } from '../../selectors/Stake/StakeConfirmView.selectors.js';
 
 class StakeConfirmationView {
-  get confirmButton(): Promise<Detox.NativeElement> {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByText(StakeConfirmViewSelectors.CONFIRM);
   }
 
-  async tapConfirmButton(): Promise<void> {
+  async tapConfirmButton() {
     await Gestures.waitAndTap(this.confirmButton);
   }
 }

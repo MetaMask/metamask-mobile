@@ -6,64 +6,64 @@ import {
 } from '../../selectors/swaps/QuoteView.selectors';
 
 class QuoteView {
-  get getQuotes(): Promise<Detox.NativeElement> {
+  get getQuotes(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
-  get cancelButton(): Promise<Detox.NativeElement> {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
   }
 
-  get sourceToken(): Promise<Detox.NativeElement> {
+  get sourceToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN);
   }
 
-  get destToken(): Promise<Detox.NativeElement> {
+  get destToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DEST_TOKEN);
   }
 
-  get searchToken(): Promise<Detox.NativeElement> {
+  get searchToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN);
   }
 
-  get maxSlippage(): Promise<Detox.NativeElement> {
+  get maxSlippage(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
   }
 
-  async enterSwapAmount(amount: string): Promise<void> {
-    for (let idx = 0; idx < amount.length; idx++) {
-      const element = Matchers.getElementByText(amount[idx]);
-      await Gestures.waitAndTap(element);
-    }
+ async enterSwapAmount(amount: string) {
+  for (const digit of amount) {
+    const button = Matchers.getElementByText(digit);
+    await Gestures.waitAndTap(button);
   }
+}
 
-  async tapOnSelectSourceToken(): Promise<void> {
+  async tapOnSelectSourceToken() {
     await Gestures.waitAndTap(this.sourceToken);
   }
 
-  async tapOnSelectDestToken(): Promise<void> {
+  async tapOnSelectDestToken() {
     await Gestures.waitAndTap(this.destToken);
   }
 
-  async tapSearchToken(): Promise<void> {
+  async tapSearchToken() {
     await Gestures.waitAndTap(this.searchToken);
   }
 
-  async typeSearchToken(symbol: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
+  async typeSearchToken(symbol: string) {
+    await Gestures.typeTextAndHideKeyboard(this.searchToken as TypableElement, symbol);
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
-    const element = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(element);
+    const token = Matchers.getElementByText(symbol, index);
+    await Gestures.waitAndTap(token);
   }
 
-  async tapOnGetQuotes(): Promise<void> {
+  async tapOnGetQuotes() {
     await device.disableSynchronization();
     await Gestures.waitAndTap(this.getQuotes);
   }
 
-  async tapOnCancelButton(): Promise<void> {
+  async tapOnCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
 }
