@@ -113,6 +113,21 @@ export const mockEvents = {
       response: { data: defiPositionsWithData },
       responseCode: 200,
     },
+
+    remoteFeatureMultichainAccountsAccountDetails: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '7.47.0',
+          },
+        },
+      ],
+      responseCode: 200,
+    },
   },
 
   /**

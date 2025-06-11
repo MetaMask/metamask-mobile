@@ -34,7 +34,7 @@ import {
 } from '../../../../UI/Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import AccountInfo from '../../AccountDetails/components/AccountInfo';
-import { MultichainDeleteAccountsSelectors } from '../../../../../../e2e/specs/multichainAccounts/delete-account';
+import { MultichainDeleteAccountsSelectors } from '../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
   DeleteAccount: {
@@ -99,6 +99,7 @@ export const DeleteAccount = () => {
         flexDirection={FlexDirection.Column}
         justifyContent={JustifyContent.flexStart}
         alignItems={AlignItems.center}
+        testID={MultichainDeleteAccountsSelectors.deleteAccountContainer}
       >
         <AccountInfo account={account} />
         <BannerAlert
