@@ -84,10 +84,7 @@ class RevealSecretRecoveryPhrase {
   }
 
   async scrollToDone() {
-    await Gestures.scrollToElement(
-      this.doneButton,
-      this.tabScrollViewIdentifier,
-    );
+    await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier);
   }
 
   async tapDoneButton() {
@@ -97,7 +94,7 @@ class RevealSecretRecoveryPhrase {
   async scrollToCopyToClipboardButton() {
     await Gestures.scrollToElement(
       this.revealCredentialCopyToClipboardButton,
-      this.scrollViewIdentifier,
+      this.tabScrollViewIdentifier,
     );
   }
 }
