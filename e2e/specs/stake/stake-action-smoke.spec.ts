@@ -1,5 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
+import { MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -69,7 +70,7 @@ const fixtureServer: FixtureServer = new FixtureServer();
 describe.skip(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_SEND: string = '.005';
-  let mockServer: any;
+  let mockServer: MockttpServer;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
 
   beforeAll(async (): Promise<void> => {
