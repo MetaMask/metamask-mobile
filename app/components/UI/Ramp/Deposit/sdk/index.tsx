@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDepositProviderFrontendAuth,
   selectDepositProviderApiKey,
@@ -22,6 +22,10 @@ import {
   resetProviderToken,
   storeProviderToken,
 } from '../utils/ProviderTokenVault';
+import {
+  fiatOrdersGetStartedDeposit,
+  setFiatOrdersGetStartedDeposit,
+} from '../../../../../reducers/fiatOrders';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -33,6 +37,8 @@ export interface DepositSDK {
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
   clearAuthToken: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
+  getStarted: boolean;
+  setGetStarted: (seen: boolean) => void;
 }
 
 const isDevelopment =
@@ -54,12 +60,24 @@ export const DepositSDKProvider = ({
   value,
   ...props
 }: Partial<ProviderProps<DepositSDK>>) => {
+  const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
   const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
   const [sdk, setSdk] = useState<NativeRampsSdk>();
   const [sdkError, setSdkError] = useState<Error>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
+
+  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
+  const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
+
+  const setGetStartedCallback = useCallback(
+    (getStartedFlag: boolean) => {
+      setGetStarted(getStartedFlag);
+      dispatch(setFiatOrdersGetStartedDeposit(getStartedFlag));
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     try {
@@ -143,6 +161,8 @@ export const DepositSDKProvider = ({
       setAuthToken: setAuthTokenCallback,
       clearAuthToken,
       checkExistingToken,
+      getStarted,
+      setGetStarted: setGetStartedCallback,
     }),
     [
       sdk,
@@ -154,6 +174,8 @@ export const DepositSDKProvider = ({
       setAuthTokenCallback,
       clearAuthToken,
       checkExistingToken,
+      getStarted,
+      setGetStartedCallback,
     ],
   );
 
