@@ -1,4 +1,10 @@
-import { getAccounts, getCallsStatus, processSendCalls } from './eip5792';
+import {
+  AtomicCapabilityStatus,
+  getAccounts,
+  getCallsStatus,
+  getCapabilities,
+  processSendCalls,
+} from './eip5792';
 import Engine from '../Engine';
 import {
   GetCallsStatusCode,
@@ -15,7 +21,7 @@ const MOCK_ACCOUNT = '0x1234';
 jest.mock('../Engine', () => ({
   context: {
     AccountsController: {
-      getSelectedAccount: () => ({ address: MOCK_ACCOUNT }),
+      listAccounts: () => [{ address: MOCK_ACCOUNT }],
     },
     KeyringController: {
       state: {
@@ -40,24 +46,43 @@ jest.mock('../Engine', () => ({
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
       isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
+    PreferencesController: {
+      state: {
+        dismissSmartAccountSuggestionEnabled: false,
+      },
+    },
   },
   controllerMessenger: {
-    call: jest.fn().mockReturnValue({ configuration: { chainId: '0xaa36a7' } }),
+    call: jest.fn().mockImplementation((type) => {
+      if (type === 'NetworkController:getNetworkClientById')
+        return { configuration: { chainId: '0xaa36a7' } };
+      if (type === 'AccountsController:getState')
+        return {
+          internalAccounts: {
+            accounts: [
+              {
+                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
+                metadata: { keyring: { type: 'HD Key Tree' } },
+              },
+            ],
+          },
+        };
+    }),
   },
 }));
 
 const MockEngine = jest.mocked(Engine);
 
 describe('getAccounts', () => {
-  it('return selected account address', async () => {
+  it('list of account addresses', async () => {
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([MOCK_ACCOUNT]);
   });
 
-  it('return empty array if origin is metamask and AccountsController returns no selected account', async () => {
-    MockEngine.context.AccountsController.getSelectedAccount = (() =>
+  it('return empty array if AccountsController returns no accounts', async () => {
+    MockEngine.context.AccountsController.listAccounts = (() =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      undefined) as any;
+      []) as any;
     const accounts = await getAccounts();
     expect(accounts).toStrictEqual([]);
   });
@@ -155,9 +180,21 @@ describe('processSendCalls', () => {
   });
 
   it('throw error if dappChainId is different from request chainId', async () => {
-    Engine.controllerMessenger.call = jest
-      .fn()
-      .mockReturnValue({ configuration: { chainId: '0x1' } });
+    Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
+      if (type === 'NetworkController:getNetworkClientById')
+        return { configuration: { chainId: '0x1' } };
+      if (type === 'AccountsController:getState')
+        return {
+          internalAccounts: {
+            accounts: [
+              {
+                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
+                metadata: { keyring: { type: 'HD Key Tree' } },
+              },
+            ],
+          },
+        };
+    });
     expect(async () => {
       await processSendCalls(MOCK_PARAMS, {
         ...MOCK_REQUEST,
@@ -166,6 +203,41 @@ describe('processSendCalls', () => {
     }).rejects.toThrow(
       'Chain ID must match the dApp selected network: Got 0xaa36a7, expected 0x1',
     );
+  });
+
+  it('throw error if keyring type of account is not supported', async () => {
+    Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
+      if (type === 'NetworkController:getNetworkClientById')
+        return { configuration: { chainId: '0xaa36a7' } };
+      if (type === 'AccountsController:getState')
+        return {
+          internalAccounts: {
+            accounts: [
+              {
+                address: '0x935e73edb9ff52e23bac7f7ty67u1ecd06d05477',
+                metadata: { keyring: { type: 'un-supported' } },
+              },
+            ],
+          },
+        };
+    });
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, {
+        ...MOCK_REQUEST,
+        networkClientId: 'linea',
+      } as JsonRpcRequest);
+    }).rejects.toThrow('EIP-7702 upgrade not supported on account');
+  });
+
+  it('throw error if user has enabled preference dismissSmartAccountSuggestionEnabled', async () => {
+    Engine.context.PreferencesController.state.dismissSmartAccountSuggestionEnabled =
+      true;
+    expect(async () => {
+      await processSendCalls(MOCK_PARAMS, {
+        ...MOCK_REQUEST,
+        networkClientId: 'linea',
+      } as JsonRpcRequest);
+    }).rejects.toThrow('EIP-7702 upgrade disabled by the user');
   });
 
   describe('getCallsStatus', () => {
@@ -341,6 +413,111 @@ describe('processSendCalls', () => {
       expect(async () => {
         await getCallsStatus(BATCH_ID_MOCK);
       }).rejects.toThrow(`No matching bundle found`);
+    });
+  });
+
+  describe('getCapabilities', () => {
+    const CHAIN_ID_MOCK = '0x123';
+    const FROM_MOCK = '0xabc123';
+    const DELEGATION_ADDRESS_MOCK =
+      '0x1234567890abcdef1234567890abcdef12345678';
+
+    beforeEach(() => {
+      Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
+        if (type === 'NetworkController:getNetworkClientById')
+          return { configuration: { chainId: CHAIN_ID_MOCK } };
+        if (type === 'AccountsController:getState')
+          return {
+            internalAccounts: {
+              accounts: [
+                {
+                  address: FROM_MOCK,
+                  metadata: { keyring: { type: 'HD Key Tree' } },
+                },
+              ],
+            },
+          };
+      });
+    });
+
+    it('includes atomic capability if already upgraded', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: DELEGATION_ADDRESS_MOCK,
+            isSupported: true,
+          },
+        ]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Supported,
+          },
+        },
+      });
+    });
+
+    it('includes atomic capability if not yet upgraded', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: undefined,
+            isSupported: false,
+            upgradeContractAddress: DELEGATION_ADDRESS_MOCK,
+          },
+        ]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Ready,
+          },
+        },
+      });
+    });
+
+    it('does not include atomic capability if chain not supported', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({});
+    });
+
+    it('does not include atomic capability if keyring type is not supported', async () => {
+      Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
+        if (type === 'NetworkController:getNetworkClientById')
+          return { configuration: { chainId: CHAIN_ID_MOCK } };
+        if (type === 'AccountsController:getState')
+          return {
+            internalAccounts: {
+              accounts: [
+                {
+                  address: FROM_MOCK,
+                  metadata: { keyring: { type: 'un-supported' } },
+                },
+              ],
+            },
+          };
+      });
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({});
     });
   });
 });

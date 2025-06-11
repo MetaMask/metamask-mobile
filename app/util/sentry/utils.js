@@ -217,8 +217,8 @@ export const sentryStateMask = {
         },
       },
       UserStorageController: {
-        isProfileSyncingEnabled: true,
-        isProfileSyncingUpdateLoading: false,
+        isBackupAndSyncEnabled: true,
+        isBackupAndSyncUpdateLoading: false,
         isAccountSyncingEnabled: true,
         hasAccountSyncingSyncedAtLeastOnce: false,
         isAccountSyncingReadyToBeDispatched: false,
@@ -528,7 +528,14 @@ export function deriveSentryEnvironment(
   }
 
   if (metamaskBuildType === 'main') {
-    return metamaskEnvironment;
+    switch (metamaskEnvironment) {
+      case 'beta':
+        return 'main-beta';
+      case 'rc':
+        return 'main-rc';
+      default:
+        return metamaskEnvironment;
+    }
   }
 
   return `${metamaskEnvironment}-${metamaskBuildType}`;

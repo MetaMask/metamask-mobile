@@ -1,3 +1,4 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,12 +9,13 @@ import {
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
-import { initialState } from '../../_mocks_/initialState';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { strings } from '../../../../../../locales/i18n';
+import { isHardwareAccount } from '../../../../../util/address';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -33,6 +35,25 @@ jest.mock('../../../../../core/Engine', () => ({
             type: 'HD Key Tree',
           },
         ],
+      },
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          selectedAccount: '30786334-3935-4563-b064-363339643939',
+          accounts: {
+            '30786334-3935-4563-b064-363339643939': {
+              id: '30786334-3935-4563-b064-363339643939',
+              address: '0x1234567890123456789012345678901234567890',
+              name: 'Account 1',
+              type: 'eip155:eoa',
+              scopes: ['eip155:0'],
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+          },
+        },
       },
     },
     GasFeeController: {
@@ -67,8 +88,12 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         type: 'HD Key Tree',
         yOffset: 0,
         isSelected: true,
+        caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       },
     ],
+    ensByAccountAddress: {
+      '0x1234567890123456789012345678901234567890': '',
+    },
   }),
 }));
 
@@ -121,6 +146,11 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 describe('BridgeView', () => {
@@ -462,11 +492,11 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Continue')).toBeTruthy();
+      expect(getByText('Confirm Bridge')).toBeTruthy();
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
-    it('should handle Continue button press', async () => {
+    it('should handle "Confirm Bridge" button press', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
@@ -491,8 +521,8 @@ describe('BridgeView', () => {
         },
       );
 
-      const continueButton = getByText('Continue');
-      fireEvent.press(continueButton);
+      const button = getByText('Confirm Bridge');
+      fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
@@ -629,6 +659,145 @@ describe('BridgeView', () => {
       });
 
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('displays hardware wallet not supported banner and disables continue button when using hardware wallet with Solana source', async () => {
+      // Mock isHardwareAccount to return true for this test only
+      const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
+      jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: 'So11111111111111111111111111111111111111112',
+            chainId: SolScope.Mainnet,
+            decimals: 9,
+            image: '',
+            name: 'Solana',
+            symbol: 'SOL',
+          },
+        },
+      });
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Wait for the banner text to appear
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.hardware_wallet_not_supported_solana')),
+        ).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Error Banner Visibility', () => {
+    it('should hide error banner when input is focused', async () => {
+      // Setup state with error condition
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Error banner should be visible initially
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeTruthy();
+      });
+
+      // Focus the input
+      const input = getByTestId('source-token-area-input');
+      fireEvent(input, 'focus');
+
+      // Error banner should be hidden
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeNull();
+      });
+    });
+
+    it('should focus input and show keypad when error banner is closed', async () => {
+      // Setup state with error condition
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      // Mock quote data to show an error
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+          isLoading: false,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Error banner should be visible initially
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeTruthy();
+      });
+
+      // Close the banner by clicking close button
+      const closeButton = getByTestId('banner-close-button-icon');
+      fireEvent.press(closeButton);
+
+      // Error banner should be hidden and keypad should be visible
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeNull();
+        // Keypad should be visible - check for the delete button which is part of the keypad
+        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+      });
     });
   });
 });

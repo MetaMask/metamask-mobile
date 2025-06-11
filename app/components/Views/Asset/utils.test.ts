@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import { deepClone } from '@metamask/snaps-utils';
 import { getSwapsIsLive, getIsSwapsAssetAllowed } from './utils';
 import { RootState } from '../../../reducers';
@@ -20,6 +21,35 @@ describe('getSwapsIsLive', () => {
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             bridgeConfig: {
+              minimumVersion: '0.0.0',
+              support: true,
+              chains: {
+                1: {
+                  isActiveDest: true,
+                  isActiveSrc: true,
+                },
+                1151111081099710: {
+                  isActiveDest: true,
+                  isActiveSrc: true,
+                  refreshRate: 10000,
+                  topAssets: [
+                    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                    '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
+                    'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
+                    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxsDx8F8k8k3uYw1PDC',
+                    '3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y',
+                    '9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u',
+                    'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+                    'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',
+                    '21AErpiB8uSb94oQKRcwuHqyHF93njAxBSbdUrpupump',
+                  ],
+                },
+              },
+              maxRefreshCount: 5,
+              refreshRate: 30000,
+            },
+            bridgeConfigV2: {
+              minimumVersion: '0.0.0',
               support: true,
               chains: {
                 1: {
@@ -95,15 +125,25 @@ describe('getSwapsIsLive', () => {
 
     it('should return false for Solana chain when bridge is not enabled', () => {
       const newState = deepClone(mockState);
-      const remoteFeatureFlags = newState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags;
+      const remoteFeatureFlags =
+        newState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags;
       // @ts-expect-error - It's defined in the mock
-      remoteFeatureFlags.bridgeConfig.chains[1151111081099710] =
-        {
-          isActiveDest: false,
-          isActiveSrc: false,
-          refreshRate: 10000,
-          topAssets: [],
-        };
+      remoteFeatureFlags.bridgeConfig.chains[1151111081099710] = {
+        minimumVersion: '0.0.0',
+        isActiveDest: false,
+        isActiveSrc: false,
+        refreshRate: 10000,
+        topAssets: [],
+      };
+      // @ts-expect-error - It's defined in the mock
+      remoteFeatureFlags.bridgeConfigV2.chains[1151111081099710] = {
+        minimumVersion: '0.0.0',
+        isActiveDest: false,
+        isActiveSrc: false,
+        refreshRate: 10000,
+        topAssets: [],
+      };
       const result = getSwapsIsLive(newState, SolScope.Mainnet);
       expect(result).toBe(false);
     });
@@ -126,10 +166,7 @@ describe('getIsSwapsAssetAllowed', () => {
     '0xtoken2': { symbol: 'TOKEN2' },
   };
 
-  const mockSearchDiscoverySwapsTokens = [
-    '0xtoken3',
-    '0xtoken4',
-  ];
+  const mockSearchDiscoverySwapsTokens = ['0xtoken3', '0xtoken4'];
 
   describe('EVM assets', () => {
     it('should return true for ETH assets', () => {

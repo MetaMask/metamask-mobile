@@ -346,7 +346,8 @@ export const getMultichainNetworkAggregatedBalance = (
     if (totalBalanceFiat) {
       totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
     } else {
-      totalBalanceFiat = balanceInFiat;
+      // If the rate is undefined, we don't want to set the total balance fiat to 0
+      totalBalanceFiat = rate !== undefined ? balanceInFiat : undefined;
     }
   }
 
@@ -435,13 +436,20 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
 export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
-  (nonEvmTransactions, selectedAccount) => {
+  selectSelectedNonEvmNetworkChainId,
+  (nonEvmTransactions, selectedAccount, selectedNonEvmNetworkChainId) => {
     if (!selectedAccount) {
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
+    const accountTransactions = nonEvmTransactions[selectedAccount.id];
+    if (!accountTransactions) {
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
+    }
+
     return (
-      nonEvmTransactions[selectedAccount.id] ?? DEFAULT_TRANSACTION_STATE_ENTRY
+      accountTransactions[selectedNonEvmNetworkChainId] ??
+      DEFAULT_TRANSACTION_STATE_ENTRY
     );
   },
 );

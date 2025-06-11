@@ -12,6 +12,12 @@ import { mockNetworkState } from '../../util/test/network';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
+import { getVersion } from 'react-native-device-info';
+import { version as migrationVersion } from '../../store/migrations';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.44.0'),
+}));
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
@@ -95,6 +101,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('BridgeStatusController');
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -117,8 +124,7 @@ describe('Engine', () => {
         vault: 'vault',
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
-      } as KeyringControllerState,
+      },
       [],
     );
     expect(backupVault).toHaveBeenCalled();
@@ -136,7 +142,6 @@ describe('Engine', () => {
         vault: undefined,
         isUnlocked: false,
         keyrings: [],
-        keyringsMetadata: [],
       } as KeyringControllerState,
       [],
     );
@@ -154,7 +159,23 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-    expect(initialBackgroundState).toStrictEqual(backgroundState);
+    
+    // Get the current app version and migration version
+    const currentAppVersion = getVersion();
+    const currentMigrationVersion = migrationVersion;
+
+    // Create expected state by merging the static fixture with current AppMetadataController state
+    const expectedState = {
+      ...backgroundState,
+      AppMetadataController: {
+        currentAppVersion,
+        previousAppVersion: '', // This will be managed by the controller
+        previousMigrationVersion: 0, // This will be managed by the controller
+        currentMigrationVersion
+      }
+    };
+    
+    expect(initialBackgroundState).toStrictEqual(expectedState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {

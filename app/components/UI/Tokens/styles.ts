@@ -112,9 +112,21 @@ const createStyles = (colors: Colors) =>
     assetName: {
       flexDirection: 'row',
     },
-    stakeButton: {
+    percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
+      alignContent: 'center',
+    },
+    stakeButton: {
+      flexDirection: 'row',
+    },
+    dot: {
+      marginLeft: 2,
+      marginRight: 2,
+    },
+    sprout: {
+      marginTop: 3,
+      marginLeft: 2,
     },
     portfolioBalance: {
       flexDirection: 'row',

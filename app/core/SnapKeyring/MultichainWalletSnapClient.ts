@@ -13,7 +13,6 @@ import {
   SolanaWalletSnapSender,
 } from './SolanaWalletSnap';
 import Engine from '../Engine';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
 import { startPerformanceTrace } from '../redux/slices/performance';
@@ -39,10 +38,9 @@ export const WALLET_SNAP_MAP = {
 export interface MultichainWalletSnapOptions {
   scope: CaipChainId;
   synchronize?: boolean;
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   entropySource?: string;
   accountNameSuggestion?: string;
-  ///: END:ONLY_INCLUDE_IF
+  derivationPath?: string;
 }
 
 interface SnapKeyringOptions {
@@ -88,16 +86,11 @@ export abstract class MultichainWalletSnapClient {
    *
    */
   protected async withSnapKeyring(
-    callback: (keyring: SnapKeyring) => Promise<void>,
+    callback: (keyring: SnapKeyring) => Promise<unknown>,
   ) {
-    const controllerMessenger = Engine.controllerMessenger;
-    await Engine.getSnapKeyring();
+    const snapKeyring = (await Engine.getSnapKeyring()) as SnapKeyring;
 
-    return await controllerMessenger.call(
-      'KeyringController:withKeyring',
-      { type: KeyringTypes.snap },
-      async ({ keyring }) => await callback(keyring as unknown as SnapKeyring),
-    );
+    return await callback(snapKeyring);
   }
 
   /**
@@ -121,21 +114,21 @@ export abstract class MultichainWalletSnapClient {
       }),
     );
 
-    const accountName = getMultichainAccountName(
-      options.scope,
-      this.getClientType(),
-    );
+    const accountName =
+      options?.accountNameSuggestion ??
+      getMultichainAccountName(options.scope, this.getClientType());
 
-    return await this.withSnapKeyring(async (keyring) => {
-      (keyring as unknown as SnapKeyring).createAccount(
-        this.snapId,
-        {
-          ...options,
-          accountNameSuggestion: accountName,
-        } as unknown as Record<string, Json>,
-        snapKeyringOptions ?? this.snapKeyringOptions,
-      );
-    });
+    return await this.withSnapKeyring(
+      async (keyring) =>
+        await keyring.createAccount(
+          this.snapId,
+          {
+            ...options,
+            accountNameSuggestion: accountName,
+          } as unknown as Record<string, Json>,
+          snapKeyringOptions ?? this.snapKeyringOptions,
+        ),
+    );
   }
 
   /**
@@ -193,6 +186,7 @@ export abstract class MultichainWalletSnapClient {
             await this.createAccount(
               {
                 scope: this.getScope(),
+                entropySource,
               },
               {
                 displayConfirmation: false,
@@ -208,32 +202,25 @@ export abstract class MultichainWalletSnapClient {
         break;
       }
 
-      // Add all discovered accounts to the keyring
-      await this.withSnapKeyring(async (keyring) => {
-        const results = await Promise.allSettled(
-          discoveredAccounts.map(async (account) => {
-            keyring.createAccount(
-              this.snapId,
-              {
-                derivationPath: account.derivationPath,
-                entropySource,
-              },
-              {
-                displayConfirmation: false,
-                displayAccountNameSuggestion: false,
-                setSelectedAccount: false,
-              },
-            );
-          }),
-        );
-        for (const result of results) {
-          if (result.status === 'rejected') {
-            captureException(
-              new Error(`Failed to create account ${result.reason}`),
-            );
-          }
+      // Process discovered accounts sequentially
+      for (const account of discoveredAccounts) {
+        try {
+          await this.createAccount(
+            {
+              scope: this.getScope(),
+              derivationPath: account.derivationPath,
+              entropySource,
+            },
+            {
+              displayConfirmation: false,
+              displayAccountNameSuggestion: false,
+              setSelectedAccount: false,
+            },
+          );
+        } catch (error) {
+          captureException(new Error(`Failed to create account ${error}`));
         }
-      });
+      }
     }
   }
 }

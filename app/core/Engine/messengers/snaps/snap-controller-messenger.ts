@@ -38,6 +38,8 @@ import {
   KeyringControllerLockEvent,
 } from '@metamask/keyring-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
+import { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
+import { SelectedNetworkControllerGetNetworkClientIdForDomainAction } from '@metamask/selected-network-controller';
 
 type Actions =
   | GetEndowments
@@ -64,7 +66,9 @@ type Actions =
   | Update
   | ResolveVersion
   | CreateInterface
-  | GetInterface;
+  | GetInterface
+  | NetworkControllerGetNetworkClientByIdAction
+  | SelectedNetworkControllerGetNetworkClientIdForDomainAction;
 
 type Events =
   | ErrorMessageEvent
@@ -120,6 +124,8 @@ export function getSnapControllerMessenger(
       'SnapsRegistry:resolveVersion',
       `SnapInterfaceController:createInterface`,
       `SnapInterfaceController:getInterface`,
+      'NetworkController:getNetworkClientById',
+      'SelectedNetworkController:getNetworkClientIdForDomain',
     ],
   });
 }

@@ -12,13 +12,27 @@ import {
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
-import Engine from '../../../../core/Engine';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
+import { addTransaction } from '../../../../util/transaction-controller';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
 const erc1155Interface = new Interface(abiERC1155);
 const USDCInterface = new Interface(abiFiatTokenV2);
+
+const ABI_PERMIT_2_APPROVE = {
+  inputs: [
+    { internalType: 'address', name: 'token', type: 'address' },
+    { internalType: 'address', name: 'spender', type: 'address' },
+    { internalType: 'uint160', name: 'amount', type: 'uint160' },
+    { internalType: 'uint48', name: 'expiration', type: 'uint48' },
+  ],
+  name: 'approve',
+  outputs: [],
+  stateMutability: 'nonpayable',
+  type: 'function',
+};
+const permit2Interface = new Interface([ABI_PERMIT_2_APPROVE]);
 
 export function parseStandardTokenTransactionData(data?: string) {
   if (!data) {
@@ -49,21 +63,26 @@ export function parseStandardTokenTransactionData(data?: string) {
     // ignore and return undefined
   }
 
+  try {
+    return permit2Interface.parseTransaction({ data });
+  } catch {
+    // ignore and return undefined
+  }
+
   return undefined;
 }
 
-export async function addTransaction(
+export async function addMMOriginatedTransaction(
   txParams: TransactionParams,
   options: {
     networkClientId: string;
     type?: TransactionType;
   },
 ): Promise<TransactionMeta> {
-  const { transactionMeta } =
-    await Engine.context.TransactionController.addTransaction(txParams, {
-      ...options,
-      origin: ORIGIN_METAMASK,
-    });
+  const { transactionMeta } = await addTransaction(txParams, {
+    ...options,
+    origin: ORIGIN_METAMASK,
+  });
 
   const id = transactionMeta.id;
   const reqObject = {
@@ -74,7 +93,7 @@ export async function addTransaction(
     params: [txParams],
   };
 
-  ppomUtil.validateRequest(reqObject, id);
+  ppomUtil.validateRequest(reqObject, { transactionMeta });
 
   return transactionMeta;
 }

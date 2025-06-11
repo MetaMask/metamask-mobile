@@ -41,11 +41,15 @@ import {
   selectIsAllNetworks,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
+
 import {
   NetworkConfiguration,
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
+import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { Hex } from '@metamask/utils';
+import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 
 export interface SafeChain {
   chainId: string;
@@ -54,12 +58,15 @@ export interface SafeChain {
   rpc: string[];
 }
 
+export type NetworkConfigurationOptions = Omit<Network, 'rpcPrefs'> & {
+  formattedRpcUrl?: string | null;
+  rpcPrefs: Omit<Network['rpcPrefs'], 'imageSource'>;
+};
+
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  networkConfiguration: any;
+  networkConfiguration: NetworkConfigurationOptions;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -82,6 +89,7 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
+      failoverRpcUrls,
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
@@ -93,7 +101,7 @@ const NetworkModals = (props: NetworkProps) => {
     onAccept,
     autoSwitchNetwork,
   } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
@@ -138,8 +146,14 @@ const NetworkModals = (props: NetworkProps) => {
         [customNetworkInformation.chainId]: true,
       });
     } else {
+      const normalizedTokenNetworkFilter = Object.fromEntries(
+        Object.entries(tokenNetworkFilter).map(([key, value]) => [
+          key,
+          Boolean(value),
+        ]),
+      );
       PreferencesController.setTokenNetworkFilter({
-        ...tokenNetworkFilter,
+        ...normalizedTokenNetworkFilter,
         [customNetworkInformation.chainId]: true,
       });
     }
@@ -194,7 +208,7 @@ const NetworkModals = (props: NetworkProps) => {
     const url = new URLPARSE(rpcUrl);
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
-    const existingNetwork = networkConfigurationByChainId[chainId];
+    const existingNetwork = networkConfigurationByChainId[chainId as Hex];
     let networkClientId;
 
     if (existingNetwork) {
@@ -214,7 +228,7 @@ const NetworkModals = (props: NetworkProps) => {
           ?.networkClientId;
     } else {
       const addedNetwork = await NetworkController.addNetwork({
-        chainId,
+        chainId: chainId as Hex,
         blockExplorerUrls: [blockExplorerUrl],
         defaultRpcEndpointIndex: 0,
         defaultBlockExplorerUrlIndex: 0,
@@ -223,11 +237,14 @@ const NetworkModals = (props: NetworkProps) => {
         rpcEndpoints: [
           {
             url: rpcUrl,
+            failoverUrls: failoverRpcUrls,
             name: nickname,
             type: RpcEndpointType.Custom,
           },
         ],
       });
+
+      addTraitsToUser(addItemToChainIdList(chainId));
 
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
@@ -268,6 +285,7 @@ const NetworkModals = (props: NetworkProps) => {
   const handleNewNetwork = async (
     networkId: `0x${string}`,
     networkRpcUrl: string,
+    networkFailoverRpcUrls: string[] | undefined,
     name: string,
     nativeCurrency: string,
     networkBlockExplorerUrl: string,
@@ -285,11 +303,12 @@ const NetworkModals = (props: NetworkProps) => {
       rpcEndpoints: [
         {
           url: networkRpcUrl,
+          failoverUrls: networkFailoverRpcUrls,
           name,
           type: RpcEndpointType.Custom,
         },
       ],
-    } as AddNetworkFields;
+    } satisfies AddNetworkFields;
 
     return NetworkController.addNetwork(networkConfig);
   };
@@ -310,7 +329,7 @@ const NetworkModals = (props: NetworkProps) => {
   const switchNetwork = async () => {
     const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const existingNetwork = networkConfigurationByChainId[chainId];
+    const existingNetwork = networkConfigurationByChainId[chainId as Hex];
 
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
@@ -320,12 +339,15 @@ const NetworkModals = (props: NetworkProps) => {
       await handleExistingNetwork(existingNetwork, chainId);
     } else {
       const addedNetwork = await handleNewNetwork(
-        chainId,
+        chainId as Hex,
         rpcUrl,
+        failoverRpcUrls,
         nickname,
         ticker,
         blockExplorerUrl,
       );
+
+      addTraitsToUser(addItemToChainIdList(chainId));
 
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
@@ -448,7 +470,10 @@ const NetworkModals = (props: NetworkProps) => {
             <View style={styles.root}>
               <NetworkVerificationInfo
                 customNetworkInformation={customNetworkInformation}
-                onReject={() => { onReject?.(); onClose(); }}
+                onReject={() => {
+                  onReject?.();
+                  onClose();
+                }}
                 onConfirm={addNetwork}
                 isCustomNetwork={!showPopularNetworkModal}
               />

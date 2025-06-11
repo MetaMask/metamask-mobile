@@ -402,9 +402,8 @@ declare module '@sentry/react-native' {
 
   // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
   import { ExclusiveEventHintOrCaptureContext } from '@sentry/core/build/types/utils/prepareEvent';
-  const captureException: (
+  export function captureException(
     exception: Error,
     hint?: ExclusiveEventHintOrCaptureContext,
-  ) => string;
-  export { captureException };
+  ): string;
 }

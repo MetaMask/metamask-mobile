@@ -7,9 +7,8 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getEthAccounts,
-  getPermittedEthChainIds,
-  setEthAccounts,
-  setPermittedEthChainIds,
+  setChainIdsInCaip25CaveatValue,
+  setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import {
   Caveat,
@@ -18,18 +17,21 @@ import {
   ValidPermission,
 } from '@metamask/permission-controller';
 import {
-  getPermittedAccountsByHostname,
-  getPermittedChainIdsByHostname,
+  getPermittedEvmAddressesByHostname,
+  getPermittedCaipAccountIdsByHostname,
+  getPermittedCaipChainIdsByHostname,
   getDefaultCaip25CaveatValue,
   getCaip25Caveat,
   addPermittedAccounts,
   removePermittedAccounts,
   removeAccountsFromPermissions,
   updatePermittedChains,
-  sortAccountsByLastSelected,
+  sortEvmAccountsByLastSelected,
+  sortMultichainAccountsByLastSelected,
   getPermittedAccounts,
+  removePermittedChain,
 } from '.';
-import { Hex, Json } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, Hex, Json } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -43,14 +45,18 @@ jest.mock('@metamask/chain-agnostic-permission', () => ({
   ...jest.requireActual('@metamask/chain-agnostic-permission'),
   getEthAccounts: jest.fn(),
   getPermittedEthChainIds: jest.fn(),
-  setEthAccounts: jest.fn(),
-  setPermittedEthChainIds: jest.fn(),
+  setChainIdsInCaip25CaveatValue: jest.fn(),
+  setNonSCACaipAccountIdsInCaip25CaveatValue: jest.fn(),
 }));
 
 const mockGetCaveat = Engine.context.PermissionController
   .getCaveat as jest.Mock;
 const mockListAccounts = Engine.context.AccountsController
   .listAccounts as jest.Mock;
+const mockListMultichainAccounts = Engine.context.AccountsController
+  .listMultichainAccounts as jest.Mock;
+const mockGetAccountByAddress = Engine.context.AccountsController
+  .getAccountByAddress as jest.Mock;
 const mockIsUnlocked = Engine.context.KeyringController.isUnlocked as jest.Mock;
 
 // Mock process.env
@@ -61,7 +67,7 @@ describe('Permission Utility Functions', () => {
     jest.clearAllMocks();
   });
 
-  describe('getPermittedAccountsByHostname', () => {
+  describe('getPermittedEvmAddressesByHostname', () => {
     it('should return accounts for a given hostname', () => {
       const mockState = {
         subjects: {
@@ -121,7 +127,7 @@ describe('Permission Utility Functions', () => {
         return mockAccounts2;
       });
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedEvmAddressesByHostname(
         mockState,
         'https://example.com',
       );
@@ -149,10 +155,12 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      // Mock sortAccountsByLastSelected to return empty array
-      jest.spyOn(permissions, 'sortAccountsByLastSelected').mockReturnValue([]);
+      // Mock sortEvmAccountsByLastSelected to return empty array
+      jest
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
+        .mockReturnValue([]);
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedEvmAddressesByHostname(
         mockState,
         'https://nonexistent.com',
       );
@@ -166,7 +174,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      const result = getPermittedAccountsByHostname(
+      const result = getPermittedEvmAddressesByHostname(
         mockState,
         'https://example.com',
       );
@@ -174,8 +182,108 @@ describe('Permission Utility Functions', () => {
     });
   });
 
-  describe('getPermittedChainIdsByHostname', () => {
-    it('should return eth chainIds for a given hostname', () => {
+  describe('getPermittedCaipAccountIdsByHostname', () => {
+    it('should return accounts for a given hostname', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {},
+                      requiredScopes: {
+                        'eip155:1': {
+                          accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          'https://another.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {},
+                      requiredScopes: {
+                        'eip155:1': {
+                          accounts: ['eip155:1:0x3', 'eip155:1:0x4'],
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      const result = getPermittedCaipAccountIdsByHostname(
+        mockState,
+        'https://example.com',
+      );
+      expect(result).toEqual(['eip155:1:0x1', 'eip155:1:0x2']);
+    });
+
+    it('should return empty array if hostname has no accounts', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {
+            permissions: {
+              [Caip25EndowmentPermissionName]: {
+                caveats: [
+                  {
+                    type: Caip25CaveatType,
+                    value: {
+                      optionalScopes: {},
+                      requiredScopes: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      // Mock sortEvmAccountsByLastSelected to return empty array
+      jest
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
+        .mockReturnValue([]);
+
+      const result = getPermittedCaipAccountIdsByHostname(
+        mockState,
+        'https://nonexistent.com',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should handle subjects without permissions', () => {
+      const mockState = {
+        subjects: {
+          'https://example.com': {},
+        },
+      };
+
+      const result = getPermittedCaipAccountIdsByHostname(
+        mockState,
+        'https://example.com',
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getPermittedCaipChainIdsByHostname', () => {
+    it('should return caip chainIds for a given hostname', () => {
       const mockState = {
         subjects: {
           'https://example.com': {
@@ -187,11 +295,11 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:1': {
-                          accounts: []
+                          accounts: [],
                         },
                         'eip155:2': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -209,8 +317,8 @@ describe('Permission Utility Functions', () => {
                     value: {
                       optionalScopes: {
                         'eip155:3': {
-                          accounts: []
-                        }
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -222,23 +330,11 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      (getPermittedEthChainIds as jest.Mock).mockImplementation((value) => {
-        if (
-          value ===
-          mockState.subjects['https://example.com'].permissions[
-            Caip25EndowmentPermissionName
-          ].caveats[0].value
-        ) {
-          return ['0x1', '0x2'];
-        }
-        return ['0x3'];
-          });
-
-      const result = getPermittedChainIdsByHostname(
+      const result = getPermittedCaipChainIdsByHostname(
         mockState,
         'https://example.com',
       );
-      expect(result).toEqual(['0x1', '0x2']);
+      expect(result).toEqual(['eip155:1', 'eip155:2']);
     });
 
     it('should return empty array if hostname has no eth chainIds', () => {
@@ -252,9 +348,9 @@ describe('Permission Utility Functions', () => {
                     type: Caip25CaveatType,
                     value: {
                       optionalScopes: {
-                        'wallet': {
-                          accounts: []
-                        }
+                        wallet: {
+                          accounts: [],
+                        },
                       },
                       requiredScopes: {},
                     },
@@ -266,19 +362,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-
-      (getPermittedEthChainIds as jest.Mock).mockImplementation((value) => {
-        if (
-          value ===
-          mockState.subjects['https://example.com'].permissions[
-            Caip25EndowmentPermissionName
-          ].caveats[0].value
-        ) {
-          return [];
-        }
-          });
-
-      const result = getPermittedChainIdsByHostname(
+      const result = getPermittedCaipChainIdsByHostname(
         mockState,
         'https://example.com',
       );
@@ -292,7 +376,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      const result = getPermittedChainIdsByHostname(
+      const result = getPermittedCaipChainIdsByHostname(
         mockState,
         'https://example.com',
       );
@@ -364,32 +448,38 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingAccounts = ['0x1', '0x2'];
-      const newAccounts: Hex[] = ['0x3', '0x4'];
-      const allAccounts = ['0x1', '0x2', '0x3', '0x4'];
+      const newAccounts: CaipAccountId[] = ['eip155:0:0x3', 'eip155:0:0x4'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
-      (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
-
-      (setEthAccounts as jest.Mock).mockReturnValue({
+      (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated accounts would be here in the real implementation
       });
 
-      const result = addPermittedAccounts('https://example.com', newAccounts);
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
-      expect(getEthAccounts).toHaveBeenCalledWith(mockCaveat.value);
-      expect(setEthAccounts).toHaveBeenCalledWith(
+      addPermittedAccounts('https://example.com', newAccounts);
+
+      expect(setNonSCACaipAccountIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
-        allAccounts,
+        ['eip155:1:0x1', 'eip155:1:0x2', ...newAccounts],
       );
       expect(
         Engine.context.PermissionController.updateCaveat,
@@ -399,48 +489,16 @@ describe('Permission Utility Functions', () => {
         Caip25CaveatType,
         expect.anything(),
       );
-      expect(result).toBe(existingAccounts[0]);
     });
 
     it('should throw error if no permission exists', () => {
       mockGetCaveat.mockReturnValue(undefined);
 
       expect(() =>
-        addPermittedAccounts('https://example.com', ['0x1']),
+        addPermittedAccounts('https://example.com', ['eip155:0:0x1']),
       ).toThrow(
         'Cannot add account permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
-    });
-
-    it('should handle case when accounts already exist', () => {
-      const mockCaveat = {
-        type: Caip25CaveatType,
-        value: {
-          optionalScopes: {},
-          requiredScopes: {},
-          isMultichainOrigin: false,
-          sessionProperties: {},
-        },
-      };
-
-      const existingAccounts: Hex[] = ['0x1', '0x2'];
-
-      mockGetCaveat.mockReturnValue(mockCaveat);
-
-      (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
-
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const result = addPermittedAccounts(
-        'https://example.com',
-        existingAccounts,
-      );
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      expect(result).toBe(existingAccounts[0]);
-      expect(
-        Engine.context.PermissionController.updateCaveat,
-      ).not.toHaveBeenCalled();
     });
   });
 
@@ -449,30 +507,36 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingAccounts = ['0x1', '0x2', '0x3'];
       const accountsToRemove: Hex[] = ['0x2', '0x3'];
-      const remainingAccounts = ['0x1'];
 
+      mockGetAccountByAddress.mockImplementation((address) => ({
+        address,
+        scopes: ['eip155:0'],
+      }));
       mockGetCaveat.mockReturnValue(mockCaveat);
-      (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
-      (setEthAccounts as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
       removePermittedAccounts('https://example.com', accountsToRemove);
 
-      expect(getEthAccounts).toHaveBeenCalledWith(mockCaveat.value);
-      expect(setEthAccounts).toHaveBeenCalledWith(
+      expect(setNonSCACaipAccountIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
-        remainingAccounts,
+        ['eip155:1:0x1'],
       );
       expect(
         Engine.context.PermissionController.updateCaveat,
@@ -488,19 +552,25 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingAccounts = ['0x1', '0x2'];
       const accountsToRemove: Hex[] = ['0x1', '0x2'];
 
-      mockGetCaveat.mockReturnValue(mockCaveat);
+      mockGetAccountByAddress.mockImplementation((address) => ({
+        address,
+        scopes: ['eip155:0'],
+      }));
 
-      (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
       removePermittedAccounts('https://example.com', accountsToRemove);
 
@@ -530,19 +600,25 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingAccounts = ['0x1', '0x2'];
       const accountsToRemove: Hex[] = ['0x3', '0x4'];
 
-      mockGetCaveat.mockReturnValue(mockCaveat);
+      mockGetAccountByAddress.mockImplementation((address) => ({
+        address,
+        scopes: ['eip155:0'],
+      }));
 
-      (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
       removePermittedAccounts('https://example.com', accountsToRemove);
 
@@ -630,43 +706,43 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x123'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingChainIds = ['0x1'];
-      const newChainIds: Hex[] = ['0xa'];
-      const allChainIds = ['0x1', '0xa'];
-      const ethAccounts = ['0x123'];
+      const newChainIds: CaipChainId[] = ['eip155:10'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
-      (getPermittedEthChainIds as jest.Mock).mockReturnValue(existingChainIds);
-
-      (setPermittedEthChainIds as jest.Mock).mockReturnValue({
+      (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated chains would be here in the real implementation
       });
 
-      (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
-
-      (setEthAccounts as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated chains would be here in the real implementation
+        },
+      );
 
       updatePermittedChains('https://example.com', newChainIds);
 
-      expect(getPermittedEthChainIds).toHaveBeenCalledWith(mockCaveat.value);
-      expect(setPermittedEthChainIds).toHaveBeenCalledWith(
+      expect(setChainIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
-        allChainIds,
+        ['eip155:1', 'eip155:10'],
       );
-      expect(getEthAccounts).toHaveBeenCalled();
-      expect(setEthAccounts).toHaveBeenCalled();
+      expect(setNonSCACaipAccountIdsInCaip25CaveatValue).toHaveBeenCalledWith(
+        mockCaveat.value,
+        ['eip155:1:0x123'],
+      );
       expect(
         Engine.context.PermissionController.updateCaveat,
       ).toHaveBeenCalledWith(
@@ -681,47 +757,47 @@ describe('Permission Utility Functions', () => {
       const mockCaveat = {
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x123'],
+            },
+          },
           requiredScopes: {},
           isMultichainOrigin: false,
           sessionProperties: {},
         },
       };
 
-      const existingChainIds = ['0x1'];
-      const newChainIds: Hex[] = ['0xa'];
-      const ethAccounts = ['0x123'];
       const shouldRemoveExistingChainPermissions = true;
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
-      (getPermittedEthChainIds as jest.Mock).mockReturnValue(existingChainIds);
-
-      (setPermittedEthChainIds as jest.Mock).mockReturnValue({
+      (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated chains would be here in the real implementation
       });
 
-      (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
-
-      (setEthAccounts as jest.Mock).mockReturnValue({
-        ...mockCaveat.value,
-        // The updated accounts would be here in the real implementation
-      });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated chains would be here in the real implementation
+        },
+      );
 
       updatePermittedChains(
         'https://example.com',
-        newChainIds,
+        ['eip155:10'],
         shouldRemoveExistingChainPermissions,
       );
 
-      expect(getPermittedEthChainIds).not.toHaveBeenCalled();
-      expect(setPermittedEthChainIds).toHaveBeenCalledWith(
+      expect(setChainIdsInCaip25CaveatValue).toHaveBeenCalledWith(
         mockCaveat.value,
-        newChainIds,
+        ['eip155:10'],
       );
-      expect(getEthAccounts).toHaveBeenCalled();
-      expect(setEthAccounts).toHaveBeenCalled();
+      expect(setNonSCACaipAccountIdsInCaip25CaveatValue).toHaveBeenCalledWith(
+        mockCaveat.value,
+        ['eip155:1:0x123'],
+      );
       expect(
         Engine.context.PermissionController.updateCaveat,
       ).toHaveBeenCalledWith(
@@ -736,13 +812,15 @@ describe('Permission Utility Functions', () => {
       // Mock getCaip25Caveat to return undefined
       mockGetCaveat.mockReturnValue(undefined);
 
-      expect(() => updatePermittedChains('https://example.com', ['0x1'])).toThrow(
+      expect(() =>
+        updatePermittedChains('https://example.com', ['eip155:1']),
+      ).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
       );
     });
   });
 
-  describe('sortAccountsByLastSelected', () => {
+  describe('sortEvmAccountsByLastSelected', () => {
     it('should sort accounts by lastSelected timestamp', () => {
       const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
@@ -762,7 +840,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
     });
 
@@ -785,7 +863,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x3', '0x1', '0x2']);
     });
 
@@ -808,7 +886,7 @@ describe('Permission Utility Functions', () => {
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
+      const result = sortEvmAccountsByLastSelected(accounts);
       // We don't assert the exact order for accounts with the same lastSelected value
       expect(result).toContain('0x1');
       expect(result).toContain('0x2');
@@ -835,33 +913,198 @@ describe('Permission Utility Functions', () => {
         Engine.context.KeyringController.getAccountKeyringType as jest.Mock
       ).mockResolvedValue('Simple Key Pair');
 
-      expect(() => sortAccountsByLastSelected(accounts)).toThrow(
+      expect(() => sortEvmAccountsByLastSelected(accounts)).toThrow(
         'Missing identity for address: "0x2".',
       );
       expect(captureException).toHaveBeenCalled();
     });
 
     it('should handle case insensitive address comparison', () => {
-      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = [
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      ];
       const internalAccounts = [
         {
-          address: '0X1', // Uppercase
+          address: '0xC4955C0D639D99699BFD7EC54D9FAFEE40E4D272', // Uppercase
           metadata: { lastSelected: 100 },
         },
         {
-          address: '0x2',
+          address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
           metadata: { lastSelected: 300 },
         },
         {
-          address: '0x3',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
           metadata: { lastSelected: 200 },
         },
       ];
 
       mockListAccounts.mockReturnValue(internalAccounts);
 
-      const result = sortAccountsByLastSelected(accounts);
-      expect(result).toEqual(['0x2', '0x3', '0x1']);
+      const result = sortEvmAccountsByLastSelected(accounts);
+      expect(result).toEqual([
+        '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      ]);
+    });
+  });
+
+  describe('sortMultichainAccountsByLastSelected', () => {
+    it('should sort accounts by lastSelected timestamp', () => {
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 300 },
+        },
+        {
+          address: '0x3',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      expect(result).toEqual(['eip155:0:0x2', 'eip155:0:0x3', 'eip155:0:0x1']);
+    });
+
+    it('should handle accounts with undefined lastSelected', () => {
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: undefined },
+        },
+        {
+          address: '0x3',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      expect(result).toEqual(['eip155:0:0x3', 'eip155:0:0x1', 'eip155:0:0x2']);
+    });
+
+    it('should handle accounts with same lastSelected value', () => {
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x3',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      // We don't assert the exact order for accounts with the same lastSelected value
+      expect(result).toContain('eip155:0:0x1');
+      expect(result).toContain('eip155:0:0x2');
+      expect(result).toContain('eip155:0:0x3');
+      expect(result[0]).toBe('eip155:0:0x3'); // The one with highest lastSelected should be first
+    });
+
+    it('should throw error if account is missing from identities', () => {
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
+      const internalAccounts = [
+        {
+          address: '0x1',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        // 0x2 is missing
+        {
+          address: '0x3',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+      (
+        Engine.context.KeyringController.getAccountKeyringType as jest.Mock
+      ).mockResolvedValue('Simple Key Pair');
+
+      expect(() => sortMultichainAccountsByLastSelected(accounts)).toThrow(
+        'Missing identity for address: "eip155:0:0x2".',
+      );
+      expect(captureException).toHaveBeenCalled();
+    });
+
+    it('should handle case insensitive address comparison', () => {
+      const accounts: CaipAccountId[] = [
+        'eip155:0:0x1',
+        'eip155:0:0x2',
+        'eip155:0:0x3',
+      ];
+      const internalAccounts = [
+        {
+          address: '0X1', // Uppercase
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 100 },
+        },
+        {
+          address: '0x2',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 300 },
+        },
+        {
+          address: '0x3',
+          scopes: ['eip155:0'],
+          metadata: { lastSelected: 200 },
+        },
+      ];
+
+      mockListMultichainAccounts.mockReturnValue(internalAccounts);
+
+      const result = sortMultichainAccountsByLastSelected(accounts);
+      expect(result).toEqual(['eip155:0:0x2', 'eip155:0:0x3', 'eip155:0:0x1']);
     });
   });
 
@@ -908,7 +1151,7 @@ describe('Permission Utility Functions', () => {
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
       jest
-        .spyOn(permissions, 'sortAccountsByLastSelected')
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
         .mockReturnValue(sortedAccounts);
 
       const result = getPermittedAccounts('https://example.com');
@@ -957,9 +1200,9 @@ describe('Permission Utility Functions', () => {
       mockIsUnlocked.mockReturnValue(false);
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
-      // Mock sortAccountsByLastSelected
+      // Mock sortEvmAccountsByLastSelected
       jest
-        .spyOn(permissions, 'sortAccountsByLastSelected')
+        .spyOn(permissions, 'sortEvmAccountsByLastSelected')
         .mockReturnValue(sortedAccounts);
 
       const result = getPermittedAccounts('https://example.com', {
@@ -990,76 +1233,114 @@ describe('Permission Utility Functions', () => {
     });
   });
 
-  // describe('removePermittedChain', () => {
-  //   it('removes a chain from permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x1';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0xa', '0x1', '0x5'],
-  //     });
-  //     Engine.context.PermissionController.grantPermissions.mockResolvedValue(undefined);
+  describe('removePermittedChain', () => {
+    it('removes a chain from permitted chains', () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: [],
+            },
+            'eip155:5': {
+              accounts: [],
+            },
+            'eip155:10': {
+              accounts: [],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
 
-  //     await removePermittedChain(hostname, chainId);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
-  //       hostname,
-  //       PermissionKeys.permittedChains,
-  //       CaveatTypes.restrictNetworkSwitching,
-  //     );
-  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
-  //       approvedPermissions: {
-  //         [PermissionKeys.permittedChains]: {
-  //           caveats: [
-  //             { type: CaveatTypes.restrictNetworkSwitching, value: ['0xa', '0x5'] },
-  //           ],
-  //         },
-  //       },
-  //       subject: {
-  //         origin: hostname,
-  //       },
-  //       preserveExistingPermissions: true,
-  //     });
-  //   });
+      (setChainIdsInCaip25CaveatValue as jest.Mock).mockReturnValue({
+        ...mockCaveat.value,
+        // The updated accounts would be here in the real implementation
+      });
 
-  //   it('does not update permissions if chain is not in permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x99';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0xa', '0x1'],
-  //     });
+      (setNonSCACaipAccountIdsInCaip25CaveatValue as jest.Mock).mockReturnValue(
+        {
+          ...mockCaveat.value,
+          // The updated accounts would be here in the real implementation
+        },
+      );
 
-  //     await removePermittedChain(hostname, chainId);
+      removePermittedChain(hostname, 'eip155:1');
 
-  //     expect(Engine.context.PermissionController.getCaveat).toHaveBeenCalledWith(
-  //       hostname,
-  //       PermissionKeys.permittedChains,
-  //       CaveatTypes.restrictNetworkSwitching,
-  //     );
-  //     expect(Engine.context.PermissionController.grantPermissions).not.toHaveBeenCalled();
-  //   });
+      expect(setChainIdsInCaip25CaveatValue).toHaveBeenCalledWith(
+        mockCaveat.value,
+        ['eip155:5', 'eip155:10'],
+      );
 
-  //   it('handles removing the last chain from permitted chains', async () => {
-  //     const hostname = 'example.com';
-  //     const chainId = '0x1';
-  //     Engine.context.PermissionController.getCaveat.mockReturnValue({
-  //       value: ['0x1'],
-  //     });
+      expect(
+        Engine.context.PermissionController.updateCaveat,
+      ).toHaveBeenCalledWith(
+        hostname,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+        mockCaveat.value,
+      );
+    });
 
-  //     await removePermittedChain(hostname, chainId);
+    it('does not update permissions if chain is not in permitted chains', async () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: [],
+            },
+            'eip155:10': {
+              accounts: [],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
 
-  //     expect(Engine.context.PermissionController.grantPermissions).toHaveBeenCalledWith({
-  //       approvedPermissions: {
-  //         [PermissionKeys.permittedChains]: {
-  //           caveats: [
-  //             { type: CaveatTypes.restrictNetworkSwitching, value: [] },
-  //           ],
-  //         },
-  //       },
-  //       subject: {
-  //         origin: hostname,
-  //       },
-  //       preserveExistingPermissions: true,
-  //     });
-  //   });
-  // });
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      removePermittedChain(hostname, 'eip155:99');
+
+      expect(
+        Engine.context.PermissionController.revokePermission,
+      ).not.toHaveBeenCalled();
+      expect(
+        Engine.context.PermissionController.updateCaveat,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('revokes the permission if the last chain is removed', () => {
+      const hostname = 'example.com';
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: [],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      removePermittedChain(hostname, 'eip155:1');
+
+      expect(
+        Engine.context.PermissionController.revokePermission,
+      ).toHaveBeenCalledWith(hostname, Caip25EndowmentPermissionName);
+    });
+  });
 });

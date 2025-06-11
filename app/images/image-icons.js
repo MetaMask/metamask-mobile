@@ -20,12 +20,16 @@ import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import XRPLEVM_XRP_TOKEN from './xrp-logo.png';
+import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
 import MATCHAIN from './matchain.png';
 import FLOW from './flow.png';
 import LENS from './lens.png';
-import PLUME from './plume.png';
-
+import PLUME from './plume-native.png';
+import GENESYS from './genesys.png';
+import KATANA from './katana.png';
+import SOPHON from './sophon.png';
+import SOPHON_TESTNET from './sophon-testnet.png';
 
 export default {
   PALM,
@@ -52,9 +56,14 @@ export default {
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRPLEVM_XRP_TOKEN,
+  SEI,
   'MONAD-TESTNET': MONAD_TESTNET,
   MATCHAIN,
   FLOW,
   LENS,
   PLUME,
+  GENESYS,
+  KATANA,
+  SOPHON,
+  'SOPHON-TESTNET': SOPHON_TESTNET,
 };
