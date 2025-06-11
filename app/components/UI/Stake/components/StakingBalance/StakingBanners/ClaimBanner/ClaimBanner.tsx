@@ -88,7 +88,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
           pooledStakesData,
         );
         navigation.navigate('StakeScreens', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_CLAIM,
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           params: {
             amountWei: claimableAmount,
           },

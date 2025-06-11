@@ -184,7 +184,6 @@ const Routes = {
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
-  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
@@ -211,12 +210,8 @@ const Routes = {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
   },
-  STANDALONE_CONFIRMATIONS: {
-    STAKE_DEPOSIT: 'RedesignedStakeDeposit',
-    STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
-    STAKE_CLAIM: 'RedesignedStakeClaim',
-    TRANSFER: 'RedesignedTransfer',
-    STABLECOIN_LENDING_DEPOSIT: 'StablecoinLendingDeposit',
+  FULL_SCREEN_CONFIRMATIONS: {
+    REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
