@@ -30,15 +30,29 @@ function handleUniversalLink({
   wcURL: string;
   url: string;
 }) {
-  const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
+  const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK, MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
   const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
   // Universal links
   handled();
 
-  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
-    // action is the first part of the pathname
-    const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+  // action is the first part of the pathname
+  const action: ACTIONS = urlObj.pathname.split('/')[1] as ACTIONS;
+
+  if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) { // FRANK: *Step 5: deeplinks are currently caught here
+    // Placeholder for testing new actions navigation for new subdomain
+    if (action === ACTIONS.HOME) {
+      instance._handleOpenHome();
+      return;
+    }
+    if (action === ACTIONS.SWAP) {
+      // FRANK: added this for new subdomain
+      const swapPath = urlObj.href
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
+      instance._handleOpenSwap(swapPath);
+      return;
+    }
 
     if (action === ACTIONS.ANDROID_SDK) {
       DevLogger.log(
@@ -144,6 +158,26 @@ function handleUniversalLink({
 
       // Normal links (same as dapp)
       instance._handleBrowserUrl(urlObj.href, browserCallBack);
+    }
+  } else if (urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST) {
+      // FRANK: *Step 6: branch off here for new subdomain
+    // The new actions will be handled when there is a new subdomain
+    if (action === ACTIONS.HOME) {
+      instance._handleOpenHome();
+    } else if (action === ACTIONS.SWAP) {
+      // FRANK: added this for new subdomain
+      const swapPath = urlObj.href
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
+      instance._handleOpenSwap(swapPath);
+        instance._handleOpenSwap();
+      } else {
+        // Default to home if no action specified
+        instance._handleOpenHome();
+      }
+    } else {
+      // Default to home if no action specified
+      instance._handleOpenHome();
     }
   } else {
     // Normal links (same as dapp)
