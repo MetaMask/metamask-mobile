@@ -79,7 +79,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../components/hooks/useAccounts', () => ({
   useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
-    evmAccounts: mockAccounts,
+    evmAccounts: [mockAccounts[0], mockAccounts[2]],
     ensByAccountAddress: mockEnsByAccountAddress,
   })),
 }));

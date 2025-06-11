@@ -467,18 +467,22 @@ exports[`AccountSelector should render correctly 1`] = `
                             />
                           </View>
                           <RCTScrollView
-                            collapsable={false}
                             data={
                               [
                                 {
-                                  "address": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                                  "balance": "0x0",
-                                  "name": "EVM Account 1",
-                                },
-                                {
-                                  "address": "0x2B5634C42055806a59e9107ED44D43c426E58258",
-                                  "balance": "0x0",
-                                  "name": "EVM Account 2",
+                                  "data": [
+                                    {
+                                      "address": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
+                                      "balance": "0x0",
+                                      "name": "EVM Account 1",
+                                    },
+                                    {
+                                      "address": "0x2B5634C42055806a59e9107ED44D43c426E58258",
+                                      "balance": "0x0",
+                                      "name": "EVM Account 2",
+                                    },
+                                  ],
+                                  "title": "Accounts",
                                 },
                               ]
                             }
@@ -503,6 +507,11 @@ exports[`AccountSelector should render correctly 1`] = `
                             testID="account-list"
                           >
                             <View>
+                              <View
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
+                              />
                               <View
                                 onFocusCapture={[Function]}
                                 onLayout={[Function]}
@@ -1149,6 +1158,11 @@ exports[`AccountSelector should render correctly 1`] = `
                                   </View>
                                 </View>
                               </View>
+                              <View
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
+                              />
                             </View>
                           </RCTScrollView>
                           <View
