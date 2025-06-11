@@ -16,7 +16,6 @@ const tags = {
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
-  smokeMultichainApi: 'SmokeMultichainApi:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -36,7 +35,6 @@ const SmokeMultiChainPermissions = (testName) =>
 const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
-const SmokeMultichainApi = (testName) => `${tags.smokeMultichainApi} ${testName}`;
 
 
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
@@ -65,5 +63,4 @@ export {
   SmokeRamps,
   SmokeNotifications,
   SmokeAnalytics,
-  SmokeMultichainApi,
 };

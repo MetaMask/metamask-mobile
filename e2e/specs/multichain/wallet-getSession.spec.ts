@@ -5,7 +5,7 @@
  * Tests getting session information in different scenarios
  */
 import TestHelpers from '../../helpers';
-import { SmokeMultichainApi } from '../../tags';
+import { SmokeNetworkExpansion } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
-describe(SmokeMultichainApi('wallet_getSession'), () => {
+describe(SmokeNetworkExpansion('wallet_getSession'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });

@@ -4,7 +4,7 @@
  * E2E tests for wallet_createSession API
  * Tests creating sessions with different scope combinations and verifying permissions
  */
-import { SmokeMultichainApi } from '../../tags';
+import { SmokeNetworkExpansion } from '../../tags';
 import TestHelpers from '../../helpers';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -16,7 +16,7 @@ import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
-describe(SmokeMultichainApi('wallet_createSession'), () => {
+describe(SmokeNetworkExpansion('wallet_createSession'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });

@@ -30,7 +30,7 @@
  * 5. Check for state changes (empty → has notifications) to prove functionality
  */
 import TestHelpers from '../../helpers';
-import { SmokeMultichainApi } from '../../tags';
+import { SmokeNetworkExpansion } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -41,7 +41,7 @@ import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
-describe(SmokeMultichainApi('wallet_notify'), () => {
+describe(SmokeNetworkExpansion('wallet_notify'), () => {
     beforeEach(() => {
         jest.setTimeout(150000);
     });
