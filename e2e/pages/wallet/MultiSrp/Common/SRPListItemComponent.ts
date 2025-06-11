@@ -4,7 +4,7 @@ import Gestures from '../../../../utils/Gestures';
 
 class SRPListItemComponent {
   get listItem() {
-    return Matchers.getElementByID(SRPListItemSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(SRPListItemSelectorsIDs.SRP_LIST_ITEM);
   }
 
   get accountToggle() {
@@ -23,7 +23,7 @@ class SRPListItemComponent {
     await Gestures.waitAndTap(this.accountToggle);
   }
 
-  async tapListItem(srpId) {
+  async tapListItem(srpId: string) {
     const srpSelector = Matchers.getElementByID(
       `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${srpId}`,
     );
