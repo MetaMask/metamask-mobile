@@ -7,6 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -18,11 +19,9 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { formatAddress, getLabelTextByAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -41,6 +40,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
 
 /**
@@ -94,18 +94,17 @@ const EvmAccountSelectorList = ({
 
   const renderAccountBalances = useCallback(
     (
-      { fiatBalance, tokens }: Assets,
-      address: string,
+      { fiatBalance }: Assets,
+      partialAccount: { address: string; scopes: CaipChainId[] },
       isLoadingAccount: boolean,
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
 
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
           {isLoadingAccount ? (
             <Skeleton width={60} height={24} />
@@ -119,22 +118,7 @@ const EvmAccountSelectorList = ({
                 {fiatBalanceAmount}
               </SensitiveText>
 
-              <SensitiveText
-                length={SensitiveTextLength.Short}
-                style={styles.balanceLabel}
-                isHidden={privacyMode}
-                color={privacyMode ? TextColor.Alternative : TextColor.Default}
-              >
-                {tokenTicker}
-              </SensitiveText>
-              {tokens && (
-                <AvatarGroup
-                  avatarPropsList={tokens.map((tokenObj) => ({
-                    ...tokenObj,
-                    variant: AvatarVariant.Token,
-                  }))}
-                />
-              )}
+              <AccountNetworkIndicator partialAccount={partialAccount} />
             </>
           )}
         </View>
@@ -234,10 +218,15 @@ const EvmAccountSelectorList = ({
         type,
         isSelected,
         balanceError,
+        scopes,
         isLoadingAccount,
       },
       index,
     }) => {
+      const partialAccount = {
+        address,
+        scopes,
+      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
@@ -313,7 +302,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, address, isLoadingAccount))}
+              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
         </Cell>
       );
     },
