@@ -74,99 +74,98 @@ describe(
       }
     });
 
-    const itif = (condition) => (condition ? it : it.skip);
-    itif(device.getPlatform() === 'ios')(
-      'syncs multi-SRP EVM accounts',
-      async () => {
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        });
+    // TEMP: re-test android, will remove next commit
+    // const itif = (condition) => (condition ? it : it.skip);
+    // itif(device.getPlatform() === 'ios')(
+    it('syncs multi-SRP EVM accounts', async () => {
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
 
-        // Create second account for SRP 1
-        const {
-          waitUntilSyncedAccountsNumberEquals,
-          prepareEventsEmittedCounter,
-        } = arrangeTestUtils(userStorageMockttpController);
+      // Create second account for SRP 1
+      const {
+        waitUntilSyncedAccountsNumberEquals,
+        prepareEventsEmittedCounter,
+      } = arrangeTestUtils(userStorageMockttpController);
 
-        const { waitUntilEventsEmittedNumberEquals } =
-          prepareEventsEmittedCounter(
-            UserStorageMockttpControllerEvents.PUT_SINGLE,
-          );
-
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
-        await waitUntilSyncedAccountsNumberEquals(1);
-
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
-
-        await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
-        await AccountActionsBottomSheet.renameActiveAccount(secondAccountName);
-
-        await Assertions.checkIfElementToHaveText(
-          WalletView.accountName,
-          secondAccountName,
+      const { waitUntilEventsEmittedNumberEquals } =
+        prepareEventsEmittedCounter(
+          UserStorageMockttpControllerEvents.PUT_SINGLE,
         );
 
-        // Wait for the account AND account name to be synced
-        await waitUntilSyncedAccountsNumberEquals(2);
-        await waitUntilEventsEmittedNumberEquals(1);
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
-        // Add SRP 2
-        await goToImportSrp();
-        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-        await ImportSrpView.tapImportButton();
+      await waitUntilSyncedAccountsNumberEquals(1);
 
-        await device.disableSynchronization();
-        await Assertions.checkIfVisible(WalletView.container);
+      await AccountListBottomSheet.tapAddAccountButton();
+      await AddAccountBottomSheet.tapCreateAccount();
 
-        // Create second account for SRP 2
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+      await AccountActionsBottomSheet.renameActiveAccount(secondAccountName);
 
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
-        await AddNewHdAccountComponent.tapSrpSelector();
-        await SRPListItemComponent.tapListItemByIndex(1);
-        await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
+      await Assertions.checkIfElementToHaveText(
+        WalletView.accountName,
+        secondAccountName,
+      );
 
-        // Wait for the account AND account name to be synced
-        await waitUntilSyncedAccountsNumberEquals(4);
-        await waitUntilEventsEmittedNumberEquals(3);
+      // Wait for the account AND account name to be synced
+      await waitUntilSyncedAccountsNumberEquals(2);
+      await waitUntilEventsEmittedNumberEquals(1);
 
-        // Relaunch app
-        await TestHelpers.launchApp({
-          newInstance: true,
-          delete: true,
-          launchArgs: {
-            mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
-          },
-        });
+      // Add SRP 2
+      await goToImportSrp();
+      await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+      await ImportSrpView.tapImportButton();
 
-        // Onboard with SRP 1 and import SRP 2
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
-          password: IDENTITY_TEAM_PASSWORD,
-        });
-        await goToImportSrp();
-        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-        await ImportSrpView.tapImportButton();
+      await device.disableSynchronization();
+      await Assertions.checkIfVisible(WalletView.container);
 
-        await Assertions.checkIfVisible(WalletView.container);
+      // Create second account for SRP 2
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
-        // Check if accounts are synced
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        await TestHelpers.delay(4000);
+      await AccountListBottomSheet.tapAddAccountButton();
+      await AddAccountBottomSheet.tapCreateAccount();
+      await AddNewHdAccountComponent.tapSrpSelector();
+      await SRPListItemComponent.tapListItemByIndex(1);
+      await AddNewHdAccountComponent.enterName(thirdAccountNameSrp2);
 
-        for (const accountName of expectedAccountNames) {
-          await Assertions.webViewElementExists(
-            AccountListBottomSheet.getAccountElementByAccountName(accountName),
-          );
-        }
-      },
-    );
+      // Wait for the account AND account name to be synced
+      await waitUntilSyncedAccountsNumberEquals(4);
+      await waitUntilEventsEmittedNumberEquals(3);
+
+      // Relaunch app
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+        launchArgs: {
+          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+        },
+      });
+
+      // Onboard with SRP 1 and import SRP 2
+      await importWalletWithRecoveryPhrase({
+        seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+        password: IDENTITY_TEAM_PASSWORD,
+      });
+      await goToImportSrp();
+      await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+      await ImportSrpView.tapImportButton();
+
+      await Assertions.checkIfVisible(WalletView.container);
+
+      // Check if accounts are synced
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
+
+      for (const accountName of expectedAccountNames) {
+        await Assertions.webViewElementExists(
+          AccountListBottomSheet.getAccountElementByAccountName(accountName),
+        );
+      }
+    });
   },
 );
