@@ -74,7 +74,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     await multichainClient.addDiscoveredAccounts(newKeyring.id);
     ///: END:ONLY_INCLUDE_IF
 
-    Engine.setSelectedAddress(newAccountAddress);
+    return Engine.setSelectedAddress(newAccountAddress);
   } finally {
     await UserStorageController.syncInternalAccountsWithUserStorage();
   }
