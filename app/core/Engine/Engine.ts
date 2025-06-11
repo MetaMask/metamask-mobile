@@ -67,7 +67,7 @@ import {
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
-} from '@metamask/eth-ledger-bridge-keyring';
+} from '@metamask-previews/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   getDecimalChainId,
