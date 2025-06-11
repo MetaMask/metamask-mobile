@@ -86,11 +86,12 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
+  const fromAddress =
+    transactionMetadata?.txParams?.from ?? approvalRequest?.requestData?.from;
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
 

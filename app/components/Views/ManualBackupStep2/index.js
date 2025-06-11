@@ -32,6 +32,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -106,7 +107,12 @@ const ManualBackupStep2 = ({
         } else if (settingsBackup) {
           navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS);
         } else {
-          navigation.navigate('OnboardingSuccess');
+          navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+            },
+          });
         }
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(

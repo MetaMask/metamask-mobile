@@ -143,6 +143,21 @@
             "failoverUrls": []
           }
         ]
+      },
+      "0x2105": {
+        "blockExplorerUrls": [],
+        "chainId": "0x2105",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Base Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "base-mainnet",
+            "type": "infura",
+            "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
