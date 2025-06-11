@@ -10,6 +10,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -278,12 +279,13 @@ describe('AccountBackupStep1', () => {
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+      expect(mockNavigate.mock.calls).toEqual([
+        // first call is to SkipAccountSecurityModal
+        ['RootModalFlow', { screen: 'SkipAccountSecurityModal', params: { onConfirm: expect.any(Function), onCancel: expect.any(Function) } }],
+        // second call is to OnboardingSuccess
+        ['OnboardingSuccessFlow', { params: { successFlow: 'noBackedUpSRP' }, screen: 'OnboardingSuccess' }]
+      ]);
 
-      // Verify onboarding wizard step was not set
-      expect(mockNavigate).not.toHaveBeenCalledWith('OnboardingSuccess', {
-        step: 1,
-      });
     });
 
     it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
@@ -309,7 +311,12 @@ describe('AccountBackupStep1', () => {
       await modalParams.onConfirm();
 
       // Verify navigation to OnboardingSuccess
-      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSuccess');
+      expect(mockNavigate.mock.calls).toEqual([
+        // first call is to SkipAccountSecurityModal
+        ['RootModalFlow', { screen: 'SkipAccountSecurityModal', params: { onConfirm: expect.any(Function), onCancel: expect.any(Function) } }],
+        // second call is to OnboardingSuccess
+        ['OnboardingSuccessFlow', { params: { successFlow: 'noBackedUpSRP' }, screen: 'OnboardingSuccess' }]
+      ]);
     });
   });
 });
