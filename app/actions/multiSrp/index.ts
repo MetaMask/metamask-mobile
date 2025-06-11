@@ -18,66 +18,62 @@ import { PerformanceEventNames } from '../../core/redux/slices/performance/const
 import { store } from '../../store';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
-  const { KeyringController, UserStorageController } = Engine.context;
+  const { KeyringController } = Engine.context;
 
-  try {
-    // Convert input mnemonic to codepoints
-    const mnemonicWords = mnemonic.toLowerCase().split(' ');
-    const inputCodePoints = new Uint16Array(
-      mnemonicWords.map((word) => wordlist.indexOf(word)),
+  // Convert input mnemonic to codepoints
+  const mnemonicWords = mnemonic.toLowerCase().split(' ');
+  const inputCodePoints = new Uint16Array(
+    mnemonicWords.map((word) => wordlist.indexOf(word)),
+  );
+
+  const hdKeyrings = (await KeyringController.getKeyringsByType(
+    ExtendedKeyringTypes.hd,
+  )) as HdKeyring[];
+
+  // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
+  const alreadyImportedSRP = hdKeyrings.some((keyring) => {
+    // Compare directly with stored codepoints
+    const storedCodePoints = new Uint16Array(
+      // The mnemonic will not be undefined because there will be a keyring.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      Buffer.from(keyring.mnemonic!).buffer,
     );
 
-    const hdKeyrings = (await KeyringController.getKeyringsByType(
-      ExtendedKeyringTypes.hd,
-    )) as HdKeyring[];
+    if (inputCodePoints.length !== storedCodePoints.length) return false;
 
-    // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
-    const alreadyImportedSRP = hdKeyrings.some((keyring) => {
-      // Compare directly with stored codepoints
-      const storedCodePoints = new Uint16Array(
-        // The mnemonic will not be undefined because there will be a keyring.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        Buffer.from(keyring.mnemonic!).buffer,
-      );
-
-      if (inputCodePoints.length !== storedCodePoints.length) return false;
-
-      return inputCodePoints.every(
-        (code, index) => code === storedCodePoints[index],
-      );
-    });
-
-    if (alreadyImportedSRP) {
-      throw new Error('This mnemonic has already been imported.');
-    }
-
-    const newKeyring = await KeyringController.addNewKeyring(
-      ExtendedKeyringTypes.hd,
-      {
-        mnemonic,
-        numberOfAccounts: 1,
-      },
+    return inputCodePoints.every(
+      (code, index) => code === storedCodePoints[index],
     );
+  });
 
-    const [newAccountAddress] = await KeyringController.withKeyring(
-      {
-        id: newKeyring.id,
-      },
-      async ({ keyring }) => keyring.getAccounts(),
-    );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    const multichainClient = MultichainWalletSnapFactory.createClient(
-      WalletClientType.Solana,
-    );
-
-    await multichainClient.addDiscoveredAccounts(newKeyring.id);
-    ///: END:ONLY_INCLUDE_IF
-
-    return Engine.setSelectedAddress(newAccountAddress);
-  } finally {
-    await UserStorageController.syncInternalAccountsWithUserStorage();
+  if (alreadyImportedSRP) {
+    throw new Error('This mnemonic has already been imported.');
   }
+
+  const newKeyring = await KeyringController.addNewKeyring(
+    ExtendedKeyringTypes.hd,
+    {
+      mnemonic,
+      numberOfAccounts: 1,
+    },
+  );
+
+  const [newAccountAddress] = await KeyringController.withKeyring(
+    {
+      id: newKeyring.id,
+    },
+    async ({ keyring }) => keyring.getAccounts(),
+  );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const multichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Solana,
+  );
+
+  await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  ///: END:ONLY_INCLUDE_IF
+
+  return Engine.setSelectedAddress(newAccountAddress);
 }
 
 export async function createNewSecretRecoveryPhrase() {

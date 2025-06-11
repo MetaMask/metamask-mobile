@@ -63,3 +63,42 @@ export const setHasAccountSyncingSyncedAtLeastOnce = async (
     return getErrorMessage(error);
   }
 };
+
+/**
+ * "Locks" account syncing by setting the necessary flags in UserStorageController.
+ * This is used to temporarily prevent account syncing from listening to accounts being changed, and the downward sync to happen.
+ *
+ * @returns
+ */
+export const lockAccountSyncing = async () => {
+  try {
+    await Engine.context.UserStorageController.setHasAccountSyncingSyncedAtLeastOnce(
+      false,
+    );
+    await Engine.context.UserStorageController.setIsAccountSyncingReadyToBeDispatched(
+      false,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
+/**
+ * "Unlocks" account syncing by setting the necessary flags in UserStorageController.
+ * This is used to resume account syncing after it has been locked.
+ * This will trigger a downward sync if this is called after a lockAccountSyncing call.
+ *
+ * @returns
+ */
+export const unlockAccountSyncing = async () => {
+  try {
+    await Engine.context.UserStorageController.setHasAccountSyncingSyncedAtLeastOnce(
+      true,
+    );
+    await Engine.context.UserStorageController.setIsAccountSyncingReadyToBeDispatched(
+      true,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
