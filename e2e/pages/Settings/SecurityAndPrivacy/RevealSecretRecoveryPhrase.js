@@ -86,6 +86,13 @@ class RevealSecretRecoveryPhrase {
   async tapDoneButton() {
     return Gestures.waitAndTap(this.doneButton);
   }
+
+  async scrollToCopyToClipboardButton() {
+    await Gestures.scrollToElement(
+      this.revealCredentialCopyToClipboardButton,
+      this.scrollViewIdentifier,
+    );
+  }
 }
 
 export default new RevealSecretRecoveryPhrase();

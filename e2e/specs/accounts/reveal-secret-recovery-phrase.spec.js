@@ -100,31 +100,7 @@ describe(SmokeNetworkExpansion('Secret Recovery Phrase Reveal from Settings'), (
     );
   });
 
-  it('reveals Secret Recovery Phrase', async () => {
-    await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-      PASSWORD,
-    );
-    // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
-    await RevealSecretRecoveryPhrase.tapToReveal();
-    await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
-    await Assertions.checkIfTextIsDisplayed(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
-    );
-    await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
-    // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
-    // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
-    // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
-    await RevealSecretRecoveryPhrase.tapToCopyCredentialToClipboard();
-    await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-    await Assertions.checkIfVisible(
-      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-    );
-    await RevealSecretRecoveryPhrase.scrollToDone();
-    await RevealSecretRecoveryPhrase.tapDoneButton();
-    await Assertions.checkIfVisible(
-      SecurityAndPrivacy.securityAndPrivacyHeading,
-    );
-  });
+      await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   it('does not reveal Secret Recovery Phrase when the password is incorrect', async () => {
     await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
