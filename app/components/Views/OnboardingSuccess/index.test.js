@@ -16,12 +16,12 @@ import AppConstants from '../../../core/AppConstants';
 
 const mockNavigate = jest.fn();
 
-const mockUseRoute = {
+const mockRoute = jest.fn().mockReturnValue({
   params: {
     backedUpSRP: false,
     noSRP: false,
   },
-};
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -36,7 +36,7 @@ jest.mock('@react-navigation/native', () => {
         pop: jest.fn(),
       }),
     }),
-    useRoute: jest.fn(() => mockUseRoute),
+    useRoute: () => mockRoute,
   };
 });
 
@@ -58,11 +58,7 @@ const mockProviderConfig = {
 };
 
 describe('OnboardingSuccessComponent', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-  });
-
-  it('should render correctly', () => {
+  it('renders matching snapshot', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
@@ -72,7 +68,7 @@ describe('OnboardingSuccessComponent', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly when noSRP is true', () => {
+  it('renders matching snapshot when noSRP is true', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
@@ -82,7 +78,7 @@ describe('OnboardingSuccessComponent', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly when backedUpSRP is true', () => {
+  it('renders matching snapshot when backedUpSRP is true', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
@@ -100,10 +96,7 @@ describe('OnboardingSuccessComponent', () => {
     useDispatch.mockImplementation(() => mockDispatch);
 
     const { getByTestId } = renderWithProvider(
-      <OnboardingSuccessComponent
-        navigation={useNavigation()}
-        onDone={jest.fn()}
-      />,
+      <OnboardingSuccessComponent onDone={jest.fn()} />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
@@ -117,7 +110,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('should navigate to the default settings screen when the manage default settings button is pressed', () => {
+  it('navigate to the default settings screen when the manage default settings button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         navigation={useNavigation()}
@@ -133,7 +126,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('should navigate to the learn more screen when the learn more link is pressed', () => {
+  it('navigate to the learn more screen when the learn more link is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         navigation={useNavigation()}
@@ -147,30 +140,70 @@ describe('OnboardingSuccessComponent', () => {
 });
 
 describe('OnboardingSuccess', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
+  const mockDispatch = jest.fn();
+  useDispatch.mockImplementation(() => mockDispatch);
+
+  describe('route params backedUpSRP false and noSRP false', () => {
+    it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          backedUpSRP: false,
+          noSRP: false,
+        },
+      });
+      const { toJSON, getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+
+      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      fireEvent.press(button);
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: SET_COMPLETED_ONBOARDING,
+        completedOnboarding: true,
+      });
+    });
   });
 
-  it('should render correctly according to snapshot with params', () => {
-    const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-    expect(toJSON()).toMatchSnapshot();
+  describe('route params backedUpSRP true and noSRP false', () => {
+    it('renders matching snapshot with route params backedUpSRP true and noSRP false', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          backedUpSRP: true,
+          noSRP: false,
+        },
+      });
+      const { toJSON, getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+
+      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      fireEvent.press(button);
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: SET_COMPLETED_ONBOARDING,
+        completedOnboarding: true,
+      });
+    });
   });
 
-  it('should render correctly according to snapshot with params backedUpSRP true', () => {
-    mockUseRoute.params = {
-      backedUpSRP: true,
-      noSRP: false,
-    };
-    const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render correctly according to snapshot with params noSRP true', () => {
-    mockUseRoute.params = {
-      backedUpSRP: false,
-      noSRP: true,
-    };
-    const { toJSON } = renderWithProvider(<OnboardingSuccess />);
-    expect(toJSON()).toMatchSnapshot();
+  describe('route params backedUpSRP false and noSRP true', () => {
+    mockRoute.mockReturnValue({
+      params: {
+        backedUpSRP: false,
+        noSRP: true,
+      },
+    });
+    const { toJSON, getByTestId } = renderWithProvider(<OnboardingSuccess />);
+    it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
+      expect(toJSON()).toMatchSnapshot();
+    });
+    it('dispatches SET_COMPLETED_ONBOARDING action when done button is pressed', () => {
+      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      fireEvent.press(button);
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: SET_COMPLETED_ONBOARDING,
+        completedOnboarding: true,
+      });
+    });
   });
 });
