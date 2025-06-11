@@ -15,13 +15,11 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
-  safeToChecksumAddress,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 interface Asset {
   isETH?: boolean;
