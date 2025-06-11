@@ -723,11 +723,11 @@ describe('Transactions', () => {
       });
       mockGetBlockExplorerName.mockReturnValue('TestExplorer');
 
-      expect(mockGetBlockExplorerAddressUrl()).toEqual({
+      expect(mockGetBlockExplorerAddressUrl('mainnet', '0x123')).toEqual({
         url: 'test',
         title: 'Test',
       });
-      expect(mockGetBlockExplorerName()).toBe('TestExplorer');
+      expect(mockGetBlockExplorerName('mainnet')).toBe('TestExplorer');
     });
 
     it('should test Logger error function', () => {
