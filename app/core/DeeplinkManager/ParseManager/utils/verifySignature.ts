@@ -1,8 +1,17 @@
 import QuickCrypto from 'react-native-quick-crypto';
 
-const { subtle } = QuickCrypto.webcrypto;
+interface CryptoAlgorithm {
+  name: 'ECDSA';
+  hash: 'SHA-256';
+}
 
-function base64StringToBytes(unpaddedBase64: string) {
+interface CryptoTools {
+  algorithm: CryptoAlgorithm;
+  encoder: TextEncoder;
+  key: Awaited<ReturnType<typeof QuickCrypto.webcrypto.subtle.importKey>>;
+}
+
+function base64StringToBytes(unpaddedBase64: string): Uint8Array {
   let standardB64 = unpaddedBase64.replace(/-/gu, '+').replace(/_/gu, '/');
   const pad = standardB64.length % 4;
   if (pad === 2) {
@@ -36,29 +45,28 @@ export const INVALID = 'INVALID' as const;
 
 type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
 
-let tools: { algorithm: any; encoder: TextEncoder; key: any };
+let tools: CryptoTools | undefined;
 
-async function lazyGetTools() {
+async function lazyGetTools(): Promise<CryptoTools> {
   if (tools) {
     return tools;
   }
-  const curve = 'P-256';
-  const algorithm = { name: 'ECDSA', hash: 'SHA-256' };
-  const keyUsage = ['verify'];
 
-  const key = await subtle.importKey(
+  const algorithm: CryptoAlgorithm = { name: 'ECDSA', hash: 'SHA-256' };
+
+  const key = await QuickCrypto.webcrypto.subtle.importKey(
     'jwk',
     {
-      crv: curve,
+      crv: 'P-256',
       ext: true,
-      key_ops: keyUsage as KeyUsage[],
+      key_ops: ['verify'],
       kty: 'EC',
       x: 'Bhp73TQ0keNmZWmdPlT7U3dbqbvZRdywIe5RpVFwIuk',
       y: '4BFtBenx-ZjECrt6YUNRk4isSBTAFMn_21vDiFgI7h8',
     },
-    algorithm as any,
+    algorithm,
     false,
-    keyUsage as KeyUsage[],
+    ['verify'],
   );
 
   tools = {
@@ -66,6 +74,7 @@ async function lazyGetTools() {
     encoder: new TextEncoder(),
     key,
   };
+
   return tools;
 }
 
@@ -95,8 +104,13 @@ export const verifyDeeplinkSignature = async (
 
     const data = encoder.encode(canonicalUrl);
 
-    const ok = await subtle.verify(algorithm, key, signature, data);
-
+    const ok = await QuickCrypto.webcrypto.subtle.verify(
+      algorithm,
+      key,
+      signature,
+      data,
+    );
+    console.log('🔑 Signature verification result:', ok ? VALID : INVALID);
     return ok ? VALID : INVALID;
   } catch (error) {
     console.error('💥 Error during signature verification:', error);
