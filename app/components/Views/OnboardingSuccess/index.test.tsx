@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Internal dependencies.
-import OnboardingSuccess, { OnboardingSuccessComponent } from './';
+import OnboardingSuccess, { OnboardingSuccessComponent } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
