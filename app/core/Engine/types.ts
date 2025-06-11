@@ -418,7 +418,6 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
-  | { type: 'AccountTreeController:stateChange'; payload: [AccountTreeControllerState] }; // TODO: this should be added to AccountTreeControllerEvents
 
 /**
  * Type definition for the controller messenger used in the Engine.

@@ -15,8 +15,6 @@ const selectAccountTreeControllerState = (state: RootState) => state.engine.back
 export const selectAccountSections = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState) => {
-    // TODO: Replace with actual AccountTreeController state structure
-    // For now, return a simple hardcoded structure
     if (!accountTreeState?.accountTree?.wallets) {
       return [{
         title: 'Default Group',

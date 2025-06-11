@@ -639,7 +639,6 @@ describe('EvmAccountSelectorList', () => {
       caipAccountId: `eip155:0:${BUSINESS_ACCOUNT}`,
     };
 
-    // Set up the mock accounts
     setAccountsMock([mockAccount]);
 
     // Create a component that explicitly verifies the account data
@@ -661,7 +660,6 @@ describe('EvmAccountSelectorList', () => {
   });
 
   it('renders in multi-select mode', () => {
-    // Setup mock accounts for multi-select test
     setAccountsMock([
       {
         name: 'Account 1',
@@ -813,17 +811,13 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      // Find all cell elements
       const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
       expect(cells.length).toBeGreaterThan(0);
-      
-      // Trigger long press on the first cell
+
       cells[0].props.onLongPress();
 
-      // Alert should not be shown for non-removable account types
       expect(mockAlert).not.toHaveBeenCalled();
 
-      // Verify removeAccount was not called
       expect(
         Engine.context.KeyringController.removeAccount,
       ).not.toHaveBeenCalled();
@@ -874,17 +868,13 @@ describe('EvmAccountSelectorList', () => {
     );
 
     await waitFor(() => {
-      // Find all cell elements
       const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
       expect(cells.length).toBeGreaterThan(0);
-      
-      // Trigger long press on the first cell
+
       cells[0].props.onLongPress();
 
-      // Alert should not be shown because removal is disabled
       expect(mockAlert).not.toHaveBeenCalled();
 
-      // Verify removeAccount was not called
       expect(
         Engine.context.KeyringController.removeAccount,
       ).not.toHaveBeenCalled();
@@ -939,7 +929,6 @@ describe('EvmAccountSelectorList', () => {
       ensByAccountAddress: {},
     });
 
-    // Render the component
     renderComponent(initialState);
 
     // Skip actually testing the scrollToOffset call since we can't
@@ -1086,18 +1075,14 @@ describe('EvmAccountSelectorList', () => {
       expect(cells.length).toBe(2);
     });
 
-    // Get the cells after they've rendered
     const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
 
-    // Ensure we have exactly 2 cells before accessing the second one
     expect(cells).toHaveLength(2);
     expect(cells[0]).toBeDefined();
     expect(cells[1]).toBeDefined();
 
-    // Tap the second account (the non-selected one)
     fireEvent.press(cells[1]);
 
-    // Verify the onSelectAccount was called with the correct address
     expect(onSelectAccount).toHaveBeenCalledWith(PERSONAL_ACCOUNT, false);
   });
 
@@ -1172,7 +1157,6 @@ describe('EvmAccountSelectorList', () => {
   it('should call onSelectAccount when an account is pressed', async () => {
     const { getAllByTestId } = renderComponent(initialState);
 
-    // Wait for the cells to render first
     await waitFor(() => {
       const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
       expect(cells.length).toBeGreaterThan(0);
