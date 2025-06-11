@@ -48,12 +48,13 @@ describe('useKycPolling', () => {
       sdkError: undefined,
       providerApiKey: 'test-key',
       providerFrontendAuth: 'test-auth',
-      email: 'test@test.com',
-      setEmail: jest.fn(),
       isAuthenticated: true,
       authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
+      clearAuthToken: jest.fn(),
+      getStarted: true,
+      setGetStarted: jest.fn(),
     });
   });
 

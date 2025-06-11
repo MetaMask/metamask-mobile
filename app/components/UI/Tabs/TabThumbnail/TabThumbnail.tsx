@@ -71,6 +71,7 @@ const TabThumbnail = ({
         accessibilityLabel={strings('browser.switch_tab')}
         onPress={() => onSwitch(tab)}
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
+        testID={`browser-tab-${tab.id}`}
       >
         <View style={styles.tabHeader}>
           <View style={styles.titleButton}>
@@ -89,6 +90,7 @@ const TabThumbnail = ({
             accessibilityLabel={strings('browser.close_tab')}
             onPress={() => onClose(tab)}
             hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+            testID={`tab-close-button-${tab.id}`}
           >
             <Icon
               name={IconName.Close}
