@@ -448,8 +448,8 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
+      await AccountsController.updateAccounts();
       AccountTreeController.init();
-      AccountsController.updateAccounts();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -505,8 +505,8 @@ class AuthenticationService {
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
 
+      await AccountsController.updateAccounts();
       AccountTreeController.init();
-      AccountsController.updateAccounts();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
