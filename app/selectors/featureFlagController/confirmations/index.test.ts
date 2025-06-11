@@ -22,6 +22,7 @@ afterEach(() => {
 });
 
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
+  approve: true,
   signatures: true,
   staking_confirmations: true,
   contract_interaction: true,
@@ -29,6 +30,7 @@ const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = 
 };
 
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
+  approve: false,
   signatures: false,
   staking_confirmations: true,
   contract_interaction: true,

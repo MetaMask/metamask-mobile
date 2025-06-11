@@ -22,7 +22,7 @@ jest.mock(
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates', () => {
   const { feeMarketEstimates } = jest.requireActual(
-    '../../../mock-data/gas-fee-controller-mock',
+    '../../../mock-data/controllers/gas-fee-controller-mock',
   );
   return {
     useGasFeeEstimates: jest.fn(() => ({
