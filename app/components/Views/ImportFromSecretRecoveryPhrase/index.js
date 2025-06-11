@@ -169,7 +169,12 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const handleSeedPhraseChange = useCallback(
-    (text, index) => {
+    (seedPhraseText, index) => {
+      const text = seedPhraseText
+        .split('\n')
+        .map((item) => item.trim())
+        .join(' ');
+
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
         // handle use pasting multiple words / whole seed phrase separated by spaces
