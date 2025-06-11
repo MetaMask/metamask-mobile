@@ -46,6 +46,7 @@ import {
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,9 +74,19 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
   const openImportSrp = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+      ).build(),
+    );
     navigate(Routes.MULTI_SRP.IMPORT);
     onBack();
-  }, [onBack, navigate]);
+  }, [onBack, navigate, trackEvent, createEventBuilder]);
+
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const createNewAccount = useCallback(async () => {
     if (hasMultipleSRPs) {
@@ -87,6 +98,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(true);
 
       await addNewHdAccount();
+      fetchAccountsWithActivity();
 
       trackEvent(
         createEventBuilder(
@@ -102,7 +114,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [hasMultipleSRPs, navigate, trackEvent, createEventBuilder, onBack]);
+  }, [
+    hasMultipleSRPs,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    onBack,
+    fetchAccountsWithActivity,
+  ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(

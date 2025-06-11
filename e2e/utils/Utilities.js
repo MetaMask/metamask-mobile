@@ -1,4 +1,5 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
+import { waitFor } from 'detox';
 
 export default class Utilities {
   /**
@@ -30,4 +31,20 @@ export default class Utilities {
   static get BlacklistURLs() {
     return this.formatForExactMatchGroup(blacklistURLs);
   }
+
+  static async waitForElementToBeEnabled(element, timeout = 3500, interval = 100) {
+    const startTime = Date.now();
+    let isEnabled = false;
+    while (Date.now() - startTime < timeout) {
+      isEnabled = await (await element).getAttributes();
+      if (isEnabled) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+    if (!isEnabled) {
+      throw new Error('Element is not enabled');
+    }
+  }
+
 }

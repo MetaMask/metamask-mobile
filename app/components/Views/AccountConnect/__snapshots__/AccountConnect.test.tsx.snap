@@ -304,6 +304,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -313,6 +314,8 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -321,6 +324,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
@@ -544,6 +548,47 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                  testID="avatar-group-container"
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -726,6 +771,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -1043,6 +1089,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -1053,12 +1100,13 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -1146,7 +1194,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -1208,7 +1256,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -1572,6 +1620,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -1581,6 +1630,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -1589,6 +1640,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
@@ -1812,6 +1864,47 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                  testID="avatar-group-container"
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -1994,6 +2087,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -2311,6 +2405,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -2321,12 +2416,13 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -2414,7 +2510,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -2476,7 +2572,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -2840,6 +2936,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   }
                 >
                   <RCTScrollView
+                    collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
@@ -2849,6 +2946,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     getItemCount={[Function]}
                     keyExtractor={[Function]}
                     onContentSizeChange={[Function]}
+                    onGestureHandlerEvent={[Function]}
+                    onGestureHandlerStateChange={[Function]}
                     onLayout={[Function]}
                     onMomentumScrollBegin={[Function]}
                     onMomentumScrollEnd={[Function]}
@@ -2857,6 +2956,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     onScrollEndDrag={[Function]}
                     removeClippedSubviews={false}
                     renderItem={[Function]}
+                    renderScrollComponent={[Function]}
                     scrollEnabled={false}
                     scrollEventThrottle={0.0001}
                     stickyHeaderIndices={[]}
@@ -3080,6 +3180,47 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 0xC4966...4a756
                               </Text>
                             </View>
+                            <View
+                              style={
+                                {
+                                  "marginLeft": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexDirection": "column",
+                                  }
+                                }
+                                testID="account-connected-item-0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "right",
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                  testID="avatar-group-container"
+                                />
+                              </View>
+                            </View>
                           </View>
                         </TouchableOpacity>
                       </View>
@@ -3262,6 +3403,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3579,6 +3721,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "flexDirection": "row",
                               }
                             }
+                            testID="avatar-group-container"
                           >
                             <View
                               style={
@@ -3589,12 +3732,13 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               testID="avatargroup-avatar-container-0"
                             >
                               <View
+                                caipChainId="eip155:1"
                                 style={
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "justifyContent": "center",
@@ -3682,7 +3826,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },
@@ -3744,7 +3888,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   [
                     [
                       {
-                        "borderRadius": 100,
+                        "borderRadius": 12,
                         "justifyContent": "center",
                         "padding": 15,
                       },

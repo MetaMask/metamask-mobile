@@ -20,7 +20,7 @@ Detox serves as our primary mobile automation framework, with most of our tests 
 #### Setup and Execution
 
 - **Test Wallet**: Requires a wallet with access to testnet and mainnet. On Bitrise CI, this wallet is created using a secret recovery phrase from environment variables. For local testing, retrieve the phrase from the `.e2e.env` file.
-- **Environment Variable**: Set `IS_TEST='true'` to enable the test environment. Refer to the `.e2e.env` file in the mobile 1Password vault for the complete list of environment variables.
+- **Environment Variable**: Set `export IS_TEST='true'` to enable the test environment. Refer to the `.js.env` file in the mobile 1Password vault for the complete list of environment variables.
 - **Warning Logs**: Warning logs may sometimes cause test failures by interfering with automation interactions. To prevent this, disable warning logs during test execution.
 
 #### Default Devices
@@ -49,19 +49,6 @@ Ensure that these devices are set up. You can change the default devices at any 
 
     ```bash
     yarn test:e2e:android:debug:build
-    ```
-
-- **Run All Tests Locally**:
-  - **iOS Debug**:
-
-    ```bash
-    yarn test:e2e:ios:debug:run
-    ```
-
-  - **Android Debug**:
-
-    ```bash
-    yarn test:e2e:android:debug:run
     ```
 
 _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
@@ -102,6 +89,19 @@ _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLO
 
     ```bash
     yarn test:e2e:android:debug:run --testNamePattern="Smoke"
+    ```
+
+- **Run All Tests Locally**:
+  - **iOS Debug**:
+
+    ```bash
+    yarn test:e2e:ios:debug:run
+    ```
+
+  - **Android Debug**:
+
+    ```bash
+    yarn test:e2e:android:debug:run
     ```
 
 ### Appium
