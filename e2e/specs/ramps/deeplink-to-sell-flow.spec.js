@@ -50,8 +50,7 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
       async () => {
         await loginToApp();
 
-        await device.sendToHome();
-        await device.launchApp({
+        await device.openURL({
           url: sellDeepLinkURL,
         });
         await Assertions.checkIfVisible(
@@ -67,7 +66,7 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
   });
 
   itif(device.getPlatform() === 'android')('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
-    const sellDeepLink = 'metamask://sell?chainId=8453';
+    const SellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
       {
@@ -81,7 +80,7 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
         await loginToApp();
         await device.sendToHome();
         await device.launchApp({
-          url: sellDeepLink,
+          url: SellDeepLink,
         });
         await Assertions.checkIfVisible(
           await SellGetStartedView.getStartedButton,

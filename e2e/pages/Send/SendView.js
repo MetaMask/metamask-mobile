@@ -55,7 +55,7 @@ class SendView {
   }
 
   async tapBackButton() {
-    await Gestures.tapAtIndex(this.backButton, 0);
+    await Gestures.TapAtIndex(this.backButton, 0);
   }
 
   async scrollToSavedAccount() {

@@ -52,7 +52,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(`${AMOUNT}`);
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });
