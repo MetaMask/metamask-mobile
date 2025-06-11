@@ -6,32 +6,32 @@ import {
 } from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
-  get confirmButton(): WebdriverIO.Element {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
   }
 
-  get bridgeTo(): WebdriverIO.Element {
+  get bridgeTo(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.BRIDGE_TO);
   }
 
-  get searchToken(): WebdriverIO.Element {
+  get searchToken(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get networkFeeLabel(): WebdriverIO.Element {
+  get networkFeeLabel(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  token(symbol: string): WebdriverIO.Element {
+  token(symbol: string): DetoxElement {
     return Matchers.getElementByID(`asset-${symbol}`);
   }
 
   async enterBridgeAmount(amount: string): Promise<void> {
-    for (let idx = 0; idx < amount.length; idx++) {
-      const element = Matchers.getElementByText(amount[idx]);
-      await Gestures.waitAndTap(element);
-    }
+  for (const digit of amount) {
+    const button = Matchers.getElementByText(digit);
+    await Gestures.waitAndTap(button);
   }
+}
 
   async tapSearchToken(): Promise<void> {
     await Gestures.waitAndTap(this.searchToken);
@@ -42,17 +42,17 @@ class QuoteView {
   }
 
   async selectNetwork(network: string): Promise<void> {
-    const element = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(element);
+    const networkElement = Matchers.getElementByText(network);
+    await Gestures.waitAndTap(networkElement);
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
+    await Gestures.typeTextAndHideKeyboard(this.searchToken as Promise<Detox.IndexableNativeElement>, symbol);
   }
 
   async selectToken(symbol: string): Promise<void> {
-    const element = await this.token(symbol);
-    await Gestures.waitAndTap(element);
+    const token = this.token(symbol);
+    await Gestures.waitAndTap(token);
   }
 
   async tapConfirm(): Promise<void> {
