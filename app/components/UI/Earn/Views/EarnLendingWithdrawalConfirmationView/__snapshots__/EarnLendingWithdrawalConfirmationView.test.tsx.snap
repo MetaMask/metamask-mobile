@@ -924,7 +924,9 @@ exports[`EarnLendingWithdrawalConfirmationView renders correctly 1`] = `
                           "lineHeight": 24,
                         }
                       }
-                    />
+                    >
+                      Linea
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -1020,7 +1022,7 @@ exports[`EarnLendingWithdrawalConfirmationView renders correctly 1`] = `
         "paddingTop": 16,
       }
     }
-    testID="confirmationFooter"
+    testID="earn-lending-confirmation-footer"
   >
     <View
       style={
@@ -1162,6 +1164,7 @@ exports[`EarnLendingWithdrawalConfirmationView renders correctly 1`] = `
               "textDecorationLine": "underline",
             }
           }
+          testID="earn-lending-confirmation-footer-terms-of-use-button"
         >
           Terms of Use
         </Text>
@@ -1205,6 +1208,7 @@ exports[`EarnLendingWithdrawalConfirmationView renders correctly 1`] = `
               "textDecorationLine": "underline",
             }
           }
+          testID="earn-lending-confirmation-footer-risk-disclosure-button"
         >
           Risk Disclosure
         </Text>

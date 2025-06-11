@@ -19,7 +19,7 @@ import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../utils/tempLending';
 import {
   CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
-  CONFIRMATION_FOOTER_TEST_IDS,
+  CONFIRMATION_FOOTER_TEST_ID,
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
@@ -250,7 +250,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     // Deposit Receive Section
     expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
     // Footer
-    expect(getByTestId(CONFIRMATION_FOOTER_TEST_IDS)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeDefined();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
     ).toBeDefined();

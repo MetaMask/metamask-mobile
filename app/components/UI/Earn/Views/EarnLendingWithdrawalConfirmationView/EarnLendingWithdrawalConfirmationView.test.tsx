@@ -15,8 +15,29 @@ import { TokenI } from '../../../Tokens/types';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+  CONFIRMATION_FOOTER_LINK_TEST_IDS,
+} from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
+import { act, fireEvent } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
+import { Linking } from 'react-native';
+import AppConstants from '../../../../../core/AppConstants';
 
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Linking: {
+      ...actual.Linking,
+      openUrl: jest.fn(),
+    },
+  };
+});
+
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -25,39 +46,37 @@ jest.mock('@react-navigation/native', () => {
     useRoute: jest.fn(),
     useNavigation: () => ({
       navigate: jest.fn(),
-      goBack: jest.fn(),
+      goBack: mockGoBack,
       setOptions: jest.fn(),
     }),
   };
 });
 
-const mockLineaMainnetNetworkConfig = {
-  blockExplorerUrls: [],
-  chainId: '0xe708',
-  defaultRpcEndpointIndex: 0,
-  name: 'Linea',
-  nativeCurrency: 'ETH',
-  rpcEndpoints: [
-    {
-      failoverUrls: [],
-      networkClientId: 'linea-mainnet',
-      type: 'infura',
-      url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-    },
-  ],
-};
-
-const mockLineaMainnetClientId = 'linea-mainnet';
-
 jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
   context: {
     NetworkController: {
-      getNetworkConfigurationByChainId: jest
-        .fn()
-        .mockReturnValue(mockLineaMainnetNetworkConfig),
-      findNetworkClientIdByChainId: jest
-        .fn()
-        .mockReturnValue(mockLineaMainnetClientId),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        blockExplorerUrls: [],
+        chainId: '0xe708',
+        defaultRpcEndpointIndex: 0,
+        name: 'Linea',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            failoverUrls: [],
+            networkClientId: 'linea-mainnet',
+            type: 'infura',
+            url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+      }),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('linea-mainnet'),
+    },
+    EarnController: {
+      executeLendingWithdraw: jest.fn(),
     },
   },
 }));
@@ -87,15 +106,13 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     estimatedAnnualRewardsFormatted: '$0.08',
     estimatedAnnualRewardsTokenFormatted: '0.07604 AUSDC',
     estimatedAnnualRewardsTokenMinimalUnit: '76036',
-    market: [
-      {
-        protocol: 'aave',
-        underlying: {
-          address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
-          chainId: 59144,
-        },
+    market: {
+      protocol: 'aave',
+      underlying: {
+        address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+        chainId: 59144,
       },
-    ] as unknown as LendingMarketWithPosition,
+    } as LendingMarketWithPosition,
     type: EARN_EXPERIENCES.STABLECOIN_LENDING,
   };
 
@@ -154,8 +171,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
-
     // Assert Navbar was updated
     expect(getStakingNavbarSpy).toHaveBeenCalledWith(
       strings('earn.withdraw'),
@@ -166,14 +181,129 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         backgroundColor: '#f3f5f9',
       },
     );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it.todo('navigates back to input screen when cancel button is pressed');
-  it.todo('navigates back to input screen when back arrow is pressed');
-  it.todo(
-    'executed lending withdrawal transaction when confirm button is pressed',
-  );
-  it.todo('Redirects to terms of use when footer terms of use is pressed');
-  it.todo('Redirect to risk disclosure when footer risk disclosure is pressed');
-  it.todo('display transaction submission toast');
+  it('navigates back when cancel button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerCancelButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerCancelButton);
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('executed lending withdrawal transaction when confirm button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '1000000',
+      gasOptions: {},
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+
+    // Assert creation of transaction listeners
+    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenNthCalledWith(
+      1,
+      'TransactionController:transactionDropped',
+      expect.any(Function),
+      expect.any(Function),
+    );
+
+    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenNthCalledWith(
+      2,
+      'TransactionController:transactionRejected',
+      expect.any(Function),
+      expect.any(Function),
+    );
+
+    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenNthCalledWith(
+      3,
+      'TransactionController:transactionFailed',
+      expect.any(Function),
+      expect.any(Function),
+    );
+
+    expect(Engine.controllerMessenger.subscribeOnceIf).toHaveBeenNthCalledWith(
+      4,
+      'TransactionController:transactionSubmitted',
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
+
+  it('Redirects to terms of use when footer terms of use is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerTermsOfUseLink = getByTestId(
+      CONFIRMATION_FOOTER_LINK_TEST_IDS.TERMS_OF_USE_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerTermsOfUseLink);
+    });
+
+    expect(Linking.openURL).toHaveBeenLastCalledWith(
+      AppConstants.URLS.TERMS_OF_USE,
+    );
+  });
+
+  it('Redirect to risk disclosure when footer risk disclosure is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerRiskDisclosureButton = getByTestId(
+      CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(footerRiskDisclosureButton);
+    });
+
+    expect(Linking.openURL).toHaveBeenLastCalledWith(
+      AppConstants.URLS.STAKING_RISK_DISCLOSURE,
+    );
+  });
 });

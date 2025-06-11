@@ -213,7 +213,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         },
       });
 
-      const transactionId = txRes.transactionMeta.id;
+      const transactionId = txRes?.transactionMeta?.id;
 
       // Transaction Event Listeners
       Engine.controllerMessenger.subscribeOnceIf(

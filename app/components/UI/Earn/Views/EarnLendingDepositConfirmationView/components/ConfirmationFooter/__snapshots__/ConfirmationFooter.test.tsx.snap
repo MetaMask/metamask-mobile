@@ -8,7 +8,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
       "paddingTop": 32,
     }
   }
-  testID="confirmationFooter"
+  testID="earn-lending-confirmation-footer"
 >
   <View>
     <View>
@@ -356,6 +356,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "textDecorationLine": "underline",
           }
         }
+        testID="earn-lending-confirmation-footer-terms-of-use-button"
       >
         Terms of Use
       </Text>
@@ -399,6 +400,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "textDecorationLine": "underline",
           }
         }
+        testID="earn-lending-confirmation-footer-risk-disclosure-button"
       >
         Risk Disclosure
       </Text>
