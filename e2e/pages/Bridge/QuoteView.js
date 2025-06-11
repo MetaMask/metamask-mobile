@@ -6,8 +6,8 @@ import {
 } from '../../selectors/Bridge/QuoteView.selectors';
 
 class QuoteView {
-  get continueButton() {
-    return Matchers.getElementByText(QuoteViewSelectorText.CONTINUE);
+  get confirmButton() {
+    return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
   }
 
   get bridgeTo() {
@@ -18,8 +18,8 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get quotesLabel() {
-    return Matchers.getElementByID(QuoteViewSelectorText.QUOTES);
+  get networkFeeLabel() {
+    return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
   token(symbol) {
@@ -56,8 +56,8 @@ class QuoteView {
     await Gestures.waitAndTap(element);
   }
 
-  async tapContinue() {
-    await Gestures.waitAndTap(this.continueButton);
+  async tapConfirm() {
+    await Gestures.waitAndTap(this.confirmButton);
   }
 }
 
