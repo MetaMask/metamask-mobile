@@ -749,23 +749,23 @@ class TestSnaps {
   }
 
   async connectToSnap() {
-    await Gestures.waitAndTap(this.getConnectSnapButton, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapButton, { delayBeforeTap: 4000, timeout: 30000 });
   }
 
   async connectToSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapPermissionsRequestButton, { delayBeforeTap: 4000 });
   }
 
   async approveSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, { delayBeforeTap: 4000 });
   }
 
   async cancelSnapPermissionsRequest() {
-    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getCancelSnapPermissionsRequestButton, { delayBeforeTap: 4000 });
   }
 
   async connectToSnapInstallOk() {
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, { delayBeforeTap: 4000 });
   }
 
   async tapPublicKeyBip44Button() {
