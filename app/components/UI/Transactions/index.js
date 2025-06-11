@@ -997,6 +997,8 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
+export { Transactions as UnconnectedTransactions };
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
