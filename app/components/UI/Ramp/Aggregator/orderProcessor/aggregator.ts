@@ -7,7 +7,7 @@ import {
 import Logger from '../../../../../util/Logger';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../core/AppConstants';
-import { ProcessorOptions } from '../index';
+import { ProcessorOptions } from '../../index';
 import { isSellFiatOrder } from '../utils';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;

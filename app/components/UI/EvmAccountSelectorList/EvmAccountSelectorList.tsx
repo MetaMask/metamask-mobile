@@ -2,12 +2,12 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import {
   Alert,
-  ImageSourcePropType,
   InteractionManager,
   ListRenderItem,
   View,
   ViewStyle,
 } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import { FlatList } from 'react-native-gesture-handler';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,6 @@ import { useStyles } from '../../../component-library/hooks';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   areAddressesEqual,
   formatAddress,
@@ -46,9 +45,9 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
+import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { parseCaipAccountId } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../util/networks';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -93,6 +92,9 @@ const EvmAccountSelectorList = ({
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
+  const useMultichainAccountDesign = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return null;
@@ -105,10 +107,9 @@ const EvmAccountSelectorList = ({
 
   const renderAccountBalances = useCallback(
     (
-      { fiatBalance, tokens }: Assets,
-      address: string,
+      { fiatBalance }: Assets,
+      partialAccount: { address: string; scopes: CaipChainId[] },
       isLoadingAccount: boolean,
-      networkImage: ImageSourcePropType
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
@@ -116,7 +117,7 @@ const EvmAccountSelectorList = ({
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${partialAccount.address}`}
         >
           {isLoadingAccount ? (
             <Skeleton width={60} height={24} />
@@ -130,17 +131,7 @@ const EvmAccountSelectorList = ({
                 {fiatBalanceAmount}
               </SensitiveText>
 
-              <AvatarGroup
-                avatarPropsList={tokens ? tokens.map((tokenObj) => ({
-                  ...tokenObj,
-                  variant: AvatarVariant.Token,
-                })) : [
-                  {
-                    variant: AvatarVariant.Network,
-                    imageSource: networkImage,
-                  },
-                ]}
-              />
+              <AccountNetworkIndicator partialAccount={partialAccount} />
             </>
           )}
         </View>
@@ -240,16 +231,18 @@ const EvmAccountSelectorList = ({
         type,
         isSelected,
         balanceError,
+        scopes,
         isLoadingAccount,
-        caipAccountId,
       },
       index,
     }) => {
+      const partialAccount = {
+        address,
+        scopes,
+      };
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
-      const chainId = parseCaipAccountId(caipAccountId).chainId;
-      const networkImage = getNetworkImageSource({ chainId });
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
@@ -291,6 +284,18 @@ const EvmAccountSelectorList = ({
       };
 
       const handleButtonClick = () => {
+        if (useMultichainAccountDesign) {
+          const account =
+            Engine.context.AccountsController.getAccountByAddress(address);
+
+          if (!account) return;
+
+          navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+            account,
+          });
+          return;
+        }
+
         onNavigateToAccountActions(address);
       };
 
@@ -327,23 +332,25 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, address, isLoadingAccount, networkImage))}
+              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
         </Cell>
       );
     },
     [
-      onNavigateToAccountActions,
-      accountAvatarType,
-      onSelectAccount,
-      renderAccountBalances,
       ensByAccountAddress,
       isLoading,
-      selectedAddressesLookup,
+      isSelectionDisabled,
       isMultiSelect,
       isSelectWithoutMenu,
+      selectedAddressesLookup,
+      accountAvatarType,
       renderRightAccessory,
-      isSelectionDisabled,
+      renderAccountBalances,
       onLongPress,
+      onSelectAccount,
+      useMultichainAccountDesign,
+      onNavigateToAccountActions,
+      navigate,
       styles.titleText,
     ],
   );
