@@ -77,7 +77,7 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
 
   const isApproveEnabled = getFeatureFlagValue(
     process.env.FEATURE_FLAG_REDESIGNED_APPROVE,
-    remoteValues?.approve !== false,
+    false,
   );
 
   return {
