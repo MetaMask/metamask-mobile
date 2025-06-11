@@ -8,7 +8,6 @@ import React, {
 import {
   View,
   TextInput,
-  FlatList,
   LayoutChangeEvent,
   NativeSyntheticEvent,
   TextInputKeyPressEventData,
@@ -17,25 +16,23 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { isValidMnemonic } from '../../../util/validators';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
-import { SRP_LENGTHS, NUM_COLUMNS, SPACE_CHAR } from './constant';
+import { SRP_LENGTHS, SPACE_CHAR } from './constant';
+import {
+  SeedPhraseInput,
+  SeedPhraseGrid,
+  SeedPhraseActions,
+} from './components';
 import createStyles from './styles';
 
 interface ValidationState {
@@ -188,8 +185,8 @@ const SeedPhrase: React.FC<SeedPhraseProps> = ({
 
   const validateSeedPhrase = useCallback((): boolean => {
     const phrase = seedPhrase.filter((item) => item !== '').join(' ');
-    const seedPhraseLength = seedPhrase.length;
-    if (!SRP_LENGTHS.includes(seedPhraseLength)) {
+    const currentSeedPhraseLength = seedPhrase.length;
+    if (!SRP_LENGTHS.includes(currentSeedPhraseLength)) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -291,131 +288,42 @@ const SeedPhrase: React.FC<SeedPhraseProps> = ({
       <View style={styles.seedPhraseContainer}>
         <View style={styles.seedPhraseInnerContainer}>
           {seedPhrase.length <= 1 ? (
-            <TextInput
+            <SeedPhraseInput
               ref={(ref) => {
                 seedPhraseInputRefs.current[0] = ref;
               }}
-              textAlignVertical="top"
-              placeholder={strings('import_from_seed.srp_placeholder')}
               value={seedPhrase?.[0] || ''}
               onChangeText={(text) => handleSeedPhraseChange(text, 0)}
-              style={styles.seedPhraseDefaultInput}
-              placeholderTextColor={colors.text.alternative}
-              multiline
-              autoFocus
               onKeyPress={(e) => handleKeyPress(e, 0)}
-              autoComplete="off"
-              blurOnSubmit={false}
-              autoCapitalize="none"
-              testID={testID || ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+              testID={testID}
             />
           ) : (
-            <View
-              style={[styles.seedPhraseInputContainer]}
+            <SeedPhraseGrid
+              seedPhrase={seedPhrase}
+              containerWidth={containerWidth}
+              errorWordIndexes={errorWordIndexes}
+              canShowSeedPhraseWord={canShowSeedPhraseWord}
               onLayout={handleLayout}
-            >
-              <FlatList
-                data={seedPhrase}
-                numColumns={NUM_COLUMNS}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View
-                    style={[
-                      {
-                        width: containerWidth / NUM_COLUMNS,
-                      },
-                      styles.inputPadding,
-                    ]}
-                  >
-                    <TextField
-                      ref={(ref) => {
-                        seedPhraseInputRefs.current[index] = ref;
-                      }}
-                      startAccessory={
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Alternative}
-                          style={styles.inputIndex}
-                        >
-                          {index + 1}.
-                        </Text>
-                      }
-                      value={item}
-                      secureTextEntry={!canShowSeedPhraseWord(index)}
-                      onFocus={(e) => {
-                        if (e?.target && e?.currentTarget?.setNativeProps) {
-                          const target = e.target as any;
-                          e?.currentTarget?.setNativeProps({
-                            selection: {
-                              start: target?.value?.length ?? 0,
-                              end: target?.value?.length ?? 0,
-                            },
-                          });
-                        }
-                        handleOnFocus(index);
-                      }}
-                      onChangeText={(text) =>
-                        handleSeedPhraseChange(text, index)
-                      }
-                      placeholderTextColor={colors.text.muted}
-                      onSubmitEditing={(e) => {
-                        // Create a synthetic key press event for consistency
-                        const syntheticEvent = {
-                          nativeEvent: { key: 'Enter' },
-                        } as NativeSyntheticEvent<TextInputKeyPressEventData>;
-                        handleKeyPress(syntheticEvent, index, true);
-                      }}
-                      onKeyPress={(e) => handleKeyPress(e, index)}
-                      size={TextFieldSize.Md}
-                      style={[styles.input]}
-                      autoComplete="off"
-                      textAlignVertical="center"
-                      showSoftInputOnFocus
-                      isError={errorWordIndexes[index]}
-                      autoCapitalize="none"
-                      numberOfLines={1}
-                      autoFocus={index === seedPhrase.length - 1}
-                      testID={`${
-                        testID ||
-                        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
-                      }_${index}`}
-                    />
-                  </View>
-                )}
-              />
-            </View>
+              onFocus={handleOnFocus}
+              onChangeText={handleSeedPhraseChange}
+              onKeyPress={handleKeyPress}
+              seedPhraseInputRefs={seedPhraseInputRefs}
+              testID={testID}
+            />
           )}
         </View>
-        <View style={styles.seedPhraseContainerCta}>
-          <Button
-            variant={ButtonVariants.Link}
-            style={styles.pasteButton}
-            onPress={toggleShowAllSeedPhrase}
-            label={
-              showAllSeedPhrase
-                ? strings('import_from_seed.hide_all')
-                : strings('import_from_seed.show_all')
+        <SeedPhraseActions
+          seedPhraseLength={seedPhrase.length}
+          showAllSeedPhrase={showAllSeedPhrase}
+          onToggleShowAll={toggleShowAllSeedPhrase}
+          onClearOrPaste={() => {
+            if (seedPhrase.length > 1) {
+              handleClear();
+            } else {
+              handlePaste(seedPhraseInputFocusedIndex);
             }
-            width={ButtonWidthTypes.Full}
-          />
-          <Button
-            label={
-              seedPhrase.length > 1
-                ? strings('import_from_seed.clear_all')
-                : strings('import_from_seed.paste')
-            }
-            variant={ButtonVariants.Link}
-            style={styles.pasteButton}
-            onPress={() => {
-              if (seedPhrase.length > 1) {
-                handleClear();
-              } else {
-                handlePaste(seedPhraseInputFocusedIndex);
-              }
-            }}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
+          }}
+        />
       </View>
       {error !== '' && (
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Error}>
