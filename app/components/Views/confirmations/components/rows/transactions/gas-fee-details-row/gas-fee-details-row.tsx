@@ -91,8 +91,6 @@ const GasFeesDetailsRow = ({ disableUpdate = false }) => {
     });
   };
 
-  console.log('transactionMetadata', JSON.stringify(transactionMetadata, null, 2));
-
   return (
     <>
       <InfoSection testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>

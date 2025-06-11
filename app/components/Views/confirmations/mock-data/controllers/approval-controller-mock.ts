@@ -1,7 +1,6 @@
 import { merge } from 'lodash';
 
 const approvalIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
 
 const baseApprovalMock = {
   expectsResult: true,
