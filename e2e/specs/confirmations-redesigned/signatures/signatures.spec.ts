@@ -15,7 +15,7 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents.js';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { CustomNetworks } from '../../../resources/networks.e2e';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
