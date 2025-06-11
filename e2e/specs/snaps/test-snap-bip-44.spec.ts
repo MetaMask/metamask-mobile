@@ -53,7 +53,9 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
     // Connect to BIP-44 snap
     await TestSnaps.connectToBip44Snap();
     await TestHelpers.delay(5000);
-    await TestSnaps.connectToSnap();
+    // await TestSnaps.connectToSnap();
+    await element(by.label('Connect')).tap();
+
     // await Assertions.checkIfTextIsDisplayed(BIP_44_SNAP_NAME);
     // await TestSnaps.connectToSnapPermissionsRequest();
     // await TestSnaps.approveSnapPermissionsRequest();
