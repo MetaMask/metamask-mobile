@@ -1,6 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import {
-  AnyAlgorithm,
+  CryptoKey,
   SubtleAlgorithm,
 } from 'react-native-quick-crypto/lib/typescript/src/keys';
 
