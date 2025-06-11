@@ -743,6 +743,7 @@ class TestSnaps {
 
   async tapButton(elementId) {
     await Gestures.scrollToWebViewPort(elementId);
+    await TestHelpers.delay(1000);
     await Gestures.tapWebElement(elementId);
   }
 

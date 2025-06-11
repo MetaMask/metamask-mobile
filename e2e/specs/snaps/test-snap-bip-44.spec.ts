@@ -51,6 +51,7 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
   it('should connect to BIP-44 snap', async ()=> {
     // Connect to BIP-44 snap
     await TestSnaps.connectToBip44Snap();
+    await TestHelpers.delay(1000);
     await TestSnaps.connectToSnap();
     await Assertions.checkIfTextIsDisplayed(BIP_44_SNAP_NAME);
     await TestSnaps.connectToSnapPermissionsRequest();
