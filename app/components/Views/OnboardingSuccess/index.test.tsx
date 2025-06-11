@@ -48,9 +48,7 @@ const mockUseSelector = jest.fn();
 const mockUseDispatch = jest.fn();
 const mockDispatch = jest.fn();
 mockUseDispatch.mockImplementation(() => mockDispatch);
-mockUseSelector.mockImplementation((selector) => {
-  if (selector === selectProviderConfig) return mockProviderConfig;
-});
+
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -66,6 +64,10 @@ jest.mock(
 const mockProviderConfig = jest.fn().mockReturnValue({
   type: 'mainnet',
   chainId: '1',
+});
+
+mockUseSelector.mockImplementation((selector) => {
+  if (selector === selectProviderConfig) return mockProviderConfig;
 });
 
 describe('OnboardingSuccessComponent', () => {
