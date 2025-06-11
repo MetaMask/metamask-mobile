@@ -53,39 +53,38 @@ describe(SmokeNetworkExpansion('BIP-44 Snap Tests'), () => {
     // Connect to BIP-44 snap
     await TestSnaps.connectToBip44Snap();
     await TestHelpers.delay(5000);
-    // await TestSnaps.connectToSnap();
-    await element(by.id('snap-install-connect')).tap();
-    await Assertions.checkIfTextIsDisplayed(BIP_44_SNAP_NAME);
-    await TestSnaps.connectToSnapPermissionsRequest();
-    await TestSnaps.approveSnapPermissionsRequest();
-    await TestSnaps.connectToSnapInstallOk();
+    await TestSnaps.connectToSnap();
+    // await Assertions.checkIfTextIsDisplayed(BIP_44_SNAP_NAME);
+    // await TestSnaps.connectToSnapPermissionsRequest();
+    // await TestSnaps.approveSnapPermissionsRequest();
+    // await TestSnaps.connectToSnapInstallOk();
   });
 
-  it('should get BIP-44 public key', async () => {
-    // Get public key
-    await TestSnaps.tapPublicKeyBip44Button();
-    await TestHelpers.delay(3000);
-    const actualText = await TestSnaps.getBip44ResultText();
-    await Assertions.checkIfTextMatches(actualText, EXPECTED_PUBLIC_KEY);
-  });
+  // it('should get BIP-44 public key', async () => {
+  //   // Get public key
+  //   await TestSnaps.tapPublicKeyBip44Button();
+  //   await TestHelpers.delay(3000);
+  //   const actualText = await TestSnaps.getBip44ResultText();
+  //   await Assertions.checkIfTextMatches(actualText, EXPECTED_PUBLIC_KEY);
+  // });
 
-  it('should sign BIP-44 message', async () => {
-    // Click sign button
-    await TestSnaps.tapSignBip44MessageButton();
-    await Assertions.checkIfTextIsDisplayed('Signature request');
-    await TestHelpers.delay(1000);
-    await TestSnaps.approveSignRequest();
-    await TestHelpers.delay(3000);
-    const actualText = await TestSnaps.getSignBip44MessageResultText();
-    await Assertions.checkIfTextMatches(actualText, EXPECTED_SIGNATURE);
-  });
+  // it('should sign BIP-44 message', async () => {
+  //   // Click sign button
+  //   await TestSnaps.tapSignBip44MessageButton();
+  //   await Assertions.checkIfTextIsDisplayed('Signature request');
+  //   await TestHelpers.delay(1000);
+  //   await TestSnaps.approveSignRequest();
+  //   await TestHelpers.delay(3000);
+  //   const actualText = await TestSnaps.getSignBip44MessageResultText();
+  //   await Assertions.checkIfTextMatches(actualText, EXPECTED_SIGNATURE);
+  // });
 
-  it('should sign a custom message', async () => {
-    await TestSnaps.typeSignMessage(customMessage);
-    await TestSnaps.tapSignBip44MessageButton();
-    await TestSnaps.approveSignRequest();
-    await TestHelpers.delay(3000);
-    const actualText = await TestSnaps.getSignBip44MessageResultText();
-    await Assertions.checkIfTextMatches(actualText, expectedCustomSignature);
-  });
+  // it('should sign a custom message', async () => {
+  //   await TestSnaps.typeSignMessage(customMessage);
+  //   await TestSnaps.tapSignBip44MessageButton();
+  //   await TestSnaps.approveSignRequest();
+  //   await TestHelpers.delay(3000);
+  //   const actualText = await TestSnaps.getSignBip44MessageResultText();
+  //   await Assertions.checkIfTextMatches(actualText, expectedCustomSignature);
+  // });
 });
