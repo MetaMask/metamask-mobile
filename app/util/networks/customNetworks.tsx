@@ -265,6 +265,7 @@ export const NETWORK_CHAIN_ID: {
   readonly KATANA: '0xb67d2';
   readonly SOPHON: '0xc3b8';
   readonly SOPHON_TESTNET: '0x1fa72e78';
+  readonly BERACHAIN: '0x138de';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -285,6 +286,7 @@ export const NETWORK_CHAIN_ID: {
   KATANA: '0xb67d2',
   SOPHON: '0xc3b8',
   SOPHON_TESTNET: '0x1fa72e78',
+  BERACHAIN: '0x138de',
   ...CHAIN_IDS,
 };
 
@@ -310,4 +312,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
   [NETWORK_CHAIN_ID.SOPHON]: require('../../images/sophon.png'),
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: require('../../images/sophon-testnet.png'),
+  [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
 };
