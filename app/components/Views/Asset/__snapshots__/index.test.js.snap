@@ -408,7 +408,14 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -535,7 +542,12 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -1971,7 +1983,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -1979,13 +1990,12 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -2428,7 +2438,14 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -2555,7 +2572,12 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -3991,7 +4013,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -3999,13 +4020,12 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -4448,7 +4468,14 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -4575,7 +4602,12 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -6052,7 +6084,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -6060,13 +6091,12 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -6509,7 +6539,14 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -6636,7 +6673,12 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -8072,7 +8114,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -8080,13 +8121,12 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -8529,7 +8569,14 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -8656,7 +8703,12 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -10092,7 +10144,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -10100,13 +10151,12 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -10549,7 +10599,14 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -10676,7 +10733,12 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -12153,7 +12215,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -12161,13 +12222,12 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -13041,7 +13101,14 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -13168,7 +13235,12 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -14604,7 +14676,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -14612,13 +14683,12 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
@@ -15061,7 +15131,14 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                         >
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
-                            ListFooterComponent={[Function]}
+                            ListFooterComponent={
+                              <MultichainTransactionsFooter
+                                hasTransactions={false}
+                                onViewMore={[Function]}
+                                showDisclaimer={true}
+                                url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                              />
+                            }
                             ListHeaderComponent={
                               <React.Fragment>
                                 <AssetOverview
@@ -15188,7 +15265,12 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 },
                                 "props": {
                                   "ListEmptyComponent": [Function],
-                                  "ListFooterComponent": [Function],
+                                  "ListFooterComponent": <MultichainTransactionsFooter
+                                    hasTransactions={false}
+                                    onViewMore={[Function]}
+                                    showDisclaimer={true}
+                                    url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
+                                  />,
                                   "ListHeaderComponent": <React.Fragment>
                                     <AssetOverview
                                       asset={
@@ -16624,7 +16706,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                       style={
                                         {
                                           "padding": 16,
-                                          "paddingTop": 8,
                                         }
                                       }
                                     >
@@ -16632,13 +16713,12 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#9ca1af",
+                                            "color": "#121314",
                                             "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 12,
+                                            "fontSize": 16,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
-                                            "textAlign": "center",
                                           }
                                         }
                                       >
