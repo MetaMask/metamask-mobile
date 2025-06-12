@@ -6,23 +6,16 @@ import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { useDepositSDK } from '../../sdk';
 import {
+  BuyQuote,
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
 
 const EMAIL = 'test@email.com';
 
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-const mockQuote: MockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-};
+const mockQuote = {
+  quoteId: 'mock-quote-id',
+} as BuyQuote;
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
@@ -146,6 +139,8 @@ describe('OtpCode Component', () => {
       isAuthenticated: false,
       checkExistingToken: jest.fn(),
       clearAuthToken: jest.fn(),
+      getStarted: true,
+      setGetStarted: jest.fn(),
     });
 
     const { getByTestId } = render(OtpCode);

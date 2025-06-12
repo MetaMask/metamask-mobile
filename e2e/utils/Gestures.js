@@ -1,4 +1,5 @@
 import { waitFor } from 'detox';
+import Utilities from './Utilities';
 
 /**
  * Class for handling user actions (Gestures)
@@ -54,13 +55,15 @@ class Gestures {
    */
   static async waitAndTap(element, options = {}) {
     const { timeout = 15000, delayBeforeTap = 0, skipVisibilityCheck = false } = options;
+    const elementToTap = await element;
     if (!skipVisibilityCheck) {
-      await waitFor(await element).toBeVisible().withTimeout(timeout);
+      await waitFor(elementToTap).toBeVisible().withTimeout(timeout);
     }
     if (delayBeforeTap > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayBeforeTap)); // in some cases the element is visible but not fully interactive yet.
     }
-    await (await element).tap();
+    await Utilities.waitForElementToBeEnabled(elementToTap);
+    await elementToTap.tap();
   }
 
   /**
