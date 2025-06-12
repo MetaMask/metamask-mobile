@@ -7,11 +7,11 @@ import mockTestnetImage from '../../../../images/linea-testnet-logo.png';
 import {
   selectNetworkImageSource,
   selectNetworkName,
-} from '../../../../selectors/networkInfos';
+} from '../../../../../selectors/networkInfos';
 import {
   selectChainId,
   selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
+} from '../../../../../selectors/networkController';
 import {ImageSourcePropType} from 'react-native';
 import {Hex} from '@metamask/utils';
 

@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 // Mock the Engine and AddressBookController
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {

@@ -12,8 +12,8 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 
 const mockSelectAddressBookByChain = jest.fn().mockReturnValue([]);
 
-jest.mock('../../../../selectors/addressBookController', () => ({
-    ...jest.requireActual('../../../../selectors/addressBookController'),
+jest.mock('../../../../../selectors/addressBookController', () => ({
+    ...jest.requireActual('../../../../../selectors/addressBookController'),
     selectAddressBookByChain: () => mockSelectAddressBookByChain(),
 }));
 
@@ -57,8 +57,8 @@ describe('SamplePetNamesList', () => {
         await waitFor(() => {
             expect(getByText('Alice')).toBeTruthy();
             expect(getByText('Bob')).toBeTruthy();
-            expect(getByText('0xE191...2781')).toBeTruthy();
-            expect(getByText('0x2a8E...7886')).toBeTruthy();
+            expect(getByText('0xE191c...F2781')).toBeTruthy();
+            expect(getByText('0x2a8EB...77886')).toBeTruthy();
         });
     });
 });

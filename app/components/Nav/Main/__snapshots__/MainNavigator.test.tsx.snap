@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainNavigator render matches snapshot 1`] = `
+exports[`MainNavigator renders the navigation stack with all screens 1`] = `
 <Navigator
   initialRouteName="Home"
   mode="modal"
