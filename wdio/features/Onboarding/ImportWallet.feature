@@ -7,13 +7,13 @@ Feature: Onboarding Import Wallet
   Scenario: Get Started
     Given the Welcome Screen is displayed
     When I tap "Get started"
+    Then Terms of Use is displayed
+    When I agree to terms
+    Then Terms of Use is not displayed
     Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then "Help us improve MetaMask" is displayed
     And On Wallet Setup Screen I tap "Agree"
-    Then Terms of Use is displayed
-    When I agree to terms
-    Then Terms of Use is not displayed
     And "Import from Secret Recovery Phrase" is displayed
 
   Scenario Outline: Password Strength
