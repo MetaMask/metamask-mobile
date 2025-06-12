@@ -18,6 +18,10 @@ export const TEST_SNAPS_URL = 'https://metamask.github.io/snaps/test-snaps/2.23.
 
 
 class TestSnaps {
+  get container() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+  }
+
   // Connection button getters
   get getConnectBip32Button() {
     return Matchers.getElementByWebID(
@@ -734,6 +738,7 @@ class TestSnaps {
   }
 
   async typeSignMessage(message) {
+    await Gestures.swipe(this.container, 'up', 'slow', 0.5);
     await Gestures.typeInWebElement(this.getMessageBip44Input, message);
   }
 
@@ -744,7 +749,6 @@ class TestSnaps {
 
   async tapButton(elementId) {
     await Gestures.scrollToWebViewPort(elementId);
-    await TestHelpers.delay(1000);
     await Gestures.tapWebElement(elementId);
   }
 
