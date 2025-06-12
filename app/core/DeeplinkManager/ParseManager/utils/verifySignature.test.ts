@@ -1,4 +1,5 @@
 import QuickCrypto from 'react-native-quick-crypto';
+import { CryptoKey } from 'react-native-quick-crypto/lib/typescript/src/keys';
 import {
   verifyDeeplinkSignature,
   hasSignature,
@@ -7,7 +8,6 @@ import {
   INVALID,
 } from './verifySignature';
 
-// Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -19,13 +19,17 @@ jest.mock('react-native-quick-crypto', () => ({
 
 const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
   typeof QuickCrypto.webcrypto.subtle
->;
+> & {
+  verify: jest.Mock<Promise<boolean>>;
+};
 
 describe('verifySignature', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset console methods
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    jest.spyOn(console, 'error').mockImplementation(() => {
+      // Mock implementation to suppress console output in tests
+    });
   });
 
   afterEach(() => {
@@ -52,7 +56,6 @@ describe('verifySignature', () => {
     });
 
     it('returns true when URL has empty sig parameter', () => {
-      // hasSignature only checks if the parameter exists, not if it has a value
       const url = new URL('https://example.com?sig=');
       expect(hasSignature(url)).toBe(true);
     });
@@ -66,11 +69,16 @@ describe('verifySignature', () => {
   });
 
   describe('verifyDeeplinkSignature', () => {
-    const mockKey = { type: 'public' };
+    const mockKey = {
+      type: 'public',
+      extractable: false,
+      algorithm: { name: 'ECDSA', namedCurve: 'P-256' },
+      usages: ['verify'],
+    } as unknown as CryptoKey;
     const mockAlgorithm = { name: 'ECDSA', hash: 'SHA-256' };
 
     beforeEach(() => {
-      mockSubtle.importKey.mockResolvedValue(mockKey as any);
+      mockSubtle.importKey.mockResolvedValue(mockKey);
     });
 
     it('returns MISSING when sig parameter is not present', async () => {
@@ -86,7 +94,6 @@ describe('verifySignature', () => {
     });
 
     it('returns INVALID when signature has wrong length', async () => {
-      // Create a signature that's not 64 bytes (base64 encoded)
       const shortSignature = Buffer.from('short').toString('base64');
       const url = new URL(`https://example.com?sig=${shortSignature}`);
 
@@ -101,7 +108,6 @@ describe('verifySignature', () => {
     });
 
     it('returns VALID when signature verification succeeds', async () => {
-      // Create a 64-byte signature (base64 encoded)
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
         'base64',
       );
@@ -109,7 +115,7 @@ describe('verifySignature', () => {
         `https://example.com?sig=${validSignature}&param1=value1`,
       );
 
-      mockSubtle.verify.mockResolvedValue(true as any);
+      mockSubtle.verify.mockResolvedValue(true);
 
       const result = await verifyDeeplinkSignature(url);
 
@@ -144,7 +150,7 @@ describe('verifySignature', () => {
         `https://example.com?sig=${validSignature}&param1=value1`,
       );
 
-      mockSubtle.verify.mockResolvedValue(false as any);
+      mockSubtle.verify.mockResolvedValue(false);
 
       const result = await verifyDeeplinkSignature(url);
 
@@ -159,12 +165,12 @@ describe('verifySignature', () => {
         `https://example.com/path?zebra=last&sig=${validSignature}&alpha=first`,
       );
 
-      mockSubtle.verify.mockResolvedValue(true as any);
+      mockSubtle.verify.mockResolvedValue(true);
 
       const result = await verifyDeeplinkSignature(url);
 
       expect(result).toBe(VALID);
-      // The canonicalized URL should be passed to verify (without sig, params sorted)
+
       const verifyCall = mockSubtle.verify.mock.calls[0];
       const dataBuffer = verifyCall[3] as Uint8Array;
       const canonicalUrl = new TextDecoder().decode(dataBuffer);
@@ -179,7 +185,7 @@ describe('verifySignature', () => {
       );
       const url = new URL(`https://example.com/path?sig=${validSignature}`);
 
-      mockSubtle.verify.mockResolvedValue(true as any);
+      mockSubtle.verify.mockResolvedValue(true);
 
       const result = await verifyDeeplinkSignature(url);
 
@@ -191,16 +197,15 @@ describe('verifySignature', () => {
     });
 
     it('handles base64 URL-safe encoding with padding', async () => {
-      // Create a signature with URL-safe base64 characters (- and _)
       const urlSafeBase64 = Buffer.from(new Array(64).fill(0))
         .toString('base64')
         .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, ''); // Remove padding
+        .replace(new RegExp('/', 'g'), '_')
+        .replace(/=/g, '');
 
       const url = new URL(`https://example.com?sig=${urlSafeBase64}`);
 
-      mockSubtle.verify.mockResolvedValue(true as any);
+      mockSubtle.verify.mockResolvedValue(true);
 
       const result = await verifyDeeplinkSignature(url);
 
@@ -208,7 +213,6 @@ describe('verifySignature', () => {
     });
 
     it('handles base64 with different padding scenarios', async () => {
-      // Test with padding scenarios
       const tests = [
         Buffer.from(new Array(64).fill(1)).toString('base64'), // Standard base64
         Buffer.from(new Array(64).fill(2)).toString('base64').slice(0, -1), // Missing 1 pad
@@ -217,7 +221,7 @@ describe('verifySignature', () => {
 
       for (const sig of tests) {
         const url = new URL(`https://example.com?sig=${sig}`);
-        mockSubtle.verify.mockResolvedValue(true as any);
+        mockSubtle.verify.mockResolvedValue(true);
 
         const result = await verifyDeeplinkSignature(url);
         expect(result).toBe(VALID);
@@ -242,11 +246,6 @@ describe('verifySignature', () => {
       );
     });
 
-    // Note: Testing key import failures is challenging due to the module's
-    // caching behavior in lazyGetTools(). Once crypto tools are initialized
-    // in any test, they're cached for subsequent tests, making it difficult
-    // to test importKey failures in isolation.
-
     it('handles complex URLs with fragments and multiple query params', async () => {
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
         'base64',
@@ -255,7 +254,7 @@ describe('verifySignature', () => {
         `https://example.com:8080/deep/path?c=3&sig=${validSignature}&a=1&b=2#fragment`,
       );
 
-      mockSubtle.verify.mockResolvedValue(true as any);
+      mockSubtle.verify.mockResolvedValue(true);
 
       const result = await verifyDeeplinkSignature(url);
 
@@ -263,7 +262,7 @@ describe('verifySignature', () => {
       const verifyCall = mockSubtle.verify.mock.calls[0];
       const dataBuffer = verifyCall[3] as Uint8Array;
       const canonicalUrl = new TextDecoder().decode(dataBuffer);
-      // Should not include fragment, should sort params, should remove sig
+
       expect(canonicalUrl).toBe(
         'https://example.com:8080/deep/path?a=1&b=2&c=3',
       );
