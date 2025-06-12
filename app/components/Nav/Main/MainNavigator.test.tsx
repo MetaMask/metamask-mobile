@@ -4,7 +4,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 
-jest.mock('../../UI/Drawer');
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
