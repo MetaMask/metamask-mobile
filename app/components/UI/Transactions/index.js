@@ -258,6 +258,14 @@ class Transactions extends PureComponent {
 
   flatList = React.createRef();
 
+  get isNonEvmChain() {
+    return isNonEvmChainId(this.props.chainId);
+  }
+
+  get isTokenNonEvmChain() {
+    return isNonEvmChainId(this.props.tokenChainId);
+  }
+
   componentDidMount = () => {
     this.mounted = true;
     setTimeout(() => {
@@ -285,7 +293,7 @@ class Transactions extends PureComponent {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else if (isNonEvmChainId(chainId)) {
+    } else if (this.isNonEvmChain) {
       // TODO: [SOLANA] - block explorer needs to be implemented
       blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
@@ -393,10 +401,7 @@ class Transactions extends PureComponent {
         return false;
       }
 
-      if (
-        isNonEvmChainId(this.props.chainId) ||
-        isNonEvmChainId(this.props.tokenChainId)
-      ) {
+      if (this.isNonEvmChain || this.isTokenNonEvmChain) {
         return this.props.tokenChainId !== this.props.chainId;
       }
 
@@ -431,7 +436,7 @@ class Transactions extends PureComponent {
     try {
       let url, title;
 
-      if (isNonEvmChainId(chainId) && rpcBlockExplorer) {
+      if (this.isNonEvmChain && rpcBlockExplorer) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = getBlockExplorerName(rpcBlockExplorer);
       } else {
@@ -469,7 +474,7 @@ class Transactions extends PureComponent {
       providerConfig: { type },
     } = this.props;
     const blockExplorerText = () => {
-      if (isNonEvmChainId(chainId)) {
+      if (this.isNonEvmChain) {
         if (
           this.state.rpcBlockExplorer &&
           this.state.rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
