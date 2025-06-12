@@ -57,14 +57,15 @@ async function parseDeeplink({
           isPrivateLink = false;
           break;
       }
+      return isPrivateLink;
     }
-    if (isPrivateLink) {
-      // TODO: handle valid signature on interstitial
-      // return true;
-    } else if (!isPrivateLink) {
-      // TODO: handle invalid/missing signature on interstitial
-      // return false;
-    }
+    // if (isPrivateLink) {
+    // TODO: handle valid signature on interstitial
+    // return true;
+    // } else if (!isPrivateLink) {
+    // TODO: handle invalid/missing signature on interstitial
+    // return false;
+    // }
 
     const { urlObj, params } = extractURLParams(url);
 
