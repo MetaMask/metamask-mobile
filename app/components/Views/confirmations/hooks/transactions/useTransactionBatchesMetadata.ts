@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectTransactionBatchMetadataById } from '../../../../../selectors/transactionController';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from '../useApprovalRequest';
+import { ApprovalType } from '@metamask/controller-utils';
 
 export function useTransactionBatchesMetadata() {
   const { approvalRequest } = useApprovalRequest();
@@ -13,8 +14,7 @@ export function useTransactionBatchesMetadata() {
   );
 
   if (
-    // TODO: substitute with approval type from transaction controller
-    approvalRequest?.type === 'transaction_batch' &&
+    approvalRequest?.type === ApprovalType.TransactionBatch &&
     !transactionBatchMetadata
   ) {
     return undefined;

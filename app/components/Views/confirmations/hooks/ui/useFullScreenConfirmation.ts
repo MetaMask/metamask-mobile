@@ -23,7 +23,7 @@ const getIsFullScreenConfirmation = (
     );
   }
 
-  if (approvalRequest?.type === 'transaction_batch') {
+  if (approvalRequest?.type === ApprovalType.TransactionBatch) {
     return true;
   }
 

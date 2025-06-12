@@ -53,7 +53,7 @@ const ConfirmationInfoComponentMap = {
         return null;
     }
   },
-  'transaction_batch': () => TransactionBatch,
+  [ApprovalType.TransactionBatch]: () => TransactionBatch,
 };
 
 interface InfoProps {
