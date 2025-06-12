@@ -34,6 +34,10 @@ const options = {
   port: {
     type: 'string', // default: '8081'
   },
+  // Watcher
+  'reset-cache': {
+    type: 'boolean',
+  },
 };
 
 const parsedArgs = parseArgs({
