@@ -48,16 +48,22 @@ const KycWebview = () => {
 
   useEffect(() => {
     const kycStatus = userDetails?.kyc?.l1?.status;
+    const kycType = userDetails?.kyc?.l1?.type;
 
-    if (kycStatus && kycStatus !== KycStatus.NOT_SUBMITTED) {
-      console.log(
-        'KYC status changed to:',
-        kycStatus,
-        'navigating to processing...',
-      );
+    if (
+      kycStatus &&
+      kycStatus !== KycStatus.NOT_SUBMITTED &&
+      kycType !== null &&
+      kycType !== 'SIMPLE'
+    ) {
       navigation.navigate(...createKycProcessingNavDetails({ quote }));
     }
-  }, [userDetails?.kyc?.l1?.status, navigation, quote]);
+  }, [
+    userDetails?.kyc?.l1?.status,
+    userDetails?.kyc?.l1?.type,
+    navigation,
+    quote,
+  ]);
 
   if (pollingError) {
     return (
