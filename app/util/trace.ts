@@ -56,6 +56,7 @@ export enum TraceName {
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
+  CollectibleContractsComponent = 'Collectible Contracts Component',
 }
 
 export enum TraceOperation {

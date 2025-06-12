@@ -172,6 +172,9 @@ const CollectibleContracts = ({
   isIpfsGatewayEnabled,
   displayNftMedia,
 }) => {
+  // Start tracing component loading
+  trace({ name: TraceName.CollectibleContractsComponent });
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -190,13 +193,14 @@ const CollectibleContracts = ({
     [tokenNetworkFilter, allNetworks],
   );
 
-  const filteredCollectibleContracts = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(collectibleContracts).flat()
-        : collectibleContracts[chainId] || [],
-    [collectibleContracts, chainId, isAllNetworks],
-  );
+  const filteredCollectibleContracts = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    const contracts = isAllNetworks
+      ? Object.values(collectibleContracts).flat()
+      : collectibleContracts[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    return contracts;
+  }, [collectibleContracts, chainId, isAllNetworks]);
 
   const filteredCollectibles = useMemo(() => {
     trace({ name: TraceName.LoadCollectibles });
@@ -532,6 +536,11 @@ const CollectibleContracts = ({
       styles.emptyView,
     ],
   );
+
+  // End trace when component has finished initial loading
+  useEffect(() => {
+    endTrace({ name: TraceName.CollectibleContractsComponent });
+  }, []);
 
   return (
     <View
