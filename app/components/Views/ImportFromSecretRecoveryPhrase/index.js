@@ -92,7 +92,9 @@ import {
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
 } from './constant';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -169,7 +171,12 @@ const ImportFromSecretRecoveryPhrase = ({
   }, []);
 
   const handleSeedPhraseChange = useCallback(
-    (text, index) => {
+    (seedPhraseText, index) => {
+      const text = seedPhraseText
+        .split('\n')
+        .map((item) => item.trim())
+        .join(' ');
+
       if (text.includes(SPACE_CHAR)) {
         const isEndWithSpace = text.at(-1) === SPACE_CHAR;
         // handle use pasting multiple words / whole seed phrase separated by spaces
@@ -533,7 +540,14 @@ const ImportFromSecretRecoveryPhrase = ({
         fetchAccountsWithActivity();
         navigation.reset({
           index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+              },
+            },
+          ],
         });
       } catch (error) {
         // Should we force people to enable passcode / biometrics?

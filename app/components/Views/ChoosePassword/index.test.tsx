@@ -142,7 +142,7 @@ describe('ChoosePassword', () => {
     });
 
     const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
     fireEvent.press(checkbox);
 
@@ -182,7 +182,7 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
     const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
     const submitButton = component.getByTestId(
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,

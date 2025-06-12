@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
@@ -72,18 +72,18 @@ const KycProcessing = () => {
     }
   }, [kycForms, startPolling]);
 
-  const handleBrowseTokens = () => {
+  const handleBrowseTokens = useCallback(() => {
     stopPolling();
     navigation.navigate(Routes.BROWSER_TAB_HOME);
-  };
+  }, [navigation, stopPolling]);
 
-  const handleRetryVerification = () => {
+  const handleRetryVerification = useCallback(() => {
     navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
-  };
+  }, [navigation, quote]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-  };
+  }, [navigation, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
