@@ -9,6 +9,9 @@ import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../wallet/TabBarComponent';
+import Assertions from '../../utils/Assertions';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -116,6 +119,23 @@ class MultichainTestDApp {
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
       .withTimeout(10000);
+  }
+
+  /**
+   * Common test setup: reverse port, login, navigate to browser, and open multichain dapp
+   * @param urlParams - Optional URL parameters for the dapp (e.g., '?autoMode=true')
+   */
+  async setupAndNavigateToTestDapp(urlParams = ''): Promise<void> {
+    await TestHelpers.reverseServerPort();
+    await loginToApp();
+    await TabBarComponent.tapBrowser();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
+    await this.navigateToMultichainTestDApp(urlParams);
+
+    // Verify WebView is visible
+    await Assertions.checkIfVisible(
+      Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
+    );
   }
 
   /**
@@ -260,9 +280,9 @@ class MultichainTestDApp {
   }
 
   /**
-   * Click the create session button
+   * Tap the create session button
    */
-  async clickCreateSessionButton(): Promise<boolean> {
+  async tapCreateSessionButton(): Promise<void> {
     const webview = this.getWebView();
     const createSessionButton = webview.element(by.web.id('create-session-btn'));
 
@@ -271,13 +291,12 @@ class MultichainTestDApp {
 
     // Wait for session creation
     await TestHelpers.delay(2000);
-    return true;
   }
 
   /**
-   * Click the get session button
+   * Tap the get session button
    */
-  async clickGetSessionButton(): Promise<boolean> {
+  async tapGetSessionButton(): Promise<void> {
     const webview = this.getWebView();
     const getSessionButton = webview.element(by.web.id('get-session-btn'));
 
@@ -286,13 +305,12 @@ class MultichainTestDApp {
 
     // Wait for processing
     await TestHelpers.delay(1000);
-    return true;
   }
 
   /**
-   * Click the revoke session button
+   * Tap the revoke session button
    */
-  async clickRevokeSessionButton(): Promise<boolean> {
+  async tapRevokeSessionButton(): Promise<void> {
     const webview = this.getWebView();
     const revokeSessionButton = webview.element(by.web.id('revoke-session-btn'));
 
@@ -301,38 +319,25 @@ class MultichainTestDApp {
 
     // Wait for processing
     await TestHelpers.delay(1500);
-    return true;
   }
 
   /**
-   * Revoke session and get the result data
-   * Similar to the web extension's revokeSession method
+   * Get revoke session result data
    * @param resultIndex - The index of the result to retrieve (defaults to 0)
    */
-  async revokeSessionWithData(resultIndex: number = 0): Promise<SessionResponse> {
-    // Click revoke session button first
-    const revokeClicked = await this.clickRevokeSessionButton();
-    if (!revokeClicked) {
-      console.error('❌ Failed to click revoke session button');
-      return { success: false };
-    }
-
+  async getRevokeSessionData(resultIndex: number = 0): Promise<SessionResponse> {
     // Wait for result to be populated
     await TestHelpers.delay(2000);
 
-    // Click to expand the result
-    const expanded = await this.clickFirstResultSummary(resultIndex);
-    
-    if (!expanded) {
-      // If we can't expand the result, it might not exist
-      return { success: false, sessionScopes: {} };
-    }
+    // Tap to expand the result
+    await this.tapFirstResultSummary(resultIndex);
 
     // Get the revoke result content
     const webview = this.getWebView();
     const revokeResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
 
-    const resultData = await revokeResult.runScript('(el) => el.textContent');
+    const resultData = await revokeResult.runScript('(el) => el.textContent')
+      .catch(() => null);
 
     if (resultData) {
       const parsedResult = JSON.parse(resultData);
@@ -342,86 +347,62 @@ class MultichainTestDApp {
       };
     }
 
-    return { success: true };
+    return { success: false, sessionScopes: {} };
   }
 
   /**
    * Complete multichain connection flow
    */
-  async completeMultichainFlow(chainIds: string[] = [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET, MultichainUtilities.CHAIN_IDS.LINEA_MAINNET]): Promise<boolean> {
+  async completeMultichainFlow(chainIds: string[] = [MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET, MultichainUtilities.CHAIN_IDS.LINEA_MAINNET]): Promise<void> {
     // Scroll to top
     await this.scrollToPageTop();
 
     // Auto connect
     const connected = await this.useAutoConnectButton();
-    if (!connected) return false;
+    if (!connected) throw new Error('Failed to connect to dapp');
 
     // Select networks
     for (const chainId of chainIds) {
       const selected = await this.selectNetwork(chainId);
-      if (!selected) return false;
+      if (!selected) throw new Error(`Failed to select network ${chainId}`);
     }
 
-    // Create session
-    const sessionCreated = await this.clickCreateSessionButton();
-    if (!sessionCreated) return false;
+    await this.tapCreateSessionButton();
 
-    // Get session
-    return await this.clickGetSessionButton();
+    await this.tapGetSessionButton();
   }
 
   /**
-   * Click the result summary to expand session details
-   * @param index - The index of the result to click (defaults to 0)
+   * Tap the result summary to expand session details
+   * @param index - The index of the result to tap (defaults to 0)
    */
-  async clickFirstResultSummary(index: number = 0): Promise<boolean> {
-    try {
-      const webview = this.getWebView();
-      const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
+  async tapFirstResultSummary(index: number = 0): Promise<void> {
+    const webview = this.getWebView();
+    const firstResult = webview.element(by.web.id(`session-method-details-${index}`));
 
-      await firstResult.scrollToView();
-      await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
+    await firstResult.scrollToView();
+    await firstResult.runScript('(el) => { if(!el.open) { el.click(); } }');
 
-      await TestHelpers.delay(500);
-      return true;
-    } catch (error) {
-      console.log(`Result element session-method-details-${index} not found or couldn't be clicked`);
-      return false;
-    }
+    await TestHelpers.delay(500);
   }
 
   /**
    * Get session data by parsing the result from the dapp
-   * Similar to the web extension's getSession method
    * @param resultIndex - The index of the result to retrieve (defaults to 0)
-   * @param skipGetSessionClick - If true, skips clicking the get session button (useful when data is already available)
    */
-  async getSessionData(resultIndex: number = 0, skipGetSessionClick: boolean = false): Promise<SessionResponse> {
-    if (!skipGetSessionClick) {
-      // Click get session button first
-      const sessionRetrieved = await this.clickGetSessionButton();
-      if (!sessionRetrieved) {
-        console.error('❌ Failed to click get session button');
-        return { success: false };
-      }
+  async getSessionData(resultIndex: number = 0): Promise<SessionResponse> {
+    // Wait for result to be populated
+    await TestHelpers.delay(2000);
 
-      // Wait for result to be populated
-      await TestHelpers.delay(2000);
-    }
-
-    // Click to expand the result
-    const expanded = await this.clickFirstResultSummary(resultIndex);
-    
-    if (!expanded) {
-      // If we can't expand the result, it might not exist (e.g., error case)
-      return { success: false, sessionScopes: {} };
-    }
+    // Tap to expand the result
+    await this.tapFirstResultSummary(resultIndex);
 
     // Get the session result content
     const webview = this.getWebView();
     const sessionResult = webview.element(by.web.id(`session-method-result-${resultIndex}`));
 
-    const sessionData = await sessionResult.runScript('(el) => el.textContent');
+    const sessionData = await sessionResult.runScript('(el) => el.textContent')
+      .catch(() => null);
 
     if (sessionData) {
       const parsedSession = JSON.parse(sessionData);
@@ -431,8 +412,7 @@ class MultichainTestDApp {
       };
     }
 
-    console.error('❌ No session data found');
-    return { success: false };
+    return { success: false, sessionScopes: {} };
   }
 
   /**
@@ -536,7 +516,7 @@ class MultichainTestDApp {
   private getAllSupportedNetworks(): string[] {
     return [
       MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-      MultichainUtilities.CHAIN_IDS.LINEA_MAINNET, 
+      MultichainUtilities.CHAIN_IDS.LINEA_MAINNET,
       MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE,
       MultichainUtilities.CHAIN_IDS.AVALANCHE,
       MultichainUtilities.CHAIN_IDS.BSC,
@@ -634,32 +614,26 @@ class MultichainTestDApp {
   }
 
   /**
-   * Complete a full create session flow with specific networks
+   * Create a session with specific networks
    */
-  async createSessionWithNetworks(chainIds: string[]): Promise<SessionResponse> {
+  async createSessionWithNetworks(chainIds: string[]): Promise<void> {
     // Scroll to top
     await this.scrollToPageTop();
 
     // Connect
     const connected = await this.useAutoConnectButton();
     if (!connected) {
-      console.error('❌ Failed to connect to dapp');
-      return { success: false };
+      throw new Error('Failed to connect to dapp');
     }
 
     // Select specific networks
     const networksSelected = await this.selectNetworks(chainIds);
     if (!networksSelected) {
-      console.error('❌ Failed to select networks');
-      return { success: false };
+      throw new Error('Failed to select networks');
     }
 
     // Create session
-    const sessionCreated = await this.clickCreateSessionButton();
-    if (!sessionCreated) {
-      console.error('❌ Failed to create session');
-      return { success: false };
-    }
+    await this.tapCreateSessionButton();
 
     // Handle the connect modal that appears after creating session
     await TestHelpers.delay(2000);
@@ -669,15 +643,6 @@ class MultichainTestDApp {
 
     // Wait for the connection to be established
     await TestHelpers.delay(2000);
-
-    // Get and return session data
-    // The create session result is available without clicking get session button
-    // and will be at index 0 since it's the latest operation
-    // If no networks selected, there might not be a result to read
-    if (chainIds.length === 0) {
-      return { success: false, sessionScopes: {} };
-    }
-    return await this.getSessionData(0, true);
   }
 }
 

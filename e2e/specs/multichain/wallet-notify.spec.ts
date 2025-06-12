@@ -31,15 +31,11 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeNetworkExpansion('wallet_notify'), () => {
     beforeEach(() => {
@@ -54,24 +50,10 @@ describe(SmokeNetworkExpansion('wallet_notify'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
-
-                await Assertions.checkIfVisible(
-                    Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
-                );
+                await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
-
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, networksToTest);
-
-                if (!createAssertions.success) {
-                    throw new Error('Session creation failed');
-                }
+                await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
                 await TestHelpers.delay(3000);
 

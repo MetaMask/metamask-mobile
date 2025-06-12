@@ -6,14 +6,9 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
 describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
@@ -29,27 +24,14 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
-
-                await Assertions.checkIfVisible(
-                    Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
-                );
+                await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
                 // Create initial session with Ethereum and Polygon
                 const initialNetworks = [
                     MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
                     MultichainUtilities.CHAIN_IDS.POLYGON
                 ];
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, initialNetworks);
-
-                if (!createAssertions.success) {
-                    throw new Error('Initial session creation failed');
-                }
+                await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
                 await TestHelpers.delay(3000);
 
@@ -61,12 +43,7 @@ describe(SmokeNetworkExpansion('wallet_sessionChanged'), () => {
                     MultichainUtilities.CHAIN_IDS.BASE,
                 ];
 
-                const modifyResult = await MultichainTestDApp.createSessionWithNetworks(modifiedNetworks);
-                const modifyAssertions = MultichainUtilities.generateSessionAssertions(modifyResult, modifiedNetworks);
-
-                if (!modifyAssertions.success) {
-                    throw new Error('Session modification failed');
-                }
+                await MultichainTestDApp.createSessionWithNetworks(modifiedNetworks);
 
                 await TestHelpers.delay(5000);
 

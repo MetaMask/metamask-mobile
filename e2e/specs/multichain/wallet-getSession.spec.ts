@@ -6,14 +6,9 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures, DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
 describe(SmokeNetworkExpansion('wallet_getSession'), () => {
@@ -29,15 +24,7 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
-
-                await Assertions.checkIfVisible(
-                    Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
-                );
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
 
                 await MultichainTestDApp.scrollToPageTop();
                 const connected = await MultichainTestDApp.useAutoConnectButton();
@@ -76,15 +63,14 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+                await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, networksToTest);
+                // Wait for session creation and get the data separately
+                await TestHelpers.delay(1000);
+                const sessionData = await MultichainTestDApp.getSessionData();
+                const createAssertions = MultichainUtilities.generateSessionAssertions(sessionData, networksToTest);
 
                 if (!createAssertions.success) {
                     throw new Error('Initial session creation failed');
@@ -134,15 +120,14 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+                await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, networksToTest);
+                // Wait for session creation and get the data separately
+                await TestHelpers.delay(1000);
+                const sessionData = await MultichainTestDApp.getSessionData();
+                const createAssertions = MultichainUtilities.generateSessionAssertions(sessionData, networksToTest);
 
                 if (!createAssertions.success) {
                     throw new Error('Session creation failed');
@@ -195,16 +180,15 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
 
                 const initialNetworks = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult1 = await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
+                await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
-                const createAssertions1 = MultichainUtilities.generateSessionAssertions(createResult1, initialNetworks);
+                // Wait for session creation and get the data separately
+                await TestHelpers.delay(1000);
+                const sessionData1 = await MultichainTestDApp.getSessionData();
+                const createAssertions1 = MultichainUtilities.generateSessionAssertions(sessionData1, initialNetworks);
 
                 if (!createAssertions1.success) {
                     throw new Error('Initial session creation failed');
@@ -227,19 +211,23 @@ describe(SmokeNetworkExpansion('wallet_getSession'), () => {
                     MultichainUtilities.CHAIN_IDS.BASE
                 ];
 
-                const createResult2 = await MultichainTestDApp.createSessionWithNetworks(newNetworks);
-                const createAssertions2 = MultichainUtilities.generateSessionAssertions(createResult2, newNetworks);
+                await MultichainTestDApp.createSessionWithNetworks(newNetworks);
 
-                if (!createAssertions2.success) {
+                // Wait for session creation and get the data separately
+                await TestHelpers.delay(1000);
+                const getSessionResult2 = await MultichainTestDApp.getSessionData();
+                const getAssertions2 = MultichainUtilities.generateSessionAssertions(getSessionResult2, newNetworks);
+
+                if (!getAssertions2.success) {
                     throw new Error('New session creation failed');
                 }
 
-                if (!createAssertions2.chainsValid) {
-                    MultichainUtilities.logSessionDetails(createResult2, 'Failed Session Validation');
-                    throw new Error(`Chain validation failed. Missing chains: ${createAssertions2.missingChains.join(', ')}`);
+                if (!getAssertions2.chainsValid) {
+                    MultichainUtilities.logSessionDetails(getSessionResult2, 'Failed Session Validation');
+                    throw new Error(`Chain validation failed. Missing chains: ${getAssertions2.missingChains.join(', ')}`);
                 }
 
-                console.log(`Modified session has ${createAssertions2.chainCount} chain(s): ${createAssertions2.foundChains.join(', ')}`);
+                console.log(`Modified session has ${getAssertions2.chainCount} chain(s): ${getAssertions2.foundChains.join(', ')}`);
 
 
             },

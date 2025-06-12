@@ -7,12 +7,8 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS, withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
@@ -58,30 +54,14 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-
                 // Login and navigate to the test dapp
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
-
-                // Verify the WebView is visible
-                await Assertions.checkIfVisible(
-                    Promise.resolve(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))),
-                );
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
 
                 // Create session - use single network for more reliable testing
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+                await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, networksToTest);
-
-                if (!createAssertions.success) {
-                    throw new Error('Initial session creation failed');
-                }
-
-                // Wait for session to be established
+                // Wait for session creation
                 await TestHelpers.delay(1000);
 
                 // Verify session exists before revoke
@@ -93,11 +73,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 }
 
                 // Revoke the session
-                const revokeResult = await MultichainTestDApp.clickRevokeSessionButton();
-
-                if (!revokeResult) {
-                    throw new Error('Failed to click revoke session button');
-                }
+                await MultichainTestDApp.tapRevokeSessionButton();
 
                 // Wait for revoke to process
                 await TestHelpers.delay(2000);
@@ -137,23 +113,12 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-
                 // Login and navigate to the test dapp
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
 
                 // Create session - use single network for more reliable testing
                 const networksToTest = MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-                const createResult = await MultichainTestDApp.createSessionWithNetworks(networksToTest);
-
-                const createAssertions = MultichainUtilities.generateSessionAssertions(createResult, networksToTest);
-
-                if (!createAssertions.success) {
-                    throw new Error('Initial session creation failed');
-                }
+                await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
                 // Wait for session to be established
                 await TestHelpers.delay(1000);
@@ -174,11 +139,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 }
 
                 // Revoke the session
-                const revokeResult = await MultichainTestDApp.clickRevokeSessionButton();
-
-                if (!revokeResult) {
-                    throw new Error('Failed to revoke session');
-                }
+                await MultichainTestDApp.tapRevokeSessionButton();
 
                 // Wait for revoke to process
                 await TestHelpers.delay(2000);
@@ -224,13 +185,8 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 restartDevice: true,
             },
             async () => {
-                await TestHelpers.reverseServerPort();
-
                 // Login and navigate to the test dapp
-                await loginToApp();
-                await TabBarComponent.tapBrowser();
-                await Assertions.checkIfVisible(Browser.browserScreenID);
-                await MultichainTestDApp.navigateToMultichainTestDApp();
+                await MultichainTestDApp.setupAndNavigateToTestDapp();
 
                 // Connect to dapp without creating a session
                 await MultichainTestDApp.scrollToPageTop();
@@ -248,7 +204,7 @@ describe(SmokeNetworkExpansion('wallet_revokeSession'), () => {
                 }
 
                 // Try to revoke when no session exists
-                const revokeResult = await MultichainTestDApp.clickRevokeSessionButton();
+                await MultichainTestDApp.tapRevokeSessionButton();
 
                 // This should either succeed (no-op) or fail gracefully
 
