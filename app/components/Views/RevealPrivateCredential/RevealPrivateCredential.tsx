@@ -670,9 +670,13 @@ const RevealPrivateCredential = ({
             )}
           </View>
 
-          <View style={[styles.rowWrapper, styles.stretch]}>
-            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
-          </View>
+          {unlocked ? (
+            renderTabView(credentialSlug)
+          ) : (
+            <View style={[styles.rowWrapper, styles.stretch]}>
+              {renderPasswordEntry()}
+            </View>
+          )}
         </>
       </ActionView>
       {renderModal(isPrivateKey)}
