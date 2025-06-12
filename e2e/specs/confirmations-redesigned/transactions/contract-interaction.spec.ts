@@ -104,7 +104,9 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const hstAddress = await contractRegistry.getContractAddress(
           HST_CONTRACT,
         );
@@ -146,7 +148,9 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         smartContract: NFT_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
@@ -187,7 +191,9 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const hstAddress = await contractRegistry.getContractAddress(
           HST_CONTRACT,
         );
@@ -228,7 +234,9 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
         smartContract: NFT_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
         const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );

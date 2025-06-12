@@ -788,7 +788,10 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge with permission
    * @returns {Object} Permission controller configuration object
    */
-  createPermissionControllerConfig(additionalPermissions = {}, dappUrl = DAPP_URL) {
+  createPermissionControllerConfig(
+    additionalPermissions = {},
+    dappUrl = DAPP_URL,
+  ) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
@@ -830,17 +833,22 @@ class FixtureBuilder {
    * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}, connectSecondDapp = false) {
-    const testDappPermissions = this.createPermissionControllerConfig(additionalPermissions);
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
+  ) {
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
     let secondDappPermissions = {};
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-         device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1'
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
     this.withPermissionController(
-      merge(testDappPermissions, secondDappPermissions)
+      merge(testDappPermissions, secondDappPermissions),
     );
 
     // Ensure Solana feature modal is suppressed
