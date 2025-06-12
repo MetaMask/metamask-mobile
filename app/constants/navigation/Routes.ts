@@ -30,6 +30,8 @@ const Routes = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
+    KYC_PROCESSING: 'KycProcessing',
+    PROVIDER_WEBVIEW: 'ProviderWebview',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -73,9 +75,12 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
     MANUAL_BACKUP: {
+      STEP_1: 'ManualBackupStep1',
+      STEP_2: 'ManualBackupStep2',
       STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
+    CHOOSE_PASSWORD: 'ChoosePassword',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -127,6 +132,9 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    SEEDPHRASE_MODAL: 'SeedphraseModal',
+    SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
+    SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
@@ -225,6 +233,14 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  SEEDPHRASE_MODAL: 'SeedphraseModal',
+  SET_PASSWORD_FLOW: {
+    ROOT: 'SetPasswordFlow',
+    MANUAL_BACKUP_STEP_1: 'ManualBackupStep1',
+    MANUAL_BACKUP_STEP_2: 'ManualBackupStep2',
+    MANUAL_BACKUP_STEP_3: 'ManualBackupStep3',
+  },
+
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 

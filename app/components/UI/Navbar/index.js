@@ -358,9 +358,8 @@ export function getPaymentRequestOptionsTitle(
   const goBack = route.params?.dispatch;
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -370,11 +369,18 @@ export function getPaymentRequestOptionsTitle(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    headerCloseButton: {
+      marginRight: 16,
+    },
   });
 
   return {
-    title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitleAlign: 'center',
+    headerTitle: () => (
+      <View>
+        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
+      </View>
+    ),
     headerLeft: () =>
       goBack ? (
         // eslint-disable-next-line react/jsx-no-bind
@@ -393,17 +399,13 @@ export function getPaymentRequestOptionsTitle(
         <View />
       ),
     headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
-        style={styles.closeButton}
-      >
-        <IonicIcon
-          name={'close'}
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
+        style={innerStyles.headerCloseButton}
+        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -645,10 +647,14 @@ export function getModalNavbarOptions(title) {
  */
 export function getOnboardingNavbarOptions(
   route,
-  { headerLeft } = {},
+  { headerLeft, headerRight },
   themeColors,
+  showLogo = true,
 ) {
-  const headerLeftHide = headerLeft || route.params?.headerLeft;
+  const headerLeftHide =
+    headerLeft || route.params?.headerLeft || (() => <View />);
+  const headerRightHide =
+    headerRight || route.params?.headerRight || (() => <View />);
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -664,17 +670,18 @@ export function getOnboardingNavbarOptions(
 
   return {
     headerStyle: innerStyles.headerStyle,
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
-    headerBackTitle: strings('navigation.back'),
-    headerRight: () => <View />,
+    headerTitle: showLogo
+      ? () => (
+          <View style={styles.metamaskNameTransparentWrapper}>
+            <Image
+              source={metamask_name}
+              style={innerStyles.metamaskName}
+              resizeMethod={'auto'}
+            />
+          </View>
+        )
+      : null,
+    headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,
   };
@@ -800,7 +807,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
  *
  * @returns {Object} - Corresponding navbar options containing headerLeft
  */
-export function getOptinMetricsNavbarOptions(themeColors) {
+export function getOptinMetricsNavbarOptions(themeColors, showLogo = true) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -814,17 +821,19 @@ export function getOptinMetricsNavbarOptions(themeColors) {
     },
   });
   return {
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
+    headerTitle: () =>
+      showLogo ? (
+        <View style={styles.metamaskNameTransparentWrapper}>
+          <Image
+            source={metamask_name}
+            style={innerStyles.metamaskName}
+            resizeMethod={'auto'}
+          />
+        </View>
+      ) : null,
     headerBackTitle: strings('navigation.back'),
     headerRight: () => <View />,
+    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };

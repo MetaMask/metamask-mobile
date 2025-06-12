@@ -7,7 +7,17 @@ app/component-library/               @MetaMask/design-system-engineers
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
-app/core/Analytics/                                         @MetaMask/mobile-platform
+app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.ts                           @MetaMask/mobile-platform
+app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsPrivacySegmentPlugin.ts       @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsPrivacySegmentPlugin.test.ts  @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsTestUtils.test.ts             @MetaMask/mobile-platform
+app/core/Analytics/MetaMetricsTestUtils.ts                  @MetaMask/mobile-platform
+app/core/Analytics/MetricsEventBuilder.test.ts              @MetaMask/mobile-platform
+app/core/Analytics/MetricsEventBuilder.ts                   @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
 app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
@@ -37,7 +47,6 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
-app/components/UI/Deposit/           @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -65,6 +74,10 @@ app/core/Encryptor/                                         @MetaMask/accounts-e
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
+
+# Co-owned by accounts and wallet-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/wallet-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/wallet-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
