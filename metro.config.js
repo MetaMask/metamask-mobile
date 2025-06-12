@@ -10,10 +10,6 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// console.log('process.env', process.env);
-// const { parseArgs } = require('node:util');
-// console.log('parseArgs', parseArgs(process.argv));
-console.log('process.argv', process.argv);
 
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
