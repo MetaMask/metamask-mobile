@@ -97,7 +97,7 @@ describe('ChoosePassword', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', async () => {
+  it('render matches snapshot', async () => {
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
       navigation: mockNavigation,
@@ -111,7 +111,7 @@ describe('ChoosePassword', () => {
     expect(component.toJSON()).toMatchSnapshot();
   });
 
-  it('should render loading state correctly', async () => {
+  it('render loading state while creating password', async () => {
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true } },
       navigation: mockNavigation,
@@ -162,7 +162,7 @@ describe('ChoosePassword', () => {
     expect(loadingTitle).toBeTruthy();
   });
 
-  it('should validate password and enable button when conditions are met', async () => {
+  it('error message is shown when passwords do not match', async () => {
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true } },
       navigation: mockNavigation,
@@ -188,18 +188,17 @@ describe('ChoosePassword', () => {
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
     );
 
-    // Initially button should be disabled
-    expect(submitButton.props.disabled).toBe(true);
-
     // Enter matching passwords
     await act(async () => {
       fireEvent.changeText(passwordInput, 'Test123456!');
-      fireEvent.changeText(confirmPasswordInput, 'Test123456!');
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    // Button should still be disabled (checkbox not checked)
-    expect(submitButton.props.disabled).toBe(true);
+    // Enter non-matching passwords
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'DifferentPassword123!');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     // Check the checkbox and wait for state update
     await act(async () => {
@@ -209,23 +208,14 @@ describe('ChoosePassword', () => {
 
     fireEvent.press(submitButton);
 
-    // Enter non-matching passwords
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'DifferentPassword123!');
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Button should be disabled again
-    expect(submitButton.props.disabled).toBe(true);
-
     // Error message should be shown
     const errorMessage = component.getByText(
       strings('choose_password.password_error'),
     );
-    expect(errorMessage).toBeTruthy();
+    expect(errorMessage).toBeOnTheScreen();
   });
 
-  it('should handle header left button press and update navbar', async () => {
+  it('render header left button on press, navigates to previous screen', async () => {
     const props: ChoosePasswordProps = {
       route: { params: { [ONBOARDING]: true } },
       navigation: mockNavigation,

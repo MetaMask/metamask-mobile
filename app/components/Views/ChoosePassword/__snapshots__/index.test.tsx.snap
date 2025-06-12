@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChoosePassword should render correctly 1`] = `
+exports[`ChoosePassword render matches snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {
@@ -417,7 +417,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
           >
             <TouchableOpacity
-              accessibilityLabel="i-understand-checkbox"
+              accessibilityLabel="password-understand-box"
               disabled={false}
               onPress={[Function]}
               style={
@@ -428,7 +428,7 @@ exports[`ChoosePassword should render correctly 1`] = `
                   "opacity": 1,
                 }
               }
-              testID="i-understand-checkbox"
+              testID="password-understand-box"
             >
               <View
                 accessibilityRole="checkbox"
