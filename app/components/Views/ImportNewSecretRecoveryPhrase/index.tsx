@@ -269,7 +269,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       }
       setLoading(false);
     } finally {
-      unlockAccountSyncing();
+      await unlockAccountSyncing();
     }
   };
 
