@@ -32,6 +32,8 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
+      delete: true,
+      newInstance: true,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -45,23 +47,25 @@ describe(SmokeWalletPlatform('Import new srp to wallet'), () => {
     await goToImportSrp();
     await inputSrp(valid12WordMnemonic);
     await ImportSrpView.tapImportButton();
-
+    await device.disableSynchronization();
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
+    await device.enableSynchronization();
   });
 
   it('imports a new 24 word srp', async () => {
     await goToImportSrp();
     await inputSrp(valid24WordMnemonic);
     await ImportSrpView.tapImportButton();
-
+    await device.disableSynchronization();
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName as Promise<Detox.IndexableNativeElement>,
       'Account 1',
     );
+    await device.enableSynchronization();
   });
 });
