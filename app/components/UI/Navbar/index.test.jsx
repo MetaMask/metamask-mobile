@@ -49,7 +49,7 @@ describe('getNetworkNavbarOptions', () => {
       'Test Title',
       false,
       mockNavigation,
-      mockTheme.colors
+      mockTheme.colors,
     );
 
     const { getByText } = renderWithProvider(
@@ -114,6 +114,11 @@ describe('getOnboardingCarouselNavbarOptions', () => {
 });
 
 describe('getTransparentOnboardingNavbarOptions', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    goBack: jest.fn(),
+  };
+
   it('render transparent onboarding navbar options', () => {
     const options = getTransparentOnboardingNavbarOptions(
       mockTheme,
