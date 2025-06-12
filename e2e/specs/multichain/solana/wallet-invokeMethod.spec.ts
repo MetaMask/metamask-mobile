@@ -18,7 +18,7 @@ import SolanaNewFeatureSheet from '../../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import MultichainUtilities from '../../../utils/MultichainUtilities';
 
-describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
+describe(SmokeNetworkExpansion('Solana '), () => {
   beforeEach(() => {
     jest.setTimeout(150000); // 2.5 minute timeout for stability
   });
@@ -39,14 +39,12 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
 
         await SolanaNewFeatureSheet.tapCreateAccountButton();
         await AddNewHdAccountComponent.tapConfirm();
-        await TestHelpers.delay(4000);
 
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
 
-        // Solana mainnet chain ID in CAIP format
         const networksToTest = [MultichainUtilities.CHAIN_IDS.SOLANA_MAINNET];
 
         const createResult = await MultichainTestDApp.createSessionWithNetworks(
@@ -56,8 +54,6 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
         if (!createResult.success) {
           throw new Error('Session creation failed for Solana network');
         }
-
-        await TestHelpers.delay(3000);
 
         const webview = MultichainTestDApp.getWebView();
         const scope = MultichainUtilities.CHAIN_IDS.SOLANA_MAINNET;
@@ -71,8 +67,6 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
 
         await directButton.tap();
 
-        await TestHelpers.delay(3000);
-
         //While we don't have actual transaction mocks
         //we just verify that the transaction request is visible
         const transactionRequestText = element(by.text('Transaction Request'));
@@ -83,6 +77,83 @@ describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
 
         const solanaAccount = element(by.text('Solana Account 1'));
         await waitFor(solanaAccount).toBeVisible();
+      },
+    );
+  });
+
+  it('should be able to call signIn method', async () => {
+    await withFixtures(
+      {
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        fixture: new FixtureBuilder()
+          .withSolanaFixture()
+          .withSolanaFeatureSheetDisplayed()
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await TestHelpers.reverseServerPort();
+        await loginToApp();
+
+        await SolanaNewFeatureSheet.tapCreateAccountButton();
+        await AddNewHdAccountComponent.tapConfirm();
+
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
+
+        await MultichainTestDApp.navigateToMultichainTestDApp('?autoMode=true');
+
+        const networksToTest = [MultichainUtilities.CHAIN_IDS.SOLANA_MAINNET];
+
+        const createResult = await MultichainTestDApp.createSessionWithNetworks(
+          networksToTest,
+        );
+
+        if (!createResult.success) {
+          throw new Error('Session creation failed for Solana network');
+        }
+
+        const webview = MultichainTestDApp.getWebView();
+        const scope = MultichainUtilities.CHAIN_IDS.SOLANA_MAINNET;
+        const escapedScopeForButton = scope.replace(/:/g, '-');
+
+        const method = 'signIn';
+        const directButtonId = `direct-invoke-${escapedScopeForButton}-${method}`;
+
+        const directButton = webview.element(by.web.id(directButtonId));
+        await directButton.scrollToView();
+
+        await directButton.tap();
+
+        const confirmButton = element(by.text('Confirm'));
+        await waitFor(confirmButton).toBeVisible().withTimeout(5000);
+        await confirmButton.tap();
+
+        const itemId = `method-result-item-${escapedScopeForButton}-${method}-0`;
+        const itemElement = webview.element(by.web.id(itemId));
+        await itemElement.scrollToView();
+
+        // Check for specific values in the result by scrolling to elements with expected text
+        // If scrollToView succeeds, the element exists and is visible
+        const accountElement = webview.element(
+          by.web.xpath('//*[contains(text(), "account")]'),
+        );
+        await accountElement.scrollToView();
+
+        const signatureElement = webview.element(
+          by.web.xpath('//*[contains(text(), "signature")]'),
+        );
+        await signatureElement.scrollToView();
+
+        const signatureTypeElement = webview.element(
+          by.web.xpath('//*[contains(text(), "signatureType")]'),
+        );
+        await signatureTypeElement.scrollToView();
+
+        const signedMessageElement = webview.element(
+          by.web.xpath('//*[contains(text(), "signedMessage")]'),
+        );
+        await signedMessageElement.scrollToView();
       },
     );
   });
