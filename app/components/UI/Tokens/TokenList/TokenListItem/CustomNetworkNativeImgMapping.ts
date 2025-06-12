@@ -15,8 +15,8 @@ import SophonTestnetImg from '../../../../../images/sophon-testnet.png';
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: SongbirdImg,
-  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: ApeNetworkImg,
-  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: ApeNetworkImg,
+  [NETWORK_CHAIN_ID.APECHAIN_TESTNET]: ApeNetworkImg,
+  [NETWORK_CHAIN_ID.APECHAIN_MAINNET]: ApeNetworkImg,
   [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: GravityImg,
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: KaiaImg,
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: KaiaImg,
