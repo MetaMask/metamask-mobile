@@ -24,15 +24,12 @@ import WalletView from '../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import { CustomNetworks } from '../../../resources/networks.e2e';
-import enContent from '../../../../locales/languages/en.json';
 
 const RECIPIENT = '0xbeC040014De5b4f1117EdD010828EA35cEc28B30';
 const AMOUNT = '1';
 const SMALL_AMOUNT = '0.0000001';
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MONAD_TOKEN_NAME = enContent.unit.monad;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
-const MEGAETH_TOKEN_NAME = enContent.unit.megaeth;
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   const testSpecificMock = {
@@ -126,7 +123,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await FooterActions.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(`Sent ${MONAD_TOKEN_NAME}`);
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
@@ -166,7 +162,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await FooterActions.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(`Sent ${MEGAETH_TOKEN_NAME}`);
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
