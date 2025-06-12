@@ -47,7 +47,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilterAll();
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     await Assertions.checkIfVisible(eth);
-    await WalletView.scrollDownOnTokensTab(AVAX_NAME);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
     await WalletView.scrollDownOnTokensTab(BNB_NAME);
