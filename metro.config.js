@@ -46,6 +46,18 @@ const parsedArgs = parseArgs({
   allowPositionals: true,
 });
 
+// Apply 'ses/hermes' on Android (Hermes)
+// Apply 'ses' on iOS (RN JSC) until on Hermes
+const hermesRuntime =
+  parsedArgs.values.platform === 'android' ||
+  parsedArgs.positionals[0] === 'run:android';
+
+const getPolyfills = () => [
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  ...require('@react-native/js-polyfills')(),
+  require.resolve('reflect-metadata'),
+];
+
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
@@ -103,16 +115,10 @@ module.exports = function (baseConfig) {
           },
         }),
       },
-      // Apply 'ses/hermes' on Android (Hermes)
-      // Apply 'ses' on iOS (RN JSC) until on Hermes
       serializer: lockdownSerializer(
-        { hermesRuntime: parsedArgs.values.platform === 'android' },
+        { hermesRuntime },
         {
-          getPolyfills: () => [
-            // eslint-disable-next-line import/no-extraneous-dependencies
-            ...require('@react-native/js-polyfills')(),
-            require.resolve('reflect-metadata'),
-          ],
+          getPolyfills
         },
       ),
       resetCache: true,
