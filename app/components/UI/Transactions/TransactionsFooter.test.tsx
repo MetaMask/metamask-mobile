@@ -199,7 +199,7 @@ describe('TransactionsFooter', () => {
       const { getByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
-          isNonEvmChain={true}
+          isNonEvmChain
           rpcBlockExplorer="https://solscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
@@ -212,7 +212,7 @@ describe('TransactionsFooter', () => {
       const { queryByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
-          isNonEvmChain={true}
+          isNonEvmChain
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
       );
@@ -224,7 +224,7 @@ describe('TransactionsFooter', () => {
       const { queryByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
-          isNonEvmChain={true}
+          isNonEvmChain
           rpcBlockExplorer={NO_RPC_BLOCK_EXPLORER}
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
@@ -239,7 +239,7 @@ describe('TransactionsFooter', () => {
       const { getByText } = render(
         <TransactionsFooter
           chainId="solana:mainnet"
-          isNonEvmChain={true}
+          isNonEvmChain
           rpcBlockExplorer="https://solscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
@@ -263,7 +263,7 @@ describe('TransactionsFooter', () => {
       const { getByText } = render(
         <TransactionsFooter
           onViewBlockExplorer={mockOnViewBlockExplorer}
-          showDisclaimer={true}
+          showDisclaimer
         />,
       );
 
@@ -317,7 +317,7 @@ describe('TransactionsFooter', () => {
           chainId="0x1"
           providerType="mainnet"
           onViewBlockExplorer={mockOnViewBlockExplorer}
-          showDisclaimer={true}
+          showDisclaimer
         />,
       );
 
@@ -334,7 +334,7 @@ describe('TransactionsFooter', () => {
           providerType="rpc"
           rpcBlockExplorer={NO_RPC_BLOCK_EXPLORER}
           onViewBlockExplorer={mockOnViewBlockExplorer}
-          showDisclaimer={true}
+          showDisclaimer
         />,
       );
 
@@ -352,7 +352,7 @@ describe('TransactionsFooter', () => {
         <TransactionsFooter
           chainId="0x1"
           providerType="mainnet"
-          isNonEvmChain={true}
+          isNonEvmChain
           rpcBlockExplorer="https://solscan.io"
           onViewBlockExplorer={mockOnViewBlockExplorer}
         />,
@@ -406,7 +406,7 @@ describe('TransactionsFooter', () => {
           chainId="0x1"
           providerType="mainnet"
           onViewBlockExplorer={mockOnViewBlockExplorer}
-          showDisclaimer={true}
+          showDisclaimer
         />,
       );
 
