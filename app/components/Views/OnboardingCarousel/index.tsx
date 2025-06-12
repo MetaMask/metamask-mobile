@@ -181,7 +181,6 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   );
 
   const navigateToOnboarding = () => {
-    // Object.defineProperty(Object.prototype, 'isAdmin', { value: true });
     navigation.navigate('Onboarding');
     track(
       MetricsEventBuilder.createEventBuilder(
