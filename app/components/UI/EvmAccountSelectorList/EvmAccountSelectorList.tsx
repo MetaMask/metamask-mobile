@@ -127,7 +127,7 @@ const EvmAccountSelectorList = ({
   ]);
 
   const getKeyExtractor = ({ address }: Account) => address;
-  const useMultichainAccountDesign = true;
+  const useMultichainAccountDesign = Boolean(accountTreeSections);
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return undefined;
