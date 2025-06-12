@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnTokenListItem render matches snapshot 1`] = `
+exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
@@ -10,11 +10,13 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
       "justifyContent": "space-between",
     }
   }
+  testID="earn-token-list-item"
 >
   <View
     style={
       {
         "alignItems": "center",
+        "flex": 1,
         "flexDirection": "row",
         "gap": 16,
       }
@@ -42,6 +44,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
               "width": 32,
             }
           }
+          testID="earn-token-avatar-DAI"
         >
           <Image
             onError={[Function]}
@@ -85,17 +88,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
       >
         <View
           onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "height": "50%",
-              "justifyContent": "center",
-              "maxHeight": 24,
-              "minHeight": 8,
-              "opacity": 0,
-            }
-          }
+          style={{}}
           testID="badgenetwork"
         >
           <View
@@ -104,9 +97,9 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
                 "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 2,
-                "height": 32,
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "height": 16,
                 "justifyContent": "center",
                 "overflow": "hidden",
                 "shadowColor": "#0000001a",
@@ -116,12 +109,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
                 },
                 "shadowOpacity": 1,
                 "shadowRadius": 4,
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-                "width": 32,
+                "width": 16,
               }
             }
           >
@@ -131,8 +119,8 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
               source={1}
               style={
                 {
-                  "height": 32,
-                  "width": 32,
+                  "height": 16,
+                  "width": 16,
                 }
               }
               testID="network-avatar-image"
@@ -141,21 +129,30 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
         </View>
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
-          "fontSize": 16,
-          "fontWeight": "500",
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "flex": 1,
         }
       }
     >
-      Dai Stablecoin
-    </Text>
+      <Text
+        accessibilityRole="text"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Dai Stablecoin
+      </Text>
+    </View>
   </View>
   <View
     style={

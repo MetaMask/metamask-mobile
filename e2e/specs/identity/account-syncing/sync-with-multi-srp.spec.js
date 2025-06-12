@@ -74,9 +74,6 @@ describe(
       }
     });
 
-    // TEMP: re-test android, will remove next commit
-    // const itif = (condition) => (condition ? it : it.skip);
-    // itif(device.getPlatform() === 'ios')(
     it('syncs multi-SRP EVM accounts', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: IDENTITY_TEAM_SEED_PHRASE,

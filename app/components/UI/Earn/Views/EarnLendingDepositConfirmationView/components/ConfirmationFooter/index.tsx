@@ -14,38 +14,43 @@ import {
 import { strings } from '../../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../../core/AppConstants';
 import ProgressStepper, { ProgressStep } from '../ProgressStepper';
-import styleSheet from './DepositFooter.styles';
+import styleSheet from './ConfirmationFooter.styles';
 
 interface FooterButton {
   text?: string;
   disabled?: boolean;
 }
 
-export interface DepositFooterProps {
+export interface ConfirmationFooterProps {
   onConfirm: () => void;
   onCancel: () => void;
   buttonPrimary?: FooterButton;
   buttonSecondary?: FooterButton;
-  activeStep: number;
-  steps: ProgressStep[];
+  progressBar?: { activeStep: number; steps: ProgressStep[] };
 }
 
-export const DEPOSIT_FOOTER_TEST_ID = 'depositFooter';
+export const CONFIRMATION_FOOTER_TEST_ID = 'earn-lending-confirmation-footer';
 
-export const LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS = {
-  CANCEL_BUTTON: 'earn-lending-deposit-confirmation-footer-cancel-button',
-  CONFIRM_BUTTON: 'earn-lending-deposit-confirmation-footer-confirm-button',
+export const CONFIRMATION_FOOTER_BUTTON_TEST_IDS = {
+  CANCEL_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-cancel-button`,
+  CONFIRM_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-confirm-button`,
 };
 
-const DepositFooter = ({
+export const CONFIRMATION_FOOTER_LINK_TEST_IDS = {
+  TERMS_OF_USE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-terms-of-use-button`,
+  RISK_DISCLOSURE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-risk-disclosure-button`,
+};
+
+export const ConfirmationFooter = ({
   onConfirm,
   onCancel,
   buttonPrimary,
   buttonSecondary,
-  activeStep,
-  steps,
-}: DepositFooterProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  progressBar,
+}: ConfirmationFooterProps) => {
+  const { styles, theme } = useStyles(styleSheet, {
+    hasProgressBar: Boolean(progressBar),
+  });
 
   const buttons = [
     {
@@ -54,7 +59,7 @@ const DepositFooter = ({
       isDisabled: Boolean(buttonSecondary?.disabled),
       size: ButtonSize.Lg,
       onPress: onCancel,
-      testID: LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+      testID: CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
@@ -62,20 +67,22 @@ const DepositFooter = ({
       label: buttonPrimary?.text ?? strings('confirm.confirm'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
-      testID: LENDING_DEPOSIT_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      testID: CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     },
   ];
 
   return (
-    <View style={styles.footerContainer} testID={DEPOSIT_FOOTER_TEST_ID}>
-      <View>
-        <ProgressStepper
-          stroke={theme.colors.primary.default}
-          strokeWidth={1}
-          activeStep={activeStep}
-          steps={steps}
-        />
-      </View>
+    <View style={styles.footerContainer} testID={CONFIRMATION_FOOTER_TEST_ID}>
+      {progressBar && (
+        <View>
+          <ProgressStepper
+            stroke={theme.colors.primary.default}
+            strokeWidth={1}
+            activeStep={progressBar.activeStep}
+            steps={progressBar.steps}
+          />
+        </View>
+      )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={buttons}
@@ -90,6 +97,7 @@ const DepositFooter = ({
             variant={TextVariant.BodySM}
             style={styles.linkText}
             onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+            testID={CONFIRMATION_FOOTER_LINK_TEST_IDS.TERMS_OF_USE_BUTTON}
           >
             {strings('confirm.staking_footer.terms_of_use')}
           </Text>
@@ -105,6 +113,7 @@ const DepositFooter = ({
             onPress={() =>
               Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
             }
+            testID={CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON}
           >
             {strings('confirm.staking_footer.risk_disclosure')}
           </Text>
@@ -117,4 +126,4 @@ const DepositFooter = ({
   );
 };
 
-export default DepositFooter;
+export default ConfirmationFooter;

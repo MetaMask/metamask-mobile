@@ -211,6 +211,11 @@ const Routes = {
   EARN: {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
+    LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
+    MODALS: {
+      ROOT: 'EarnModals',
+      LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
+    },
   },
   STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
