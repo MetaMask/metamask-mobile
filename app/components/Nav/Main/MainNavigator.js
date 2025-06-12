@@ -99,6 +99,7 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import CardBalance from '../../UI/Tokens/TokenList/CardBalance';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -189,6 +190,11 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
+    />
+    <Stack.Screen
+      name="CardBalance"
+      component={CardBalance}
+      options={CardBalance.navigationOptions}
     />
   </Stack.Navigator>
 );

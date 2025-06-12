@@ -1519,6 +1519,8 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "add_collectible_button": "Add",
+     "token_balances": "Token Balances",
+     "card_button": "Card",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
