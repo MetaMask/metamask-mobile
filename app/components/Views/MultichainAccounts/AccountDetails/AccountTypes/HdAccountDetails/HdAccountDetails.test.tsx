@@ -1,14 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { PrivateKeyAccountDetails } from './PrivateKeyAccountDetails';
+import { HdAccountDetails } from './HdAccountDetails';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountsSelectors } from '../../../../../../../e2e/specs/multichainAccounts/delete-account';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 
+const mockIsEvmAccountType = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -23,10 +23,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockAccount = createMockInternalAccount(
+const mockEvmAccount = createMockInternalAccount(
   '0x1234567890123456789012345678901234567890',
-  'Private Key Account',
-  KeyringTypes.simple,
+  'HD EVM Account',
+  KeyringTypes.hd,
   EthAccountType.Eoa,
 );
 
@@ -40,26 +40,18 @@ const mockInitialState = {
       AccountsController: {
         internalAccounts: {
           accounts: {
-            [mockAccount.id]: mockAccount,
+            [mockEvmAccount.id]: mockEvmAccount,
           },
         },
       },
       KeyringController: {
         keyrings: [
           {
-            accounts: [mockAccount.address],
-            type: KeyringTypes.simple,
+            accounts: [mockEvmAccount.address],
+            type: KeyringTypes.hd,
             metadata: {
               id: 'mock-id',
               name: 'mock-name',
-            },
-          },
-          {
-            accounts: [],
-            type: KeyringTypes.hd,
-            metadata: {
-              id: 'mock-id-hd',
-              name: 'mock-name-hd',
             },
           },
         ],
@@ -68,10 +60,16 @@ const mockInitialState = {
   },
 };
 
-describe('PrivateKeyAccountDetails', () => {
+describe('HdAccountDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders BaseAccountDetails wrapper', () => {
+    mockIsEvmAccountType.mockReturnValue(true);
+
     const { getByTestId } = renderWithProvider(
-      <PrivateKeyAccountDetails account={mockAccount} />,
+      <HdAccountDetails account={mockEvmAccount} />,
       { state: mockInitialState },
     );
 
@@ -80,43 +78,17 @@ describe('PrivateKeyAccountDetails', () => {
     ).toBeTruthy();
   });
 
-  it('renders RemoveAccount component', () => {
+  it('always renders ExportCredentials component', () => {
+    mockIsEvmAccountType.mockReturnValue(true);
+
     const { getByTestId } = renderWithProvider(
-      <PrivateKeyAccountDetails account={mockAccount} />,
+      <HdAccountDetails account={mockEvmAccount} />,
       { state: mockInitialState },
     );
 
-    expect(
-      getByTestId(MultichainDeleteAccountsSelectors.deleteAccountRemoveButton),
-    ).toBeTruthy();
-  });
-
-  it('renders both child components within BaseAccountDetails', () => {
-    const { getByTestId } = renderWithProvider(
-      <PrivateKeyAccountDetails account={mockAccount} />,
-      { state: mockInitialState },
-    );
-
-    const baseAccountDetails = getByTestId(
-      AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER,
-    );
-    const removeAccount = getByTestId(
-      MultichainDeleteAccountsSelectors.deleteAccountRemoveButton,
-    );
-
-    expect(baseAccountDetails).toBeTruthy();
-    expect(removeAccount).toBeTruthy();
-  });
-
-  it('only renders show private key', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <PrivateKeyAccountDetails account={mockAccount} />,
-      { state: mockInitialState },
-    );
-
+    expect(getByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeTruthy();
     expect(
       getByTestId(ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON),
     ).toBeTruthy();
-    expect(queryByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeNull();
   });
 });
