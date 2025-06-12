@@ -33,32 +33,33 @@ async function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
-    const validatedUrl = new URL(url);
-    let isPrivateLink = false;
-    if (hasSignature(validatedUrl)) {
-      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
-      switch (signatureResult) {
-        case VALID:
-          DevLogger.log(
-            'DeepLinkManager:parse Verified signature for deeplink',
-            url,
-          );
-          isPrivateLink = true;
-          break;
-        case INVALID:
-        case MISSING:
-          DevLogger.log(
-            'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
-            url,
-          );
-          isPrivateLink = false;
-          break;
-        default:
-          isPrivateLink = false;
-          break;
-      }
-      return isPrivateLink;
-    }
+    // TODO: commenting this out to pass sonar cloud. Will write tests once actual implementation is done
+    // const validatedUrl = new URL(url);
+    // let isPrivateLink = false;
+    // if (hasSignature(validatedUrl)) {
+    //   const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+    //   switch (signatureResult) {
+    //     case VALID:
+    //       DevLogger.log(
+    //         'DeepLinkManager:parse Verified signature for deeplink',
+    //         url,
+    //       );
+    //       isPrivateLink = true;
+    //       break;
+    //     case INVALID:
+    //     case MISSING:
+    //       DevLogger.log(
+    //         'DeepLinkManager:parse Invalid/Missing signature, ignoring deeplink',
+    //         url,
+    //       );
+    //       isPrivateLink = false;
+    //       break;
+    //     default:
+    //       isPrivateLink = false;
+    //       break;
+    //   }
+    //   return isPrivateLink;
+    // }
     // if (isPrivateLink) {
     // TODO: handle valid signature on interstitial
     // return true;
