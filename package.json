@@ -160,7 +160,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
-    "@consensys/native-ramps-sdk": "1.0.2",
+    "@consensys/native-ramps-sdk": "1.0.",
     "@consensys/on-ramp-sdk": "2.1.10",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
