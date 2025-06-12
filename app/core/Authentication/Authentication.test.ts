@@ -3,7 +3,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  EXISTING_USER,
   SOLANA_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';

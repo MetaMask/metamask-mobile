@@ -832,6 +832,7 @@ const App: React.FC = () => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(
