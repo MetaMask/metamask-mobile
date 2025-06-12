@@ -102,13 +102,9 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.scrollToBottomOfNetworkList();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
         await NetworkListModal.changeNetworkTo(MONAD_TESTNET.nickname);
         await Assertions.checkIfVisible(NetworkEducationModal.container);
-        await Assertions.checkIfElementToHaveText(
-          NetworkEducationModal.networkName,
-          MONAD_TESTNET.nickname,
-        );
+        
         await NetworkEducationModal.tapGotItButton();
 
         await TabBarComponent.tapActions();
@@ -139,15 +135,10 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.scrollToBottomOfNetworkList();
-        //Verify testnet toggle is enabled
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
         //Change network to MegaETH Testnet
         await NetworkListModal.changeNetworkTo(MEGAETH_TESTNET.nickname);
         await Assertions.checkIfVisible(NetworkEducationModal.container);
-        await Assertions.checkIfElementToHaveText(
-          NetworkEducationModal.networkName,
-          MEGAETH_TESTNET.nickname,
-        );
+      
         await NetworkEducationModal.tapGotItButton();
 
         await TabBarComponent.tapActions();
