@@ -1,8 +1,12 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
 import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
-import { ONBOARDING, PROTECT } from '../../../constants/navigation';
+import {
+  ONBOARDING,
+  PREVIOUS_SCREEN,
+  PROTECT,
+} from '../../../constants/navigation';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -19,6 +23,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       createNewVaultAndKeychain: jest.fn().mockResolvedValue(true),
+      exportSeedPhrase: jest.fn().mockResolvedValue('test seed phrase'),
     },
   },
 }));
@@ -41,6 +46,11 @@ jest.mock('../../../core/Authentication', () => ({
     availableBiometryType: 'faceID',
   }),
   newWalletAndKeychain: jest
+    .fn()
+    .mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
+    ),
+  newWalletAndRestore: jest
     .fn()
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
@@ -75,6 +85,7 @@ interface ChoosePasswordProps {
     params: {
       [ONBOARDING]?: boolean;
       [PROTECT]?: boolean;
+      [PREVIOUS_SCREEN]?: string;
     };
   };
   navigation?: {
@@ -130,12 +141,10 @@ describe('ChoosePassword', () => {
 
     const component = renderWithProviders(<ChoosePassword {...props} />);
 
-    // Wait for initial render
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    // Fill in password fields and trigger loading state
     const passwordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
@@ -155,7 +164,10 @@ describe('ChoosePassword', () => {
     const checkbox = component.getByTestId(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
-    fireEvent.press(checkbox);
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
 
     const submitButton = component.getByRole('button', {
       name: strings('choose_password.confirm_cta'),
@@ -164,7 +176,9 @@ describe('ChoosePassword', () => {
     // Button should still be disabled (checkbox not checked)
     expect(submitButton.props.disabled).toBe(false);
 
-    fireEvent.press(submitButton);
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
 
     // Check if title text is rendered correctly for loading state
     const loadingTitle = component.getByText(
@@ -182,7 +196,6 @@ describe('ChoosePassword', () => {
 
     const component = renderWithProviders(<ChoosePassword {...props} />);
 
-    // Wait for initial render
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -235,7 +248,6 @@ describe('ChoosePassword', () => {
 
     renderWithProviders(<ChoosePassword {...props} />);
 
-    // Wait for initial render
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -261,7 +273,7 @@ describe('ChoosePassword', () => {
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
-  it('should set biometryType and biometryChoice when currentAuthType is PASSCODE', async () => {
+  it('set biometryType and biometryChoice when currentAuthType is PASSCODE', async () => {
     // Mock Authentication.getType to return PASSCODE
     const mockGetType = jest.spyOn(Authentication, 'getType');
     mockGetType.mockResolvedValueOnce({
@@ -314,7 +326,7 @@ describe('ChoosePassword', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should set biometryType and biometryChoice when availableBiometryType exists', async () => {
+  it('set biometryType and biometryChoice when availableBiometryType exists', async () => {
     // Mock Authentication.getType to return availableBiometryType
     const mockGetType = jest.spyOn(Authentication, 'getType');
     mockGetType.mockResolvedValueOnce({
@@ -365,5 +377,85 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:UserTermsAcceptedv1.0',
     );
+  });
+
+  it('create a password and navigate to AccountBackupStep1', async () => {
+    // Mock Authentication.newWalletAndKeychain to resolve quickly to trigger loading state
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+
+    mockNewWalletAndKeychain.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 50)),
+    );
+
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true, [PREVIOUS_SCREEN]: ONBOARDING } },
+      navigation: mockNavigation,
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    // Wait for initial render and componentDidMount
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Clear previous navigation calls to focus on the componentDidUpdate behavior
+    mockNavigation.setParams.mockClear();
+
+    // Fill in form with valid data that meets all requirements
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+    });
+
+    expect(passwordInput.props.value).toBe('StrongPassword123!@#');
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    await waitFor(() => {
+      expect(checkbox.props.disabled).toBe(false);
+    });
+
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    // Submit the form to trigger loading state change
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    // Wait a moment for the loading state to be set and componentDidUpdate to be called
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1');
+
+    // // Clean up mock
+    mockNewWalletAndKeychain.mockRestore();
   });
 });
