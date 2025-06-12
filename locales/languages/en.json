@@ -1376,7 +1376,9 @@
     "developer_options": {
       "title": "Developer Options",
       "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace.",
+      "navigate_to_sample_feature": "Navigate to Sample Feature",
+      "sample_feature_desc": "A sample feature as a template for developers."
     }
   },
   "aes_crypto_test_form": {
@@ -4311,6 +4313,23 @@
       "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
       "get_started": "Get started",
       "learn_more": "Learn more"
+    }
+  },
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
+    "counter": {
+      "title": "Counter",
+      "value": "Value: {{value}}",
+      "increment": "Increment Redux Counter"
+    },
+    "pet_name": {
+      "list_count_text": "Pet Names on this network",
+      "add_pet_name_button": "Add Pet Name",
+      "address": "Address",
+      "address_placeholder": "0x...",
+      "name": "Name",
+      "name_placeholder": "Name"
     }
   }
 }

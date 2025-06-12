@@ -242,6 +242,7 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  SAMPLE_FEATURE: 'SampleFeature',
 };
 
 export default Routes;

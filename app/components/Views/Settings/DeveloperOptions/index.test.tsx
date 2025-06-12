@@ -10,7 +10,7 @@ const initialState = {
 };
 
 describe('DeveloperOptions', () => {
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderScreen(
       DeveloperOptions,
       { name: 'DeveloperOptions' },

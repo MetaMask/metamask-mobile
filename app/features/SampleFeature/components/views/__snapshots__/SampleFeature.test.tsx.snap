@@ -1,0 +1,467 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SampleFeature render matches snapshot 1`] = `
+<RCTScrollView
+  automaticallyAdjustContentInsets={false}
+  contentInset={
+    {
+      "bottom": 0,
+    }
+  }
+  enableAutomaticScroll={true}
+  enableOnAndroid={false}
+  enableResetScrollToCoords={true}
+  extraHeight={75}
+  extraScrollHeight={0}
+  getScrollResponder={[Function]}
+  handleOnScroll={[Function]}
+  keyboardDismissMode="interactive"
+  keyboardOpeningTime={250}
+  keyboardShouldPersistTaps="always"
+  keyboardSpace={0}
+  onScroll={[Function]}
+  resetKeyboardSpace={[Function]}
+  resetScrollToCoords={
+    {
+      "x": 0,
+      "y": 0,
+    }
+  }
+  scrollEventThrottle={1}
+  scrollForExtraHeightOnAndroid={[Function]}
+  scrollIntoView={[Function]}
+  scrollToEnd={[Function]}
+  scrollToFocusedInput={[Function]}
+  scrollToPosition={[Function]}
+  showsVerticalScrollIndicator={true}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 24,
+        "paddingBottom": 48,
+      },
+    ]
+  }
+  update={[Function]}
+  viewIsInsideTabBar={false}
+>
+  <View>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+          "marginTop": 16,
+        }
+      }
+    >
+      Sample Feature
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "marginTop": 8,
+        }
+      }
+    >
+      This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "center",
+          "padding": 16,
+          "width": "100%",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 8,
+            "height": 32,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 32,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          resizeMode="contain"
+          source={1}
+          style={
+            {
+              "height": 32,
+              "width": 32,
+            }
+          }
+          testID="network-avatar-image"
+        />
+      </View>
+      <Text
+        style={{}}
+      >
+        Ethereum Mainnet
+      </Text>
+    </View>
+    <TouchableOpacity
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 4,
+          "borderWidth": 1,
+          "padding": 16,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 16,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        testID="sample-counter-pane-title"
+      >
+        Counter
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        testID="sample-counter-pane-value"
+      >
+        Value: 0
+      </Text>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+            "width": "100%",
+          }
+        }
+        testID="sample-counter-pane-increment-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Increment Redux Counter
+        </Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+    <RCTSafeAreaView
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+          "marginTop": 16,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "alignSelf": "center",
+              "flex": 1,
+              "flexDirection": "row",
+            },
+            {
+              "paddingBottom": 0,
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "padding": 16,
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Pet Names on this network
+          </Text>
+          <View />
+          <View
+            style={
+              {
+                "marginTop": 24,
+                "paddingBottom": 24,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "marginBottom": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                Address
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoCapitalize="none"
+                    autoFocus={false}
+                    editable={true}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    placeholder="0x..."
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="pet-name-address-input"
+                    value=""
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "marginBottom": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                Name
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoFocus={false}
+                    editable={true}
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    placeholder="Name"
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="pet-name-name-input"
+                    value=""
+                  />
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 20,
+                  "flexDirection": "row",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                  "width": "100%",
+                }
+              }
+              testID="add-pet-name-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Add Pet Name
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </RCTSafeAreaView>
+  </View>
+</RCTScrollView>
+`;

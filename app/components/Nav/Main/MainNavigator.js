@@ -99,6 +99,7 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -796,6 +797,15 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+const SampleFeatureFlow = () => (
+    <Stack.Navigator>
+        <Stack.Screen
+            name={Routes.SAMPLE_FEATURE}
+            component={SampleFeature}
+        />
+    </Stack.Navigator>
+);
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -912,6 +922,10 @@ const MainNavigator = () => (
       options={{
         headerShown: true,
       }}
+    />
+    <Stack.Screen
+      name={Routes.SAMPLE_FEATURE}
+      component={SampleFeatureFlow}
     />
   </Stack.Navigator>
 );
