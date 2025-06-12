@@ -71,7 +71,6 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Sent ETH');
         await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );

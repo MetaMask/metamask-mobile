@@ -30,8 +30,8 @@ const Routes = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
+    KYC_PROCESSING: 'KycProcessing',
     PROVIDER_WEBVIEW: 'ProviderWebview',
-    KYC_PENDING: 'KycPending',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -230,7 +230,13 @@ const Routes = {
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
-  SET_PASSWORD_FLOW: 'SetPasswordFlow',
+  SET_PASSWORD_FLOW: {
+    ROOT: 'SetPasswordFlow',
+    MANUAL_BACKUP_STEP_1: 'ManualBackupStep1',
+    MANUAL_BACKUP_STEP_2: 'ManualBackupStep2',
+    MANUAL_BACKUP_STEP_3: 'ManualBackupStep3',
+  },
+
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 
