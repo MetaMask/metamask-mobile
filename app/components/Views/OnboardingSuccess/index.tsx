@@ -249,3 +249,5 @@ const OnboardingSuccess = () => {
     />
   );
 };
+
+export default OnboardingSuccess;
